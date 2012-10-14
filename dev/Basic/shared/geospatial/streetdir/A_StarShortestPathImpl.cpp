@@ -36,7 +36,7 @@ sim_mob::A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& netwo
 #endif
 }
 
-sim_mob::A_StarShortestPathImpl::~A_StarShortestPathImpl()
+/*sim_mob::A_StarShortestPathImpl::~A_StarShortestPathImpl()
 {
     // Cleanup to avoid memory leakage.
     for (size_t i = 0; i < nodes_.size(); ++i) {
@@ -44,7 +44,7 @@ sim_mob::A_StarShortestPathImpl::~A_StarShortestPathImpl()
         delete node;
     }
     nodes_.clear();
-}
+}*/
 
 namespace {
 
@@ -208,9 +208,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 				newPos = Point2D(vec.getX(), vec.getY());
 			}
 
-			//TODO: Leaks memory!
-			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, vNode);
+			//Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, newPos);
 		} else {
 			//Each incoming and outgoing RoadSegment has exactly one Node at the Intersection. In this case, the unused before/after
 			//   RoadSegment is used to identify whether this is an incoming or outgoing Vertex.
@@ -228,9 +227,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 				throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
 			}
 
-			//TODO: Leaks memory!
-			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, vNode);
+			//Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, newPos);
 		}
 	}
 }
@@ -474,9 +472,8 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 					newPos = Point2D(vec.getX(), vec.getY());
 				}
 
-				//TODO: Leaks memory!
-				Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-				boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, vNode);
+				//Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+				boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, newPos);
 			}
 		} else {
 			//MultiNodes are much more complex. For now, we just collect all vertices into a "potential" list.
@@ -593,8 +590,8 @@ void sim_mob::A_StarShortestPathImpl::procResolveWalkingMultiNodes(StreetDirecto
 			//Put the actual point halfway between the two candidate points.
 			DynamicVector vec(it->second.first.tempPos, it->second.second.tempPos);
 			vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
-			Node* vNode = new UniNode(vec.getX(), vec.getY());   //TODO: Leaks memory!
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, vNode);
+			//Node* vNode = new UniNode(vec.getX(), vec.getY());   //TODO: Leaks memory!
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, Point2D(vec.getX(), vec.getY()));
 
 			//Tag each unmerged Vertex so that we don't re-use them.
 			alreadyMerged.push_back(it->second.first);
@@ -613,8 +610,8 @@ void sim_mob::A_StarShortestPathImpl::procResolveWalkingMultiNodes(StreetDirecto
 			//before/after should be set properly in this case.
 			NodeDescriptor newNd(*it);
 			newNd.v = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
-			Node* vNode = new UniNode(it->tempPos.getX(), it->tempPos.getY());   //TODO: Leaks memory!
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, vNode);
+			//Node* vNode = new UniNode(it->tempPos.getX(), it->tempPos.getY());   //TODO: Leaks memory!
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, it->tempPos);
 
 			//Save it for later.
 			nodeLookup[node].vertices.push_back(newNd);
@@ -838,8 +835,8 @@ void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory:
 		StreetDirectory::Vertex source = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		StreetDirectory::Vertex sink = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		resLookup[it->first] = std::make_pair(source, sink);
-		boost::put(boost::vertex_name, graph, source, it->first);
-		boost::put(boost::vertex_name, graph, sink, it->first);
+		boost::put(boost::vertex_name, graph, source, it->first->location);
+		boost::put(boost::vertex_name, graph, sink, it->first->location);
 
 		//Link to each child vertex. Assume a trivial distance.
 		for (std::vector<NodeDescriptor>::const_iterator it2=it->second.vertices.begin(); it2!=it->second.vertices.end(); it2++) {
@@ -1026,13 +1023,16 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::shortestWalkingPath(const Poin
     // Similarly if toPoint is not located exactly at toVertex, then we append a WayPpint to
     // move from tiVertex to toPoint.
     std::vector<WayPoint> result;
-    Node const * node = boost::get(boost::vertex_name, walkingMap_, fromVertex);
-    if (node->location != fromPoint)
-        result.push_back(WayPoint(node));
+    const double MIN_SPLIT_DIST = 5 * 100; //If the user has to walk more than 5m, consider it a new point in the graph.
+    Point2D fromNodePt = boost::get(boost::vertex_name, walkingMap_, fromVertex);
+    if (sim_mob::dist(fromNodePt, fromPoint) > MIN_SPLIT_DIST) {
+    	result.push_back(WayPoint(fromNodePt));
+    }
     result.insert(result.end(), path.begin(), path.end());
-    node = boost::get(boost::vertex_name, walkingMap_, toVertex);
-    if (node->location != toPoint)
-        result.push_back(WayPoint(node));
+    Point2D toNodePt = boost::get(boost::vertex_name, walkingMap_, toVertex);
+    if (sim_mob::dist(toNodePt, toPoint) > MIN_SPLIT_DIST) {
+        result.push_back(WayPoint(toNodePt));
+    }
     return result;
 }
 
@@ -1090,14 +1090,14 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     StreetDirectory::Graph::vertex_iterator iter, end;
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
-    	const Node* n = boost::get(boost::vertex_name, graph, v);
+    	const Point2D pt = boost::get(boost::vertex_name, graph, v);
     	LogOutNotSync("(\"sd-vertex\""
     		<<","<<0
     		<<","<<v
     		<<",{"
     		<<"\"parent\":\""<<&graph
-    		<<"\",\"xPos\":\""<<n->location.getX()
-    		<<"\",\"yPos\":\""<<n->location.getY()
+    		<<"\",\"xPos\":\""<<pt.getX()
+    		<<"\",\"yPos\":\""<<pt.getY()
     		<<"\"})"<<std::endl);
     }
 	}

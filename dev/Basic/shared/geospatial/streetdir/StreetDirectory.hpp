@@ -13,6 +13,8 @@
 #include <boost/utility.hpp>
 
 #include "metrics/Length.hpp"
+#include "util/GeomHelpers.hpp"
+#include "geospatial/Point2D.hpp"
 
 //Pull in our typedefs
 #include "entities/signal_transitional.hpp"
@@ -89,6 +91,10 @@ class Crossing;
  * take a SIDE_WALK WayPoint and attempt to access its roadSegment_ data member. Perhaps we can start with getters/setters
  * and make the unionized type private? That way we can throw an exception if the wrong access pattern is used.  ~Seth
  *
+ * \todo
+ * As an example of the possible cleanup, "nonspatial" should actually be given x/y positional information, but we can't do that
+ * now (because we are using value types)
+ *
  * \sa StreetDirectory::shortestDrivingPath()
  * \sa StreetDirectory::shortestWalkingPath()
  */
@@ -100,6 +106,7 @@ struct WayPoint
         BUS_STOP,     //!< WayPoint is a bus-stop; busStop_ points to a BusStop object.
         CROSSING,     //!< WayPoint is a crossing; crossing_ points to a Crossing object.
         NODE,         //!< WayPoint is node; node_ points to a Node object.
+        NONSPATIAL,   //!< WayPoint has no associated data; it must simply be "traversed".
         INVALID       //!< WayPoint is invalid, none of the pointers are valid.
     } type_;
 
@@ -124,6 +131,7 @@ struct WayPoint
     explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop),directionReverse(false) {}
     explicit WayPoint(Crossing const * crossing) : type_(CROSSING), crossing_(crossing),directionReverse(false) {}
     explicit WayPoint(Node const * node) : type_(NODE), node_(node),directionReverse(false) {}
+    explicit WayPoint(const Point2D& ignored) : type_(NONSPATIAL), node_(nullptr),directionReverse(false) {}
     /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 };
 
@@ -212,10 +220,11 @@ public:
     /**
      * Internal typedef to StreetDirectory representing:
      *   key:    The "vertex_name" property.
-     *   value:  The Node* at that vertex.
+     *   value:  The Point2D representing that vertex's location. This point is not 100% accurate,
+     *           and should be considered a rough guideline as to the vertex's location.
      * This is just a handy way of retrieving data "stored" at a given vertex.
      */
-    typedef boost::property<boost::vertex_name_t, const Node*> VertexProperties;
+    typedef boost::property<boost::vertex_name_t, Point2D> VertexProperties;
 
 
     /**

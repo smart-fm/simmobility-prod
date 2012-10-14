@@ -63,6 +63,10 @@ double sim_mob::dist(const Point2D& p1, const Point2D& p2)
 {
 	return dist(p1.getX(), p1.getY(), p2.getX(), p2.getY());
 }
+double sim_mob::dist(const DPoint& p1, const Point2D& p2)
+{
+	return dist(p1.x, p1.y, p2.getX(), p2.getY());
+}
 double sim_mob::dist(const Agent& ag, const Point2D& pt)
 {
 	return dist(ag.xPos.get(), ag.yPos.get(), pt.getX(), pt.getY());

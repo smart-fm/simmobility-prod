@@ -28,7 +28,7 @@ class Link;
 class A_StarShortestPathImpl : public StreetDirectory::ShortestPathImpl {
 public:
     explicit A_StarShortestPathImpl(const RoadNetwork& network);
-    virtual ~A_StarShortestPathImpl();
+    virtual ~A_StarShortestPathImpl() {}
 
 protected:
     virtual std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
@@ -73,7 +73,7 @@ private:
 private:
     StreetDirectory::Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     StreetDirectory::Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
-    std::vector<Node*> nodes_; // "Internal" uni-nodes that are created when building the maps.
+    //std::vector<Node*> nodes_; // "Internal" uni-nodes that are created when building the maps.
 
     //Lookup the master Node for each Node-related vertex.
     //Note: The first item is the "source" vertex, used to search *from* that Node. The second item is the "sink" vertex, used to search *to* that Node.
@@ -117,10 +117,10 @@ private:
     public:
       distance_heuristic(const Graph* graph, StreetDirectory::Vertex goal) : m_graph(graph), m_goal(goal) {}
       CostType operator()(StreetDirectory::Vertex v) {
-    	  const Node* atPos = boost::get(boost::vertex_name, *m_graph, v);
-    	  const Node* goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
+    	  const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
+    	  const Point2D goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
 
-    	  return sim_mob::dist(atPos->getLocation(), goalPos->getLocation());
+    	  return sim_mob::dist(atPos, goalPos);
       }
     private:
       const Graph* m_graph;

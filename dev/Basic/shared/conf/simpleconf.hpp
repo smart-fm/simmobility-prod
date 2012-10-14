@@ -236,11 +236,11 @@ public:
 	std::vector<sim_mob::PT_bus_routes*>& getPT_bus_routes() { return pt_bus_routes; }
 
 
-	std::map<int, sim_mob::RoadSegment*>& getSectionID_RoadSegments() { return sectionID_roadSegments; }
-	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
 	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
-	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
-	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	std::map<int, sim_mob::RoadSegment*>& getSectionID_RoadSegments() { return sectionID_roadSegments; }
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
+	std::map<std::string, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
 
 private:
 	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
@@ -263,8 +263,8 @@ private:
 
 
 	std::vector<sim_mob::TripChainItem*> bustripchains;
-	std::map<int, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
-	std::map<int, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
+	std::map<std::string, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
 	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> > tripID_BusStopInfos; // map<tripID, vector<BusStopInfo*>>
 	bool sealedNetwork;
 };

@@ -1297,6 +1297,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
     	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
+//			if(!BusController::all_busctrllers_.empty()) {
+//				BusController::all_busctrllers_[0]->setPTSchedule();
+//				BusController::all_busctrllers_[0]->assignBusTripChainWithPerson(active_agents);
+//			}
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {

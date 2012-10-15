@@ -83,6 +83,12 @@ void sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 	// later add argument std::vector<const BusStop*>& busStop_vec
 }
 
+sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime end_Time, int headway)
+: start_Time(start_Time), end_Time(end_Time), headway(headway)
+{
+
+}
+
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
@@ -116,6 +122,11 @@ CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
 void sim_mob::Busline::addBusTrip(BusTrip& aBusTrip)
 {
 	busTrip_vec.push_back(aBusTrip);
+}
+
+void sim_mob::Busline::addFrequencyBusline(Frequency_Busline& aFrequencyBusline)
+{
+	frequency_busline.push_back(aFrequencyBusline);
 }
 
 void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)

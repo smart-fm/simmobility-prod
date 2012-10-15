@@ -131,10 +131,11 @@ void sim_mob::BusController::setPTSchedule()
 		}
 		//If done, new a BusLine with busline id
 		if (done) {
-			// current only the first one Trip is generated, not considering multiple bustrips with headways
+			// current only the first one Trip is generated, not considering multiple bustrips with headways, later this logic will change
 			Busline* busline = new Busline((*it)->route_id);
 			//Person* ag = new Person("DB_TripChain", config.mutexStategy, 555);// 555 for test
 			BusTrip bustrip(555, "BusTrip", 0, (*it)->start_time, DailyTime(), 0, (*it)->route_id, 0, (*it)->route_id);// 555 for test
+			Frequency_Busline frequency_busline((*it)->start_time,(*it)->end_time,(*it)->headway_sec);
 			bustrip.setBusRouteInfo(routeID_roadSegments[(*it)->route_id]);
 			busline->addBusTrip(bustrip);
 			pt_schedule.registerBusLine((*it)->route_id, busline);

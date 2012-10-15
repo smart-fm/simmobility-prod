@@ -128,8 +128,9 @@ enum CONTROL_TYPE {
 
 class Frequency_Busline {
 public:
-	unsigned int start_Time;// MS offset from simulation start time
-	unsigned int end_Time;// MS offset from simulation start time
+	Frequency_Busline(DailyTime start_Time=DailyTime("00:00:00"), DailyTime end_Time=DailyTime("00:00:00"), int headway=0);
+	DailyTime start_Time;// DailyTime start time
+	DailyTime end_Time;// DailyTime end time
 	int headway;// sec
 };
 
@@ -147,6 +148,7 @@ public:
 		return busline_id;
 	}
 	void addBusTrip(BusTrip& aBusTrip);
+	void addFrequencyBusline(Frequency_Busline& aFrequencyBusline);
 	const std::vector<BusTrip>& queryBusTrips() const {
 		return busTrip_vec;
 	}

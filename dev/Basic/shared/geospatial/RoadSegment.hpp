@@ -65,7 +65,7 @@ public:
 		maxSpeed(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id)
 	{}
 
-	const unsigned long  & getSegmentID()const ;
+	const unsigned long  getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
 	{

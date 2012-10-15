@@ -18,7 +18,7 @@ using std::pair;
 using std::vector;
 
 
-const unsigned long  &  sim_mob::RoadSegment::getSegmentID()const
+const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {
 	return segmentID;
 }

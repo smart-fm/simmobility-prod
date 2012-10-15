@@ -98,6 +98,7 @@ public:
 protected:
 	//Helper, to keep our loop in order.
 	static void buildConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+	static void buildNewConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
 
 	//Old set of lane connectors
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;

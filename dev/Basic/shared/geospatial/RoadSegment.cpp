@@ -32,6 +32,15 @@ void sim_mob::RoadSegment::setParentLink(Link* parent)
 	this->parentLink = parent;
 }
 
+const sim_mob::Lane* sim_mob::RoadSegment::getLane(int laneID) const
+{
+	if (laneID<0 || laneID>=lanes.size()) {
+		return nullptr;
+	}
+	return lanes[laneID];
+}
+
+
 bool sim_mob::RoadSegment::isSingleDirectional()
 {
 	return lanesLeftOfDivider==0 || lanesLeftOfDivider==lanes.size()-1;

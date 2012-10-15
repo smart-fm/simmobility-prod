@@ -98,7 +98,29 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 
 		//Dispatch
 		buildConnectorsFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
+		buildNewConnectorsFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
 	}
+}
+
+
+void sim_mob::UniNode::buildNewConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane)
+{
+	//Get the "to" lane offset.
+	int alignOffset = static_cast<int>(toAlignLane) - static_cast<int>(fromAlignLane);
+
+	//We build a lookup based on the "from" lanes.
+	for (size_t fromID=0; fromID<fromSeg->getLanes().size(); fromID++) {
+		//We consider "left", "center", and "right", based on the original offset lane.
+		int toIDCenter = static_cast<int>(fromID) + alignOffset;
+		UniLaneConnector lc;
+		lc.left = toSeg->getLane(toIDCenter-1);
+		lc.center = toSeg->getLane(toIDCenter);
+		lc.right = toSeg->getLane(toIDCenter+1);
+
+		//Save it.
+		node->new_connectors[fromSeg->getLane(fromID)] = lc;
+	}
+
 }
 
 

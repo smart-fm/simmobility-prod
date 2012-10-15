@@ -76,10 +76,12 @@ public:
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
-	void end1(){};
 	const std::vector<sim_mob::Lane*>& getLanes() const {
-		void end1();
-		return lanes; }
+		return lanes;
+	}
+
+	///Return the Lane at a given ID, or null if that Lane ID is out of bounds.
+	const sim_mob::Lane* getLane(int laneID) const;
 
 
 	sim_mob :: BusStop* getBusStop() {

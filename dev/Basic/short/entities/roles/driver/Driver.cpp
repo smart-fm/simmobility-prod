@@ -680,19 +680,22 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 
-	if (!vehicle->hasNextSegment(true)) {
+	if (!vehicle->hasNextSegment(true)) // has seg in current link
+	{
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
 				/ 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
-	} else
+	}
+	else
 	{
 		p.nextLaneIndex = std::min<int>(p.currLaneIndex, vehicle->getNextSegment()->getLanes().size() - 1);
 		if(vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
 		{
 			p.nextLaneIndex--;
 			p.dis2stop = vehicle->getCurrPolylineLength() - vehicle->getDistanceMovedInSegment() + 1000;
+			p.dis2stop /= 100;
 		}
 		else
 			p.dis2stop = 1000;//defalut 1000m
@@ -700,7 +703,60 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //
 //	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
 //		p.nextLaneIndex = p.currLaneIndex;
+
+	// check current lane has connector to next link
+	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	{
+////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
+		const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
+		if(currEndNode)
+		{
+			// get lane connector
+			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
+
+			if (lcs.size()>0)
+			{
+				//
+				if(p.currLane->is_pedestrian_lane())
+					std::cout<<"drive on pedestrian lane"<<std::endl;
+				bool currentLaneConnectToNextLink = false;
+				size_t targetLaneIndex=-1;
+				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
+						// current lane connect to next link
+						currentLaneConnectToNextLink = true;
+					}
+					//find target lane with same index, use this lane
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
+					}
+				}
+				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
+				{
+					//check target lane first
+					if(targetLaneIndex == -1) // no target lane?
+						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+					p.nextLaneIndex = targetLaneIndex;
+					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
+					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+					if (mitsim_lc_model) {
+						LANE_CHANGE_SIDE lcs = LCS_SAME;
+//						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						vehicle->setTurningDirection(lcs);
+					} else {
+						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+					}
+				}
+			} // end of if (!lcs)
+		}
+	}
+
 	//Check if we should change lanes.
+	if (p.currTimeMS/1000.0 > 41.6 && parent->getId() == 24)
+		std::cout<<"find vh"<<std::endl;
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
@@ -745,7 +801,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-
+	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
+			" acceleration: "<<vehicle->getAcceleration()/100.0<<
+			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
 	return updatePositionOnLink(p);
 }
 
@@ -932,6 +990,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 	//Retrieve the node we're on, and determine if this is in the forward direction.
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
 	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+	const RoadSegment* currentLinkNextSegment = vehicle->getNextSegment(true);
 
 	//Build up a list of target lanes.
 	nextLaneInNextLink = nullptr;
@@ -1095,7 +1154,7 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 0;
+		int startlaneID = 1;
 
 		// Bus should be at least 1200 to be displayed on Visualizer
 		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
@@ -1232,6 +1291,11 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	double res = 0.0;
 	try {
 		res = vehicle->moveFwd(fwdDistance);
+		if(!vehicle->isInIntersection())
+		{
+			double d = vehicle->getDistanceMovedInSegment();
+			double c=0;
+		}
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -1292,7 +1356,8 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
-
+	if (params.currTimeMS/1000.0 > 41.8 && parent->getId() == 25)
+			std::cout<<"find vh"<<std::endl;
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}

@@ -244,8 +244,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
-
-/*	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
+/*
+	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<vehicle->getLatVelocity()/100.0<<std::endl;
@@ -356,7 +356,7 @@ bool sim_mob::BusDriver::isBusLeavingBusStop() const
 double sim_mob::BusDriver::distanceToNextBusStop() const
 {
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-	double distanceToNextSegmentBusStop;
+	double distanceToNextSegmentBusStop = -1;
 	if (vehicle->hasNextSegment(true))
 		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 

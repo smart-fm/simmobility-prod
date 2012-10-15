@@ -52,11 +52,14 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 	currPolypoint = polypointsList.begin() + (copyFrom.currPolypoint - copyFrom.polypointsList.begin());
 	nextPolypoint = polypointsList.begin() + (copyFrom.nextPolypoint - copyFrom.polypointsList.begin());
 
-	//Lane-zero iterators are a little trickier
-	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
-	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[0]->getPolyline();
-	currLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.currLaneZeroPolypoint - otherLaneZero.begin());
-	nextLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.nextLaneZeroPolypoint - otherLaneZero.begin());
+//	//Lane-zero iterators are a little trickier
+	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[currLaneID]->getPolyline();
+	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[currLaneID]->getPolyline();
+//	currLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.currLaneZeroPolypoint - otherLaneZero.begin());
+//	nextLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.nextLaneZeroPolypoint - otherLaneZero.begin());
+//	const vector<Point2D>& otherLane = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[currLaneID]->getPolyline();
+//	currLaneZeroPolypoint = otherLane.begin();
+//	nextLaneZeroPolypoint = currLaneZeroPolypoint+1;
 }
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
@@ -330,7 +333,8 @@ void sim_mob::GeneralPathMover::resetPath(const vector<const RoadSegment*>& path
 
 void sim_mob::GeneralPathMover::calcNewLaneDistances()
 {
-	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+//	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	distMovedInCurrSegment += zeroPoly.getMagnitude();
 }
 
@@ -394,14 +398,14 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 
 	//Set our lane zero polypoint-ers.
 	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
-	currLaneZeroPolypoint = tempLaneZero.begin();
-	nextLaneZeroPolypoint = tempLaneZero.begin() + 1;
+//	currLaneZeroPolypoint = tempLaneZero.begin();
+//	nextLaneZeroPolypoint = tempLaneZero.begin() + 1;
 
 	//Debug output
 	if (Debug::Paths)
 	{
 		DebugStream << "On new polyline (1 of " << polypointsList.size() - 1 << ") of length: " << Fmt_M(currPolylineLength()) << "  length of lane zero: " << Fmt_M(
-				dist(*nextLaneZeroPolypoint, *currLaneZeroPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
+				dist(*nextPolypoint, *currPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
 		DebugStream << "Distance of polyline end from end of Road Segment: " << Fmt_M(dist(polypointsList.back(), (*currSegmentIt)->getEnd()->location)) << endl;
 	}
 }
@@ -442,18 +446,18 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* curr
 
 	//Set our lane zero polypoint-ers.
 //	vector<Point2D> tempLaneZero =(*currSegmentIt)->getLanes()[0]->getPolyline();
-	laneZeroPolypointsList = (*currSegmentIt)->getLanes()[0]->getPolyline();
+	laneZeroPolypointsList = (*currSegmentIt)->getLanes()[currLaneID]->getPolyline();
 	if (!isFwd) { //NOTE: I don't think this makes sense.
 		 std::reverse(laneZeroPolypointsList.begin(), laneZeroPolypointsList.end());
 	}
-	currLaneZeroPolypoint = laneZeroPolypointsList.begin();
-	nextLaneZeroPolypoint = laneZeroPolypointsList.begin() + 1;
+//	currLaneZeroPolypoint = laneZeroPolypointsList.begin();
+//	nextLaneZeroPolypoint = laneZeroPolypointsList.begin() + 1;
 
 	//Debug output
 	if (Debug::Paths)
 	{
 		DebugStream << "On new polyline (1 of " << polypointsList.size() - 1 << ") of length: " << Fmt_M(currPolylineLength()) << "  length of lane zero: " << Fmt_M(
-				dist(*nextLaneZeroPolypoint, *currLaneZeroPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
+				dist(*nextPolypoint, *currPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
 		DebugStream << "Distance of polyline end from end of Road Segment: " << Fmt_M(dist(polypointsList.back(), (*currSegmentIt)->getEnd()->location)) << endl;
 	}
 }
@@ -681,8 +685,8 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline(bool isFwd)
 		nextPolypoint++;
 
 		//Advance lane zero pointers
-		currLaneZeroPolypoint++;
-		nextLaneZeroPolypoint++;
+//		currLaneZeroPolypoint++;
+//		nextLaneZeroPolypoint++;
 	}
 	else{
 		//LogOut("noteForAdvanceToNext 2"<<std::endl);
@@ -690,8 +694,8 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline(bool isFwd)
 		nextPolypoint++;
 
 		//Advance lane zero pointers
-		currLaneZeroPolypoint++;
-		nextLaneZeroPolypoint++;
+//		currLaneZeroPolypoint++;
+//		nextLaneZeroPolypoint++;
 	}
 
 	//Update length, OR move to a new Segment
@@ -709,7 +713,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline(bool isFwd)
 		if (Debug::Paths)
 		{
 			DebugStream << "On new polyline (" << (currPolypoint - polypointsList.begin() + 1) << " of " << polypointsList.size() - 1 << ") of length: " << Fmt_M(currPolylineLength())
-					<< "  length of lane zero: " << Fmt_M(dist(*nextLaneZeroPolypoint, *currLaneZeroPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
+					<< "  length of lane zero: " << Fmt_M(dist(*nextPolypoint, *currPolypoint)) << ", starting at: " << Fmt_M(distAlongPolyline) << endl;
 		}
 	}
 
@@ -901,14 +905,15 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	throwIf(isInIntersection(), "Can't get distance in Segment while in an intersection.");
 
 	//Get the current median polyline distance
-	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	double totalPolyDist = zeroPoly.getMagnitude();
 
 	//Get the ratio of distance moved over the current one.
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();
 
 	//Add this to the distance moved so far.
-	return distMovedInCurrSegment + distRatio * totalPolyDist;
+	//return distMovedInCurrSegment + distRatio * totalPolyDist;
+	return distMovedInCurrSegment + distAlongPolyline;
 }
 
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const
@@ -995,8 +1000,8 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 		nextPolypoint += distTraveled;
 
 		//And our lane zero pointers
-		currLaneZeroPolypoint += distTraveled;
-		nextLaneZeroPolypoint += distTraveled;
+//		currPolypoint += distTraveled;
+//		nextLaneZeroPolypoint += distTraveled;
 		//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 	}
 

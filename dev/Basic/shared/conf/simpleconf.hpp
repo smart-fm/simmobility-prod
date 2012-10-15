@@ -237,7 +237,8 @@ public:
 
 
 	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
-	std::map<int, sim_mob::RoadSegment*>& getSectionID_RoadSegments() { return sectionID_roadSegments; }
+	std::map<int, unsigned long>& getSectionID_SegmentID() { return sectionID_segmentID; }
+	std::map<unsigned long, sim_mob::RoadSegment*>& getSegmentID_RoadSegments() { return segmentID_roadSegments; }
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
 	std::map<std::string, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
@@ -249,7 +250,8 @@ private:
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
 //	std::vector<sim_mob::TripChainItem*> tripchains;
-	std::map<int, sim_mob::RoadSegment*> sectionID_roadSegments;
+	std::map<int, unsigned long> sectionID_segmentID;
+	std::map<unsigned long, sim_mob::RoadSegment*> segmentID_roadSegments; // already transferred
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 

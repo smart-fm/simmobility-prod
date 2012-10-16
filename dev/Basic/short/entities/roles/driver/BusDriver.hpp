@@ -51,6 +51,7 @@ public:
 
 	double getPositionX() const;
 	double getPositionY() const;
+	Vehicle* initializePath_bus(bool allocateVehicle);
 
 	mutable double lastTickDistanceToBusStop;
 	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information

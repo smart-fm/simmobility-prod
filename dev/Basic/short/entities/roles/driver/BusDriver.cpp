@@ -39,6 +39,64 @@ Role* sim_mob::BusDriver::clone(Person* parent) const
 }
 
 
+Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
+{
+	Vehicle* res = nullptr;
+
+	//Only initialize if the next path has not been planned for yet.
+	if(!parent->getNextPathPlanned()) {
+		//Save local copies of the parent's origin/destination nodes.
+//		origin.node = parent->originNode;
+//		origin.point = origin.node->location;
+//		goal.node = parent->destNode;
+//		goal.point = goal.node->location;
+		vector<const RoadSegment*> path;
+		Person* person = dynamic_cast<Person*>(parent);
+		if(person) {
+			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
+			if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+				path = bustrip->getBusRouteInfo().getRoadSegments();
+			}
+		}
+
+		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
+//		vector<WayPoint> path;
+//		Person* parentP = dynamic_cast<Person*> (parent);
+//		if (!parentP || parentP->specialStr.empty()) {
+//			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+//		} else {
+//			//Retrieve the special string.
+//			size_t cInd = parentP->specialStr.find(':');
+//			string specialType = parentP->specialStr.substr(0, cInd);
+//			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
+//			if (specialType=="loop") {
+//				initLoopSpecialString(path, specialValue);
+//			} else if (specialType=="tripchain") {
+//				path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+//				int x = path.size();
+//				initTripChainSpecialString(specialValue);
+//			} else {
+//				throw std::runtime_error("Unknown special string type.");
+//			}
+//		}
+
+		//TODO: Start in lane 0?
+		int startlaneID = 0;
+
+		// Bus should be at least 1200 to be displayed on Visualizer
+		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
+		const double width = 200;
+
+		//A non-null vehicle means we are moving.
+		if (allocateVehicle) {
+			res = new Vehicle(path, startlaneID, length, width);
+		}
+	}
+
+	//to indicate that the path to next activity is already planned
+	parent->setNextPathPlanned(true);
+	return res;
+}
 
 //We're recreating the parent class's frame_init() method here.
 // Our goal is to reuse as much of Driver as possible, and then
@@ -50,7 +108,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//      creation of the Vehicle (e.g., its width/height). These are both
 	//      very different for Cars and Buses, but until we un-tangle the code
 	//      we'll need to rely on hacks like this.
-	Vehicle* newVeh = initializePath(true);
+	//Vehicle* newVeh = initializePath(true);
+	Vehicle* newVeh = initializePath_bus(true);
 
 	//Save the path, create a vehicle.
 	if (newVeh) {

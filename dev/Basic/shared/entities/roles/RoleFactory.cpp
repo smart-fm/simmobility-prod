@@ -42,6 +42,7 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 	// two names for them
 	const Trip* trip = dynamic_cast<const Trip*>(currTripChainItem);
 	const Activity* act = dynamic_cast<const Activity*>(currTripChainItem);
+	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(currTripChainItem);
 	if (trip && currTripChainItem->itemType==TripChainItem::IT_TRIP) {
 		if (trip->getSubTrips().front().mode=="Car") {
 			return "driver";
@@ -54,6 +55,8 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 		}
 	} else if (act && currTripChainItem->itemType==TripChainItem::IT_ACTIVITY) {
 		return "activityRole";
+	} else if (bustrip && currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+		return "busdriver";
 	} else { //Offer some protection
 		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 	}

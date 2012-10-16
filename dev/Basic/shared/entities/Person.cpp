@@ -221,8 +221,9 @@ void sim_mob::Person::getNextSubTripInTrip(){
 				}
 			}
 		}
-	}
-	else{
+	} else if (this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		std::cout << "BusTrip happens " << std::endl;
+	} else{
 		throw std::runtime_error("Invalid trip chain item type!");
 	}
 }
@@ -421,6 +422,8 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
 		originNode = this->currSubTrip->fromLocation;
 		destNode = this->currSubTrip->toLocation;
+	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		std::cout << "BusTrip happens " << std::endl;
 	} else {
 		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
 		destNode = originNode;

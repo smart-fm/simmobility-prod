@@ -126,7 +126,6 @@ private:
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
 
-	vector<TripChainItem> bustripchains_;
 	map<std::string, vector<const sim_mob::BusStop*> > route_BusStops;
 	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
 	//map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
@@ -143,11 +142,9 @@ private:
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
-	void LoadPTBusTrip(const std::string& storedProc, std::vector<sim_mob::PT_trip*>& pt_trip);// temporary no use
-	void LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq*>& pt_bus_dispatch_freq);
-	void LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes*>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
+	void LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq);
+	void LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
-	void LoadBusTripChain(const std::string& storedProc, std::vector<sim_mob::TripChainItem*>& bustripchains);
 
 private:
 	void LoadBusStop(const std::string& storedProc);
@@ -469,21 +466,7 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
-void DatabaseLoader::LoadPTBusTrip(const std::string& storedProc, std::vector<sim_mob::PT_trip*>& pt_trip)
-{
-//    if (storedProc.empty())
-//    {
-//        std::cout << "WARNING: An empty 'PT_BusTrip' stored-procedure was specified in the config file; " << std::endl;
-//        return;
-//    }
-//    soci::rowset<sim_mob::PT_trip> rows = (sql_.prepare <<"select * from " + storedProc);
-//    for (soci::rowset<sim_mob::PT_trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-//    {
-//    	pt_trip.push_back(new sim_mob::PT_trip(*iter));
-//    }
-}
-
-void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq*>& pt_bus_dispatch_freq)
+void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq)
 {
 	if (storedProc.empty())
 	{
@@ -493,12 +476,14 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	soci::rowset<sim_mob::PT_bus_dispatch_freq> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<sim_mob::PT_bus_dispatch_freq>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
-		pt_bus_dispatch_freq.push_back(new sim_mob::PT_bus_dispatch_freq(*iter));
-		std::cout << iter->frequency_id << " " << iter->route_id << " " << iter->headway_sec << std::endl;
+		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
+		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
+		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
+		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
 	}
 }
 
-void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes*>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
+void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
 {
 	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
@@ -509,17 +494,18 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::map<int
 	soci::rowset<sim_mob::PT_bus_routes> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<sim_mob::PT_bus_routes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
-		pt_bus_routes.push_back(new sim_mob::PT_bus_routes(*iter));
-		std::cout << iter->route_id << " " << atoi(iter->link_id.c_str()) << " " << iter->link_sequence_no << std::endl;
-		unsigned long segmentID = sectionID_segmentID[atoi(iter->link_id.c_str())];
+		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
+		pt_bus_routes.push_back(pt_bus_routesTemp);
+		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
+		unsigned long segmentID = sectionID_segmentID[atoi(pt_bus_routesTemp.link_id.c_str())];
 		if(0!=segmentID) {
 			std::cout << " " << segmentID << " " << std::endl;
-			std::map<unsigned long, sim_mob::RoadSegment*>::const_iterator rs_iter = segmentID_roadSegments.find(segmentID);
-			routeID_roadSegments[iter->route_id].push_back(rs_iter->second);
-			std::cout << " " << rs_iter->second << std::endl;
+			//std::map<unsigned long, sim_mob::RoadSegment*>::const_iterator rs_iter = segmentID_roadSegments.find(segmentID);
+			routeID_roadSegments[iter->route_id].push_back(segmentID_roadSegments[segmentID]);
+			std::cout << " " << segmentID_roadSegments[segmentID] << std::endl;
 		}
 	}
-	std::cout << routeID_roadSegments.size() << "" << std::endl;
+	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
@@ -936,54 +922,6 @@ void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 
 	//Add it to the list.
 	parent->addSubTrip(subTrip);
-}
-
-void DatabaseLoader::LoadBusTripChain(const std::string& storedProc, std::vector<sim_mob::TripChainItem*>& bustripchains)
-{
-    if (storedProc.empty())
-    {
-        std::cout << "WARNING: An empty 'bus_tripchains' stored-procedure was specified in the config file; " << std::endl;
-        return;
-    }
-
-    std::string sql_str = "select * from " + storedProc;
-	//Retrieve a rowset for this set of trip chains.
-    bustripchains_.clear();
-	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-
-//	//Execute as a rowset to avoid repeatedly building the query.
-//	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-//		//The following are set regardless.
-//		it->startTime = sim_mob::DailyTime(it->tmp_startTime);
-//
-//		//The following are only set for Trips or Activities respectively
-//		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
-//			//check nodes
-//			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
-//				throw std::runtime_error("Invalid trip chain fromNode reference.");
-//			}
-//			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
-//				throw std::runtime_error("Invalid trip chain toNode reference.");
-//			}
-//
-//			//Note: Make sure not to resize the Node map after referencing its elements.
-//			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
-//			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
-//		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-//			//Set end time and location.
-//			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
-//			it->location = &nodes_[it->tmp_locationID];
-//		} else {
-//			throw std::runtime_error("Unexpected trip chain type.");
-//		}
-//
-//		//Finally, save it to our intermediate list of TripChainItems.
-//		tripchains_.push_back(*it);
-//	}
-
-    // MakeBusTrip
-    // follow the structure of load tripchain in the SaveSimmobilityNetwork
-    // fill the bustripchains
 }
 
 void DatabaseLoader::DecorateAndTranslateObjects()
@@ -1960,7 +1898,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
-	//loader.LoadPTBusTrip(getStoredProcedure(storedProcs, "pt_bustrip", false), ConfigParams::GetInstance().getPT_trip());
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getSectionID_SegmentID(), ConfigParams::GetInstance().getSegmentID_RoadSegments(), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_Map());
 	return "";

@@ -35,6 +35,7 @@
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/BusTrip.hpp"
+#include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 
@@ -52,9 +53,6 @@ class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
 class BusSchedule;
-class PT_trip;
-class PT_bus_dispatch_freq;
-class PT_bus_routes;
 
 
 /**
@@ -232,16 +230,14 @@ public:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
-	std::vector<sim_mob::PT_bus_dispatch_freq*>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
-	std::vector<sim_mob::PT_bus_routes*>& getPT_bus_routes() { return pt_bus_routes; }
+	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
+	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
 
 
-	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
 	std::map<int, unsigned long>& getSectionID_SegmentID() { return sectionID_segmentID; }
 	std::map<unsigned long, sim_mob::RoadSegment*>& getSegmentID_RoadSegments() { return segmentID_roadSegments; }
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
-	std::map<std::string, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
 
 private:
 	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
@@ -258,16 +254,11 @@ private:
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
 	std::vector<sim_mob::PT_trip*> pt_trip;
-	std::vector<sim_mob::PT_bus_dispatch_freq*> pt_busdispatch_freq;
-	std::vector<sim_mob::PT_bus_routes*> pt_bus_routes;
+	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
+	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
 	// Temporary: Yao Jin
 
-
-
-	std::vector<sim_mob::TripChainItem*> bustripchains;
-	std::map<std::string, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
-	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> > tripID_BusStopInfos; // map<tripID, vector<BusStopInfo*>>
 	bool sealedNetwork;
 };
 

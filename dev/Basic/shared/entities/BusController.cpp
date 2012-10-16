@@ -92,11 +92,13 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& 
 		std::cout << "Error: No busline in the PT_Schedule, please check the setPTSchedule!!!! " << std::endl;
 		return;
 	}
+	std::cout << "buslines.size(): " << buslines.size() << std::endl;
 	Person* currAg = nullptr;
 	std::vector<const TripChainItem*> currAgTripChain;
 	for(std::map<std::string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
 		const std::vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
 			currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
@@ -116,29 +118,38 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& 
 void sim_mob::BusController::setPTSchedule()
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	std::vector<sim_mob::PT_bus_dispatch_freq*>& busdispatch_freq = config.getPT_bus_dispatch_freq();
-	//std::vector<sim_mob::PT_bus_routes*>& bus_routes = config.getPT_bus_routes();
+	std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
 
+//	std::cout << "inside the setPTSchedule(): " << std::endl;
+//	for(int i = 0; i < busdispatch_freq.size(); i++) {
+//		std::cout << "Test[i].frequency_id  " << busdispatch_freq[i].frequency_id << "Test[i].start_time.toString() " << busdispatch_freq[i].start_time.toString() << std::endl;
+//	}
+//
+//	BusTrip bustrip;
 
-	for (std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
-		std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator curr = it;
-		std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator next = it+1;
 
-		bool done = true;
-		if(next!= busdispatch_freq.end() && (*next)->frequency_id == (*curr)->frequency_id) {
-			done = false;
-		}
+	for (std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
+		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr = it;
+		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = it+1;
+
+//		bool done = true;
+//		if(next!= busdispatch_freq.end() && next->frequency_id == curr->frequency_id) {
+//			done = false;
+//		}
 		//If done, new a BusLine with busline id
-		if (done) {
+		if (curr->start_time.toString() == "08:31:00") {
 			// current only the first one Trip is generated, not considering multiple bustrips with headways, later this logic will change
-			Busline* busline = new Busline((*it)->route_id);
-			//Person* ag = new Person("DB_TripChain", config.mutexStategy, 555);// 555 for test
-			BusTrip bustrip(555, "BusTrip", 0, (*it)->start_time, DailyTime(), 0, (*it)->route_id, 0, (*it)->route_id);// 555 for test
-			Frequency_Busline frequency_busline((*it)->start_time,(*it)->end_time,(*it)->headway_sec);
-			bustrip.setBusRouteInfo(routeID_roadSegments[(*it)->route_id]);
+			std::cout << "route id: " << curr->route_id << "startTime: " << curr->start_time.toString() << std::endl;
+			sim_mob::Busline* busline = new sim_mob::Busline(curr->route_id,"no_control");
+
+			std::cout << "Yao Jin is happy " << std::endl;
+			BusTrip bustrip(555, "BusTrip", 0, curr->start_time, DailyTime("00:00:00"), 0, curr->route_id, 0, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
+			Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for this busline
+			std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
+			bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id]);
 			busline->addBusTrip(bustrip);
-			pt_schedule.registerBusLine((*it)->route_id, busline);
+			pt_schedule.registerBusLine(curr->route_id, busline);
 		}
 	}
 

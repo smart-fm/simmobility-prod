@@ -251,6 +251,9 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 {
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
+		if(this->getId() == 555) {
+			std::cout << "555 is available " << std::endl;
+		}
 		checkAndReactToTripChain(currTimeMS, currTimeMS);
 	}
 

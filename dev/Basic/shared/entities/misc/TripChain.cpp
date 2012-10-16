@@ -67,6 +67,8 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
 		return IT_ACTIVITY;
 	} else if (itemType == "Trip") {
 		return IT_TRIP;
+	} else if (itemType == "BusTrip") {
+		return IT_BUSTRIP;
 	} else {
 		throw std::runtime_error("Unknown trip chain item type.");
 	}

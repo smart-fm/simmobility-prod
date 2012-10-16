@@ -26,7 +26,8 @@ sim_mob::BusStop_RealTimes::BusStop_RealTimes(DailyTime real_ArrivalTime, DailyT
 sim_mob::BusRouteInfo::BusRouteInfo(std::string busRoute_id)
 : busRoute_id(busRoute_id)
 {
-
+	roadSegment_vec.clear();
+	busStop_vec.clear();
 }
 
 sim_mob::BusRouteInfo::BusRouteInfo(const BusRouteInfo& copyFrom)

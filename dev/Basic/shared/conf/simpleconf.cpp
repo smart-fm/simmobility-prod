@@ -245,9 +245,10 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			currAg->setTripChain(currAgTripChain);
 			if(trip_mode == "Bus") {
 				// currently only one
-				if(!BusController::all_busctrllers_.empty()) {
-					BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
-				}
+//				if(!BusController::all_busctrllers_.empty()) {
+//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+//				}
+				std::cout << "Skip the TripChain Buses!!!" << std::endl;
 			} else {
 				addOrStashEntity(currAg, active_agents, pending_agents);
 			}
@@ -1292,15 +1293,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
     	return "Couldn't load buscontrollers";
     }
+	if(!BusController::all_busctrllers_.empty()) {
+		BusController::all_busctrllers_[0]->setPTSchedule();
+		BusController::all_busctrllers_[0]->assignBusTripChainWithPerson(active_agents);
+	}
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
     	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
-//			if(!BusController::all_busctrllers_.empty()) {
-//				BusController::all_busctrllers_[0]->setPTSchedule();
-//				BusController::all_busctrllers_[0]->assignBusTripChainWithPerson(active_agents);
-//			}
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {

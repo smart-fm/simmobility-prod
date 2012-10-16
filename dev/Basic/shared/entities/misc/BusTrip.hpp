@@ -136,7 +136,7 @@ public:
 
 class Busline { // busSchedule later inside PT_Schedule
 public:
-	Busline(std::string busline_id="", std::string controlType="No_Control"); // default no control(only follow the schedule given)
+	Busline(std::string busline_id="", std::string controlType="no_control"); // default no control(only follow the schedule given)
 	virtual ~Busline();
 
 	static CONTROL_TYPE getControlTypeFromString(std::string ControlType);

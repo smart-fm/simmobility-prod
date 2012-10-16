@@ -45,7 +45,7 @@ public:
 	//Type of this trip chain item.
 	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
 	enum ItemType {
-		IT_TRIP, IT_ACTIVITY
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
 	};
 
 	unsigned int personID;//replaces entityID

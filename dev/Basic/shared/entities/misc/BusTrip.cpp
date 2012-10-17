@@ -52,7 +52,7 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 		std::string busRoute_id, Node* from, std::string fromLocType, Node* to,
 		std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(BusRouteInfo(busRoute_id))
+busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
 
 }

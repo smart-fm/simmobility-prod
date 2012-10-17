@@ -33,7 +33,6 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
-#include "geospatial/Conflux.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -61,6 +60,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/Conflux.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"

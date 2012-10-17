@@ -14,12 +14,12 @@
 
 #include<map>
 
-#include "MultiNode.hpp"
-#include "entities/signal/Signal.hpp"
-#include "RoadSegment.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "signal/Signal.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "util/SegmentVehicles.hpp"
 #include "workers/Worker.hpp"
-#include "StreetDirectory.hpp"
+#include "geospatial/StreetDirectory.hpp"
 
 namespace sim_mob {
 

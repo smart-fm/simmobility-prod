@@ -14,7 +14,7 @@
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "partitions/PartitionManager.hpp"
-#include "geospatial/Conflux.hpp"
+#include "entities/Conflux.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"

@@ -15,6 +15,9 @@
 #include "entities/AuraManager.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "geospatial/Conflux.hpp"
+#include "entities/misc/TripChain.hpp"
+#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 using std::map;
 using std::vector;
@@ -519,15 +522,15 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * confluxes to the same worker.
  *
  * Future work:
- * If this assignment performs badly, we might want to think of a heuristics based, optimization algorithm
+ * If this assignment performs badly, we might want to think of a heuristics based optimization algorithm
  * which improves this assignment. We can indeed model this problem as a graph partitioning problem. Each
- * worker is a graph partition; the Confluxes are modeled as the nodes of the graph; and the edges represent
- * the flow of vehicles between Confluxes. Our objective is to minimize the (expected) flow of agents (modeled
- * as cut-size) from one partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses
- * algorithm for this partitioning, if it works. This is a little more complex than that because of variable
- * flow rates of vehicles (edge weights) and might require more thinking and research.
+ * worker is a partition; the confluxes can be modeled as the nodes of the graph; and the edges will represent
+ * the flow of vehicles between confluxes. Our objective is to minimize the (expected) flow of agents from one
+ * partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses algorithm
+ * for partitioning, if it works. This is a little more complex due to the variable flow rates of vehicles
+ * (edge weights); might require more thinking and research.
  *
- * TODO: We must see if this assignment is acceptable and try to optimize if necessary.
+ * TODO: Must see if this assignment is acceptable and try to optimize if necessary.
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
@@ -539,9 +542,6 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
-}
-
-void sim_mob::WorkGroup::putAgentOnConfluxWorker(Entity* ag) {
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
@@ -588,6 +588,44 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		}
 	}
 	return workerFilled;
+}
+
+/**
+ * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
+ */
+void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
+	const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(ag);
+	rdSeg->getParentConflux()->addAgent(ag);
+}
+
+const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Agent* ag) {
+	std::vector<const sim_mob::TripChainItem*> agTripChain = dynamic_cast<sim_mob::Person*>(ag)->getTripChain();
+	const sim_mob::TripChainItem* firstItem = agTripChain.front();
+
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	std::string role = rf.GetTripChainMode(firstItem);
+
+	vector<WayPoint> path;
+	const sim_mob::RoadSegment* rdSeg = nullptr;
+	if (role == "driver") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = StreetDirectory::instance().shortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+	}
+	else if (role == "pedestrian") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = StreetDirectory::instance().shortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+	}
+	else if (role == "busdriver") {
+		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+	}
+
+	 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+	 // you will get into.
+	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+		rdSeg = path.at(1).roadSegment_;
+	}
+
+	return rdSeg;
 }
 
 

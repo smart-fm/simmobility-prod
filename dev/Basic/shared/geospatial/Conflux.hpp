@@ -16,12 +16,15 @@
 
 #include "MultiNode.hpp"
 #include "entities/signal/Signal.hpp"
+#include "RoadSegment.hpp"
 #include "util/SegmentVehicles.hpp"
 #include "workers/Worker.hpp"
+#include "StreetDirectory.hpp"
 
 namespace sim_mob {
 
 class RoadSegment;
+class SegmentVehicles;
 
 namespace aimsun
 {
@@ -37,9 +40,9 @@ public:
 
 private:
 	// MultiNode around which this conflux is constructed
-	sim_mob::MultiNode* multiNode;
+	const sim_mob::MultiNode* multiNode;
 
-	sim_mob::Signal* signal;
+	const sim_mob::Signal* signal;
 
 	/* segments in this conflux (on upstream links)
 	 * All segments on half-links whose direction is flowing into the intersection */
@@ -61,14 +64,16 @@ private:
 
 public:
 	//constructors and destructor
-	Conflux() {};
+	Conflux(sim_mob::MultiNode* multinode)
+		: multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+		  parentWorker(nullptr) {};
 	virtual ~Conflux() {};
 
+	// Getters
 	const sim_mob::MultiNode* getMultiNode() const {
 		return multiNode;
 	}
 
-	// Getters
 	const sim_mob::Signal* getSignal() const {
 		return signal;
 	}
@@ -81,13 +86,16 @@ public:
 		return upstreamSegments;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgents() const {
+	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgentsDownstream() const {
+	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgentsDownstream() const {
 		return segmentAgentsDownstream;
 	}
+
+	// adds an agent who has just become active to this conflux
+	void addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment* rdSeg);
 
 	// adds the agent into this conflux (to segmentAgents list)
 	void addAgent(sim_mob::Agent* ag);
@@ -102,7 +110,6 @@ public:
 	void setParentWorker(sim_mob::Worker* parentWorker) {
 		this->parentWorker = parentWorker;
 	}
-
 };
 
 } /* namespace sim_mob */

@@ -1819,7 +1819,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-		sim_mob::Conflux* conflux = new sim_mob::Conflux();
+		sim_mob::Conflux* conflux = new sim_mob::Conflux(*i);
 		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
 				segmt!=(*i)->roadSegmentsCircular.end();
 				segmt++ )

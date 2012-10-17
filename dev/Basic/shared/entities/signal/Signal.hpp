@@ -158,6 +158,8 @@ public:
     void updateIndicators();
     void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
 
+    std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
+
 private:
     bool isIntersection_;//generated
     //this is the interval on which the signal's update is called

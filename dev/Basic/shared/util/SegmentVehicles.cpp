@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "SegmentVehicles.hpp"
 #include <algorithm>
+#include "SegmentVehicles.hpp"
 
 namespace sim_mob {
 	sim_mob::SegmentVehicles::SegmentVehicles(const sim_mob::RoadSegment* rdSeg) : roadSegment(rdSeg) {

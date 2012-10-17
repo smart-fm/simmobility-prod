@@ -15,6 +15,7 @@
 #include "UniNode.hpp"
 #include "LaneConnector.hpp"
 #include "LaneGroup.hpp"
+#include "Conflux.hpp"
 
 using namespace sim_mob;
 

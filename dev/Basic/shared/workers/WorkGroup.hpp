@@ -137,7 +137,9 @@ public:
 
 	void assignConfluxToWorkers();
 
-	void putAgentOnConfluxWorker(Entity* ag);
+	void putAgentOnConflux(Agent* ag);
+
+	const sim_mob::RoadSegment* findStartingRoadSegment(Agent* ag);
 
 	Worker* locateWorker(unsigned int linkID);
 

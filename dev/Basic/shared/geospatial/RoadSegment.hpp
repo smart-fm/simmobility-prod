@@ -8,7 +8,6 @@
 #include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
-#include "Conflux.hpp"
 
 namespace geo {
 class segment_t_pimpl;
@@ -26,6 +25,7 @@ class Lane;
 class LaneGroup;
 class BusStop;
 class RoadNetworkPackageManager;
+class Conflux;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -123,10 +123,13 @@ public:
 
 	//RoadSegments may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
+
+#ifndef SIMMOB_DISABLE_MPI
 	///The identification of RoadSegment is packed using PackageUtils;
 	static void pack(PackageUtils& package, const RoadSegment* one_segment);
 	///UnPackageUtils use the identification of RoadSegment to find the RoadSegment Object
 	static const RoadSegment* unpack(UnPackageUtils& unpackage);
+#endif
 
 public:
 	///Maximum speed of this road segment.

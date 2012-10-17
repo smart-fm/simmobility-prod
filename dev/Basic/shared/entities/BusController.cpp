@@ -49,41 +49,6 @@ void sim_mob::BusController::remBus(Bus* bus)
 	}
 }
 
-//bool sim_mob::BusController::SetRouteforBusTrip(std::string busRoute_id)
-//{
-//	//sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(busRoute_id);
-//
-//	// find (route_id) 	return busStop_vecTemp; // vector<BusStop*>;
-//	// find (route_id)  return roadsegment_vecTemp; // vector<RoadSegment*>;
-//	// find (route_id)  return busStopInfo_vecTemp; // vector<BusStopInfo*>;   (there is already BusStopID matched BusStop)
-//
-//	// const vector<BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
-////	for(vector<BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
-////	{
-////		busRouteInfo.addRoadSegment(*it);
-////	}
-//
-//	// const vector<RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
-////	for(vector<RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
-////	{
-////		busRouteInfo.addRoadSegment(*it1);
-////	}
-//
-//	// const vector<BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
-////	for(vector<BusStopInfo*>::const_iterator iter = BusStopInfo_vecTemp.begin();iter != BusStopInfo_vecTemp.end(); iter++)
-////	{
-////		busRouteInfo.addRoadSegment(*iter);
-////	}
-//
-//	return true;
-//}
-
-sim_mob::BusTrip* sim_mob::BusController::MakeBusTrip(const TripChainItem& tcItem)
-{
-	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
-	//SetRouteforBusTrip
-}
-
 void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& active_agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -143,7 +108,7 @@ void sim_mob::BusController::setPTSchedule()
 			std::cout << "route id: " << curr->route_id << "startTime: " << curr->start_time.toString() << std::endl;
 			sim_mob::Busline* busline = new sim_mob::Busline(curr->route_id,"no_control");
 
-			std::cout << "Yao Jin is happy " << std::endl;
+			std::cout << "Yao Jin is here " << std::endl;
 			Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for this busline
 			busline->addFrequencyBusline(frequency_busline);
 

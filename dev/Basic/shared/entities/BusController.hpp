@@ -65,8 +65,6 @@ public:
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
-	//bool SetRouteforBusTrip(std::string busRoute_id);
-	sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem);
 	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
 	void setPTSchedule();
 
@@ -94,9 +92,6 @@ private:
 	PT_Schedule pt_schedule;
 	//The current Link. Used by Jenny's code (except we don't currently use buses in the medium term)
     sim_mob::Link* currLink;
-
-    //std::map<int, std::vector<const sim_mob::RoadSegment*> > route_RoadSegments;
-    //std::map<int, std::vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

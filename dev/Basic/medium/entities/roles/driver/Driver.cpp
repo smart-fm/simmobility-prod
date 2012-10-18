@@ -832,30 +832,30 @@ double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p)
 }
 
 void sim_mob::medium::Driver::addToQueue() {
-	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+	sim_mob::AgentKeeper* agKeeperForSegment = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 
 	// if agent was moving in this segment then remove from moving list before queuing
-	segVehicles->removeMovingAgent(params.currLane, parent);
+	agKeeperForSegment->removeMovingAgent(params.currLane, parent);
 
 	// enqueue into the current lane's queue
-	segVehicles->addQueuingAgent(params.currLane, parent);
+	agKeeperForSegment->addQueuingAgent(params.currLane, parent);
 	parent->isQueuing = true;
 }
 
 void sim_mob::medium::Driver::addToMovingList() {
-	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
-	segVehicles->addMovingAgent(params.currLane, parent);
+	sim_mob::AgentKeeper* agKeeperForSegment = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+	agKeeperForSegment->addMovingAgent(params.currLane, parent);
 }
 
 void sim_mob::medium::Driver::removeFromQueue() {
-	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
-	segVehicles->removeQueuingAgent(params.currLane, parent);
+	sim_mob::AgentKeeper* agKeeperForSegment = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+	agKeeperForSegment->removeQueuingAgent(params.currLane, parent);
 	parent->isQueuing = false;
 }
 
 void sim_mob::medium::Driver::removeFromMovingList() {
-	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
-	segVehicles->removeMovingAgent(params.currLane, parent);
+	sim_mob::AgentKeeper* agKeeperForSegment = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+	agKeeperForSegment->removeMovingAgent(params.currLane, parent);
 }
 
 void sim_mob::medium::Driver::moveInSegment(double distance)

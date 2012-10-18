@@ -60,7 +60,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/Conflux.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
@@ -1817,9 +1817,11 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
  */
 void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
+	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
+	sim_mob::Conflux* conflux = nullptr;
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-		sim_mob::Conflux* conflux = new sim_mob::Conflux(*i);
+		conflux = new sim_mob::Conflux(*i, mtxStrat);
 		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
 				segmt!=(*i)->roadSegmentsCircular.end();
 				segmt++ )
@@ -1831,34 +1833,26 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 				if(lnk->getEnd() == (*i)) {
 					//The half-link we want is the forward segments of the link
 					upSegs = lnk->getFwdSegments();
-					conflux->upstreamSegments.insert(lnk->fwdSegments.begin(), lnk->fwdSegments.end());
 				}
 				else if (lnk->getStart() == (*i)) {
 					//The half-link we want is the reverse segments of the link
 					upSegs = lnk->getRevSegments();
-					conflux->upstreamSegments.insert(lnk->revSegments.begin(), lnk->revSegments.end());
 				}
 
-				// set conflux pointer to the segments
+				// set conflux pointer to the segments and create AgentKeeper for the segment
 				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
 						segIt != upSegs.end(); segIt++) {
-					(*segIt)->parentConflux = conflux;
+					if((*segIt)->parentConflux == nullptr) {
+						// assign only if not already assigned
+						(*segIt)->parentConflux = conflux;
+						conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+						conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper((*segIt))));
+					}
+					else {
+						throw std::runtime_error("Parent segment is assigned twice for some segment");
+					}
 				}
-			}
-			else {
-				// This segment is downstream to the current MultiNode
-				std::vector<sim_mob::RoadSegment*> downSegs;
-				if(lnk->getEnd() == (*i)) {
-					//The half-link we want is the reverse segments of the link
-					downSegs = lnk->getRevSegments();
-					conflux->upstreamSegments.insert(lnk->revSegments.begin(), lnk->revSegments.end());
-				}
-				else if (lnk->getStart() == (*i)) {
-					//The half-link we want is the forward segments of the link
-					downSegs = lnk->getFwdSegments();
-					conflux->downstreamSegments.insert(lnk->fwdSegments.begin(), lnk->fwdSegments.end());
-				}
-			} // else
+			} //if
 		} // for
 		confluxes.insert(conflux);
 	}

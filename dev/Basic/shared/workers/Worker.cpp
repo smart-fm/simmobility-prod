@@ -15,7 +15,7 @@ using boost::function;
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
-#include "entities/Conflux.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -343,10 +343,10 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 	return false;
 }
 
-boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> sim_mob::Worker::getAgentsOnSegments() {
+boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> sim_mob::Worker::getAgentsOnSegments() {
 	return agentsOnSegments;
 }
 
-sim_mob::SegmentVehicles* sim_mob::Worker::getSegmentVehicles(const sim_mob::RoadSegment* rdSeg) {
+sim_mob::AgentKeeper* sim_mob::Worker::getAgentKeeper(const sim_mob::RoadSegment* rdSeg) {
 	return agentsOnSegments[rdSeg];
 }

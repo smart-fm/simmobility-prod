@@ -14,7 +14,7 @@ namespace sim_mob {
  * Keeps a lane wise count of moving and queuing vehicles in a road segment.
  * Used by mid term supply
  */
-class SegmentVehicles {
+class AgentKeeper {
 
 private:
 	const sim_mob::RoadSegment* roadSegment;
@@ -22,7 +22,7 @@ private:
 	std::map<const sim_mob::Lane*, std::set<sim_mob::Agent*> > movingAgents;
 
 public:
-	SegmentVehicles(const sim_mob::RoadSegment* rdSeg);
+	AgentKeeper(const sim_mob::RoadSegment* rdSeg);
 	void addQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	void removeQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
@@ -32,7 +32,7 @@ public:
 	std::set<Agent*> getAgentsOnMovingVehicles(const sim_mob::Lane* lane);
 	std::vector<Agent*> getAgentsOnQueuingVehicles(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;
-	void merge(sim_mob::SegmentVehicles*);
+	void merge(sim_mob::AgentKeeper*);
 
 	/**
 	 * laneInfinity stores the agents which are added to this road segment (when they have just become active) and

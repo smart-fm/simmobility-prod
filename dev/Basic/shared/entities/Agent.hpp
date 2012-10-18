@@ -99,16 +99,16 @@ public:
 
 	/* *
 	 * I'm keeping getters and setters for current lane and link in Agent class to be able to determine the
-	 * location of the agent without having to dynamic_cast to the type of the agent and its Role.
-	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just
-	 * ignore these.
+	 * location of the agent without having to dynamic_cast to determine the type of the agent and his Role.
+	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just ignore these.
 	 * ~ Harish
 	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
 
 	/* *
-	 * Getter an setter for only Lane is kept here. Road segment of the agent can be determined from lane.
+	 * Getter an setter for only the Lane is kept here.
+	 * Road segment of the agent can be determined from lane.
 	 * ~ Harish
 	 */
 	virtual const sim_mob::Lane* getCurrLane() const;

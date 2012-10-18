@@ -13,18 +13,19 @@
 #pragma once
 
 #include<map>
-
+#include "entities/Agent.hpp"
+#include "entities/signal/Signal.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "signal/Signal.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "util/SegmentVehicles.hpp"
-#include "workers/Worker.hpp"
 #include "geospatial/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "AgentKeeper.hpp"
+#include "workers/Worker.hpp"
+
 
 namespace sim_mob {
 
 class RoadSegment;
-class SegmentVehicles;
+class AgentKeeper;
 
 namespace aimsun
 {
@@ -32,7 +33,7 @@ namespace aimsun
 class Loader;
 }
 
-class Conflux /*: sim_mob::Agent */ {
+class Conflux : sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;
 public:
@@ -46,28 +47,35 @@ private:
 
 	/* segments in this conflux (on upstream links)
 	 * All segments on half-links whose direction is flowing into the intersection */
-	std::set<sim_mob::RoadSegment*> upstreamSegments;
+	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
 	/* segments on downstream links
 	 * These half-links conceptually belong to another conflux. */
 	std::set<sim_mob::RoadSegment*> downstreamSegments;
 
 	/* Map to store the vehicle counts of each road segment on this conflux */
-	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> segmentAgents;
+	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgents;
 
 	/* This is a temporary storage data structure from which the agents would be moved to segmentAgents of
 	 * another conflux during a flip (barrier synchronization). */
-	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> segmentAgentsDownstream;
+	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgentsDownstream;
 
 	/* Worker to which this conflux belongs to*/
 	sim_mob::Worker* parentWorker;
 
+	void updateSignalized();
+	void updateUnsignalized();
+
 public:
 	//constructors and destructor
-	Conflux(sim_mob::MultiNode* multinode)
-		: multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
+		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 		  parentWorker(nullptr) {};
 	virtual ~Conflux() {};
+
+	// functions from agent
+	virtual void load(const std::map<std::string, std::string>&) {}
+	virtual Entity::UpdateStatus update(frame_t frameNumber);
 
 	// Getters
 	const sim_mob::MultiNode* getMultiNode() const {
@@ -82,15 +90,15 @@ public:
 		return downstreamSegments;
 	}
 
-	std::set<sim_mob::RoadSegment*> getUpstreamSegments() {
-		return upstreamSegments;
+	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*> > getUpstreamSegmentsMap() {
+		return upstreamSegmentsMap;
 	}
 
-	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgents() const {
+	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 
-	std::map<sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getSegmentAgentsDownstream() const {
+	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() const {
 		return segmentAgentsDownstream;
 	}
 

@@ -12,7 +12,6 @@
 #include "geospatial/RoadSegment.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Person.hpp"
-#include "util/SegmentVehicles.hpp"
 
 namespace sim_mob
 {
@@ -258,7 +257,7 @@ private:
      * This method collects the moving and queuing agents on each road segment in the network
      * and stores it in the corresponding list for moving and queuing agents.
      */
-    void mergeSegmentVehiclesFromWorkers();
+    void mergeAgentKeeperFromWorkers();
 };
 
 void
@@ -360,8 +359,8 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-void AuraManager::Impl::mergeSegmentVehiclesFromWorkers() {
-	typedef boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> segMap_t;
+void AuraManager::Impl::mergeAgentKeeperFromWorkers() {
+	typedef boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> segMap_t;
 	segMap_t temp_global;
 	for (std::vector<sim_mob::WorkGroup*>::const_iterator it = sim_mob::WorkGroup::getRegisteredWorkGroups().begin();
 			it != sim_mob::WorkGroup::getRegisteredWorkGroups().end(); it++) {
@@ -375,9 +374,9 @@ void AuraManager::Impl::mergeSegmentVehiclesFromWorkers() {
 						segIt != agentsFromWorker.end(); segIt++){
 
 					const sim_mob::RoadSegment* rdSeg = (*segIt).first;
-					sim_mob::SegmentVehicles* segVehicleFromWorker = (*segIt).second;
-					sim_mob::SegmentVehicles* segVehicleFromTemp = temp_global[rdSeg];
-					segVehicleFromTemp->merge(segVehicleFromWorker);
+					sim_mob::AgentKeeper* agKeeperFromWorker = (*segIt).second;
+					sim_mob::AgentKeeper* agKeeperFromTemp = temp_global[rdSeg];
+					agKeeperFromTemp->merge(agKeeperFromWorker);
 				} // for loop
 			} // if
 		} // for loop iterating workers
@@ -440,10 +439,10 @@ AuraManager::printStatistics() const
 
 std::map<const sim_mob::Lane*, unsigned short> AuraManager::getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg){
 	std::map<const sim_mob::Lane*, unsigned short> laneWiseQueueLengths;
-	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+	sim_mob::AgentKeeper* agKeeperForSegment = agentsOnSegments_global[rdSeg];
 	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
 			i != rdSeg->getLanes().end(); i++ ) {
-		laneWiseQueueLengths[*i] = rdSegVehicles->getAgentsOnQueuingVehicles(*i).size();
+		laneWiseQueueLengths[*i] = agKeeperForSegment->getAgentsOnQueuingVehicles(*i).size();
 
 	}
 	return laneWiseQueueLengths;
@@ -451,10 +450,10 @@ std::map<const sim_mob::Lane*, unsigned short> AuraManager::getQueueLengthsOfLan
 
 std::map<const sim_mob::Lane*, unsigned short> AuraManager::getMovingCountsOfLanes(const sim_mob::RoadSegment* rdSeg){
 	std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingCounts;
-	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+	sim_mob::AgentKeeper* agKeeperForSegment = agentsOnSegments_global[rdSeg];
 	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
 			i != rdSeg->getLanes().end(); i++ ) {
-		laneWiseMovingCounts[*i] = rdSegVehicles->getAgentsOnMovingVehicles(*i).size();
+		laneWiseMovingCounts[*i] = agKeeperForSegment->getAgentsOnMovingVehicles(*i).size();
 	}
 	return laneWiseMovingCounts;
 }

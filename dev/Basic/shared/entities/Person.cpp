@@ -19,7 +19,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "entities/misc/TripChain.hpp"
 #endif
-
+//
 using std::map;
 using std::string;
 using std::vector;
@@ -83,6 +83,30 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 	//throw 1;
 }
 
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs) :
+	Agent(mtxStrat, tcs.front()->personID), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr)
+{
+	std::string trip_mode;
+	TripChainItem* tc = tcs.front();
+	Trip* trip = dynamic_cast<Trip*>(tc);
+	Activity* act = dynamic_cast<Activity*>(tc);
+//	currTripChainItem = tcs.front();//shouldn't it be limitted to TripChainItem::IT_TRIP only
+
+	if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+//		currSubTrip = &(trip->getSubTripsRW().front());
+		//Origin and destination must be those of the first subtrip if current item is a trip
+		this->originNode = trip->getSubTripsRW().front().fromLocation;
+		this->destNode = trip->getSubTripsRW().front().toLocation;
+		trip_mode = trip->getSubTripsRW().front().mode;// currently choose the first subtrip mode as the mode of the trip
+	} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+		this->originNode = this->destNode = act->location;
+	} else { //Offer some protection
+		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+	}
+//	std::cout << "Person::preson " << this->id << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
+
+}
+
 sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
 }
@@ -134,7 +158,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
-		std::vector<const TripChainItem*> trip_chain;
+		std::vector<TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 
 		//////
@@ -206,14 +230,14 @@ void sim_mob::Person::getNextSubTripInTrip(){
 		currSubTrip = nullptr;
 	}
 	else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-		const Trip* currTrip = dynamic_cast<const Trip*>(this->currTripChainItem);
-		const vector<SubTrip>& currSubTripsList = currTrip->getSubTrips();
+		Trip* currTrip = dynamic_cast<Trip*>(this->currTripChainItem);
+		vector<SubTrip>& currSubTripsList = currTrip->getSubTripsRW();
 		if(!currSubTrip) {
 			//Return the first sub trip if the current sub trip which is passed in is null
 			currSubTrip = &currSubTripsList.front();
 		} else {
 			// else return the next sub trip if available; return nullptr otherwise.
-			vector<SubTrip>::const_iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (*currSubTrip));
+			vector<SubTrip>::iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (*currSubTrip));
 			currSubTrip = nullptr;
 			if (subTripIterator!=currSubTripsList.end()) {
 				//Set it equal to the next item, assuming we are not at the end of the list.
@@ -234,7 +258,7 @@ void sim_mob::Person::findNextItemInTripChain() {
 		this->currTripChainItem = this->tripChain.front();
 	} else {
 		// else set the next item if available; return nullptr otherwise.
-		std::vector<const TripChainItem*>::const_iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
+		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
 		currTripChainItem = nullptr;
 		if (itemIterator!=tripChain.end()) {
 			//Set it equal to the next item, assuming we are not at the end of the list.
@@ -250,20 +274,22 @@ void sim_mob::Person::findNextItemInTripChain() {
 
 void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, UpdateStatus& retVal)
 {
+	int i =0;
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
+		std::cout << "Person::update_time::calling checkAndReactToTripChain_1\n";
 		checkAndReactToTripChain(currTimeMS, currTimeMS);
 	}
-
+	 i =0;
 	//Failsafe
 	if (!currRole) {
 		throw std::runtime_error("Person has no Role.");
 	}
-
+	 i =0;
 	//Get an UpdateParams instance.
 	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
 	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
-
+	 i =0;
 	//Has update() been called early?
 	if (currTimeMS<getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
@@ -277,37 +303,46 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 		retVal = UpdateStatus::Continue;
 		return;
 	}
-
+	 i =0;
 	//Has update() been called too late?
 	if (isToBeRemoved()) {
+		 i =0;
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("Agent is already done, but hasn't been removed.");
 		}
+		 i =0;
 		retVal = UpdateStatus::Continue;
 		return;
 	}
-
+	 i =0;
 	//Is this the first frame tick for this Agent?
 	if (firstFrameTick) {
+		 i =0;
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+			 i =0;
+			 bool temp;
+			 unsigned int t1 = ConfigParams::GetInstance().baseGranMS , t = currTimeMS;
+			 t -= getStartTime();
+			if (abs(t)>=t1) {
+				 i =0;
 				std::stringstream msg;
 				msg << "Agent was not started within one timespan of its requested start time.";
 				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
 				msg << "Agent ID: " << getId() << "\n";
 				throw std::runtime_error(msg.str().c_str());
 			}
+			 i =0;
 		}
-
+		 i =0;
 		//Now that the Role has been fully constructed, initialize it.
 		currRole->frame_init(params);
 
 		//Done
 		firstFrameTick = false;
 	}
-
+	 i =0;
 	//Now perform the main update tick
 	if (!isToBeRemoved()) {
 		//added to get the detailed plan before next activity
@@ -315,21 +350,23 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 		//if mid-term
 		//currRole->frame_tick_med(params);
 	}
-
+	 i =0;
 	//Finally, save the output
 	if (!isToBeRemoved()) {
 		currRole->frame_tick_output(params);
 		//if mid-term
 		//currRole->frame_tick_med(params);
 	}
-
+	 i =0;
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
 	if (isToBeRemoved()) {
+
+		std::cout << "Person::update_time::calling checkAndReactToTripChain_2\n";
 		retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
 	}
-
+	 i =0;
 	//Output if removal requested.
 	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -337,6 +374,7 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 		std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
 #endif
 	}
+	 i =0;
 }
 
 
@@ -392,6 +430,8 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS) {
+
+
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
@@ -401,7 +441,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	if (!this->currTripChainItem) {
 		return UpdateStatus::Done;
 	}
-
+	std::cout << "Person::checkAndReactToTripChain " << this->id  << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.

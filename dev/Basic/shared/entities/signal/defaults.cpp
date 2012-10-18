@@ -15,6 +15,12 @@ sim_mob::LinkAndCrossing::LinkAndCrossing(int id_,sim_mob::Link const * link_,si
 			crossing(crossing_),
 			angle(angle_)
 {}
+sim_mob::LinkAndCrossing::LinkAndCrossing(){
+	id = -1;
+	link = 0;
+	crossing = 0;
+	angle = -1;
+}
 
 /*
  * obtaining link and -its corresponding- crossong information from node variable(as amember of signal)

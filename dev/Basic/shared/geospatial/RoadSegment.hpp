@@ -9,16 +9,16 @@
 #include "Pavement.hpp"
 #include "Link.hpp"
 
-/*namespace geo {
+
+
+
+namespace geo {
 class segment_t_pimpl;
 class Segments_pimpl;
 class link_t_pimpl;
-}*/
-
+}
 namespace sim_mob
 {
-
-
 //Forward declarations
 class Lane;
 class BusStop;
@@ -59,13 +59,13 @@ public:
 	void setEnd(sim_mob::Node* en) { this->end = en; }
 
 public:
-	
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id)
 	{}
 
 	const unsigned long  getSegmentID()const ;
+	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
 	bool operator== (const RoadSegment* rhs) const
 	{
@@ -143,6 +143,7 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class ::geo::segment_t_pimpl;
 
 };
 

@@ -1,0 +1,71 @@
+{
+ "TrafficSignal": 
+ {
+  "hex_id": "0x9ca6978",
+  "tick": 123456,
+  "simmob_id": 66508,
+  "node": "0x9ca6371",
+  "phases": [
+     				  {
+     				  	"name": "A", 
+     				   	"links": 
+     				   			 [
+     				   			  { "link_from":"0x9c87b58", "link_to":"0x9c88020"},
+     				   			  { "link_from":"0x9c87b58", "link_to":"0x9c88020"}
+     				   			 ],
+     				   	"crossings": 
+     				   	         [
+     				   	          0x9c87b58,
+     				   	          0x9c86270
+     				   	         ]
+     				  },
+     				  {
+     				  	"name": "B", 
+     				   	"links": 
+     				   			 [
+     				   			  { "link_from":"0x9c87b59", "link_to":"0x9c88029"},
+     				   			  { "link_from":"0x9c87b98", "link_to":"0x9c88090"}
+     				   			 ],
+     				   	"crossings": 
+     				   	         [
+     				   	          "0x9c87558",
+     				   	          "0x9c86275"
+     				   	         ]
+     				  }
+     	    ]
+ }
+}
+
+
+
+
+{
+ "TrafficSignal-Update":
+ {
+  "hex_id": "0x9ca6978",
+  "tick": 123456,
+  "simmob_id": 66508,
+  "phases": 
+  			[
+  				{
+       				  	"name": "A", 
+     				   	"links": 
+     				   			 [
+     				   			  { "link_from":"0x9c87b58", "link_to":0x9c88020 , "current_color":1},
+     				   			  { "link_from":"0x9c87b58", "link_to":0x9c88020 , "current_color":2}
+     				   			 ],
+     				   	"crossings": 
+     				   	         [
+     				   	          {"id":"0x9c87b58, "current_color":1},
+     				   	          {"id":"0x9c86275, "current_color":1},
+     				   	         ]
+           		}
+           	]
+}    	    
+     	                      
+     				   	         
+     				   	 
+     				   			 
+
+
+("Signal-location", 0x9ca6978,{"id":"66508","node": 0x9c48bb0,"Phase_C"{"Link"{0x9c87b58:0x9c88020,0x9c87b58:0x9c86270,0x9c88020:0x9c884e8,0x9c88020:0x9c87b58}"Crossing"{0x9ca5c68,0x9ca5d18,0x9ca5d70}},"Phase_D"{"Link"{0x9c87b58:0x9c884e8,0x9c88020:0x9c86270,0x9c884e8:0x9c87b58}"Crossing"{0x9ca5c68,0x9ca5d18,0x9ca5d70}},"Phase_B"{"Link"{0x9c86270:0x9c87b58,0x9c884e8:0x9c88020}"Crossing"{0x9ca5c68,0x9ca5d18,0x9ca5de8}},"Phase_A"{"Link"{0x9c86270:0x9c88020,0x9c86270:0x9c884e8,0x9c884e8:0x9c86270}"Crossing"{0x9ca5c68,0x9ca5d18,0x9ca5de8}}})

@@ -16,6 +16,11 @@ namespace aimsun
 class Loader;
 } //End
 
+namespace geo
+{
+class BusStop_t_pimpl;
+}
+
 namespace sim_mob
 {
 
@@ -30,11 +35,15 @@ class BusRoute;
  * \author Seth N. Hetu
  */
 class BusStop : public sim_mob::RoadItem {
-	
+	friend class ::geo::BusStop_t_pimpl;
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem() {}
+	explicit BusStop() : RoadItem() {lane_location = 0;
+	busCapacityAsLength = 0;
+	parentSegment_ = 0;
+//	xPos = yPos = 0;
+	}
 
 public:
 	///Which RoadItem and lane is this bus stop located at?
@@ -59,12 +68,20 @@ public:
 	//The position bus shall stop in segment from start node
 	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
 	//const double stopPoint;
+	//what if some one decides to make them public later?-vahid
+	const inline bool hasShelter()const  { return has_shelter; }
+	const inline bool isTerminal() const { return is_terminal; }
+	const inline bool isBay() const { return is_bay; }
+	const inline Lane* getLaneLocation() const { return lane_location; }
+	const inline unsigned int getBusCapacityAsLength() const { return busCapacityAsLength; }
+	const std::string getBusstopno_() const { return busstopno_; }
 
 
 public:
     sim_mob::RoadSegment* getRoadSegment() const {
         return parentSegment_;
     }
+    void setParentSegment(RoadSegment *rs) { parentSegment_ = rs;} //virtual from RoadItem
 
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);

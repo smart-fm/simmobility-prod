@@ -36,7 +36,7 @@
 //
 // End prologue.
 
-#include "geo8-pskel.hpp"
+#include "geo10-pskel.hxx"
 
 namespace geo
 {
@@ -1322,33 +1322,21 @@ namespace geo
   //
 
   void BusStop_t_pskel::
-  xPos_parser (::xml_schema::double_pskel& p)
-  {
-    this->xPos_parser_ = &p;
-  }
-
-  void BusStop_t_pskel::
-  yPos_parser (::xml_schema::double_pskel& p)
-  {
-    this->yPos_parser_ = &p;
-  }
-
-  void BusStop_t_pskel::
-  lane_location_parser (::xml_schema::unsigned_long_pskel& p)
+  lane_location_parser (::xml_schema::string_pskel& p)
   {
     this->lane_location_parser_ = &p;
   }
 
   void BusStop_t_pskel::
-  is_terminal_parser (::xml_schema::boolean_pskel& p)
+  is_Terminal_parser (::xml_schema::boolean_pskel& p)
   {
-    this->is_terminal_parser_ = &p;
+    this->is_Terminal_parser_ = &p;
   }
 
   void BusStop_t_pskel::
-  is_bay_parser (::xml_schema::boolean_pskel& p)
+  is_Bay_parser (::xml_schema::boolean_pskel& p)
   {
-    this->is_bay_parser_ = &p;
+    this->is_Bay_parser_ = &p;
   }
 
   void BusStop_t_pskel::
@@ -1364,49 +1352,34 @@ namespace geo
   }
 
   void BusStop_t_pskel::
-  busstopno_parser (::xml_schema::string_pskel& p)
-  {
-    this->busstopno_parser_ = &p;
-  }
-
-  void BusStop_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
            ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
-           ::xml_schema::double_pskel& xPos,
-           ::xml_schema::double_pskel& yPos,
-           ::xml_schema::unsigned_long_pskel& lane_location,
-           ::xml_schema::boolean_pskel& is_terminal,
-           ::xml_schema::boolean_pskel& is_bay,
+           ::xml_schema::string_pskel& lane_location,
+           ::xml_schema::boolean_pskel& is_Terminal,
+           ::xml_schema::boolean_pskel& is_Bay,
            ::xml_schema::boolean_pskel& has_shelter,
-           ::xml_schema::unsigned_int_pskel& busCapacityAsLength,
-           ::xml_schema::string_pskel& busstopno)
+           ::xml_schema::unsigned_int_pskel& busCapacityAsLength)
   {
     this->id_parser_ = &id;
     this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->xPos_parser_ = &xPos;
-    this->yPos_parser_ = &yPos;
     this->lane_location_parser_ = &lane_location;
-    this->is_terminal_parser_ = &is_terminal;
-    this->is_bay_parser_ = &is_bay;
+    this->is_Terminal_parser_ = &is_Terminal;
+    this->is_Bay_parser_ = &is_Bay;
     this->has_shelter_parser_ = &has_shelter;
     this->busCapacityAsLength_parser_ = &busCapacityAsLength;
-    this->busstopno_parser_ = &busstopno;
   }
 
   BusStop_t_pskel::
   BusStop_t_pskel ()
-  : xPos_parser_ (0),
-    yPos_parser_ (0),
-    lane_location_parser_ (0),
-    is_terminal_parser_ (0),
-    is_bay_parser_ (0),
+  : lane_location_parser_ (0),
+    is_Terminal_parser_ (0),
+    is_Bay_parser_ (0),
     has_shelter_parser_ (0),
-    busCapacityAsLength_parser_ (0),
-    busstopno_parser_ (0)
+    busCapacityAsLength_parser_ (0)
   {
   }
 
@@ -5879,27 +5852,17 @@ namespace geo
   //
 
   void BusStop_t_pskel::
-  xPos (double)
+  lane_location (const ::std::string&)
   {
   }
 
   void BusStop_t_pskel::
-  yPos (double)
+  is_Terminal (bool)
   {
   }
 
   void BusStop_t_pskel::
-  lane_location (unsigned long long)
-  {
-  }
-
-  void BusStop_t_pskel::
-  is_terminal (bool)
-  {
-  }
-
-  void BusStop_t_pskel::
-  is_bay (bool)
+  is_Bay (bool)
   {
   }
 
@@ -5914,7 +5877,7 @@ namespace geo
   }
 
   void BusStop_t_pskel::
-  busstopno (const ::std::string&)
+  post_BusStop_t ()
   {
   }
 
@@ -5928,26 +5891,6 @@ namespace geo
     if (this->::geo::RoadItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "xPos" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->xPos_parser_;
-
-      if (this->xPos_parser_)
-        this->xPos_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "yPos" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->yPos_parser_;
-
-      if (this->yPos_parser_)
-        this->yPos_parser_->pre ();
-
-      return true;
-    }
-
     if (n == "lane_location" && ns.empty ())
     {
       this->::xml_schema::complex_content::context_.top ().parser_ = this->lane_location_parser_;
@@ -5958,22 +5901,22 @@ namespace geo
       return true;
     }
 
-    if (n == "is_terminal" && ns.empty ())
+    if (n == "is_Terminal" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_terminal_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_Terminal_parser_;
 
-      if (this->is_terminal_parser_)
-        this->is_terminal_parser_->pre ();
+      if (this->is_Terminal_parser_)
+        this->is_Terminal_parser_->pre ();
 
       return true;
     }
 
-    if (n == "is_bay" && ns.empty ())
+    if (n == "is_Bay" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_bay_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_Bay_parser_;
 
-      if (this->is_bay_parser_)
-        this->is_bay_parser_->pre ();
+      if (this->is_Bay_parser_)
+        this->is_Bay_parser_->pre ();
 
       return true;
     }
@@ -5998,16 +5941,6 @@ namespace geo
       return true;
     }
 
-    if (n == "busstopno" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->busstopno_parser_;
-
-      if (this->busstopno_parser_)
-        this->busstopno_parser_->pre ();
-
-      return true;
-    }
-
     return false;
   }
 
@@ -6018,42 +5951,26 @@ namespace geo
     if (this->::geo::RoadItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
-    if (n == "xPos" && ns.empty ())
-    {
-      if (this->xPos_parser_)
-        this->xPos (this->xPos_parser_->post_double ());
-
-      return true;
-    }
-
-    if (n == "yPos" && ns.empty ())
-    {
-      if (this->yPos_parser_)
-        this->yPos (this->yPos_parser_->post_double ());
-
-      return true;
-    }
-
     if (n == "lane_location" && ns.empty ())
     {
       if (this->lane_location_parser_)
-        this->lane_location (this->lane_location_parser_->post_unsigned_long ());
+        this->lane_location (this->lane_location_parser_->post_string ());
 
       return true;
     }
 
-    if (n == "is_terminal" && ns.empty ())
+    if (n == "is_Terminal" && ns.empty ())
     {
-      if (this->is_terminal_parser_)
-        this->is_terminal (this->is_terminal_parser_->post_boolean ());
+      if (this->is_Terminal_parser_)
+        this->is_Terminal (this->is_Terminal_parser_->post_boolean ());
 
       return true;
     }
 
-    if (n == "is_bay" && ns.empty ())
+    if (n == "is_Bay" && ns.empty ())
     {
-      if (this->is_bay_parser_)
-        this->is_bay (this->is_bay_parser_->post_boolean ());
+      if (this->is_Bay_parser_)
+        this->is_Bay (this->is_Bay_parser_->post_boolean ());
 
       return true;
     }
@@ -6070,14 +5987,6 @@ namespace geo
     {
       if (this->busCapacityAsLength_parser_)
         this->busCapacityAsLength (this->busCapacityAsLength_parser_->post_unsigned_int ());
-
-      return true;
-    }
-
-    if (n == "busstopno" && ns.empty ())
-    {
-      if (this->busstopno_parser_)
-        this->busstopno (this->busstopno_parser_->post_string ());
 
       return true;
     }
@@ -6544,7 +6453,7 @@ namespace geo
   //
 
   void RoadItems_t_pskel::
-  BusStop (std::pair<unsigned long,sim_mob::BusStop*>)
+  BusStop ()
   {
   }
 
@@ -6554,7 +6463,7 @@ namespace geo
   }
 
   void RoadItems_t_pskel::
-  Crossing (std::pair<unsigned long,sim_mob::Crossing*>)
+  Crossing (std::pair<unsigned int,sim_mob::Crossing*>)
   {
   }
 
@@ -6626,7 +6535,10 @@ namespace geo
     if (n == "BusStop" && ns.empty ())
     {
       if (this->BusStop_parser_)
-        this->BusStop (this->BusStop_parser_->post_BusStop_t ());
+      {
+        this->BusStop_parser_->post_BusStop_t ();
+        this->BusStop ();
+      }
 
       return true;
     }

@@ -252,7 +252,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	} else {
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
+		std::cout << "ERROR: Vehicle[short] could not be created for driver; no route!\n";
 #endif
 	}
 }
@@ -261,9 +261,13 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
+	std::cout << "Driver Ticking\n";
+//	getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
+	if(!vehicle)
+		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	//Are we done already?
 	if (vehicle->isDone()) {
 		parent->setToBeRemoved();
@@ -996,7 +1000,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 	nextLaneInNextLink = nullptr;
 	vector<const Lane*> targetLanes;
 	if (currEndNode && nextSegment) {
-		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
+		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
 		for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 			if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 				//It's a valid lane.

@@ -4,16 +4,17 @@
 
 #include <bitset>
 #include <sstream>
-
+#include <cstdio>
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
+#include <tinyxml.h>
 
 //using namespace geo;
-/*namespace geo {
+namespace geo {
 class lane_t_pimpl;
 class Lanes_pimpl;
 class segment_t_pimpl;
-}*/
+}
 
 namespace sim_mob
 {
@@ -247,10 +248,19 @@ public:
     /// road segment's total width.
     unsigned int getWidth() const {
     	if (width_==0) {
-    		return parentSegment_->width / parentSegment_->getLanes().size();
+    		unsigned int width = parentSegment_->width / parentSegment_->getLanes().size();
+//    		if(width <= 0)
+//    		{
+//    			throw std::runtime_error("Can't manage with a Lane with zero width.");
+//    		}
+    		return width;
     	}
     	return width_;
     }
+
+    unsigned int getWidth_real() const {
+         	return width_;
+        }
 
     ///Return the laneID.
     ///NOTE: This will probably end up being the "tranlated" lane ID, instead of the "raw" lane ID.
@@ -262,7 +272,7 @@ public:
     }
 
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
-    const std::vector<sim_mob::Point2D>& getPolyline() const;
+    const std::vector<sim_mob::Point2D>& getPolyline(bool sync = true) const;
 
     void insertNewPolylinePoint(Point2D p, bool isPre);
 
@@ -274,26 +284,21 @@ public:
 
     //Lane() : parentSegment_(nullptr) {};//is needed by the xml reader
 
-    /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned int laneID=0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
-    	setLaneID(laneID);
-    }
-
-    void setParentSegment(sim_mob::RoadSegment* segment) {
-    	parentSegment_ = segment;
-    	setLaneID(laneID_);
-    }
+//    /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
+//    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned int laneID=0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
+//    	setLaneID(laneID);
+//    }
 
     void setLaneID(unsigned int laneID) {
     	this->laneID_ = laneID;
-
+    	setLaneID_str(laneID);
     	//Build a laneID string
-    	std::ostringstream Id ;
-    	if (parentSegment_) {
-    		Id << parentSegment_->getSegmentID();
-    	}
-    	Id <<  laneID;
-    	laneID_str = Id.str();
+//    	std::ostringstream Id ;
+//    	if (parentSegment_) {
+//    		Id << parentSegment_->getSegmentID();
+//    	}
+//    	Id <<  laneID;
+//    	laneID_str = Id.str();
     }
 
     void setLaneWidth(unsigned int width) {
@@ -321,7 +326,29 @@ private:
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
+    friend class ::geo::segment_t_pimpl;
+public:
+    /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
+    explicit Lane(sim_mob::RoadSegment* segment, unsigned long laneID = 0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0) {/*10 lanes per segment*/
+    	laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
+    	setLaneID_str(laneID_);
+    }
     
+    
+    Lane(){};//is needed by the xml reader
+    inline void setLaneID_str( unsigned long segmentId, unsigned int laneID)
+    {
+        std::ostringstream Id ;
+        Id << segmentId*10 + laneID ;
+       	laneID_str = Id.str();
+    }
+    inline void setLaneID_str( unsigned int laneID)
+    {
+        std::ostringstream Id ;
+        Id <<  laneID;
+       	laneID_str = Id.str();
+    }
+    inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
         std::istringstream stream(bit_pattern);
@@ -332,7 +359,7 @@ private:
     std::string to_string() const { return rules_.to_string(); }
 
 
-public:
+
     //NOTE: I don't see any reason to make these private. ~Seth
 
     /** If \c value is true, vehicles can go straight on this lane.  */
@@ -383,20 +410,23 @@ public:
     /** If \c value is true, vehicles can make a U-turn on this lane.  */
 	void is_u_turn_allowed(bool value) { rules_.set(IS_U_TURN_ALLOWED, value); }
 
+
+
 private:
 	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
 	unsigned int width_;
-	unsigned int laneID_;
+	unsigned long laneID_;
 	//I don't want to disturb the usage of laneID_ by other modules so i made the following variable for xml write/read purposes--vahid
 	std::string laneID_str;
 
-        // polyline_ is mutable so that getPolyline() can be a const method.
-	mutable std::vector<Point2D> polyline_;
 
 	friend class RoadSegment;
+	friend void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *);
 
-
+public:
+    // polyline_ is mutable so that getPolyline() can be a const method.
+mutable std::vector<Point2D> polyline_;//todo make it private after your debugging is over-vahid
 
 };
 

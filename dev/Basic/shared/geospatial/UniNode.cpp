@@ -24,6 +24,11 @@ const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 }
 
 
+const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& sim_mob::UniNode::getRoadSegmentPair(bool first) const
+{
+	if(first) return firstPair;
+	return secondPair;
+}
 
 const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 {

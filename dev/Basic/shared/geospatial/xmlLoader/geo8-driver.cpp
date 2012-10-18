@@ -10,8 +10,14 @@
 #include <iostream>
 #include "geo8-pimpl.hpp"
 
-
-bool geo::InitAndLoadXML()
+using namespace geo;
+//#ifdef SIMMOB_PARTIAL_XML_READER
+//    		geo::InitAndLoadXML(XML_OutPutFileName)
+//#else
+//    		geo::InitAndLoadXML(XML_OutPutFileName)
+//#endif
+bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
+//geo::InitAndLoadXML(XML_OutPutFileName)
 {
 	std::cout << "In InitAndLoadXML\n";
 
@@ -28,6 +34,7 @@ bool geo::InitAndLoadXML()
     ::geo::Point2D_t_pimpl Point2D_t_p;
     ::xml_schema::unsigned_long_pimpl unsigned_long_p;
     ::xml_schema::string_pimpl string_p;
+    ::geo::temp_Segmetair_t_pimpl temp_Segmetair_t_p;
     ::geo::connectors_t_pimpl connectors_t_p;
     ::geo::connector_t_pimpl connector_t_p;
     ::geo::Intersections_pimpl Intersections_p;
@@ -60,10 +67,13 @@ bool geo::InitAndLoadXML()
     ::xml_schema::short_pimpl short_p;
     ::geo::PolyLine_t_pimpl PolyLine_t_p;
     ::geo::PolyPoint_t_pimpl PolyPoint_t_p;
+    ::geo::laneEdgePolylines_cached_t_pimpl laneEdgePolylines_cached_t_p;
+    ::geo::laneEdgePolyline_cached_t_pimpl laneEdgePolyline_cached_t_p;
     ::geo::Lanes_pimpl Lanes_p;
     ::geo::lane_t_pimpl lane_t_p;
     ::geo::RoadItems_t_pimpl RoadItems_t_p;
     ::geo::BusStop_t_pimpl BusStop_t_p;
+    ::xml_schema::double_pimpl double_p;
     ::geo::ERP_Gantry_t_pimpl ERP_Gantry_t_p;
     ::geo::crossing_t_pimpl crossing_t_p;
     ::geo::PointPair_t_pimpl PointPair_t_p;
@@ -77,11 +87,28 @@ bool geo::InitAndLoadXML()
     ::geo::SubTrips_t_pimpl SubTrips_t_p;
     ::geo::SubTrip_t_pimpl SubTrip_t_p;
     ::geo::Activity_t_pimpl Activity_t_p;
+    ::geo::Signals_t_pimpl Signals_t_p;
+    ::geo::Signal_t_pimpl Signal_t_p;
+    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
+    ::geo::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
+    ::geo::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
+    ::geo::linkAndCrossing_t_pimpl linkAndCrossing_t_p;
+    ::geo::SplitPlan_t_pimpl SplitPlan_t_p;
+    ::geo::Plans_t_pimpl Plans_t_p;
+    ::geo::Plan_t_pimpl Plan_t_p;
+    ::geo::Phases_t_pimpl Phases_t_p;
+    ::geo::Phase_t_pimpl Phase_t_p;
+    ::geo::links_maps_t_pimpl links_maps_t_p;
+    ::geo::links_map_t_pimpl links_map_t_p;
+    ::geo::ColorSequence_t_pimpl ColorSequence_t_p;
+    ::geo::ColorDuration_t_pimpl ColorDuration_t_p;
+    ::geo::TrafficColor_t_pimpl TrafficColor_t_p;
 
     // Connect the parsers together.
     //
     SimMobility_t_p.parsers (GeoSpatial_t_p,
-                             TripChains_t_p);
+                             TripChains_t_p,
+                             Signals_t_p);
 
     GeoSpatial_t_p.parsers (RoadNetwork_t_p);
 
@@ -98,10 +125,15 @@ bool geo::InitAndLoadXML()
                          Point2D_t_p,
                          unsigned_long_p,
                          string_p,
+                         temp_Segmetair_t_p,
+                         temp_Segmetair_t_p,
                          connectors_t_p);
 
     Point2D_t_p.parsers (unsigned_int_p,
                          unsigned_int_p);
+
+    temp_Segmetair_t_p.parsers (unsigned_long_p,
+                                unsigned_long_p);
 
     connectors_t_p.parsers (connector_t_p);
 
@@ -192,7 +224,9 @@ bool geo::InitAndLoadXML()
                          short_p,
                          unsigned_int_p,
                          unsigned_int_p,
+                         string_p,
                          PolyLine_t_p,
+                         laneEdgePolylines_cached_t_p,
                          Lanes_p,
                          RoadItems_t_p,
                          PolyLine_t_p);
@@ -201,6 +235,11 @@ bool geo::InitAndLoadXML()
 
     PolyPoint_t_p.parsers (string_p,
                            Point2D_t_p);
+
+    laneEdgePolylines_cached_t_p.parsers (laneEdgePolyline_cached_t_p);
+
+    laneEdgePolyline_cached_t_p.parsers (short_p,
+                                         PolyLine_t_p);
 
     Lanes_p.parsers (lane_t_p);
 
@@ -229,32 +268,37 @@ bool geo::InitAndLoadXML()
                            crossing_t_p,
                            RoadBump_t_p);
 
-    BusStop_t_p.parsers (unsigned_short_p,
+    BusStop_t_p.parsers (unsigned_long_p,
+                         unsigned_short_p,
                          Point2D_t_p,
                          Point2D_t_p,
-                         string_p,
-                         string_p,
+                         double_p,
+                         double_p,
+                         unsigned_long_p,
                          boolean_p,
                          boolean_p,
                          boolean_p,
-                         unsigned_int_p);
+                         unsigned_int_p,
+                         string_p);
 
-    ERP_Gantry_t_p.parsers (unsigned_short_p,
+    ERP_Gantry_t_p.parsers (unsigned_long_p,
+                            unsigned_short_p,
                             Point2D_t_p,
                             Point2D_t_p,
                             string_p);
 
-    crossing_t_p.parsers (unsigned_short_p,
+    crossing_t_p.parsers (unsigned_long_p,
+                          unsigned_short_p,
                           Point2D_t_p,
                           Point2D_t_p,
-                          string_p,
                           PointPair_t_p,
                           PointPair_t_p);
 
     PointPair_t_p.parsers (Point2D_t_p,
                            Point2D_t_p);
 
-    RoadBump_t_p.parsers (unsigned_short_p,
+    RoadBump_t_p.parsers (unsigned_long_p,
+                          unsigned_short_p,
                           Point2D_t_p,
                           Point2D_t_p,
                           string_p,
@@ -280,7 +324,18 @@ bool geo::InitAndLoadXML()
 
     SubTrips_t_p.parsers (SubTrip_t_p);
 
-    SubTrip_t_p.parsers (string_p,
+    SubTrip_t_p.parsers (integer_p,
+                         TripchainItemType_p,
+                         unsigned_int_p,
+                         string_p,
+                         string_p,
+                         integer_p,
+                         unsigned_int_p,
+                         TripchainItemLocationType_p,
+                         unsigned_int_p,
+                         TripchainItemLocationType_p,
+                         SubTrips_t_p,
+                         string_p,
                          boolean_p,
                          string_p);
 
@@ -296,21 +351,67 @@ bool geo::InitAndLoadXML()
                           boolean_p,
                           boolean_p);
 
+    Signals_t_p.parsers (Signal_t_p);
+
+    Signal_t_p.parsers (unsigned_byte_p,
+                        unsigned_int_p,
+                        signalAlgorithm_t_p,
+                        linkAndCrossings_t_p,
+                        SplitPlan_t_p);
+
+    linkAndCrossings_t_p.parsers (linkAndCrossing_t_p);
+
+    linkAndCrossing_t_p.parsers (unsigned_byte_p,
+                                 unsigned_int_p,
+                                 unsigned_int_p,
+                                 unsigned_byte_p);
+
+    SplitPlan_t_p.parsers (unsigned_int_p,
+                           signalAlgorithm_t_p,
+                           unsigned_byte_p,
+                           unsigned_byte_p,
+                           Plans_t_p,
+                           Phases_t_p);
+
+    Plans_t_p.parsers (Plan_t_p);
+
+    Plan_t_p.parsers (unsigned_byte_p,
+                      double_p);
+
+    Phases_t_p.parsers (Phase_t_p);
+
+    Phase_t_p.parsers (unsigned_byte_p,
+                       string_p,
+                       links_maps_t_p);
+
+    links_maps_t_p.parsers (links_map_t_p);
+
+    links_map_t_p.parsers (unsigned_int_p,
+                           unsigned_int_p,
+                           unsigned_int_p,
+                           unsigned_int_p,
+                           ColorSequence_t_p);
+
+    ColorSequence_t_p.parsers (string_p,
+                               ColorDuration_t_p);
+
+    ColorDuration_t_p.parsers (TrafficColor_t_p,
+                               unsigned_byte_p);
+
     // Parse the XML document.
     //
     ::xml_schema::document doc_p (SimMobility_t_p,"http://www.smart.mit.edu/geo","SimMobility");
     SimMobility_t_p.pre ();
-    std::cout << "In main1 SimMobility_t_p.pre() done\n";
-    doc_p.parse ("data/XML_OutPut.xml");
-    std::cout << "In main1 parse done\n";
+    std::cout << "In SimMobility_t_p.pre() done\n";
+    doc_p.parse (XML_OutPutFileName);
+    std::cout << "In XML parse done...\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";
   } catch (const ::xml_schema::exception& e) {
-	  std::cout << "main1 failed\n";
+	  std::cout << "XML parsing failed\n";
 	  std::cerr << e << std::endl;
 	  return false;
   } catch (const std::ios_base::failure&) {
-	  std::cout << "main1 failed2\n";
 	  std::cerr << ": error: io failure" << std::endl;
 	  return false;
   }

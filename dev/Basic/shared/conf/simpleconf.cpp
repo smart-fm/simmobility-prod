@@ -1975,7 +1975,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    PrintDB_Network();
 
        StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
-       return "returning \n";
+    //  return "returning \n";
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
@@ -2145,7 +2145,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;
 	} else {
-		std::cout <<"Aborting on Config : " <<errorMsg <<std::endl;
+		std::cout <<"Aborting on Config error: \n" <<errorMsg <<std::endl;
 	}
 	return errorMsg.empty();
 }

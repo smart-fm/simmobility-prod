@@ -57,7 +57,7 @@ public:
 	///Fails if no outgoing Lanes exist.
 	///The reference to this vector may be invalidated when a new connector is added
 	///   to this Node which links from a Lane* that is not currently linked.
-	const std::set<sim_mob::LaneConnector*>& getOutgoingLanes(const sim_mob::RoadSegment * from) const;
+	const std::set<sim_mob::LaneConnector*>& getOutgoingLanes(const sim_mob::RoadSegment* from) const;
 
 	///Test if connetors exist at this node.
 	bool hasOutgoingLanes(const sim_mob::RoadSegment* from) const;

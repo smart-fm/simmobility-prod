@@ -70,7 +70,7 @@ public:
 		const Lane* right;
 	};
 
-	UniNode(int x, int y) : Node(x, y), firstPair(std::make_pair(0, 0)), secondPair(std::make_pair(0, 0)) {}
+	UniNode(int x, int y) : Node(x, y), firstPair(nullptr, nullptr), secondPair(nullptr, nullptr) {}
 
 	///Retrieve possible movement from a given Lane at this Node (left, right, or center)
 	UniLaneConnector getForwardLanes(const sim_mob::Lane& from) const;

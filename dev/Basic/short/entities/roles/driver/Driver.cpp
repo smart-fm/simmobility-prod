@@ -717,7 +717,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		if(currEndNode)
 		{
 			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
+			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
 
 			if (lcs.size()>0)
 			{
@@ -884,7 +884,7 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 #ifdef SIMMOB_NEW_SIGNAL
 
 	const Crossing* crossing = nullptr;
-	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();
+	const LinkAndCrossingByLink& LAC = trafficSignal->getLinkAndCrossingsByLink();
 	LinkAndCrossingByLink::iterator it = LAC.find(vehicle->getNextSegment()->getLink());
 	if(it != LAC.end())
 		const Crossing* crossing = (*it).crossing;

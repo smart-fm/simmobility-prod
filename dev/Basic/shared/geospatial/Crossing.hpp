@@ -29,10 +29,11 @@ class UnPackageUtils;
  */
 class Crossing : public RoadItem {
 public:
-	Crossing() : RoadItem(), crossingID(0), roadSegment(NULL) {}
-	void setParentSegment(RoadSegment *rs) {setRoadSegment(rs);};//since the name of elements in various road items is not unigorm, a virtual function is added at RoadItem level for this purpose.
+	Crossing() : RoadItem(), /*crossingID(0),*/ roadSegment(NULL) {}
+//	void setParentSegment(RoadSegment *rs) {setRoadSegment(rs);};//since the name of elements in various road items is not unigorm, a virtual function is added at RoadItem level for this purpose.
+
 	RoadSegment* getRoadSegment() const { return roadSegment; };
-//	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
+	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
 
 	//protected:
 	//The line (start/end points that make up the line) "near" the intersection

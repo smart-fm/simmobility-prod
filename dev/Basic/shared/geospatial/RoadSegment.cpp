@@ -11,6 +11,7 @@
 #endif
 
 #include "Lane.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 using namespace sim_mob;
 
@@ -28,13 +29,13 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 }
 
 sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id)
-	: Pavement(), parentLink(parent),segmentID(id)
+	: Pavement(), parentLink(parent),segmentID(id), parentConflux(nullptr)
 {
 
 }
 
 sim_mob::RoadSegment::RoadSegment(Link* parent, const SupplyParams* sParams, unsigned long id)
-	: Pavement(), parentLink(parent),segmentID(id), supplyParams(sParams)
+	: Pavement(), parentLink(parent),segmentID(id), supplyParams(sParams), parentConflux(nullptr)
 {
 
 }
@@ -245,4 +246,3 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	}
 	return laneEdgePolylines_cached[laneID];
 }
-

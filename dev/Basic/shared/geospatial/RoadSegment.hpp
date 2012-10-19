@@ -23,6 +23,7 @@ namespace sim_mob
 class Lane;
 class BusStop;
 class RoadNetworkPackageManager;
+class Conflux;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -93,9 +94,10 @@ public:
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
+	void end1(){};
 	const std::vector<sim_mob::Lane*>& getLanes() const {
-		return lanes;
-	}
+		void end1();
+		return lanes; }
 
 	sim_mob :: BusStop* getBusStop() {
 			return busstop; }
@@ -119,7 +121,6 @@ public:
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of RoadSegment is packed using PackageUtils;
 	static void pack(PackageUtils& package, const RoadSegment* one_segment);
-
 	///UnPackageUtils use the identification of RoadSegment to find the RoadSegment Object
 	static const RoadSegment* unpack(UnPackageUtils& unpackage);
 #endif
@@ -140,6 +141,17 @@ public:
 	bool isValidLane(const sim_mob::Lane* chosenLane) const;
 	void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;
 
+	sim_mob::Conflux* getParentConflux() const {
+		return parentConflux;
+	}
+
+	void setParentConflux(sim_mob::Conflux* parentConflux) {
+		this->parentConflux = parentConflux;
+	}
+
+	/*void initLaneGroups() const;
+	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
+	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -160,16 +172,14 @@ private:
 	unsigned int lanesLeftOfDivider;
 	///Which link this appears in
 	sim_mob::Link* parentLink;
+	/// Conflux to which this segment belongs to
+	sim_mob::Conflux* parentConflux;
 	//	std::string segmentID;
 	unsigned long segmentID;
-
-
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;
 	friend class sim_mob::RoadNetworkPackageManager;
-
 	const sim_mob::SupplyParams* supplyParams;
-
 	friend class geo::segment_t_pimpl;
 	friend class geo::Segments_pimpl;
 	friend class geo::link_t_pimpl;

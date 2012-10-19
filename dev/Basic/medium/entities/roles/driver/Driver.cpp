@@ -746,10 +746,10 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 bool sim_mob::medium::Driver::addToQueue() {
 
 	bool res = false;
-	sim_mob::SegmentVehicles* segVehicles = nullptr;
+	sim_mob::AgentKeeper* segVehicles = nullptr;
 
 	if(currResource)
-		segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -770,9 +770,9 @@ bool sim_mob::medium::Driver::addToQueue() {
 bool sim_mob::medium::Driver::addToMovingList() {
 
 	bool res = false;
-	sim_mob::SegmentVehicles* segVehicles = nullptr;
+	sim_mob::AgentKeeper* segVehicles = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -788,9 +788,9 @@ bool sim_mob::medium::Driver::addToMovingList() {
 }
 
 void sim_mob::medium::Driver::removeFromQueue() {
-	sim_mob::SegmentVehicles* segVehicles = nullptr;
+	sim_mob::AgentKeeper* segVehicles = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -803,9 +803,9 @@ void sim_mob::medium::Driver::removeFromQueue() {
 }
 
 void sim_mob::medium::Driver::removeFromMovingList() {
-	sim_mob::SegmentVehicles* segVehicles = nullptr;
+	sim_mob::AgentKeeper* segVehicles = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -959,7 +959,8 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 	ss <<"upNode: "<<vehicle->getCurrSegment()->getStart()->getID()
 			<<"\tcurrSegment: "<< vehicle->getCurrSegment()->getSegmentID() << "\t time: " << t0
-			<< "\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()<<endl;
+			<< "\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
+			<<"\ttime: "<<currTimeMS + t0*1000<<endl;
 	std::cout << ss.str();
 
 	//getNextLinkAndPath();

@@ -26,7 +26,7 @@ class EventTimePriorityQueue;
 class Agent;
 class PartitionManager;
 class AuraManager;
-
+class Conflux;
 
 /*
  * Worker wrapper, similar to thread_group but using barriers.
@@ -135,6 +135,12 @@ public:
 
 	void assignAWorkerConstraint(Entity* ag);
 
+	void assignConfluxToWorkers();
+
+	void putAgentOnConflux(Agent* ag);
+
+	const sim_mob::RoadSegment* findStartingRoadSegment(Agent* ag);
+
 	Worker* locateWorker(unsigned int linkID);
 
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish
@@ -163,6 +169,8 @@ private:
 	//Initialize our shared (static) barriers. These barriers don't technically need to be copied
 	//  locally, but we'd rather avoid relying on static variables in case we ever make a WorkGroupGroup (or whatever) class.
 	void initializeBarriers(sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr);
+
+	bool assignConfluxToWorkerRecursive(sim_mob::Conflux* conflux, sim_mob::Worker* worker, int numConfluxesInWorker);
 
 private:
 	//Number of workers we are handling. Should be equal to workers.size() once the workers vector has been initialized.

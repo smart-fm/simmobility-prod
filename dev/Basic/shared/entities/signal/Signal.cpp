@@ -578,6 +578,38 @@ sim_mob::SplitPlan & Signal_SCATS::getPlan()
 	return plan_;
 }
 
-}//namespace
+/**
+ * computes and returns the signal phases in the next t seconds if the signal algorithm is Fixed.
+ * returns a vector of pairs of <phase, time in the phase>
+ */
+std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(double t)
+{
+	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
+	if(signalAlgorithm == 0 /*Fixed*/ && t > 0){
+		int phaseId = currPhaseID;
+		sim_mob::Phase p = plan_.phases_[phaseId];
+		// add the remaining time in the current phase
+		double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
+		phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
+		t = t - remainingTimeInCurrPhase;
+
+		// add the subsequent phases which fit into this time window
+		while(t > 0) {
+			phaseId = (phaseId + 1) % plan_.NOF_Phases;
+			sim_mob::Phase p = plan_.phases_[phaseId];
+			if (p.phaseLength <= t) {
+				phaseTimes.push_back(std::make_pair(p, p.phaseLength));
+				t = t - p.phaseLength;
+			}
+			else {
+				phaseTimes.push_back(std::make_pair(p, t));
+				t = 0;
+			}
+		}
+	}
+	return phaseTimes;
+}
+
+} //namespace
 
 #endif

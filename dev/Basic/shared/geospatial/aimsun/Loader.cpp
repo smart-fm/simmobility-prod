@@ -60,6 +60,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
@@ -1074,10 +1075,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
 	createSignals();
-#ifdef SIMMOB_NEW_SIGNAL
-	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
-	//createPlans();
-#endif
+
+	// construct confluxes.
+	sim_mob::aimsun::Loader::ProcessConfluxes(res);
 }
 #ifdef SIMMOB_NEW_SIGNAL
 void
@@ -1339,8 +1339,8 @@ DatabaseLoader::createSignals()
 	}
 }
 #endif
-
-} //End anon namespace
+}
+ //End anon namespace
 
 
 //Another temporary function
@@ -1810,5 +1810,51 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";
+}
+
+/*
+ * iterates multinodes and creates confluxes for all of them
+ */
+void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
+	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
+	sim_mob::Conflux* conflux = nullptr;
+	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
+		// we create a conflux for each multinode
+		conflux = new sim_mob::Conflux(*i, mtxStrat);
+		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
+				segmt!=(*i)->roadSegmentsCircular.end();
+				segmt++ )
+		{
+			sim_mob::Link* lnk = (*segmt).first->getLink();
+			if ((*segmt).second) {
+				// This segment is upstream to the current MultiNode
+				std::vector<sim_mob::RoadSegment*> upSegs;
+				if(lnk->getEnd() == (*i)) {
+					//The half-link we want is the forward segments of the link
+					upSegs = lnk->getFwdSegments();
+				}
+				else if (lnk->getStart() == (*i)) {
+					//The half-link we want is the reverse segments of the link
+					upSegs = lnk->getRevSegments();
+				}
+
+				// set conflux pointer to the segments and create AgentKeeper for the segment
+				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+						segIt != upSegs.end(); segIt++) {
+					if((*segIt)->parentConflux == nullptr) {
+						// assign only if not already assigned
+						(*segIt)->parentConflux = conflux;
+						conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+						conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper((*segIt))));
+					}
+					else {
+						throw std::runtime_error("Parent segment is assigned twice for some segment");
+					}
+				}
+			} //if
+		} // for
+		confluxes.insert(conflux);
+	}
 }
 

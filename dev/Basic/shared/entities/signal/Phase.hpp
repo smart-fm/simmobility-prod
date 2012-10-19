@@ -166,7 +166,7 @@ public:
 	 std::string outputPhaseTrafficLight(std::string newLine) const;
 	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
 
-	const std::string name; //we can assign a name to a phase for ease of identification
+	std::string name; //we can assign a name to a phase for ease of identification
 private:
 	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;

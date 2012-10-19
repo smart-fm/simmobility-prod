@@ -19,7 +19,7 @@ class RoadSegment;
 class DynamicVector;
 class Link;
 class ProfileBuilder;
-
+class Conflux;
 
 namespace aimsun
 {
@@ -60,6 +60,8 @@ public:
 
 	//Ugh
 	static void TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const sim_mob::DynamicVector& cutLine, bool trimStart);
+
+	static void ProcessConfluxes(sim_mob::RoadNetwork& rdnw);
 };
 
 

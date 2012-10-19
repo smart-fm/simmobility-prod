@@ -1,7 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-//TODO: Add comments to each of the methods ~ Harish
-
 #pragma once
 #include <boost/unordered_set.hpp>
 #include "geospatial/RoadSegment.hpp"
@@ -9,6 +7,26 @@
 #include "entities/Agent.hpp"
 
 namespace sim_mob {
+
+class LaneAgents {
+public:
+	LaneAgents() : queueCount(0) {}
+	std::vector<sim_mob::Agent*> laneAgents;
+	void addAgent(sim_mob::Agent* ag);
+	void removeAgent(sim_mob::Agent* ag);
+	sim_mob::Agent* dequeue();
+	int getQueuingAgentsCount();
+	int getMovingAgentsCount();
+
+
+	void resetIterator();
+	sim_mob::Agent* next();
+
+private:
+	unsigned int queueCount;
+
+	std::vector<sim_mob::Agent*>::iterator laneAgentsIt;
+};
 
 /**
  * Keeps a lane wise count of moving and queuing vehicles in a road segment.
@@ -18,21 +36,33 @@ class AgentKeeper {
 
 private:
 	const sim_mob::RoadSegment* roadSegment;
-	std::map<const sim_mob::Lane*, std::vector<sim_mob::Agent*> > queuingAgents;
-	std::map<const sim_mob::Lane*, std::set<sim_mob::Agent*> > movingAgents;
+	std::map<const sim_mob::Lane*, sim_mob::LaneAgents* > laneAgentsMap;
+
+	std::map<const sim_mob::Lane*, sim_mob::Agent* > frontalAgents;
+
+	bool allAgentsProcessed();
+	sim_mob::Agent* agentClosestToStopLine();
 
 public:
 	AgentKeeper(const sim_mob::RoadSegment* rdSeg);
-	void addQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	void removeQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
+
+	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
+	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
+	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
-	void addMovingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	void removeMovingAgent(const sim_mob::Lane* lane, sim_mob::Agent*);
-	std::set<Agent*> getAgentsOnMovingVehicles(const sim_mob::Lane* lane);
-	std::vector<Agent*> getAgentsOnQueuingVehicles(const sim_mob::Lane* lane);
+	std::vector<Agent*> getAgents(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;
-	void merge(sim_mob::AgentKeeper*);
+	std::map<sim_mob::Lane*, std::pair<int, int> > getAgentCountsOnLanes();
+	std::pair<int, int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
+	unsigned int numMovingInSegment();
+	unsigned int numQueueingInSegment();
+
+	sim_mob::Agent* getNext();
+	void resetFrontalAgents();
+
+	// TODO: Check if this function is really required
+	//void merge(sim_mob::AgentKeeper*);
 
 	/**
 	 * laneInfinity stores the agents which are added to this road segment (when they have just become active) and

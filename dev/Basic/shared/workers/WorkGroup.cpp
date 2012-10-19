@@ -556,10 +556,10 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		worker->managedConfluxes.insert(conflux);
 		confluxes.erase(conflux);
 
-		std::set<sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
-		for(std::set<sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+		for(std::set<const sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
 				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
 				i++)
 		{

@@ -1833,10 +1833,12 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 				if(lnk->getEnd() == (*i)) {
 					//The half-link we want is the forward segments of the link
 					upSegs = lnk->getFwdSegments();
+					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 				}
 				else if (lnk->getStart() == (*i)) {
 					//The half-link we want is the reverse segments of the link
 					upSegs = lnk->getRevSegments();
+					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 				}
 
 				// set conflux pointer to the segments and create AgentKeeper for the segment
@@ -1845,7 +1847,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 					if((*segIt)->parentConflux == nullptr) {
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
-						conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 						conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper((*segIt))));
 					}
 					else {

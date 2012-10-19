@@ -4,37 +4,52 @@
 #include "AgentKeeper.hpp"
 
 namespace sim_mob {
-	sim_mob::AgentKeeper::AgentKeeper(const sim_mob::RoadSegment* rdSeg) : roadSegment(rdSeg) {
-	}
 
-	void AgentKeeper::addQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		queuingAgents[lane].push_back(ag);
-	}
-
-	void AgentKeeper::removeQueuingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		std::vector<sim_mob::Agent*>::iterator queueIt =  std::find(queuingAgents[lane].begin(), queuingAgents[lane].end(), ag);
-		if(queueIt != queuingAgents[lane].end()){
-			queuingAgents[lane].erase(queueIt);
+	AgentKeeper::AgentKeeper(const sim_mob::RoadSegment* rdSeg)
+		: roadSegment(rdSeg)
+	{
+		// initialize LaneAgents in the map
+		std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
+		while(lane != rdSeg->getLanes().end())
+		{
+			laneAgentsMap.insert(std::make_pair(*lane, new sim_mob::LaneAgents()));
+			lane++;
 		}
 	}
 
-	void AgentKeeper::addMovingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		movingAgents[lane].insert(ag);
+
+	void AgentKeeper::addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
+		laneAgentsMap[lane]->addAgent(ag);
 	}
 
-	void AgentKeeper::removeMovingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		std::map<const sim_mob::Lane*, std::set<sim_mob::Agent*> >::iterator it_map;
-		it_map = movingAgents.find(lane);
-		if ( it_map != movingAgents.end())
-			movingAgents[lane].erase(ag);
+	void AgentKeeper::removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
+		laneAgentsMap[lane]->removeAgent(ag);
 	}
 
-	std::set<Agent*> AgentKeeper::getAgentsOnMovingVehicles(const sim_mob::Lane* lane) {
-		return movingAgents[lane];
+	sim_mob::Agent* AgentKeeper::dequeue(const sim_mob::Lane* lane) {
+		return laneAgentsMap[lane]->dequeue();
 	}
 
-	std::vector<Agent*> AgentKeeper::getAgentsOnQueuingVehicles(const sim_mob::Lane* lane) {
-		return queuingAgents[lane];
+	std::vector<sim_mob::Agent*> AgentKeeper::getAgents(const sim_mob::Lane* lane) {
+		return laneAgentsMap[lane]->laneAgents;
+	}
+
+	std::pair<int, int> AgentKeeper::getLaneAgentCounts(const sim_mob::Lane* lane) {
+		return std::make_pair(
+				laneAgentsMap[lane]->getQueuingAgentsCount(),
+				laneAgentsMap[lane]->getMovingAgentsCount()
+				);
+	}
+
+	std::map<sim_mob::Lane*, std::pair<int, int> > AgentKeeper::getAgentCountsOnLanes() {
+		std::map<sim_mob::Lane*, std::pair<int, int> > agentCountsOnLanes;
+		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
+		while(lane != roadSegment->getLanes().end())
+		{
+			agentCountsOnLanes.insert(std::make_pair(*lane, getLaneAgentCounts(*lane)));
+			lane++;
+		}
+		return agentCountsOnLanes;
 	}
 
 	const sim_mob::RoadSegment* sim_mob::AgentKeeper::getRoadSegment() const {
@@ -42,72 +57,132 @@ namespace sim_mob {
 	}
 
 	bool AgentKeeper::isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent) {
-		return agent == queuingAgents[lane].front();
+		return (agent == laneAgentsMap[lane]->laneAgents.front());
 	}
 
-	sim_mob::Agent* AgentKeeper::dequeue(const sim_mob::Lane* lane){
-		sim_mob::Agent* ag = queuingAgents[lane].front();
-		queuingAgents[lane].erase(queuingAgents[lane].begin());
+	unsigned int AgentKeeper::numMovingInSegment() {
+		int movingCounts = 0;
+		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
+		while(lane != roadSegment->getLanes().end())
+		{
+			movingCounts = movingCounts + laneAgentsMap[*lane]->getMovingAgentsCount();
+			lane++;
+		}
+		return movingCounts;
+	}
+
+	unsigned int AgentKeeper::numQueueingInSegment() {
+		int queuingCounts = 0;
+		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
+		while(lane != roadSegment->getLanes().end())
+		{
+			queuingCounts = queuingCounts + laneAgentsMap[*lane]->getQueuingAgentsCount();
+			lane++;
+		}
+		return queuingCounts;
+	}
+
+	bool AgentKeeper::allAgentsProcessed() {
+		bool allAgentsProcessed = true;
+		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
+		while(i!=frontalAgents.end()) {
+			if((*i).second != nullptr) {
+				allAgentsProcessed = false;
+				break;
+			}
+		}
+		return allAgentsProcessed;
+	}
+
+	sim_mob::Agent* AgentKeeper::agentClosestToStopLine() {
+		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
+		sim_mob::Agent* ag = nullptr;
+		const sim_mob::Lane* agLane = nullptr;
+		double minDistance = std::numeric_limits<double>::infinity();
+		while(i!=frontalAgents.end()) {
+			if((*i).second != nullptr) {
+				if(minDistance == (*i).second->distanceToEndOfSegment) {
+					// If current ag and (*i) are at equal distance to the stop line, we toss a coin and choose one of them
+					bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
+					if(coinTossResult) {
+						agLane = (*i).first;
+						ag = (*i).second;
+					}
+				}
+				else if (minDistance > (*i).second->distanceToEndOfSegment) {
+					minDistance = (*i).second->distanceToEndOfSegment;
+					agLane = (*i).first;
+					ag = (*i).second;
+				}
+			}
+		}
+		frontalAgents[agLane] = laneAgentsMap[agLane]->next();
 		return ag;
 	}
 
-	void sim_mob::AgentKeeper::merge(sim_mob::AgentKeeper* segVehicles) {
-
-		const sim_mob::RoadSegment* rdSeg = nullptr;
-		if (this->getRoadSegment() == segVehicles->getRoadSegment())
-		{
-
-			rdSeg = this->getRoadSegment();
-
-			//for each lane in the rdSeg
-			for (std::vector<sim_mob::Lane*>::const_iterator laneIt =
-					rdSeg->getLanes().begin(); laneIt != rdSeg->getLanes().end(); laneIt++)
-			{
-				//union movingAgents set
-				std::set<sim_mob::Agent*> segVehMovingAgentsOnLane = segVehicles->getAgentsOnMovingVehicles(*laneIt);
-				this->getAgentsOnMovingVehicles(*laneIt).insert(segVehMovingAgentsOnLane.begin(), segVehMovingAgentsOnLane.end());
-
-				//merge queuing vehicles
-				std::vector<sim_mob::Agent*> segVehQueuingAgentsOnLane = segVehicles->getAgentsOnQueuingVehicles(*laneIt);
-				std::vector<sim_mob::Agent*> thisQueuingAgentsOnLane = this->getAgentsOnQueuingVehicles(*laneIt);
-				std::vector<sim_mob::Agent*> mergedQueuingAgentsOnLane;
-
-				sim_mob::Agent* a = nullptr;
-				sim_mob::Agent* b = nullptr;
-				while (thisQueuingAgentsOnLane.size() + segVehQueuingAgentsOnLane.size() > 0) {
-					if(!a && !thisQueuingAgentsOnLane.empty()) {
-						a = thisQueuingAgentsOnLane.front();
-						thisQueuingAgentsOnLane.erase(thisQueuingAgentsOnLane.begin());
-					}
-					if(!b && !segVehQueuingAgentsOnLane.empty()) {
-						b = segVehQueuingAgentsOnLane.front();
-						segVehQueuingAgentsOnLane.erase(segVehQueuingAgentsOnLane.begin());
-					}
-
-					if(a && b){
-						if(a->enqueueTick <= b->enqueueTick){
-							mergedQueuingAgentsOnLane.push_back(a);
-							a = nullptr;
-						}
-						else {
-							mergedQueuingAgentsOnLane.push_back(b);
-							b = nullptr;
-						}
-					}
-					else if(a){
-						mergedQueuingAgentsOnLane.push_back(a);
-						a = nullptr;
-					}
-					else if(b){
-						mergedQueuingAgentsOnLane.push_back(b);
-						b = nullptr;
-					}
-				} // end of while loop
-
-				//Set the merged queue back to this AgentKeeper object
-				queuingAgents.erase(*laneIt);
-				queuingAgents.insert(std::make_pair(*laneIt, mergedQueuingAgentsOnLane));
-			} // end of for loop
-		} // end of if
+	void AgentKeeper::resetFrontalAgents() {
+		typedef std::vector<sim_mob::Agent*>::iterator agIt;
+		for (std::map<const sim_mob::Lane*, sim_mob::LaneAgents*>::iterator i = laneAgentsMap.begin();
+				i != laneAgentsMap.end(); i++) {
+			(*i).second->resetIterator();
+			frontalAgents[(*i).first] = (*i).second->next();
+		}
 	}
-} // end of namespace sim_mob
+
+	sim_mob::Agent* LaneAgents::next() {
+		sim_mob::Agent* ag = nullptr;
+		if (laneAgentsIt != laneAgents.end()) {
+			ag = *laneAgentsIt;
+			laneAgentsIt++;
+		}
+		return ag;
+	}
+
+	sim_mob::Agent* AgentKeeper::getNext() {
+		sim_mob::Agent* ag = nullptr;
+		if (!allAgentsProcessed()) {
+			ag = agentClosestToStopLine();
+		}
+		return ag;
+	}
+
+	int sim_mob::LaneAgents::getQueuingAgentsCount() {
+		return queueCount;
+	}
+
+	void sim_mob::LaneAgents::addAgent(sim_mob::Agent* ag) {
+		laneAgents.push_back(ag);
+		if(ag->isQueuing) {
+			queueCount++;
+		}
+	}
+
+	void sim_mob::LaneAgents::removeAgent(sim_mob::Agent* ag) {
+		std::vector<sim_mob::Agent*>::iterator agIt =  std::find(laneAgents.begin(), laneAgents.end(), ag);
+		if(agIt != laneAgents.end()){
+			laneAgents.erase(agIt);
+		}
+		if(ag->isQueuing) {
+			queueCount--;
+		}
+	}
+
+	sim_mob::Agent* sim_mob::LaneAgents::dequeue() {
+		sim_mob::Agent* ag = laneAgents.front();
+		laneAgents.erase(laneAgents.begin());
+		if(ag->isQueuing) {
+			queueCount--;
+		}
+		return ag;
+	}
+
+	int sim_mob::LaneAgents::getMovingAgentsCount() {
+		return (laneAgents.size() - queueCount);
+	}
+
+	void LaneAgents::resetIterator() {
+		laneAgentsIt = laneAgents.begin();
+	}
+
+}// end of namespace sim_mob
+

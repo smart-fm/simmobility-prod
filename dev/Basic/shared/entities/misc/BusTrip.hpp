@@ -101,7 +101,7 @@ public:
 	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
-	void setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec);
+	void setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
 	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);

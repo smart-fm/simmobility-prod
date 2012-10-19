@@ -72,16 +72,23 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTi
 	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
 }
 
-void sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec)
+void sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec)
 {
 	if(roadSegment_vec.empty()) {
 		std::cout << "Error: no roadSegments!!!" << std::endl;
 		return;
 	}
+	if(busStop_vec.empty()) {
+		std::cout << "Error: no busStops!!!" << std::endl;
+		// can be, not return
+	}
 	for(int i = 0; i < roadSegment_vec.size(); i++) {
 		bus_RouteInfo.addRoadSegment(roadSegment_vec[i]);
 	}
 	// later add argument std::vector<const BusStop*>& busStop_vec
+	for(int j = 0; j < busStop_vec.size(); j++) {
+		bus_RouteInfo.addBusStop(busStop_vec[j]);
+	}
 }
 
 sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime end_Time, int headway)

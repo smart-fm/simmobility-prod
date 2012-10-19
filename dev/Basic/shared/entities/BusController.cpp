@@ -85,6 +85,7 @@ void sim_mob::BusController::setPTSchedule()
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
+	std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
 
 //	std::cout << "inside the setPTSchedule(): " << std::endl;
 //	for(int i = 0; i < busdispatch_freq.size(); i++) {
@@ -117,7 +118,7 @@ void sim_mob::BusController::setPTSchedule()
 			{
 				BusTrip bustrip(55+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), 0, curr->route_id, 0, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
-				bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id]);
+				bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id], routeID_busStops[curr->route_id]);
 				busline->addBusTrip(bustrip);
 				step++;
 			}

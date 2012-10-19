@@ -106,7 +106,6 @@ public:
 	map<int, Section> const & sections() const { return sections_; }
 	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
 	const map<std::string, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
-	//const map<int, vector<const sim_mob::BusStopInfo*> >& getRoute_BusStopInfos() const { return route_BusStopInfos; }
 
 private:
 	soci::session sql_;
@@ -128,7 +127,6 @@ private:
 
 	map<std::string, vector<const sim_mob::BusStop*> > route_BusStops;
 	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
-	//map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
 
 private:
 	void LoadNodes(const std::string& storedProc);

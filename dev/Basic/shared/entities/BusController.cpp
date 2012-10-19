@@ -114,7 +114,7 @@ void sim_mob::BusController::setPTSchedule()
 			busline->addFrequencyBusline(frequency_busline);
 
 			int step = 0;
-			for(DailyTime startTime = curr->start_time; startTime.isBefore(curr->end_time)!=false; startTime += DailyTime((uint32_t)(curr->headway_sec*1000)))
+			for(DailyTime startTime = curr->start_time; startTime.isBefore(next->start_time)!=false; startTime += DailyTime((uint32_t)(curr->headway_sec*10)))
 			{
 				BusTrip bustrip(55+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), 0, curr->route_id, 0, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;

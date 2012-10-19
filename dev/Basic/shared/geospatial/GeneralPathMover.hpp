@@ -56,7 +56,6 @@ public:
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
 	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
-	double advanceToNextRoadSegment(); //~moved to public by melani - for use externally for mid-term
 	///Are we completely done?
 	bool isDoneWithEntireRoute() const;
 
@@ -120,7 +119,10 @@ public:
 	/* needed by mid-term */
 	double getPositionInSegment();
 	void setPositionInSegment(double newDist2end);
+	void setStartPositionInSegment();
 	double getNextSegmentLength();
+	void advance_med(double fwdDistance);
+	void actualMoveToNextSegmentAndUpdateDir_med();
 //temp
 //private:
 public:
@@ -140,6 +142,7 @@ public:
 
 	//Movement along a single line
 	double distAlongPolyline;
+	double distAlongSegment; //for mid-term use
 	double currPolylineLength() const {
 		//TEMP: Just making sure.
 		if (isInIntersection()) {
@@ -187,7 +190,7 @@ public:
 private:
 	//Helper functions
 	double advanceToNextPolyline(bool isFwd);
-	//double advanceToNextRoadSegment();
+	double advanceToNextRoadSegment();
 	const Lane* actualMoveToNextSegmentAndUpdateDir();
 	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
 	void generateNewPolylineArray();

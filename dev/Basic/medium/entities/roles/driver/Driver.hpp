@@ -34,7 +34,6 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
-class LaneGroup;
 
 namespace medium
 {
@@ -82,14 +81,14 @@ public:
 	//melani-for queuing
 	bool advance(DriverUpdateParams& p, unsigned int currTimeMS);
 	bool moveToNextSegment(DriverUpdateParams& p, unsigned int currTimeMS, double timeSpent);
+	void moveToNextLink(DriverUpdateParams& p, unsigned int currTimeMS, double departTime);
 	bool canGoToNextRdSeg(DriverUpdateParams& p, double time);
-	void moveInQueue();
+	bool moveInQueue();
 	double getPosition();
-	double moveInSegment(DriverUpdateParams& p2, double distance);
-	void initLaneGroups(sim_mob::RoadSegment& parentRS);
-	void advanceQueuingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	void advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	void advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
+	bool moveInSegment(DriverUpdateParams& p2, double distance);
+	bool advanceQueuingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
+	bool advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
+	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
 	void updateVelocity();
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
@@ -101,12 +100,11 @@ private:
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 
-	void addToQueue();
-	void addToMovingList();
+	bool addToQueue();
+	bool addToMovingList();
 	void removeFromQueue();
 	void removeFromMovingList();
 	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
-	//sim_mob::LaneGroup* getBestTargetLaneGroup();
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* nextRdSeg);
 
 protected:
@@ -120,7 +118,7 @@ protected:
 
 public:
 	//Buffered data
-	Shared<const Lane*> currLane_;
+	//Shared<const Lane*> currLane_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;
 
@@ -144,7 +142,8 @@ public:
 	//double overflowIntoIntersection;
 
 private:
-	const Lane* nextLaneInNextLink;
+	const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
+	const Lane* nextLaneInNextSegment;
 	size_t targetLaneIndex;
 	//size_t currLaneIndex;
 	mutable std::stringstream DebugStream;

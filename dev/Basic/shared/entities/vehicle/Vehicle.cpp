@@ -104,8 +104,8 @@ const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
 }
 
-const RoadSegment* sim_mob::Vehicle::getPrevSegment() const {
-	return fwdMovement.getPrevSegment(true);
+const RoadSegment* sim_mob::Vehicle::getPrevSegment(bool inSameLink) const {
+	return fwdMovement.getPrevSegment(inSameLink);
 }
 
 const Node* sim_mob::Vehicle::getNodeMovingTowards() const {
@@ -282,10 +282,14 @@ double sim_mob::Vehicle::moveFwd(double amt) {
 	return fwdMovement.advance(amt);
 }
 
-
-double sim_mob::Vehicle::advanceToNextRoadSegment() {
+void sim_mob::Vehicle::moveFwd_med(double amt) {
 	throw_if_error();
-	return fwdMovement.advanceToNextRoadSegment();
+	fwdMovement.advance_med(amt);
+}
+
+void sim_mob::Vehicle::actualMoveToNextSegmentAndUpdateDir_med() {
+	throw_if_error();
+	fwdMovement.actualMoveToNextSegmentAndUpdateDir_med();
 }
 
 void sim_mob::Vehicle::moveLat(double amt) {

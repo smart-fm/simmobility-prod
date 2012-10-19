@@ -237,7 +237,9 @@ public:
 	std::map<int, unsigned long>& getSectionID_SegmentID() { return sectionID_segmentID; }
 	std::map<unsigned long, sim_mob::RoadSegment*>& getSegmentID_RoadSegments() { return segmentID_roadSegments; }
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
+	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
 
 private:
 	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
@@ -259,6 +261,7 @@ private:
 	// Temporary: Yao Jin
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
+	std::map<std::string, std::vector<const sim_mob::BusStop*> > routeID_busStops; // map<routeID, vector<BusStop*>>
 	bool sealedNetwork;
 };
 

@@ -20,6 +20,8 @@
 #include "geospatial/RoadSegment.hpp"
 #include "AgentKeeper.hpp"
 #include "workers/Worker.hpp"
+#include "buffering/Buffered.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 
 namespace sim_mob {
@@ -40,31 +42,55 @@ public:
 
 
 private:
-	// MultiNode around which this conflux is constructed
+	/* MultiNode around which this conflux is constructed */
 	const sim_mob::MultiNode* multiNode;
 
 	const sim_mob::Signal* signal;
 
 	/* segments in this conflux (on upstream links)
-	 * All segments on half-links whose direction is flowing into the intersection */
-	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
+	 * stores std::map< Link connected to the intersection, direction of the half-link which flows into the intersection>
+	 */
+	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
+
+	/* keeps an iterator on each link to keep tract of the current segment that is being processed*/
+	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator > currSegsOnUpLinks;
 
 	/* segments on downstream links
-	 * These half-links conceptually belong to another conflux. */
-	std::set<sim_mob::RoadSegment*> downstreamSegments;
+	 * These half-links conceptually belong to another conflux.
+	 */
+	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/* Map to store the vehicle counts of each road segment on this conflux */
-	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgents;
+	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgents;
 
 	/* This is a temporary storage data structure from which the agents would be moved to segmentAgents of
 	 * another conflux during a flip (barrier synchronization). */
-	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgentsDownstream;
+	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgentsDownstream;
 
 	/* Worker to which this conflux belongs to*/
 	sim_mob::Worker* parentWorker;
 
+	/*structure to store the frontal agents in each road segment*/
+	std::map<const sim_mob::RoadSegment*, sim_mob::Agent* > candidateAgents;
+
+	/*cache the lane zero length of road segments in this conflux*/
+
+	frame_t currFrameNumber;
+
+	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
-	void updateUnsignalized();
+
+	/* function to call agents' updates if the MultiNode is not signalized */
+	void updateUnsignalized(frame_t frameNumber);
+
+	/* function to initialize candidate agents in each tick*/
+	void initCandidateAgents();
+
+	/* sets the iterators on currSegToUpLinks to the segments at the end of the half links*/
+	void resetCurrSegsOnUpLinks();
+
+	/* selects the agent closest to the intersection from candidateAgents;*/
+	sim_mob::Agent* agentClosestToIntersection();
 
 public:
 	//constructors and destructor
@@ -86,20 +112,24 @@ public:
 		return signal;
 	}
 
-	std::set<sim_mob::RoadSegment*> getDownstreamSegments() {
+	std::set<const sim_mob::RoadSegment*> getDownstreamSegments() {
 		return downstreamSegments;
 	}
 
-	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*> > getUpstreamSegmentsMap() {
-		return upstreamSegmentsMap;
-	}
-
-	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgents() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 
-	std::map<sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() const {
 		return segmentAgentsDownstream;
+	}
+
+	sim_mob::Worker* getParentWorker() const {
+		return parentWorker;
+	}
+
+	void setParentWorker(sim_mob::Worker* parentWorker) {
+		this->parentWorker = parentWorker;
 	}
 
 	// adds an agent who has just become active to this conflux
@@ -111,13 +141,13 @@ public:
 	// adds this agent into segmentAgentsDownstream list
 	void prepareAgentForHandover(sim_mob::Agent* ag);
 
-	sim_mob::Worker* getParentWorker() const {
-		return parentWorker;
-	}
+	// get agent counts in a segment
+	// lanewise
+	std::map<sim_mob::Lane*, std::pair<int, int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
-	void setParentWorker(sim_mob::Worker* parentWorker) {
-		this->parentWorker = parentWorker;
-	}
+	// moving and queuing counts
+	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg);
+	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg);
 };
 
 } /* namespace sim_mob */

@@ -98,7 +98,7 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	double speed_density_function(unsigned int numVehicles); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 
 	bool addToQueue();
 	bool addToMovingList();

@@ -529,7 +529,7 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * the flow of vehicles between confluxes. Our objective is to minimize the (expected) flow of agents from one
  * partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses algorithm
  * for partitioning, if it works. This is a little more complex due to the variable flow rates of vehicles
- * (edge weights); might require more thinking and research.
+ * (edge weights); might require more thinking.
  *
  * TODO: Must see if this assignment is acceptable and try to optimize if necessary.
  * ~ Harish
@@ -556,10 +556,10 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		worker->managedConfluxes.insert(conflux);
 		confluxes.erase(conflux);
 
-		std::set<sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
-		for(std::set<sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+		for(std::set<const sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
 				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
 				i++)
 		{

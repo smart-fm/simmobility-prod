@@ -175,7 +175,6 @@ unsigned int sim_mob::BusController::scheduledDecision(const std::string& buslin
 
 	//Fwd_ATijk = ATijk;// assign value
 	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	//BusRouteInfo* busRouteInfo_tripK = BusTrips[trip_k].getBusRouteInfo();
 
 	//StopInformation(Times)
 	const std::vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
@@ -208,7 +207,7 @@ unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_
 
 	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
 	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
-	//const vector<const BusStopInfo*>& busStopInfo_tripK = busRouteInfo_tripK->getBusStopsInfo();
+
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 	Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);

@@ -20,26 +20,34 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) :
-	length(400), width(200), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) :
-	length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, double length, double width) :
-	length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME) {
+sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME) {
 	fwdMovement.setPath(path, startLaneID);
+#ifndef SIMMOB_DISABLE_OUTPUT
+	LogOut("(\"Vehicle constructor by RoadSegment\""
+			<<"\"vehicle_id\":\""<<vehicle_id
+			<<"\",\"length\":\""<<length
+			<<"\",\"width\":\""<<width
+			<<"\",\"error_state\":\""<<error_state
+			<<std::endl);
+#endif
 }
 
 sim_mob::Vehicle::Vehicle() :
-	length(400), width(200), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) {
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) {
 }
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
-	length(copyFrom.length), width(copyFrom.width), fwdMovement(copyFrom.fwdMovement),
+	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
 					copyFrom.error_state) {
@@ -242,6 +250,10 @@ double sim_mob::Vehicle::getAcceleration() const {
 
 LANE_CHANGE_SIDE sim_mob::Vehicle::getTurningDirection() const{
 	return turningDirection;
+}
+
+int sim_mob::Vehicle::getVehicleID() const {
+	return vehicle_id;
 }
 
 double sim_mob::Vehicle::getAngle() const {

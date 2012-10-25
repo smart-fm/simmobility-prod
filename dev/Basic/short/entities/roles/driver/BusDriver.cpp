@@ -52,10 +52,12 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 //		goal.point = goal.node->location;
 		vector<const RoadSegment*> path;
 		Person* person = dynamic_cast<Person*>(parent);
+		int vehicle_id = 0;
 		if(person) {
 			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
 			if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
 				path = bustrip->getBusRouteInfo().getRoadSegments();
+				vehicle_id = bustrip->getVehicleID();
 			}
 		}
 
@@ -89,7 +91,7 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 
 		//A non-null vehicle means we are moving.
 		if (allocateVehicle) {
-			res = new Vehicle(path, startlaneID, length, width);
+			res = new Vehicle(path, startlaneID, vehicle_id, length, width);
 		}
 	}
 

@@ -98,6 +98,9 @@ public:
 	const std::string& getBusLineID() const {
 		return busLine_id;
 	}
+	int getVehicleID() const {
+		return vehicle_id;
+	}
 	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}

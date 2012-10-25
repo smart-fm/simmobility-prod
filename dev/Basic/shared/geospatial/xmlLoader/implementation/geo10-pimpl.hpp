@@ -21,6 +21,18 @@ namespace xml {
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
 
+///Helper namespace: contains typedefs for particularly verbose items
+namespace helper {
+
+//Was: geo_UniNode_Connectors_type
+typedef std::set<std::pair<unsigned long,unsigned long> > UniNodeConnectors;
+
+//Was: geo_MultiNode_Connectors_type
+typedef std::map<unsigned long, helper::UniNodeConnectors > MultiNodeConnectors;
+
+} //End helper namespace
+
+
 class Point2D_t_pimpl: public virtual Point2D_t_pskel {
 public:
 	virtual void pre ();
@@ -94,69 +106,59 @@ private:
 };
 
 
-
 class connector_t_pimpl: public virtual connector_t_pskel {
-  public:
-  virtual void
-  pre ();
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long,unsigned long> post_connector_t ();
 
-  virtual void
-  laneFrom (unsigned long long);
+	virtual void laneFrom (unsigned long long);
+	virtual void laneTo (unsigned long long);
 
-  virtual void
-  laneTo (unsigned long long);
-
-  virtual std::pair<unsigned long,unsigned long>
-  post_connector_t ();
-  private:
-  std::pair<unsigned long,unsigned long> connector;
+private:
+	std::pair<unsigned long,unsigned long> model;
 };
 
-class connectors_t_pimpl: public virtual connectors_t_pskel
-{
-	  std::set<std::pair<unsigned long,unsigned long> > Connectors;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  Connector (std::pair<unsigned long,unsigned long>);
+class connectors_t_pimpl: public virtual connectors_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::set<std::pair<unsigned long,unsigned long> > post_connectors_t ();
 
-  virtual std::set<std::pair<unsigned long,unsigned long> >
-  post_connectors_t ();
+	virtual void Connector (std::pair<unsigned long,unsigned long>);
+
+private:
+	std::set<std::pair<unsigned long,unsigned long> > model;
 };
 
-class Multi_Connector_t_pimpl: public virtual Multi_Connector_t_pskel
-{
-	  std::string RoadSegment_;
-	  std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >  temp_pair;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  RoadSegment (unsigned long long);
 
-  virtual void
-  Connectors (std::set<std::pair<unsigned long,unsigned long> >);
+class Multi_Connector_t_pimpl: public virtual Multi_Connector_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > post_Multi_Connector_t ();
 
-  virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
-  post_Multi_Connector_t ();
+	virtual void RoadSegment (unsigned long long);
+	virtual void Connectors (std::set<std::pair<unsigned long,unsigned long> >);
+
+private:
+	//std::string RoadSegment_;
+	std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >  model;
 };
 
-class Multi_Connectors_t_pimpl: public virtual Multi_Connectors_t_pskel
-{
-	  std::map<std::string,std::set<sim_mob::LaneConnector*> > temp_map;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
-  virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
-  post_Multi_Connectors_t ();
+class Multi_Connectors_t_pimpl: public virtual Multi_Connectors_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > post_Multi_Connectors_t ();
+
+	virtual void MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+
+private:
+	helper::MultiNodeConnectors model;
 };
+
+
 
 class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel
 {

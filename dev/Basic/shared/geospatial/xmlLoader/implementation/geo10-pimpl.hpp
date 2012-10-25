@@ -64,74 +64,37 @@ private:
 
 
 
+class lane_t_pimpl: public virtual lane_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::Lane* post_lane_t ();
 
-class lane_t_pimpl: public virtual lane_t_pskel
-{
-	  sim_mob::Lane *lane;
-  public:
-  virtual void
-  pre ();
+	virtual void laneID (unsigned long long);
+	virtual void width (unsigned int);
+	virtual void PolyLine (std::vector<sim_mob::Point2D>);
 
-  virtual void
-  laneID (unsigned long long);
+	virtual void can_go_straight (bool);
+	virtual void can_turn_left (bool);
+	virtual void can_turn_right (bool);
+	virtual void can_turn_on_red_signal (bool);
+	virtual void can_change_lane_left (bool);
+	virtual void can_change_lane_right (bool);
+	virtual void is_road_shoulder (bool);
+	virtual void is_bicycle_lane (bool);
+	virtual void is_pedestrian_lane (bool);
+	virtual void is_vehicle_lane (bool);
+	virtual void is_standard_bus_lane (bool);
+	virtual void is_whole_day_bus_lane (bool);
+	virtual void is_high_occupancy_vehicle_lane (bool);
+	virtual void can_freely_park_here (bool);
+	virtual void can_stop_here (bool);
+	virtual void is_u_turn_allowed (bool);
 
-  virtual void
-  width (unsigned int);
-
-  virtual void
-  can_go_straight (bool);
-
-  virtual void
-  can_turn_left (bool);
-
-  virtual void
-  can_turn_right (bool);
-
-  virtual void
-  can_turn_on_red_signal (bool);
-
-  virtual void
-  can_change_lane_left (bool);
-
-  virtual void
-  can_change_lane_right (bool);
-
-  virtual void
-  is_road_shoulder (bool);
-
-  virtual void
-  is_bicycle_lane (bool);
-
-  virtual void
-  is_pedestrian_lane (bool);
-
-  virtual void
-  is_vehicle_lane (bool);
-
-  virtual void
-  is_standard_bus_lane (bool);
-
-  virtual void
-  is_whole_day_bus_lane (bool);
-
-  virtual void
-  is_high_occupancy_vehicle_lane (bool);
-
-  virtual void
-  can_freely_park_here (bool);
-
-  virtual void
-  can_stop_here (bool);
-
-  virtual void
-  is_u_turn_allowed (bool);
-
-  virtual void
-  PolyLine (std::vector<sim_mob::Point2D>);
-
-  virtual sim_mob::Lane*
-  post_lane_t ();
+private:
+  sim_mob::Lane* lane;
 };
+
+
 
 class connector_t_pimpl: public virtual connector_t_pskel
 {

@@ -9,7 +9,8 @@ void sim_mob::xml::PolyPoint_t_pimpl::pre ()
 
 void sim_mob::xml::PolyPoint_t_pimpl::pointID (const ::std::string& pointID)
 {
-	savedID = pointID;
+	//TODO: What to do with the saved ID?
+	//savedID = pointID;
 }
 
 void sim_mob::xml::PolyPoint_t_pimpl::location (sim_mob::Point2D location)

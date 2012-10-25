@@ -45,7 +45,7 @@ public:
     virtual void location (sim_mob::Point2D);
 
 private:
-    std::string savedID;
+    //std::string savedID;
     sim_mob::Point2D savedPos;
 };
 

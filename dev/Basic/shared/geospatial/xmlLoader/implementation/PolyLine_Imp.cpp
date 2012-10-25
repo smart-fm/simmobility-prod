@@ -5,6 +5,7 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::PolyLine_t_pimpl::pre ()
 {
+	polyLine.clear();
 }
 
 void sim_mob::xml::PolyLine_t_pimpl::PolyPoint (sim_mob::Point2D PolyPoint)

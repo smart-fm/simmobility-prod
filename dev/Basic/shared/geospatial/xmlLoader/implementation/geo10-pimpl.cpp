@@ -61,7 +61,7 @@ geo_LinkLoc geo_LinkLoc_;
 std::map<unsigned int,sim_mob::Link*> geo_Links_;
 std::map<unsigned long,sim_mob::RoadSegment*> geo_Segments_;
 std::map<unsigned long,sim_mob::Lane*> geo_Lanes_;
-std::map<unsigned int,sim_mob::Node*> geo_Nodes_;
+
 std::map<unsigned int,std::set<unsigned long> > geo_RoadSegmentsAt; //<nodeId,set<segments>>
 std::map<unsigned int, std::pair<std::pair<unsigned long,unsigned long>,std::pair<unsigned long,unsigned long> > > geo_UniNode_SegmentPairs; //map<nodeId, pair< pair<segId,SegId> , pair<segId,segId> >
 
@@ -128,132 +128,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // segment_t_pimpl
 //
 
-void segment_t_pimpl::
-pre ()
-{
-	  std::cout << "In segment_t_pimpl:: pre ()\n";
-	  rs = NULL;
-	  rs = new sim_mob::RoadSegment();
-	  rs->setLanesLeftOfDivider(0);
-}
 
-void segment_t_pimpl::
-segmentID (unsigned long long segmentID)
-{
-//	  if((segmentID >= 100000302) && (segmentID <= 100000305))
-//	  {
-//		  std::cout << "In segment_t_pimpl:: segmentID= " << segmentID << "\n";
-//		  getchar();
-//	  }
-
-	  this->rs->setID(segmentID);
-	  geo_Segments_[this->rs->getSegmentID()] = rs;
-}
-
-void segment_t_pimpl::
-startingNode (unsigned int startingNode)
-{
-	  std::cout << "In segment_t_pimpl::   startingNode ()\n";
-	  this->rs->setStart(geo_Nodes_[startingNode]);
-}
-
-void segment_t_pimpl::
-endingNode (unsigned int endingNode)
-{
-	  std::cout << "In segment_t_pimpl::   endingNode ()\n";
-	  this->rs->setEnd(geo_Nodes_[endingNode]);
-}
-
-void segment_t_pimpl::
-maxSpeed (short maxSpeed)
-{
-	  this->rs->maxSpeed = maxSpeed;
-}
-
-void segment_t_pimpl::
-Length (unsigned int Length)
-{
-	  this->rs->length = Length;
-}
-
-void segment_t_pimpl::
-Width (unsigned int Width)
-{
-	  this->rs->width = Width;
-}
-
-void segment_t_pimpl::
-originalDB_ID (const ::std::string& originalDB_ID)
-{
-  std::cout << "originalDB_ID: " << originalDB_ID << std::endl;
-  this->rs->originalDB_ID = originalDB_ID;
-}
-void segment_t_pimpl::
-polyline (std::vector<sim_mob::Point2D> polyline)
-{
-  this->rs->polyline = polyline;
-}
-void segment_t_pimpl::
-laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached)
-{
-	  this->rs->laneEdgePolylines_cached = laneEdgePolylines_cached;
-//	  if(this->rs->getSegmentID() == 100000100)
-//	  {
-//		  std::cout << "this->rs->laneEdgePolylines_cached.size() =" <<  this->rs->laneEdgePolylines_cached.size() << std::endl;
-//		  getchar();
-//	  }
-}
-void segment_t_pimpl::
-Lanes (std::vector<sim_mob::Lane*> Lanes)
-{
-	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
-	  this->rs->setLanes(Lanes);
-	  //set parentsegment for each lane
-
-	  const std::vector<sim_mob::Lane*>& lanes = this->rs->getLanes();
-	  for(std::vector<sim_mob::Lane*>::const_iterator it = lanes.begin(); it!=lanes.end(); it++) {
-		  //TODO: We need a better way of managing RoadNetwork const-ness.
-		  sim_mob::Lane* ln = const_cast<sim_mob::Lane*>(*it);
-		  ln->setParentSegment(this->rs);
-	  }
-	 // std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
-}
-
-void segment_t_pimpl::
-Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*> Obstacles)
-{
-//	  std::cout << "in segment_t_pimpl::Obstacles () " << std::endl;
-	  //we set roadSegment* element of Crossing(and similar roadItems) in here
-	  //street directory has already done that, but that is not a good place to do this setting
-	  //for one reason, this XML reader can be used in GUI also, and there is no mechanism to set such elements there.
-	  for(std::map<sim_mob::centimeter_t,const RoadItem*>::iterator it = Obstacles.begin(); it != Obstacles.end(); it++)
-	  {
-		  RoadItem* temp = const_cast<RoadItem*>(it->second);
-		  if (temp)
-			  temp->setParentSegment(this->rs);
-	  }
-
-
-	  this->rs->obstacles = Obstacles;
-}
-
-void segment_t_pimpl::
-KurbLine (std::vector<sim_mob::Point2D> KurbLine)
-{
-  // TODO
-  //
-}
-
-sim_mob::RoadSegment* segment_t_pimpl::
-post_segment_t ()
-{
-//	  if((rs->segmentID >= 100000302) && (rs->segmentID <= 100000305))
-//	  {
-//		  std::cout << "In segment_t_pimpl::post_segment_t... segmentID= " << rs->segmentID << "\n";
-//		  getchar();
-//	  }
-	  return rs;
-}
 
 // link_t_pimpl
 //
@@ -280,15 +155,15 @@ roadName (const ::std::string& roadName)
 }
 
 void link_t_pimpl::
-StartingNode (unsigned int StartingNode)
+StartingNode (unsigned int value)
 {
-	  this->link->setStart(geo_Nodes_[StartingNode]);
+	  this->link->setStart(Nodes_pimpl::LookupNode(value));
 }
 
 void link_t_pimpl::
-EndingNode (unsigned int EndingNode)
+EndingNode (unsigned int value)
 {
-	  this->link->setEnd(geo_Nodes_[EndingNode]);
+	  this->link->setEnd(Nodes_pimpl::LookupNode(value));
 }
 
 void link_t_pimpl::
@@ -714,7 +589,10 @@ post_UniNode_t ()
 	  this->uniNode->setID(v->getID());
 	  this->uniNode->originalDB_ID = v->originalDB_ID;
 	  geo_UniNodeConnectorsMap[this->uniNode->getID()] = connectors_;
-	  geo_Nodes_[this->uniNode->getID()] = this->uniNode;
+
+	 // geo_Nodes_[this->uniNode->getID()] = this->uniNode;
+	  Nodes_pimpl::RegisterNode(this->uniNode->getID(), this->uniNode);
+
 	  geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
 	  geo_LinkLoc_rawNode::iterator it = container.find(v);
 	  if(it != container.end())
@@ -853,8 +731,11 @@ post_intersection_t ()
 	   this->intersection->originalDB_ID = v->originalDB_ID;
 //		  std::cout << "In intersection_t_pimpl::post_intersection_t ()->originalDB_ID" << this->intersection->originalDB_ID.getLogItem()  << "(" << v->originalDB_ID.repr_ << ")\n";
 //	   std::cout << "location of intersection node is at [" << this->intersection->getLocation().getX() << " , " << this->intersection->getLocation().getY() << std::endl;
-	   geo_Nodes_[v->getID()] = this->intersection;
-  geo_MultiNodeConnectorsMap[v->getID()] = this->connectors_;
+
+	   //geo_Nodes_[v->getID()] = this->intersection;
+	   Nodes_pimpl::RegisterNode(v->getID(), this->intersection);
+
+	   geo_MultiNodeConnectorsMap[v->getID()] = this->connectors_;
   geo_RoadSegmentsAt[v->getID()] = this->roadSegmentsAt_;
 	    geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
 	    geo_LinkLoc_rawNode::iterator it = container.find(v);
@@ -1365,11 +1246,13 @@ tripID (long long tripID)
 }
 
 void Trip_t_pimpl::
-fromLocation (unsigned int fromLocation)
+fromLocation (unsigned int value)
 {
 	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::fromLocation ()"  << std::endl;
-	  trip->fromLocation = geo_Nodes_[fromLocation];
+
+	  //trip->fromLocation = geo_Nodes_[fromLocation];
+	  trip->fromLocation = Nodes_pimpl::LookupNode(value);
 }
 
 sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
@@ -1398,11 +1281,11 @@ fromLocationType (std::string fromLocationType)
 }
 
 void Trip_t_pimpl::
-toLocation (unsigned int toLocation)
+toLocation (unsigned int value)
 {
 	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
-	  trip->toLocation = geo_Nodes_[toLocation];
+	  trip->toLocation = Nodes_pimpl::LookupNode(value);
 }
 
 void Trip_t_pimpl::
@@ -1538,9 +1421,9 @@ description (const ::std::string& description)
 }
 
 void Activity_t_pimpl::
-location (unsigned int location)
+location (unsigned int value)
 {
-	  activity->location = geo_Nodes_[location];
+	  activity->location = Nodes_pimpl::LookupNode(value);
 }
 
 void Activity_t_pimpl::
@@ -2273,36 +2156,7 @@ post_Segments ()
 // Nodes_pimpl
 //
 
-void Nodes_pimpl::
-pre ()
-{
-}
 
-void Nodes_pimpl::
-UniNodes (std::set<sim_mob::UniNode*>& UniNodes)
-{
-	  rn.setSegmentNodes(UniNodes);
-  // TODO
-  //
-}
-
-void Nodes_pimpl::
-Intersections (std::vector<sim_mob::MultiNode*>& Intersections)
-{
-	  rn.addNodes(Intersections);
-}
-
-void Nodes_pimpl::
-roundabouts (std::vector<sim_mob::MultiNode*>& roundabouts)
-{
-	  rn.addNodes(roundabouts);
-}
-
-void Nodes_pimpl::
-post_Nodes ()
-{
-	  std::cout<< "post_Nodes called\n";
-}
 
 // Links_pimpl
 //

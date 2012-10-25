@@ -214,53 +214,30 @@ public:
 
 
 
+class segment_t_pimpl: public virtual segment_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::RoadSegment* post_segment_t ();
 
-class segment_t_pimpl: public virtual segment_t_pskel
-{
-	  sim_mob::RoadSegment *rs;
-  public:
-  virtual void
-  pre ();
+	virtual void segmentID (unsigned long long);
+	virtual void startingNode (unsigned int);
+	virtual void endingNode (unsigned int);
+	virtual void maxSpeed (short);
+	virtual void Length (unsigned int);
+	virtual void Width (unsigned int);
+	virtual void originalDB_ID (const ::std::string&);
+	virtual void polyline (std::vector<sim_mob::Point2D>);
+	virtual void laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >);
+	virtual void Lanes (std::vector<sim_mob::Lane*>);
+	virtual void Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
+	virtual void KurbLine (std::vector<sim_mob::Point2D>);
 
-  virtual void
-  segmentID (unsigned long long);
-
-  virtual void
-  startingNode (unsigned int);
-
-  virtual void
-  endingNode (unsigned int);
-
-  virtual void
-  maxSpeed (short);
-
-  virtual void
-  Length (unsigned int);
-
-  virtual void
-  Width (unsigned int);
-
-  virtual void
-  originalDB_ID (const ::std::string&);
-
-  virtual void
-  polyline (std::vector<sim_mob::Point2D>);
-
-  virtual void
-  laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >);
-
-  virtual void
-  Lanes (std::vector<sim_mob::Lane*>);
-
-  virtual void
-  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
-
-  virtual void
-  KurbLine (std::vector<sim_mob::Point2D>);
-
-  virtual sim_mob::RoadSegment*
-  post_segment_t ();
+private:
+  sim_mob::RoadSegment model;
 };
+
+
+
 
 class link_t_pimpl: public virtual link_t_pskel
 {
@@ -1282,28 +1259,30 @@ class Segments_pimpl: public virtual Segments_pskel
   post_Segments ();
 };
 
-class Nodes_pimpl: public virtual Nodes_pskel
-{
-	  sim_mob::RoadNetwork &rn;
-  public:
-	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
-		  std::cout << "RoadNetworkRW hooked\n";
-	  }
-  virtual void
-  pre ();
 
-  virtual void
-  UniNodes (std::set<sim_mob::UniNode*>&);
+//NOTE: Need to clean up reference to the singleton ConfigParams instance!
+class Nodes_pimpl: public virtual Nodes_pskel {
+public:
+	Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
+		std::cout << "RoadNetworkRW hooked\nTODO: This is not the correct way to do things!";
+	}
 
-  virtual void
-  Intersections (std::vector<sim_mob::MultiNode*>&);
+	virtual void pre ();
+	virtual void post_Nodes ();
 
-  virtual void
-  roundabouts (std::vector<sim_mob::MultiNode*>&);
+	virtual void UniNodes (std::set<sim_mob::UniNode*>&);
+	virtual void Intersections (std::vector<sim_mob::MultiNode*>&);
+	virtual void roundabouts (std::vector<sim_mob::MultiNode*>&);
 
-  virtual void
-  post_Nodes ();
+	static sim_mob::Node* LookupNode(unsigned int id);
+	static void RegisterNode(unsigned int id, sim_mob::Node* node);
+
+private:
+	sim_mob::RoadNetwork &rn;
+	static std::map<unsigned int,sim_mob::Node*> Lookup;
 };
+
+
 
 class Links_pimpl: public virtual Links_pskel
 {

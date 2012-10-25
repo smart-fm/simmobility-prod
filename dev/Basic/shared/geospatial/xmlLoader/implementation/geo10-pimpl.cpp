@@ -108,106 +108,22 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // fwdBckSegments_t_pimpl
 //
 
-void fwdBckSegments_t_pimpl::
-pre ()
-{
-	  std::cout << "in fwdBckSegments_t_pimpl::pre () " << std::endl;
-	  Segments.clear();
-}
 
-void fwdBckSegments_t_pimpl::
-Segment (sim_mob::RoadSegment* Segment)
-{
-//	  if((Segment->getSegmentID() >= 100000302) && (Segment->getSegmentID() <= 100000305))
-//	  {
-//		  std::cout << "In fwdBckSegments_t_pimpl::Segment ... segmentID= " << Segment->getSegmentID() << "\n";
-//		  getchar();
-//	  }
-//	  std::cout << "in fwdBckSegments_t_pimpl::Segment () " << std::endl;
-	  Segments.push_back(Segment);
-}
-
-std::vector<sim_mob::RoadSegment*> fwdBckSegments_t_pimpl::
-post_fwdBckSegments_t ()
-{
-	  std::cout << "in fwdBckSegments_t_pimpl::post_fwdBckSegments_t () " << std::endl;
-	  return Segments;
-}
 
 // RoadSegmentsAt_t_pimpl
 //
 
-void RoadSegmentsAt_t_pimpl::
-pre ()
-{
-	  RoadSegments.clear();
-}
 
-void RoadSegmentsAt_t_pimpl::
-segmentID (unsigned long long segmentID)
-{
-//    std::cout << "segmentID: " << segmentID << std::endl;
-  RoadSegments.insert(segmentID);
-}
-
-std::set<unsigned long> RoadSegmentsAt_t_pimpl::
-post_RoadSegmentsAt_t ()
-{
-	  return RoadSegments;
-}
 
 // laneEdgePolyline_cached_t_pimpl
 //
 
-void laneEdgePolyline_cached_t_pimpl::
-pre ()
-{
-	  thePair.first = -1;
-	  thePair.second.clear();
-}
 
-void laneEdgePolyline_cached_t_pimpl::
-laneNumber (short laneNumber)
-{
-  std::cout << "laneNumber: " << laneNumber << std::endl;
-  thePair.first = laneNumber;
-}
-
-void laneEdgePolyline_cached_t_pimpl::
-polyline (std::vector<sim_mob::Point2D> polyline)
-{
-	  thePair.second = polyline;
-}
-
-std::pair<short,std::vector<sim_mob::Point2D> > laneEdgePolyline_cached_t_pimpl::
-post_laneEdgePolyline_cached_t ()
-{
-	  return thePair;
-}
 
 // laneEdgePolylines_cached_t_pimpl
 //
 
-void laneEdgePolylines_cached_t_pimpl::
-pre ()
-{
-	  result.clear();
-}
 
-void laneEdgePolylines_cached_t_pimpl::
-laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> > laneEdgePolyline_cached)
-{
-		  result.insert(result.begin() + laneEdgePolyline_cached.first,laneEdgePolyline_cached.second);
-//    std::cout << "populated laneEdgePolyline_cached at position " << laneEdgePolyline_cached.first << " [with a vecor of size: "<< laneEdgePolyline_cached.second.size() << "]  new size = " <<  result.size() << "\n";
-
-
-}
-
-std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached_t_pimpl::
-post_laneEdgePolylines_cached_t ()
-{
-  return result;
-}
 
 // segment_t_pimpl
 //

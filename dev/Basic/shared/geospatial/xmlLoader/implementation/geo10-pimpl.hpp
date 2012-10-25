@@ -160,65 +160,60 @@ private:
 
 
 
-class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel
-{
-	  std::vector<sim_mob::RoadSegment*> Segments;
-  public:
-  virtual void
-  pre ();
+class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::RoadSegment*> post_fwdBckSegments_t ();
 
-  virtual void
-  Segment (sim_mob::RoadSegment*);
+	virtual void Segment (sim_mob::RoadSegment*);
 
-  virtual std::vector<sim_mob::RoadSegment*>
-  post_fwdBckSegments_t ();
+private:
+  std::vector<sim_mob::RoadSegment*> model;
+
 };
 
-class RoadSegmentsAt_t_pimpl: public virtual RoadSegmentsAt_t_pskel
-{
-//	  std::set<sim_mob::RoadSegment*> RoadSegments;
-	  std::set<unsigned long> RoadSegments;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  segmentID (unsigned long long);
 
-  virtual std::set<unsigned long>
-  post_RoadSegmentsAt_t ();
+class RoadSegmentsAt_t_pimpl: public virtual RoadSegmentsAt_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::set<unsigned long> post_RoadSegmentsAt_t ();
+
+	virtual void segmentID (unsigned long long);
+
+private:
+  std::set<unsigned long> model;
 };
 
-class laneEdgePolyline_cached_t_pimpl: public virtual laneEdgePolyline_cached_t_pskel
-{
-	  std::pair<short,std::vector<sim_mob::Point2D> > thePair;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  laneNumber (short);
 
-  virtual void
-  polyline (std::vector<sim_mob::Point2D>);
+class laneEdgePolyline_cached_t_pimpl: public virtual laneEdgePolyline_cached_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<short,std::vector<sim_mob::Point2D> > post_laneEdgePolyline_cached_t ();
 
-  virtual std::pair<short,std::vector<sim_mob::Point2D> >
-  post_laneEdgePolyline_cached_t ();
+	virtual void laneNumber (short);
+	virtual void polyline (std::vector<sim_mob::Point2D>);
+
+private:
+  std::pair<short,std::vector<sim_mob::Point2D> > model;
 };
 
-class laneEdgePolylines_cached_t_pimpl: public virtual laneEdgePolylines_cached_t_pskel
-{
-	  std::vector<std::vector<sim_mob::Point2D> > result;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >);
 
-  virtual std::vector<std::vector<sim_mob::Point2D> >
-  post_laneEdgePolylines_cached_t ();
+class laneEdgePolylines_cached_t_pimpl: public virtual laneEdgePolylines_cached_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<std::vector<sim_mob::Point2D> > post_laneEdgePolylines_cached_t ();
+
+	virtual void laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >);
+
+  private:
+  std::vector<std::vector<sim_mob::Point2D> > model;
 };
+
+
+
 
 class segment_t_pimpl: public virtual segment_t_pskel
 {

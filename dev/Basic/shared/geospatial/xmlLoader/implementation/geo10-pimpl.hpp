@@ -20,6 +20,9 @@ namespace xml {
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
+//TODO: Once the contents of geo10-pimpl.cpp have been moved into their own classes, consider grouping the header files here
+//      into relevant, smaller header files. E.g., all the top-level stuff (Nodes, Links, Segments) can go in one, and the
+//      supporting definitions can go in another. ~Seth
 
 ///Helper namespace: contains typedefs for particularly verbose items
 namespace helper {
@@ -238,32 +241,22 @@ private:
 
 
 
+class link_t_pimpl: public virtual link_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::Link* post_link_t ();
 
-class link_t_pimpl: public virtual link_t_pskel
-{
-	  sim_mob::Link * link;
-  public:
-  virtual void
-  pre ();
+	virtual void linkID (unsigned int);
+	virtual void roadName (const ::std::string&);
+	virtual void StartingNode (unsigned int);
+	virtual void EndingNode (unsigned int);
+	virtual void Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
 
-  virtual void
-  linkID (unsigned int);
-
-  virtual void
-  roadName (const ::std::string&);
-
-  virtual void
-  StartingNode (unsigned int);
-
-  virtual void
-  EndingNode (unsigned int);
-
-  virtual void
-  Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
-
-  virtual sim_mob::Link*
-  post_link_t ();
+private:
+	sim_mob::Link model;
 };
+
+
 
 class separator_t_pimpl: public virtual separator_t_pskel
 {

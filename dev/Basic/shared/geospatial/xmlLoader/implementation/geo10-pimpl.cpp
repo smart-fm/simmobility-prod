@@ -133,79 +133,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // link_t_pimpl
 //
 
-void link_t_pimpl::
-pre ()
-{
-	  link = new sim_mob::Link();
-}
 
-void link_t_pimpl::
-linkID (unsigned int linkID)
-{
-	std::cout << "In linkID \n";
-	link->linkID = linkID;
-	geo_Links_[link->linkID] = link;
-//	std::cout << "linkID : "  << linkID << " Has link " << link;
-}
-
-void link_t_pimpl::
-roadName (const ::std::string& roadName)
-{
-	  link->roadName = roadName;
-}
-
-void link_t_pimpl::
-StartingNode (unsigned int value)
-{
-	  this->link->setStart(Nodes_pimpl::LookupNode(value));
-}
-
-void link_t_pimpl::
-EndingNode (unsigned int value)
-{
-	  this->link->setEnd(Nodes_pimpl::LookupNode(value));
-}
-
-void link_t_pimpl::
-Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments)
-{
-	  //parentLink
-	  {
-	  std::vector<sim_mob::RoadSegment*>& fwd = Segments.first;
-	  for(std::vector<sim_mob::RoadSegment*>::iterator it = fwd.begin(); it != fwd.end(); it++) {
-//		  if(((*it)->getSegmentID() >= 100000302) && ((*it)->getSegmentID() <= 100000305))
-//		  {
-//			  std::cout << "In link_t_pimpl::fwdSegments ... segmentID= " << (*it)->getSegmentID() << "\n";
-//			  getchar();
-//		  }
-		  (*it)->setParentLink(link);
-	  }
-	  }
-	  {
-	  std::vector<sim_mob::RoadSegment*>& rev = Segments.second;
-	  for(std::vector<sim_mob::RoadSegment*>::iterator it = rev.begin(); it != rev.end(); it++) {
-//		  if(((*it)->getSegmentID() >= 100000302) && ((*it)->getSegmentID() <= 100000305))
-//		  {
-//			  std::cout << "In link_t_pimpl::BckSegments ... segmentID= " << (*it)->getSegmentID() << "\n";
-//			  getchar();
-//		  }
-		  (*it)->setParentLink(link);
-	  }
-	  }
-
-	  //Copy over.
-	  link->setSegmentList(Segments.first, Segments.second);
-
-	  //uniquesegments (are done automatically in "setSegmentList")
-	  std::cout << "In link_t_pimpl::Segments(" << Segments.first.size() << "," << Segments.second.size() << "\n";
-}
-
-sim_mob::Link* link_t_pimpl::
-post_link_t ()
-{
-//	  std::cout << "In link_t_pimpl::post_link_t, segments(" << link->fwdSegments.size() << "," << link->revSegments.size() << "\n";
-  return link;
-}
 
 // separator_t_pimpl
 //

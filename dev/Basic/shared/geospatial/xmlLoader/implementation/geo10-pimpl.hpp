@@ -30,8 +30,7 @@ public:
     virtual void yPos (unsigned int);
 
 private:
-    unsigned int savedX;
-    unsigned int savedY;
+    Point2D model;
 };
 
 
@@ -46,7 +45,7 @@ public:
 
 private:
     //std::string savedID;
-    sim_mob::Point2D savedPos;
+    sim_mob::Point2D model;
 };
 
 
@@ -59,7 +58,7 @@ public:
     virtual void PolyPoint (sim_mob::Point2D);
 
 private:
-    std::vector<sim_mob::Point2D> polyLine;
+    std::vector<sim_mob::Point2D> model;
 };
 
 
@@ -91,15 +90,12 @@ public:
 	virtual void is_u_turn_allowed (bool);
 
 private:
-  sim_mob::Lane* lane;
+  sim_mob::Lane model;
 };
 
 
 
-class connector_t_pimpl: public virtual connector_t_pskel
-{
-	 // std::string laneFrom,laneTo;
-	  std::pair<unsigned long,unsigned long> connector;
+class connector_t_pimpl: public virtual connector_t_pskel {
   public:
   virtual void
   pre ();
@@ -112,6 +108,8 @@ class connector_t_pimpl: public virtual connector_t_pskel
 
   virtual std::pair<unsigned long,unsigned long>
   post_connector_t ();
+  private:
+  std::pair<unsigned long,unsigned long> connector;
 };
 
 class connectors_t_pimpl: public virtual connectors_t_pskel

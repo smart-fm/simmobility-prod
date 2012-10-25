@@ -5,113 +5,113 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::lane_t_pimpl::pre ()
 {
-	lane = new sim_mob::Lane();
+	model = sim_mob::Lane();
 }
 
 sim_mob::Lane* sim_mob::xml::lane_t_pimpl::post_lane_t ()
 {
-  return lane;
+	//Note: We only allocate memory in post() to avoid leaking memory if the parser generates an error.
+	return new sim_mob::Lane(model);
 }
 
-void sim_mob::xml::lane_t_pimpl::laneID (unsigned long long laneID)
+void sim_mob::xml::lane_t_pimpl::laneID (unsigned long long value)
 {
-	lane->setLaneID(laneID);//setid_str embedded
+	//TODO: Another discrepancy here: setLaneID takes an unsigned int.
+	model.setLaneID(static_cast<unsigned int>(value));
 
 	//add it to the book keeper
-	//TODO: The "unsigned long long" passed in to this function is actually stored as an "unsigned long" in the bookkeeper.
-	//      Leaving a static cast here so we don't forget it.
 	//geo_Lanes_[static_cast<unsigned long>(laneID)] = lane;
 	//NOTE: Temporarily disabling bookkeeper. ~Seth
 }
 
-void sim_mob::xml::lane_t_pimpl::PolyLine (std::vector<sim_mob::Point2D> PolyLine)
+void sim_mob::xml::lane_t_pimpl::PolyLine (std::vector<sim_mob::Point2D> value)
 {
-	  lane->setLanePolyline(PolyLine);
+	  model.setLanePolyline(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::width (unsigned int width)
+void sim_mob::xml::lane_t_pimpl::width (unsigned int value)
 {
-	lane->setLaneWidth(width);
+	model.setLaneWidth(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_go_straight (bool can_go_straight)
+void sim_mob::xml::lane_t_pimpl::can_go_straight (bool value)
 {
-	lane->can_go_straight(can_go_straight);
+	model.can_go_straight(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_turn_left (bool can_turn_left)
+void sim_mob::xml::lane_t_pimpl::can_turn_left (bool value)
 {
-	  lane->can_turn_left(can_turn_left);
+	  model.can_turn_left(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_turn_right (bool can_turn_right)
+void sim_mob::xml::lane_t_pimpl::can_turn_right (bool value)
 {
-	lane->can_turn_right(can_turn_right);
+	model.can_turn_right(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_turn_on_red_signal (bool can_turn_on_red_signal)
+void sim_mob::xml::lane_t_pimpl::can_turn_on_red_signal (bool value)
 {
-	lane->can_turn_on_red_signal(can_turn_on_red_signal);
+	model.can_turn_on_red_signal(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_change_lane_left (bool can_change_lane_left)
+void sim_mob::xml::lane_t_pimpl::can_change_lane_left (bool value)
 {
-	lane->can_change_lane_left(can_change_lane_left);
+	model.can_change_lane_left(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_change_lane_right (bool can_change_lane_right)
+void sim_mob::xml::lane_t_pimpl::can_change_lane_right (bool value)
 {
-	lane->can_change_lane_right(can_change_lane_right);
+	model.can_change_lane_right(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_road_shoulder (bool is_road_shoulder)
+void sim_mob::xml::lane_t_pimpl::is_road_shoulder (bool value)
 {
-	lane->is_road_shoulder(is_road_shoulder);
+	model.is_road_shoulder(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_bicycle_lane (bool is_bicycle_lane)
+void sim_mob::xml::lane_t_pimpl::is_bicycle_lane (bool value)
 {
-	lane->is_bicycle_lane(is_bicycle_lane);
+	model.is_bicycle_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_pedestrian_lane (bool is_pedestrian_lane)
+void sim_mob::xml::lane_t_pimpl::is_pedestrian_lane (bool value)
 {
-	lane->is_pedestrian_lane(is_pedestrian_lane);
+	model.is_pedestrian_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_vehicle_lane (bool is_vehicle_lane)
+void sim_mob::xml::lane_t_pimpl::is_vehicle_lane (bool value)
 {
-	lane->is_vehicle_lane(is_vehicle_lane);
+	model.is_vehicle_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_standard_bus_lane (bool is_standard_bus_lane)
+void sim_mob::xml::lane_t_pimpl::is_standard_bus_lane (bool value)
 {
-	lane->is_standard_bus_lane(is_standard_bus_lane);
+	model.is_standard_bus_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_whole_day_bus_lane (bool is_whole_day_bus_lane)
+void sim_mob::xml::lane_t_pimpl::is_whole_day_bus_lane (bool value)
 {
-	lane->is_whole_day_bus_lane(is_whole_day_bus_lane);
+	model.is_whole_day_bus_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_high_occupancy_vehicle_lane (bool is_high_occupancy_vehicle_lane)
+void sim_mob::xml::lane_t_pimpl::is_high_occupancy_vehicle_lane (bool value)
 {
-	lane->is_high_occupancy_vehicle_lane(is_high_occupancy_vehicle_lane);
+	model.is_high_occupancy_vehicle_lane(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_freely_park_here (bool can_freely_park_here)
+void sim_mob::xml::lane_t_pimpl::can_freely_park_here (bool value)
 {
-	lane->can_freely_park_here(can_freely_park_here);
+	model.can_freely_park_here(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::can_stop_here (bool can_stop_here)
+void sim_mob::xml::lane_t_pimpl::can_stop_here (bool value)
 {
-	lane->can_stop_here(can_stop_here);
+	model.can_stop_here(value);
 }
 
-void sim_mob::xml::lane_t_pimpl::is_u_turn_allowed (bool is_u_turn_allowed)
+void sim_mob::xml::lane_t_pimpl::is_u_turn_allowed (bool value)
 {
-	lane->is_u_turn_allowed(is_u_turn_allowed);
+	model.is_u_turn_allowed(value);
 }
 
 

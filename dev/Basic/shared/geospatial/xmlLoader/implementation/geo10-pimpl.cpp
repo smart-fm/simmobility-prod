@@ -4,7 +4,7 @@
 // an XML Schema to C++ data binding compiler. You may use it in your
 // programs without any restrictions.
 //
-#include "geo9-pimpl.hpp"
+#include "geo10-pimpl.hpp"
 
 #include <cstdio>
 #include <iostream>

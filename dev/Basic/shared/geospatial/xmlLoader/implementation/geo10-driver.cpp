@@ -5,11 +5,11 @@
 // programs without any restrictions.
 //
 
-#include "geo9-driver.hpp"
+#include "geo10-driver.hpp"
 
 #include <iostream>
 
-#include "geo9-pimpl.hpp"
+#include "geo10-pimpl.hpp"
 
 bool geo::InitAndLoadXML()
 {

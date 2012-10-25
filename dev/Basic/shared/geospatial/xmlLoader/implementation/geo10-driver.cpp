@@ -15,7 +15,7 @@ bool sim_mob::xml::InitAndLoadXML()
 {
 	std::cout << "In InitAndLoadXML (sim_mob::XML)\n";
 
-	try {
+/*	try {
 		// Instantiate individual parsers.
 		//
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -213,7 +213,8 @@ bool sim_mob::xml::InitAndLoadXML()
 	} catch (const std::ios_base::failure&) {
 		std::cerr <<"Io error on file: " <<"data/XML_OutPut.xml" << std::endl;
 		return false;
-	}
-	return true;
+	}*/
+	throw std::runtime_error("Driver will be updated later.");
+	return false;
 }
 

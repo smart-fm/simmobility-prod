@@ -48,7 +48,8 @@ public:
 	}
 
 
-protected:
+//TODO: Fix for XML loader.
+//protected:
 	sim_mob::Point2D start;
 	sim_mob::Point2D end;
 	unsigned long id;

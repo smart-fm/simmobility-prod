@@ -109,9 +109,13 @@ protected:
 	///Bookkeeping: which RoadSegments meet at this Node?
 	//  NOTE: If the RoadSegments in secondPair are null; then this is a one-way UniNode.
 	//  As "from->to"
+
+//TODO: Fix for xmlLoader
+public:
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> firstPair;
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> secondPair;
 
+protected:
 	//Avoid iterating confusion
 	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 

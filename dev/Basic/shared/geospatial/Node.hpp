@@ -75,7 +75,7 @@ public:
 #endif
 
 
-protected:
+//protected:
     Node(int x, int y, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),linkLoc(nullptr) {}
 
 private:

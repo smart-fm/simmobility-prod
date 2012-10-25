@@ -118,6 +118,9 @@ public:
 	///TODO This should be made private again.
 	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
+
+	//TODO: Added for xmlLoader
+	void setLanesLeftOfDivider(unsigned int val) { lanesLeftOfDivider = val; }
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;

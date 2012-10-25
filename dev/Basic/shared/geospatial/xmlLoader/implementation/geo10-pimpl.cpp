@@ -435,7 +435,7 @@ pre ()
 	  std::cout << "In segment_t_pimpl:: pre ()\n";
 	  rs = NULL;
 	  rs = new sim_mob::RoadSegment();
-	  rs->lanesLeftOfDivider = 0;
+	  rs->setLanesLeftOfDivider(0);
 }
 
 void segment_t_pimpl::
@@ -511,11 +511,13 @@ Lanes (std::vector<sim_mob::Lane*> Lanes)
 	  this->rs->setLanes(Lanes);
 	  //set parentsegment for each lane
 
-	  for(std::vector<sim_mob::Lane*>::iterator it = this->rs->lanes.begin(), it_end(this->rs->lanes.end()); it != it_end; it++)
-		  {
-		  	 (*it)->setParentSegment(this->rs);
-		  }
-	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
+	  const std::vector<sim_mob::Lane*>& lanes = this->rs->getLanes();
+	  for(std::vector<sim_mob::Lane*>::const_iterator it = lanes.begin(); it!=lanes.end(); it++) {
+		  //TODO: We need a better way of managing RoadNetwork const-ness.
+		  sim_mob::Lane* ln = const_cast<sim_mob::Lane*>(*it);
+		  ln->setParentSegment(this->rs);
+	  }
+	 // std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
 }
 
 void segment_t_pimpl::

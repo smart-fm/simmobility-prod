@@ -19,6 +19,30 @@ void ProcessUniNodeConnectors(std::set<sim_mob::UniNode*>& nodes) {
 	}
 }
 
+
+//Helper: Create LaneConnector entries for a single UniNode
+void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, intersection_t_pimpl::LaneConnectSet connectors) {
+	for(intersection_t_pimpl::LaneConnectSet::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
+		std::set<sim_mob::LaneConnector*> connectors;
+		helper::UniNodeConnectors& rawConnectors = it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
+		for(helper::UniNodeConnectors::iterator it = rawConnectors.begin(); it != rawConnectors.end(); it++) {
+			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector(Lanes_pimpl::LookupLane(it->first), Lanes_pimpl::LookupLane(it->second));
+			connectors.insert(lc);
+		}
+
+		//Save it to the RoadSegment
+		sim_mob::RoadSegment* rs = Segments_pimpl::LookupSegment(it->first);
+		node->setConnectorAt(rs, connectors);
+	}
+}
+
+//Helper: Create LaneConnector entries for all UniNodes
+void ProcessMultiNodeConnectors(std::set<sim_mob::MultiNode*>& nodes) {
+	for(std::set<sim_mob::MultiNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
+		ProcessMultiNodeConnectors(*it, intersection_t_pimpl::GetConnectors(*it));
+	}
+}
+
 } //End unnamed namespace
 
 
@@ -34,7 +58,12 @@ void sim_mob::xml::GeoSpatial_t_pimpl::post_GeoSpatial_t ()
 void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork ()
 {
 	//TODO: Retrieving the RoadNetwork statically is a bad idea.
-	ProcessUniNodeConnectors(ConfigParams::GetInstance().getNetworkRW().getUniNodesRW());
+	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
+
+	//Process various left-over items.
+	ProcessUniNodeConnectors(rn.getUniNodesRW());
+	ProcessMultiNodeConnectors(rn.getNodesRW());
+
 
 
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()\n";
@@ -50,30 +79,7 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork ()
 	  }
 
 	  //multi node connectors
-	  int tmp_cnn_cnt1 = 0;
-	  int tmp_rs1 = 0;
-	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
-	  {
-		  helper::MultiNodeConnectors & geo_MultiNode_Connectors_ = geo_MultiNodeConnectorsMap[(*node_it)->getID()];
-		  tmp_rs1 += geo_MultiNode_Connectors_.size();
-		  for(helper::MultiNodeConnectors::iterator rs_cnn_it = geo_MultiNode_Connectors_.begin(); rs_cnn_it != geo_MultiNode_Connectors_.end(); rs_cnn_it++)
-		  {
-			  std::set<sim_mob::LaneConnector*> connectors;
-			  helper::UniNodeConnectors & geo_UniNode_Connectors_ = rs_cnn_it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
-			  helper::UniNodeConnectors::iterator lane_cnn_it;
-			  connectors.clear();
-			  for(lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++)
-			  {
 
-				  tmp_cnn_cnt1 ++;
-				  sim_mob::LaneConnector* lc = new sim_mob::LaneConnector(geo_Lanes_[(*lane_cnn_it).first], geo_Lanes_[(*lane_cnn_it).second]);
-
-				  connectors.insert(lc);
-			  }
-			  sim_mob::RoadSegment * rs = geo_Segments_[rs_cnn_it->first];
-			  (*node_it)->setConnectorAt(rs, connectors);
-		  }
-	  }
 //	  //will not be needed in the new version of road network graphs
 //	  //multinodes roadSegmentsCircular
 //	  sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();

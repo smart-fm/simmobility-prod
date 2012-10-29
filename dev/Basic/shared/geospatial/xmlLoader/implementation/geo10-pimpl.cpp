@@ -266,91 +266,6 @@ post_roundabout_t ()
 // intersection_t_pimpl
 //
 
-void intersection_t_pimpl::
-pre ()
-{
-	Node_t_pimpl::pre();
-}
-
-void intersection_t_pimpl::
-roadSegmentsAt (std::set<unsigned long> roadSegmentsAt)
-{
-	  roadSegmentsAt_ = roadSegmentsAt;
-//	  std::cout << "intersection_pimpl::roadSegmentsAt()\n";
-//	  for(std::set<std::string>::iterator it = roadSegmentsAt.begin(), it_end(roadSegmentsAt.end()); it != it_end ; it++)
-//		  geo_RoadSegmentsAt.insert(std::pair<unsigned int,std::string>(this->intersection->getID(),(*it)));//with assumption that nodes precede links in XML
-//	  std::cout << "intersection_pimpl::roadSegmentsAt()-Done\n";
-}
-
-void intersection_t_pimpl::
-Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >& Connectors)
-{
-	  this->connectors_ = Connectors;
-}
-
-void intersection_t_pimpl::
-ChunkLengths ()
-{
-}
-
-void intersection_t_pimpl::
-Offsets ()
-{
-}
-
-void intersection_t_pimpl::
-Separators ()
-{
-}
-
-void intersection_t_pimpl::
-additionalDominantLanes ()
-{
-}
-
-void intersection_t_pimpl::
-additionalSubdominantLanes ()
-{
-}
-
-void intersection_t_pimpl::
-domainIslands ()
-{
-}
-
-sim_mob::MultiNode* intersection_t_pimpl::
-post_intersection_t ()
-{
-  sim_mob::Node* v (post_Node_t ());
-    this->intersection = new sim_mob::Intersection(v->getLocation().getX(), v->getLocation().getY());
-	   this->intersection->setID(v->getID());
-	   this->intersection->originalDB_ID = v->originalDB_ID;
-//		  std::cout << "In intersection_t_pimpl::post_intersection_t ()->originalDB_ID" << this->intersection->originalDB_ID.getLogItem()  << "(" << v->originalDB_ID.repr_ << ")\n";
-//	   std::cout << "location of intersection node is at [" << this->intersection->getLocation().getX() << " , " << this->intersection->getLocation().getY() << std::endl;
-
-	   //geo_Nodes_[v->getID()] = this->intersection;
-	   Nodes_pimpl::RegisterNode(v->getID(), this->intersection);
-
-	   geo_MultiNodeConnectorsMap[v->getID()] = this->connectors_;
-  geo_RoadSegmentsAt[v->getID()] = this->roadSegmentsAt_;
-	    geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
-	    geo_LinkLoc_rawNode::iterator it = container.find(v);
-
-  if(it == container.end())
-  {
-  	std::cout << "Couldn't find the basic node " << v <<  " with container size(" << container.size() << "):\n" ;
-  	for(it= container.begin(); it != container.end(); it++)
-  		std::cout << it->rawNode << std::endl;
-  }
-  else
-  {
-//    	std::cout << "Found the  basic node " << v <<  " container size(" << container.size() << ")" << std::endl;
-  	it->node.push_back(this->intersection);
-  }
-
-//    delete v;
-	  return this->intersection;
-}
 
 
 // RoadItem_t_pimpl
@@ -1612,31 +1527,7 @@ post_SimMobility_t ()
 // Segments_pimpl
 //
 
-void Segments_pimpl::
-pre ()
-{
-	  fwd.clear();
-	  bck.clear();
-}
 
-void Segments_pimpl::
-FWDSegments (std::vector<sim_mob::RoadSegment*> FWDSegments)
-{
-	  fwd = FWDSegments;
-}
-
-void Segments_pimpl::
-BKDSegments (std::vector<sim_mob::RoadSegment*> BKDSegments)
-{
-	  bck = BKDSegments;
-
-}
-
-std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments_pimpl::
-post_Segments ()
-{
-	  return (std::make_pair(fwd,bck));
-}
 
 // Nodes_pimpl
 //

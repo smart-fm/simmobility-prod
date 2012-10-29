@@ -427,6 +427,42 @@ private:
 
 
 
+
+//Note: Already done
+class intersection_t_pimpl: public virtual intersection_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
+public:
+	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > LaneConnectSet;
+	typedef std::set<unsigned long> RoadSegmentSet;
+
+	virtual void pre ();
+	virtual sim_mob::MultiNode* post_intersection_t ();
+
+	virtual void roadSegmentsAt (RoadSegmentSet);
+	virtual void Connectors (const LaneConnectSet&);
+	virtual void ChunkLengths ();
+	virtual void Offsets ();
+	virtual void Separators ();
+	virtual void additionalDominantLanes ();
+	virtual void additionalSubdominantLanes ();
+	virtual void domainIslands ();
+
+	static void RegisterConnectors(sim_mob::MultiNode* intersection, const LaneConnectSet& connectors);
+	static LaneConnectSet GetConnectors(sim_mob::MultiNode* intersection);
+
+	static void RegisterSegmentsAt(sim_mob::MultiNode* intersection, const RoadSegmentSet& segmentsAt);
+	static RoadSegmentSet GetSegmentsAt(sim_mob::MultiNode* intersection);
+
+private:
+	sim_mob::Intersection model;
+	LaneConnectSet connectors;
+	RoadSegmentSet segmentsAt;
+
+	static std::map<sim_mob::MultiNode*, LaneConnectSet> ConnectCache;
+	static std::map<sim_mob::MultiNode*, RoadSegmentSet> SegmentsAtCache;
+};
+
+
+
 class roundabout_t_pimpl: public virtual roundabout_t_pskel,
   public ::sim_mob::xml::Node_t_pimpl
 {
@@ -465,43 +501,8 @@ class roundabout_t_pimpl: public virtual roundabout_t_pskel,
   post_roundabout_t ();
 };
 
-class intersection_t_pimpl: public virtual intersection_t_pskel,
-  public ::sim_mob::xml::Node_t_pimpl
-{
-	  sim_mob::Intersection * intersection;
-	  std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > connectors_;
-	  std::set<unsigned long> roadSegmentsAt_;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  roadSegmentsAt (std::set<unsigned long>);
 
-  virtual void
-  Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
-
-  virtual void
-  ChunkLengths ();
-
-  virtual void
-  Offsets ();
-
-  virtual void
-  Separators ();
-
-  virtual void
-  additionalDominantLanes ();
-
-  virtual void
-  additionalSubdominantLanes ();
-
-  virtual void
-  domainIslands ();
-
-  virtual sim_mob::MultiNode*
-  post_intersection_t ();
-};
 
 class RoadItem_t_pimpl: public virtual RoadItem_t_pskel
 {
@@ -1179,22 +1180,28 @@ private:
 
 
 
-class Segments_pimpl: public virtual Segments_pskel
-{
-	  std::vector<sim_mob::RoadSegment*> fwd,bck,uniq;
-  public:
-  virtual void
-  pre ();
+//NOTE: Already done.
+class Segments_pimpl: public virtual Segments_pskel {
+public:
+	typedef std::vector<sim_mob::RoadSegment*> SegmentList;
 
-  virtual void
-  FWDSegments (std::vector<sim_mob::RoadSegment*>);
+	virtual void pre ();
+	virtual std::pair<SegmentList, SegmentList> post_Segments (); //Fwd, back segments
 
-  virtual void
-  BKDSegments (std::vector<sim_mob::RoadSegment*>);
+	virtual void FWDSegments (std::vector<sim_mob::RoadSegment*>);
+	virtual void BKDSegments (std::vector<sim_mob::RoadSegment*>);
 
-  virtual std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >
-  post_Segments ();
+private:
+	SegmentList fwd;
+	SegmentList rev;
+	//SegmentList unique;
+
+	static sim_mob::RoadSegment* LookupSegment(unsigned int id);
+	static void RegisterSegment(unsigned int id, sim_mob::RoadSegment* seg);
+
+	static std::map<unsigned int, sim_mob::RoadSegment*> Lookup;
 };
+
 
 
 //NOTE: Need to clean up reference to the singleton ConfigParams instance!

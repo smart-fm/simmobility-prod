@@ -18,7 +18,7 @@ void sim_mob::xml::UniNode_t_pimpl::RegisterConnectors(sim_mob::UniNode* lane, c
 
 UniNode_t_pimpl::LaneConnectSet sim_mob::xml::UniNode_t_pimpl::GetConnectors(sim_mob::UniNode* lane)
 {
-	std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectorSet>::iterator it = ConnectCache.find(lane);
+	std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet>::iterator it = ConnectCache.find(lane);
 	if (it!=ConnectCache.end()) {
 		return it->second;
 	}
@@ -32,6 +32,7 @@ void sim_mob::xml::UniNode_t_pimpl::pre ()
 {
 	Node_t_pimpl::pre();
 	model = sim_mob::UniNode();
+	connectors.clear();
 }
 
 sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
@@ -41,27 +42,24 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 	//Save the set of connectors for later, since we can't construct it until Lanes have been loaded.
 	UniNode_t_pimpl::RegisterConnectors(res, connectors);
 
+	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
+	sim_mob::Node* tempNode = Node_t_pimpl::post_Node_t();
+	res->location = sim_mob::Point2D(tempNode->getLocation());
+	res->setID(tempNode->getID());
+	res->originalDB_ID = tempNode->originalDB_ID;
+	delete tempNode;
 
-	//NOTE: This retrieves the parent Node*, but it also allocates it.
-	//sim_mob::Node* v (post_Node_t ());
+	Nodes_pimpl::RegisterNode(res->getID(), res);
 
+	//TODO: Make sure these are all covered.
+	/*geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
+	geo_LinkLoc_rawNode::iterator it = container.find(v);
+	if(it != container.end()) {
+		it->node.push_back(this->uniNode);
+	}
+	geo_UniNode_SegmentPairs[this->uniNode->getID()] = std::make_pair(firstSegmentPair, secondSegmentPair);*/
 
-	  this->uniNode = new sim_mob::UniNode(v->getLocation().getX(), v->getLocation().getY());
-	  this->uniNode->setID(v->getID());
-	  this->uniNode->originalDB_ID = v->originalDB_ID;
-	  geo_UniNodeConnectorsMap[this->uniNode->getID()] = connectors_;
-
-	 // geo_Nodes_[this->uniNode->getID()] = this->uniNode;
-	  Nodes_pimpl::RegisterNode(this->uniNode->getID(), this->uniNode);
-
-	  geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
-	  geo_LinkLoc_rawNode::iterator it = container.find(v);
-	  if(it != container.end())
-	   it->node.push_back(this->uniNode);
-	  geo_UniNode_SegmentPairs[this->uniNode->getID()] = std::make_pair(firstSegmentPair, secondSegmentPair);
-
-
-	  return res;
+	return res;
 }
 
 void sim_mob::xml::UniNode_t_pimpl::firstPair (std::pair<unsigned long,unsigned long> value)

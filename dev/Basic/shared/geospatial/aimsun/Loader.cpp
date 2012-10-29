@@ -128,6 +128,7 @@ private:
 	map<std::string, vector<const sim_mob::BusStop*> > route_BusStops;
 	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
 
+	map<Section*, sim_mob::RoadSegment*> sec_seg_;
 private:
 	void LoadNodes(const std::string& storedProc);
 	void LoadSections(const std::string& storedProc);
@@ -476,6 +477,10 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	{
 		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
 		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
+		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), isspace),
+				pt_bus_freqTemp.route_id.end());
+		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), isspace),
+				pt_bus_freqTemp.frequency_id.end());
 		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
 		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
 	}
@@ -495,12 +500,11 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::map<int
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
 		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
-		unsigned long segmentID = sectionID_segmentID[atoi(pt_bus_routesTemp.link_id.c_str())];
-		if(0!=segmentID) {
-			std::cout << " " << segmentID << " " << std::endl;
-			//std::map<unsigned long, sim_mob::RoadSegment*>::const_iterator rs_iter = segmentID_roadSegments.find(segmentID);
-			routeID_roadSegments[iter->route_id].push_back(segmentID_roadSegments[segmentID]);
-			std::cout << " " << segmentID_roadSegments[segmentID] << std::endl;
+		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
+		if(seg) {
+			routeID_roadSegments[iter->route_id].push_back(seg);
+			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getSegmentID() ;
+			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
 		}
 	}
 	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
@@ -1637,7 +1641,6 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
-
 
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {

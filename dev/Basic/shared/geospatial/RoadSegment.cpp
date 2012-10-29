@@ -161,6 +161,16 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 
 #endif
 
+double sim_mob::RoadSegment::computeLaneZeroLength() {
+	double res = 0.0;
+	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
+	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+	{
+		res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+	}
+	return res;
+}
+
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {
 	//Sanity check

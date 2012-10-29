@@ -145,6 +145,8 @@ public:
 		this->parentConflux = parentConflux;
 	}
 
+	double computeLaneZeroLength();
+
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/

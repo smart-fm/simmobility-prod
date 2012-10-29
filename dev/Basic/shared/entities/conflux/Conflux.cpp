@@ -98,7 +98,6 @@ unsigned int sim_mob::Conflux::numMovingInSegment(
 }
 
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
-	typedef std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
 			i != upstreamSegmentsMap.end(); i++) {
 			currSegsOnUpLinks[(*i).first] = (*i).second.rbegin();
@@ -109,10 +108,10 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 	std::map<const sim_mob::RoadSegment*, sim_mob::Agent* >::iterator i = candidateAgents.begin();
 	sim_mob::Agent* ag = nullptr;
 	const sim_mob::RoadSegment* agRdSeg = nullptr;
-	double minDistance = std::numeric_limits<double>::infinity();
+	double minDistance = std::numeric_limits<double>::max();
 	while(i != candidateAgents.end()) {
 		if((*i).second != nullptr) {
-			if(minDistance == (*i).second->distanceToEndOfSegment) {
+			if(minDistance == ((*i).second->distanceToEndOfSegment + lengthsOfSegmentsAhead[(*i).first])) {
 				// If current ag and (*i) are at equal distance to the stop line, we toss a coin and choose one of them
 				bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
 				if(coinTossResult) {
@@ -120,8 +119,8 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 					ag = (*i).second;
 				}
 			}
-			else if (minDistance > (*i).second->distanceToEndOfSegment) {
-				minDistance = (*i).second->distanceToEndOfSegment;
+			else if (minDistance > ((*i).second->distanceToEndOfSegment + lengthsOfSegmentsAhead[(*i).first])) {
+				minDistance = (*i).second->distanceToEndOfSegment + lengthsOfSegmentsAhead[(*i).first];
 				agRdSeg = (*i).first;
 				ag = (*i).second;
 			}
@@ -131,6 +130,24 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents[agRdSeg] = segmentAgents[agRdSeg]->getNext();
 	}
 	return ag;
+}
+
+void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
+				i != upstreamSegmentsMap.end(); i++)
+	{
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator j = (*i).second.begin();
+				j != (*i).second.end(); j++)
+		{
+			double lengthAhead = 0.0;
+			for(std::vector<sim_mob::RoadSegment*>::const_iterator k = j+1;
+					k != (*i).second.end(); k++)
+			{
+				lengthAhead = lengthAhead + (*k)->computeLaneZeroLength();
+			}
+			lengthsOfSegmentsAhead.insert(std::make_pair(*j, lengthAhead));
+		}
+	}
 }
 
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg) {

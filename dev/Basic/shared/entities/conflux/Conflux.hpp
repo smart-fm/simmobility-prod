@@ -73,9 +73,14 @@ private:
 	/*structure to store the frontal agents in each road segment*/
 	std::map<const sim_mob::RoadSegment*, sim_mob::Agent* > candidateAgents;
 
-	/*cache the lane zero length of road segments in this conflux*/
+	/* cache the added lengths of road segments ahead in this link in this conflux
+	 * E.g. If there are 3 consecutive segments A, B and C in a half-link and the end node of C is the end of the link
+	 * this map stores (length-of-B+length-of-C) against A */
+	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
 	frame_t currFrameNumber;
+
+	void prepareLengthsOfSegmentsAhead();
 
 	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();

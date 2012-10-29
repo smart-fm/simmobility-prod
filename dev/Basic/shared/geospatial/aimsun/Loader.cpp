@@ -1856,6 +1856,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 				}
 			} //if
 		} // for
+		conflux->prepareLengthsOfSegmentsAhead();
+
 		confluxes.insert(conflux);
 	}
 }

@@ -321,6 +321,14 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 }
 
 bool sim_mob::Vehicle::isDone() const {
+#ifndef SIMMOB_DISABLE_OUTPUT
+LogOut("(\"isDone ----Throw_If_Error: Vehicle ----\""
+	<<"\"vehicle_id\":\""<<vehicle_id
+	<<"\",\"length\":\""<<length
+	<<"\",\"width\":\""<<width
+	<<"\",\"error_state\":\""<<error_state
+	<<std::endl);
+#endif
 	throw_if_error();
 	return fwdMovement.isDoneWithEntireRoute();
 }

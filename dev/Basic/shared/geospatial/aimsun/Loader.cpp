@@ -142,7 +142,7 @@ private:
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
 	void LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq);
-	void LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
+	void LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
 
 private:
@@ -486,7 +486,7 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	}
 }
 
-void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::map<int, unsigned long>& sectionID_segmentID, std::map<unsigned long, sim_mob::RoadSegment*>& segmentID_roadSegments, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
+void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
 {
 	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
@@ -1658,8 +1658,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	Section* currSect = &src;
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
 	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
-	(ConfigParams::GetInstance().getSectionID_SegmentID())[src.id] = src.generatedSegment->getSegmentID();
-	(ConfigParams::GetInstance().getSegmentID_RoadSegments())[src.generatedSegment->getSegmentID()] = src.generatedSegment;
 	std::cout << "" << src.id << std::endl;
 
 	ln->roadName = currSect->roadName;
@@ -1715,8 +1713,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 				convertSegId.clear();
 				convertSegId.str(std::string());
 				found->generatedSegment = new sim_mob::RoadSegment(ln,1000001  + linkSegments.size());
-				(ConfigParams::GetInstance().getSectionID_SegmentID())[found->id] = found->generatedSegment->getSegmentID();
-				(ConfigParams::GetInstance().getSegmentID_RoadSegments())[found->generatedSegment->getSegmentID()] = found->generatedSegment;
 			}
 			else
 			{
@@ -1900,7 +1896,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
-	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getSectionID_SegmentID(), ConfigParams::GetInstance().getSegmentID_RoadSegments(), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_Map());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_Map());
 	return "";
 }
 

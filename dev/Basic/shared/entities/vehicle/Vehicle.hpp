@@ -142,14 +142,6 @@ private:
 	bool error_state;
 	void throw_if_error() const {
 		if (error_state) {
-			#ifndef SIMMOB_DISABLE_OUTPUT
-			LogOut("(\"Throw_If_Error: Vehicle ----\""
-				<<"\"vehicle_id\":\""<<vehicle_id
-				<<"\",\"length\":\""<<length
-				<<"\",\"width\":\""<<width
-				<<"\",\"error_state\":\""<<error_state
-				<<std::endl);
-			#endif
 			throw std::runtime_error("Error: can't perform certain actions on an uninitialized vehicle.");
 		}
 	}

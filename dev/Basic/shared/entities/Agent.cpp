@@ -90,8 +90,8 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0),
-	currLink(nullptr), currLane(nullptr), isQueuing(false), distanceToEndOfSegment(0.0)
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
+	isQueuing(false), distanceToEndOfSegment(std::numeric_limits<double>::infinity())
 {
 	toRemoved = false;
 	dynamic_seed = id;

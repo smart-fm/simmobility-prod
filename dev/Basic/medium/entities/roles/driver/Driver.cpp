@@ -5,6 +5,7 @@
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/conflux/Conflux.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -535,21 +536,18 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 //This function is associated with the driver class for 2 reasons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts) {
+double sim_mob::medium::Driver::speed_density_function(unsigned int numVehicles) {
 
-	/*
+	/**
 	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 	 * must be obtained from an external source (XML/Database)
-	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
+	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
 	 * This must be changed after we have this data for each road segment in the network.
 	 *
 	 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
 	 * This struct is to be used when we have actual values for the parameters.
 	 */
 
-
-
-	unsigned int numVehicles = getNumMovingVehiclesInRoadSegment(laneWiseMovingVehicleCounts, vehicle->getCurrSegment());
 	double density = numVehicles / (vehicle->getCurrLinkLaneZeroLength() / 100.0);
 
 	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
@@ -683,13 +681,12 @@ bool sim_mob::medium::Driver::canGoToNextRdSeg(DriverUpdateParams& p, double tim
 
 	if ( !nextRdSeg) return false;
 
-	std::map<const sim_mob::Lane*, unsigned short> queueLengths = AuraManager::instance().getQueueLengthsOfLanes(nextRdSeg);
-	std::map<const sim_mob::Lane*, unsigned short> movingCounts = AuraManager::instance().getMovingCountsOfLanes(nextRdSeg);
-
-	int total = queueLengths.size() + movingCounts.size();
+	unsigned int total = nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg)
+			+ nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg);
 
 	return total < nextRdSeg->getLanes().size()
 			* vehicle->getNextSegmentLength()/vehicle->length;
+
 }
 
 bool sim_mob::medium::Driver::moveInQueue()
@@ -707,18 +704,17 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	//2. Select the lane with the least queue length
 	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
 
-	std::map<const sim_mob::Lane*, unsigned short> queueLengths = AuraManager::instance().getQueueLengthsOfLanes(nextRdSeg);
+	std::map<sim_mob::Lane*, std::pair<int, int> > agentCounts = nextRdSeg->getParentConflux()->getLanewiseAgentCounts(nextRdSeg);
 
-	std::map<const sim_mob::Lane*, unsigned short>::iterator i;
-
+	std::map<sim_mob::Lane*, std::pair<int, int> >::iterator i= agentCounts.begin();
 	unsigned short minQueueLength = std::numeric_limits<int>::max();
 	const sim_mob::Lane* minQueueLengthLane = nullptr;
 
-	for ( queueLengths.begin(); i != queueLengths.end(); ++i){
+	for ( ; i != agentCounts.end(); ++i){
+
 		if ( !((*i).first->is_pedestrian_lane())){
-			//currently only avoiding pedestrian lanes
-			if (minQueueLength > (*i).second){
-				minQueueLength = (*i).second;
+			if (minQueueLength > (*i).second.first){
+				minQueueLength = (*i).second.first;
 				minQueueLengthLane = (*i).first;
 			}
 		}
@@ -735,51 +731,54 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 bool sim_mob::medium::Driver::addToQueue() {
 
 	bool res = false;
-	sim_mob::AgentKeeper* segVehicles = nullptr;
+	throw std::runtime_error("Driver::addToQueue() not implemented");
+	/*sim_mob::AgentKeeper* agKeeper = nullptr;
 
 	if(currResource)
-		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+		agKeeper = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "ERROR: currResource is not set for Driver! \n";
 #endif
 	}
-	if(segVehicles){
+	if(agKeeper){
 		// if agent was moving in this segment then remove from moving list before queuing
-		segVehicles->removeMovingAgent(params.currLane, parent);
+		agKeeper->removeMovingAgent(params.currLane, parent);
 
 		// enqueue into the current lane's queue
-		segVehicles->addQueuingAgent(params.currLane, parent);
+		agKeeper->addQueuingAgent(params.currLane, parent);
 		res = true;
-	}
+	}*/
 	return res;
 }
 
 bool sim_mob::medium::Driver::addToMovingList() {
 
 	bool res = false;
-	sim_mob::AgentKeeper* segVehicles = nullptr;
+	throw std::runtime_error("Driver::addToMovingList() not implemented");
+	/*sim_mob::AgentKeeper* agKeeper = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+		agKeeper = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "ERROR: currResource is not set for Driver! \n";
 #endif
 	}
-	if(segVehicles) {
-		segVehicles->addMovingAgent(params.currLane, parent);
+	if(agKeeper) {
+		agKeeper->addMovingAgent(params.currLane, parent);
 		res = true;
-	}
+	}*/
 
 	return res;
 }
 
 void sim_mob::medium::Driver::removeFromQueue() {
-	sim_mob::AgentKeeper* segVehicles = nullptr;
+	throw std::runtime_error("Driver::removeFromQueue() not implemented");
+	/*sim_mob::AgentKeeper* agKeeper = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+		agKeeper = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -787,14 +786,15 @@ void sim_mob::medium::Driver::removeFromQueue() {
 #endif
 		}
 
-	if (segVehicles)
-		segVehicles->removeQueuingAgent(params.currLane, parent);
+	if (agKeeper)
+		agKeeper->removeQueuingAgent(params.currLane, parent);*/
 }
 
 void sim_mob::medium::Driver::removeFromMovingList() {
-	sim_mob::AgentKeeper* segVehicles = nullptr;
+	throw std::runtime_error("Driver::removeFromQueue() not implemented");
+	/*sim_mob::AgentKeeper* agKeeper = nullptr;
 	if(currResource)
-		segVehicles = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
+		agKeeper = parent->currWorker->getAgentKeeper(currResource->getCurrSegment());
 	else{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
@@ -802,8 +802,8 @@ void sim_mob::medium::Driver::removeFromMovingList() {
 #endif
 	}
 
-	if (segVehicles)
-		segVehicles->removeMovingAgent(params.currLane, parent);
+	if (agKeeper)
+		agKeeper->removeMovingAgent(params.currLane, parent);*/
 }
 
 bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double distance)
@@ -1090,8 +1090,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicleWithInitialQ(DriverUpdateParam
 
 void sim_mob::medium::Driver::updateVelocity(){
 		// Fetch number of moving vehicles in the segment and compute speed from the speed density function
-		std::map<const sim_mob::Lane*, unsigned short> movingCounts =
-					AuraManager::instance().getMovingCountsOfLanes(vehicle->getCurrSegment());
-		vehicle->setVelocity(speed_density_function(movingCounts));
+		unsigned int numVehicles = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(vehicle->getCurrSegment());
+		vehicle->setVelocity(speed_density_function(numVehicles));
 }
 

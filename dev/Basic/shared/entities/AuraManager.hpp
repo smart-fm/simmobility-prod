@@ -107,10 +107,6 @@ public:
     void
     printStatistics() const;
 
-    std::map<const sim_mob::Lane*, unsigned short> getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg);
-    std::map<const sim_mob::Lane*, unsigned short> getMovingCountsOfLanes(const sim_mob::RoadSegment* rdSeg);
-    void dequeue(const sim_mob::RoadSegment* rdSeg, const sim_mob::Lane* lane);
-
 private:
     AuraManager()
       : pimpl_(0)

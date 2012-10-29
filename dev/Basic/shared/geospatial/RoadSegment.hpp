@@ -169,7 +169,7 @@ private:
 	///Which link this appears in
 	sim_mob::Link* parentLink;
 	/// Conflux to which this segment belongs to
-	sim_mob::Conflux* parentConflux;
+	mutable sim_mob::Conflux* parentConflux;
 	//	std::string segmentID;
 	unsigned long segmentID;
 

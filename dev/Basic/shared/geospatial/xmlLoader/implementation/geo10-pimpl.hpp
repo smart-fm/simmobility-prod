@@ -258,121 +258,86 @@ private:
 
 
 
-class separator_t_pimpl: public virtual separator_t_pskel
-{
-  public:
-  virtual void
-  pre ();
+class separator_t_pimpl: public virtual separator_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_separator_t ();
 
-  virtual void
-  separator_ID (unsigned short);
-
-  virtual void
-  separator_value (bool);
-
-  virtual void
-  post_separator_t ();
+	virtual void separator_ID (unsigned short);
+	virtual void separator_value (bool);
 };
 
-class separators_t_pimpl: public virtual separators_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  Separator ();
 
-  virtual void
-  post_separators_t ();
+class separators_t_pimpl: public virtual separators_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_separators_t ();
+
+	virtual void Separator ();
 };
 
-class DomainIsland_t_pimpl: public virtual DomainIsland_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  domainIsland_ID (unsigned short);
 
-  virtual void
-  domainIsland_value (bool);
+class DomainIsland_t_pimpl: public virtual DomainIsland_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_DomainIsland_t ();
 
-  virtual void
-  post_DomainIsland_t ();
+	virtual void domainIsland_ID (unsigned short);
+	virtual void domainIsland_value (bool);
 };
 
-class DomainIslands_t_pimpl: public virtual DomainIslands_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  domainIslands ();
+class DomainIslands_t_pimpl: public virtual DomainIslands_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_DomainIslands_t ();
 
-  virtual void
-  post_DomainIslands_t ();
+	virtual void domainIslands ();
 };
 
-class offset_t_pimpl: public virtual offset_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  offset_ID (unsigned short);
 
-  virtual void
-  offset_value (unsigned int);
+class offset_t_pimpl: public virtual offset_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_offset_t ();
 
-  virtual void
-  post_offset_t ();
+	virtual void offset_ID (unsigned short);
+	virtual void offset_value (unsigned int);
 };
 
-class offsets_t_pimpl: public virtual offsets_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  offset ();
+class offsets_t_pimpl: public virtual offsets_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_offsets_t ();
 
-  virtual void
-  post_offsets_t ();
+	virtual void offset ();
 };
+
+
 
 class ChunkLength_t_pimpl: public virtual ChunkLength_t_pskel
 {
-  public:
-  virtual void
-  pre ();
+public:
+	virtual void pre ();
+	virtual void post_ChunkLength_t ();
 
-  virtual void
-  chunklength_ID (unsigned short);
-
-  virtual void
-  chunklength_value (unsigned int);
-
-  virtual void
-  post_ChunkLength_t ();
+	virtual void chunklength_ID (unsigned short);
+	virtual void chunklength_value (unsigned int);
 };
 
-class ChunkLengths_t_pimpl: public virtual ChunkLengths_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  chunklength ();
+class ChunkLengths_t_pimpl: public virtual ChunkLengths_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_ChunkLengths_t ();
 
-  virtual void
-  post_ChunkLengths_t ();
+	virtual void chunklength ();
 };
+
 
 class LanesVector_t_pimpl: public virtual LanesVector_t_pskel
 {

@@ -138,174 +138,41 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // separator_t_pimpl
 //
 
-void separator_t_pimpl::
-pre ()
-{
-}
 
-void separator_t_pimpl::
-separator_ID (unsigned short separator_ID)
-{
-  std::cout << "separator_ID: " << separator_ID << std::endl;
-}
-
-void separator_t_pimpl::
-separator_value (bool separator_value)
-{
-  std::cout << "separator_value: " << separator_value << std::endl;
-}
-
-void separator_t_pimpl::
-post_separator_t ()
-{
-}
 
 // separators_t_pimpl
 //
 
-void separators_t_pimpl::
-pre ()
-{
-}
 
-void separators_t_pimpl::
-Separator ()
-{
-}
-
-void separators_t_pimpl::
-post_separators_t ()
-{
-}
 
 // DomainIsland_t_pimpl
 //
 
-void DomainIsland_t_pimpl::
-pre ()
-{
-}
 
-void DomainIsland_t_pimpl::
-domainIsland_ID (unsigned short domainIsland_ID)
-{
-  std::cout << "domainIsland_ID: " << domainIsland_ID << std::endl;
-}
-
-void DomainIsland_t_pimpl::
-domainIsland_value (bool domainIsland_value)
-{
-  std::cout << "domainIsland_value: " << domainIsland_value << std::endl;
-}
-
-void DomainIsland_t_pimpl::
-post_DomainIsland_t ()
-{
-}
 
 // DomainIslands_t_pimpl
 //
 
-void DomainIslands_t_pimpl::
-pre ()
-{
-}
 
-void DomainIslands_t_pimpl::
-domainIslands ()
-{
-}
-
-void DomainIslands_t_pimpl::
-post_DomainIslands_t ()
-{
-}
 
 // offset_t_pimpl
 //
 
-void offset_t_pimpl::
-pre ()
-{
-}
 
-void offset_t_pimpl::
-offset_ID (unsigned short offset_ID)
-{
-  std::cout << "offset_ID: " << offset_ID << std::endl;
-}
-
-void offset_t_pimpl::
-offset_value (unsigned int offset_value)
-{
-  std::cout << "offset_value: " << offset_value << std::endl;
-}
-
-void offset_t_pimpl::
-post_offset_t ()
-{
-}
 
 // offsets_t_pimpl
 //
 
-void offsets_t_pimpl::
-pre ()
-{
-}
 
-void offsets_t_pimpl::
-offset ()
-{
-}
-
-void offsets_t_pimpl::
-post_offsets_t ()
-{
-}
 
 // ChunkLength_t_pimpl
 //
 
-void ChunkLength_t_pimpl::
-pre ()
-{
-}
 
-void ChunkLength_t_pimpl::
-chunklength_ID (unsigned short chunklength_ID)
-{
-  std::cout << "chunklength_ID: " << chunklength_ID << std::endl;
-}
-
-void ChunkLength_t_pimpl::
-chunklength_value (unsigned int chunklength_value)
-{
-  std::cout << "chunklength_value: " << chunklength_value << std::endl;
-}
-
-void ChunkLength_t_pimpl::
-post_ChunkLength_t ()
-{
-}
 
 // ChunkLengths_t_pimpl
 //
 
-void ChunkLengths_t_pimpl::
-pre ()
-{
-}
-
-void ChunkLengths_t_pimpl::
-chunklength ()
-{
-}
-
-void ChunkLengths_t_pimpl::
-post_ChunkLengths_t ()
-{
-}
 
 // LanesVector_t_pimpl
 //

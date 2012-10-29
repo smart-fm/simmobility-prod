@@ -26,6 +26,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
 UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 	UpdateStatus retVal(UpdateStatus::RS_DONE);
 	currFrameNumber = frameNumber;
+
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateSignalized();
 	}

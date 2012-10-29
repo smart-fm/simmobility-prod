@@ -11,7 +11,7 @@
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
-#include "entities/vehicle/MidVehicle.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
@@ -75,7 +75,7 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 
 	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const sim_mob::medium::MidVehicle* getVehicle() const {return vehicle;}
+	const sim_mob::Vehicle* getVehicle() const {return vehicle;}
 
 	void intersectionVelocityUpdate();
 	//melani-for queuing
@@ -108,8 +108,8 @@ private:
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* nextRdSeg);
 
 protected:
-	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	MidVehicle* initializePath(bool allocateVehicle);
+	//virtual double updatePositionOnLink(DriverUpdateParams& p);
+	Vehicle* initializePath(bool allocateVehicle);
 	//Helper: for special strings
 	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	//void initTripChainSpecialString(const std::string& value);
@@ -142,7 +142,7 @@ public:
 	//double overflowIntoIntersection;
 
 private:
-	const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
+	//const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
 	const Lane* nextLaneInNextSegment;
 	size_t targetLaneIndex;
 	//size_t currLaneIndex;
@@ -151,7 +151,7 @@ private:
 	NodePoint goal;
 
 protected:
-	sim_mob::medium::MidVehicle* vehicle;
+	sim_mob::Vehicle* vehicle;
 	IntersectionDrivingModel* intModel;
 
 };

@@ -304,7 +304,6 @@ public:
     	this->polyline_ = polyline;
     }
 
-
 public:
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -383,6 +382,8 @@ public:
     /** If \c value is true, vehicles can make a U-turn on this lane.  */
 	void is_u_turn_allowed(bool value) { rules_.set(IS_U_TURN_ALLOWED, value); }
 
+    double getOriginalOutputFlowRate();
+
 private:
 	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
@@ -394,8 +395,10 @@ private:
         // polyline_ is mutable so that getPolyline() can be a const method.
 	mutable std::vector<Point2D> polyline_;
 
-	friend class RoadSegment;
+	//for mid-term use
+	double origOutputFlowRate;
 
+	friend class RoadSegment;
 };
 
 

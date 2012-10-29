@@ -66,7 +66,7 @@ std::map<unsigned int,std::set<unsigned long> > geo_RoadSegmentsAt; //<nodeId,se
 std::map<unsigned int, std::pair<std::pair<unsigned long,unsigned long>,std::pair<unsigned long,unsigned long> > > geo_UniNode_SegmentPairs; //map<nodeId, pair< pair<segId,SegId> , pair<segId,segId> >
 
 helper::UniNodeConnectors geo_UniNode_Connectors;//todo
-std::map<unsigned int,helper::UniNodeConnectors> geo_UniNodeConnectorsMap;//<nodeId,helper::UniNodeConnectors>
+//std::map<unsigned int,helper::UniNodeConnectors> geo_UniNodeConnectorsMap;//<nodeId,helper::UniNodeConnectors>
 std::map<unsigned int,helper::MultiNodeConnectors> geo_MultiNodeConnectorsMap;//map <nodeId,helper::MultiNodeConnectors> or map <nodeId,map<roadsegment,set<pair<lanefrom,laneto>> > >
 
 struct BusStopInfo
@@ -177,225 +177,26 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // LanesVector_t_pimpl
 //
 
-void LanesVector_t_pimpl::
-pre ()
-{
-}
 
-void LanesVector_t_pimpl::
-laneID (unsigned long long laneID)
-{
-  std::cout << "laneID: " << laneID << std::endl;
-}
-
-void LanesVector_t_pimpl::
-post_LanesVector_t ()
-{
-}
 
 // EntranceAngle_t_pimpl
 //
 
-void EntranceAngle_t_pimpl::
-pre ()
-{
-}
 
-void EntranceAngle_t_pimpl::
-entranceAngle_ID (unsigned short entranceAngle_ID)
-{
-  std::cout << "entranceAngle_ID: " << entranceAngle_ID << std::endl;
-}
-
-void EntranceAngle_t_pimpl::
-entranceAngle_value (unsigned int entranceAngle_value)
-{
-  std::cout << "entranceAngle_value: " << entranceAngle_value << std::endl;
-}
-
-void EntranceAngle_t_pimpl::
-post_EntranceAngle_t ()
-{
-}
 
 // EntranceAngles_t_pimpl
 //
 
-void EntranceAngles_t_pimpl::
-pre ()
-{
-}
 
-void EntranceAngles_t_pimpl::
-entranceAngle ()
-{
-}
-
-void EntranceAngles_t_pimpl::
-post_EntranceAngles_t ()
-{
-}
 
 // Node_t_pimpl
 //
-Node_t_pimpl::
-Node_t_pimpl()
-{
-	  node_ = NULL;
-	  nodeId_ = 0;
-	  location_.setX(0); location_.setY(0);
-	  originalDB_ID_="";
-	  linkLoc_ = 0;
-}
-void Node_t_pimpl::
-pre ()
-{
-	  //this is never called
-	  std::cout << "In Node_t_pimpl::pre ()\n";
-	  node_ = NULL;
-	  this->linkLoc_ = 0;
-}
 
-void Node_t_pimpl::
-nodeID (unsigned int nodeID)
-{
-  this->nodeId_ = nodeID;
-}
 
-void Node_t_pimpl::
-location (sim_mob::Point2D location)
-{
-	  node_ = NULL;
-	  this->linkLoc_ = 0;
-	  //more convenient if create an instance here(to set the const location)
-	  node_ = new sim_mob::Node(location.getX(),location.getY());
-	   std::cout << ">>>>>>>>>>>>>basic node is at [" << node_<< "]<<<<<<<<<<<<<<<<<" << std::endl;
-}
-
-void Node_t_pimpl::
-linkLoc (unsigned long long linkLoc)
-{
-//	  std::cout << "Entering LinkLoc= " << linkLoc << std::endl;
-	  this->linkLoc_ = linkLoc;
-}
-
-void Node_t_pimpl::
-originalDB_ID (const ::std::string& originalDB_ID)
-{
-
-	  this->originalDB_ID_ = originalDB_ID;
-//	  std::cout << "In Node_t_pimpl::originalDB_ID () :" << this->originalDB_ID_ <<  "(" << originalDB_ID << ")\n";
-}
-
-sim_mob::Node* Node_t_pimpl::
-post_Node_t ()
-{
-//	  std::cout << "In Node_t_pimpl::post_Node_t ()\n";
-//	  if(!node_) return node__; //return now before running into seg fault while assigning new sub values
-	  node_->originalDB_ID = this->originalDB_ID_;
-	  node_->nodeId = this->nodeId_;
-	  geo_LinkLoc_linkID & inserter = get<1>(geo_LinkLoc_);
-	  if(this->linkLoc_)
-	  {
-		  geo_LinkLoc_linkID::iterator it = inserter.find(this->linkLoc_);
-		  if(it == inserter.end())//if not available, insert it
-		  {
-			  geo_LinkLoc_mapping g(this->linkLoc_,node_);
-			  inserter.insert(g);//node_ address in this container will later be replace by a uninode, intesection or roundabout adress
-//			  std::cout << "An entry ["<< g.linkID <<"," << g.rawNode  << "] Inserted into multi index container size("<< inserter.size() << ")\n";
-		  }
-		  else//otherwise, update the calling node
-		  {
-			  geo_LinkLoc_mapping temp = *it;
-			  const sim_mob::Node * t = it->rawNode;//for debugging only
-			  temp.rawNode = node_;
-			  inserter.replace(it,temp);
-//			  std::cout << "basic raw node " << t << " updated by rawNode " <<  temp.rawNode << std::endl;//" .. container size("<< inserter.size() << ") "<< "["<< it->linkID <<"," << it->node1 << "," <<it->node2<< "," << it->rawNode  << "]\n";
-		  }
-
-	  }
-//	  std::cout << ">>>>>>>>>>>>>>>>>>Basic Node " << node_ << " posted<<<<<<<<<<<<<<<<<<<<<<<<\n";
-	  return node_;
-}
-// temp_Segmetair_t_pimpl
-//
-
-void temp_Segmetair_t_pimpl::
-pre ()
-{
-	  segmentPair.first = -1;
-	  segmentPair.second = -1;
-}
-
-void temp_Segmetair_t_pimpl::
-first (unsigned long long first)
-{
-	  segmentPair.first = first;
-  std::cout << "first: " << first << std::endl;
-}
-
-void temp_Segmetair_t_pimpl::
-second (unsigned long long second)
-{
-	  segmentPair.second = second;
-  std::cout << "second: " << second << std::endl;
-}
-
-std::pair<unsigned long,unsigned long> temp_Segmetair_t_pimpl::
-post_temp_Segmetair_t ()
-{
-	  return segmentPair;
-}
 
 // UniNode_t_pimpl
 //
 
-void UniNode_t_pimpl::
-pre ()
-{
-//	  connectors_.clear();
-}
-
-void UniNode_t_pimpl::
-firstPair (std::pair<unsigned long,unsigned long> firstPair)
-{
-	  firstSegmentPair = firstPair;
-}
-
-void UniNode_t_pimpl::
-secondPair (std::pair<unsigned long,unsigned long> secondPair)
-{
-	  secondSegmentPair = secondPair;
-}
-
-void UniNode_t_pimpl::
-Connectors (std::set<std::pair<unsigned long,unsigned long> > Connectors)
-{
-//	  std::cout << "In UniNode_t_pimpl::Connectors ()\n";
-	  connectors_ = Connectors;
-//	  std::cout << "In UniNode_t_pimpl::Connectors ()-Done\n";
-}
-
-sim_mob::UniNode* UniNode_t_pimpl::
-post_UniNode_t ()
-{
-  sim_mob::Node* v (post_Node_t ());
-	  this->uniNode = new sim_mob::UniNode(v->getLocation().getX(), v->getLocation().getY());
-	  this->uniNode->setID(v->getID());
-	  this->uniNode->originalDB_ID = v->originalDB_ID;
-	  geo_UniNodeConnectorsMap[this->uniNode->getID()] = connectors_;
-
-	 // geo_Nodes_[this->uniNode->getID()] = this->uniNode;
-	  Nodes_pimpl::RegisterNode(this->uniNode->getID(), this->uniNode);
-
-	  geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
-	  geo_LinkLoc_rawNode::iterator it = container.find(v);
-	  if(it != container.end())
-	   it->node.push_back(this->uniNode);
-	  geo_UniNode_SegmentPairs[this->uniNode->getID()] = std::make_pair(firstSegmentPair, secondSegmentPair);
-
-	  return this->uniNode;
-}
 
 // roundabout_t_pimpl
 //
@@ -468,7 +269,7 @@ post_roundabout_t ()
 void intersection_t_pimpl::
 pre ()
 {
-//	  std::cout << "intersection_t_pimpl::pre()\n";
+	Node_t_pimpl::pre();
 }
 
 void intersection_t_pimpl::
@@ -1767,101 +1568,7 @@ post_Signals_t ()
 // GeoSpatial_t_pimpl
 //
 
-void GeoSpatial_t_pimpl::
-pre ()
-{
-	  std::cout << "In GeoSpatial_t_pimpl.pre\n";
-}
 
-void GeoSpatial_t_pimpl::
-RoadNetwork ()
-{
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()\n";
-//	  Now Take care of items like lane 'connectors' , 'road segments at' multinodes etc
-	  //multinodes RoadSegmentAt
-	  std::vector<sim_mob::MultiNode*>& mNodes = ConfigParams::GetInstance().getNetworkRW().getNodesRW();
-	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
-	  {
-		  for(std::set<unsigned long>::iterator rs_it = geo_RoadSegmentsAt[(*node_it)->getID()].begin(), it_end(geo_RoadSegmentsAt[(*node_it)->getID()].end()); rs_it != it_end ; rs_it++)
-		  {
-			  (*node_it)->addRoadSegmentAt(geo_Segments_[*rs_it]);
-		  }
-	  }
-
-	  //multi node connectors
-	  int tmp_cnn_cnt1 = 0;
-	  int tmp_rs1 = 0;
-	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
-	  {
-		  helper::MultiNodeConnectors & geo_MultiNode_Connectors_ = geo_MultiNodeConnectorsMap[(*node_it)->getID()];
-		  tmp_rs1 += geo_MultiNode_Connectors_.size();
-		  for(helper::MultiNodeConnectors::iterator rs_cnn_it = geo_MultiNode_Connectors_.begin(); rs_cnn_it != geo_MultiNode_Connectors_.end(); rs_cnn_it++)
-		  {
-			  std::set<sim_mob::LaneConnector*> connectors;
-			  helper::UniNodeConnectors & geo_UniNode_Connectors_ = rs_cnn_it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
-			  helper::UniNodeConnectors::iterator lane_cnn_it;
-			  connectors.clear();
-			  for(lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++)
-			  {
-
-				  tmp_cnn_cnt1 ++;
-				  sim_mob::LaneConnector* lc = new sim_mob::LaneConnector(geo_Lanes_[(*lane_cnn_it).first], geo_Lanes_[(*lane_cnn_it).second]);
-
-				  connectors.insert(lc);
-			  }
-			  sim_mob::RoadSegment * rs = geo_Segments_[rs_cnn_it->first];
-			  (*node_it)->setConnectorAt(rs, connectors);
-		  }
-	  }
-//	  //will not be needed in the new version of road network graphs
-//	  //multinodes roadSegmentsCircular
-//	  sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
-//	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
-//	  {
-//		  sim_mob::MultiNode::BuildClockwiseLinks(rn, *node_it);
-//	  }
-
-	  //uni nodes
-	  //uninode segmentpairs
-	  //uni node connectors
-	  std::set<sim_mob::UniNode*>& uNodes = ConfigParams::GetInstance().getNetworkRW().getUniNodesRW();
-	  for(std::set<sim_mob::UniNode*>::iterator node_it = uNodes.begin(); node_it != uNodes.end(); node_it ++)
-	  {
-		  helper::UniNodeConnectors geo_UniNode_Connectors_ = geo_UniNodeConnectorsMap[(*node_it)->getID()];
-		  //std::map<const sim_mob::Lane*, sim_mob::Lane*> & connectors = (*node_it)->connectors;
-		  for(helper::UniNodeConnectors::iterator  lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++) {
-			(*node_it)->setConnectorAt(geo_Lanes_[(*lane_cnn_it).first], geo_Lanes_[(*lane_cnn_it).second]);
-			//  connectors[geo_Lanes_[(*lane_cnn_it).first]] = geo_Lanes_[(*lane_cnn_it).second];
-		  }
-	  }
-	  //uninode segment pairs
-	  //you are welcom to integrate this loop to the above loop, I just separated them for simplicity
-	  for(std::set<sim_mob::UniNode*>::iterator node_it = uNodes.begin(); node_it != uNodes.end(); node_it ++)
-	  {
-//		  declared variable to enforce constantness here instead of const_cast later
-		  const sim_mob::RoadSegment* firstPair_first = geo_Segments_[geo_UniNode_SegmentPairs[(*node_it)->getID()].first.first];
-		  const sim_mob::RoadSegment* firstPair_second = geo_Segments_[geo_UniNode_SegmentPairs[(*node_it)->getID()].first.second];
-		  const sim_mob::RoadSegment* secondPair_first = geo_Segments_[geo_UniNode_SegmentPairs[(*node_it)->getID()].second.first];
-		  const sim_mob::RoadSegment* secondPair_second = geo_Segments_[geo_UniNode_SegmentPairs[(*node_it)->getID()].second.second];
-		  (*node_it)->firstPair = std::make_pair(firstPair_first,firstPair_second);
-		  (*node_it)->secondPair = std::make_pair(secondPair_first,secondPair_second);
-	  }
-//	  //linkLoc //todo later
-	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
-	  for(geo_LinkLoc_random::iterator link_it = linkLocs.begin(), it_end(linkLocs.end()); link_it != it_end; link_it++)
-	  {
-		  for(std::vector<sim_mob::Node*>::iterator node_it = link_it->node.begin(); node_it != link_it->node.end() ; node_it++)
-		  {
-			 (*node_it)->setLinkLoc( geo_Links_[link_it->linkID]);
-		  }
-	  }
-}
-
-void GeoSpatial_t_pimpl::
-post_GeoSpatial_t ()
-{
-
-}
 
 // SimMobility_t_pimpl
 //
@@ -1900,24 +1607,7 @@ post_SimMobility_t ()
 // Lanes_pimpl
 //
 
-void Lanes_pimpl::
-pre ()
-{
-	  this->lanes.clear();
-}
 
-void Lanes_pimpl::
-Lane (sim_mob::Lane* Lane)
-{
-	  this->lanes.push_back(Lane);
-}
-
-std::vector<sim_mob::Lane*> Lanes_pimpl::
-post_Lanes ()
-{
-//	  std::cout<< "Returning Lanes\n";
-	  return this->lanes;
-}
 
 // Segments_pimpl
 //
@@ -1956,23 +1646,6 @@ post_Segments ()
 // Links_pimpl
 //
 
-void Links_pimpl::
-pre ()
-{
-}
-
-void Links_pimpl::
-Link (sim_mob::Link* Link)
-{
-	  links.push_back(Link);
-	  std::cout << "Link Pushed\n";
-}
-
-std::vector<sim_mob::Link*> Links_pimpl::
-post_Links ()
-{
-	  return links;
-}
 
 // UniNodes_pimpl
 //
@@ -2023,6 +1696,7 @@ post_Intersections ()
 void roundabouts_pimpl::
 pre ()
 {
+	//MultiNode_t_pimpl::pre();
 }
 
 void roundabouts_pimpl::

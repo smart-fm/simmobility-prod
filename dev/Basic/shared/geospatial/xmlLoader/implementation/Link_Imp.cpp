@@ -11,6 +11,7 @@ void sim_mob::xml::link_t_pimpl::pre ()
 sim_mob::Link* sim_mob::xml::link_t_pimpl::post_link_t ()
 {
 	sim_mob::Link* res = new sim_mob::Link(model);
+	Links_pimpl::RegisterLink(res->getId(), res);
 
 	//parentLink
 	{

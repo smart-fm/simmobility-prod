@@ -60,7 +60,8 @@ public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
 	///The location of this Node.
-	Point2D const location;
+	///TODO: Restore const access later.
+	Point2D location;
 
 
 	//Nodes may have hidden properties useful only in for the visualizer.

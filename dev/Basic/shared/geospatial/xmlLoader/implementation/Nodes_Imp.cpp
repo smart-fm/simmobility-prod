@@ -34,7 +34,7 @@ void sim_mob::xml::Nodes_pimpl::pre ()
 void sim_mob::xml::Nodes_pimpl::post_Nodes ()
 {
 	//Clear it to save memory.
-	Lookup.clear();
+	//Lookup.clear(); //Later?
 }
 
 void sim_mob::xml::Nodes_pimpl::UniNodes (std::set<sim_mob::UniNode*>& value)

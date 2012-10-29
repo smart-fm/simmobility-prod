@@ -36,6 +36,21 @@ typedef std::map<unsigned long, helper::UniNodeConnectors > MultiNodeConnectors;
 } //End helper namespace
 
 
+
+///TODO: Can we remove this class?
+class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel {
+public:
+	virtual void pre () { model = std::make_pair(0, 0); }
+	virtual std::pair<unsigned long,unsigned long> post_temp_Segmetair_t () { return model; }
+
+	virtual void first (unsigned long long value) { model.first = value; }
+	virtual void second (unsigned long long value) { model.second = value; }
+
+private:
+	std::pair<unsigned long,unsigned long> model;
+};
+
+
 class Point2D_t_pimpl: public virtual Point2D_t_pskel {
 public:
 	virtual void pre ();
@@ -339,120 +354,78 @@ public:
 };
 
 
-class LanesVector_t_pimpl: public virtual LanesVector_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  laneID (unsigned long long);
-
-  virtual void
-  post_LanesVector_t ();
-};
-
-class EntranceAngle_t_pimpl: public virtual EntranceAngle_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  entranceAngle_ID (unsigned short);
-
-  virtual void
-  entranceAngle_value (unsigned int);
-
-  virtual void
-  post_EntranceAngle_t ();
-};
-
-class EntranceAngles_t_pimpl: public virtual EntranceAngles_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  entranceAngle ();
-
-  virtual void
-  post_EntranceAngles_t ();
-};
-
-class Node_t_pimpl: public virtual Node_t_pskel
-{
+class LanesVector_t_pimpl: public virtual LanesVector_t_pskel {
 public:
-	  sim_mob::Node* node_;
-	  unsigned int nodeId_;
-	  sim_mob::Point2D location_;
-	  std::string originalDB_ID_;
-	  unsigned long linkLoc_;
+	virtual void pre ();
+	virtual void post_LanesVector_t ();
 
-	  Node_t_pimpl();
-  virtual void
-  pre ();
-
-  virtual void
-  nodeID (unsigned int);
-
-  virtual void
-  location (sim_mob::Point2D);
-
-  virtual void
-  linkLoc (unsigned long long);
-
-  virtual void
-  originalDB_ID (const ::std::string&);
-
-  virtual sim_mob::Node*
-  post_Node_t ();
+	virtual void laneID (unsigned long long);
 };
 
-class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel
-{
-	  std::pair<unsigned long,unsigned long> segmentPair;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  first (unsigned long long);
+class EntranceAngle_t_pimpl: public virtual EntranceAngle_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_EntranceAngle_t ();
 
-  virtual void
-  second (unsigned long long);
-
-  virtual std::pair<unsigned long,unsigned long>
-  post_temp_Segmetair_t ();
+	virtual void entranceAngle_ID (unsigned short);
+	virtual void entranceAngle_value (unsigned int);
 };
 
-class UniNode_t_pimpl: public virtual UniNode_t_pskel,
-  public ::sim_mob::xml::Node_t_pimpl
-{
-	  sim_mob::UniNode * uniNode;
-//	  Point2D location_;
-//	  std::string nodeId;
-//	  std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors_;
-	  std::set<std::pair<unsigned long,unsigned long> > connectors_;
-	  std::pair<unsigned long,unsigned long> firstSegmentPair;
-	  std::pair<unsigned long,unsigned long> secondSegmentPair;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  firstPair (std::pair<unsigned long,unsigned long>);
 
-  virtual void
-  secondPair (std::pair<unsigned long,unsigned long>);
+class EntranceAngles_t_pimpl: public virtual EntranceAngles_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_EntranceAngles_t ();
 
-  virtual void
-  Connectors (std::set<std::pair<unsigned long,unsigned long> >);
-
-  virtual sim_mob::UniNode*
-  post_UniNode_t ();
+	virtual void entranceAngle ();
 };
+
+
+
+class Node_t_pimpl: public virtual Node_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::Node* post_Node_t ();
+
+	virtual void nodeID (unsigned int);
+	virtual void location (sim_mob::Point2D);
+	virtual void linkLoc (unsigned long long);
+	virtual void originalDB_ID (const ::std::string&);
+
+private:
+	sim_mob::Node model;
+};
+
+
+
+
+class UniNode_t_pimpl: public virtual UniNode_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
+public:
+	typedef std::set<std::pair<unsigned long,unsigned long> > LaneConnectSet;
+
+	virtual void pre ();
+	virtual sim_mob::UniNode* post_UniNode_t ();
+
+	virtual void firstPair (std::pair<unsigned long,unsigned long>);
+	virtual void secondPair (std::pair<unsigned long,unsigned long>);
+	virtual void Connectors (LaneConnectSet);
+
+	static void RegisterConnectors(sim_mob::UniNode* lane, const LaneConnectSet& connectors);
+	static LaneConnectSet GetConnectors(sim_mob::UniNode* lane);
+
+private:
+	//NOTE: This parameter name shadows Node::model, but this might be the right way to do things anyway.
+	sim_mob::UniNode model;
+
+	//Due to a load cycle, we have to save these as integers.
+	LaneConnectSet connectors;
+
+	static std::map<sim_mob::UniNode*, LaneConnectSet> ConnectCache;
+};
+
+
 
 class roundabout_t_pimpl: public virtual roundabout_t_pskel,
   public ::sim_mob::xml::Node_t_pimpl
@@ -1154,18 +1127,18 @@ class Signals_t_pimpl: public virtual Signals_t_pskel
   post_Signals_t ();
 };
 
-class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  RoadNetwork ();
 
-  virtual void
-  post_GeoSpatial_t ();
+///NOTE: Already done.
+class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_GeoSpatial_t ();
+
+	virtual void RoadNetwork ();
 };
+
+
 
 class SimMobility_t_pimpl: public virtual SimMobility_t_pskel
 {
@@ -1186,19 +1159,25 @@ class SimMobility_t_pimpl: public virtual SimMobility_t_pskel
   post_SimMobility_t ();
 };
 
-class Lanes_pimpl: public virtual Lanes_pskel
-{
-	  std::vector<sim_mob::Lane*> lanes;
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  Lane (sim_mob::Lane*);
+//NOTE: Done already.
+class Lanes_pimpl: public virtual Lanes_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::Lane*> post_Lanes ();
 
-  virtual std::vector<sim_mob::Lane*>
-  post_Lanes ();
+	virtual void Lane (sim_mob::Lane*);
+
+	static sim_mob::Lane* LookupLane(unsigned int id);
+	static void RegisterLane(unsigned int id, sim_mob::Lane* lane);
+
+private:
+	std::vector<sim_mob::Lane*> model;
+
+	static std::map<unsigned int,sim_mob::Lane*> Lookup;
 };
+
+
 
 class Segments_pimpl: public virtual Segments_pskel
 {
@@ -1241,19 +1220,20 @@ private:
 };
 
 
+//NOTE: Need to clean up reference to the singleton ConfigParams instance!
+class Links_pimpl: public virtual Links_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::Link*> post_Links ();
 
-class Links_pimpl: public virtual Links_pskel
-{
-	  std::vector<sim_mob::Link*> links;
-  public:
-  virtual void
-  pre ();
+	virtual void Link (sim_mob::Link*);
 
-  virtual void
-  Link (sim_mob::Link*);
+	static sim_mob::Link* LookupLink(unsigned int id);
+	static void RegisterLink(unsigned int id, sim_mob::Link* node);
 
-  virtual std::vector<sim_mob::Link*>
-  post_Links ();
+private:
+	std::vector<sim_mob::Link*> model;
+	static std::map<unsigned int,sim_mob::Link*> Lookup;
 };
 
 class UniNodes_pimpl: public virtual UniNodes_pskel

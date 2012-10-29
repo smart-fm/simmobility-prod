@@ -157,6 +157,7 @@ public:
 
     void updateIndicators();
     void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
+    void updateLaneState(int phaseId);//for mid-term use
 
     std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
 

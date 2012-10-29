@@ -105,7 +105,7 @@ unsigned int getNumMovingVehiclesInRoadSegment(std::map<const sim_mob::Lane*, un
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
 	Role(parent), remainingTimeToComplete(0), /*currLane_(mtxStrat, nullptr),*/
 	currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0),
-	nextLaneInNextLink(nullptr), targetLaneIndex(0), vehicle(nullptr),
+	nextLaneInNextSegment(nullptr), targetLaneIndex(0), vehicle(nullptr),
 	intModel(new SimpleIntDrivingModel()),
 	params(parent->getGenerator())
 {
@@ -143,7 +143,7 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 {
 	//Save the path from orign to next activity location in allRoadSegments
-	sim_mob::medium::MidVehicle* newVeh = initializePath(true);
+	sim_mob::Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
 		safe_delete_item(vehicle);
 		//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
@@ -160,12 +160,6 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
 #endif
 	}
-
-	//Updating location information for agent for density calculations
-	parent->setCurrLane(params.currLane);
-	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
-
-	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!  " << this->parent->getId() << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 }
 
 void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
@@ -253,7 +247,7 @@ void sim_mob::medium::Driver::setParentBufferedData() {
 	//TODO: Need to see how the parent agent uses its velocity vector.
 	parent->fwdVel.set(vehicle->getVelocity());
 }
-
+/*
 //TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
 void sim_mob::medium::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
@@ -272,7 +266,6 @@ void sim_mob::medium::Driver::calculateIntersectionTrajectory(DPoint movingFrom,
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
-
 
 //~melani
 bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, frame_t frameNumber) {
@@ -345,11 +338,6 @@ void sim_mob::medium::Driver::justLeftIntersection(DriverUpdateParams& p) {
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = vehicle->getDistanceMovedInSegment();
 	targetLaneIndex = p.currLaneIndex;
-
-	//Updating location information for agent for density calculations
-	parent->setCurrLane(p.currLane);
-	parent->setCurrLink((p.currLane)->getRoadSegment()->getLink());
-
 }
 
 //General update information for whenever a Segment may have changed.
@@ -367,7 +355,7 @@ void sim_mob::medium::Driver::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	//maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6; //slow down
 	//targetSpeed = maxLaneSpeed;
 }
-
+*/
 void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
@@ -390,11 +378,8 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\"})"<<std::endl);
 #endif
 
-	//Updating location information for agent for density calculations
-	parent->setCurrLane(params.currLane);
-	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
 }
-
+/*
 double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
 
@@ -428,7 +413,7 @@ double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	}
 	return res;
 }
-
+*/
 /*
 //currently it just chooses the first lane from the targetLane
 //Note that this also sets the target lane so that we (hopefully) merge before the intersection.
@@ -479,9 +464,7 @@ void sim_mob::medium::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 		}
 	}
 }
-*/
 
-/*
 bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, frame_t frameNumber) {
 	//Are we done?
 	if (vehicle->isDone()) {
@@ -503,7 +486,7 @@ bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, f
 
 	return true;
 }
-*/
+
 
 void sim_mob::medium::Driver::intersectionVelocityUpdate() {
 	double inter_speed = 1000;//10m/s
@@ -511,9 +494,9 @@ void sim_mob::medium::Driver::intersectionVelocityUpdate() {
 	//Set velocity for intersection movement.
 	vehicle->setVelocity(inter_speed);
 }
-
-sim_mob::medium::MidVehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
-	sim_mob::medium::MidVehicle* res = nullptr;
+*/
+Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
+	Vehicle* res = nullptr;
 
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
@@ -540,7 +523,7 @@ sim_mob::medium::MidVehicle* sim_mob::medium::Driver::initializePath(bool alloca
 
 		//A non-null vehicle means we are moving.
 		if (allocateVehicle) {
-			res = new sim_mob::medium::MidVehicle(path, startlaneID, length, width);
+			res = new sim_mob::Vehicle(path, startlaneID, length, width);
 		}
 	}
 
@@ -634,7 +617,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 	}
 
 	//not implemented yet
-	double departTime = getLastAccept(p.currLane) + getAcceptRate(p.currLane);
+	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
 	double t = std::max(timeSpent, departTime - currTimeMS/1000.0);
 
 	if (canGoToNextRdSeg(p, t)){
@@ -647,8 +630,6 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 		p.currLane = nextLaneInNextSegment;
 		p.currLaneIndex = targetLaneIndex;
-		//Updating location information for agent for density calculations
-		parent->setCurrLane(p.currLane);
 
 		if (isNewLinkNext)
 		{
@@ -728,18 +709,26 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 
 	std::map<const sim_mob::Lane*, unsigned short> queueLengths = AuraManager::instance().getQueueLengthsOfLanes(nextRdSeg);
 
-	std::map<const sim_mob::Lane*, unsigned short>::iterator i= queueLengths.begin();
+	std::map<const sim_mob::Lane*, unsigned short>::iterator i;
 
-	unsigned short minQueueLength = (*i).second;
-	const sim_mob::Lane* minQueueLengthLane = (*i).first;
+	unsigned short minQueueLength = std::numeric_limits<int>::max();
+	const sim_mob::Lane* minQueueLengthLane = nullptr;
 
-	for ( ; i != queueLengths.end(); ++i){
-		if (minQueueLength > (*i).second){
-			minQueueLength = (*i).second;
-			minQueueLengthLane = (*i).first;
+	for ( queueLengths.begin(); i != queueLengths.end(); ++i){
+		if ( !((*i).first->is_pedestrian_lane())){
+			//currently only avoiding pedestrian lanes
+			if (minQueueLength > (*i).second){
+				minQueueLength = (*i).second;
+				minQueueLengthLane = (*i).first;
+			}
 		}
 	}
-
+	if( !minQueueLengthLane){
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout << "ERROR: all target lanes are only for pedestrians!\n";
+#endif
+	}
 	return minQueueLengthLane;
 }
 
@@ -864,7 +853,6 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 	return true;
 }
 
-//===================================Mid-term only===========================================
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
@@ -882,15 +870,19 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 				//Update parent data. Only works if we're not "done" for a bad reason.
 				setParentBufferedData();
 		}
-
+		Person* parentP = dynamic_cast<Person*> (parent);
+		if (parentP){
+			parentP->isQueuing = vehicle->isQueuing;
+			parentP->distanceToEndOfSegment = vehicle->getPositionInSegment();
+		}
 	}
-
-
+/*
 	//Update our Buffered types
 	if (!vehicle->isInIntersection()) {
 		//currLane_.set(vehicle->getCurrLane());
 		//currLaneOffset_.set(vehicle->getDistanceMovedInSegment());
 	}
+*/
 
 }
 
@@ -901,7 +893,7 @@ bool sim_mob::medium::Driver::advance(DriverUpdateParams& p, unsigned int currTi
 		return false;
 	}
 
-	if (parent->isQueuing)
+	if (vehicle->isQueuing)
 	{
 		return advanceQueuingVehicle(p, currTimeMS);
 	}
@@ -931,7 +923,7 @@ bool sim_mob::medium::Driver::advanceQueuingVehicle(DriverUpdateParams& p, unsig
 	{
 		//not implemented
 		res = moveToNextSegment(p, currTimeMS, tf);
-		xf = (parent->isQueuing) ? vehicle->getPositionInSegment() : 0.0;
+		xf = (vehicle->isQueuing) ? vehicle->getPositionInSegment() : 0.0;
 	}
 	else
 	{
@@ -972,8 +964,6 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 	//not implemented
 	double output = getOutputCounter(p.currLane);
-	//not implemented
-	double outRate = getOutputFlowRate(p.currLane);
 
 	//get current location
 	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane

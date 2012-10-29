@@ -1651,6 +1651,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//Process
 			rs->maxSpeed = found->speed;
 			rs->length = found->length;
+			rs->capacity = found->capacity;
 			for (int laneID=0; laneID<found->numLanes; laneID++) {
 				rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
 			}

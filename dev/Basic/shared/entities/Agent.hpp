@@ -180,6 +180,7 @@ public:
 	PendingEvent* getCurrEvent() { return currEvent; }
 
 	bool isQueuing; //added by melani for mid-term driver
+	double distanceToEndOfSegment;
 	frame_t enqueueTick;
 
 private:

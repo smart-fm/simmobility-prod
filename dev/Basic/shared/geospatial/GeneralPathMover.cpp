@@ -1100,7 +1100,6 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
 	double res = 0.0;
 	distToEndSegment -= fwdDistance;
-	//distMovedInSegment += fwdDistance;
 
 	while (distToEndSegment <= 0 && !inIntersection)
 	{

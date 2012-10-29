@@ -128,6 +128,7 @@ public:
 public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
+	double capacity;
 	///TODO This should be made private again.
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
@@ -135,11 +136,6 @@ public:
 	const sim_mob::SupplyParams* getSupplyParams() {
 		return supplyParams;
 	}
-
-	//author-melani
-	//for mid-term use
-	bool isValidLane(const sim_mob::Lane* chosenLane) const;
-	void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;
 
 	sim_mob::Conflux* getParentConflux() const {
 		return parentConflux;
@@ -176,6 +172,7 @@ private:
 	sim_mob::Conflux* parentConflux;
 	//	std::string segmentID;
 	unsigned long segmentID;
+
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;
 	friend class sim_mob::RoadNetworkPackageManager;

@@ -14,6 +14,7 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
@@ -35,6 +36,7 @@
 using std::map;
 using std::vector;
 using std::string;
+using std::set;
 
 using namespace boost::multi_index;
 using boost::multi_index::get;
@@ -462,6 +464,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 //			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
+			//updateLaneState(currPhaseID);
 		}
 	if(isNewCycle && signalAlgorithm)
 		newCycleUpdate();//major update!
@@ -610,6 +613,41 @@ std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(doub
 	return phaseTimes;
 }
 
+void Signal_SCATS::updateLaneState(int phaseId) {
+
+	sim_mob::Phase p_it = plan_.phases_[phaseId];
+
+	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
+	for (; link_it != (p_it).LinkFrom_end();
+			link_it = (p_it).links_map_.upper_bound((*link_it).first)) { //Loop2===>link
+
+		const std::vector<sim_mob::RoadSegment*> segments = (*link_it).first->getFwdSegments();
+
+		std::vector<sim_mob::RoadSegment*>::const_iterator seg_it = segments.begin();
+		for (; seg_it != segments.end(); seg_it++) { //Loop3===>road segment
+			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection either)
+			//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+			if ((*seg_it)->getEnd() != &getNode())
+				continue;
+			const MultiNode* endNode = dynamic_cast<const MultiNode*>(&getNode());
+			const set<LaneConnector*>& lcs = endNode->getOutgoingLanes(*(*seg_it));
+			for (set<LaneConnector*>::const_iterator it_lcs = lcs.begin(); it_lcs != lcs.end(); it_lcs++) {
+				sim_mob::Phase::links_map_equal_range range = p_it.getLinkTos((*link_it).first);
+				sim_mob::Phase::links_map_const_iterator iter;
+				for(iter = range.first; iter != range.second ; iter++ )
+				{
+					if( (*iter).second.LinkTo == (*it_lcs)->getLaneTo()->getRoadSegment()->getLink()) {
+						const Lane* lane = (*it_lcs)->getLaneFrom();
+						if (lane->is_pedestrian_lane())
+							continue;
+						//update Lane Statef
+					}
+
+				}
+			}
+		}
+	}
+}
 } //namespace
 
 #endif

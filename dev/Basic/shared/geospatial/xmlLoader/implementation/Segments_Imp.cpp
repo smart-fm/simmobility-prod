@@ -8,7 +8,7 @@ using namespace sim_mob::xml;
 std::map<unsigned int,sim_mob::RoadSegment*> sim_mob::xml::Segments_pimpl::Lookup;
 
 //Functionality for retrieving a Road Segment from the list of known Nodes.
-sim_mob::RoadSegment* sim_mob::xml::Segments_pimpl::LookupNode(unsigned int id) {
+sim_mob::RoadSegment* sim_mob::xml::Segments_pimpl::LookupSegment(unsigned int id) {
 	std::map<unsigned int,sim_mob::RoadSegment*>::iterator it = Lookup.find(id);
 	if (it!=Lookup.end()) {
 		return it->second;
@@ -28,7 +28,7 @@ void sim_mob::xml::Segments_pimpl::RegisterSegment(unsigned int id, sim_mob::Roa
 void sim_mob::xml::Segments_pimpl::pre ()
 {
 	fwd.clear();
-	bck.clear();
+	rev.clear();
 	Lookup.clear();
 }
 
@@ -39,10 +39,10 @@ void sim_mob::xml::Segments_pimpl::FWDSegments (Segments_pimpl::SegmentList valu
 
 void sim_mob::xml::Segments_pimpl::BKDSegments (Segments_pimpl::SegmentList value)
 {
-	bck = value;
+	rev = value;
 }
 
 std::pair<Segments_pimpl::SegmentList,Segments_pimpl::SegmentList> sim_mob::xml::Segments_pimpl::post_Segments ()
 {
-	return std::make_pair(fwd,bck);
+	return std::make_pair(fwd,rev);
 }

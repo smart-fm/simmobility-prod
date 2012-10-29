@@ -17,7 +17,7 @@ sim_mob::Lane* sim_mob::xml::Lanes_pimpl::LookupLane(unsigned int id) {
 }
 
 //Functionality for registering a Node so that it can be retrieved later.
-void sim_mob::xml::Lanes_pimpl::RegisterLane(unsigned int id, sim_mob::Lane* node) {
+void sim_mob::xml::Lanes_pimpl::RegisterLane(unsigned int id, sim_mob::Lane* lane) {
 	if (Lookup.count(id)>0) {
 		throw std::runtime_error("Lane id is already registered.");
 	}

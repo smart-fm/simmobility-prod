@@ -394,8 +394,15 @@ public:
 	virtual void linkLoc (unsigned long long);
 	virtual void originalDB_ID (const ::std::string&);
 
+	static void RegisterLinkLoc(sim_mob::Node* node, unsigned int link);
+	static unsigned int GetLinkLoc(sim_mob::Node* node);
+	static std::map<sim_mob::Node*, unsigned int>& GetLinkLocList();
+
 private:
 	sim_mob::Node model;
+	unsigned int linkLocSaved;
+
+	static std::map<sim_mob::Node*, unsigned int> LinkLocCache;
 };
 
 
@@ -404,6 +411,7 @@ private:
 class UniNode_t_pimpl: public virtual UniNode_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
 	typedef std::set<std::pair<unsigned long,unsigned long> > LaneConnectSet;
+	typedef std::pair<unsigned long,unsigned long> SegmentPair;
 
 	virtual void pre ();
 	virtual sim_mob::UniNode* post_UniNode_t ();
@@ -415,14 +423,19 @@ public:
 	static void RegisterConnectors(sim_mob::UniNode* lane, const LaneConnectSet& connectors);
 	static LaneConnectSet GetConnectors(sim_mob::UniNode* lane);
 
+	static void RegisterSegmentPairs(sim_mob::UniNode* lane, const std::pair<SegmentPair, SegmentPair>& pairs);
+	static std::pair<SegmentPair, SegmentPair> GetSegmentPairs(sim_mob::UniNode* lane);
+
 private:
 	//NOTE: This parameter name shadows Node::model, but this might be the right way to do things anyway.
 	sim_mob::UniNode model;
 
 	//Due to a load cycle, we have to save these as integers.
 	LaneConnectSet connectors;
+	std::pair<SegmentPair, SegmentPair> segmentPairs;
 
 	static std::map<sim_mob::UniNode*, LaneConnectSet> ConnectCache;
+	static std::map<sim_mob::UniNode*, std::pair<SegmentPair, SegmentPair> > SegmentPairCache;
 };
 
 
@@ -1191,13 +1204,13 @@ public:
 	virtual void FWDSegments (std::vector<sim_mob::RoadSegment*>);
 	virtual void BKDSegments (std::vector<sim_mob::RoadSegment*>);
 
+	static sim_mob::RoadSegment* LookupSegment(unsigned int id);
+	static void RegisterSegment(unsigned int id, sim_mob::RoadSegment* seg);
+
 private:
 	SegmentList fwd;
 	SegmentList rev;
 	//SegmentList unique;
-
-	static sim_mob::RoadSegment* LookupSegment(unsigned int id);
-	static void RegisterSegment(unsigned int id, sim_mob::RoadSegment* seg);
 
 	static std::map<unsigned int, sim_mob::RoadSegment*> Lookup;
 };
@@ -1223,6 +1236,7 @@ public:
 
 private:
 	sim_mob::RoadNetwork &rn;
+
 	static std::map<unsigned int,sim_mob::Node*> Lookup;
 };
 

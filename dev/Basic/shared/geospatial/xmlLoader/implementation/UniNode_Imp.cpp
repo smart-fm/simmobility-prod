@@ -7,18 +7,18 @@ using namespace sim_mob::xml;
 std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet> sim_mob::xml::UniNode_t_pimpl::ConnectCache;
 
 //Register a set of connectors for retrieval later.
-void sim_mob::xml::UniNode_t_pimpl::RegisterConnectors(sim_mob::UniNode* lane, const UniNode_t_pimpl::LaneConnectSet& connectors)
+void sim_mob::xml::UniNode_t_pimpl::RegisterConnectors(sim_mob::UniNode* node, const UniNode_t_pimpl::LaneConnectSet& connectors)
 {
-	if (ConnectCache.count(lane)>0) {
+	if (ConnectCache.count(node)>0) {
 		throw std::runtime_error("UniNode connectors are already registered.");
 	}
-	ConnectCache[lane] = connectors;
+	ConnectCache[node] = connectors;
 }
 
 
-UniNode_t_pimpl::LaneConnectSet sim_mob::xml::UniNode_t_pimpl::GetConnectors(sim_mob::UniNode* lane)
+UniNode_t_pimpl::LaneConnectSet sim_mob::xml::UniNode_t_pimpl::GetConnectors(sim_mob::UniNode* node)
 {
-	std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet>::iterator it = ConnectCache.find(lane);
+	std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet>::iterator it = ConnectCache.find(node);
 	if (it!=ConnectCache.end()) {
 		return it->second;
 	}
@@ -26,13 +26,32 @@ UniNode_t_pimpl::LaneConnectSet sim_mob::xml::UniNode_t_pimpl::GetConnectors(sim
 }
 
 
+void sim_mob::xml::UniNode_t_pimpl::RegisterSegmentPairs(sim_mob::UniNode* node, const std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair>& pairs)
+{
+	if (SegmentPairCache.count(node)>0) {
+		throw std::runtime_error("UniNode segments are already registered.");
+	}
+	SegmentPairCache[node] = pairs;
+}
+
+
+std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair> sim_mob::xml::UniNode_t_pimpl::GetSegmentPairs(sim_mob::UniNode* node)
+{
+	std::map<sim_mob::UniNode*, std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair> >::iterator it = SegmentPairCache.find(node);
+	if (it!=SegmentPairCache.end()) {
+		return it->second;
+	}
+	return std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair>(); //Just return an empty set; there may be no connectors.
+}
+
 
 
 void sim_mob::xml::UniNode_t_pimpl::pre ()
 {
 	Node_t_pimpl::pre();
-	model = sim_mob::UniNode();
+	model = sim_mob::UniNode(0,0);
 	connectors.clear();
+	segmentPairs = std::make_pair(SegmentPair(), SegmentPair());
 }
 
 sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
@@ -64,12 +83,12 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 
 void sim_mob::xml::UniNode_t_pimpl::firstPair (std::pair<unsigned long,unsigned long> value)
 {
-	model.firstPair = value;
+	segmentPairs.first = value;
 }
 
 void sim_mob::xml::UniNode_t_pimpl::secondPair (std::pair<unsigned long,unsigned long> value)
 {
-	model.secondPair = value;
+	segmentPairs.second = value;
 }
 
 void sim_mob::xml::UniNode_t_pimpl::Connectors (std::set<std::pair<unsigned long,unsigned long> > value)

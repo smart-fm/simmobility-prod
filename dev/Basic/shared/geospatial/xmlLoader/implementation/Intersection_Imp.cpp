@@ -51,7 +51,7 @@ void sim_mob::xml::intersection_t_pimpl::pre ()
 {
 	//Chain to parent.
 	Node_t_pimpl::pre();
-	model = sim_mob::Intersection();
+	model = sim_mob::Intersection(0, 0);
 	segmentsAt.clear();
 	connectors.clear();
 }
@@ -65,7 +65,7 @@ sim_mob::MultiNode* sim_mob::xml::intersection_t_pimpl::post_intersection_t ()
 
 	//Save the set of connectors/segments for later, since we can't construct it until Lanes have been loaded.
 	intersection_t_pimpl::RegisterConnectors(res, connectors);
-	intersection_t_pimpl::RegisterSegments(res, connectors);
+	intersection_t_pimpl::RegisterSegmentsAt(res, segmentsAt);
 
 	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
 	sim_mob::Node* tempNode = Node_t_pimpl::post_Node_t();
@@ -75,19 +75,6 @@ sim_mob::MultiNode* sim_mob::xml::intersection_t_pimpl::post_intersection_t ()
 	delete tempNode;
 
 	Nodes_pimpl::RegisterNode(res->getID(), res);
-
-	geo_MultiNodeConnectorsMap[v->getID()] = this->connectors_;
-	geo_RoadSegmentsAt[v->getID()] = this->roadSegmentsAt_;
-	geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);
-	geo_LinkLoc_rawNode::iterator it = container.find(v);
-	if(it == container.end()) {
-		std::cout << "Couldn't find the basic node " << v <<  " with container size(" << container.size() << "):\n" ;
-		for(it= container.begin(); it != container.end(); it++) {
-			std::cout << it->rawNode << std::endl;
-		}
-	} else {
-		it->node.push_back(this->intersection);
-	}
 
 	return res;
 }

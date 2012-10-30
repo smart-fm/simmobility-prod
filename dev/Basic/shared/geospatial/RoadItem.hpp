@@ -3,13 +3,18 @@
 #pragma once
 
 #include "GenConfig.h"
-
+#include "geospatial/RoadSegment.hpp"
 #include "Point2D.hpp"
-
+namespace geo
+{
+class crossing_t_pimpl;
+class RoadItem_t_pimpl;
+}
 
 namespace sim_mob
 {
-
+//Forward Declaration
+//class RoadSegment;
 
 /**
  * Base class for geospatial items which take up physical space but are not traversable.
@@ -27,17 +32,27 @@ namespace sim_mob
  * and a RoadItem will become clearer.
  */
 class RoadItem {
+	friend class ::geo::crossing_t_pimpl;
+	friend class ::geo::RoadItem_t_pimpl;
 public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
+	virtual void setParentSegment(sim_mob::RoadSegment*) {};
 
 	const sim_mob::Point2D& getStart() { return start; }
 	const sim_mob::Point2D& getEnd() { return end; }
-	//static const bool isBus = false;
+	const unsigned long getRoadItemID()const { return id;}
+	void setRoadItemID(unsigned long id_) { id = id_;}
+	static unsigned long generateRoadItemID(const sim_mob::RoadSegment rs)
+	{
+		return rs.getSegmentID() * 10 + rs.obstacles.size();
+	}
 
 
-protected:
+//TODO: Fix for XML loader.
+//protected:
 	sim_mob::Point2D start;
 	sim_mob::Point2D end;
+	unsigned long id;
 
 
 

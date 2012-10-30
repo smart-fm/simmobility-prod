@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "GenConfig.h"
-
+#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include <boost/utility.hpp>
 
 #include "buffering/Shared.hpp"
@@ -177,7 +177,7 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
-
+	std::vector<SubTrip> subTrips;
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.

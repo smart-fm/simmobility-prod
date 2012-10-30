@@ -35,7 +35,7 @@ enum LANE_CHANGE_MODE {	//as a mask
 
 //Struct for holding data about the "nearest" vehicle.
 struct NearestVehicle {
-	NearestVehicle() : driver(nullptr), distance(5000) {}
+	NearestVehicle() : driver(nullptr), distance(50000) {}
 
 	//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
 	bool exists() const { return distance < 5000; }
@@ -45,7 +45,7 @@ struct NearestVehicle {
 
 //Similar, but for pedestrians
 struct NearestPedestrian {
-	NearestPedestrian() : distance(5000) {}
+	NearestPedestrian() : distance(50000) {}
 
 	//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
 	bool exists() { return distance < 5000; }

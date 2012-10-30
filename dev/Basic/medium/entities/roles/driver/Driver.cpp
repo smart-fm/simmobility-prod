@@ -510,7 +510,7 @@ void sim_mob::medium::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 	nextLaneInNextLink = nullptr;
 	vector<const Lane*> targetLanes;
 	if (currEndNode && nextSegment) {
-		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
+		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
 		for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 			if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == currLane_) {
 				//It's a valid lane.

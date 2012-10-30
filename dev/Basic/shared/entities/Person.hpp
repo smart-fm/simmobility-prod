@@ -43,6 +43,7 @@ class Person : public sim_mob::Agent {
 public:
 	///The "src" variable is used to help flag how this person was created.
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat,unsigned int id=-1);
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
 	virtual ~Person();
 
 	///Update Person behavior
@@ -64,13 +65,13 @@ public:
     Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
 
     ///get this person's trip chain
-    const std::vector<const TripChainItem*>& getTripChain() const
+    std::vector<TripChainItem*>& getTripChain()
     {
         return tripChain;
     }
 
     ///Set this person's trip chain
-    void setTripChain(const std::vector<const TripChainItem*>& tripChain)
+    void setTripChain(std::vector<TripChainItem*>& tripChain)
     {
         this->tripChain = tripChain;
     }
@@ -81,8 +82,8 @@ public:
     void getNextSubTripInTrip();
     void findNextItemInTripChain();
 
-    const TripChainItem* currTripChainItem; // pointer to current item in trip chain
-    const SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+    TripChainItem* currTripChainItem; // pointer to current item in trip chain
+    SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -101,7 +102,7 @@ private:
 
 
     int currTripChainSequenceNumber;
-    std::vector<const TripChainItem*> tripChain;
+    std::vector<TripChainItem*> tripChain;
     bool firstFrameTick;
     ///Determines if frame_init() has been done.
     friend class PartitionManager;

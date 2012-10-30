@@ -9,16 +9,16 @@
 #include "Pavement.hpp"
 #include "Link.hpp"
 
-/*namespace geo {
+
+
+
+namespace geo {
 class segment_t_pimpl;
 class Segments_pimpl;
 class link_t_pimpl;
-}*/
-
+}
 namespace sim_mob
 {
-
-
 //Forward declarations
 class Lane;
 class BusStop;
@@ -59,13 +59,13 @@ public:
 	void setEnd(sim_mob::Node* en) { this->end = en; }
 
 public:
-	
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id)
 	{}
 
-	const unsigned long  & getSegmentID()const ;
+	const unsigned long  getSegmentID()const ;
+	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
 	bool operator== (const RoadSegment* rhs) const
 	{
@@ -76,10 +76,12 @@ public:
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
-	void end1(){};
 	const std::vector<sim_mob::Lane*>& getLanes() const {
-		void end1();
-		return lanes; }
+		return lanes;
+	}
+
+	///Return the Lane at a given ID, or null if that Lane ID is out of bounds.
+	const sim_mob::Lane* getLane(int laneID) const;
 
 
 	sim_mob :: BusStop* getBusStop() {
@@ -116,6 +118,9 @@ public:
 	///TODO This should be made private again.
 	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
+
+	//TODO: Added for xmlLoader
+	void setLanesLeftOfDivider(unsigned int val) { lanesLeftOfDivider = val; }
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -141,6 +146,7 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class ::geo::segment_t_pimpl;
 
 };
 

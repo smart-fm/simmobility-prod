@@ -10,7 +10,7 @@
 
 #include "entities/roles/Role.hpp"
 #include "buffering/Shared.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"

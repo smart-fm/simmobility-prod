@@ -223,7 +223,7 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 	int i=0;
 	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
 	{
-		//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
+		//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; //getchar();}
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
@@ -554,7 +554,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true));
+//	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true)); //todo remove after debugging
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
@@ -993,10 +993,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
 	}
-	//Finalize our MultiNodes' circular arrays
-	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
-		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
-	}
+
+	//seth suggested its removal for good reasons-vahid
+//	//Finalize our MultiNodes' circular arrays
+//	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
+//		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
+//	}
+
 	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
 	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
 	//   outgoing RoadSegment that it crosses.
@@ -1059,6 +1062,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
 		busstop->busstopno_ = it->second.bus_stop_no;
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;
@@ -1090,7 +1094,7 @@ DatabaseLoader::createSignals()
     {
 
         Signal const & dbSignal = iter->second;
-//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; getchar();}
+//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; //getchar();}
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
@@ -1099,7 +1103,7 @@ DatabaseLoader::createSignals()
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
 //            throw std::runtime_error(stream.str());
-//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
+//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; //getchar();}
             continue;
         }
 
@@ -1364,6 +1368,7 @@ void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, co
 	{
 		vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
 		for (;it!=seg->lanes.end(); it++) {
+
 			CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
 		}
 	}
@@ -1556,12 +1561,17 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 ////	if(newNode->getID() == 92370)
 //	{
 //		std::cout << "UniNode " <<   newNode->getID() << " has " << newNode->getConnectors().size() << " Connectors\n";
-//		getchar();
+//		//getchar();
 //	}
 
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
+sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln,set<sim_mob::RoadSegment*> linkSegments, unsigned long id)
+{
+	return new sim_mob::RoadSegment(ln,ln->getLinkId()*100 +linkSegments.size());
+//	return new sim_mob::RoadSegment(ln,id);
+}
 
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {
@@ -1577,8 +1587,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
-	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
+	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
+	src.generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
@@ -1631,7 +1641,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			if (!found->generatedSegment) {
 				convertSegId.clear();
 				convertSegId.str(std::string());
-				found->generatedSegment = new sim_mob::RoadSegment(ln,1000001  + linkSegments.size());
+				found->generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
 			}
 			else
 			{
@@ -1656,8 +1666,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//Process
 			rs->maxSpeed = found->speed;
 			rs->length = found->length;
-			for (int laneID=0; laneID<found->numLanes; laneID++) {
-				rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+			for (int laneID=0; laneID < found->numLanes; laneID++) {
+				sim_mob::Lane * temp = new sim_mob::Lane(rs, laneID);
+				rs->lanes.push_back(temp);
 			}
 			rs->width = 0;
 
@@ -1708,7 +1719,49 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 }
 
 
+struct MyLaneConectorSorter {
+  bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
+  {
+	  if(!(c && d))
+	  {
+		  std::cout << "A lane connector is null\n";
+		  getchar();
+		  return false;
+	  }
 
+	  const sim_mob::Lane* a = (c->getLaneFrom());
+	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa = a->getLaneID() ;
+
+	  const sim_mob::Lane* b = (d->getLaneFrom());
+	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb = b->getLaneID() ;
+	  ///////////////////////////////////////////////////////
+	  const sim_mob::Lane* a1 = (c->getLaneTo());
+	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
+
+	  const sim_mob::Lane* b1 = (d->getLaneTo());
+	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
+
+	  if(!(a && b))
+	  {
+		  std::cout << "A lane from is null\n";
+		  getchar();
+		  return false;
+	  }
+	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
+	        <
+	        std::make_pair( bb, std::make_pair( bbb, std::make_pair(bbbb, std::make_pair( bb1, std::make_pair( bbb1, bbbb1 ) ))));
+
+		  return result;
+  }
+} myLaneConnectorSorter;
 
 void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning& src)
 {
@@ -1737,7 +1790,32 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
+
+//		{//debug
+//			std::cout <<  "Connectors..................\n";
+//		map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
+//		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+//		{
+//			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+//			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+//			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+//			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+//			{
+//				s.insert(*it);
+//			}
+//			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+//			{
+//				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+//				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+//
+//				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+//			}
+//			std::cout <<  "\n";
+//		}
+//		std::cout <<  "Connectors..................end\n";
+//		}//debug
 	}
+
 }
 
 
@@ -1792,6 +1870,31 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.PostProcessNetwork();
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
+//		{//debug
+//			std::cout <<  "aimsun::loader  Connectors..................\n";
+//			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+//		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->connectors;
+//		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+//		{
+//			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+//			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+//			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+//			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+//			{
+//				s.insert(*it);
+//			}
+//			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+//			{
+//				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+//				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+//
+//				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+//			}
+//			std::cout <<  "\n";
+//		}
+//			}
+//		std::cout <<  "aimsun::loader  Connectors..................end\n";
+//		}//debug
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {

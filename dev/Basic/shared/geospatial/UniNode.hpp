@@ -9,11 +9,12 @@
 #include "GenConfig.h"
 
 #include "Node.hpp"
+#include "util/LangHelpers.hpp"
 
-//namespace geo {
-//class UniNode_t_pimpl;
-//class GeoSpatial_t_pimpl;
-//}
+namespace geo {
+class UniNode_t_pimpl;
+class GeoSpatial_t_pimpl;
+}
 
 namespace sim_mob
 {
@@ -52,7 +53,31 @@ class Loader;
  */
 class UniNode : public sim_mob::Node {
 public:
-	UniNode(int x, int y) : Node(x, y) {}
+	/**
+	 * Helper class representing the connection in a Lane-centric way. Note that the "from" lane is stored within UniNode.
+	 */
+	class UniLaneConnector {
+	public:
+		/**
+		 * Build a new UniLaneConnector.
+		 *    \param left The lane forward on the road but left of the current lane.
+		 *    \param center The lane forward on the road and in the same location as the current lane.
+		 *    \param right The lane forward on the road but right of the current lane.
+		 */
+		UniLaneConnector(const Lane* left=nullptr, const Lane* center=nullptr, const Lane* right=nullptr) : left(left), center(center), right(right) {}
+		const Lane* left;
+		const Lane* center;
+		const Lane* right;
+	};
+
+	UniNode(int x, int y) : Node(x, y), firstPair(nullptr, nullptr), secondPair(nullptr, nullptr) {}
+
+	///Retrieve possible movement from a given Lane at this Node (left, right, or center)
+	UniLaneConnector getForwardLanes(const sim_mob::Lane& from) const;
+
+	///Retrieve the most likely forward movement from a given Lane at this Node.
+	/// \return The center outgoing Lane, if it exists. Else, returns either left or right, if only ONE exists. Else, returns null.
+	const Lane* getForwardDrivingLane(const sim_mob::Lane& from) const;
 
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
@@ -63,7 +88,7 @@ public:
 	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying
 	//       to get them to output something decent. At the moment they MUST correspond to "firstPair", "secondPair". ~Seth
 	static void buildConnectorsFromAlignedLanes(UniNode* node, std::pair<unsigned int, unsigned int> fromToLaneIDs1, std::pair<unsigned int, unsigned int> fromToLaneIDs2);
-
+	const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& getRoadSegmentPair(bool first) const;
 	const std::vector<const sim_mob::RoadSegment*>& getRoadSegments() const;
 
 	//TODO: Temp:
@@ -71,18 +96,31 @@ public:
 
 
 protected:
+	//Helper, to keep our loop in order.
+	static void buildConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+	static void buildNewConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+
+	//Old set of lane connectors
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
+
+	//New set of lane connectors.
+	std::map<const Lane*, UniLaneConnector> new_connectors;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	//  NOTE: If the RoadSegments in secondPair are null; then this is a one-way UniNode.
 	//  As "from->to"
+
+//TODO: Fix for xmlLoader
+public:
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> firstPair;
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> secondPair;
 
+protected:
 	//Avoid iterating confusion
 	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 
 	friend class sim_mob::aimsun::Loader;
+	friend class ::geo::GeoSpatial_t_pimpl;
 
 
 

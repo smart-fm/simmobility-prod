@@ -1,28 +1,27 @@
-#include "geo9-pimpl.hpp"
+#include "geo10-pimpl.hpp"
 
 using namespace sim_mob::xml;
 
 
 void sim_mob::xml::Point2D_t_pimpl::pre ()
 {
-	savedX = 0;
-	savedY = 0;
+	model = Point2D();
 }
 
-void sim_mob::xml::Point2D_t_pimpl::xPos (unsigned int xPos)
+void sim_mob::xml::Point2D_t_pimpl::xPos (unsigned int value)
 {
-	savedX = xPos;
+	//TODO: I'm not 100% sure why the XSD specification demands unsigned integers.
+	//      I am leaving a static_cast in here to ensure that we resolve this in the XSD file.
+	model.setX(static_cast<int>(value));
 }
 
-void sim_mob::xml::Point2D_t_pimpl::yPos (unsigned int yPos)
+void sim_mob::xml::Point2D_t_pimpl::yPos (unsigned int value)
 {
-	savedY = yPos;
+	model.setY(static_cast<int>(value));
 }
 
 sim_mob::Point2D sim_mob::xml::Point2D_t_pimpl::post_Point2D_t ()
 {
-	//TODO: I'm not 100% sure why the XSD specification demands unsigned integers.
-	//      I am leaving a static_cast in here to ensure that we resolve this in the XSD file.
-	return Point2D(static_cast<int>(savedX), static_cast<int>(savedY));
+	return model;
 }
 

@@ -202,10 +202,28 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 					std::cout <<"  Euclidean check: " <<euclideanCheck/100000 <<"\n";
 					return;
 				}
+				else
+				{
+					std::cout <<"Crossing at " << distOrigin << " dont appears after the maximum length of its parent segment[" << euclideanCheck << "].\n";
+				}
 			}
-
+			else
+			{
+				std::cout <<"Crossing at " << distOrigin << " dont appears after the maximum length of its parent section[" << (*it)->length << "].\n";
+			}
+			centimeter_t distOrigin_ = distOrigin;//obstacles work with centimeter_t not double. this canversion is made due to problems experienced-vahid
 			//Add it. Note that it is perfectly ok (and expected) for multiple Segments to reference the same Crossing.
+			res->setRoadSegment((*it)->generatedSegment);
+			//(*it)->generatedSegment->obstacles[distOrigin_] = res;
 			(*it)->generatedSegment->addObstacle(distOrigin,res);
+			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))/*(*it)->generatedSegment->getSegmentID() * 10 + (*it)->generatedSegment->obstacles.size()*/); //sorry I have to put the formula here -vahid
+//			if(res->getRoadSegment()->getSegmentID() == 100001500)
+//			{
+//				std::cout << "Segment " << (*it)->generatedSegment->getSegmentID() << " with length "  << (*it)->generatedSegment->length << " has a crossing at  " << distOrigin_ << " with crossingID: " << res->crossingID << "\n" ;
+////				getchar();
+//
+//			}
+
 		}
 	}
 }

@@ -338,31 +338,30 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
 
 void sim_mob::Pedestrian::setSubPath() {
 	if(atSidewalk){
-		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
-				parent->destNode->location);
+		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
 
-		//For debug ---------------------------------------
-		std::cout<<"Size: "<< wp_path.size()<<std::endl;
-		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++){
-			if (it->type_ == WayPoint::SIDE_WALK){
-				std::cout<<"Side_walk start node "<<it->lane_->getRoadSegment()->getStart()->getID()<<"("<<it->lane_->getRoadSegment()->getStart()->location.getX()<<","<<it->lane_->getRoadSegment()->getStart()->location.getY()<<") end node "<<it->lane_->getRoadSegment()->getEnd()->getID()<<"("<<it->lane_->getRoadSegment()->getEnd()->location.getX()<<","<<it->lane_->getRoadSegment()->getEnd()->location.getY()<<")"<<std::endl;
-
+		//Used to debug pedestrian walking paths.
+		/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
+		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+			if (it->type_ == WayPoint::SIDE_WALK) {
+				const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
+				const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
+				LogOut("  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl);
+			} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
+				LogOut("  Road Segment: (not supported)" <<std::endl);
+			} else if (it->type_ == WayPoint::BUS_STOP) {
+				LogOut("  Bus Stop: (not supported)"<<std::endl);
+			} else if (it->type_ == WayPoint::CROSSING){
+				LogOut("  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl);
+			} else if (it->type_ == WayPoint::NODE) {
+				LogOut("  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl);
+			} else if (it->type_ == WayPoint::INVALID) {
+				LogOut("  <Invalid>"<<std::endl);
+			} else {
+				LogOut("  Unknown type."<<std::endl);
 			}
-			else if (it->type_ == WayPoint::ROAD_SEGMENT)
-				std::cout<<"Road_segment"<<std::endl;
-			else if (it->type_ == WayPoint::BUS_STOP)
-				std::cout<<"Bus_stop"<<std::endl;
-			else if (it->type_ == WayPoint::CROSSING){
-				std::cout << "crossing near-line start=" << it->crossing_->nearLine.first << " end=" << it->crossing_->nearLine.second << std::endl;
-			}
-			else if (it->type_ == WayPoint::NODE){
-				std::cout << "node location=" << it->node_->location << std::endl;
-			}
-			else if (it->type_ == WayPoint::INVALID)
-				std::cout<<"Invalid"<<std::endl;
-			else
-				std::cout<<"No_match"<<std::endl;
 		}
+		LogOut("}" <<std::endl);*/
 
 		//----------------------------------------------------
 		const Lane* nextSideWalk = nullptr; //For the old code
@@ -377,7 +376,7 @@ void sim_mob::Pedestrian::setSubPath() {
 					}
 
 					//If we're changing Links, stop. Thus, "path" contains only the Segments needed to reach the Intersection, and no more.
-					//NOTE: Later, you can send the ENTIRE shortestWalkingPath to fwdMovement and just handle "isInIntersection()"
+					//NOTE: Later, you can send the ENTIRE SearchShortestWalkingPath to fwdMovement and just handle "isInIntersection()"
 					RoadSegment* rs = it->lane_->getRoadSegment();
 					isPassedSeg=false;
 					if(!currPath.empty()){
@@ -451,7 +450,7 @@ void sim_mob::Pedestrian::setSubPath() {
 
 		//LogOut("noteForDebug setSubPath run atCrossing"<<std::endl);
 
-		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
+		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location,
 				parent->destNode->location);
 		bool isPassedCrossing=false;
 		vector<const Crossing*> newCrossings;

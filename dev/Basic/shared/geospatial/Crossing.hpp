@@ -29,25 +29,27 @@ class UnPackageUtils;
  */
 class Crossing : public RoadItem {
 public:
-	Crossing() : RoadItem(), crossingID(0), roadSegment(NULL) {}
+	Crossing() : RoadItem(), /*crossingID(0),*/ roadSegment(NULL) {}
+//	void setParentSegment(RoadSegment *rs) {setRoadSegment(rs);};//since the name of elements in various road items is not unigorm, a virtual function is added at RoadItem level for this purpose.
 
-//	RoadSegment* getRoadSegment() const { return roadSegment; };
-//	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
-//protected:
+	RoadSegment* getRoadSegment() const { return roadSegment; };
+	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
+
+	//protected:
 	//The line (start/end points that make up the line) "near" the intersection
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> nearLine;
 
 	//The line that is "far" from the intersection (further down the road)
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> farLine;
-	unsigned int crossingID;
+//	unsigned int crossingID;
 private:
 	RoadSegment *roadSegment;
 public:
-	unsigned int getCrossingID(){return  crossingID;}
+	const unsigned int getCrossingID() const{return  getRoadItemID();}
 
 
 public:
-	void setCrossingID(unsigned int crossingID_){crossingID = crossingID_;}
+	void setCrossingID(unsigned int crossingID_){setRoadItemID(crossingID_); }
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Crossing is packed using PackageUtils;
 	static void pack(PackageUtils& package, Crossing* one_cross);

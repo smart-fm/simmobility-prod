@@ -88,6 +88,9 @@ private:
 	/* function to call agents' updates if the MultiNode is not signalized */
 	void updateUnsignalized(frame_t frameNumber);
 
+	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
+	void updateAgent(sim_mob::Agent* ag);
+
 	/* function to initialize candidate agents in each tick*/
 	void initCandidateAgents();
 

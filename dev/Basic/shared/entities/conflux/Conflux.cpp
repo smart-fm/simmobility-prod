@@ -24,7 +24,6 @@ void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
 }
 
 UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
-	UpdateStatus retVal(UpdateStatus::RS_DONE);
 	currFrameNumber = frameNumber;
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
@@ -33,6 +32,7 @@ UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 	else {
 		updateUnsignalized(frameNumber);
 	}
+	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
 }
 
@@ -43,25 +43,36 @@ void sim_mob::Conflux::updateUnsignalized(frame_t frameNumber) {
 	initCandidateAgents();
 	sim_mob::Agent* ag = agentClosestToIntersection();
 	while (ag != nullptr) {
-		//call agent's update
-		UpdateStatus res = ag->update(currFrameNumber);
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			parentWorker->scheduleForRemoval(ag);
-		} else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (std::set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				parentWorker->stopManaging(*it);
-			}
-			for (std::set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				parentWorker->beginManaging(*it);
-			}
-		} else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
-		}
+		updateAgent(ag);
 
 		// get next agent to update
 		ag = agentClosestToIntersection();
+	}
+}
+
+void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
+	sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment(); // ToDo: change to segment getter
+
+	//call agent's update
+	UpdateStatus res = ag->update(currFrameNumber);
+	if (res.status == UpdateStatus::RS_DONE) {
+		//This Entity is done; schedule for deletion.
+		parentWorker->scheduleForRemoval(ag);
+	} else if (res.status == UpdateStatus::RS_CONTINUE) {
+		//Still going, but we may have properties to start/stop managing
+		for (std::set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+			parentWorker->stopManaging(*it);
+		}
+		for (std::set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+			parentWorker->beginManaging(*it);
+		}
+	} else {
+		throw std::runtime_error("Unknown/unexpected update() return status.");
+	}
+
+	sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
+	if(segBeforeUpdate != segAfterUpdate) {
+
 	}
 }
 

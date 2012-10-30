@@ -99,7 +99,7 @@ public:
 
 	/* *
 	 * I'm keeping getters and setters for current lane and link in Agent class to be able to determine the
-	 * location of the agent without having to dynamic_cast to determine the type of the agent and his Role.
+	 * location of the agent without having to dynamic_cast to Person and get the role.
 	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just ignore these.
 	 * ~ Harish
 	 */

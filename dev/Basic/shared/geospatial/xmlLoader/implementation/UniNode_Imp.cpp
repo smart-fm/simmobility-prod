@@ -5,6 +5,7 @@ using namespace sim_mob::xml;
 //TODO: Using a static field like this means we can't support multi-threaded loading of different networks.
 //      It shouldn't be too hard to add some "temporary" object at a scope global to the parser classes. ~Seth
 std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet> sim_mob::xml::UniNode_t_pimpl::ConnectCache;
+std::map<sim_mob::UniNode*, std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair> > sim_mob::xml::UniNode_t_pimpl::SegmentPairCache;
 
 //Register a set of connectors for retrieval later.
 void sim_mob::xml::UniNode_t_pimpl::RegisterConnectors(sim_mob::UniNode* node, const UniNode_t_pimpl::LaneConnectSet& connectors)

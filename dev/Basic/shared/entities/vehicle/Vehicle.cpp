@@ -32,14 +32,6 @@ sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double leng
 sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
 	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME) {
 	fwdMovement.setPath(path, startLaneID);
-#ifndef SIMMOB_DISABLE_OUTPUT
-	LogOut("(\"Vehicle constructor by RoadSegment\""
-			<<"\"vehicle_id\":\""<<vehicle_id
-			<<"\",\"length\":\""<<length
-			<<"\",\"width\":\""<<width
-			<<"\",\"error_state\":\""<<error_state
-			<<std::endl);
-#endif
 }
 
 sim_mob::Vehicle::Vehicle() :
@@ -321,14 +313,6 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 }
 
 bool sim_mob::Vehicle::isDone() const {
-#ifndef SIMMOB_DISABLE_OUTPUT
-LogOut("(\"isDone ----Throw_If_Error: Vehicle ----\""
-	<<"\"vehicle_id\":\""<<vehicle_id
-	<<"\",\"length\":\""<<length
-	<<"\",\"width\":\""<<width
-	<<"\",\"error_state\":\""<<error_state
-	<<std::endl);
-#endif
 	throw_if_error();
 	return fwdMovement.isDoneWithEntireRoute();
 }

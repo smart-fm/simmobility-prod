@@ -216,5 +216,108 @@ public:
 
 
 
+class roundabout_t_pimpl: public virtual roundabout_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
+public:
+	virtual void pre ();
+	virtual sim_mob::MultiNode* post_roundabout_t ();
+
+	virtual void roadSegmentsAt (std::set<unsigned long>);
+	virtual void Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+	virtual void ChunkLengths ();
+	virtual void Offsets ();
+	virtual void Separators ();
+	virtual void addDominantLane ();
+	virtual void roundaboutDominantIslands (float);
+	virtual void roundaboutNumberOfLanes (int);
+	virtual void entranceAngles ();
+};
+
+
+class RoadItem_t_pimpl: public virtual RoadItem_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long,sim_mob::RoadItem*> post_RoadItem_t ();
+
+	virtual void id (unsigned long long);
+	virtual void Offset (unsigned short);
+	virtual void start (sim_mob::Point2D);
+	virtual void end (sim_mob::Point2D);
+
+private:
+	sim_mob::RoadItem model;
+	unsigned short offset;
+
+	/*unsigned long id_;
+	unsigned short Offset_;
+	sim_mob::Point2D start_;
+	sim_mob::Point2D end_;*/
+};
+
+
+class BusStop_t_pimpl: public virtual BusStop_t_pskel, public ::sim_mob::xml::RoadItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long,sim_mob::BusStop*> post_BusStop_t ();
+
+	virtual void xPos (double);
+	virtual void yPos (double);
+	virtual void lane_location (unsigned long long);
+	virtual void is_terminal (bool);
+	virtual void is_bay (bool);
+	virtual void has_shelter (bool);
+	virtual void busCapacityAsLength (unsigned int);
+	virtual void busstopno (const ::std::string&);
+
+private:
+	sim_mob::BusStop model;
+};
+
+
+class ERP_Gantry_t_pimpl: public virtual ERP_Gantry_t_pskel, public ::sim_mob::xml::RoadItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual void post_ERP_Gantry_t ();
+
+	virtual void ERP_GantryID (const ::std::string&);
+};
+
+
+class crossing_t_pimpl: public virtual crossing_t_pskel, public ::sim_mob::xml::RoadItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long,sim_mob::Crossing*> post_crossing_t ();
+
+	virtual void nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
+	virtual void farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
+
+private:
+	sim_mob::Crossing model;
+};
+
+
+class RoadBump_t_pimpl: public virtual RoadBump_t_pskel, public ::sim_mob::xml::RoadItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual void post_RoadBump_t ();
+
+	virtual void roadBumpID (const ::std::string&);
+	virtual void segmentID (unsigned long long);
+};
+
+
+class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel {
+public:
+	RoadNetwork_t_pimpl(); //TODO: No constructors!
+
+	virtual void pre ();
+	virtual void post_RoadNetwork_t ();
+
+	virtual void Nodes ();
+	virtual void Links (std::vector<sim_mob::Link*>);
+
+private:
+  sim_mob::RoadNetwork& modelRef;
+};
+
 
 }}

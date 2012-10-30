@@ -5,6 +5,18 @@ namespace sim_mob {
 namespace xml {
 
 
+///Helper namespace: contains typedefs for particularly verbose items
+namespace helper {
+
+//Was: geo_UniNode_Connectors_type
+typedef std::set<std::pair<unsigned long,unsigned long> > UniNodeConnectors;
+
+//Was: geo_MultiNode_Connectors_type
+typedef std::map<unsigned long, helper::UniNodeConnectors > MultiNodeConnectors;
+
+} //End helper namespace
+
+
 ///TODO: Can we remove this class?
 class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel {
 public:
@@ -309,6 +321,30 @@ public:
 private:
 	std::vector<sim_mob::Link*> model;
 	static std::map<unsigned int,sim_mob::Link*> Lookup;
+};
+
+
+class FormType_pimpl: public virtual FormType_pskel {
+public:
+	virtual void pre ();
+	virtual void post_FormType ();
+
+	virtual void TextBox (int);
+	virtual void TextArea (int);
+	virtual void Header (int);
+};
+
+
+class PointPair_t_pimpl: public virtual PointPair_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::Point2D,sim_mob::Point2D> post_PointPair_t ();
+
+	virtual void first (sim_mob::Point2D);
+	virtual void second (sim_mob::Point2D);
+
+private:
+	std::pair<sim_mob::Point2D,sim_mob::Point2D> model;
 };
 
 

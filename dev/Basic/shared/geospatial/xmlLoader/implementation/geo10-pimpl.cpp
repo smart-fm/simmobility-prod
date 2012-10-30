@@ -201,67 +201,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // roundabout_t_pimpl
 //
 
-void roundabout_t_pimpl::
-pre ()
-{
-}
 
-void roundabout_t_pimpl::
-roadSegmentsAt (std::set<unsigned long> roadSegmentsAt)
-{
-  // TODO
-  //
-}
-
-void roundabout_t_pimpl::
-Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >& Connectors)
-{
-  // TODO
-  //
-}
-
-void roundabout_t_pimpl::
-ChunkLengths ()
-{
-}
-
-void roundabout_t_pimpl::
-Offsets ()
-{
-}
-
-void roundabout_t_pimpl::
-Separators ()
-{
-}
-
-void roundabout_t_pimpl::
-addDominantLane ()
-{
-}
-
-void roundabout_t_pimpl::
-roundaboutDominantIslands (float roundaboutDominantIslands)
-{
-  std::cout << "roundaboutDominantIslands: " << roundaboutDominantIslands << std::endl;
-}
-
-void roundabout_t_pimpl::
-roundaboutNumberOfLanes (int roundaboutNumberOfLanes)
-{
-  std::cout << "roundaboutNumberOfLanes: " << roundaboutNumberOfLanes << std::endl;
-}
-
-void roundabout_t_pimpl::
-entranceAngles ()
-{
-}
-
-sim_mob::MultiNode* roundabout_t_pimpl::
-post_roundabout_t ()
-{
-  sim_mob::Node* v (post_Node_t ());
-}
 
 // intersection_t_pimpl
 //
@@ -271,312 +211,40 @@ post_roundabout_t ()
 // RoadItem_t_pimpl
 //
 
-void RoadItem_t_pimpl::
-pre ()
-{
-	    std::cout << "in RoadItem_t_pimpl::pre  " << std::endl;
-}
-
-void RoadItem_t_pimpl::
-id (unsigned long long id)
-{
-  std::cout << "id: " << id << std::endl;
-  id_ = id;
-}
-
-void RoadItem_t_pimpl::
-Offset (unsigned short Offset)
-{
-  std::cout << "in RoadItem_t_pimpl::Offset: " << Offset << std::endl;
-  Offset_ = Offset;
-}
-
-void RoadItem_t_pimpl::
-start (sim_mob::Point2D start)
-{
-	  std::cout << "in RoadItem_t_pimpl::start\n";
-	  start_ = start;
-}
-
-void RoadItem_t_pimpl::
-end (sim_mob::Point2D end)
-{
-	  std::cout << "in RoadItem_t_pimpl::end\n";
-	  end_ = end;
-}
-
-std::pair<unsigned long,sim_mob::RoadItem*> RoadItem_t_pimpl::
-post_RoadItem_t ()
-{
-	  std::cout << "in RoadItem_t_pimpl::post_RoadItem_t\n";
-
-	  sim_mob::RoadItem *ri = new sim_mob::RoadItem;
-	  ri->id = id_;
-	  ri->start = start_;
-	  ri->end = end_;
-
-	  return std::make_pair(Offset_,ri);
-}
 
 // BusStop_t_pimpl
 //
 
-void BusStop_t_pimpl::
-pre ()
-{
-	    std::cout << "in BusStop_t_pimpl::pre ()\n";
-	    bs = new sim_mob::BusStop();
-	    bs_info = BusStopInfo();
-	    bs_info.busStop = bs;
-}
 
-void BusStop_t_pimpl::
-xPos (double xPos)
-{
-  std::cout << "xPos: " << xPos << std::endl;
-  bs->xPos = xPos;
-}
-
-void BusStop_t_pimpl::
-yPos (double yPos)
-{
-  std::cout << "yPos: " << yPos << std::endl;
-  bs->yPos = yPos;
-}
-
-void BusStop_t_pimpl::
-lane_location (unsigned long long lane_location)
-{
-  std::cout << "lane_location: " << lane_location << std::endl;
-  bs_info.lane_location = lane_location;
-}
-
-void BusStop_t_pimpl::
-is_terminal (bool is_terminal)
-{
-  std::cout << "is_Terminal: " << is_terminal << std::endl;
-  bs->is_terminal = is_terminal;
-}
-
-void BusStop_t_pimpl::
-is_bay (bool is_bay)
-{
-  std::cout << "is_Bay: " << is_bay << std::endl;
-  bs->is_bay = is_bay;
-}
-
-void BusStop_t_pimpl::
-has_shelter (bool has_shelter)
-{
-  std::cout << "has_shelter: " << has_shelter << std::endl;
-  bs->has_shelter = has_shelter;
-}
-
-void BusStop_t_pimpl::
-busCapacityAsLength (unsigned int busCapacityAsLength)
-{
-  std::cout << "busCapacityAsLength: " << busCapacityAsLength << std::endl;
-  bs->busCapacityAsLength = busCapacityAsLength;
-}
-
-void BusStop_t_pimpl::
-busstopno (const ::std::string& busstopno)
-{
-  std::cout << "busstopno: " << busstopno << std::endl;
-  bs->busstopno_ = busstopno;
-}
-
-std::pair<unsigned long,sim_mob::BusStop*> BusStop_t_pimpl::
-post_BusStop_t ()
-{
-  std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
-  bs->id = v.second->getRoadItemID();
-  bs->start = v.second->getStart();
-  bs->end = v.second->getEnd();
-  delete v.second; //cleanup
-  return std::make_pair(v.first, bs);
-
-  // TODO
-  //
-}
 
 // ERP_Gantry_t_pimpl
 //
 
-void ERP_Gantry_t_pimpl::
-pre ()
-{
-}
 
-void ERP_Gantry_t_pimpl::
-ERP_GantryID (const ::std::string& ERP_GantryID)
-{
-  std::cout << "ERP_GantryID: " << ERP_GantryID << std::endl;
-}
-
-void ERP_Gantry_t_pimpl::
-post_ERP_Gantry_t ()
-{
-  std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
-
-  // TODO
-  //
-}
 
 // FormType_pimpl
 //
 
-void FormType_pimpl::
-pre ()
-{
-}
 
-void FormType_pimpl::
-TextBox (int TextBox)
-{
-  std::cout << "TextBox: " << TextBox << std::endl;
-}
-
-void FormType_pimpl::
-TextArea (int TextArea)
-{
-  std::cout << "TextArea: " << TextArea << std::endl;
-}
-
-void FormType_pimpl::
-Header (int Header)
-{
-  std::cout << "Header: " << Header << std::endl;
-}
-
-void FormType_pimpl::
-post_FormType ()
-{
-}
 
 // PointPair_t_pimpl
 //
 
-void PointPair_t_pimpl::
-pre ()
-{
-}
 
-void PointPair_t_pimpl::
-first (sim_mob::Point2D first)
-{
-	  pointPair.first = first;
-}
-
-void PointPair_t_pimpl::
-second (sim_mob::Point2D second)
-{
-	  pointPair.second = second;
-}
-
-std::pair<sim_mob::Point2D,sim_mob::Point2D> PointPair_t_pimpl::
-post_PointPair_t ()
-{
-	  return pointPair;
-}
 
 // crossing_t_pimpl
 //
 
-void crossing_t_pimpl::
-pre ()
-{
 
-	  std::cout << "in crossing_t_pimpl::pre () " << std::endl;
-	    crossing = new sim_mob::Crossing();
-    }
-
-void crossing_t_pimpl::
-nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D> nearLine)
-{
-	  crossing->nearLine.first = nearLine.first;
-	  crossing->nearLine.second = nearLine.second;
-}
-
-void crossing_t_pimpl::
-farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D> farLine)
-{
-	  crossing->farLine.first = farLine.first;
-	  crossing->farLine.second = farLine.second;
-}
-
-std::pair<unsigned long,sim_mob::Crossing*> crossing_t_pimpl::
-post_crossing_t ()
-{
-  std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
-
-//    sim_mob::Crossing* crossing = new sim_mob::Crossing();
-	crossing->id = v.second->getRoadItemID();
-  crossing->start = v.second->getStart();
-  crossing->end   = v.second->getEnd();
-  delete v.second; //cleanup
-  return std::make_pair(v.first, crossing);
-}
 
 // RoadBump_t_pimpl
 //
 
-void RoadBump_t_pimpl::
-pre ()
-{
-}
 
-void RoadBump_t_pimpl::
-roadBumpID (const ::std::string& roadBumpID)
-{
-  std::cout << "roadBumpID: " << roadBumpID << std::endl;
-}
-
-void RoadBump_t_pimpl::
-segmentID (unsigned long long segmentID)
-{
-//    std::cout << "segmentID: " << segmentID << std::endl;
-}
-
-void RoadBump_t_pimpl::
-post_RoadBump_t ()
-{
-  std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
-
-  // TODO
-  //
-}
 
 // RoadNetwork_t_pimpl
 //
-RoadNetwork_t_pimpl::
-RoadNetwork_t_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW())
-{
 
-}
-void RoadNetwork_t_pimpl::
-pre ()
-{
-//	  rn = sim_mob::ConfigParams::GetInstance().getNetworkRW();
-	  std::cout << "In RoadNetwork_t_pimpl::pre\n";
-}
-
-void RoadNetwork_t_pimpl::
-Nodes ()
-{
-}
-
-void RoadNetwork_t_pimpl::
-Links (std::vector<sim_mob::Link*> Links)
-{
-	  rn.setLinks(Links);
-	  std::cout << "Links Done	\n";
-}
-
-void RoadNetwork_t_pimpl::
-post_RoadNetwork_t ()
-{
-}
 
 // RoadItems_t_pimpl
 //

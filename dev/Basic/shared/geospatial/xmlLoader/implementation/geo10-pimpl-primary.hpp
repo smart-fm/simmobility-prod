@@ -320,4 +320,14 @@ private:
 };
 
 
+class Plan_t_pimpl: public virtual Plan_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Plan_t ();
+
+	virtual void planID (unsigned char);
+	virtual void PhasePercentage (double);
+};
+
+
 }}

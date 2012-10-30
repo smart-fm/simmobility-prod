@@ -32,285 +32,6 @@ namespace xml {
 
 
 
-class RoadItems_t_pimpl: public virtual RoadItems_t_pskel
-{
-	  std::map<centimeter_t,const RoadItem*> RoadItems;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  BusStop (std::pair<unsigned long,sim_mob::BusStop*>);
-
-  virtual void
-  ERP_Gantry ();
-
-  virtual void
-  Crossing (std::pair<unsigned long,sim_mob::Crossing*>);
-
-  virtual void
-  RoadBump ();
-
-  virtual std::map<sim_mob::centimeter_t,const RoadItem*>
-  post_RoadItems_t ();
-};
-
-class TripchainItemType_pimpl: public virtual TripchainItemType_pskel,
-  public ::xml_schema::string_pimpl
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual std::string
-  post_TripchainItemType ();
-};
-
-class TripchainItemLocationType_pimpl: public virtual TripchainItemLocationType_pskel,
-  public ::xml_schema::string_pimpl
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual std::string
-  post_TripchainItemLocationType ();
-};
-
-class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
-{
-	  std::string itemType_;
-	  long personID_;
-	  unsigned int sequenceNumber_;
-	  std::string startTime_,endTime_;
-	  sim_mob::TripChainItem *tcItem;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  personID (long long);
-
-  virtual void
-  itemType (std::string);
-
-  virtual void
-  sequenceNumber (unsigned int);
-
-  virtual void
-  startTime (const ::std::string&);
-
-  virtual void
-  endTime (const ::std::string&);
-
-  virtual sim_mob::TripChainItem*
-  post_TripChainItem_t ();
-};
-
-class Trip_t_pimpl: public virtual Trip_t_pskel,
-  public ::sim_mob::xml::TripChainItem_t_pimpl
-{
-	  sim_mob::Trip * trip;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  tripID (long long);
-
-  virtual void
-  fromLocation (unsigned int);
-
-  virtual void
-  fromLocationType (std::string);
-
-  virtual void
-  toLocation (unsigned int);
-
-  virtual void
-  toLocationType (std::string);
-
-  virtual void
-  subTrips (std::vector<sim_mob::SubTrip>);
-
-  virtual sim_mob::TripChainItem*
-  post_Trip_t ();
-};
-
-class SubTrip_t_pimpl: public virtual SubTrip_t_pskel,
-  public ::sim_mob::xml::Trip_t_pimpl
-{
-	  sim_mob::SubTrip subTrip;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  mode (const ::std::string&);
-
-  virtual void
-  isPrimaryMode (bool);
-
-  virtual void
-  ptLineId (const ::std::string&);
-
-  virtual sim_mob::SubTrip
-  post_SubTrip_t ();
-};
-
-class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
-{
-	  std::vector<sim_mob::SubTrip> subTrips;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  subTrip (sim_mob::SubTrip);
-
-  virtual std::vector<sim_mob::SubTrip>
-  post_SubTrips_t ();
-};
-
-class Activity_t_pimpl: public virtual Activity_t_pskel,
-  public ::sim_mob::xml::TripChainItem_t_pimpl
-{
-	  sim_mob::Activity *activity;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  description (const ::std::string&);
-
-  virtual void
-  location (unsigned int);
-
-  virtual void
-  locationType (std::string);
-
-  virtual void
-  isPrimary (bool);
-
-  virtual void
-  isFlexible (bool);
-
-  virtual void
-  isMandatory (bool);
-
-  virtual sim_mob::TripChainItem*
-  post_Activity_t ();
-};
-
-class TripChain_t_pimpl: public virtual TripChain_t_pskel
-{
-	  std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > personID_Tripchain_Pair;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  personID (long long);
-
-  virtual void
-  Trip (sim_mob::TripChainItem*);
-
-  virtual void
-  Activity (sim_mob::TripChainItem*);
-
-  virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >
-  post_TripChain_t ();
-};
-
-class TripChains_t_pimpl: public virtual TripChains_t_pskel
-{
-	  std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
-
-  virtual void
-  post_TripChains_t ();
-};
-
-class linkAndCrossing_t_pimpl: public virtual linkAndCrossing_t_pskel
-{
-	  struct LinkAndCrossing LAC;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  ID (unsigned char);
-
-  virtual void
-  linkID (unsigned int);
-
-  virtual void
-  crossingID (unsigned int);
-
-  virtual void
-  angle (unsigned char);
-
-  virtual sim_mob::LinkAndCrossing
-  post_linkAndCrossing_t ();
-};
-
-class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  linkAndCrossing (sim_mob::LinkAndCrossing);
-
-  virtual sim_mob::LinkAndCrossingC
-  post_linkAndCrossings_t ();
-};
-
-class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel,
-  public ::xml_schema::string_pimpl
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  post_signalAlgorithm_t ();
-};
-
-class Plan_t_pimpl: public virtual Plan_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  planID (unsigned char);
-
-  virtual void
-  PhasePercentage (double);
-
-  virtual void
-  post_Plan_t ();
-};
-
-class Plans_t_pimpl: public virtual Plans_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  Plan ();
-
-  virtual void
-  post_Plans_t ();
-};
 
 class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel,
   public ::xml_schema::string_pimpl
@@ -558,6 +279,189 @@ class roundabouts_pimpl: public virtual roundabouts_pskel
   virtual std::vector<sim_mob::MultiNode*>&
   post_roundabouts ();
 };
+
+
+class TripchainItemType_pimpl: public virtual TripchainItemType_pskel,
+  public ::xml_schema::string_pimpl
+{
+  public:
+  virtual void
+  pre ();
+
+  virtual std::string
+  post_TripchainItemType ();
+};
+
+class TripchainItemLocationType_pimpl: public virtual TripchainItemLocationType_pskel,
+  public ::xml_schema::string_pimpl
+{
+  public:
+  virtual void
+  pre ();
+
+  virtual std::string
+  post_TripchainItemLocationType ();
+};
+
+class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
+{
+	  std::string itemType_;
+	  long personID_;
+	  unsigned int sequenceNumber_;
+	  std::string startTime_,endTime_;
+	  sim_mob::TripChainItem *tcItem;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  personID (long long);
+
+  virtual void
+  itemType (std::string);
+
+  virtual void
+  sequenceNumber (unsigned int);
+
+  virtual void
+  startTime (const ::std::string&);
+
+  virtual void
+  endTime (const ::std::string&);
+
+  virtual sim_mob::TripChainItem*
+  post_TripChainItem_t ();
+};
+
+class Trip_t_pimpl: public virtual Trip_t_pskel,
+  public ::sim_mob::xml::TripChainItem_t_pimpl
+{
+	  sim_mob::Trip * trip;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  tripID (long long);
+
+  virtual void
+  fromLocation (unsigned int);
+
+  virtual void
+  fromLocationType (std::string);
+
+  virtual void
+  toLocation (unsigned int);
+
+  virtual void
+  toLocationType (std::string);
+
+  virtual void
+  subTrips (std::vector<sim_mob::SubTrip>);
+
+  virtual sim_mob::TripChainItem*
+  post_Trip_t ();
+};
+
+class SubTrip_t_pimpl: public virtual SubTrip_t_pskel,
+  public ::sim_mob::xml::Trip_t_pimpl
+{
+	  sim_mob::SubTrip subTrip;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  mode (const ::std::string&);
+
+  virtual void
+  isPrimaryMode (bool);
+
+  virtual void
+  ptLineId (const ::std::string&);
+
+  virtual sim_mob::SubTrip
+  post_SubTrip_t ();
+};
+
+class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
+{
+	  std::vector<sim_mob::SubTrip> subTrips;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  subTrip (sim_mob::SubTrip);
+
+  virtual std::vector<sim_mob::SubTrip>
+  post_SubTrips_t ();
+};
+
+class Activity_t_pimpl: public virtual Activity_t_pskel,
+  public ::sim_mob::xml::TripChainItem_t_pimpl
+{
+	  sim_mob::Activity *activity;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  description (const ::std::string&);
+
+  virtual void
+  location (unsigned int);
+
+  virtual void
+  locationType (std::string);
+
+  virtual void
+  isPrimary (bool);
+
+  virtual void
+  isFlexible (bool);
+
+  virtual void
+  isMandatory (bool);
+
+  virtual sim_mob::TripChainItem*
+  post_Activity_t ();
+};
+
+class TripChain_t_pimpl: public virtual TripChain_t_pskel
+{
+	  std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > personID_Tripchain_Pair;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  personID (long long);
+
+  virtual void
+  Trip (sim_mob::TripChainItem*);
+
+  virtual void
+  Activity (sim_mob::TripChainItem*);
+
+  virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >
+  post_TripChain_t ();
+};
+
+class TripChains_t_pimpl: public virtual TripChains_t_pskel
+{
+	  std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+
+  virtual void
+  post_TripChains_t ();
+};
+
 
 
 }} //End namespace sim_mob::xml

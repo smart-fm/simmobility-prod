@@ -82,763 +82,6 @@ struct BusStopInfo
 
 std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 
-// lane_t_pimpl
-//
-
-
-// connector_t_pimpl
-//
-
-
-
-// connectors_t_pimpl
-//
-
-
-// Multi_Connector_t_pimpl
-//
-
-
-
-// Multi_Connectors_t_pimpl
-//
-
-
-
-// fwdBckSegments_t_pimpl
-//
-
-
-
-// RoadSegmentsAt_t_pimpl
-//
-
-
-
-// laneEdgePolyline_cached_t_pimpl
-//
-
-
-
-// laneEdgePolylines_cached_t_pimpl
-//
-
-
-
-// segment_t_pimpl
-//
-
-
-
-// link_t_pimpl
-//
-
-
-
-// separator_t_pimpl
-//
-
-
-
-// separators_t_pimpl
-//
-
-
-
-// DomainIsland_t_pimpl
-//
-
-
-
-// DomainIslands_t_pimpl
-//
-
-
-
-// offset_t_pimpl
-//
-
-
-
-// offsets_t_pimpl
-//
-
-
-
-// ChunkLength_t_pimpl
-//
-
-
-
-// ChunkLengths_t_pimpl
-//
-
-
-// LanesVector_t_pimpl
-//
-
-
-
-// EntranceAngle_t_pimpl
-//
-
-
-
-// EntranceAngles_t_pimpl
-//
-
-
-
-// Node_t_pimpl
-//
-
-
-
-// UniNode_t_pimpl
-//
-
-
-// roundabout_t_pimpl
-//
-
-
-
-// intersection_t_pimpl
-//
-
-
-
-// RoadItem_t_pimpl
-//
-
-
-// BusStop_t_pimpl
-//
-
-
-
-// ERP_Gantry_t_pimpl
-//
-
-
-
-// FormType_pimpl
-//
-
-
-
-// PointPair_t_pimpl
-//
-
-
-
-// crossing_t_pimpl
-//
-
-
-
-// RoadBump_t_pimpl
-//
-
-
-
-// RoadNetwork_t_pimpl
-//
-
-
-// RoadItems_t_pimpl
-//
-
-void RoadItems_t_pimpl::
-pre ()
-{
-	  std::cout << "in RoadItems_t_pimpl::pre () " << std::endl;
-	  RoadItems.clear();
-}
-
-void RoadItems_t_pimpl::
-BusStop (std::pair<unsigned long,sim_mob::BusStop*> BusStop)
-{
-	  RoadItems[BusStop.first] = BusStop.second;
-}
-
-void RoadItems_t_pimpl::
-ERP_Gantry ()
-{
-}
-
-void RoadItems_t_pimpl::
-Crossing (std::pair<unsigned long,sim_mob::Crossing*> Crossing)
-{
-	  std::cout << "in RoadItems_t_pimpl::Crossing () " << std::endl;
-	  RoadItems[Crossing.first] = Crossing.second;
-}
-
-void RoadItems_t_pimpl::
-RoadBump ()
-{
-}
-
-std::map<sim_mob::centimeter_t,const RoadItem*> RoadItems_t_pimpl::
-post_RoadItems_t ()
-{
-
-	  std::cout << "in RoadItems_t_pimpl::post_RoadItems_t () " << std::endl;
-	  return RoadItems;
-
-}
-
-// TripchainItemType_pimpl
-//
-
-void TripchainItemType_pimpl::
-pre ()
-{
-}
-
-std::string TripchainItemType_pimpl::
-post_TripchainItemType ()
-{
-	  const ::std::string& v (post_string ());
-
-  return v;
-}
-
-// TripchainItemLocationType_pimpl
-//
-
-void TripchainItemLocationType_pimpl::
-pre ()
-{
-}
-
-std::string TripchainItemLocationType_pimpl::
-post_TripchainItemLocationType ()
-{
-	  const ::std::string& v (post_string ());
-	  return v;
-}
-
-// TripChainItem_t_pimpl
-//
-
-void TripChainItem_t_pimpl::
-pre ()
-{
-}
-
-void TripChainItem_t_pimpl::
-personID (long long personID)
-{
-	  std::cout << "TripChainItem_t_pimpl::personID() "  << std::endl;
-	  this->personID_ = personID;
-}
-
-void TripChainItem_t_pimpl::
-itemType (std::string itemType)
-{
-	  std::cout << "TripChainItem_t_pimpl::itemType() "  << std::endl;
-	  this->itemType_ = itemType;
-}
-
-void TripChainItem_t_pimpl::
-sequenceNumber (unsigned int sequenceNumber)
-{
-	  std::cout << "TripChainItem_t_pimpl::sequenceNumber() "  << std::endl;
-	  this->sequenceNumber_ = sequenceNumber;
-}
-
-void TripChainItem_t_pimpl::
-startTime (const ::std::string& startTime)
-{
-	  std::cout << "TripChainItem_t_pimpl::startTime() "  << std::endl;
-	  this->startTime_ = startTime;
-}
-
-void TripChainItem_t_pimpl::
-endTime (const ::std::string& endTime)
-{
-	  std::cout << "TripChainItem_t_pimpl::endTime() "  << std::endl;
-	  this->endTime_ = endTime;
-	  std::cout << "endTime: " << endTime << std::endl;
-}
-
-sim_mob::TripChainItem::ItemType gettripChainItemType(std::string itemType_)
-{
-	sim_mob::TripChainItem::ItemType ItemType;
-
-	  if(itemType_ == "IT_TRIP")
-		  ItemType = sim_mob::TripChainItem::IT_TRIP;
-	  else
-		  if(itemType_ ==  "IT_ACTIVITY")
-		  ItemType = sim_mob::TripChainItem::IT_ACTIVITY;
-	  return ItemType;
-}
-sim_mob::TripChainItem* TripChainItem_t_pimpl::
-post_TripChainItem_t ()
-{
-	  this->tcItem = new sim_mob::TripChainItem();
-	  this->tcItem->personID = this->personID_;
-
-	  this->tcItem->itemType = gettripChainItemType(this->itemType_);
-
-	  this->tcItem->sequenceNumber = sequenceNumber_;
-
-	  //This should be equivalent. ~Seth
-	  this->tcItem->startTime = DailyTime(startTime_);
-	  //this->tcItem->startTime.repr_ = startTime_;
-	  //this->tcItem->startTime.time_= sim_mob::DailyTime().ParseStringRepr(startTime_);
-
-
-	  //This should be equivalent. ~Seth
-	  this->tcItem->endTime = DailyTime(endTime_);
-	  //this->tcItem->endTime.repr_ = endTime_;
-	  //this->tcItem->endTime.time_= sim_mob::DailyTime().ParseStringRepr(endTime_);
-
-	  std::cout << "TripChainItem_t_pimpl::post_TripChainItem_t() "  << std::endl;
-	  //nullify the member variable,just in case
-	  sim_mob::TripChainItem * temp_tripChainItem = 0;
-	  temp_tripChainItem = this->tcItem;
-	  this->tcItem = 0;
-	  //now return the object pointer
-	  return temp_tripChainItem;
-
-}
-
-// Trip_t_pimpl
-//
-
-void Trip_t_pimpl::
-pre ()
-{
-	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
-	  trip = new sim_mob::Trip();
-}
-
-void Trip_t_pimpl::
-tripID (long long tripID)
-{
-	  if(!trip) trip = new sim_mob::Trip();
-	    std::cout << "In Trip_t_pimpl::tripID ()" << tripID << std::endl;
-	  trip->tripID = tripID;
-
-}
-
-void Trip_t_pimpl::
-fromLocation (unsigned int value)
-{
-	  if(!trip) return;
-	  std::cout << "In Trip_t_pimpl::fromLocation ()"  << std::endl;
-
-	  //trip->fromLocation = geo_Nodes_[fromLocation];
-	  trip->fromLocation = Nodes_pimpl::LookupNode(value);
-}
-
-sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
-{
-	  sim_mob::TripChainItem::LocationType locationType;
-	  if(LocationType == "LT_BUILDING")
-		  locationType = sim_mob::TripChainItem::LT_BUILDING;
-	  else
-		  if(LocationType == "LT_NODE")
-			  locationType = sim_mob::TripChainItem::LT_NODE;
-		  else
-			  if(LocationType == "LT_LINK")
-				  locationType = sim_mob::TripChainItem::LT_LINK;
-			  else
-				  if(LocationType == "LT_PUBLIC_TRANSIT_STOP")
-					  locationType = sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;
-	  return locationType;
-}
-void Trip_t_pimpl::
-fromLocationType (std::string fromLocationType)
-{
-	  if(!trip) return;
-	  std::cout << "In Trip_t_pimpl::fromLocationType ()"  << std::endl;
-	  trip->fromLocationType = getLocationType(fromLocationType);
-	  std::cout << "In Trip_t_pimpl::fromLocationType ()--"  << std::endl;
-}
-
-void Trip_t_pimpl::
-toLocation (unsigned int value)
-{
-	  if(!trip) return;
-	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
-	  trip->toLocation = Nodes_pimpl::LookupNode(value);
-}
-
-void Trip_t_pimpl::
-toLocationType (std::string toLocationType)
-{
-	  if(!trip) return;
-	  std::cout << "In Trip_t_pimpl::toLocationType ()"  << std::endl;
-	  trip->toLocationType = getLocationType(toLocationType);
-}
-
-void Trip_t_pimpl::
-subTrips (std::vector<sim_mob::SubTrip> subTrips)
-{
-	  if(!trip) return;
-	  std::cout << "In Trip_t_pimpl::subTrips ()"  << std::endl;
-	  trip->setSubTrips(subTrips);
-}
-
-sim_mob::TripChainItem* Trip_t_pimpl::
-post_Trip_t ()
-{
-	  if(!trip) return 0;
-	  std::cout << "In Trip_t_pimpl::post_Trip_t ()"  << std::endl;
-   sim_mob::TripChainItem* v = post_TripChainItem_t ();
-	if (v) {
-		trip->personID = v->personID;
-		trip->itemType = v->itemType;
-		trip->sequenceNumber = v->sequenceNumber;
-		trip->startTime = v->startTime;
-		trip->endTime = v->endTime;
-		delete v;
-	}
-	//nullify the local variable just in case
-	sim_mob::Trip *temp_trip = 0;
-	temp_trip = trip;
-	trip = 0;
-	//now deliver the cookout
-   return temp_trip;
-}
-
-// SubTrip_t_pimpl
-//
-
-void SubTrip_t_pimpl::
-pre ()
-{
-	  subTrip.tripID = 0;
-	  subTrip.fromLocation = 0;
-	  subTrip.toLocation = 0;
-	  subTrip.mode = "";
-	  subTrip.isPrimaryMode = false;
-	  subTrip.ptLineId = "";
-}
-
-void SubTrip_t_pimpl::
-mode (const ::std::string& mode)
-{
-	  subTrip.mode = mode;
-}
-
-void SubTrip_t_pimpl::
-isPrimaryMode (bool isPrimaryMode)
-{
-	  subTrip.isPrimaryMode = isPrimaryMode;
-}
-
-void SubTrip_t_pimpl::
-ptLineId (const ::std::string& ptLineId)
-{
-	  subTrip.ptLineId = ptLineId;
-}
-
-sim_mob::SubTrip SubTrip_t_pimpl::
-post_SubTrip_t ()
-{
-		sim_mob::TripChainItem* v (post_Trip_t ());
-	if (v) {
-		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(v);
-		subTrip.personID = trip->personID;
-		//TODO:the following three items( which are inherited from trip)
-		//may need to be initialized differently
-		//for now, I keet the same value as their parent(trip)
-		//and we will modify them as and when needed-vahid
-		subTrip.startTime = trip->startTime;
-		subTrip.endTime = trip->endTime;
-		subTrip.sequenceNumber = trip->sequenceNumber;
-		////////////////////////////////////////////////
-		subTrip.tripID = trip->tripID;
-		subTrip.fromLocation = trip->fromLocation;
-		subTrip.toLocation = trip->toLocation;
-		subTrip.fromLocationType = trip->fromLocationType;
-		subTrip.toLocationType = trip->toLocationType;
-		delete trip;
-	}
-	  	return subTrip;
-}
-
-// SubTrips_t_pimpl
-//
-
-void SubTrips_t_pimpl::
-pre ()
-{
-	  subTrips.clear();
-}
-
-void SubTrips_t_pimpl::
-subTrip (sim_mob::SubTrip subTrip)
-{
-	  subTrips.push_back(subTrip);
-}
-
-std::vector<sim_mob::SubTrip> SubTrips_t_pimpl::
-post_SubTrips_t ()
-{
-  return subTrips;
-}
-
-// Activity_t_pimpl
-//
-
-void Activity_t_pimpl::
-pre ()
-{
-	  activity = new sim_mob::Activity();
-}
-
-void Activity_t_pimpl::
-description (const ::std::string& description)
-{
-  std::cout << "description: " << description << std::endl;
-  activity->description = description;
-}
-
-void Activity_t_pimpl::
-location (unsigned int value)
-{
-	  activity->location = Nodes_pimpl::LookupNode(value);
-}
-
-void Activity_t_pimpl::
-locationType (std::string locationType)
-{
-
-		  activity->locationType = getLocationType(locationType);
-}
-
-void Activity_t_pimpl::
-isPrimary (bool isPrimary)
-{
-  activity->isPrimary = isPrimary;
-}
-
-void Activity_t_pimpl::
-isFlexible (bool isFlexible)
-{
-	  activity->isFlexible = isFlexible;
-}
-
-void Activity_t_pimpl::
-isMandatory (bool isMandatory)
-{
-	  activity->isMandatory = isMandatory;
-}
-
-sim_mob::TripChainItem* Activity_t_pimpl::
-post_Activity_t ()
-{
-  sim_mob::TripChainItem* v = post_TripChainItem_t ();
-  activity->personID = v->personID;
-  activity->itemType = v->itemType;
-  activity->sequenceNumber = v->sequenceNumber;
-  activity->startTime = v->startTime;
-  activity->endTime = v->endTime;
-  delete v;
-  return activity;
-}
-
-// TripChain_t_pimpl
-//
-
-void TripChain_t_pimpl::
-pre ()
-{
-	  std::cout << "in TripChain_t_pimpl::pre () "  ;
-	  personID_Tripchain_Pair.first = -1;
-	  personID_Tripchain_Pair.second.clear();
-}
-
-void TripChain_t_pimpl::
-personID (long long personID)
-{
-	  std::cout << "in TripChain_t_pimpl::personID() " << std::endl ;
-
-	  personID_Tripchain_Pair.first = personID;
-
-	  std::cout << "in TripChain_t_pimpl::personID()-- " << std::endl ;
-}
-
-void TripChain_t_pimpl::
-Trip (sim_mob::TripChainItem* Trip)
-{
-	  std::cout << "in TripChain_t_pimpl::Trip "  ;
-
-	  personID_Tripchain_Pair.second.push_back(Trip);
-}
-
-void TripChain_t_pimpl::
-Activity (sim_mob::TripChainItem* Activity)
-{
-	  std::cout << "in TripChain_t_pimpl::Activity "  ;
-	  personID_Tripchain_Pair.second.push_back(Activity);
-}
-
-std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain_t_pimpl::
-post_TripChain_t ()
-{
-	  std::cout << "posting trip chain for person " << personID_Tripchain_Pair.first << std::endl ;
-	  return personID_Tripchain_Pair;
-}
-
-// TripChains_t_pimpl
-//
-
-void TripChains_t_pimpl::
-pre ()
-{
-	  std::cout << "In TripChains_t_pimpl::pre ()\n";
-	 tripchains = sim_mob::ConfigParams::GetInstance().getTripChains();
-	 std::cout << "In TripChains_t_pimpl::pre ()--\n";
-
-}
-
-void TripChains_t_pimpl::
-TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain)
-{
-	  std::cout << "In TripChains_t_pimpl::TripChain ()...\n";
-	  sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first] = (TripChain.second);
-	  std::cout << "A trip was added to person " <<  TripChain.first << "[new size = " << sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first].size() << "]   Total: " << sim_mob::ConfigParams::GetInstance().getTripChains().size();
-}
-
-void TripChains_t_pimpl::
-post_TripChains_t ()
-{
-
-
-	  std::cout << "In TripChains_t_pimpl::post_TripChains_t ()\n";
-
-}
-
-// linkAndCrossing_t_pimpl
-//
-
-void linkAndCrossing_t_pimpl::
-pre ()
-{
-}
-
-void linkAndCrossing_t_pimpl::
-ID (unsigned char ID)
-{
-  std::cout << "ID: " << static_cast<unsigned short> (ID) << std::endl;
-  LAC.id = ID;
-}
-
-void linkAndCrossing_t_pimpl::
-linkID (unsigned int linkID)
-{
-  std::cout << "linkID: " << linkID << std::endl;
-  LAC.link = geo_Links_[linkID];
-}
-
-void linkAndCrossing_t_pimpl::
-crossingID (unsigned int crossingID)
-{
-  std::cout << "crossingID: " << crossingID << std::endl;
-//    LAC.crossing = geo_c
-}
-
-void linkAndCrossing_t_pimpl::
-angle (unsigned char angle)
-{
-  std::cout << "angle: " << static_cast<unsigned short> (angle) << std::endl;
-}
-
-sim_mob::LinkAndCrossing linkAndCrossing_t_pimpl::
-post_linkAndCrossing_t ()
-{
-  // TODO
-  //
-  // return ... ;
-}
-
-// linkAndCrossings_t_pimpl
-//
-
-void linkAndCrossings_t_pimpl::
-pre ()
-{
-}
-
-void linkAndCrossings_t_pimpl::
-linkAndCrossing (sim_mob::LinkAndCrossing linkAndCrossing)
-{
-  // TODO
-  //
-}
-
-sim_mob::LinkAndCrossingC linkAndCrossings_t_pimpl::
-post_linkAndCrossings_t ()
-{
-  // TODO
-  //
-  // return ... ;
-}
-
-// signalAlgorithm_t_pimpl
-//
-
-void signalAlgorithm_t_pimpl::
-pre ()
-{
-}
-
-void signalAlgorithm_t_pimpl::
-post_signalAlgorithm_t ()
-{
-  const ::std::string& v (post_string ());
-
-  std::cout << "signalAlgorithm_t: " << v << std::endl;
-}
-
-// Plan_t_pimpl
-//
-
-void Plan_t_pimpl::
-pre ()
-{
-}
-
-void Plan_t_pimpl::
-planID (unsigned char planID)
-{
-  std::cout << "planID: " << static_cast<unsigned short> (planID) << std::endl;
-}
-
-void Plan_t_pimpl::
-PhasePercentage (double PhasePercentage)
-{
-  std::cout << "PhasePercentage: " << PhasePercentage << std::endl;
-}
-
-void Plan_t_pimpl::
-post_Plan_t ()
-{
-}
-
-// Plans_t_pimpl
-//
-
-void Plans_t_pimpl::
-pre ()
-{
-}
-
-void Plans_t_pimpl::
-Plan ()
-{
-}
-
-void Plans_t_pimpl::
-post_Plans_t ()
-{
-}
 
 // TrafficColor_t_pimpl
 //
@@ -1270,6 +513,433 @@ std::vector<sim_mob::MultiNode*>& roundabouts_pimpl::
 post_roundabouts ()
 {
 	  return roundabouts;
+}
+
+// TripchainItemType_pimpl
+//
+
+void TripchainItemType_pimpl::
+pre ()
+{
+}
+
+std::string TripchainItemType_pimpl::
+post_TripchainItemType ()
+{
+	  const ::std::string& v (post_string ());
+
+  return v;
+}
+
+// TripchainItemLocationType_pimpl
+//
+
+void TripchainItemLocationType_pimpl::
+pre ()
+{
+}
+
+std::string TripchainItemLocationType_pimpl::
+post_TripchainItemLocationType ()
+{
+	  const ::std::string& v (post_string ());
+	  return v;
+}
+
+// TripChainItem_t_pimpl
+//
+
+void TripChainItem_t_pimpl::
+pre ()
+{
+}
+
+void TripChainItem_t_pimpl::
+personID (long long personID)
+{
+	  std::cout << "TripChainItem_t_pimpl::personID() "  << std::endl;
+	  this->personID_ = personID;
+}
+
+void TripChainItem_t_pimpl::
+itemType (std::string itemType)
+{
+	  std::cout << "TripChainItem_t_pimpl::itemType() "  << std::endl;
+	  this->itemType_ = itemType;
+}
+
+void TripChainItem_t_pimpl::
+sequenceNumber (unsigned int sequenceNumber)
+{
+	  std::cout << "TripChainItem_t_pimpl::sequenceNumber() "  << std::endl;
+	  this->sequenceNumber_ = sequenceNumber;
+}
+
+void TripChainItem_t_pimpl::
+startTime (const ::std::string& startTime)
+{
+	  std::cout << "TripChainItem_t_pimpl::startTime() "  << std::endl;
+	  this->startTime_ = startTime;
+}
+
+void TripChainItem_t_pimpl::
+endTime (const ::std::string& endTime)
+{
+	  std::cout << "TripChainItem_t_pimpl::endTime() "  << std::endl;
+	  this->endTime_ = endTime;
+	  std::cout << "endTime: " << endTime << std::endl;
+}
+
+sim_mob::TripChainItem::ItemType gettripChainItemType(std::string itemType_)
+{
+	sim_mob::TripChainItem::ItemType ItemType;
+
+	  if(itemType_ == "IT_TRIP")
+		  ItemType = sim_mob::TripChainItem::IT_TRIP;
+	  else
+		  if(itemType_ ==  "IT_ACTIVITY")
+		  ItemType = sim_mob::TripChainItem::IT_ACTIVITY;
+	  return ItemType;
+}
+sim_mob::TripChainItem* TripChainItem_t_pimpl::
+post_TripChainItem_t ()
+{
+	  this->tcItem = new sim_mob::TripChainItem();
+	  this->tcItem->personID = this->personID_;
+
+	  this->tcItem->itemType = gettripChainItemType(this->itemType_);
+
+	  this->tcItem->sequenceNumber = sequenceNumber_;
+
+	  //This should be equivalent. ~Seth
+	  this->tcItem->startTime = DailyTime(startTime_);
+	  //this->tcItem->startTime.repr_ = startTime_;
+	  //this->tcItem->startTime.time_= sim_mob::DailyTime().ParseStringRepr(startTime_);
+
+
+	  //This should be equivalent. ~Seth
+	  this->tcItem->endTime = DailyTime(endTime_);
+	  //this->tcItem->endTime.repr_ = endTime_;
+	  //this->tcItem->endTime.time_= sim_mob::DailyTime().ParseStringRepr(endTime_);
+
+	  std::cout << "TripChainItem_t_pimpl::post_TripChainItem_t() "  << std::endl;
+	  //nullify the member variable,just in case
+	  sim_mob::TripChainItem * temp_tripChainItem = 0;
+	  temp_tripChainItem = this->tcItem;
+	  this->tcItem = 0;
+	  //now return the object pointer
+	  return temp_tripChainItem;
+
+}
+
+// Trip_t_pimpl
+//
+
+void Trip_t_pimpl::
+pre ()
+{
+	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
+	  trip = new sim_mob::Trip();
+}
+
+void Trip_t_pimpl::
+tripID (long long tripID)
+{
+	  if(!trip) trip = new sim_mob::Trip();
+	    std::cout << "In Trip_t_pimpl::tripID ()" << tripID << std::endl;
+	  trip->tripID = tripID;
+
+}
+
+void Trip_t_pimpl::
+fromLocation (unsigned int value)
+{
+	  if(!trip) return;
+	  std::cout << "In Trip_t_pimpl::fromLocation ()"  << std::endl;
+
+	  //trip->fromLocation = geo_Nodes_[fromLocation];
+	  trip->fromLocation = Nodes_pimpl::LookupNode(value);
+}
+
+sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
+{
+	  sim_mob::TripChainItem::LocationType locationType;
+	  if(LocationType == "LT_BUILDING")
+		  locationType = sim_mob::TripChainItem::LT_BUILDING;
+	  else
+		  if(LocationType == "LT_NODE")
+			  locationType = sim_mob::TripChainItem::LT_NODE;
+		  else
+			  if(LocationType == "LT_LINK")
+				  locationType = sim_mob::TripChainItem::LT_LINK;
+			  else
+				  if(LocationType == "LT_PUBLIC_TRANSIT_STOP")
+					  locationType = sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+	  return locationType;
+}
+void Trip_t_pimpl::
+fromLocationType (std::string fromLocationType)
+{
+	  if(!trip) return;
+	  std::cout << "In Trip_t_pimpl::fromLocationType ()"  << std::endl;
+	  trip->fromLocationType = getLocationType(fromLocationType);
+	  std::cout << "In Trip_t_pimpl::fromLocationType ()--"  << std::endl;
+}
+
+void Trip_t_pimpl::
+toLocation (unsigned int value)
+{
+	  if(!trip) return;
+	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
+	  trip->toLocation = Nodes_pimpl::LookupNode(value);
+}
+
+void Trip_t_pimpl::
+toLocationType (std::string toLocationType)
+{
+	  if(!trip) return;
+	  std::cout << "In Trip_t_pimpl::toLocationType ()"  << std::endl;
+	  trip->toLocationType = getLocationType(toLocationType);
+}
+
+void Trip_t_pimpl::
+subTrips (std::vector<sim_mob::SubTrip> subTrips)
+{
+	  if(!trip) return;
+	  std::cout << "In Trip_t_pimpl::subTrips ()"  << std::endl;
+	  trip->setSubTrips(subTrips);
+}
+
+sim_mob::TripChainItem* Trip_t_pimpl::
+post_Trip_t ()
+{
+	  if(!trip) return 0;
+	  std::cout << "In Trip_t_pimpl::post_Trip_t ()"  << std::endl;
+   sim_mob::TripChainItem* v = post_TripChainItem_t ();
+	if (v) {
+		trip->personID = v->personID;
+		trip->itemType = v->itemType;
+		trip->sequenceNumber = v->sequenceNumber;
+		trip->startTime = v->startTime;
+		trip->endTime = v->endTime;
+		delete v;
+	}
+	//nullify the local variable just in case
+	sim_mob::Trip *temp_trip = 0;
+	temp_trip = trip;
+	trip = 0;
+	//now deliver the cookout
+   return temp_trip;
+}
+
+// SubTrip_t_pimpl
+//
+
+void SubTrip_t_pimpl::
+pre ()
+{
+	  subTrip.tripID = 0;
+	  subTrip.fromLocation = 0;
+	  subTrip.toLocation = 0;
+	  subTrip.mode = "";
+	  subTrip.isPrimaryMode = false;
+	  subTrip.ptLineId = "";
+}
+
+void SubTrip_t_pimpl::
+mode (const ::std::string& mode)
+{
+	  subTrip.mode = mode;
+}
+
+void SubTrip_t_pimpl::
+isPrimaryMode (bool isPrimaryMode)
+{
+	  subTrip.isPrimaryMode = isPrimaryMode;
+}
+
+void SubTrip_t_pimpl::
+ptLineId (const ::std::string& ptLineId)
+{
+	  subTrip.ptLineId = ptLineId;
+}
+
+sim_mob::SubTrip SubTrip_t_pimpl::
+post_SubTrip_t ()
+{
+		sim_mob::TripChainItem* v (post_Trip_t ());
+	if (v) {
+		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(v);
+		subTrip.personID = trip->personID;
+		//TODO:the following three items( which are inherited from trip)
+		//may need to be initialized differently
+		//for now, I keet the same value as their parent(trip)
+		//and we will modify them as and when needed-vahid
+		subTrip.startTime = trip->startTime;
+		subTrip.endTime = trip->endTime;
+		subTrip.sequenceNumber = trip->sequenceNumber;
+		////////////////////////////////////////////////
+		subTrip.tripID = trip->tripID;
+		subTrip.fromLocation = trip->fromLocation;
+		subTrip.toLocation = trip->toLocation;
+		subTrip.fromLocationType = trip->fromLocationType;
+		subTrip.toLocationType = trip->toLocationType;
+		delete trip;
+	}
+	  	return subTrip;
+}
+
+// SubTrips_t_pimpl
+//
+
+void SubTrips_t_pimpl::
+pre ()
+{
+	  subTrips.clear();
+}
+
+void SubTrips_t_pimpl::
+subTrip (sim_mob::SubTrip subTrip)
+{
+	  subTrips.push_back(subTrip);
+}
+
+std::vector<sim_mob::SubTrip> SubTrips_t_pimpl::
+post_SubTrips_t ()
+{
+  return subTrips;
+}
+
+// Activity_t_pimpl
+//
+
+void Activity_t_pimpl::
+pre ()
+{
+	  activity = new sim_mob::Activity();
+}
+
+void Activity_t_pimpl::
+description (const ::std::string& description)
+{
+  std::cout << "description: " << description << std::endl;
+  activity->description = description;
+}
+
+void Activity_t_pimpl::
+location (unsigned int value)
+{
+	  activity->location = Nodes_pimpl::LookupNode(value);
+}
+
+void Activity_t_pimpl::
+locationType (std::string locationType)
+{
+
+		  activity->locationType = getLocationType(locationType);
+}
+
+void Activity_t_pimpl::
+isPrimary (bool isPrimary)
+{
+  activity->isPrimary = isPrimary;
+}
+
+void Activity_t_pimpl::
+isFlexible (bool isFlexible)
+{
+	  activity->isFlexible = isFlexible;
+}
+
+void Activity_t_pimpl::
+isMandatory (bool isMandatory)
+{
+	  activity->isMandatory = isMandatory;
+}
+
+sim_mob::TripChainItem* Activity_t_pimpl::
+post_Activity_t ()
+{
+  sim_mob::TripChainItem* v = post_TripChainItem_t ();
+  activity->personID = v->personID;
+  activity->itemType = v->itemType;
+  activity->sequenceNumber = v->sequenceNumber;
+  activity->startTime = v->startTime;
+  activity->endTime = v->endTime;
+  delete v;
+  return activity;
+}
+
+// TripChain_t_pimpl
+//
+
+void TripChain_t_pimpl::
+pre ()
+{
+	  std::cout << "in TripChain_t_pimpl::pre () "  ;
+	  personID_Tripchain_Pair.first = -1;
+	  personID_Tripchain_Pair.second.clear();
+}
+
+void TripChain_t_pimpl::
+personID (long long personID)
+{
+	  std::cout << "in TripChain_t_pimpl::personID() " << std::endl ;
+
+	  personID_Tripchain_Pair.first = personID;
+
+	  std::cout << "in TripChain_t_pimpl::personID()-- " << std::endl ;
+}
+
+void TripChain_t_pimpl::
+Trip (sim_mob::TripChainItem* Trip)
+{
+	  std::cout << "in TripChain_t_pimpl::Trip "  ;
+
+	  personID_Tripchain_Pair.second.push_back(Trip);
+}
+
+void TripChain_t_pimpl::
+Activity (sim_mob::TripChainItem* Activity)
+{
+	  std::cout << "in TripChain_t_pimpl::Activity "  ;
+	  personID_Tripchain_Pair.second.push_back(Activity);
+}
+
+std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain_t_pimpl::
+post_TripChain_t ()
+{
+	  std::cout << "posting trip chain for person " << personID_Tripchain_Pair.first << std::endl ;
+	  return personID_Tripchain_Pair;
+}
+
+// TripChains_t_pimpl
+//
+
+void TripChains_t_pimpl::
+pre ()
+{
+	  std::cout << "In TripChains_t_pimpl::pre ()\n";
+	 tripchains = sim_mob::ConfigParams::GetInstance().getTripChains();
+	 std::cout << "In TripChains_t_pimpl::pre ()--\n";
+
+}
+
+void TripChains_t_pimpl::
+TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain)
+{
+	  std::cout << "In TripChains_t_pimpl::TripChain ()...\n";
+	  sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first] = (TripChain.second);
+	  std::cout << "A trip was added to person " <<  TripChain.first << "[new size = " << sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first].size() << "]   Total: " << sim_mob::ConfigParams::GetInstance().getTripChains().size();
+}
+
+void TripChains_t_pimpl::
+post_TripChains_t ()
+{
+
+
+	  std::cout << "In TripChains_t_pimpl::post_TripChains_t ()\n";
+
 }
 
 }} //End namespace sim_mob::xml

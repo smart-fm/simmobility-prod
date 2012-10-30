@@ -348,4 +348,58 @@ private:
 };
 
 
+class RoadItems_t_pimpl: public virtual RoadItems_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::map<sim_mob::centimeter_t,const sim_mob::RoadItem*> post_RoadItems_t ();
+
+	virtual void BusStop (std::pair<unsigned long,sim_mob::BusStop*>);
+	virtual void ERP_Gantry ();
+	virtual void Crossing (std::pair<unsigned long,sim_mob::Crossing*>);
+	virtual void RoadBump ();
+
+private:
+	std::map<centimeter_t,const RoadItem*> model;
+};
+
+
+class linkAndCrossing_t_pimpl: public virtual linkAndCrossing_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::LinkAndCrossing post_linkAndCrossing_t ();
+
+	virtual void ID (unsigned char);
+	virtual void linkID (unsigned int);
+	virtual void crossingID (unsigned int);
+	virtual void angle (unsigned char);
+
+private:
+	sim_mob::LinkAndCrossing model;
+};
+
+
+class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel {
+public:
+	virtual void pre ();
+
+	virtual void linkAndCrossing (sim_mob::LinkAndCrossing);
+	virtual sim_mob::LinkAndCrossingC post_linkAndCrossings_t ();
+};
+
+
+class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel, public ::xml_schema::string_pimpl {
+public:
+	virtual void pre ();
+	virtual void post_signalAlgorithm_t ();
+};
+
+class Plans_t_pimpl: public virtual Plans_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Plans_t ();
+
+	virtual void Plan ();
+};
+
+
 }}

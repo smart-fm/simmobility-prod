@@ -85,7 +85,7 @@ unsigned int sim_mob::Conflux::numMovingInSegment(
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 	typedef std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
-			i!=upstreamSegmentsMap.end(); i++) {
+			i != upstreamSegmentsMap.end(); i++) {
 			currSegsOnUpLinks[(*i).first] = (*i).second.rbegin();
 	}
 }
@@ -93,3 +93,16 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg) {
 	return segmentAgents[rdSeg]->numQueueingInSegment();
 }
+
+double sim_mob::Conflux::getOutputFlowRate(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputFlowRate;
+}
+
+int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputCounter;
+}
+
+double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).acceptRate;
+}
+

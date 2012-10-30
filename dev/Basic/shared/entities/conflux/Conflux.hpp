@@ -144,6 +144,10 @@ public:
 	// moving and queuing counts
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg);
+
+	double getOutputFlowRate(const Lane* lane);
+	int getOutputCounter(const Lane* lane);
+	double getAcceptRate(const Lane* lane);
 };
 
 } /* namespace sim_mob */

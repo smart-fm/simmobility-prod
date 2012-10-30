@@ -90,6 +90,11 @@ public:
 	bool advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
 	void updateVelocity();
+	int getOutputCounter(const Lane* l);
+	double getOutputFlowRate(const Lane* l);
+	double getAcceptRate(const Lane* l);
+	double getQueueLength(const Lane* l);
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.

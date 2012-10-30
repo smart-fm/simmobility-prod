@@ -105,6 +105,8 @@ public:
 	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
+	virtual const sim_mob::RoadSegment* getCurrSegment() const;
+	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
 
 	/* *
 	 * Getter an setter for only the Lane is kept here.
@@ -179,8 +181,11 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
-	bool isQueuing; //added by melani for mid-term driver
+	//used for mid-term supply
+	bool isQueuing;
 	double distanceToEndOfSegment;
+	double movingVelocity;
+
 	frame_t enqueueTick;
 
 private:
@@ -208,6 +213,7 @@ protected:
 	boost::mt19937 gen;
 	const sim_mob::Link* currLink;
 	const sim_mob::Lane* currLane;
+	const sim_mob::RoadSegment* currSegment;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	sim_mob::ProfileBuilder profile;

@@ -13,6 +13,7 @@ namespace sim_mob {
 		while(lane != rdSeg->getLanes().end())
 		{
 			laneAgentsMap.insert(std::make_pair(*lane, new sim_mob::LaneAgents()));
+			laneAgentsMap[*lane]->initLaneStats(*lane);
 			lane++;
 		}
 	}
@@ -182,6 +183,62 @@ namespace sim_mob {
 
 	void LaneAgents::resetIterator() {
 		laneAgentsIt = laneAgents.begin();
+	}
+
+	void sim_mob::LaneAgents::initLaneStats(const Lane* lane) {
+		int numLanes = lane->getRoadSegment()->getLanes().size();
+		if (numLanes > 0) {
+			supplyStats.origOutputFlowRate = lane->getRoadSegment()->capacity/(numLanes*3600.0);
+		}
+		supplyStats.outputFlowRate = supplyStats.origOutputFlowRate;
+
+		updateOutputCounter(lane);
+		updateAcceptRate(lane);
+	}
+
+	void sim_mob::LaneAgents::updateOutputFlowRate(const Lane* lane, double newFlowRate) {
+		supplyStats.outputFlowRate = newFlowRate;
+	}
+
+	void sim_mob::LaneAgents::updateOutputCounter(const Lane* lane) {
+		double elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
+		int tmp = int(supplyStats.outputFlowRate*elapsedSeconds);
+		supplyStats.fraction += supplyStats.outputFlowRate*elapsedSeconds - float(tmp);
+		if (supplyStats.fraction >= 1.0) {
+			supplyStats.fraction -= 1.0;
+			supplyStats.outputCounter = float(tmp) + 1.0;
+		} else
+			supplyStats.outputCounter = float(tmp);
+	}
+
+	void sim_mob::LaneAgents::updateAcceptRate(const Lane* lane) {
+		const double omega = 0.01;
+		const double vehicle_length = 400;
+		double elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
+		double capacity = supplyStats.outputFlowRate*elapsedSeconds;
+		double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
+		double acceptRateB = (omega*vehicle_length) / getUpstreamSpeed(lane);
+		double acceptRate = std::max( acceptRateA, acceptRateB);
+	}
+
+	double sim_mob::LaneAgents::getUpstreamSpeed(const Lane* lane) {
+		//speed-density function
+		std::vector<sim_mob::Agent*>::iterator it;
+		double totalSpeed = 0.0;
+		size_t numMovingAgents = getMovingAgentsCount();
+
+		if (numMovingAgents <= 0) return lane->getRoadSegment()->maxSpeed;
+
+		for ( it=laneAgents.begin() ; it < laneAgents.end(); it++ )
+		{
+			if ( !(*it)->isQueuing)
+			totalSpeed += (*it)->movingVelocity;
+		}
+		return totalSpeed/numMovingAgents;
+	}
+
+	LaneAgents::SupplyStats sim_mob::AgentKeeper::getSupplyStats(const Lane* lane) {
+		return laneAgentsMap[lane]->supplyStats;
 	}
 
 }// end of namespace sim_mob

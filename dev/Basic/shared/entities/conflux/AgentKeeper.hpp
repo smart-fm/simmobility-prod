@@ -18,9 +18,22 @@ public:
 	int getQueuingAgentsCount();
 	int getMovingAgentsCount();
 
-
 	void resetIterator();
 	sim_mob::Agent* next();
+
+	void initLaneStats(const sim_mob::Lane* lane);
+	void updateOutputCounter(const sim_mob::Lane* lane);
+	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
+	void updateAcceptRate(const sim_mob::Lane* lane);
+	double getUpstreamSpeed(const Lane* lane);
+
+	struct SupplyStats {
+		double outputFlowRate;
+		double origOutputFlowRate;
+		int outputCounter;
+		double acceptRate;
+		double fraction;
+	}supplyStats;
 
 private:
 	unsigned int queueCount;
@@ -33,6 +46,7 @@ private:
  * Used by mid term supply
  */
 class AgentKeeper {
+	friend class sim_mob::LaneAgents;
 
 private:
 	const sim_mob::RoadSegment* roadSegment;
@@ -60,7 +74,7 @@ public:
 
 	sim_mob::Agent* getNext();
 	void resetFrontalAgents();
-
+	LaneAgents::SupplyStats getSupplyStats(const Lane* lane);
 	// TODO: Check if this function is really required
 	//void merge(sim_mob::AgentKeeper*);
 

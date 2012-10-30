@@ -135,7 +135,7 @@ void sim_mob::Agent::clearToBeRemoved() {
 }
 
 const sim_mob::Link* sim_mob::Agent::getCurrLink() const{
-	return currLink;
+	return currSegment->getLink();
 }
 void sim_mob::Agent::setCurrLink(const sim_mob::Link* link){
 	currLink = link;
@@ -146,7 +146,12 @@ const sim_mob::Lane* sim_mob::Agent::getCurrLane() const{
 void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane){
 	currLane = lane;
 }
-
+const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const{
+	return currSegment;
+}
+void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
+	currSegment = rdSeg;
+}
 
 #ifndef SIMMOB_DISABLE_MPI
 //void sim_mob::Agent::pack(PackageUtils& packageUtil) {

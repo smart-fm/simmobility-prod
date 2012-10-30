@@ -100,13 +100,4 @@ void Lane::insertNewPolylinePoint(Point2D p, bool isPre)
 #ifndef SIMMOB_DISABLE_MPI
 
 #endif
-
-
-double Lane::getOriginalOutputFlowRate()
-{
-	//TO DO: currently capacity is read from RoadSegment, need to be read from supply params later
-	int numLanes = getRoadSegment()->getLanes().size();
-	if (numLanes > 0) origOutputFlowRate = getRoadSegment()->capacity/(numLanes*3600.0);
-	return origOutputFlowRate;
-}
 }

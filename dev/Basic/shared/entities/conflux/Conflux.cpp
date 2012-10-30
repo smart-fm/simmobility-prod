@@ -153,3 +153,16 @@ void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg) {
 	return segmentAgents[rdSeg]->numQueueingInSegment();
 }
+
+double sim_mob::Conflux::getOutputFlowRate(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputFlowRate;
+}
+
+int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputCounter;
+}
+
+double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).acceptRate;
+}
+

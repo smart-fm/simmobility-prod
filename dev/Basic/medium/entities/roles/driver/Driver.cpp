@@ -57,34 +57,12 @@ size_t getLaneIndex(const Lane* l) {
 }
 
 //TODO: not implemented yet
-double getOutputCounter(const Lane* l) {
-	return 1.0;
-}
-
-//TODO: not implemented yet
-double getOutputFlowRate(const Lane* l) {
-	//1.Get capacity of parent road segment
-	//2.Divide by the number of lanes
-	return -1.0;
-}
-
-//TODO: not implemented yet
-double getQueueLength(const Lane* l) {
-	return -1.0;
-}
-
-//TODO: not implemented yet
 double getInitialQueueLength(const Lane* l) {
 	return -1.0;
 }
 
 //TODO: not implemented yet
 double getLastAccept(const Lane* l) {
-	return -1.0;
-}
-
-//TODO: not implemented yet
-double getAcceptRate(const Lane* l) {
 	return -1.0;
 }
 
@@ -875,7 +853,10 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		if (parentP){
 			parentP->isQueuing = vehicle->isQueuing;
 			parentP->distanceToEndOfSegment = vehicle->getPositionInSegment();
+			parentP->movingVelocity = vehicle->getVelocity();
 		}
+		parent->setCurrLane(p2.currLane);
+		parent->setCurrSegment(vehicle->getCurrSegment());
 	}
 /*
 	//Update our Buffered types
@@ -1095,3 +1076,19 @@ void sim_mob::medium::Driver::updateVelocity(){
 		vehicle->setVelocity(speed_density_function(numVehicles));
 }
 
+int sim_mob::medium::Driver::getOutputCounter(const Lane* l) {
+	return vehicle->getCurrSegment()->getParentConflux()->getOutputCounter(l);
+}
+
+double sim_mob::medium::Driver::getOutputFlowRate(const Lane* l) {
+	return vehicle->getCurrSegment()->getParentConflux()->getOutputFlowRate(l);
+}
+
+double sim_mob::medium::Driver::getAcceptRate(const Lane* l) {
+	return vehicle->getCurrSegment()->getParentConflux()->getAcceptRate(l);
+}
+
+double sim_mob::medium::Driver::getQueueLength(const Lane* l) {
+	return vehicle->getCurrSegment()->getParentConflux()->
+			numQueueingInSegment(vehicle->getCurrSegment())*vehicle->length;
+}

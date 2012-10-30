@@ -88,12 +88,10 @@ public:
 
 	int getAgentSize() { return managedEntities.size(); }
 
-	boost::unordered_map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getAgentsOnSegments();
-	sim_mob::AgentKeeper* getAgentKeeper(const sim_mob::RoadSegment* rdSeg);
-
 protected:
 	virtual void perform_main(frame_t frameNumber);
 	virtual void perform_flip();
+	virtual void perform_handover();
 
 
 private:
@@ -143,21 +141,7 @@ private:
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
-
 	std::set<Conflux*> managedConfluxes;
-	/**
-	 * For all agents on this worker, agentsOnSegments hash map keeps track of which RoadSegment
-	 * the agent is currently in, whether he's moving or queuing and if he's queuing,
-	 * his position on the queue (as per this worker).
-	 *
-	 * agentsOnSegments from each worker will be merged into a global hash map in AuraManager.
-	 * This approach avoids race condition because each agent updates the hash map on its own worker.
-	 * Workers update agents sequentially. The updates from each agent is thus decentralized.
-	 *
-	 * ~ harish
-	 * TODO: Revisit this. This will probably not be required with the confluxes in place.
-	 */
-	boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> agentsOnSegments;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

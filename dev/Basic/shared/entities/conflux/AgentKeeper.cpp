@@ -5,19 +5,18 @@
 
 namespace sim_mob {
 
-	AgentKeeper::AgentKeeper(const sim_mob::RoadSegment* rdSeg)
-		: roadSegment(rdSeg)
+	AgentKeeper::AgentKeeper(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
+		: roadSegment(rdSeg), downstreamCopy(isDownstream)
 	{
 		// initialize LaneAgents in the map
-		std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
-		while(lane != rdSeg->getLanes().end())
+		std::vector<sim_mob::Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
+		while(laneIt != rdSeg->getLanes().end())
 		{
-			laneAgentsMap.insert(std::make_pair(*lane, new sim_mob::LaneAgents()));
-			laneAgentsMap[*lane]->initLaneStats(*lane);
-			lane++;
+			laneAgentsMap.insert(std::make_pair(*laneIt, new sim_mob::LaneAgents()));
+			laneAgentsMap[*laneIt]->initLaneStats(*laneIt);
+			laneIt++;
 		}
 	}
-
 
 	void AgentKeeper::addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
 		laneAgentsMap[lane]->addAgent(ag);
@@ -35,15 +34,26 @@ namespace sim_mob {
 		return laneAgentsMap[lane]->laneAgents;
 	}
 
-	std::pair<int, int> AgentKeeper::getLaneAgentCounts(const sim_mob::Lane* lane) {
+	void AgentKeeper::absorbAgents(sim_mob::AgentKeeper* agKeeper)
+	{
+		if(roadSegment == agKeeper->getRoadSegment())
+		{
+			for(std::vector<sim_mob::Lane*>::const_iterator i = roadSegment->getLanes().begin();
+					i != roadSegment->getLanes().end(); i++ ){
+				laneAgentsMap[*i]->addAgents(agKeeper->getAgents(*i), agKeeper->getLaneAgentCounts(*i).first);
+			}
+		}
+	}
+
+	std::pair<unsigned int, unsigned int> AgentKeeper::getLaneAgentCounts(const sim_mob::Lane* lane) {
 		return std::make_pair(
 				laneAgentsMap[lane]->getQueuingAgentsCount(),
 				laneAgentsMap[lane]->getMovingAgentsCount()
 				);
 	}
 
-	std::map<sim_mob::Lane*, std::pair<int, int> > AgentKeeper::getAgentCountsOnLanes() {
-		std::map<sim_mob::Lane*, std::pair<int, int> > agentCountsOnLanes;
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > AgentKeeper::getAgentCountsOnLanes() {
+		std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
 		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
 		while(lane != roadSegment->getLanes().end())
 		{
@@ -59,6 +69,11 @@ namespace sim_mob {
 
 	bool AgentKeeper::isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent) {
 		return (agent == laneAgentsMap[lane]->laneAgents.front());
+	}
+
+
+	unsigned int AgentKeeper::numAgentsInLane(const sim_mob::Lane* lane) {
+		return (laneAgentsMap[lane]->getMovingAgentsCount() + laneAgentsMap[lane]->getQueuingAgentsCount());
 	}
 
 	unsigned int AgentKeeper::numMovingInSegment() {
@@ -130,6 +145,19 @@ namespace sim_mob {
 		}
 	}
 
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > AgentKeeper::getPrevTickLaneCountsFromOriginal() const {
+		if(isDownstreamCopy()) {
+			return prevTickLaneCountsFromOriginal;
+		}
+		return std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >();
+	}
+
+	void AgentKeeper::setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal) {
+		if(isDownstreamCopy()) {
+			this->prevTickLaneCountsFromOriginal = prevTickLaneCountsFromOriginal;
+		}
+	}
+
 	sim_mob::Agent* LaneAgents::next() {
 		sim_mob::Agent* ag = nullptr;
 		if (laneAgentsIt != laneAgents.end()) {
@@ -156,6 +184,11 @@ namespace sim_mob {
 		if(ag->isQueuing) {
 			queueCount++;
 		}
+	}
+
+	void LaneAgents::addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing) {
+		queueCount = queueCount + numQueuing;
+		laneAgents.insert(laneAgents.end(), agents.begin(), agents.end());
 	}
 
 	void sim_mob::LaneAgents::removeAgent(sim_mob::Agent* ag) {

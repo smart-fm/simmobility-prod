@@ -88,6 +88,9 @@ private:
 	/* function to call agents' updates if the MultiNode is not signalized */
 	void updateUnsignalized(frame_t frameNumber);
 
+	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
+	void updateAgent(sim_mob::Agent* ag);
+
 	/* function to initialize candidate agents in each tick*/
 	void initCandidateAgents();
 
@@ -125,7 +128,7 @@ public:
 		return segmentAgents;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() {
 		return segmentAgentsDownstream;
 	}
 
@@ -148,11 +151,13 @@ public:
 
 	// get agent counts in a segment
 	// lanewise
-	std::map<sim_mob::Lane*, std::pair<int, int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
 	// moving and queuing counts
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg);
+
+	void absorbAgentsAndUpdateCounts(sim_mob::AgentKeeper* agKeeper);
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);

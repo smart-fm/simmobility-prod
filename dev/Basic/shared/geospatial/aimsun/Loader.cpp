@@ -1824,37 +1824,49 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 		// we create a conflux for each multinode
 		conflux = new sim_mob::Conflux(*i, mtxStrat);
 		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
-				segmt!=(*i)->roadSegmentsCircular.end();
-				segmt++ )
+				segmt!=(*i)->roadSegmentsCircular.end();segmt++ )
 		{
 			sim_mob::Link* lnk = (*segmt).first->getLink();
-			if ((*segmt).second) {
-				// This segment is upstream to the current MultiNode
-				std::vector<sim_mob::RoadSegment*> upSegs;
-				if(lnk->getEnd() == (*i)) {
-					//The half-link we want is the forward segments of the link
-					upSegs = lnk->getFwdSegments();
-					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-				}
-				else if (lnk->getStart() == (*i)) {
-					//The half-link we want is the reverse segments of the link
-					upSegs = lnk->getRevSegments();
-					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-				}
 
-				// set conflux pointer to the segments and create AgentKeeper for the segment
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-						segIt != upSegs.end(); segIt++) {
-					if((*segIt)->parentConflux == nullptr) {
-						// assign only if not already assigned
-						(*segIt)->parentConflux = conflux;
-						conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper((*segIt))));
-					}
-					else {
-						throw std::runtime_error("Parent segment is assigned twice for some segment");
-					}
+			std::vector<sim_mob::RoadSegment*> upSegs;
+			std::vector<sim_mob::RoadSegment*> downSegs;
+
+			if(lnk->getEnd() == (*i))
+			{
+				upSegs = lnk->getFwdSegments();
+				downSegs = lnk->getRevSegments();
+				conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+			}
+			else if (lnk->getStart() == (*i))
+			{
+				upSegs = lnk->getRevSegments();
+				downSegs = lnk->getFwdSegments();
+				conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+				conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+			}
+
+			// set conflux pointer to the segments and create AgentKeeper for the segment
+			for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+					segIt != upSegs.end(); segIt++)
+			{
+				if((*segIt)->parentConflux == nullptr)
+				{
+					// assign only if not already assigned
+					(*segIt)->parentConflux = conflux;
+					conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper(*segIt)));
 				}
-			} //if
+				else
+				{
+					throw std::runtime_error("Parent segment is assigned twice for segment");
+				}
+			}
+
+			// create AgentKeeper for downstream segments by sending true for isDownstream
+			for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
+					segIt != downSegs.end(); segIt++)
+			{
+				conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new AgentKeeper(*segIt, true)));
+			}
 		} // for
 		conflux->prepareLengthsOfSegmentsAhead();
 

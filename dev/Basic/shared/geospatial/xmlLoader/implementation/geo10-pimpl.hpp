@@ -33,86 +33,15 @@ namespace xml {
 
 
 
-class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel,
-  public ::xml_schema::string_pimpl
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  post_TrafficColor_t ();
-};
 
-class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  TrafficColor ();
 
-  virtual void
-  Duration (unsigned char);
 
-  virtual std::pair<sim_mob::TrafficColor,std::size_t>
-  post_ColorDuration_t ();
-};
 
-class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel
-{
-  public:
-  virtual void
-  pre ();
 
-  virtual void
-  TrafficLightType (const ::std::string&);
 
-  virtual void
-  ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
 
-  virtual std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >
-  post_ColorSequence_t ();
-};
-
-class links_maps_t_pimpl: public virtual links_maps_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
-
-  virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink>
-  post_links_maps_t ();
-};
-
-class links_map_t_pimpl: public virtual links_map_t_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  linkFrom (unsigned int);
-
-  virtual void
-  linkTo (unsigned int);
-
-  virtual void
-  SegmentFrom (unsigned int);
-
-  virtual void
-  SegmentTo (unsigned int);
-
-  virtual void
-  ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
-
-  virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>
-  post_links_map_t ();
-};
 
 class Phase_t_pimpl: public virtual Phase_t_pskel
 {

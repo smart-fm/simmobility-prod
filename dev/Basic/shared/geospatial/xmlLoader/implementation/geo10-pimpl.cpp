@@ -86,74 +86,16 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 // TrafficColor_t_pimpl
 //
 
-void TrafficColor_t_pimpl::
-pre ()
-{
-}
 
-void TrafficColor_t_pimpl::
-post_TrafficColor_t ()
-{
-  const ::std::string& v (post_string ());
-
-  std::cout << "TrafficColor_t: " << v << std::endl;
-}
 
 // ColorDuration_t_pimpl
 //
 
-void ColorDuration_t_pimpl::
-pre ()
-{
-}
 
-void ColorDuration_t_pimpl::
-TrafficColor ()
-{
-}
-
-void ColorDuration_t_pimpl::
-Duration (unsigned char Duration)
-{
-  std::cout << "Duration: " << static_cast<unsigned short> (Duration) << std::endl;
-}
-
-std::pair<sim_mob::TrafficColor,std::size_t> ColorDuration_t_pimpl::
-post_ColorDuration_t ()
-{
-  // TODO
-  //
-  // return ... ;
-}
 
 // ColorSequence_t_pimpl
 //
 
-void ColorSequence_t_pimpl::
-pre ()
-{
-}
-
-void ColorSequence_t_pimpl::
-TrafficLightType (const ::std::string& TrafficLightType)
-{
-  std::cout << "TrafficLightType: " << TrafficLightType << std::endl;
-}
-
-void ColorSequence_t_pimpl::
-ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t> ColorDuration)
-{
-  // TODO
-  //
-}
-
-std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > > ColorSequence_t_pimpl::
-post_ColorSequence_t ()
-{
-  // TODO
-  //
-  // return ... ;
-}
 
 // links_maps_t_pimpl
 //
@@ -178,52 +120,8 @@ post_links_maps_t ()
   // return ... ;
 }
 
-// links_map_t_pimpl
-//
 
-void links_map_t_pimpl::
-pre ()
-{
-}
 
-void links_map_t_pimpl::
-linkFrom (unsigned int linkFrom)
-{
-  std::cout << "linkFrom: " << linkFrom << std::endl;
-}
-
-void links_map_t_pimpl::
-linkTo (unsigned int linkTo)
-{
-  std::cout << "linkTo: " << linkTo << std::endl;
-}
-
-void links_map_t_pimpl::
-SegmentFrom (unsigned int SegmentFrom)
-{
-  std::cout << "SegmentFrom: " << SegmentFrom << std::endl;
-}
-
-void links_map_t_pimpl::
-SegmentTo (unsigned int SegmentTo)
-{
-  std::cout << "SegmentTo: " << SegmentTo << std::endl;
-}
-
-void links_map_t_pimpl::
-ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > > ColorSequence)
-{
-  // TODO
-  //
-}
-
-std::pair<sim_mob::Link*,sim_mob::linkToLink> links_map_t_pimpl::
-post_links_map_t ()
-{
-  // TODO
-  //
-  // return ... ;
-}
 
 // Phase_t_pimpl
 //

@@ -330,4 +330,30 @@ public:
 };
 
 
+class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel, public ::xml_schema::string_pimpl {
+public:
+	virtual void pre ();
+	virtual void post_TrafficColor_t ();
+};
+
+class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::TrafficColor,std::size_t> post_ColorDuration_t ();
+
+	virtual void TrafficColor ();
+	virtual void Duration (unsigned char);
+};
+
+
+class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > > post_ColorSequence_t ();
+
+	virtual void TrafficLightType (const ::std::string&);
+	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
+};
+
+
 }}

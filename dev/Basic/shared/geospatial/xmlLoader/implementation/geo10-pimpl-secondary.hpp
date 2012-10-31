@@ -402,4 +402,26 @@ public:
 };
 
 
+class links_map_t_pimpl: public virtual links_map_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::Link*,sim_mob::linkToLink> post_links_map_t ();
+
+	virtual void linkFrom (unsigned int);
+	virtual void linkTo (unsigned int);
+	virtual void SegmentFrom (unsigned int);
+	virtual void SegmentTo (unsigned int);
+	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
+};
+
+
+class links_maps_t_pimpl: public virtual links_maps_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
+
+	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+};
+
+
 }}

@@ -87,7 +87,7 @@ public:
 		nodes.insert(nodes.begin(),vals.begin(),vals.end());
 	}
 
-private:
+//private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.
 	std::vector<sim_mob::MultiNode*> nodes;
 	std::vector<sim_mob::Link*> links;

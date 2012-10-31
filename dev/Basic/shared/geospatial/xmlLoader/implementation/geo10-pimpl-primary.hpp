@@ -315,7 +315,7 @@ public:
 	virtual void pre ();
 	virtual void post_RoadNetwork_t ();
 
-	virtual void Nodes ();
+	virtual void Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >&);
 	virtual void Links (const std::vector<sim_mob::Link*>&);
 
 private:

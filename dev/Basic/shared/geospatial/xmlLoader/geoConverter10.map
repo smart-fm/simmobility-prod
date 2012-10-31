@@ -17,8 +17,14 @@ namespace http://www.smart.mit.edu/geo  {
 
 #All container types return by value, and are then passed in by const-reference (default for value types)
 # We generally name all container types with _Vec/_Map, since these will be handled as automatically as possible.
-Links      std::vector<sim_mob::Link*>;
-Segments  "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
+Links          std::vector<sim_mob::Link*>;
+Segments      "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
+
+#Note: It makes sense to return these by const reference, since we have a local field holding them anyway.
+Nodes          "std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >";
+UniNodes       "const std::set<sim_mob::UniNode*>&";
+Intersections  "const std::vector<sim_mob::MultiNode*>&";
+roundabouts    "const std::vector<sim_mob::MultiNode*>&";
 
 
 #TODO: Rename AFTER we merge.
@@ -70,16 +76,13 @@ laneEdgePolyline_cached_t "std::pair<short,std::vector<sim_mob::Point2D> >" "std
 laneEdgePolylines_cached_t "std::vector<std::vector<sim_mob::Point2D> >" "std::vector<std::vector<sim_mob::Point2D> >";
 
 
-
-UniNodes std::set<sim_mob::UniNode*>& std::set<sim_mob::UniNode*>&;
 UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
 temp_Segmetair_t "std::pair<unsigned long,unsigned long>" "std::pair<unsigned long,unsigned long>" ;
 
-Intersections std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
 #RoadSegmentsAt_t std::set<sim_mob::RoadSegment*>  std::set<sim_mob::RoadSegment*>;
 RoadSegmentsAt_t "std::set<unsigned long>"  "std::set<unsigned long>";
-roundabouts std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
+
 roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
 
 

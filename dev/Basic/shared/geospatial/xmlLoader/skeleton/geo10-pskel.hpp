@@ -2584,7 +2584,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      Nodes ();
+      Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >&);
 
       virtual void
       Links (const std::vector<sim_mob::Link*>&);
@@ -4113,16 +4113,16 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      UniNodes (std::set<sim_mob::UniNode*>&);
+      UniNodes (const std::set<sim_mob::UniNode*>&);
 
       virtual void
-      Intersections (std::vector<sim_mob::MultiNode*>&);
+      Intersections (const std::vector<sim_mob::MultiNode*>&);
 
       virtual void
-      roundabouts (std::vector<sim_mob::MultiNode*>&);
+      roundabouts (const std::vector<sim_mob::MultiNode*>&);
 
-      virtual void
-      post_Nodes ();
+      virtual std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >
+      post_Nodes () = 0;
 
       // Parser construction API.
       //
@@ -4215,7 +4215,7 @@ namespace sim_mob
       virtual void
       UniNode (sim_mob::UniNode*);
 
-      virtual std::set<sim_mob::UniNode*>&
+      virtual const std::set<sim_mob::UniNode*>&
       post_UniNodes () = 0;
 
       // Parser construction API.
@@ -4257,7 +4257,7 @@ namespace sim_mob
       virtual void
       Intersection (sim_mob::MultiNode*);
 
-      virtual std::vector<sim_mob::MultiNode*>&
+      virtual const std::vector<sim_mob::MultiNode*>&
       post_Intersections () = 0;
 
       // Parser construction API.
@@ -4299,7 +4299,7 @@ namespace sim_mob
       virtual void
       roundabout (sim_mob::MultiNode*);
 
-      virtual std::vector<sim_mob::MultiNode*>&
+      virtual const std::vector<sim_mob::MultiNode*>&
       post_roundabouts () = 0;
 
       // Parser construction API.

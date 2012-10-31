@@ -17,8 +17,13 @@ void sim_mob::xml::RoadNetwork_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::RoadNetwork_t_pimpl::Nodes ()
+void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >& value)
 {
+	modelRef.segmentnodes = value.first;
+	modelRef.nodes.insert(modelRef.nodes.end(), value.second.begin(), value.second.end());
+
+	//TODO: Why isn't this a set?
+	//modelRef.nodes = value.second;
 }
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Links (const std::vector<sim_mob::Link*>& value)

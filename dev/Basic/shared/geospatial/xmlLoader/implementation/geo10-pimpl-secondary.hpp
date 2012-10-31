@@ -291,22 +291,23 @@ private:
 
 class Nodes_pimpl: public virtual Nodes_pskel {
 public:
-	Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
+	/*Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
 		std::cout << "RoadNetworkRW hooked\nTODO: This is not the correct way to do things!";
-	}
+	}*/
 
 	virtual void pre ();
-	virtual void post_Nodes ();
+	virtual std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> > post_Nodes ();
 
-	virtual void UniNodes (std::set<sim_mob::UniNode*>&);
-	virtual void Intersections (std::vector<sim_mob::MultiNode*>&);
-	virtual void roundabouts (std::vector<sim_mob::MultiNode*>&);
+	virtual void UniNodes (const std::set<sim_mob::UniNode*>&);
+	virtual void Intersections (const std::vector<sim_mob::MultiNode*>&);
+	virtual void roundabouts (const std::vector<sim_mob::MultiNode*>&);
 
 	static sim_mob::Node* LookupNode(unsigned int id);
 	static void RegisterNode(unsigned int id, sim_mob::Node* node);
 
 private:
-	sim_mob::RoadNetwork &rn;
+	std::set<sim_mob::UniNode*> uniNodes;
+	std::set<sim_mob::MultiNode*> multiNodes;
 
 	static std::map<unsigned int,sim_mob::Node*> Lookup;
 };
@@ -447,7 +448,7 @@ public:
 class UniNodes_pimpl: public virtual UniNodes_pskel {
 public:
 	virtual void pre ();
-	virtual std::set<sim_mob::UniNode*>& post_UniNodes ();
+	virtual const std::set<sim_mob::UniNode*>& post_UniNodes ();
 
 	virtual void UniNode (sim_mob::UniNode*);
 
@@ -459,7 +460,7 @@ private:
 class Intersections_pimpl: public virtual Intersections_pskel {
 public:
 	virtual void pre ();
-	virtual std::vector<sim_mob::MultiNode*>& post_Intersections ();
+	virtual const std::vector<sim_mob::MultiNode*>& post_Intersections ();
 
 	virtual void Intersection (sim_mob::MultiNode*);
 
@@ -472,7 +473,7 @@ private:
 class roundabouts_pimpl: public virtual roundabouts_pskel {
 public:
 	virtual void pre ();
-	virtual std::vector<sim_mob::MultiNode*>& post_roundabouts ();
+	virtual const std::vector<sim_mob::MultiNode*>& post_roundabouts ();
 
 	virtual void roundabout (sim_mob::MultiNode*);
 

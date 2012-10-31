@@ -8,7 +8,7 @@ void sim_mob::xml::Intersections_pimpl::pre ()
 	model.clear();
 }
 
-std::vector<sim_mob::MultiNode*>& sim_mob::xml::Intersections_pimpl::post_Intersections ()
+const std::vector<sim_mob::MultiNode*>& sim_mob::xml::Intersections_pimpl::post_Intersections ()
 {
 	return model;
 }

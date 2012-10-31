@@ -8,7 +8,7 @@ void sim_mob::xml::UniNodes_pimpl::pre ()
 	model.clear();
 }
 
-std::set<sim_mob::UniNode*>& sim_mob::xml::UniNodes_pimpl::post_UniNodes ()
+const std::set<sim_mob::UniNode*>& sim_mob::xml::UniNodes_pimpl::post_UniNodes ()
 {
 	return model;
 }

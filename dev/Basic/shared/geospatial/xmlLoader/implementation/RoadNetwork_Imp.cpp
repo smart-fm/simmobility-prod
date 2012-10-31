@@ -21,7 +21,7 @@ void sim_mob::xml::RoadNetwork_t_pimpl::Nodes ()
 {
 }
 
-void sim_mob::xml::RoadNetwork_t_pimpl::Links (std::vector<sim_mob::Link*> value)
+void sim_mob::xml::RoadNetwork_t_pimpl::Links (const std::vector<sim_mob::Link*>& value)
 {
 	modelRef.setLinks(value);
 }

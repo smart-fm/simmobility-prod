@@ -1,23 +1,36 @@
 namespace http://www.smart.mit.edu/geo  {
- include "geospatial/Link.hpp";
- include "geospatial/RoadItem.hpp";
- include "geospatial/RoadNetwork.hpp";
- include "geospatial/Roundabout.hpp";
- include "geospatial/MultiNode.hpp";
- include "geospatial/Intersection.hpp";
- include "geospatial/Lane.hpp";
- include "geospatial/LaneConnector.hpp";
- include "geospatial/Crossing.hpp";
- include "geospatial/UniNode.hpp";
- include "metrics/Length.hpp";
- include "util/DailyTime.hpp";
- include "entities/misc/TripChain.hpp";
- include "entities/signal/Signal.hpp";
- 
-Links std::vector<sim_mob::Link*> std::vector<sim_mob::Link*>;
-link_t sim_mob::Link* sim_mob::Link*;
+	include "geospatial/Link.hpp";
+	include "geospatial/RoadItem.hpp";
+	include "geospatial/RoadNetwork.hpp";
+	include "geospatial/Roundabout.hpp";
+	include "geospatial/MultiNode.hpp";
+	include "geospatial/Intersection.hpp";
+	include "geospatial/Lane.hpp";
+	include "geospatial/LaneConnector.hpp";
+	include "geospatial/Crossing.hpp";
+	include "geospatial/UniNode.hpp";
+	include "metrics/Length.hpp";
+	include "util/DailyTime.hpp";
+	include "entities/misc/TripChain.hpp";
+	include "entities/signal/Signal.hpp";
 
-Segments  "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >"   "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
+
+#All container types return by value, and are then passed in by const-reference (default for value types)
+# We generally name all container types with _Vec/_Map, since these will be handled as automatically as possible.
+Links      std::vector<sim_mob::Link*>;
+Segments  "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
+
+
+#TODO: Rename AFTER we merge.
+#Link_Vec     std::vector<sim_mob::Link*>;
+#Segment_Vec  "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
+
+
+ 
+#Older, un-edited mapping code.
+
+
+link_t sim_mob::Link* sim_mob::Link*;
 fwdBckSegments_t std::vector<sim_mob::RoadSegment*> std::vector<sim_mob::RoadSegment*>;
 segment_t sim_mob::RoadSegment* sim_mob::RoadSegment*;
 SegmentType_t std::string std::string;

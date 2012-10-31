@@ -4162,7 +4162,7 @@ namespace sim_mob
     }
 
     void link_t_pskel::
-    Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >)
+    Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&)
     {
     }
 
@@ -6476,7 +6476,7 @@ namespace sim_mob
     }
 
     void RoadNetwork_t_pskel::
-    Links (std::vector<sim_mob::Link*>)
+    Links (const std::vector<sim_mob::Link*>&)
     {
     }
 

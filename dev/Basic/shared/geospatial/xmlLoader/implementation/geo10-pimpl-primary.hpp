@@ -5,6 +5,9 @@ namespace sim_mob {
 namespace xml {
 
 
+//Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
+// chaining mechanism. Instead, initialize all your private variables in the pre() function.
+
 class Point2D_t_pimpl: public virtual Point2D_t_pskel {
 public:
 	virtual void pre ();
@@ -109,7 +112,7 @@ public:
 	virtual void roadName (const ::std::string&);
 	virtual void StartingNode (unsigned int);
 	virtual void EndingNode (unsigned int);
-	virtual void Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
+	virtual void Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&);
 
 private:
 	sim_mob::Link model;
@@ -313,7 +316,7 @@ public:
 	virtual void post_RoadNetwork_t ();
 
 	virtual void Nodes ();
-	virtual void Links (std::vector<sim_mob::Link*>);
+	virtual void Links (const std::vector<sim_mob::Link*>&);
 
 private:
   sim_mob::RoadNetwork& modelRef;

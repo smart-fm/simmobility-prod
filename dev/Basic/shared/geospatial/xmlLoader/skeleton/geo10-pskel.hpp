@@ -1200,7 +1200,7 @@ namespace sim_mob
       EndingNode (unsigned int);
 
       virtual void
-      Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
+      Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&);
 
       virtual sim_mob::Link*
       post_link_t () = 0;
@@ -2587,7 +2587,7 @@ namespace sim_mob
       Nodes ();
 
       virtual void
-      Links (std::vector<sim_mob::Link*>);
+      Links (const std::vector<sim_mob::Link*>&);
 
       virtual void
       post_RoadNetwork_t ();

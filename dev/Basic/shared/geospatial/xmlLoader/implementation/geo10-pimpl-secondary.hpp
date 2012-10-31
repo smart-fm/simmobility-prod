@@ -5,6 +5,10 @@ namespace sim_mob {
 namespace xml {
 
 
+//Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
+// chaining mechanism. Instead, initialize all your private variables in the pre() function.
+
+
 ///Helper namespace: contains typedefs for particularly verbose items
 namespace helper {
 

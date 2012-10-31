@@ -356,4 +356,52 @@ public:
 };
 
 
+class Phase_t_pimpl: public virtual Phase_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Phase_t ();
+
+	virtual void phaseID (unsigned char);
+	virtual void name (const ::std::string&);
+	virtual void links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>);
+};
+
+
+class SplitPlan_t_pimpl: public virtual SplitPlan_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::SplitPlan post_SplitPlan_t ();
+
+	virtual void splitplanID (unsigned int);
+	virtual void signalAlgorithm ();
+	virtual void cycleLength (unsigned char);
+	virtual void offset (unsigned char);
+	virtual void ChoiceSet ();
+	virtual void Phases ();
+};
+
+
+class Signal_t_pimpl: public virtual Signal_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::Signal* post_Signal_t ();
+
+	virtual void signalID (unsigned char);
+	virtual void nodeID (unsigned int);
+	virtual void signalAlgorithm ();
+	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
+	virtual void SplitPlan (sim_mob::SplitPlan);
+};
+
+class SimMobility_t_pimpl: public virtual SimMobility_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_SimMobility_t ();
+
+	virtual void GeoSpatial ();
+	virtual void TripChains ();
+	virtual void Signals ();
+};
+
+
 }}

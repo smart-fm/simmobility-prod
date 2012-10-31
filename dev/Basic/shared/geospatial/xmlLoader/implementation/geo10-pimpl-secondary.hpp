@@ -424,4 +424,58 @@ public:
 };
 
 
+class Phases_t_pimpl: public virtual Phases_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Phases_t ();
+
+	virtual void Phase ();
+};
+
+class Signals_t_pimpl: public virtual Signals_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Signals_t ();
+
+	virtual void signal (sim_mob::Signal*);
+};
+
+class UniNodes_pimpl: public virtual UniNodes_pskel {
+public:
+	virtual void pre ();
+	virtual std::set<sim_mob::UniNode*>& post_UniNodes ();
+
+	virtual void UniNode (sim_mob::UniNode*);
+
+private:
+	std::set<sim_mob::UniNode*> model;
+};
+
+
+class Intersections_pimpl: public virtual Intersections_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::MultiNode*>& post_Intersections ();
+
+	virtual void Intersection (sim_mob::MultiNode*);
+
+private:
+	std::vector<sim_mob::MultiNode*> model;
+};
+
+
+
+class roundabouts_pimpl: public virtual roundabouts_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::MultiNode*>& post_roundabouts ();
+
+	virtual void roundabout (sim_mob::MultiNode*);
+
+private:
+	std::vector<sim_mob::MultiNode*> model;
+};
+
+
+
 }}

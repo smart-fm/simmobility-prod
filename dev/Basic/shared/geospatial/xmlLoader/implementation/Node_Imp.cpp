@@ -12,11 +12,8 @@ void sim_mob::xml::Node_t_pimpl::pre ()
 	linkLocSaved = 0;
 }
 
-sim_mob::Node* sim_mob::xml::Node_t_pimpl::post_Node_t ()
+sim_mob::Node sim_mob::xml::Node_t_pimpl::post_Node_t ()
 {
-	sim_mob::Node* res = new sim_mob::Node(model);
-
-	RegisterLinkLoc(res, linkLocSaved);
 
 	//TODO: Not 100% sure what we are tracking here. ~Seth
 /*
@@ -42,7 +39,7 @@ sim_mob::Node* sim_mob::xml::Node_t_pimpl::post_Node_t ()
 	  }*/
 
 
-	  return res;
+	  return model;
 }
 
 void sim_mob::xml::Node_t_pimpl::RegisterLinkLoc(sim_mob::Node* node, unsigned int link)

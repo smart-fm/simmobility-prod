@@ -122,7 +122,7 @@ private:
 class Node_t_pimpl: public virtual Node_t_pskel {
 public:
 	virtual void pre ();
-	virtual sim_mob::Node* post_Node_t ();
+	virtual sim_mob::Node post_Node_t ();
 
 	virtual void nodeID (unsigned int);
 	virtual void location (sim_mob::Point2D);
@@ -133,7 +133,7 @@ public:
 	static unsigned int GetLinkLoc(sim_mob::Node* node);
 	static std::map<sim_mob::Node*, unsigned int>& GetLinkLocList();
 
-private:
+protected:
 	sim_mob::Node model;
 	unsigned int linkLocSaved;
 

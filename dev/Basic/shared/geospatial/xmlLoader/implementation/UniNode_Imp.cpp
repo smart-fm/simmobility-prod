@@ -63,11 +63,11 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 	UniNode_t_pimpl::RegisterConnectors(res, connectors);
 
 	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
-	sim_mob::Node* tempNode = Node_t_pimpl::post_Node_t();
-	res->location = sim_mob::Point2D(tempNode->getLocation());
-	res->setID(tempNode->getID());
-	res->originalDB_ID = tempNode->originalDB_ID;
-	delete tempNode;
+	sim_mob::Node tempNode = Node_t_pimpl::post_Node_t();
+	res->location = sim_mob::Point2D(tempNode.getLocation());
+	res->setID(tempNode.getID());
+	res->originalDB_ID = tempNode.originalDB_ID;
+	RegisterLinkLoc(res, linkLocSaved);
 
 	Nodes_pimpl::RegisterNode(res->getID(), res);
 

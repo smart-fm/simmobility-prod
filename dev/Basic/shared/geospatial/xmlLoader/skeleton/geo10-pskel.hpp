@@ -1775,7 +1775,7 @@ namespace sim_mob
       virtual void
       originalDB_ID (const ::std::string&);
 
-      virtual sim_mob::Node*
+      virtual sim_mob::Node
       post_Node_t () = 0;
 
       // Parser construction API.

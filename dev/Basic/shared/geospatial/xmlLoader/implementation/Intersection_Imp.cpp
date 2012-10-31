@@ -67,12 +67,12 @@ sim_mob::MultiNode* sim_mob::xml::intersection_t_pimpl::post_intersection_t ()
 	intersection_t_pimpl::RegisterConnectors(res, connectors);
 	intersection_t_pimpl::RegisterSegmentsAt(res, segmentsAt);
 
-	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
-	sim_mob::Node* tempNode = Node_t_pimpl::post_Node_t();
-	res->location = sim_mob::Point2D(tempNode->getLocation());
-	res->setID(tempNode->getID());
-	res->originalDB_ID = tempNode->originalDB_ID;
-	delete tempNode;
+	//Copy over additional properties.
+	sim_mob::Node tempNode = Node_t_pimpl::post_Node_t();
+	res->location = sim_mob::Point2D(tempNode.getLocation());
+	res->setID(tempNode.getID());
+	res->originalDB_ID = tempNode.originalDB_ID;
+	RegisterLinkLoc(res, linkLocSaved);
 
 	Nodes_pimpl::RegisterNode(res->getID(), res);
 

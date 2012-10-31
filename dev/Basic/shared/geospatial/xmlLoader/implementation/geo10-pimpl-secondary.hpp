@@ -477,5 +477,28 @@ private:
 };
 
 
+class SubTrips_t_pimpl: public virtual SubTrips_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::SubTrip> post_SubTrips_t ();
+
+	virtual void subTrip (sim_mob::SubTrip);
+
+private:
+	std::vector<sim_mob::SubTrip> model;
+};
+
+
+class TripChains_t_pimpl: public virtual TripChains_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_TripChains_t ();
+
+	virtual void TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+
+private:
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > model;
+};
+
 
 }}

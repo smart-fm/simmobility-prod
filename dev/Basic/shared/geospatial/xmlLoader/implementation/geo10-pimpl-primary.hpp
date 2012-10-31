@@ -404,4 +404,96 @@ public:
 };
 
 
+class TripchainItemType_pimpl: public virtual TripchainItemType_pskel, public ::xml_schema::string_pimpl {
+public:
+	virtual void pre ();
+	virtual std::string post_TripchainItemType ();
+};
+
+
+class TripchainItemLocationType_pimpl: public virtual TripchainItemLocationType_pskel, public ::xml_schema::string_pimpl {
+public:
+	virtual void pre ();
+	virtual std::string post_TripchainItemLocationType ();
+};
+
+
+class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::TripChainItem* post_TripChainItem_t ();
+
+	virtual void personID (long long);
+	virtual void itemType (std::string);
+	virtual void sequenceNumber (unsigned int);
+	virtual void startTime (const ::std::string&);
+	virtual void endTime (const ::std::string&);
+
+private:
+	sim_mob::TripChainItem model;
+};
+
+
+class Trip_t_pimpl: public virtual Trip_t_pskel, public ::sim_mob::xml::TripChainItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual sim_mob::TripChainItem* post_Trip_t ();
+
+	virtual void tripID (long long);
+	virtual void fromLocation (unsigned int);
+	virtual void fromLocationType (std::string);
+	virtual void toLocation (unsigned int);
+	virtual void toLocationType (std::string);
+	virtual void subTrips (std::vector<sim_mob::SubTrip>);
+
+  private:
+  sim_mob::Trip model;
+};
+
+
+class SubTrip_t_pimpl: public virtual SubTrip_t_pskel, public ::sim_mob::xml::Trip_t_pimpl {
+public:
+	virtual void pre ();
+	virtual sim_mob::SubTrip post_SubTrip_t ();
+
+	virtual void mode (const ::std::string&);
+	virtual void isPrimaryMode (bool);
+	virtual void ptLineId (const ::std::string&);
+
+private:
+	sim_mob::SubTrip model;
+};
+
+
+class Activity_t_pimpl: public virtual Activity_t_pskel, public ::sim_mob::xml::TripChainItem_t_pimpl {
+public:
+	virtual void pre ();
+	virtual sim_mob::TripChainItem* post_Activity_t ();
+
+	virtual void description (const ::std::string&);
+	virtual void location (unsigned int);
+	virtual void locationType (std::string);
+	virtual void isPrimary (bool);
+	virtual void isFlexible (bool);
+	virtual void isMandatory (bool);
+
+private:
+	sim_mob::Activity model;
+};
+
+
+class TripChain_t_pimpl: public virtual TripChain_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
+
+	virtual void personID (long long);
+	virtual void Trip (sim_mob::TripChainItem*);
+	virtual void Activity (sim_mob::TripChainItem*);
+
+private:
+	std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > model;
+};
+
+
 }}

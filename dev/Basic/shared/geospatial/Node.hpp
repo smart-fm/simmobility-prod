@@ -77,7 +77,7 @@ public:
 
 
 //protected:
-    Node(int x, int y, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),linkLoc(nullptr) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),linkLoc(nullptr) {}
 
 private:
     sim_mob::Link* linkLoc;

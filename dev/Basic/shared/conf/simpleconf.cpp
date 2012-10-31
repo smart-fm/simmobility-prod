@@ -36,7 +36,7 @@
 #include "util/OutputUtil.hpp"
 
 #include "geospatial/xmlLoader/geo8-driver.hpp"
-//#include "geospatial/xmlLoader/geo9.hpp"
+#include "geospatial/xmlLoader/geo10.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"

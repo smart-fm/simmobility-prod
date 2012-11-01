@@ -95,6 +95,13 @@ void sim_mob::BusController::setPTSchedule()
 //	BusTrip bustrip;
 
 
+	std::string currRouteID = "";
+	std::string prevRouteID = "";
+	sim_mob::Busline* busline = nullptr;
+	int entID = 555;// id can be designed later
+	int step = 0;
+	sim_mob::DailyTime nextTime;
+
 	for (std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
 		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr = it;
 		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = it+1;
@@ -104,18 +111,25 @@ void sim_mob::BusController::setPTSchedule()
 //			done = false;
 //		}
 		//If done, new a BusLine with busline id
-		if (curr->start_time.toString() == "08:31:00") {
-			// current only the first one Trip is generated, not considering multiple bustrips with headways, later this logic will change
-			std::cout << "route id: " << curr->route_id << "startTime: " << curr->start_time.toString() << std::endl;
-			sim_mob::Busline* busline = new sim_mob::Busline(curr->route_id,"no_control");
 
+		currRouteID = curr->route_id;
+		if(currRouteID != prevRouteID) {
+			busline = new sim_mob::Busline(curr->route_id,"no_control");
+			pt_schedule.registerBusLine(curr->route_id, busline);
 			std::cout << "Yao Jin is here " << std::endl;
-			Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for this busline
+		}
+		Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for one busline
+		if(!busline) {
+			std::cout << "Error: busline is null, no busline is defined!" << std::endl;
+			return;
+		} else { // already newed busline
 			busline->addFrequencyBusline(frequency_busline);
-
-			int entID = 55;
-			int step = 0;
-			for(DailyTime startTime = curr->start_time; startTime.isBefore(next->start_time)!=false; startTime += DailyTime((uint32_t)(curr->headway_sec*10)))
+			if(next == busdispatch_freq.end()) {
+				nextTime = curr->end_time; // the last element deal
+			} else {
+				nextTime = next->start_time;// normal element deal
+			}
+			for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += DailyTime((uint32_t)(curr->headway_sec*50)))
 			{
 				BusTrip bustrip(entID+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), step, curr->route_id, entID+step, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
@@ -124,9 +138,33 @@ void sim_mob::BusController::setPTSchedule()
 				}
 				step++;
 			}
-			std::cout << "busline: BusTrip size: " << busline->queryBusTrips().size() << std::endl;
-			pt_schedule.registerBusLine(curr->route_id, busline);
 		}
+		prevRouteID = curr->route_id;
+
+
+//		if (curr->start_time.toString() == "17:00:00") {
+//			// current only the first one Trip is generated, not considering multiple bustrips with headways, later this logic will change
+//			std::cout << "route id: " << curr->route_id << "startTime: " << curr->start_time.toString() << std::endl;
+//			sim_mob::Busline* busline = new sim_mob::Busline(curr->route_id,"no_control");
+//
+//			std::cout << "Yao Jin is here " << std::endl;
+//			Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for this busline
+//			busline->addFrequencyBusline(frequency_busline);
+//
+//			int entID = 555;// id can be designed later
+//			int step = 0;
+//			for(DailyTime startTime = curr->start_time; startTime.isBefore(next->start_time)!=false; startTime += DailyTime((uint32_t)(curr->headway_sec*10)))
+//			{
+//				BusTrip bustrip(entID+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), step, curr->route_id, entID+step, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
+//				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
+//				if(bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id], routeID_busStops[curr->route_id])) {
+//					busline->addBusTrip(bustrip);
+//				}
+//				step++;
+//			}
+//			std::cout << "busline: BusTrip size: " << busline->queryBusTrips().size() << std::endl;
+//			pt_schedule.registerBusLine(curr->route_id, busline);
+//		}
 	}
 
 }

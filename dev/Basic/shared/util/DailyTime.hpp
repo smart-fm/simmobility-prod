@@ -74,11 +74,13 @@ public:
     inline const DailyTime& operator+=(const DailyTime& dailytime)
     {
 			time_ += dailytime.getValue();
+			repr_ = BuildStringRepr(time_);
             return *this;
     }
     inline const DailyTime& operator-=(const DailyTime& dailytime)
     {
 			time_ -= dailytime.getValue();
+			repr_ = BuildStringRepr(time_);
             return *this;
     }
     friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)

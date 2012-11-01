@@ -1,0 +1,56 @@
+
+ /* PassengerDistribution.hpp
+ *
+ * \author Meenu James
+ */
+
+#pragma once
+
+#include <boost/random.hpp>
+#include <boost/math/distributions.hpp>
+
+
+
+namespace sim_mob {
+
+///Simple base class for passenger time distributions
+class PassengerDist {
+public:
+	virtual double getnopassengers() = 0;
+};
+
+
+///Pre-specialized sub-classes for passenger time distributions
+class NormalPassengerDist : public PassengerDist {
+private:
+	boost::mt19937 gen;
+	boost::normal_distribution<double> dist;
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > varGen;
+
+public:
+	NormalPassengerDist(double mean, double stdev)
+	 : gen(), dist(mean, stdev), varGen(gen, dist)
+	{
+	}
+
+	virtual double getnopassengers() { return varGen(); }
+};
+
+///Pre-specialized sub-classes for reaction time distributions
+class LognormalPassengerDist : public PassengerDist {
+private:
+	boost::mt19937 gen;
+	boost::lognormal_distribution<double> dist;
+	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > varGen;
+
+public:
+	LognormalPassengerDist(double mean, double stdev)
+	 : gen(), dist(mean, stdev), varGen(gen, dist)
+	{
+	}
+
+	virtual double getnopassengers() { return varGen(); }
+};
+
+
+}

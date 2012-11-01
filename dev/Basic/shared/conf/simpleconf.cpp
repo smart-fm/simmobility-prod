@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
-
+#include <stdlib.h>
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEvent.hpp"
 #include "entities/Agent.hpp"
@@ -20,6 +20,7 @@
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
+
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -31,6 +32,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
 #include "geospatial/xmlLoader/geo8-driver.hpp"
@@ -1012,6 +1014,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
 
+
+
 	//Reaction time 2
 	//TODO: Refactor to avoid magic numbers
 	if (distributionType2==0) {
@@ -1022,7 +1026,51 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
 
+	//Save passenger distribution parameters
+		int passengerdistributionType1,passenger_crowdness_dist;
+	    int passengermean1,passenger_crowdness_mean,passengers_boarding,passengers_alighting;
+	    int passengerstandardDev1,passenger_crowdness_standard_dev;
+		handle.FirstChild("passenger_distributionType1").ToElement()->Attribute("value",&passengerdistributionType1);
+		handle.FirstChild("passenger_mean1").ToElement()->Attribute("value",&passengermean1);
+		handle.FirstChild("passenger_standardDev1").ToElement()->Attribute("value",&passengerstandardDev1);
 
+		handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passengers_boarding);
+
+
+
+		//use distribution to get the random no of  passengers inside bus
+		handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
+		handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
+		handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
+
+		handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passengers_alighting);
+		//for alighting passengers
+		//TODO: Refactor to avoid magic numbers
+		int no_of_passengers;
+		srand(time(NULL));
+		ConfigParams::GetInstance().percent_boarding=passengers_boarding;
+		ConfigParams::GetInstance().percent_alighting=passengers_alighting;
+		if (passengerdistributionType1==0) {
+			ConfigParams::GetInstance().passengerDist1 = new NormalPassengerDist(passengermean1, passengerstandardDev1);
+		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
+
+
+		} else if (passengerdistributionType1==1) {
+			ConfigParams::GetInstance().passengerDist1 = new LognormalPassengerDist(passengermean1, passengerstandardDev1);
+		} else {
+			throw std::runtime_error("Unknown magic reaction time number.");
+		}
+
+
+		//alighting passenger distribution
+		if (passenger_crowdness_dist==0) {
+					ConfigParams::GetInstance().passengerDist_crowdness = new NormalPassengerDist(passenger_crowdness_mean, passenger_crowdness_standard_dev);
+
+				} else if (passenger_crowdness_dist==1) {
+					ConfigParams::GetInstance().passengerDist_crowdness = new LognormalPassengerDist(passenger_crowdness_mean, passenger_crowdness_standard_dev);
+				} else {
+					throw std::runtime_error("Unknown magic reaction time number.");
+				}
 	//Driver::distributionType1 = distributionType1;
 	int signalAlgorithm;
 

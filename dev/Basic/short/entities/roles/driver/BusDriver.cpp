@@ -16,6 +16,8 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "util/DebugFlags.hpp"
 
+#include "util/PassengerDistribution.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::map;
@@ -30,6 +32,8 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , lastVisited_BusStop(mtxStrat,nullptr), lastVisited_BusStopSequenceNum(mtxStrat,0), real_DepartureTime(mtxStrat,0)
 , real_ArrivalTime(mtxStrat,0)
 {
+
+
 }
 
 
@@ -214,8 +218,29 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
 				real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
 
-				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
-				bus->setPassengerCount(pCount);
+
+
+						         PassengerDist* r1 = ConfigParams::GetInstance().passengerDist1;
+						         PassengerDist* r2 = ConfigParams::GetInstance().passengerDist_crowdness;
+						         double no_boarding=ConfigParams::GetInstance().percent_boarding;
+						         double no_alighting=ConfigParams::GetInstance().percent_alighting;
+							if (r1 && r2) {
+								no_passengers_busstop = r1->getnopassengers();
+								no_passengers_bus= r2->getnopassengers();
+
+								no_passengers_boarding=(no_boarding/100)*no_passengers_busstop;
+								no_passengers_alighting=(no_alighting/100)*no_passengers_bus;
+								bus->setPassengerCount(no_passengers_bus+no_passengers_boarding-no_passengers_alighting);
+								//create passenger objects
+								//delete passenger objects
+							} else {
+								throw std::runtime_error("Passenger distributions have not been initialized yet.");
+							       }
+
+
+
+				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
+				//bus->setPassengerCount(pCount);
 
 				if(!BusController::all_busctrllers_.empty()) {
 					BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);

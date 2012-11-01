@@ -37,6 +37,9 @@
 #include "entities/misc/BusTrip.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
+
+#include "entities/Bus.hpp"
 
 
 namespace sim_mob
@@ -95,6 +98,15 @@ public:
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
 	ReactionTimeDist* reactDist2;
+	//for generating passenger distribution
+
+
+	PassengerDist* passengerDist1;
+	PassengerDist* passengerDist_crowdness;
+
+	double percent_boarding;
+	double percent_alighting;
+//	PassengerDist* passengerDist_alighting;
 
 
 	//Number of agents skipped in loading
@@ -238,7 +250,7 @@ public:
 	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 
 private:
-	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
+	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr),passengerDist1(nullptr),passengerDist_crowdness(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

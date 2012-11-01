@@ -64,6 +64,10 @@ protected:
 
 //Basic data
 private:
+	size_t no_passengers_busstop;
+	size_t no_passengers_boarding;
+	size_t no_passengers_bus;
+	size_t no_passengers_alighting;
 	//BusRoute route;
 	const DemoBusStop* nextStop;
 	std::vector<DemoBusStop> stops;

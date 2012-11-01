@@ -7,7 +7,7 @@
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "conflux/AgentKeeper.hpp"
+#include "conflux/SegmentStats.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
 
@@ -17,7 +17,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
-class AgentKeeper;
+class SegmentStats;
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -115,7 +115,7 @@ private:
     }
 
     /*Map to store the vehicle counts of each road segment. */
-    boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> agentsOnSegments_global;
+    boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
 
     // No need to define the dtor.
 

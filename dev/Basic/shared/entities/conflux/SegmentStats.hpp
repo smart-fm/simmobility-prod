@@ -1,6 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
+
+#include <string>
 #include <boost/unordered_set.hpp>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -8,9 +10,33 @@
 
 namespace sim_mob {
 
-class LaneAgents {
+class LaneParams {
+	friend class LaneStats;
+	friend class SegmentStats;
+
+private:
+	double outputFlowRate;
+	double origOutputFlowRate;
+	int outputCounter;
+	double acceptRate;
+	double fraction;
+
 public:
-	LaneAgents() : queueCount(0) {}
+	LaneParams() : outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0),
+			acceptRate(0.0), fraction(0.0){}
+
+	double getOutputFlowRate() {return outputFlowRate;}
+	int getOutputCounter() {return outputCounter;}
+	double getAcceptRate() {return acceptRate;}
+
+	void setOutputFlowRate(double output) {outputFlowRate = output;}
+	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
+};
+
+class LaneStats {
+
+public:
+	LaneStats() : queueCount(0), laneParams(new LaneParams()) {}
 	std::vector<sim_mob::Agent*> laneAgents;
 	void addAgent(sim_mob::Agent* ag);
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
@@ -22,19 +48,11 @@ public:
 	void resetIterator();
 	sim_mob::Agent* next();
 
-	void initLaneStats(const sim_mob::Lane* lane);
+	void initLaneParams(const sim_mob::Lane* lane, double upSpeed);
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
-	void updateAcceptRate(const sim_mob::Lane* lane);
-	double getUpstreamSpeed(const Lane* lane);
-
-	struct SupplyStats {
-		double outputFlowRate;
-		double origOutputFlowRate;
-		int outputCounter;
-		double acceptRate;
-		double fraction;
-	}supplyStats;
+	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
+	LaneParams* laneParams;
 
 private:
 	unsigned int queueCount;
@@ -46,12 +64,11 @@ private:
  * Keeps a lane wise count of moving and queuing vehicles in a road segment.
  * Used by mid term supply
  */
-class AgentKeeper {
-	friend class sim_mob::LaneAgents;
+class SegmentStats {
 
 private:
 	const sim_mob::RoadSegment* roadSegment;
-	std::map<const sim_mob::Lane*, sim_mob::LaneAgents* > laneAgentsMap;
+	std::map<const sim_mob::Lane*, sim_mob::LaneStats* > laneStatsMap;
 
 	std::map<const sim_mob::Lane*, sim_mob::Agent* > frontalAgents;
 
@@ -62,11 +79,11 @@ private:
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
 
 public:
-	AgentKeeper(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
+	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
 
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	void absorbAgents(sim_mob::AgentKeeper* agKeeper);
+	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
@@ -75,12 +92,9 @@ public:
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
-	unsigned int numMovingInSegment();
-	unsigned int numQueueingInSegment();
 
 	sim_mob::Agent* getNext();
 	void resetFrontalAgents();
-	LaneAgents::SupplyStats getSupplyStats(const Lane* lane);
 
 	bool isDownstreamCopy() const {
 		return downstreamCopy;
@@ -88,6 +102,14 @@ public:
 
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
 	void setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
+
+	unsigned int numMovingInSegment(bool hasVehicle);
+	unsigned int numQueueingInSegment(bool hasVehicle);
+
+	sim_mob::LaneParams* getLaneParams(const Lane* lane);
+	double speed_density_function(bool hasVehicle);
+	void restoreLaneParams(const Lane* lane);
+	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
 
 	/**
 	 * laneInfinity stores the agents which are added to this road segment (when they have just become active) and

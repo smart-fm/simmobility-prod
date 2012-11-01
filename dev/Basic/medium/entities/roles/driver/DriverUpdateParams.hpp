@@ -35,7 +35,7 @@ struct DriverUpdateParams : public UpdateParams {
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner);
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
-	size_t currLaneIndex; //Cache of currLane's index.
+	//size_t currLaneIndex; //Cache of currLane's index. //melani-Oct-31
 	size_t nextLaneIndex; //for lane changing model
 
 	double currLaneOffset;
@@ -46,7 +46,7 @@ struct DriverUpdateParams : public UpdateParams {
 	DriverUpdateParams& operator=(DriverUpdateParams rhs)
 	{
 		currLane = rhs.currLane;
-		currLaneIndex = rhs.currLaneIndex;
+	//	currLaneIndex = rhs.currLaneIndex; //melani-Oct-31
 		nextLaneIndex = rhs.nextLaneIndex;
 
 		return *this;

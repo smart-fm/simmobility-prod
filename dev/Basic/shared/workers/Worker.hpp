@@ -37,7 +37,7 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
-#include "entities/conflux/AgentKeeper.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 
 namespace sim_mob
 {

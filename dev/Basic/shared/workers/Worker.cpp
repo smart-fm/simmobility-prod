@@ -316,14 +316,14 @@ void sim_mob::Worker::perform_flip()
 
 void sim_mob::Worker::perform_handover() {
 	// Agents to be handed over are in the downstream segments's SegmentStats
-	typedef std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> SegKeperMap;
+	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegStatsMap;
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
-		SegKeperMap handoverKeepersMap = (*it)->getSegmentAgentsDownstream();
-		for(SegKeperMap::iterator i = handoverKeepersMap.begin(); i != handoverKeepersMap.end(); i++)
+		SegStatsMap handoverKeepersMap = (*it)->getSegmentAgentsDownstream();
+		for(SegStatsMap::iterator i = handoverKeepersMap.begin(); i != handoverKeepersMap.end(); i++)
 		{
 			sim_mob::Conflux* targetConflux = (*i).first->getParentConflux();
-			sim_mob::AgentKeeper* downStreamAgKeeper = (*i).second;
+			sim_mob::SegmentStats* downStreamAgKeeper = (*i).second;
 			targetConflux->absorbAgentsAndUpdateCounts(downStreamAgKeeper);
 		}
 	}

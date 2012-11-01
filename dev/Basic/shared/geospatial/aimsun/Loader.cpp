@@ -1075,9 +1075,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
 	createSignals();
-
-	// construct confluxes.
-	sim_mob::aimsun::Loader::ProcessConfluxes(res);
 }
 #ifdef SIMMOB_NEW_SIGNAL
 void
@@ -1816,7 +1813,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 /*
  * iterates multinodes and creates confluxes for all of them
  */
-void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
+void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
 	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
 	sim_mob::Conflux* conflux = nullptr;
@@ -1853,7 +1850,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 				{
 					// assign only if not already assigned
 					(*segIt)->parentConflux = conflux;
-					conflux->segmentAgents.insert(std::make_pair((*segIt), new AgentKeeper(*segIt)));
+					conflux->segmentAgents.insert(std::make_pair((*segIt), new SegmentStats(*segIt)));
 				}
 				else
 				{
@@ -1865,11 +1862,11 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 			for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
 					segIt != downSegs.end(); segIt++)
 			{
-				conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new AgentKeeper(*segIt, true)));
+				conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new SegmentStats(*segIt, true)));
 			}
+
 		} // for
 		conflux->prepareLengthsOfSegmentsAhead();
-
 		confluxes.insert(conflux);
 	}
 }

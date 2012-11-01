@@ -1310,6 +1310,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;
 
+    //process confluxes
+    sim_mob::aimsun::Loader::ProcessConfluxes(ConfigParams::GetInstance().getNetwork());
+
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;

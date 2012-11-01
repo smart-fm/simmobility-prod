@@ -39,7 +39,8 @@ public:
 	/// A negative return value indicates that there is no relevant bus stop nearby.
 	double distanceToNextBusStop() const;
 
-	// get distance to bus stop of particular segment (meter)
+	/// get distance to bus stop of particular segment (meter)
+	/// A negative return value indicates that there is no relevant bus stop nearby.
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
 	bool isBusFarawayBusStop() const;
@@ -53,7 +54,7 @@ public:
 	double getPositionY() const;
 	Vehicle* initializePath_bus(bool allocateVehicle);
 
-	mutable double lastTickDistanceToBusStop;
+	double lastTickDistanceToBusStop;
 	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)

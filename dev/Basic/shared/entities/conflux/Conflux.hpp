@@ -18,7 +18,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "AgentKeeper.hpp"
+#include "SegmentStats.hpp"
 #include "workers/Worker.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -27,7 +27,7 @@
 namespace sim_mob {
 
 class RoadSegment;
-class AgentKeeper;
+class SegmentStats;
 
 namespace aimsun
 {
@@ -61,11 +61,11 @@ private:
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/* Map to store the vehicle counts of each road segment on this conflux */
-	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgents;
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
 
 	/* This is a temporary storage data structure from which the agents would be moved to segmentAgents of
 	 * another conflux during a flip (barrier synchronization). */
-	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> segmentAgentsDownstream;
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgentsDownstream;
 
 	/* Worker to which this conflux belongs to*/
 	sim_mob::Worker* parentWorker;
@@ -124,11 +124,11 @@ public:
 		return downstreamSegments;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgents() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getSegmentAgentsDownstream() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgentsDownstream() const {
 		return segmentAgentsDownstream;
 	}
 
@@ -154,12 +154,15 @@ public:
 	std::map<sim_mob::Lane*, std::pair<int, int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
 	// moving and queuing counts
-	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg);
-	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg);
+	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
+	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);
 	double getAcceptRate(const Lane* lane);
+	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
+	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);
+	void restoreSupplyStats(const Lane* lane);
 };
 
 } /* namespace sim_mob */

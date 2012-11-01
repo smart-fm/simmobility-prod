@@ -37,7 +37,7 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
-#include "entities/conflux/AgentKeeper.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 
 namespace sim_mob
 {
@@ -88,8 +88,8 @@ public:
 
 	int getAgentSize() { return managedEntities.size(); }
 
-	boost::unordered_map<const sim_mob::RoadSegment*, sim_mob::AgentKeeper*> getAgentsOnSegments();
-	sim_mob::AgentKeeper* getAgentKeeper(const sim_mob::RoadSegment* rdSeg);
+	boost::unordered_map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getAgentsOnSegments();
+	sim_mob::SegmentStats* getSegmentStats(const sim_mob::RoadSegment* rdSeg);
 
 protected:
 	virtual void perform_main(frame_t frameNumber);
@@ -157,7 +157,7 @@ private:
 	 * ~ harish
 	 * TODO: Revisit this. This will probably not be required with the confluxes in place.
 	 */
-	boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> agentsOnSegments;
+	boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

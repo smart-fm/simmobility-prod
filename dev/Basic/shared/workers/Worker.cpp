@@ -343,12 +343,12 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 	return false;
 }
 
-boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> sim_mob::Worker::getAgentsOnSegments() {
+boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> sim_mob::Worker::getAgentsOnSegments() {
 	return agentsOnSegments;
 }
 
-sim_mob::AgentKeeper* sim_mob::Worker::getAgentKeeper(const sim_mob::RoadSegment* rdSeg) {
-	boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*>::iterator it_map;
+sim_mob::SegmentStats* sim_mob::Worker::getSegmentStats(const sim_mob::RoadSegment* rdSeg) {
+	boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*>::iterator it_map;
 	it_map = agentsOnSegments.find(rdSeg);
 	if (it_map != agentsOnSegments.end())
 		return agentsOnSegments[rdSeg];

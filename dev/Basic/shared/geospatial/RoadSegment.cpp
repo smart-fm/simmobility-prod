@@ -161,7 +161,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 
 #endif
 
-double sim_mob::RoadSegment::computeLaneZeroLength() {
+double sim_mob::RoadSegment::computeLaneZeroLength() const{
 	double res = 0.0;
 	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
 	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)

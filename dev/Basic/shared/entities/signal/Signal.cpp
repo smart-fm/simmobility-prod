@@ -19,6 +19,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -640,7 +641,17 @@ void Signal_SCATS::updateLaneState(int phaseId) {
 						const Lane* lane = (*it_lcs)->getLaneFrom();
 						if (lane->is_pedestrian_lane())
 							continue;
-						//update Lane Statef
+						if ((*iter).second.currColor == sim_mob::Red)
+						{
+							//update lane supply stats - output flow rate = 0
+							lane->getRoadSegment()->getParentConflux()->updateSupplyStats(lane, 0.0);
+						}
+						else if ((*iter).second.currColor == sim_mob::Green ||
+								(*iter).second.currColor == sim_mob::Amber)
+						{
+							//update lane supply stats - set output flow rate to origOutputFlowRate
+							lane->getRoadSegment()->getParentConflux()->restoreSupplyStats(lane);
+						}
 					}
 
 				}

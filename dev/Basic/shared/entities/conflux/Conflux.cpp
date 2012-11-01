@@ -15,7 +15,7 @@ void sim_mob::Conflux::addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment
 	 * The agents always start at a node (for now), i.e. the start of a road segment.
 	 * So for now, we will always add the agent to the road segment in "lane infinity".
 	 */
-	sim_mob::AgentKeeper* rdSegVehicles = segmentAgents.at(rdSeg);
+	sim_mob::SegmentStats* rdSegVehicles = segmentAgents.at(rdSeg);
 	rdSegVehicles->laneInfinity.push(ag);
 }
 
@@ -51,7 +51,7 @@ void sim_mob::Conflux::updateUnsignalized(frame_t frameNumber) {
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
-	sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment(); // ToDo: change to segment getter
+	//sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment(); // ToDo: change to segment getter
 
 	//call agent's update
 	UpdateStatus res = ag->update(currFrameNumber);
@@ -70,10 +70,14 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 		throw std::runtime_error("Unknown/unexpected update() return status.");
 	}
 
-	sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
-	if(segBeforeUpdate != segAfterUpdate) {
+	//sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
+	//if(segBeforeUpdate != segAfterUpdate) {
 
-	}
+	//}
+}
+
+double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle){
+	return getSegmentAgents()[rdSeg]->speed_density_function(hasVehicle);
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
@@ -103,9 +107,8 @@ std::map<sim_mob::Lane*, std::pair<int, int> > sim_mob::Conflux::getLanewiseAgen
 	return segmentAgents[rdSeg]->getAgentCountsOnLanes();
 }
 
-unsigned int sim_mob::Conflux::numMovingInSegment(
-		const sim_mob::RoadSegment* rdSeg) {
-	return segmentAgents[rdSeg]->numMovingInSegment();
+unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle) {
+	return segmentAgents[rdSeg]->numMovingInSegment(hasVehicle);
 }
 
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
@@ -161,19 +164,29 @@ void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
 	}
 }
 
-unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg) {
-	return segmentAgents[rdSeg]->numQueueingInSegment();
+unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg,
+		bool hasVehicle) {
+	return segmentAgents[rdSeg]->numQueueingInSegment(hasVehicle);
 }
 
 double sim_mob::Conflux::getOutputFlowRate(const Lane* lane) {
-	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputFlowRate;
+	return segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->getOutputFlowRate();
 }
 
 int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
-	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).outputCounter;
+	return segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->getOutputCounter();
 }
 
 double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
-	return segmentAgents[lane->getRoadSegment()]->getSupplyStats(lane).acceptRate;
+	return segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->getAcceptRate();
 }
+
+void sim_mob::Conflux::updateSupplyStats(const Lane* lane, double newOutputFlowRate) {
+	segmentAgents[lane->getRoadSegment()]->updateLaneParams(lane, newOutputFlowRate);
+}
+
+void sim_mob::Conflux::restoreSupplyStats(const Lane* lane) {
+	segmentAgents[lane->getRoadSegment()]->restoreLaneParams(lane);
+}
+
 

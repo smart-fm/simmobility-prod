@@ -144,9 +144,10 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 
 	//Set our current and target lanes.
-	p.currLane = vehicle->getCurrLane();
-	p.currLaneIndex = getLaneIndex(p.currLane);
-	targetLaneIndex = p.currLaneIndex;
+	//p.currLane = vehicle->getCurrLane();
+	p.currLane = getBestTargetLane(*(vehicle->getCompletePath().begin()));
+//	p.currLaneIndex = getLaneIndex(p.currLane);//melani-Oct-31
+//	targetLaneIndex = p.currLaneIndex;//melani-Oct-31
 
 	//Vehicles start at rest
 	vehicle->setVelocity(0);
@@ -172,7 +173,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 
 	if(nextRdSeg){
 		p.currLane = getBestTargetLane(nextRdSeg);
-		p.currLaneIndex = getLaneIndex(p.currLane);
+	//	p.currLaneIndex = getLaneIndex(p.currLane); //melani-Oct-31
 	}
 	/*if (!vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false)) {
 		//Don't do this if there is no next link.
@@ -193,10 +194,10 @@ void sim_mob::medium::DriverUpdateParams::reset(frame_t frameNumber, unsigned in
 
 	//Set to the previous known buffered values
 	//currLane = owner.currLane_.get();
-	currLaneIndex = getLaneIndex(currLane);
+//	currLaneIndex = getLaneIndex(parentP->getCurrLane()); //melani-31-Oct
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
-	nextLaneIndex = currLaneIndex;
+//	nextLaneIndex = currLaneIndex;  //melani-31-Oct
 
 	//Reset; these will be set before they are used; the values here represent either default
 	//       values or are unimportant.
@@ -511,44 +512,6 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 	return res;
 }
 
-//This function is associated with the driver class for 2 reasons
-// 1. This function is specific to the medium term
-// 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(unsigned int numVehicles) {
-
-	/**
-	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
-	 * must be obtained from an external source (XML/Database)
-	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
-	 * This must be changed after we have this data for each road segment in the network.
-	 *
-	 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
-	 * This struct is to be used when we have actual values for the parameters.
-	 */
-
-	double density = numVehicles / (vehicle->getCurrLinkLaneZeroLength() / 100.0);
-
-	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	double minSpeed = 0.0;
-	double jamDensity = 1; //density during traffic jam
-	double alpha = 3.75; //Model parameter of speed density function
-	double beta = 0.5645; //Model parameter of speed density function
-	double minDensity = 0.0048; // minimum traffic density
-
-	//Speed-Density function
-	if(density <= minDensity){
-		return freeFlowSpeed;
-	}
-	else if (density >= jamDensity) {
-		return minSpeed;
-	}
-	else {
-		//TODO: Remove debugging print statement later ~ Harish
-		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << std::endl;
-		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha);
-	}
-}
-
 bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned int currTimeMS, double timeSpent)
 {
 //1.	copy logic from DynaMIT::moveToNextSegment
@@ -584,12 +547,14 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 	if(nextToNextRdSeg){
 		nextLaneInNextSegment = getBestTargetLane(nextToNextRdSeg);
-		targetLaneIndex = getLaneIndex(p.currLane);
+	//	targetLaneIndex = getLaneIndex(p.currLane); //melani-Oct-31
 	}
 	else{ //re-used the concept from short-term
-		size_t fallbackIndex = std::min(p.currLaneIndex, nextRdSeg->getLanes().size() - 1);
-		nextLaneInNextSegment = nextRdSeg->getLanes().at(fallbackIndex);
-		targetLaneIndex = fallbackIndex;
+	//	size_t fallbackIndex = std::min(p.currLaneIndex, nextRdSeg->getLanes().size() - 1); //melani-31-Oct
+	//	size_t fallbackIndex = std::min(getLaneIndex(p.currLane), nextRdSeg->getLanes().size() - 1); //melani-31-Oct
+	//	nextLaneInNextSegment = nextRdSeg->getLanes().at(fallbackIndex); //melani-31-Oct
+		nextLaneInNextSegment = nextRdSeg->getLanes().at(0);
+	//	targetLaneIndex = fallbackIndex; //melani-Oct-31
 	}
 
 	//not implemented yet
@@ -605,7 +570,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		}
 
 		p.currLane = nextLaneInNextSegment;
-		p.currLaneIndex = targetLaneIndex;
+	//	p.currLaneIndex = targetLaneIndex; //melani-Oct-31
 
 		if (isNewLinkNext)
 		{
@@ -659,8 +624,8 @@ bool sim_mob::medium::Driver::canGoToNextRdSeg(DriverUpdateParams& p, double tim
 
 	if ( !nextRdSeg) return false;
 
-	unsigned int total = nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg)
-			+ nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg);
+	unsigned int total = nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg, true)
+			+ nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
 
 	return total < nextRdSeg->getLanes().size()
 			* vehicle->getNextSegmentLength()/vehicle->length;
@@ -685,7 +650,6 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	std::map<sim_mob::Lane*, std::pair<int, int> > agentCounts = nextRdSeg->getParentConflux()->getLanewiseAgentCounts(nextRdSeg);
 
 	std::map<sim_mob::Lane*, std::pair<int, int> >::iterator i= agentCounts.begin();
-
 	unsigned short minQueueLength = std::numeric_limits<int>::max();
 	const sim_mob::Lane* minQueueLengthLane = nullptr;
 
@@ -932,8 +896,10 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	double tf = 0.0;
 
 	ss <<"upNode: "<<vehicle->getCurrSegment()->getStart()->getID()
-			<<"\tcurrSegment: "<< vehicle->getCurrSegment()->getSegmentID() << "\t time: " << t0
-			<< "\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
+			<<"\tcurrSegment: "<< vehicle->getCurrSegment()->getSegmentID()
+			<<"\tLane: "<< p.currLane->getLaneID_str()
+			<<"\t time: " << t0
+			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
 			<<"\ttime: "<<currTimeMS + t0*1000<<endl;
 	std::cout << ss.str();
 
@@ -1071,9 +1037,9 @@ bool sim_mob::medium::Driver::advanceMovingVehicleWithInitialQ(DriverUpdateParam
 }
 
 void sim_mob::medium::Driver::updateVelocity(){
-		// Fetch number of moving vehicles in the segment and compute speed from the speed density function
-		unsigned int numVehicles = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(vehicle->getCurrSegment());
-		vehicle->setVelocity(speed_density_function(numVehicles));
+	// Fetch number of moving vehicles in the segment and compute speed from the speed density function
+	vehicle->setVelocity(vehicle->getCurrSegment()->
+			getParentConflux()->getSegmentSpeed(vehicle->getCurrSegment(), true));
 }
 
 int sim_mob::medium::Driver::getOutputCounter(const Lane* l) {
@@ -1090,5 +1056,5 @@ double sim_mob::medium::Driver::getAcceptRate(const Lane* l) {
 
 double sim_mob::medium::Driver::getQueueLength(const Lane* l) {
 	return vehicle->getCurrSegment()->getParentConflux()->
-			numQueueingInSegment(vehicle->getCurrSegment())*vehicle->length;
+			numQueueingInSegment(vehicle->getCurrSegment(), true)*vehicle->length;
 }

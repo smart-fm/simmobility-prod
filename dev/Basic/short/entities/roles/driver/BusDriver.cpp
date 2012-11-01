@@ -297,6 +297,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		busAccelerating(p);
 	}
 
+	//Update our distance
+	lastTickDistanceToBusStop = distanceToNextBusStop();
+
 /*	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
@@ -382,18 +385,7 @@ bool sim_mob::BusDriver::isBusArriveBusStop() const
 bool sim_mob::BusDriver::isBusLeavingBusStop() const
 {
 	double distance = distanceToNextBusStop();
-	if (distance >=10 && distance < 50) {
-		if (distance < 0) {
-			lastTickDistanceToBusStop = distance;
-			return true;
-		} else if (lastTickDistanceToBusStop < distance) {
-			lastTickDistanceToBusStop = distance;
-			return true;
-		}
-	}
-
-	lastTickDistanceToBusStop = distance;
-	return false;
+	return distance>=10 && distance<50 && lastTickDistanceToBusStop<distance;
 }
 
 double sim_mob::BusDriver::distanceToNextBusStop() const

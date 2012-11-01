@@ -6,8 +6,7 @@
 #include "entities/vehicle/BusRoute.hpp"
 #include <vector>
 
-namespace sim_mob
-{
+namespace sim_mob {
 
 //Forward declarations
 class DriverUpdateParams;

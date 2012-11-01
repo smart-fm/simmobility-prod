@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <queue>
 #include <vector>
 #include <stdexcept>
@@ -209,6 +210,9 @@ private:
 	// one additional locking barrier is required to prevent Workers from rushing ahead
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
+
+public:
+	std::stringstream debugMsg;
 
 };
 

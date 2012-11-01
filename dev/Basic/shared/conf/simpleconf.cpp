@@ -1311,7 +1311,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Street Directory initialized" << std::endl;
 
     //process confluxes
+    std::cout << "confluxes size before: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
     sim_mob::aimsun::Loader::ProcessConfluxes(ConfigParams::GetInstance().getNetwork());
+    std::cout << "confluxes size after: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
 
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;

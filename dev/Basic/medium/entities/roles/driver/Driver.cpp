@@ -647,9 +647,9 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	//2. Select the lane with the least queue length
 	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
 
-	std::map<sim_mob::Lane*, std::pair<int, int> > agentCounts = nextRdSeg->getParentConflux()->getLanewiseAgentCounts(nextRdSeg);
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCounts = nextRdSeg->getParentConflux()->getLanewiseAgentCounts(nextRdSeg);
 
-	std::map<sim_mob::Lane*, std::pair<int, int> >::iterator i= agentCounts.begin();
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >::iterator i= agentCounts.begin();
 	unsigned short minQueueLength = std::numeric_limits<int>::max();
 	const sim_mob::Lane* minQueueLengthLane = nullptr;
 

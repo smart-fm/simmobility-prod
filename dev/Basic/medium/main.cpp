@@ -139,7 +139,8 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		agentWorkers->assignAWorker(*it);
+		// agentWorkers->assignAWorker(*it);
+		agentWorkers->assignConfluxToWorkers();
 	}
 
 	//Assign all signals too

@@ -174,7 +174,7 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
 	numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr), debugMsg(std::stringstream::out)
 {
 }
 
@@ -192,6 +192,8 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
 	safe_delete_item(macro_tick_barr);
+
+	std::cout << debugMsg.str();
 }
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
@@ -519,7 +521,7 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
 }
 
 /*
- * This method takes a conflux and assigns it to a worker and additionally tries to assign all the adjacent
+ * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent
  * confluxes to the same worker.
  *
  * Future work:
@@ -538,11 +540,15 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker;
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
+		debugMsg << "\nConflux: confluxes.size() = " << confluxes.size() << "\t workers.size() = " << workers.size();
 		numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 		if(numConfluxesPerWorker > 0){
+			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesPerWorker << ")";
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
+		debugMsg << "\nConflux: Worker " << (*i) << " manages " << (*i)->managedConfluxes.size() << " confluxes";
 	}
+	std::cout << debugMsg.str();
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
@@ -581,6 +587,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
 		{
 			// recusive call
+			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesToAddInWorker << ")";
 			assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
 		}
 		else

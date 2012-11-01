@@ -390,10 +390,12 @@ bool sim_mob::BusDriver::isBusLeavingBusStop() const
 
 double sim_mob::BusDriver::distanceToNextBusStop() const
 {
+	if (!vehicle->getCurrSegment() || !vehicle->hasNextSegment(true)) {
+		return -1;
+	}
+
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-	double distanceToNextSegmentBusStop;
-	if (vehicle->hasNextSegment(true))
-		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
+	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);

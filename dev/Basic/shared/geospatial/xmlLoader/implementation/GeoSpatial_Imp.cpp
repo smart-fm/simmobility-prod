@@ -74,16 +74,16 @@ void sim_mob::xml::GeoSpatial_t_pimpl::post_GeoSpatial_t ()
 }
 
 
-void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork ()
+void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 {
 	//TODO: Retrieving the RoadNetwork statically is a bad idea.
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
+	//sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
 
 	//Process various left-over items.
-	ProcessUniNodeConnectors(rn.getUniNodesRW());
-	ProcessUniNodeSegments(rn.getUniNodesRW());
-	ProcessMultiNodeConnectors(rn.getNodesRW());
-	ProcessMultiNodeSegments(rn.getNodesRW());
+	ProcessUniNodeConnectors(rn.getUniNodes());
+	ProcessUniNodeSegments(rn.getUniNodes());
+	ProcessMultiNodeConnectors(rn.getNodes());
+	ProcessMultiNodeSegments(rn.getNodes());
 
 	//Process LinkLocs
 	std::map<sim_mob::Node*, unsigned int>& linkLocs = Node_t_pimpl::GetLinkLocList();

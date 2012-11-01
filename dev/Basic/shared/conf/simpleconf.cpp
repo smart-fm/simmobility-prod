@@ -1567,7 +1567,7 @@ void printRoadNetwork_console()
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
 	std::cout << "Testin Road Network :\n";
 
-	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
+	std::vector<Link*>  & links = ConfigParams::GetInstance().getNetworkRW().getLinks();
 	std::cout << "\n\n\nList of Links\n";
 	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
 	{
@@ -1649,8 +1649,8 @@ void printRoadNetwork_console()
 	std::cout << "Total Number of Links: " << links.size() << std::endl;
 	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
 	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
-	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
-	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
+	std::cout << "\n\nTotal Number of Segment Nodes : " <<ConfigParams::GetInstance().getNetworkRW().getNodes().size() << std::endl;
+	std::cout << "Total Number of UniNodes : " <<ConfigParams::GetInstance().getNetworkRW().getUniNodes().size() << std::endl;
 
 
 	std::cout << "Testing Road Network Done\n";
@@ -1920,7 +1920,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
 #ifdef SIMMOB_PARTIAL_XML_READER
-    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName);
+    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW());
 #else
     		geo::InitAndLoadXML(XML_OutPutFileName);
 

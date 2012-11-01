@@ -6471,17 +6471,12 @@ namespace sim_mob
     //
 
     void RoadNetwork_t_pskel::
-    Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >&)
+    Nodes (const helper::NodesRes&)
     {
     }
 
     void RoadNetwork_t_pskel::
     Links (const std::vector<sim_mob::Link*>&)
-    {
-    }
-
-    void RoadNetwork_t_pskel::
-    post_RoadNetwork_t ()
     {
     }
 
@@ -8628,7 +8623,7 @@ namespace sim_mob
     //
 
     void GeoSpatial_t_pskel::
-    RoadNetwork ()
+    RoadNetwork (sim_mob::RoadNetwork&)
     {
     }
 
@@ -8670,10 +8665,7 @@ namespace sim_mob
       if (n == "RoadNetwork" && ns.empty ())
       {
         if (this->RoadNetwork_parser_)
-        {
-          this->RoadNetwork_parser_->post_RoadNetwork_t ();
-          this->RoadNetwork ();
-        }
+          this->RoadNetwork (this->RoadNetwork_parser_->post_RoadNetwork_t ());
 
         return true;
       }

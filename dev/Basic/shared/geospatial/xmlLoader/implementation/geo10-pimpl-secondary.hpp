@@ -9,18 +9,6 @@ namespace xml {
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
 
-///Helper namespace: contains typedefs for particularly verbose items
-namespace helper {
-
-//Was: geo_UniNode_Connectors_type
-typedef std::set<std::pair<unsigned long,unsigned long> > UniNodeConnectors;
-
-//Was: geo_MultiNode_Connectors_type
-typedef std::map<unsigned long, helper::UniNodeConnectors > MultiNodeConnectors;
-
-} //End helper namespace
-
-
 ///TODO: Can we remove this class?
 class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel {
 public:
@@ -296,7 +284,7 @@ public:
 	}*/
 
 	virtual void pre ();
-	virtual std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> > post_Nodes ();
+	virtual const helper::NodesRes& post_Nodes ();
 
 	virtual void UniNodes (const std::set<sim_mob::UniNode*>&);
 	virtual void Intersections (const std::vector<sim_mob::MultiNode*>&);
@@ -306,8 +294,7 @@ public:
 	static void RegisterNode(unsigned int id, sim_mob::Node* node);
 
 private:
-	std::set<sim_mob::UniNode*> uniNodes;
-	std::set<sim_mob::MultiNode*> multiNodes;
+	sim_mob::xml::helper::NodesRes model;
 
 	static std::map<unsigned int,sim_mob::Node*> Lookup;
 };

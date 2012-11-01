@@ -214,7 +214,7 @@ public:
 	virtual void pre ();
 	virtual void post_GeoSpatial_t ();
 
-	virtual void RoadNetwork ();
+	virtual void RoadNetwork (sim_mob::RoadNetwork&);
 };
 
 
@@ -310,16 +310,16 @@ public:
 
 class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel {
 public:
-	RoadNetwork_t_pimpl(); //TODO: No constructors!
+	RoadNetwork_t_pimpl(sim_mob::RoadNetwork& modelRef) : modelRef(modelRef) {}
 
 	virtual void pre ();
-	virtual void post_RoadNetwork_t ();
+	virtual sim_mob::RoadNetwork& post_RoadNetwork_t ();
 
-	virtual void Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >&);
+	virtual void Nodes (const sim_mob::xml::helper::NodesRes&);
 	virtual void Links (const std::vector<sim_mob::Link*>&);
 
 private:
-  sim_mob::RoadNetwork& modelRef;
+	sim_mob::RoadNetwork& modelRef;
 };
 
 

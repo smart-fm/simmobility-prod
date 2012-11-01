@@ -11,13 +11,14 @@
 
 #include "geo10-pimpl.hpp"
 
-bool sim_mob::xml::InitAndLoadXML(const std::string& fileName) {
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork) {
 	try {
-		// Instantiate individual parsers.
-		//
+		//Complex (usually optimized) parsers require external information.
+		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
+
+		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
 		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p;
-		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p;
 		::sim_mob::xml::Nodes_pimpl Nodes_p;
 		::sim_mob::xml::UniNodes_pimpl UniNodes_p;
 		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p;

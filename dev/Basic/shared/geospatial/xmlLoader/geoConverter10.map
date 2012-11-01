@@ -13,6 +13,7 @@ namespace http://www.smart.mit.edu/geo  {
 	include "util/DailyTime.hpp";
 	include "entities/misc/TripChain.hpp";
 	include "entities/signal/Signal.hpp";
+	include "geospatial/xmlLoader/geo10-helper.hpp";
 
 
 #All container types return by value, and are then passed in by const-reference (default for value types)
@@ -21,10 +22,13 @@ Links          std::vector<sim_mob::Link*>;
 Segments      "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
 
 #Note: It makes sense to return these by const reference, since we have a local field holding them anyway.
-Nodes          "std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >";
+Nodes          "const helper::NodesRes&";
 UniNodes       "const std::set<sim_mob::UniNode*>&";
 Intersections  "const std::vector<sim_mob::MultiNode*>&";
 roundabouts    "const std::vector<sim_mob::MultiNode*>&";
+
+#The RoadNetwork is a special case, as it represents an optimization. Return by ref.
+RoadNetwork_t    "sim_mob::RoadNetwork&";
 
 
 #TODO: Rename AFTER we merge.

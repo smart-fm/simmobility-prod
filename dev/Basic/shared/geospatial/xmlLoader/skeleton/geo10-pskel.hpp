@@ -151,6 +151,7 @@ namespace sim_mob
 
 #include "util/DailyTime.hpp"
 #include "metrics/Length.hpp"
+#include "geospatial/xmlLoader/geo10-helper.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -2584,13 +2585,13 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >&);
+      Nodes (const helper::NodesRes&);
 
       virtual void
       Links (const std::vector<sim_mob::Link*>&);
 
-      virtual void
-      post_RoadNetwork_t ();
+      virtual sim_mob::RoadNetwork&
+      post_RoadNetwork_t () = 0;
 
       // Parser construction API.
       //
@@ -3921,7 +3922,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      RoadNetwork ();
+      RoadNetwork (sim_mob::RoadNetwork&);
 
       virtual void
       post_GeoSpatial_t ();
@@ -4121,7 +4122,7 @@ namespace sim_mob
       virtual void
       roundabouts (const std::vector<sim_mob::MultiNode*>&);
 
-      virtual std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >
+      virtual const helper::NodesRes&
       post_Nodes () = 0;
 
       // Parser construction API.

@@ -28,33 +28,30 @@ void sim_mob::xml::Nodes_pimpl::RegisterNode(unsigned int id, sim_mob::Node* nod
 void sim_mob::xml::Nodes_pimpl::pre ()
 {
 	//Clear it in case post() wasn't called.
-	uniNodes.clear();
-	multiNodes.clear();
+	model = helper::NodesRes();
 	Lookup.clear();
 }
 
-std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> > sim_mob::xml::Nodes_pimpl::post_Nodes ()
+const helper::NodesRes& sim_mob::xml::Nodes_pimpl::post_Nodes ()
 {
-	//TODO: There's really no need to make a copy; we've been dealing with references all along.
-	//      Perhaps we should find a way to pass "uniNodes" on to the appropriate parser?
-	return std::make_pair(uniNodes, multiNodes);
+	return model;
 }
 
 void sim_mob::xml::Nodes_pimpl::UniNodes (const std::set<sim_mob::UniNode*>& value)
 {
-	uniNodes = value;
+	model.uniNodes = value;
 	//rn.setSegmentNodes(value);
 }
 
 void sim_mob::xml::Nodes_pimpl::Intersections (const std::vector<sim_mob::MultiNode*>& value)
 {
-	multiNodes.insert(value.begin(), value.end());
+	model.multiNodes.insert(value.begin(), value.end());
 	//rn.addNodes(value);
 }
 
 void sim_mob::xml::Nodes_pimpl::roundabouts (const std::vector<sim_mob::MultiNode*>& value)
 {
-	multiNodes.insert(value.begin(), value.end());
+	model.multiNodes.insert(value.begin(), value.end());
 	//rn.addNodes(value);
 }
 

@@ -4,23 +4,27 @@ using namespace sim_mob::xml;
 
 
 ///TODO: Accessing static data this way is bad!
-sim_mob::xml::RoadNetwork_t_pimpl::RoadNetwork_t_pimpl() :
+/*sim_mob::xml::RoadNetwork_t_pimpl::RoadNetwork_t_pimpl() :
 	modelRef(sim_mob::ConfigParams::GetInstance().getNetworkRW())
 {
-}
+	//TODO: Is it safe to put this here?
+	//NOTE: This breaks encapsulation, since we'd have to cast to the _imp child class. There's probably a better way.
+	//Nodes_parser_->setNodesArray(). ...or something?
+}*/
 
-void sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
+sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 {
+	return modelRef;
 }
 
 void sim_mob::xml::RoadNetwork_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const std::pair< std::set<sim_mob::UniNode*>, std::set<sim_mob::MultiNode*> >& value)
+void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 {
-	modelRef.segmentnodes = value.first;
-	modelRef.nodes.insert(modelRef.nodes.end(), value.second.begin(), value.second.end());
+	modelRef.segmentnodes = value.uniNodes;
+	modelRef.nodes.insert(modelRef.nodes.end(), value.multiNodes.begin(), value.multiNodes.end());
 
 	//TODO: Why isn't this a set?
 	//modelRef.nodes = value.second;

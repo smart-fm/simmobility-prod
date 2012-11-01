@@ -22,20 +22,23 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 
-namespace sim_mob
-{
+namespace sim_mob {
+
 class Bus;
 
-class BusController : public sim_mob::Agent
-{
+class BusController : public sim_mob::Agent {
+private:
+	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
+		frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), currLink(nullptr)
+	{}
+
 public:
 	//Note: I am making this a pointer, since the all_agents array is now cleared and deleted on exit.
-	//      Otherwise, it will attempt to delete itself twice.
-	//static BusController* busctrller;
+	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
 	static void registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
-	~BusController();
+	//virtual ~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
@@ -68,8 +71,6 @@ public:
 	void setPTSchedule();
 
 private:
-	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
-
 	void dispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);

@@ -12,6 +12,7 @@ vector<BusController*> BusController::all_busctrllers_;// Temporary saved all th
 //NOTE: Using a shared static variable is MUCH better than using a global variable. ~Seth
 //sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusController(0);
 
+
 void sim_mob::BusController::registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
 	//TODO: Why not just use the Agent auto-id generator? (id==-1)  ~Seth
@@ -20,14 +21,9 @@ void sim_mob::BusController::registerBusController(unsigned int startTime, const
 	all_busctrllers_.push_back(busctrller);
 }
 
-sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
-	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true)
+/*sim_mob::BusController::~BusController()
 {
-}
-
-sim_mob::BusController::~BusController()
-{
-}
+}*/
 
 sim_mob::Link* sim_mob::BusController::getCurrLink(){
 	return currLink;

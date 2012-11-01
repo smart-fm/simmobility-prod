@@ -465,7 +465,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 //			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
-			//updateLaneState(currPhaseID);
+			updateLaneState(currPhaseID);
 		}
 	if(isNewCycle && signalAlgorithm)
 		newCycleUpdate();//major update!

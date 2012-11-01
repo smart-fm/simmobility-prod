@@ -65,26 +65,13 @@ double getInitialQueueLength(const Lane* l) {
 double getLastAccept(const Lane* l) {
 	return -1.0;
 }
-
-unsigned int getNumMovingVehiclesInRoadSegment(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehiclesCount, const sim_mob::RoadSegment* rdSeg){
-	unsigned int numVehicles = 0;
-
-	const std::vector<sim_mob::Lane*> requiredLanes = rdSeg->getLanes();
-	for(std::vector<sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
-			laneIt!=requiredLanes.end();
-			laneIt++ )
-	{
-		numVehicles += laneWiseMovingVehiclesCount[*laneIt];
-	}
-	return numVehicles;
-}
 } //end of anonymous namespace
 
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
 	Role(parent), remainingTimeToComplete(0), /*currLane_(mtxStrat, nullptr),*/
-	currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0),
-	nextLaneInNextSegment(nullptr), targetLaneIndex(0), vehicle(nullptr),
+	/*currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0),*/
+	nextLaneInNextSegment(nullptr), /*targetLaneIndex(0),*/ vehicle(nullptr),
 	intModel(new SimpleIntDrivingModel()),
 	params(parent->getGenerator())
 {
@@ -109,8 +96,8 @@ sim_mob::medium::Driver::~Driver() {
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 	vector<BufferedBase*> res;
 	//res.push_back(&(currLane_));
-	res.push_back(&(currLaneOffset_));
-	res.push_back(&(currLaneLength_));
+	//res.push_back(&(currLaneOffset_));
+	//res.push_back(&(currLaneLength_));
 	return res;
 }
 
@@ -153,7 +140,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	vehicle->setVelocity(0);
 
 	//Calculate and save the total length of the current polyline.
-	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
+	//p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 
 	//if the first road segment is the last one in this link
 	//if (!vehicle->hasNextSegment(true)) {
@@ -195,8 +182,8 @@ void sim_mob::medium::DriverUpdateParams::reset(frame_t frameNumber, unsigned in
 	//Set to the previous known buffered values
 	//currLane = owner.currLane_.get();
 //	currLaneIndex = getLaneIndex(parentP->getCurrLane()); //melani-31-Oct
-	currLaneLength = owner.currLaneLength_.get();
-	currLaneOffset = owner.currLaneOffset_.get();
+//	currLaneLength = owner.currLaneLength_.get();
+//	currLaneOffset = owner.currLaneOffset_.get();
 //	nextLaneIndex = currLaneIndex;  //melani-31-Oct
 
 	//Reset; these will be set before they are used; the values here represent either default

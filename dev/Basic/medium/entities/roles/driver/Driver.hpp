@@ -124,8 +124,8 @@ protected:
 public:
 	//Buffered data
 	//Shared<const Lane*> currLane_;
-	Shared<double> currLaneOffset_;
-	Shared<double> currLaneLength_;
+	//Shared<double> currLaneOffset_;
+	//Shared<double> currLaneLength_;
 
 	/*
 	 * Making params public to expose information like justChangedToNewSegment,
@@ -149,7 +149,7 @@ public:
 private:
 	//const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
 	const Lane* nextLaneInNextSegment;
-	size_t targetLaneIndex;
+	//size_t targetLaneIndex;
 	//size_t currLaneIndex;
 	mutable std::stringstream DebugStream;
 	NodePoint origin;

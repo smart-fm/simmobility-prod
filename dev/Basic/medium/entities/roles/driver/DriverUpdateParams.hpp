@@ -38,8 +38,8 @@ struct DriverUpdateParams : public UpdateParams {
 	//size_t currLaneIndex; //Cache of currLane's index. //melani-Oct-31
 	size_t nextLaneIndex; //for lane changing model
 
-	double currLaneOffset;
-	double currLaneLength;
+	//double currLaneOffset;
+	//double currLaneLength;
 	double elapsedSeconds;
 	double timeThisTick;
 
@@ -47,7 +47,7 @@ struct DriverUpdateParams : public UpdateParams {
 	{
 		currLane = rhs.currLane;
 	//	currLaneIndex = rhs.currLaneIndex; //melani-Oct-31
-		nextLaneIndex = rhs.nextLaneIndex;
+	//	nextLaneIndex = rhs.nextLaneIndex;
 
 		return *this;
 	}

@@ -105,6 +105,8 @@ private:
 
 class link_t_pimpl: public virtual link_t_pskel {
 public:
+	link_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::Link* post_link_t ();
 
@@ -116,6 +118,7 @@ public:
 
 private:
 	sim_mob::Link model;
+	helper::Bookkeeping& book;
 };
 
 

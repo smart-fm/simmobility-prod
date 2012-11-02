@@ -2537,14 +2537,14 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 		  (*node_it)->secondPair = std::make_pair(secondPair_first,secondPair_second);
 	  }
 //	  //linkLoc //todo later
-	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
+	 /* geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
 	  for(geo_LinkLoc_random::iterator link_it = linkLocs.begin(), it_end(linkLocs.end()); link_it != it_end; link_it++)
 	  {
 		  for(std::vector<sim_mob::Node*>::iterator node_it = link_it->node.begin(); node_it != link_it->node.end() ; node_it++)
 		  {
 			 (*node_it)->setLinkLoc( geo_Links_[link_it->linkID]);
 		  }
-	  }
+	  }*/
   }
 
   void GeoSpatial_t_pimpl::

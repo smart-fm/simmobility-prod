@@ -53,8 +53,8 @@ class Loader;
  */
 class Link : public sim_mob::Traversable {
 public:
-	Link() : Traversable() {}
-	Link(unsigned int linkID_) : Traversable(),linkID(linkID_) {}
+	Link() : Traversable(), linkID(0), currWorker(nullptr) {}
+	Link(unsigned int linkID_) : Traversable(),linkID(linkID_), currWorker(nullptr) {}
 
 	//TODO: Temp, for XML
 	void setStart(sim_mob::Node* st) { this->start = st; }

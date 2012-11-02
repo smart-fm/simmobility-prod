@@ -425,6 +425,12 @@ public:
     ///Print the Walking graph to LogOut(), in the old output format (out.txt)
     void printWalkingGraph();
 
+    ///Return the Link associated with a given Node.
+    ///Appears to associate Nodes based on an arbitrary choice (whether they appear as "start" nodes in a Link)
+    ///However, since multiple Links share the same "start" Node, this isn't very realistic. Leaving in for now for
+    /// compatibility purposes.
+    const sim_mob::Link* getLinkLoc(const sim_mob::Node* node) const;
+
     ///Helper: find the nearest MultiNode to this Segment.
     static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
 
@@ -452,6 +458,11 @@ private:
 
     ///A lookup of all Signals in the RoadNetwork
     std::map<const Node*, Signal const*> signals_;
+
+    ///A lookup of all Nodes/Links by a very specific criteria; see getLinkLoc() above.
+    /// This criteria should definitely be re-examined.
+	std::map<const sim_mob::Node*, const sim_mob::Link*> node_link_loc_cache;
+
 
 
     // Using the pimple design pattern.  Impl is defined in the source file.

@@ -46,12 +46,12 @@ void sim_mob::xml::link_t_pimpl::roadName (const ::std::string& value)
 
 void sim_mob::xml::link_t_pimpl::StartingNode (unsigned int value)
 {
-	model.setStart(Nodes_pimpl::LookupNode(value));
+	model.setStart(book.getNode(value));
 }
 
 void sim_mob::xml::link_t_pimpl::EndingNode (unsigned int value)
 {
-	model.setEnd(Nodes_pimpl::LookupNode(value));
+	model.setEnd(book.getNode(value));
 }
 
 void sim_mob::xml::link_t_pimpl::Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >& value)

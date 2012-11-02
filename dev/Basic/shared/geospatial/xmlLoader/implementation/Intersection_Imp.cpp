@@ -72,7 +72,7 @@ sim_mob::MultiNode* sim_mob::xml::intersection_t_pimpl::post_intersection_t ()
 	res->location = sim_mob::Point2D(tempNode.getLocation());
 	res->setID(tempNode.getID());
 	res->originalDB_ID = tempNode.originalDB_ID;
-	RegisterLinkLoc(res, linkLocSaved);
+	//RegisterLinkLoc(res, linkLocSaved);
 
 	//Nodes_pimpl::RegisterNode(res->getID(), res);
 

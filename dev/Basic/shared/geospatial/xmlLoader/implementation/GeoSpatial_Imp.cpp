@@ -56,8 +56,10 @@ void CacheRoadSegmentsAtMultiNodes(sim_mob::Node* node, sim_mob::RoadSegment* rs
 void CacheRoadSegmentsAtMultiNodes(std::vector<sim_mob::RoadSegment*>& roadway) {
 	for (std::vector<sim_mob::RoadSegment*>::iterator it=roadway.begin(); it!=roadway.end(); it++) {
 		//NOTE: Just add to both start and end; make no assumptions that roads start/end one after the other.
-		CacheRoadSegmentsAtMultiNodes((*it)->getStart(), *it);
-		CacheRoadSegmentsAtMultiNodes((*it)->getEnd(), *it);
+		sim_mob::Node* start = (*it)->getStart();
+		sim_mob::Node* end = (*it)->getEnd();
+		CacheRoadSegmentsAtMultiNodes(start, *it);
+		CacheRoadSegmentsAtMultiNodes(end, *it);
 	}
 }
 
@@ -102,11 +104,5 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 	//Process various left-over items.
 	ProcessUniNodeConnectors(rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
-
-	//Process LinkLocs
-	std::map<sim_mob::Node*, unsigned int>& linkLocs = Node_t_pimpl::GetLinkLocList();
-	for (std::map<sim_mob::Node*, unsigned int>::iterator it=linkLocs.begin(); it!=linkLocs.end(); it++) {
-		it->first->setLinkLoc(Links_pimpl::LookupLink(it->second));
-	}
 }
 

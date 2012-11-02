@@ -51,6 +51,16 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     }
     pimpl_ = new GridStreetDirectoryImpl(network, gridWidth, gridHeight);
     spImpl_ = new A_StarShortestPathImpl(network);
+
+    //Save a cache of Nodes to Links
+	const std::vector<sim_mob::Link*>& links = network.getLinks();
+	for (std::vector<sim_mob::Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
+		//Just overwrite the saved value for that Node; this is why node_link_loc is an arbitrary field.
+		node_link_loc_cache[(*it)->getStart()] = *it;
+		node_link_loc_cache[(*it)->getEnd()] = *it;
+	}
+
+
 }
 
 void sim_mob::StreetDirectory::updateDrivingMap()
@@ -133,6 +143,15 @@ void sim_mob::StreetDirectory::printWalkingGraph()
 	if (spImpl_) {
 		spImpl_->printWalkingGraph();
 	}
+}
+
+const sim_mob::Link* sim_mob::StreetDirectory::getLinkLoc(const sim_mob::Node* node) const
+{
+	std::map<const sim_mob::Node*, const sim_mob::Link*>::const_iterator it = node_link_loc_cache.find(node);
+	if (it!=node_link_loc_cache.end()) {
+		return it->second;
+	}
+	return nullptr;
 }
 
 double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)

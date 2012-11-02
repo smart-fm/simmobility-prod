@@ -36,15 +36,15 @@ struct NodesRes {
 ///  Shared<>'s Locked<> version for sample code). Anyway, for now we are not reading the road network in parallel.
 class Bookkeeping {
 public:
-	void addNode(const sim_mob::Node* node) {
+	void addNode(sim_mob::Node* node) {
 		unsigned long id = node->getID();
 		if (nodeLookup.count(id)>0) {
 			throw std::runtime_error("Node already registered with bookkeeper.");
 		}
 		nodeLookup[id] = node;
 	}
-	const sim_mob::Node* getNode(unsigned long id) const {
-		std::map<unsigned long, const sim_mob::Node*>::const_iterator it = nodeLookup.find(id);
+	sim_mob::Node* getNode(unsigned long id) const {
+		std::map<unsigned long, sim_mob::Node*>::const_iterator it = nodeLookup.find(id);
 		if (it!=nodeLookup.end()) {
 			return it->second;
 		}
@@ -70,7 +70,7 @@ public:
 	}
 
 private:
-	std::map<unsigned long, const sim_mob::Node*> nodeLookup;
+	std::map<unsigned long, sim_mob::Node*> nodeLookup;
 
 	//
 	//TODO: The following items need to be removed once we merge our XML code.

@@ -5,7 +5,6 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::TripChains_t_pimpl::pre ()
 {
-	//model = sim_mob::ConfigParams::GetInstance().getTripChains();
 }
 
 void sim_mob::xml::TripChains_t_pimpl::post_TripChains_t ()

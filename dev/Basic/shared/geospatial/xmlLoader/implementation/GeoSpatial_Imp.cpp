@@ -93,13 +93,9 @@ void sim_mob::xml::GeoSpatial_t_pimpl::post_GeoSpatial_t ()
 
 void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 {
-	//TODO: Retrieving the RoadNetwork statically is a bad idea.
-	//sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
-
 	//Parse and save "RoadSegmentsAt"
 	CacheRoadSegmentsAtUniNodes(rn.getUniNodes());
 	CacheRoadSegmentsAtMultiNodes(rn.getLinks());
-
 
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());

@@ -3,15 +3,6 @@
 using namespace sim_mob::xml;
 
 
-///TODO: Accessing static data this way is bad!
-/*sim_mob::xml::RoadNetwork_t_pimpl::RoadNetwork_t_pimpl() :
-	modelRef(sim_mob::ConfigParams::GetInstance().getNetworkRW())
-{
-	//TODO: Is it safe to put this here?
-	//NOTE: This breaks encapsulation, since we'd have to cast to the _imp child class. There's probably a better way.
-	//Nodes_parser_->setNodesArray(). ...or something?
-}*/
-
 sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 {
 	return modelRef;

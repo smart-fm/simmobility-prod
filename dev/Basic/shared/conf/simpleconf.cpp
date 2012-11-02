@@ -928,20 +928,6 @@ void PrintDB_Network()
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
 
-	//NOT NEEDED ANYMORE!
-//	//Temp: Print ordering of output Links
-//	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-//		size_t count = 1;
-//		std::vector< std::pair<RoadSegment*, bool> >& vec = (*it)->roadSegmentsCircular;
-//		for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
-//			LogOutNotSync("(\"tmp-circular\", 0, " <<0 <<", {");
-//			LogOutNotSync("\"at-node\":\"" <<*it <<"\",");
-//			LogOutNotSync("\"at-segment\":\"" <<it2->first <<"\",");
-//			LogOutNotSync("\"fwd\":\"" <<it2->second <<"\",");
-//			LogOutNotSync("\"number\":\"" <<count++ <<"\",");
-//			LogOutNotSync("})" <<endl);
-//		}
-//	}
 #endif
 }
 struct Sorter {
@@ -1257,20 +1243,7 @@ void PrintDB_Network_ptrBased()
 //	StreetDirectory::instance().printWalkingGraph();
 //
 
-	//NOT NEEDED ANYMORE!
-//	//Temp: Print ordering of output Links
-//	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-//		size_t count = 1;
-//		std::vector< std::pair<RoadSegment*, bool> >& vec = (*it)->roadSegmentsCircular;
-//		for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
-//			LogOutNotSync("(\"tmp-circular\", 0, " <<0 <<", {");
-//			LogOutNotSync("\"at-node\":\"" <<*it <<"\",");
-//			LogOutNotSync("\"at-segment\":\"" <<it2->first <<"\",");
-//			LogOutNotSync("\"fwd\":\"" <<it2->second <<"\",");
-//			LogOutNotSync("\"number\":\"" <<count++ <<"\",");
-//			LogOutNotSync("})" <<endl);
-//		}
-//	}
+
 #endif
 }
 
@@ -1511,20 +1484,7 @@ void PrintDB_Network_idBased()
 //	StreetDirectory::instance().printWalkingGraph();
 //
 
-	//NOT NEEDED ANYMORE!
-//	//Temp: Print ordering of output Links
-//	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-//		size_t count = 1;
-//		std::vector< std::pair<RoadSegment*, bool> >& vec = (*it)->roadSegmentsCircular;
-//		for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
-//			LogOutNotSync("(\"tmp-circular\", 0, " <<0 <<", {");
-//			LogOutNotSync("\"at-node\":\"" << (*it)->getID() <<"\",");
-//			LogOutNotSync("\"at-segment\":\"" <<it2->first->getSegmentID() <<"\",");
-//			LogOutNotSync("\"fwd\":\"" <<it2->second <<"\",");
-//			LogOutNotSync("\"number\":\"" <<count++ <<"\",");
-//			LogOutNotSync("})" <<endl);
-//		}
-//	}
+
 #endif
 }
 

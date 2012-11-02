@@ -15,6 +15,9 @@ namespace http://www.smart.mit.edu/geo  {
 	include "entities/signal/Signal.hpp";
 	include "geospatial/xmlLoader/geo10-helper.hpp";
 
+## TODO:
+#   1) Remove Intersection::segmentsAt
+
 
 #All container types return by value, and are then passed in by const-reference (default for value types)
 # We generally name all container types with _Vec/_Map, since these will be handled as automatically as possible.

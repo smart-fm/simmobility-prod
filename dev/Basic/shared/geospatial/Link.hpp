@@ -85,6 +85,7 @@ public:
 	/// RoadSegments that should actually be read as end->start, not start->end.
 	 
 	const std::vector<sim_mob::RoadSegment*>& getPath(bool isForward) const;
+	std::vector<sim_mob::RoadSegment*>& getPath(bool isForward);
 
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.

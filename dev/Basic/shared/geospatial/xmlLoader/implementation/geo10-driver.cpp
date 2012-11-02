@@ -19,6 +19,7 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		//Complex (usually optimized) parsers require external information.
 		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
 		::sim_mob::xml::Nodes_pimpl Nodes_p(book);
+		::sim_mob::xml::Activity_t_pimpl Activity_t_p(book);
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -81,7 +82,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 		::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
 		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p;
-		::sim_mob::xml::Activity_t_pimpl Activity_t_p;
 		::sim_mob::xml::Signals_t_pimpl Signals_t_p;
 		::sim_mob::xml::Signal_t_pimpl Signal_t_p;
 		::xml_schema::unsigned_byte_pimpl unsigned_byte_p;

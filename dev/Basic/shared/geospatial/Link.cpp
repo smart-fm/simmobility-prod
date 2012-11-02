@@ -133,6 +133,15 @@ const vector<RoadSegment*>& sim_mob::Link::getPath(bool isForward) const
 	}
 }
 
+vector<RoadSegment*>& sim_mob::Link::getPath(bool isForward)
+{
+	if (isForward) {
+		return fwdSegments;
+	} else {
+		return revSegments;
+	}
+}
+
 string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 {
 	//Return something like RoadName-10F, which means it's the 10th item in a forward-directional segment.

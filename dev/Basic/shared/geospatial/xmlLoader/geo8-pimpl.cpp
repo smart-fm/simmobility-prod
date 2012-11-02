@@ -2505,7 +2505,6 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 		  }
 	  }
 //	  //will not be needed in the new version of road network graphs
-//	  //multinodes roadSegmentsCircular
 //	  sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
 //	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
 //	  {

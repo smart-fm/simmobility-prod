@@ -6,23 +6,23 @@ using namespace sim_mob::xml;
 namespace {
 
 //Helper: Create LaneConnector entries for a single UniNode
-void ProcessUniNodeConnectors(sim_mob::UniNode* node, UniNode_t_pimpl::LaneConnectSet connectors) {
-	for(UniNode_t_pimpl::LaneConnectSet::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
+void ProcessUniNodeConnectors(sim_mob::UniNode* node, helper::Bookkeeping::UNConnect connectors) {
+	for(helper::Bookkeeping::UNConnect::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
 		node->setConnectorAt(Lanes_pimpl::LookupLane(it->first), Lanes_pimpl::LookupLane(it->second));
 	}
 }
 
 //Helper: Create LaneConnector entries for all UniNodes
-void ProcessUniNodeConnectors(std::set<sim_mob::UniNode*>& nodes) {
+void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
 	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
-		ProcessUniNodeConnectors(*it, UniNode_t_pimpl::GetConnectors(*it));
+		ProcessUniNodeConnectors(*it, book.getUniNodeLaneConnectorCache(*it));
 	}
 }
 
 
 //Helper: Create LaneConnector entries for a single MultiNode
-void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, intersection_t_pimpl::LaneConnectSet connectors) {
-	for(intersection_t_pimpl::LaneConnectSet::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
+void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, helper::Bookkeeping::MNConnect connectors) {
+	for(helper::Bookkeeping::MNConnect::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
 		std::set<sim_mob::LaneConnector*> connectors;
 		helper::UniNodeConnectors& rawConnectors = it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
 		for(helper::UniNodeConnectors::iterator laneIt = rawConnectors.begin(); laneIt != rawConnectors.end(); laneIt++) {
@@ -102,7 +102,7 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 
 
 	//Process various left-over items.
-	ProcessUniNodeConnectors(rn.getUniNodes());
+	ProcessUniNodeConnectors(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
 }
 

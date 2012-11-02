@@ -4,7 +4,7 @@ using namespace sim_mob::xml;
 
 //TODO: Using a static field like this means we can't support multi-threaded loading of different networks.
 //      It shouldn't be too hard to add some "temporary" object at a scope global to the parser classes. ~Seth
-std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet> sim_mob::xml::UniNode_t_pimpl::ConnectCache;
+/*std::map<sim_mob::UniNode*, UniNode_t_pimpl::LaneConnectSet> sim_mob::xml::UniNode_t_pimpl::ConnectCache;
 std::map<sim_mob::UniNode*, std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair> > sim_mob::xml::UniNode_t_pimpl::SegmentPairCache;
 
 //Register a set of connectors for retrieval later.
@@ -44,7 +44,7 @@ std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair> sim_mob::x
 	}
 	return std::pair<UniNode_t_pimpl::SegmentPair, UniNode_t_pimpl::SegmentPair>(); //Just return an empty set; there may be no connectors.
 }
-
+*/
 
 
 void sim_mob::xml::UniNode_t_pimpl::pre ()
@@ -60,7 +60,7 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 	sim_mob::UniNode* res = new sim_mob::UniNode(model);
 
 	//Save the set of connectors for later, since we can't construct it until Lanes have been loaded.
-	UniNode_t_pimpl::RegisterConnectors(res, connectors);
+	//UniNode_t_pimpl::RegisterConnectors(res, connectors);
 
 	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
 	sim_mob::Node tempNode = Node_t_pimpl::post_Node_t();

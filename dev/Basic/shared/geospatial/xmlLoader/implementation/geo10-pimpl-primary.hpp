@@ -135,15 +135,9 @@ public:
 	virtual void linkLoc (unsigned long long);
 	virtual void originalDB_ID (const ::std::string&);
 
-	/*static void RegisterLinkLoc(sim_mob::Node* node, unsigned int link);
-	static unsigned int GetLinkLoc(sim_mob::Node* node);
-	static std::map<sim_mob::Node*, unsigned int>& GetLinkLocList();*/
-
 protected:
 	sim_mob::Node model;
 	unsigned int linkLocSaved;
-
-//	static std::map<sim_mob::Node*, unsigned int> LinkLocCache;
 };
 
 
@@ -151,45 +145,36 @@ protected:
 
 class UniNode_t_pimpl: public virtual UniNode_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
-	typedef std::set<std::pair<unsigned long,unsigned long> > LaneConnectSet;
-	typedef std::pair<unsigned long,unsigned long> SegmentPair;
-
 	virtual void pre ();
 	virtual sim_mob::UniNode* post_UniNode_t ();
 
 	virtual void firstPair (std::pair<unsigned long,unsigned long>);
 	virtual void secondPair (std::pair<unsigned long,unsigned long>);
-	virtual void Connectors (LaneConnectSet);
-
-	static void RegisterConnectors(sim_mob::UniNode* lane, const LaneConnectSet& connectors);
-	static LaneConnectSet GetConnectors(sim_mob::UniNode* lane);
-
-	static void RegisterSegmentPairs(sim_mob::UniNode* lane, const std::pair<SegmentPair, SegmentPair>& pairs);
-	static std::pair<SegmentPair, SegmentPair> GetSegmentPairs(sim_mob::UniNode* lane);
+	virtual void Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
 private:
 	//NOTE: This parameter name shadows Node::model, but this might be the right way to do things anyway.
 	sim_mob::UniNode model;
 
-	//Due to a load cycle, we have to save these as integers.
-	LaneConnectSet connectors;
-	std::pair<SegmentPair, SegmentPair> segmentPairs;
+	typedef std::pair<unsigned long,unsigned long> SegmentPair;
 
-	static std::map<sim_mob::UniNode*, LaneConnectSet> ConnectCache;
-	static std::map<sim_mob::UniNode*, std::pair<SegmentPair, SegmentPair> > SegmentPairCache;
+	//Due to a load cycle, we have to save these as integers.
+	std::set<std::pair<unsigned long,unsigned long> > connectors;
+	std::pair<SegmentPair, SegmentPair> segmentPairs;
 };
 
 
 
 class intersection_t_pimpl: public virtual intersection_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
-	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > LaneConnectSet;
-	typedef std::set<unsigned long> RoadSegmentSet;
-
 	virtual void pre ();
 	virtual sim_mob::MultiNode* post_intersection_t ();
 
-	virtual void roadSegmentsAt (RoadSegmentSet);
+private:
+	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > LaneConnectSet;
+
+public:
+	virtual void roadSegmentsAt (std::set<unsigned long>);
 	virtual void Connectors (const LaneConnectSet&);
 	virtual void ChunkLengths ();
 	virtual void Offsets ();
@@ -207,7 +192,7 @@ public:
 private:
 	sim_mob::Intersection model;
 	LaneConnectSet connectors;
-	RoadSegmentSet segmentsAt;
+	std::set<unsigned long> segmentsAt;
 
 	//static std::map<sim_mob::MultiNode*, LaneConnectSet> ConnectCache;
 	//static std::map<sim_mob::MultiNode*, RoadSegmentSet> SegmentsAtCache;

@@ -79,7 +79,7 @@ sim_mob::MultiNode* sim_mob::xml::intersection_t_pimpl::post_intersection_t ()
 	return res;
 }
 
-void sim_mob::xml::intersection_t_pimpl::roadSegmentsAt (RoadSegmentSet value)
+void sim_mob::xml::intersection_t_pimpl::roadSegmentsAt (std::set<unsigned long> value)
 {
 	segmentsAt = value;
 }

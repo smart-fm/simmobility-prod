@@ -263,15 +263,9 @@ public:
 	virtual void FWDSegments (std::vector<sim_mob::RoadSegment*>);
 	virtual void BKDSegments (std::vector<sim_mob::RoadSegment*>);
 
-	static sim_mob::RoadSegment* LookupSegment(unsigned int id);
-	static void RegisterSegment(unsigned int id, sim_mob::RoadSegment* seg);
-
 private:
 	SegmentList fwd;
 	SegmentList rev;
-	//SegmentList unique;
-
-	static std::map<unsigned int, sim_mob::RoadSegment*> Lookup;
 };
 
 

@@ -31,7 +31,7 @@ void ProcessMultiNodeConnectors(const helper::Bookkeeping& book,sim_mob::MultiNo
 		}
 
 		//Save it to the RoadSegment
-		sim_mob::RoadSegment* rs = Segments_pimpl::LookupSegment(it->first);
+		sim_mob::RoadSegment* rs = book.getSegment(it->first);
 		node->setConnectorAt(rs, connectors);
 	}
 }

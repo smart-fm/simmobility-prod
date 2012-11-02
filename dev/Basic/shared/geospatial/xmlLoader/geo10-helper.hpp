@@ -11,6 +11,8 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/RoadSegment.hpp"
+
 
 namespace sim_mob {
 namespace xml {
@@ -67,6 +69,21 @@ public:
 		throw std::runtime_error("No Lane exists in bookkeeper with the requested id.");
 	}
 
+	void addSegment(sim_mob::RoadSegment* segment) {
+		unsigned long id = segment->getSegmentID();
+		if (segmentLookup.count(id)>0) {
+			throw std::runtime_error("Segment already registered with bookkeeper.");
+		}
+		segmentLookup[id] = segment;
+	}
+	sim_mob::RoadSegment* getSegment(unsigned long id) const {
+		std::map<unsigned long, sim_mob::RoadSegment*>::const_iterator it = segmentLookup.find(id);
+		if (it!=segmentLookup.end()) {
+			return it->second;
+		}
+		throw std::runtime_error("No Segment exists in bookkeeper with the requested id.");
+	}
+
 
 
 	//TODO: These are temporary!
@@ -103,6 +120,7 @@ public:
 private:
 	std::map<unsigned long, sim_mob::Node*> nodeLookup;
 	std::map<unsigned long, sim_mob::Lane*> laneLookup;
+	std::map<unsigned long, sim_mob::RoadSegment*> segmentLookup;
 
 	//
 	//TODO: The following items need to be removed once we merge our XML code.

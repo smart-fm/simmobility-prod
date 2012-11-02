@@ -255,6 +255,8 @@ private:
 
 class Segments_pimpl: public virtual Segments_pskel {
 public:
+	Segments_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	typedef std::vector<sim_mob::RoadSegment*> SegmentList;
 
 	virtual void pre ();
@@ -266,6 +268,8 @@ public:
 private:
 	SegmentList fwd;
 	SegmentList rev;
+
+	helper::Bookkeeping& book;
 };
 
 
@@ -280,9 +284,6 @@ public:
 	virtual void Intersections (const std::vector<sim_mob::MultiNode*>&);
 	virtual void roundabouts (const std::vector<sim_mob::MultiNode*>&);
 
-/*	static sim_mob::Node* LookupNode(unsigned int id);
-	static void RegisterNode(unsigned int id, sim_mob::Node* node);*/
-
 private:
 	sim_mob::xml::helper::NodesRes model;
 	sim_mob::xml::helper::Bookkeeping& book;
@@ -291,17 +292,16 @@ private:
 
 class Links_pimpl: public virtual Links_pskel {
 public:
+	Links_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual std::vector<sim_mob::Link*> post_Links ();
 
 	virtual void Link (sim_mob::Link*);
 
-	static sim_mob::Link* LookupLink(unsigned int id);
-	static void RegisterLink(unsigned int id, sim_mob::Link* node);
-
 private:
 	std::vector<sim_mob::Link*> model;
-	static std::map<unsigned int,sim_mob::Link*> Lookup;
+	sim_mob::xml::helper::Bookkeeping& book;
 };
 
 
@@ -346,6 +346,8 @@ private:
 
 class linkAndCrossing_t_pimpl: public virtual linkAndCrossing_t_pskel {
 public:
+	linkAndCrossing_t_pimpl(const helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::LinkAndCrossing post_linkAndCrossing_t ();
 
@@ -356,6 +358,8 @@ public:
 
 private:
 	sim_mob::LinkAndCrossing model;
+
+	const helper::Bookkeeping& book;
 };
 
 

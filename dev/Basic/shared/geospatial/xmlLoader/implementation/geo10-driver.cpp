@@ -28,6 +28,9 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::Trip_t_pimpl Trip_t_p(book);
 		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p(book);
 		::sim_mob::xml::Lanes_pimpl Lanes_p(book);
+		::sim_mob::xml::Segments_pimpl Segments_p(book);
+		::sim_mob::xml::Links_pimpl Links_p(book);
+		::sim_mob::xml::linkAndCrossing_t_pimpl linkAndCrossing_t_p(book);
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -62,8 +65,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::xml_schema::int_pimpl int_p;
 		::sim_mob::xml::EntranceAngles_t_pimpl EntranceAngles_t_p;
 		::sim_mob::xml::EntranceAngle_t_pimpl EntranceAngle_t_p;
-		::sim_mob::xml::Links_pimpl Links_p;
-		::sim_mob::xml::Segments_pimpl Segments_p;
 		::sim_mob::xml::fwdBckSegments_t_pimpl fwdBckSegments_t_p;
 		::xml_schema::short_pimpl short_p;
 		::sim_mob::xml::PolyLine_t_pimpl PolyLine_t_p;
@@ -89,7 +90,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
 		::sim_mob::xml::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
 		::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
-		::sim_mob::xml::linkAndCrossing_t_pimpl linkAndCrossing_t_p;
 		::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
 		::sim_mob::xml::Plans_t_pimpl Plans_t_p;
 		::sim_mob::xml::Plan_t_pimpl Plan_t_p;

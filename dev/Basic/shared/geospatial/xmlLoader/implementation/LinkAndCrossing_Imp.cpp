@@ -19,7 +19,7 @@ void sim_mob::xml::linkAndCrossing_t_pimpl::ID (unsigned char value)
 
 void sim_mob::xml::linkAndCrossing_t_pimpl::linkID (unsigned int value)
 {
-	model.link = Links_pimpl::LookupLink(value);
+	model.link = book.getLink(value);
 }
 
 void sim_mob::xml::linkAndCrossing_t_pimpl::crossingID (unsigned int value)

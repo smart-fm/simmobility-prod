@@ -279,9 +279,7 @@ private:
 
 class Nodes_pimpl: public virtual Nodes_pskel {
 public:
-	/*Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
-		std::cout << "RoadNetworkRW hooked\nTODO: This is not the correct way to do things!";
-	}*/
+	Nodes_pimpl(helper::Bookkeeping& book) : book(book) {}
 
 	virtual void pre ();
 	virtual const helper::NodesRes& post_Nodes ();
@@ -290,13 +288,12 @@ public:
 	virtual void Intersections (const std::vector<sim_mob::MultiNode*>&);
 	virtual void roundabouts (const std::vector<sim_mob::MultiNode*>&);
 
-	static sim_mob::Node* LookupNode(unsigned int id);
-	static void RegisterNode(unsigned int id, sim_mob::Node* node);
+/*	static sim_mob::Node* LookupNode(unsigned int id);
+	static void RegisterNode(unsigned int id, sim_mob::Node* node);*/
 
 private:
 	sim_mob::xml::helper::NodesRes model;
-
-	static std::map<unsigned int,sim_mob::Node*> Lookup;
+	sim_mob::xml::helper::Bookkeeping& book;
 };
 
 

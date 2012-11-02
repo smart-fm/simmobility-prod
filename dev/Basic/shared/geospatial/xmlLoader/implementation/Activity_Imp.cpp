@@ -52,7 +52,7 @@ void sim_mob::xml::Activity_t_pimpl::description (const ::std::string& value)
 
 void sim_mob::xml::Activity_t_pimpl::location (unsigned int value)
 {
-	model.location = Nodes_pimpl::LookupNode(value);
+	model.location = book.getNode(value);
 }
 
 void sim_mob::xml::Activity_t_pimpl::locationType (std::string value)

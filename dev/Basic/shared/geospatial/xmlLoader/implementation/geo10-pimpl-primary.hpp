@@ -129,15 +129,15 @@ public:
 	virtual void linkLoc (unsigned long long);
 	virtual void originalDB_ID (const ::std::string&);
 
-	static void RegisterLinkLoc(sim_mob::Node* node, unsigned int link);
+	/*static void RegisterLinkLoc(sim_mob::Node* node, unsigned int link);
 	static unsigned int GetLinkLoc(sim_mob::Node* node);
-	static std::map<sim_mob::Node*, unsigned int>& GetLinkLocList();
+	static std::map<sim_mob::Node*, unsigned int>& GetLinkLocList();*/
 
 protected:
 	sim_mob::Node model;
 	unsigned int linkLocSaved;
 
-	static std::map<sim_mob::Node*, unsigned int> LinkLocCache;
+//	static std::map<sim_mob::Node*, unsigned int> LinkLocCache;
 };
 
 
@@ -470,6 +470,8 @@ private:
 
 class Activity_t_pimpl: public virtual Activity_t_pskel, public ::sim_mob::xml::TripChainItem_t_pimpl {
 public:
+	Activity_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::TripChainItem* post_Activity_t ();
 
@@ -482,6 +484,8 @@ public:
 
 private:
 	sim_mob::Activity model;
+
+	sim_mob::xml::helper::Bookkeeping& book;
 };
 
 

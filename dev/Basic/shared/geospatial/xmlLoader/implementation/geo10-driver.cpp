@@ -27,6 +27,7 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::segment_t_pimpl segment_t_p(book);
 		::sim_mob::xml::Trip_t_pimpl Trip_t_p(book);
 		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p(book);
+		::sim_mob::xml::Lanes_pimpl Lanes_p(book);
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -69,7 +70,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::PolyPoint_t_pimpl PolyPoint_t_p;
 		::sim_mob::xml::laneEdgePolylines_cached_t_pimpl laneEdgePolylines_cached_t_p;
 		::sim_mob::xml::laneEdgePolyline_cached_t_pimpl laneEdgePolyline_cached_t_p;
-		::sim_mob::xml::Lanes_pimpl Lanes_p;
 		::sim_mob::xml::lane_t_pimpl lane_t_p;
 		::sim_mob::xml::RoadItems_t_pimpl RoadItems_t_p;
 		::sim_mob::xml::BusStop_t_pimpl BusStop_t_p;

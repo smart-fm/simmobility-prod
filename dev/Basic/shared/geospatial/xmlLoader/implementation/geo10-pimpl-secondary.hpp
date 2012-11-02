@@ -240,18 +240,16 @@ public:
 
 class Lanes_pimpl: public virtual Lanes_pskel {
 public:
+	Lanes_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual std::vector<sim_mob::Lane*> post_Lanes ();
 
 	virtual void Lane (sim_mob::Lane*);
 
-	static sim_mob::Lane* LookupLane(unsigned int id);
-	static void RegisterLane(unsigned int id, sim_mob::Lane* lane);
-
 private:
 	std::vector<sim_mob::Lane*> model;
-
-	static std::map<unsigned int,sim_mob::Lane*> Lookup;
+	helper::Bookkeeping& book;
 };
 
 

@@ -8,6 +8,7 @@
 #include <set>
 
 #include "geospatial/Node.hpp"
+#include "geospatial/Lane.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 
@@ -51,6 +52,21 @@ public:
 		throw std::runtime_error("No Node exists in bookkeeper with the requested id.");
 	}
 
+	void addLane(sim_mob::Lane* lane) {
+		unsigned long id = lane->getLaneID();
+		if (laneLookup.count(id)>0) {
+			throw std::runtime_error("Lane already registered with bookkeeper.");
+		}
+		laneLookup[id] = lane;
+	}
+	sim_mob::Lane* getLane(unsigned long id) const {
+		std::map<unsigned long, sim_mob::Lane*>::const_iterator it = laneLookup.find(id);
+		if (it!=laneLookup.end()) {
+			return it->second;
+		}
+		throw std::runtime_error("No Lane exists in bookkeeper with the requested id.");
+	}
+
 
 
 	//TODO: These are temporary!
@@ -86,6 +102,7 @@ public:
 
 private:
 	std::map<unsigned long, sim_mob::Node*> nodeLookup;
+	std::map<unsigned long, sim_mob::Lane*> laneLookup;
 
 	//
 	//TODO: The following items need to be removed once we merge our XML code.

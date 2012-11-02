@@ -183,19 +183,10 @@ public:
 	virtual void additionalSubdominantLanes ();
 	virtual void domainIslands ();
 
-	/*static void RegisterConnectors(sim_mob::MultiNode* intersection, const LaneConnectSet& connectors);
-	static LaneConnectSet GetConnectors(sim_mob::MultiNode* intersection);
-
-	static void RegisterSegmentsAt(sim_mob::MultiNode* intersection, const RoadSegmentSet& segmentsAt);
-	static RoadSegmentSet GetSegmentsAt(sim_mob::MultiNode* intersection);*/
-
 private:
 	sim_mob::Intersection model;
 	LaneConnectSet connectors;
 	std::set<unsigned long> segmentsAt;
-
-	//static std::map<sim_mob::MultiNode*, LaneConnectSet> ConnectCache;
-	//static std::map<sim_mob::MultiNode*, RoadSegmentSet> SegmentsAtCache;
 };
 
 

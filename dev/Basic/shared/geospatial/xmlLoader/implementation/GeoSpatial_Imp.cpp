@@ -6,27 +6,27 @@ using namespace sim_mob::xml;
 namespace {
 
 //Helper: Create LaneConnector entries for a single UniNode
-void ProcessUniNodeConnectors(sim_mob::UniNode* node, helper::Bookkeeping::UNConnect connectors) {
+void ProcessUniNodeConnectors(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::UNConnect connectors) {
 	for(helper::Bookkeeping::UNConnect::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
-		node->setConnectorAt(Lanes_pimpl::LookupLane(it->first), Lanes_pimpl::LookupLane(it->second));
+		node->setConnectorAt(book.getLane(it->first), book.getLane(it->second));
 	}
 }
 
 //Helper: Create LaneConnector entries for all UniNodes
 void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
 	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
-		ProcessUniNodeConnectors(*it, book.getUniNodeLaneConnectorCache(*it));
+		ProcessUniNodeConnectors(book, *it, book.getUniNodeLaneConnectorCache(*it));
 	}
 }
 
 
 //Helper: Create LaneConnector entries for a single MultiNode
-void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, helper::Bookkeeping::MNConnect connectors) {
+void ProcessMultiNodeConnectors(const helper::Bookkeeping& book,sim_mob::MultiNode* node, helper::Bookkeeping::MNConnect connectors) {
 	for(helper::Bookkeeping::MNConnect::iterator it = connectors.begin(); it!=connectors.end(); it ++) {
 		std::set<sim_mob::LaneConnector*> connectors;
 		helper::UniNodeConnectors& rawConnectors = it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
 		for(helper::UniNodeConnectors::iterator laneIt = rawConnectors.begin(); laneIt != rawConnectors.end(); laneIt++) {
-			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector(Lanes_pimpl::LookupLane(laneIt->first), Lanes_pimpl::LookupLane(laneIt->second));
+			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector(book.getLane(laneIt->first), book.getLane(laneIt->second));
 			connectors.insert(lc);
 		}
 
@@ -39,7 +39,7 @@ void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, helper::Bookkeeping::M
 //Helper: Create LaneConnector entries for all MultiNodes
 void ProcessMultiNodeConnectors(const helper::Bookkeeping& book, std::vector<sim_mob::MultiNode*>& nodes) {
 	for(std::vector<sim_mob::MultiNode*>::iterator it = nodes.begin(); it!=nodes.end(); it++) {
-		ProcessMultiNodeConnectors(*it, book.getMultiNodeLaneConnectorCache(*it));
+		ProcessMultiNodeConnectors(book, *it, book.getMultiNodeLaneConnectorCache(*it));
 	}
 }
 

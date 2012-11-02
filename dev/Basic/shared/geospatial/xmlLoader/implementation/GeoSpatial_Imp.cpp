@@ -37,9 +37,9 @@ void ProcessMultiNodeConnectors(sim_mob::MultiNode* node, intersection_t_pimpl::
 }
 
 //Helper: Create LaneConnector entries for all MultiNodes
-void ProcessMultiNodeConnectors(std::vector<sim_mob::MultiNode*>& nodes) {
+void ProcessMultiNodeConnectors(const helper::Bookkeeping& book, std::vector<sim_mob::MultiNode*>& nodes) {
 	for(std::vector<sim_mob::MultiNode*>::iterator it = nodes.begin(); it!=nodes.end(); it++) {
-		ProcessMultiNodeConnectors(*it, intersection_t_pimpl::GetConnectors(*it));
+		ProcessMultiNodeConnectors(*it, book.getMultiNodeLaneConnectorCache(*it));
 	}
 }
 
@@ -101,9 +101,7 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 
 	//Process various left-over items.
 	ProcessUniNodeConnectors(rn.getUniNodes());
-	ProcessUniNodeSegments(rn.getUniNodes());
-	ProcessMultiNodeConnectors(rn.getNodes());
-	ProcessMultiNodeSegments(rn.getNodes());
+	ProcessMultiNodeConnectors(book, rn.getNodes());
 
 	//Process LinkLocs
 	std::map<sim_mob::Node*, unsigned int>& linkLocs = Node_t_pimpl::GetLinkLocList();

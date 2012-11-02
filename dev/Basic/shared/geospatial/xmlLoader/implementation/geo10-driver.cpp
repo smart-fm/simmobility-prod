@@ -20,10 +20,10 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
 		::sim_mob::xml::Nodes_pimpl Nodes_p(book);
 		::sim_mob::xml::Activity_t_pimpl Activity_t_p(book);
+		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p(book);
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
-		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p;
 		::sim_mob::xml::UniNodes_pimpl UniNodes_p;
 		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p;
 		::xml_schema::unsigned_int_pimpl unsigned_int_p;

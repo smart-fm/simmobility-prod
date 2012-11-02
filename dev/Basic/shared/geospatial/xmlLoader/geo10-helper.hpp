@@ -51,8 +51,32 @@ public:
 		throw std::runtime_error("No Node exists in bookkeeper with the requested id.");
 	}
 
+
+
+	//TODO: These are temporary!
+	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > MNConnect;
+	void addMultiNodeLaneConnectorCache(sim_mob::MultiNode* id, const MNConnect& item) {
+		if (multiNodeLaneConnectorsCache.count(id)>0) {
+			throw std::runtime_error("MultiNodeLaneConnector already registered with bookkeeper.");
+		}
+		multiNodeLaneConnectorsCache[id] = item;
+	}
+	MNConnect getMultiNodeLaneConnectorCache(sim_mob::MultiNode* id) const {
+		std::map<sim_mob::MultiNode*, MNConnect>::const_iterator it = multiNodeLaneConnectorsCache.find(id);
+		if (it!=multiNodeLaneConnectorsCache.end()) {
+			return it->second;
+		}
+		throw std::runtime_error("No MultiNodeLaneConnector exists in bookkeeper with the requested id.");
+	}
+
 private:
 	std::map<unsigned long, const sim_mob::Node*> nodeLookup;
+
+	//
+	//TODO: The following items need to be removed once we merge our XML code.
+	//
+	//Can remove if Connectors are specified after Segments and Lanes.
+	std::map<sim_mob::MultiNode*, MNConnect> multiNodeLaneConnectorsCache;
 };
 
 

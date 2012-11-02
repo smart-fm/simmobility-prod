@@ -211,10 +211,15 @@ private:
 
 class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel {
 public:
+	GeoSpatial_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual void post_GeoSpatial_t ();
 
 	virtual void RoadNetwork (sim_mob::RoadNetwork&);
+
+private:
+	helper::Bookkeeping& book;
 };
 
 

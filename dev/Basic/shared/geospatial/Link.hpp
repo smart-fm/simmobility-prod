@@ -97,7 +97,7 @@ public:
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
 	//added methods to access the worker who is managing this link
-	Worker* getCurrWorker();
+	Worker* getCurrWorker() const;
 	void setCurrWorker(Worker* w);
 
 #ifndef SIMMOB_DISABLE_MPI

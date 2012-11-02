@@ -24,6 +24,9 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::Activity_t_pimpl Activity_t_p(book);
 		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p(book);
 		::sim_mob::xml::link_t_pimpl link_t_p(book);
+		::sim_mob::xml::segment_t_pimpl segment_t_p(book);
+		::sim_mob::xml::Trip_t_pimpl Trip_t_p(book);
+		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p(book);
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -61,7 +64,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::Links_pimpl Links_p;
 		::sim_mob::xml::Segments_pimpl Segments_p;
 		::sim_mob::xml::fwdBckSegments_t_pimpl fwdBckSegments_t_p;
-		::sim_mob::xml::segment_t_pimpl segment_t_p;
 		::xml_schema::short_pimpl short_p;
 		::sim_mob::xml::PolyLine_t_pimpl PolyLine_t_p;
 		::sim_mob::xml::PolyPoint_t_pimpl PolyPoint_t_p;
@@ -79,11 +81,9 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::TripChains_t_pimpl TripChains_t_p;
 		::sim_mob::xml::TripChain_t_pimpl TripChain_t_p;
 		::xml_schema::integer_pimpl integer_p;
-		::sim_mob::xml::Trip_t_pimpl Trip_t_p;
 		::sim_mob::xml::TripchainItemType_pimpl TripchainItemType_p;
 		::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 		::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
-		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p;
 		::sim_mob::xml::Signals_t_pimpl Signals_t_p;
 		::sim_mob::xml::Signal_t_pimpl Signal_t_p;
 		::xml_schema::unsigned_byte_pimpl unsigned_byte_p;

@@ -238,7 +238,7 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	std::cout << " \n";
 }
 
-sim_mob::Worker* sim_mob::Link::getCurrWorker(){
+sim_mob::Worker* sim_mob::Link::getCurrWorker() const {
 		return currWorker;
 	}
 void sim_mob::Link::setCurrWorker(sim_mob::Worker* w){

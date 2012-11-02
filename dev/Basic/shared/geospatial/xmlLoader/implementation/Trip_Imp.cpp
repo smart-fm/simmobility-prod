@@ -55,7 +55,7 @@ void sim_mob::xml::Trip_t_pimpl::tripID (long long value)
 
 void sim_mob::xml::Trip_t_pimpl::fromLocation (unsigned int value)
 {
-	model.fromLocation = Nodes_pimpl::LookupNode(value);
+	model.fromLocation = book.getNode(value);
 }
 
 void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
@@ -65,7 +65,7 @@ void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
 
 void sim_mob::xml::Trip_t_pimpl::toLocation (unsigned int value)
 {
-	model.toLocation = Nodes_pimpl::LookupNode(value);
+	model.toLocation = book.getNode(value);
 }
 
 void sim_mob::xml::Trip_t_pimpl::toLocationType (std::string value)

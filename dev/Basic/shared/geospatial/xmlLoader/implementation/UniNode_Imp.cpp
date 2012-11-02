@@ -67,9 +67,6 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 	res->location = sim_mob::Point2D(tempNode.getLocation());
 	res->setID(tempNode.getID());
 	res->originalDB_ID = tempNode.originalDB_ID;
-	RegisterLinkLoc(res, linkLocSaved);
-
-	Nodes_pimpl::RegisterNode(res->getID(), res);
 
 	//TODO: Make sure these are all covered.
 	/*geo_LinkLoc_rawNode & container = get<2>(geo_LinkLoc_);

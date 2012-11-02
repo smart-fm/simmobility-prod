@@ -45,12 +45,12 @@ void sim_mob::xml::segment_t_pimpl::segmentID (unsigned long long value)
 
 void sim_mob::xml::segment_t_pimpl::startingNode (unsigned int value)
 {
-	model.setStart(Nodes_pimpl::LookupNode(value));
+	model.setStart(book.getNode(value));
 }
 
 void sim_mob::xml::segment_t_pimpl::endingNode (unsigned int value)
 {
-	model.setEnd(Nodes_pimpl::LookupNode(value));
+	model.setEnd(book.getNode(value));
 }
 
 void sim_mob::xml::segment_t_pimpl::maxSpeed (short value)

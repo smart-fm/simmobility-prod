@@ -81,6 +81,8 @@ private:
 
 class segment_t_pimpl: public virtual segment_t_pskel {
 public:
+	segment_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::RoadSegment* post_segment_t ();
 
@@ -99,6 +101,7 @@ public:
 
 private:
   sim_mob::RoadSegment model;
+  helper::Bookkeeping& book;
 };
 
 
@@ -447,6 +450,8 @@ private:
 
 class Trip_t_pimpl: public virtual Trip_t_pskel, public ::sim_mob::xml::TripChainItem_t_pimpl {
 public:
+	Trip_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::TripChainItem* post_Trip_t ();
 
@@ -457,13 +462,16 @@ public:
 	virtual void toLocationType (std::string);
 	virtual void subTrips (std::vector<sim_mob::SubTrip>);
 
-  private:
-  sim_mob::Trip model;
+private:
+	sim_mob::Trip model;
+	helper::Bookkeeping& book;
 };
 
 
 class SubTrip_t_pimpl: public virtual SubTrip_t_pskel, public ::sim_mob::xml::Trip_t_pimpl {
 public:
+	SubTrip_t_pimpl(helper::Bookkeeping& book) : Trip_t_pimpl(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::SubTrip post_SubTrip_t ();
 

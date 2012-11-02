@@ -337,13 +337,13 @@ void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 	Agent* agent = dynamic_cast<Agent*>(ag);
 	if(agent){
 		if(agent->originNode){
-			Link* link = agent->originNode->getLinkLoc();
+			const Link* link = StreetDirectory::instance().getLinkLoc(agent->originNode);
 			link->getCurrWorker()->scheduleForAddition(ag);
 		}
 		else{
 			LoopDetectorEntity* loopDetector = dynamic_cast<LoopDetectorEntity*>(ag);
 			if(loopDetector){
-				Link* link = (loopDetector->getNode()).getLinkLoc();
+				const Link* link = StreetDirectory::instance().getLinkLoc(&loopDetector->getNode());
 				link->getCurrWorker()->scheduleForAddition(ag);
 			}
 		}

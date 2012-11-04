@@ -114,7 +114,8 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 	}
 	return res;
 }
-double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
+double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
+{
 
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
@@ -222,17 +223,50 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 						         PassengerDist* r1 = ConfigParams::GetInstance().passengerDist1;
 						         PassengerDist* r2 = ConfigParams::GetInstance().passengerDist_crowdness;
+						         //create the passenger objects at the bus stop=random no-boarding passengers
+						         //if first bus stop only boarding
+						         //else boarding and alighting
 						         double no_boarding=ConfigParams::GetInstance().percent_boarding;
 						         double no_alighting=ConfigParams::GetInstance().percent_alighting;
 							if (r1 && r2) {
-								no_passengers_busstop = r1->getnopassengers();
-								no_passengers_bus= r2->getnopassengers();
 
+								no_passengers_busstop = r1->getnopassengers();
+								//no_passengers_bus= r2->getnopassengers();
+                                no_passengers_bus=bus->getPassengerCount();
 								no_passengers_boarding=(no_boarding/100)*no_passengers_busstop;
 								no_passengers_alighting=(no_alighting/100)*no_passengers_bus;
 								bus->setPassengerCount(no_passengers_bus+no_passengers_boarding-no_passengers_alighting);
-								//create passenger objects
-								//delete passenger objects
+
+								map<string, string> props;
+								props["#mode"]="travel";
+								props["time"]=0;
+
+								for (int no=0;no<no_passengers_boarding;no++)
+								{
+								ConfigParams& config = ConfigParams::GetInstance();
+								int manualID= -1;
+								//create passenger objects in the bus,bus has a list of passenger objects
+							    //Create the Person agent with that given ID (or an auto-generated one)
+								Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
+								agent->setConfigProperties(props);
+								agent->setStartTime(0);
+								bus->passenger.push_back(agent);
+								}
+						 if(first_busstop== false)//passengers alight if bus stop is not the first bus stop
+						   {
+								//delete passenger objects in the bus
+								for (int no=0;no<no_passengers_alighting;no++)
+						      {
+								if(no_passengers_alighting>0)
+								 {
+									//delete passenger objects from the bus
+									bus->passenger.pop_back();
+								 }
+							  }
+
+						   }
+						 first_busstop= false;
+
 							} else {
 								throw std::runtime_error("Passenger distributions have not been initialized yet.");
 							       }

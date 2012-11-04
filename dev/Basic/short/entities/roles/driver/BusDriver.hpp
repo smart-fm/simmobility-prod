@@ -16,6 +16,8 @@ class UnPackageUtils;
 class BusStop;
 class Person;
 
+class Passenger;
+
 
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of
@@ -41,6 +43,8 @@ public:
 
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
+
+	bool first_busstop=true;//added by Meenu
 
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;

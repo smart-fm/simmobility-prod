@@ -246,6 +246,7 @@ bool performMainMed(const std::string& configFileName) {
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
+		size_t numPassenger = 0;
 		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
 				!= Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
@@ -257,6 +258,9 @@ bool performMainMed(const std::string& configFileName) {
 				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
 					numPedestrian++;
 				}
+				if (p->getRole() && dynamic_cast<Passenger*> (p->getRole())) {
+									numPassenger++;
+								}
 			}
 		}
 		cout << "Remaining Agents: " << numPerson << " (Person)   "

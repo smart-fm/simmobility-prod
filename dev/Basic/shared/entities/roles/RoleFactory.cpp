@@ -49,7 +49,12 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 			return "pedestrian";
 		} else if (trip->getSubTrips().front().mode=="Bus") {
 			return "busdriver";
-		} else {
+		}
+		else if(trip->getSubTrips().front().mode=="travel")
+		{
+			return "passenger";
+		}
+		else {
 			throw std::runtime_error("Unknown Trip subclass.");
 		}
 	} else if (act && currTripChainItem->itemType==TripChainItem::IT_ACTIVITY) {

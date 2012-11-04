@@ -32,6 +32,7 @@ public:
 	int getPassengerCount() const { return passengerCount; }
 	void setPassengerCount(int val) { passengerCount = val; }
 	//bool isSendToBusController(BusController &busctrller);
+	std::vector<const sim_mob::Agent*> passenger;//added by Meenu
 
 private:
 	int passengerCount;

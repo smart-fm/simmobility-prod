@@ -24,6 +24,7 @@ namespace sim_mob
  */
 class Passenger : public sim_mob::Role {
 public:
+	Passenger(Agent* parent);
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const {
 		throw std::runtime_error("Clone not implemented for Passenger");
 	}

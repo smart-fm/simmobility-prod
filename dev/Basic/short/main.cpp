@@ -791,6 +791,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
+	rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!

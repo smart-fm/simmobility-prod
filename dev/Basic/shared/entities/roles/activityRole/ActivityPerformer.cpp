@@ -86,11 +86,11 @@ void sim_mob::ActivityPerformer::setActivityStartTime(
 	this->activityStartTime = activityStartTime;
 }
 
-sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const {
+const sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const {
 	return location;
 }
 
-void sim_mob::ActivityPerformer::setLocation(sim_mob::Node* location) {
+void sim_mob::ActivityPerformer::setLocation(const sim_mob::Node* location) {
 	this->location = location;
 }
 

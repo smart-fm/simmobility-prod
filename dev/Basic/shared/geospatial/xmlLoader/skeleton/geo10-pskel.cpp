@@ -4162,7 +4162,7 @@ namespace sim_mob
     }
 
     void link_t_pskel::
-    Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >)
+    Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&)
     {
     }
 
@@ -6471,17 +6471,12 @@ namespace sim_mob
     //
 
     void RoadNetwork_t_pskel::
-    Nodes ()
+    Nodes (const helper::NodesRes&)
     {
     }
 
     void RoadNetwork_t_pskel::
-    Links (std::vector<sim_mob::Link*>)
-    {
-    }
-
-    void RoadNetwork_t_pskel::
-    post_RoadNetwork_t ()
+    Links (const std::vector<sim_mob::Link*>&)
     {
     }
 
@@ -6528,10 +6523,7 @@ namespace sim_mob
       if (n == "Nodes" && ns.empty ())
       {
         if (this->Nodes_parser_)
-        {
-          this->Nodes_parser_->post_Nodes ();
-          this->Nodes ();
-        }
+          this->Nodes (this->Nodes_parser_->post_Nodes ());
 
         return true;
       }
@@ -8631,7 +8623,7 @@ namespace sim_mob
     //
 
     void GeoSpatial_t_pskel::
-    RoadNetwork ()
+    RoadNetwork (sim_mob::RoadNetwork&)
     {
     }
 
@@ -8673,10 +8665,7 @@ namespace sim_mob
       if (n == "RoadNetwork" && ns.empty ())
       {
         if (this->RoadNetwork_parser_)
-        {
-          this->RoadNetwork_parser_->post_RoadNetwork_t ();
-          this->RoadNetwork ();
-        }
+          this->RoadNetwork (this->RoadNetwork_parser_->post_RoadNetwork_t ());
 
         return true;
       }
@@ -8918,22 +8907,17 @@ namespace sim_mob
     //
 
     void Nodes_pskel::
-    UniNodes (std::set<sim_mob::UniNode*>&)
+    UniNodes (const std::set<sim_mob::UniNode*>&)
     {
     }
 
     void Nodes_pskel::
-    Intersections (std::vector<sim_mob::MultiNode*>&)
+    Intersections (const std::vector<sim_mob::MultiNode*>&)
     {
     }
 
     void Nodes_pskel::
-    roundabouts (std::vector<sim_mob::MultiNode*>&)
-    {
-    }
-
-    void Nodes_pskel::
-    post_Nodes ()
+    roundabouts (const std::vector<sim_mob::MultiNode*>&)
     {
     }
 

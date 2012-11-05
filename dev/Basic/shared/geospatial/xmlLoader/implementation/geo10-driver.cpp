@@ -11,23 +11,36 @@
 
 #include "geo10-pimpl.hpp"
 
-bool sim_mob::xml::InitAndLoadXML()
-{
-	std::cout << "In InitAndLoadXML (sim_mob::XML)\n";
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork) {
+	try {
+		//Our bookkeeper assists various classes with optimizations, and is shared between them.
+		::sim_mob::xml::helper::Bookkeeping book;
 
-/*	try {
-		// Instantiate individual parsers.
-		//
+		//Complex (usually optimized) parsers require external information.
+		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
+
+		//Simple, optimized with the book-keeper only.
+		::sim_mob::xml::Nodes_pimpl Nodes_p(book);
+		::sim_mob::xml::Activity_t_pimpl Activity_t_p(book);
+		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p(book);
+		::sim_mob::xml::link_t_pimpl link_t_p(book);
+		::sim_mob::xml::segment_t_pimpl segment_t_p(book);
+		::sim_mob::xml::Trip_t_pimpl Trip_t_p(book);
+		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p(book);
+		::sim_mob::xml::Lanes_pimpl Lanes_p(book);
+		::sim_mob::xml::Segments_pimpl Segments_p(book);
+		::sim_mob::xml::Links_pimpl Links_p(book);
+		::sim_mob::xml::linkAndCrossing_t_pimpl linkAndCrossing_t_p(book);
+
+		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
-		::sim_mob::xml::GeoSpatial_t_pimpl GeoSpatial_t_p;
-		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p;
-		::sim_mob::xml::Nodes_pimpl Nodes_p;
 		::sim_mob::xml::UniNodes_pimpl UniNodes_p;
 		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p;
 		::xml_schema::unsigned_int_pimpl unsigned_int_p;
 		::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
 		::xml_schema::unsigned_long_pimpl unsigned_long_p;
 		::xml_schema::string_pimpl string_p;
+		::sim_mob::xml::temp_Segmetair_t_pimpl temp_Segmetair_t_p;
 		::sim_mob::xml::connectors_t_pimpl connectors_t_p;
 		::sim_mob::xml::connector_t_pimpl connector_t_p;
 		::sim_mob::xml::Intersections_pimpl Intersections_p;
@@ -52,18 +65,16 @@ bool sim_mob::xml::InitAndLoadXML()
 		::xml_schema::int_pimpl int_p;
 		::sim_mob::xml::EntranceAngles_t_pimpl EntranceAngles_t_p;
 		::sim_mob::xml::EntranceAngle_t_pimpl EntranceAngle_t_p;
-		::sim_mob::xml::Links_pimpl Links_p;
-		::sim_mob::xml::link_t_pimpl link_t_p;
-		::sim_mob::xml::Segments_pimpl Segments_p;
 		::sim_mob::xml::fwdBckSegments_t_pimpl fwdBckSegments_t_p;
-		::sim_mob::xml::segment_t_pimpl segment_t_p;
 		::xml_schema::short_pimpl short_p;
 		::sim_mob::xml::PolyLine_t_pimpl PolyLine_t_p;
 		::sim_mob::xml::PolyPoint_t_pimpl PolyPoint_t_p;
-		::sim_mob::xml::Lanes_pimpl Lanes_p;
+		::sim_mob::xml::laneEdgePolylines_cached_t_pimpl laneEdgePolylines_cached_t_p;
+		::sim_mob::xml::laneEdgePolyline_cached_t_pimpl laneEdgePolyline_cached_t_p;
 		::sim_mob::xml::lane_t_pimpl lane_t_p;
 		::sim_mob::xml::RoadItems_t_pimpl RoadItems_t_p;
 		::sim_mob::xml::BusStop_t_pimpl BusStop_t_p;
+		::xml_schema::double_pimpl double_p;
 		::sim_mob::xml::ERP_Gantry_t_pimpl ERP_Gantry_t_p;
 		::sim_mob::xml::crossing_t_pimpl crossing_t_p;
 		::sim_mob::xml::PointPair_t_pimpl PointPair_t_p;
@@ -71,16 +82,28 @@ bool sim_mob::xml::InitAndLoadXML()
 		::sim_mob::xml::TripChains_t_pimpl TripChains_t_p;
 		::sim_mob::xml::TripChain_t_pimpl TripChain_t_p;
 		::xml_schema::integer_pimpl integer_p;
-		::sim_mob::xml::Trip_t_pimpl Trip_t_p;
 		::sim_mob::xml::TripchainItemType_pimpl TripchainItemType_p;
 		::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 		::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
-		::sim_mob::xml::SubTrip_t_pimpl SubTrip_t_p;
-		::sim_mob::xml::Activity_t_pimpl Activity_t_p;
+		::sim_mob::xml::Signals_t_pimpl Signals_t_p;
+		::sim_mob::xml::Signal_t_pimpl Signal_t_p;
+		::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
+		::sim_mob::xml::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
+		::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
+		::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
+		::sim_mob::xml::Plans_t_pimpl Plans_t_p;
+		::sim_mob::xml::Plan_t_pimpl Plan_t_p;
+		::sim_mob::xml::Phases_t_pimpl Phases_t_p;
+		::sim_mob::xml::Phase_t_pimpl Phase_t_p;
+		::sim_mob::xml::links_maps_t_pimpl links_maps_t_p;
+		::sim_mob::xml::links_map_t_pimpl links_map_t_p;
+		::sim_mob::xml::ColorSequence_t_pimpl ColorSequence_t_p;
+		::sim_mob::xml::ColorDuration_t_pimpl ColorDuration_t_p;
+		::sim_mob::xml::TrafficColor_t_pimpl TrafficColor_t_p;
 
 		// Connect the parsers together.
 		//
-		SimMobility_t_p.parsers(GeoSpatial_t_p, TripChains_t_p);
+		SimMobility_t_p.parsers(GeoSpatial_t_p, TripChains_t_p, Signals_t_p);
 
 		GeoSpatial_t_p.parsers(RoadNetwork_t_p);
 
@@ -91,9 +114,12 @@ bool sim_mob::xml::InitAndLoadXML()
 		UniNodes_p.parsers(UniNode_t_p);
 
 		UniNode_t_p.parsers(unsigned_int_p, Point2D_t_p, unsigned_long_p,
-				string_p, connectors_t_p);
+				string_p, temp_Segmetair_t_p, temp_Segmetair_t_p,
+				connectors_t_p);
 
 		Point2D_t_p.parsers(unsigned_int_p, unsigned_int_p);
+
+		temp_Segmetair_t_p.parsers(unsigned_long_p, unsigned_long_p);
 
 		connectors_t_p.parsers(connector_t_p);
 
@@ -152,11 +178,16 @@ bool sim_mob::xml::InitAndLoadXML()
 
 		segment_t_p.parsers(unsigned_long_p, unsigned_int_p, unsigned_int_p,
 				short_p, unsigned_int_p, unsigned_int_p, string_p, PolyLine_t_p,
-				Lanes_p, RoadItems_t_p, PolyLine_t_p);
+				laneEdgePolylines_cached_t_p, Lanes_p, RoadItems_t_p,
+				PolyLine_t_p);
 
 		PolyLine_t_p.parsers(PolyPoint_t_p);
 
 		PolyPoint_t_p.parsers(string_p, Point2D_t_p);
+
+		laneEdgePolylines_cached_t_p.parsers(laneEdgePolyline_cached_t_p);
+
+		laneEdgePolyline_cached_t_p.parsers(short_p, PolyLine_t_p);
 
 		Lanes_p.parsers(lane_t_p);
 
@@ -168,20 +199,20 @@ bool sim_mob::xml::InitAndLoadXML()
 		RoadItems_t_p.parsers(BusStop_t_p, ERP_Gantry_t_p, crossing_t_p,
 				RoadBump_t_p);
 
-		BusStop_t_p.parsers(unsigned_short_p, Point2D_t_p, Point2D_t_p,
-				string_p, string_p, boolean_p, boolean_p, boolean_p,
-				unsigned_int_p);
+		BusStop_t_p.parsers(unsigned_long_p, unsigned_short_p, Point2D_t_p,
+				Point2D_t_p, double_p, double_p, unsigned_long_p, boolean_p,
+				boolean_p, boolean_p, unsigned_int_p, string_p);
 
-		ERP_Gantry_t_p.parsers(unsigned_short_p, Point2D_t_p, Point2D_t_p,
-				string_p);
+		ERP_Gantry_t_p.parsers(unsigned_long_p, unsigned_short_p, Point2D_t_p,
+				Point2D_t_p, string_p);
 
-		crossing_t_p.parsers(unsigned_short_p, Point2D_t_p, Point2D_t_p,
-				string_p, PointPair_t_p, PointPair_t_p);
+		crossing_t_p.parsers(unsigned_long_p, unsigned_short_p, Point2D_t_p,
+				Point2D_t_p, PointPair_t_p, PointPair_t_p);
 
 		PointPair_t_p.parsers(Point2D_t_p, Point2D_t_p);
 
-		RoadBump_t_p.parsers(unsigned_short_p, Point2D_t_p, Point2D_t_p,
-				string_p, unsigned_long_p);
+		RoadBump_t_p.parsers(unsigned_long_p, unsigned_short_p, Point2D_t_p,
+				Point2D_t_p, string_p, unsigned_long_p);
 
 		TripChains_t_p.parsers(TripChain_t_p);
 
@@ -194,27 +225,61 @@ bool sim_mob::xml::InitAndLoadXML()
 
 		SubTrips_t_p.parsers(SubTrip_t_p);
 
-		SubTrip_t_p.parsers(string_p, boolean_p, string_p);
+		SubTrip_t_p.parsers(integer_p, TripchainItemType_p, unsigned_int_p,
+				string_p, string_p, integer_p, unsigned_int_p,
+				TripchainItemLocationType_p, unsigned_int_p,
+				TripchainItemLocationType_p, SubTrips_t_p, string_p, boolean_p,
+				string_p);
 
 		Activity_t_p.parsers(integer_p, TripchainItemType_p, unsigned_int_p,
 				string_p, string_p, string_p, unsigned_int_p,
 				TripchainItemLocationType_p, boolean_p, boolean_p, boolean_p);
 
+		Signals_t_p.parsers(Signal_t_p);
+
+		Signal_t_p.parsers(unsigned_byte_p, unsigned_int_p, signalAlgorithm_t_p,
+				linkAndCrossings_t_p, SplitPlan_t_p);
+
+		linkAndCrossings_t_p.parsers(linkAndCrossing_t_p);
+
+		linkAndCrossing_t_p.parsers(unsigned_byte_p, unsigned_int_p,
+				unsigned_int_p, unsigned_byte_p);
+
+		SplitPlan_t_p.parsers(unsigned_int_p, signalAlgorithm_t_p,
+				unsigned_byte_p, unsigned_byte_p, Plans_t_p, Phases_t_p);
+
+		Plans_t_p.parsers(Plan_t_p);
+
+		Plan_t_p.parsers(unsigned_byte_p, double_p);
+
+		Phases_t_p.parsers(Phase_t_p);
+
+		Phase_t_p.parsers(unsigned_byte_p, string_p, links_maps_t_p);
+
+		links_maps_t_p.parsers(links_map_t_p);
+
+		links_map_t_p.parsers(unsigned_int_p, unsigned_int_p, unsigned_int_p, unsigned_int_p, ColorSequence_t_p);
+
+		ColorSequence_t_p.parsers(string_p, ColorDuration_t_p);
+
+		ColorDuration_t_p.parsers(TrafficColor_t_p, unsigned_byte_p);
+
+
 		// Parse the XML document.
 		//
-		::xml_schema::document doc_p (SimMobility_t_p,"http://www.smart.mit.edu/geo","SimMobility");
-
+		::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
 		SimMobility_t_p.pre();
-		doc_p.parse("data/XML_OutPut.xml");
+		doc_p.parse(fileName);
 		SimMobility_t_p.post_SimMobility_t();
+
 	} catch (const ::xml_schema::exception& e) {
-		std::cout <<"XML parsing failed: " <<e.what() << std::endl;
+		std::cerr << e << std::endl;
 		return false;
 	} catch (const std::ios_base::failure&) {
-		std::cerr <<"Io error on file: " <<"data/XML_OutPut.xml" << std::endl;
+		std::cerr <<fileName << ": error: io failure" << std::endl;
 		return false;
-	}*/
-	throw std::runtime_error("Driver will be updated later.");
-	return false;
+	}
+
+	return true;
 }
 

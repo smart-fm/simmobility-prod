@@ -68,10 +68,13 @@ public:
 	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.
+	std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
 	const std::vector<sim_mob::MultiNode*>& getNodes() const { return nodes; }
+	std::set<sim_mob::UniNode*>& getUniNodes() { return segmentnodes; }
 	const std::set<sim_mob::UniNode*>& getUniNodes() const { return segmentnodes; }
 
 	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
+	std::vector<sim_mob::Link*>& getLinks() { return links; }
 	const std::vector<sim_mob::Link*>& getLinks() const { return links; }
 
 	///Find the closest Node.
@@ -87,7 +90,7 @@ public:
 		nodes.insert(nodes.begin(),vals.begin(),vals.end());
 	}
 
-private:
+//private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.
 	std::vector<sim_mob::MultiNode*> nodes;
 	std::vector<sim_mob::Link*> links;
@@ -99,9 +102,11 @@ private:
 	//todo remove public from here
 public:
 	//todo check whether the network is sealed -vahid
-	std::vector<sim_mob::MultiNode*>& getNodesRW() { return nodes; }
+	//NOTE: We check if the network is sealed in the config file, not the RoadNetwork.
+	//      I've changed the getNodes() etc. functions to be non-const. ~Seth
+	/*std::vector<sim_mob::MultiNode*>& getNodesRW() { return nodes; }
 	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }
-	std::vector<sim_mob::Link*>& getLinksRW() { return links; }
+	std::vector<sim_mob::Link*>& getLinksRW() { return links; }*/
 
 
 };

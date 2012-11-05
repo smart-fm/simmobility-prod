@@ -73,7 +73,7 @@ class Activity: public sim_mob::TripChainItem {
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
-	sim_mob::Node* location;
+	const sim_mob::Node* location;
 	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
@@ -93,9 +93,9 @@ class Trip: public sim_mob::TripChainItem {
 
 public:
 	unsigned int tripID;
-	sim_mob::Node* fromLocation;
+	const sim_mob::Node* fromLocation;
 	TripChainItem::LocationType fromLocationType;
-	sim_mob::Node* toLocation;
+	const sim_mob::Node* toLocation;
 	TripChainItem::LocationType toLocationType;
 
 	Trip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,

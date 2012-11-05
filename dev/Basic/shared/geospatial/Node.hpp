@@ -77,17 +77,17 @@ public:
 
 
 //protected:
-    Node(int x, int y, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),linkLoc(nullptr) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y) {}
 
-private:
-    sim_mob::Link* linkLoc;
+//private:
+//    sim_mob::Link* linkLoc;
 
 public:
     void setID(unsigned int);
     unsigned int getID()const;
-    void setLinkLoc(sim_mob::Link* link);
+  //  void setLinkLoc(sim_mob::Link* link);
 
-    sim_mob::Link* getLinkLoc() const;
+  //  sim_mob::Link* getLinkLoc() const;
   const Point2D getLocation() const { return location;}
 };
 

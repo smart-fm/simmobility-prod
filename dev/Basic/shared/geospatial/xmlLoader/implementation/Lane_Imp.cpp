@@ -12,7 +12,6 @@ sim_mob::Lane* sim_mob::xml::lane_t_pimpl::post_lane_t ()
 {
 	//Note: We only allocate memory in post() to avoid leaking memory if the parser generates an error.
 	sim_mob::Lane* res = new sim_mob::Lane(model);
-	Lanes_pimpl::RegisterLane(res->getLaneID(), res);
 	return res;
 }
 

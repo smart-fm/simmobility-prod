@@ -33,9 +33,6 @@ obstacle_t  sim_mob::RoadItem*;
 lane_t sim_mob::Lane* sim_mob::Lane*;
 Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
 
-#connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
-#connectors_t std::set<sim_mob::LaneConnector*> std::set<sim_mob::LaneConnector*>;
-
 connector_t   "std::pair<unsigned long,unsigned long>"  "std::pair<unsigned long,unsigned long>";
 connectors_t  "std::set<std::pair<unsigned long,unsigned long> >"  "std::set<std::pair<unsigned long,unsigned long> >";
 

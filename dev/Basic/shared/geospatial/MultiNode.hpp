@@ -92,12 +92,6 @@ protected:
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;
 
-	//Bookkeeping: Store a list of RoadSegments in "clockwise" (can be counter-clockwise for rhs) order,
-	//             along with a flag of whether or not this segment is "forward". Used to determine which
-	//             Segments pedestrians must cross when approaching the intersection.
-public: //TEMP
-	std::vector< std::pair<RoadSegment*, bool> > roadSegmentsCircular;
-
 
 friend class sim_mob::aimsun::Loader;
 

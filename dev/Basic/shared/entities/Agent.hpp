@@ -114,8 +114,8 @@ private:
 
 public:
 	//The agent's start/end nodes.
-	Node* originNode;
-	Node* destNode;
+	const Node* originNode;
+	const Node* destNode;
 
 //	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y

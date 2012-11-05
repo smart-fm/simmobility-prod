@@ -1592,7 +1592,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
-	ln->start->setLinkLoc(ln);
+	//ln->start->setLinkLoc(ln);
 	//set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
@@ -1601,7 +1601,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//Update
 		ln->end = currSect->toNode->generatedNode;
 		//added by Jenny to tag node to one link
-		ln->end->setLinkLoc(ln);
+		//ln->end->setLinkLoc(ln);
 
 		//Now, check for segments going both forwards and backwards. Add both.
 		for (size_t i=0; i<2; i++) {

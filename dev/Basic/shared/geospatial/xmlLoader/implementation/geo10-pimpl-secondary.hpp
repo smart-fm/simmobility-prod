@@ -1,0 +1,489 @@
+//This class contains all "secondary" classes; i.e., helper classes and temporaries required for parsing.
+#pragma once
+
+namespace sim_mob {
+namespace xml {
+
+
+//Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
+// chaining mechanism. Instead, initialize all your private variables in the pre() function.
+
+
+///TODO: Can we remove this class?
+class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel {
+public:
+	virtual void pre () { model = std::make_pair(0, 0); }
+	virtual std::pair<unsigned long,unsigned long> post_temp_Segmetair_t () { return model; }
+
+	virtual void first (unsigned long long value) { model.first = value; }
+	virtual void second (unsigned long long value) { model.second = value; }
+
+private:
+	std::pair<unsigned long,unsigned long> model;
+};
+
+
+class PolyPoint_t_pimpl: public virtual PolyPoint_t_pskel {
+public:
+    virtual void pre ();
+    virtual sim_mob::Point2D post_PolyPoint_t ();
+
+    virtual void pointID (const ::std::string&);
+    virtual void location (sim_mob::Point2D);
+
+private:
+    //std::string savedID;
+    sim_mob::Point2D model;
+};
+
+
+
+class PolyLine_t_pimpl: public virtual PolyLine_t_pskel {
+public:
+    virtual void pre ();
+    virtual std::vector<sim_mob::Point2D> post_PolyLine_t ();
+
+    virtual void PolyPoint (sim_mob::Point2D);
+
+private:
+    std::vector<sim_mob::Point2D> model;
+};
+
+
+class connectors_t_pimpl: public virtual connectors_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::set<std::pair<unsigned long,unsigned long> > post_connectors_t ();
+
+	virtual void Connector (std::pair<unsigned long,unsigned long>);
+
+private:
+	std::set<std::pair<unsigned long,unsigned long> > model;
+};
+
+
+class Multi_Connectors_t_pimpl: public virtual Multi_Connectors_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > post_Multi_Connectors_t ();
+
+	virtual void MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+
+private:
+	helper::MultiNodeConnectors model;
+};
+
+
+
+class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::RoadSegment*> post_fwdBckSegments_t ();
+
+	virtual void Segment (sim_mob::RoadSegment*);
+
+private:
+  std::vector<sim_mob::RoadSegment*> model;
+
+};
+
+
+
+class RoadSegmentsAt_t_pimpl: public virtual RoadSegmentsAt_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::set<unsigned long> post_RoadSegmentsAt_t ();
+
+	virtual void segmentID (unsigned long long);
+
+private:
+  std::set<unsigned long> model;
+};
+
+
+
+class laneEdgePolyline_cached_t_pimpl: public virtual laneEdgePolyline_cached_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<short,std::vector<sim_mob::Point2D> > post_laneEdgePolyline_cached_t ();
+
+	virtual void laneNumber (short);
+	virtual void polyline (std::vector<sim_mob::Point2D>);
+
+private:
+  std::pair<short,std::vector<sim_mob::Point2D> > model;
+};
+
+
+class laneEdgePolylines_cached_t_pimpl: public virtual laneEdgePolylines_cached_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<std::vector<sim_mob::Point2D> > post_laneEdgePolylines_cached_t ();
+
+	virtual void laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >);
+
+  private:
+  std::vector<std::vector<sim_mob::Point2D> > model;
+};
+
+
+class separator_t_pimpl: public virtual separator_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_separator_t ();
+
+	virtual void separator_ID (unsigned short);
+	virtual void separator_value (bool);
+};
+
+
+
+class separators_t_pimpl: public virtual separators_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_separators_t ();
+
+	virtual void Separator ();
+};
+
+
+
+class DomainIsland_t_pimpl: public virtual DomainIsland_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_DomainIsland_t ();
+
+	virtual void domainIsland_ID (unsigned short);
+	virtual void domainIsland_value (bool);
+};
+
+
+class DomainIslands_t_pimpl: public virtual DomainIslands_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_DomainIslands_t ();
+
+	virtual void domainIslands ();
+};
+
+
+
+class offset_t_pimpl: public virtual offset_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_offset_t ();
+
+	virtual void offset_ID (unsigned short);
+	virtual void offset_value (unsigned int);
+};
+
+
+class offsets_t_pimpl: public virtual offsets_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_offsets_t ();
+
+	virtual void offset ();
+};
+
+
+
+class ChunkLength_t_pimpl: public virtual ChunkLength_t_pskel
+{
+public:
+	virtual void pre ();
+	virtual void post_ChunkLength_t ();
+
+	virtual void chunklength_ID (unsigned short);
+	virtual void chunklength_value (unsigned int);
+};
+
+
+class ChunkLengths_t_pimpl: public virtual ChunkLengths_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_ChunkLengths_t ();
+
+	virtual void chunklength ();
+};
+
+
+class LanesVector_t_pimpl: public virtual LanesVector_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_LanesVector_t ();
+
+	virtual void laneID (unsigned long long);
+};
+
+
+class EntranceAngle_t_pimpl: public virtual EntranceAngle_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_EntranceAngle_t ();
+
+	virtual void entranceAngle_ID (unsigned short);
+	virtual void entranceAngle_value (unsigned int);
+};
+
+
+
+class EntranceAngles_t_pimpl: public virtual EntranceAngles_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_EntranceAngles_t ();
+
+	virtual void entranceAngle ();
+};
+
+
+
+class Lanes_pimpl: public virtual Lanes_pskel {
+public:
+	Lanes_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+	virtual void pre ();
+	virtual std::vector<sim_mob::Lane*> post_Lanes ();
+
+	virtual void Lane (sim_mob::Lane*);
+
+private:
+	std::vector<sim_mob::Lane*> model;
+	helper::Bookkeeping& book;
+};
+
+
+class Segments_pimpl: public virtual Segments_pskel {
+public:
+	Segments_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+	typedef std::vector<sim_mob::RoadSegment*> SegmentList;
+
+	virtual void pre ();
+	virtual std::pair<SegmentList, SegmentList> post_Segments (); //Fwd, back segments
+
+	virtual void FWDSegments (std::vector<sim_mob::RoadSegment*>);
+	virtual void BKDSegments (std::vector<sim_mob::RoadSegment*>);
+
+private:
+	SegmentList fwd;
+	SegmentList rev;
+
+	helper::Bookkeeping& book;
+};
+
+
+class Nodes_pimpl: public virtual Nodes_pskel {
+public:
+	Nodes_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+	virtual void pre ();
+	virtual const helper::NodesRes& post_Nodes ();
+
+	virtual void UniNodes (const std::set<sim_mob::UniNode*>&);
+	virtual void Intersections (const std::vector<sim_mob::MultiNode*>&);
+	virtual void roundabouts (const std::vector<sim_mob::MultiNode*>&);
+
+private:
+	sim_mob::xml::helper::NodesRes model;
+	sim_mob::xml::helper::Bookkeeping& book;
+};
+
+
+class Links_pimpl: public virtual Links_pskel {
+public:
+	Links_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+	virtual void pre ();
+	virtual std::vector<sim_mob::Link*> post_Links ();
+
+	virtual void Link (sim_mob::Link*);
+
+private:
+	std::vector<sim_mob::Link*> model;
+	sim_mob::xml::helper::Bookkeeping& book;
+};
+
+
+class FormType_pimpl: public virtual FormType_pskel {
+public:
+	virtual void pre ();
+	virtual void post_FormType ();
+
+	virtual void TextBox (int);
+	virtual void TextArea (int);
+	virtual void Header (int);
+};
+
+
+class PointPair_t_pimpl: public virtual PointPair_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::Point2D,sim_mob::Point2D> post_PointPair_t ();
+
+	virtual void first (sim_mob::Point2D);
+	virtual void second (sim_mob::Point2D);
+
+private:
+	std::pair<sim_mob::Point2D,sim_mob::Point2D> model;
+};
+
+
+class RoadItems_t_pimpl: public virtual RoadItems_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::map<sim_mob::centimeter_t,const sim_mob::RoadItem*> post_RoadItems_t ();
+
+	virtual void BusStop (std::pair<unsigned long,sim_mob::BusStop*>);
+	virtual void ERP_Gantry ();
+	virtual void Crossing (std::pair<unsigned long,sim_mob::Crossing*>);
+	virtual void RoadBump ();
+
+private:
+	std::map<centimeter_t,const RoadItem*> model;
+};
+
+
+class linkAndCrossing_t_pimpl: public virtual linkAndCrossing_t_pskel {
+public:
+	linkAndCrossing_t_pimpl(const helper::Bookkeeping& book) : book(book) {}
+
+	virtual void pre ();
+	virtual sim_mob::LinkAndCrossing post_linkAndCrossing_t ();
+
+	virtual void ID (unsigned char);
+	virtual void linkID (unsigned int);
+	virtual void crossingID (unsigned int);
+	virtual void angle (unsigned char);
+
+private:
+	sim_mob::LinkAndCrossing model;
+
+	const helper::Bookkeeping& book;
+};
+
+
+class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel {
+public:
+	virtual void pre ();
+
+	virtual void linkAndCrossing (sim_mob::LinkAndCrossing);
+	virtual sim_mob::LinkAndCrossingC post_linkAndCrossings_t ();
+};
+
+
+class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel, public ::xml_schema::string_pimpl {
+public:
+	virtual void pre ();
+	virtual void post_signalAlgorithm_t ();
+};
+
+class Plans_t_pimpl: public virtual Plans_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Plans_t ();
+
+	virtual void Plan ();
+};
+
+
+class links_map_t_pimpl: public virtual links_map_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::Link*,sim_mob::linkToLink> post_links_map_t ();
+
+	virtual void linkFrom (unsigned int);
+	virtual void linkTo (unsigned int);
+	virtual void SegmentFrom (unsigned int);
+	virtual void SegmentTo (unsigned int);
+	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
+};
+
+
+class links_maps_t_pimpl: public virtual links_maps_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
+
+	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+};
+
+
+class Phases_t_pimpl: public virtual Phases_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Phases_t ();
+
+	virtual void Phase ();
+};
+
+class Signals_t_pimpl: public virtual Signals_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_Signals_t ();
+
+	virtual void signal (sim_mob::Signal*);
+};
+
+class UniNodes_pimpl: public virtual UniNodes_pskel {
+public:
+	virtual void pre ();
+	virtual const std::set<sim_mob::UniNode*>& post_UniNodes ();
+
+	virtual void UniNode (sim_mob::UniNode*);
+
+private:
+	std::set<sim_mob::UniNode*> model;
+};
+
+
+class Intersections_pimpl: public virtual Intersections_pskel {
+public:
+	virtual void pre ();
+	virtual const std::vector<sim_mob::MultiNode*>& post_Intersections ();
+
+	virtual void Intersection (sim_mob::MultiNode*);
+
+private:
+	std::vector<sim_mob::MultiNode*> model;
+};
+
+
+
+class roundabouts_pimpl: public virtual roundabouts_pskel {
+public:
+	virtual void pre ();
+	virtual const std::vector<sim_mob::MultiNode*>& post_roundabouts ();
+
+	virtual void roundabout (sim_mob::MultiNode*);
+
+private:
+	std::vector<sim_mob::MultiNode*> model;
+};
+
+
+class SubTrips_t_pimpl: public virtual SubTrips_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::SubTrip> post_SubTrips_t ();
+
+	virtual void subTrip (sim_mob::SubTrip);
+
+private:
+	std::vector<sim_mob::SubTrip> model;
+};
+
+
+class TripChains_t_pimpl: public virtual TripChains_t_pskel {
+public:
+	virtual void pre ();
+	virtual void post_TripChains_t ();
+
+	virtual void TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+
+private:
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > model;
+};
+
+
+}}

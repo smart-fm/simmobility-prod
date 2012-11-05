@@ -53,8 +53,8 @@ class Loader;
  */
 class Link : public sim_mob::Traversable {
 public:
-	Link() : Traversable() {}
-	Link(unsigned int linkID_) : Traversable(),linkID(linkID_) {}
+	Link() : Traversable(), linkID(0), currWorker(nullptr) {}
+	Link(unsigned int linkID_) : Traversable(),linkID(linkID_), currWorker(nullptr) {}
 
 	//TODO: Temp, for XML
 	void setStart(sim_mob::Node* st) { this->start = st; }
@@ -85,6 +85,7 @@ public:
 	/// RoadSegments that should actually be read as end->start, not start->end.
 	 
 	const std::vector<sim_mob::RoadSegment*>& getPath(bool isForward) const;
+	std::vector<sim_mob::RoadSegment*>& getPath(bool isForward);
 
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
@@ -96,7 +97,7 @@ public:
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
 	//added methods to access the worker who is managing this link
-	Worker* getCurrWorker();
+	Worker* getCurrWorker() const;
 	void setCurrWorker(Worker* w);
 
 #ifndef SIMMOB_DISABLE_MPI

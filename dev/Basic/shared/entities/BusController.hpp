@@ -36,7 +36,9 @@ public:
 	static void RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
 	///Returns true if we have at least one bus controller capable of dispatching buses.
-	static bool HasBusControllers() const;
+	static bool HasBusControllers();
+
+	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list);
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);

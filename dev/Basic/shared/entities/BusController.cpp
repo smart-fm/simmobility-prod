@@ -1,11 +1,18 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "BusController.hpp"
+
+#include <stdexcept>
+
 #include "entities/Person.hpp"
 #include "util/LangHelpers.hpp"
 
 using std::vector;
+using std::string;
+using std::map;
+
 using namespace sim_mob;
+
 typedef Entity::UpdateStatus UpdateStatus;
 vector<BusController*> BusController::all_busctrllers_;// Temporary saved all the buscontroller, eventually it will go to all agent stream
 
@@ -20,10 +27,26 @@ void sim_mob::BusController::RegisterNewBusController(unsigned int startTime, co
 	all_busctrllers_.push_back(busctrller);
 }
 
-bool sim_mob::BusController::HasBusControllers() const
+bool sim_mob::BusController::HasBusControllers()
 {
 	return !all_busctrllers_.empty();
 }
+
+void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list)
+{
+	//Check: Do we have exactly one BusController?
+	if (all_busctrllers_.size()>1) {
+		throw std::runtime_error("Currently, we only support zero or one Bus Controller");
+	}
+
+	//Initialize every item in the list.
+	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+		(*it)->setPTSchedule();
+		(*it)->assignBusTripChainWithPerson(agents_list);
+	}
+}
+
+
 
 
 
@@ -34,26 +57,26 @@ void sim_mob::BusController::addBus(Bus* bus)
 
 void sim_mob::BusController::remBus(Bus* bus)
 {
-	std::vector<Bus*>::iterator it = std::find(managedBuses.begin(), managedBuses.end(), bus);
+	vector<Bus*>::iterator it = std::find(managedBuses.begin(), managedBuses.end(), bus);
 	if (it!=managedBuses.end()) {
 		managedBuses.erase(it);
 	}
 }
 
-void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& active_agents)
+void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& active_agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	std::map<std::string, Busline*>& buslines = pt_schedule.get_busLines();
+	map<string, Busline*>& buslines = pt_schedule.get_busLines();
 	if(0 == buslines.size()) {
 		std::cout << "Error: No busline in the PT_Schedule, please check the setPTSchedule!!!! " << std::endl;
 		return;
 	}
 	std::cout << "buslines.size(): " << buslines.size() << std::endl;
 	Person* currAg = nullptr;
-	std::vector<const TripChainItem*> currAgTripChain;
-	for(std::map<std::string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
+	vector<const TripChainItem*> currAgTripChain;
+	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
-		const std::vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
 			currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
@@ -74,28 +97,19 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& 
 void sim_mob::BusController::setPTSchedule()
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
-	std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
+	vector<PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
 
-	std::string currRouteID = "";
-	std::string prevRouteID = "";
+	string prevRouteID = "";
 	sim_mob::Busline* busline = nullptr;
 	int entID = 555;// id can be designed later
 	int step = 0;
 	sim_mob::DailyTime nextTime;
 
-	for (std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
-		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr = it;
-		std::vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = it+1;
+	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
+		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr = it;
+		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = it+1;
 
-//		bool done = true;
-//		if(next!= busdispatch_freq.end() && next->frequency_id == curr->frequency_id) {
-//			done = false;
-//		}
-		//If done, new a BusLine with busline id
-
-		currRouteID = curr->route_id;
+		const string currRouteID = curr->route_id;
 		if(currRouteID != prevRouteID) {
 			busline = new sim_mob::Busline(curr->route_id,"no_control");
 			pt_schedule.registerBusLine(curr->route_id, busline);
@@ -115,48 +129,23 @@ void sim_mob::BusController::setPTSchedule()
 			for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += DailyTime((uint32_t)(curr->headway_sec*50)))
 			{
 				BusTrip bustrip(entID+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), step, curr->route_id, entID+step, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
-				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
-				if(bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id], routeID_busStops[curr->route_id])) {
+				vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
+				vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
+				if(bustrip.setBusRouteInfo(segments, stops)) {
 					busline->addBusTrip(bustrip);
 				}
 				step++;
 			}
 		}
 		prevRouteID = curr->route_id;
-
-
-//		if (curr->start_time.toString() == "17:00:00") {
-//			// current only the first one Trip is generated, not considering multiple bustrips with headways, later this logic will change
-//			std::cout << "route id: " << curr->route_id << "startTime: " << curr->start_time.toString() << std::endl;
-//			sim_mob::Busline* busline = new sim_mob::Busline(curr->route_id,"no_control");
-//
-//			std::cout << "Yao Jin is here " << std::endl;
-//			Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for this busline
-//			busline->addFrequencyBusline(frequency_busline);
-//
-//			int entID = 555;// id can be designed later
-//			int step = 0;
-//			for(DailyTime startTime = curr->start_time; startTime.isBefore(next->start_time)!=false; startTime += DailyTime((uint32_t)(curr->headway_sec*10)))
-//			{
-//				BusTrip bustrip(entID+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), step, curr->route_id, entID+step, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
-//				//std::cout << "curr->route_id " << curr->route_id << "curr->start_time.toString() " << curr->start_time.toString() << std::endl;
-//				if(bustrip.setBusRouteInfo(routeID_roadSegments[curr->route_id], routeID_busStops[curr->route_id])) {
-//					busline->addBusTrip(bustrip);
-//				}
-//				step++;
-//			}
-//			std::cout << "busline: BusTrip size: " << busline->queryBusTrips().size() << std::endl;
-//			pt_schedule.registerBusLine(curr->route_id, busline);
-//		}
 	}
-
 }
 
-void sim_mob::BusController::receiveBusInformation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk) {
+void sim_mob::BusController::receiveBusInformation(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk) {
 	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
 }
 
-unsigned int sim_mob::BusController::decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum)
+unsigned int sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	unsigned int departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
@@ -181,14 +170,14 @@ unsigned int sim_mob::BusController::decisionCalculation(const std::string& busl
 	return departure_time;
 }
 
-unsigned int sim_mob::BusController::scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int SETijk = 0;
@@ -196,10 +185,10 @@ unsigned int sim_mob::BusController::scheduledDecision(const std::string& buslin
 	unsigned int sij = 0;// slack size(should be zero)
 
 	//Fwd_ATijk = ATijk;// assign value
-	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 
 	//StopInformation(Times)
-	const std::vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
+	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
 	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
@@ -212,14 +201,14 @@ unsigned int sim_mob::BusController::scheduledDecision(const std::string& buslin
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::headwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
@@ -227,8 +216,8 @@ unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_
 	unsigned int Hi = 0;
 	double alpha = 0.6;// range from 0.6 to 0.8
 
-	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 	Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
@@ -243,14 +232,14 @@ unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
+unsigned int sim_mob::BusController::evenheadwayDecision(const string& busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
@@ -258,14 +247,14 @@ unsigned int sim_mob::BusController::evenheadwayDecision(const std::string& busl
 	unsigned int ATimk_plus1 = 0;
 	unsigned int SRTmj = 0;
 
-	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
+	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
 	ATimk_plus1 = busStopRealTime_tripKplus1[lastVisited_BusStopSeqNum]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	const std::vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
+	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
 	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
@@ -277,13 +266,13 @@ unsigned int sim_mob::BusController::evenheadwayDecision(const std::string& busl
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	unsigned int DTijk = 0;
 	return DTijk;
 }
 
-unsigned int sim_mob::BusController::dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j)
+unsigned int sim_mob::BusController::dwellTimeCalculation(const string& busline_i, int trip_k, int busstopSequence_j)
 {
 	double alpha1 = 0.0;
 	double alpha2 = 0.0;
@@ -306,7 +295,7 @@ unsigned int sim_mob::BusController::sendBusInformation()
 
 }
 
-void sim_mob::BusController::addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents)
+void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -366,7 +355,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 	if (currTimeMS < getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			std::stringstream msg;
+			stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: "
 					<< getStartTime() << " but it is currently: " << currTimeMS
 					<< "; this indicates an error, and should be handled automatically.";
@@ -418,7 +407,7 @@ void sim_mob::BusController::frame_tick_output(frame_t frameNumber)
 #endif
 }
 
-void sim_mob::BusController::buildSubscriptionList(std::vector<BufferedBase*>& subsList)
+void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
 	Agent::buildSubscriptionList(subsList);
 }

@@ -177,10 +177,6 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 ////
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
-	///TODO: The BusController is static; need to address this OUTSIDE this function.
-	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
-//	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
-
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
@@ -450,13 +446,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
-//		std::cout << " agentType: " << agentType << "\n";
-//		for(map<string, string>::iterator it = props.begin(); it != props.end(); it++)
-//		{
-//			std::cout << " props[" << it->first << " , " << it->second << "]\n";
-//		}
-//		std::cout << "I am in LoadXMLAgnets\n";
-//		getchar();
+
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
@@ -1270,14 +1260,17 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
 
+    //Attempt to load all "BusController" elements from the config file.
     if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
     	return "Couldn't load buscontrollers";
     }
+
+    //Initialize all BusControllers.
 	if(BusController::HasBusControllers()) {
-		BusController::all_busctrllers_[0]->setPTSchedule();
-		BusController::all_busctrllers_[0]->assignBusTripChainWithPerson(active_agents);
+		BusController::InitializeAllControllers(active_agents);
 	}
+
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {

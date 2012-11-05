@@ -212,6 +212,10 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			//Might have an EntityID conflict here...
 			currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
 
+			//Update the TripChain's ID (in case the Person auto-generated an ID)
+			//TODO: This won't work quite right for agents with multiple Trips and an ID of -1.
+			tc->personID = currAg->getId();
+
 			//Set the start time for this Agent; clear the trip chain.
 			currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
@@ -1268,7 +1272,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     //Initialize all BusControllers.
 	if(BusController::HasBusControllers()) {
-		BusController::InitializeAllControllers(active_agents);
+		BusController::InitializeAllControllers(active_agents, ConfigParams::GetInstance().getPT_bus_dispatch_freq());
 	}
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder

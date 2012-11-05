@@ -38,7 +38,7 @@ public:
 	///Returns true if we have at least one bus controller capable of dispatching buses.
 	static bool HasBusControllers();
 
-	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list);
+	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
@@ -64,7 +64,9 @@ public:
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
 	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
-	void setPTSchedule();
+
+	///Load all bus items from the database.
+	void setPTScheduleFromConfig(std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	//Functions required by Jenny's code.
 	// TODO: These shouldn't have to be duplicated across all entity types.

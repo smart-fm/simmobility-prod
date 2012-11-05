@@ -85,7 +85,8 @@ private:
 
 class BusTrip: public sim_mob::Trip {// Can be inside the TripChain generation or BusLine stored in BusController
 public:
-	BusTrip(int entId=0, std::string type="BusTrip", unsigned int seqNumber=0,
+	//Note: I am changing the default entID value to "-1", which *should* generate Agent IDs correctly.
+	BusTrip(int entId=-1, std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTripRun_sequenceNum=0,
 			std::string busLine_id="", int vehicle_id=0, std::string busRoute_id="",
 			Node* from=nullptr, std::string fromLocType="node", Node* to=nullptr,

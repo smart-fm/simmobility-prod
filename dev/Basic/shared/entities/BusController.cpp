@@ -32,7 +32,7 @@ bool sim_mob::BusController::HasBusControllers()
 	return !all_busctrllers_.empty();
 }
 
-void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list)
+void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list, vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	//Check: Do we have exactly one BusController?
 	if (all_busctrllers_.size()>1) {
@@ -41,7 +41,7 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 
 	//Initialize every item in the list.
 	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
-		(*it)->setPTSchedule();
+		(*it)->setPTScheduleFromConfig(busdispatch_freq);
 		(*it)->assignBusTripChainWithPerson(agents_list);
 	}
 }
@@ -94,50 +94,44 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 	}
 }
 
-void sim_mob::BusController::setPTSchedule()
+void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	vector<PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
 
-	string prevRouteID = "";
 	sim_mob::Busline* busline = nullptr;
-	int entID = 555;// id can be designed later
 	int step = 0;
-	sim_mob::DailyTime nextTime;
 
-	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
-		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr = it;
-		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = it+1;
+	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
+		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
 
-		const string currRouteID = curr->route_id;
-		if(currRouteID != prevRouteID) {
+		//If we're on a new BusLine, register it with the scheduler.
+		if(!busline || (curr->route_id != busline->getBusLineID())) {
 			busline = new sim_mob::Busline(curr->route_id,"no_control");
 			pt_schedule.registerBusLine(curr->route_id, busline);
-			std::cout << "Yao Jin is here " << std::endl;
+			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth
 		}
-		Frequency_Busline frequency_busline(curr->start_time,curr->end_time,curr->headway_sec);// define frequency_busline for one busline
-		if(!busline) {
-			std::cout << "Error: busline is null, no busline is defined!" << std::endl;
-			return;
-		} else { // already newed busline
-			busline->addFrequencyBusline(frequency_busline);
-			if(next == busdispatch_freq.end()) {
-				nextTime = curr->end_time; // the last element deal
-			} else {
-				nextTime = next->start_time;// normal element deal
-			}
-			for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += DailyTime((uint32_t)(curr->headway_sec*50)))
-			{
-				BusTrip bustrip(entID+step, "BusTrip", 0, startTime, DailyTime("00:00:00"), step, curr->route_id, entID+step, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
-				vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
-				vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
-				if(bustrip.setBusRouteInfo(segments, stops)) {
-					busline->addBusTrip(bustrip);
-				}
-				step++;
+
+		// define frequency_busline for one busline
+		busline->addFrequencyBusline(Frequency_Busline(curr->start_time,curr->end_time,curr->headway_sec));
+
+		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
+		sim_mob::DailyTime nextTime = nextTime = curr->end_time;
+		if(next != busdispatch_freq.end()) {
+			nextTime = next->start_time;
+		}
+
+		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
+		//  and add it during each time step.
+		DailyTime advance(curr->headway_sec*50);
+		for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += advance) {
+			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
+			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, curr->route_id, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
+			vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
+			vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
+			if(bustrip.setBusRouteInfo(segments, stops)) {
+				busline->addBusTrip(bustrip);
 			}
 		}
-		prevRouteID = curr->route_id;
 	}
 }
 

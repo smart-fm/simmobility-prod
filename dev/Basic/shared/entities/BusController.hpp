@@ -31,9 +31,13 @@ private:
 	{}
 
 public:
-	static void registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
+	///Initialize a single BusController with the given start time and MutexStrategy.
+	///TODO: Currently having more than 1 BusController on different Workers is dangerous.
+	static void RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
-	//virtual ~BusController();
+	///Returns true if we have at least one bus controller capable of dispatching buses.
+	static bool HasBusControllers() const;
+
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
@@ -54,16 +58,16 @@ public:
 	//For now, I am fixing this by having getToBeInList() always return true.
 	bool getToBeInList() { return true; }
 
-	//Functions required by Jenny's code.
-	// TODO: These shouldn't have to be duplicated across all entity types.
-	virtual Link* getCurrLink();
-	virtual void setCurrLink(Link* link);
-
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
 	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
 	void setPTSchedule();
+
+	//Functions required by Jenny's code.
+	// TODO: These shouldn't have to be duplicated across all entity types.
+	virtual Link* getCurrLink();
+	virtual void setCurrLink(Link* link);
 
 private:
 	//Note: For now, we have to store pointers, since the all_agents array is cleared and deleted on exit.

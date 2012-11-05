@@ -13,19 +13,19 @@ vector<BusController*> BusController::all_busctrllers_;// Temporary saved all th
 //sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusController(0);
 
 
-void sim_mob::BusController::registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
+void sim_mob::BusController::RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
 	BusController* busctrller = new sim_mob::BusController(-1, mtxStrat);
 	busctrller->setStartTime(startTime);
 	all_busctrllers_.push_back(busctrller);
 }
 
-sim_mob::Link* sim_mob::BusController::getCurrLink(){
-	return currLink;
+bool sim_mob::BusController::HasBusControllers() const
+{
+	return !all_busctrllers_.empty();
 }
-void sim_mob::BusController::setCurrLink(sim_mob::Link* link) {
-	currLink = link;
-}
+
+
 
 void sim_mob::BusController::addBus(Bus* bus)
 {
@@ -77,14 +77,6 @@ void sim_mob::BusController::setPTSchedule()
 	std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq = config.getPT_bus_dispatch_freq();
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
 	std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
-
-//	std::cout << "inside the setPTSchedule(): " << std::endl;
-//	for(int i = 0; i < busdispatch_freq.size(); i++) {
-//		std::cout << "Test[i].frequency_id  " << busdispatch_freq[i].frequency_id << "Test[i].start_time.toString() " << busdispatch_freq[i].start_time.toString() << std::endl;
-//	}
-//
-//	BusTrip bustrip;
-
 
 	std::string currRouteID = "";
 	std::string prevRouteID = "";
@@ -430,3 +422,16 @@ void sim_mob::BusController::buildSubscriptionList(std::vector<BufferedBase*>& s
 {
 	Agent::buildSubscriptionList(subsList);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Trivial getters and setters
+////////////////////////////////////////////////////////////////////////////////////////
+
+sim_mob::Link* sim_mob::BusController::getCurrLink(){
+	return currLink;
+}
+void sim_mob::BusController::setCurrLink(sim_mob::Link* link) {
+	currLink = link;
+}
+

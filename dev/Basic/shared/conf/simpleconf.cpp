@@ -244,10 +244,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			//Save the trip chain and the Agent.
 			currAg->setTripChain(currAgTripChain);
 			if(trip_mode == "Bus") {
-				// currently only one
-//				if(!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
-//				}
 				std::cout << "Skip the TripChain Buses!!!" << std::endl;
 			} else {
 				addOrStashEntity(currAg, active_agents, pending_agents);
@@ -468,22 +464,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	return true;
 }
 
-bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& BusControllerKeyID)
+bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
-	std::cout << "inside loadXMLBusControllers !" << std::endl;
-	//Quick check.
-	if (BusControllerKeyID!="buscontroller") {
-		std::cout << "oops! returning false!" << std::endl;
-		return false;
-	}
-
+	//Retrieve the list of buscontrollers
 	TiXmlHandle handle(&document);
-	TiXmlElement* node = handle.FirstChild("config").FirstChild(BusControllerKeyID+"s").FirstChild(BusControllerKeyID).ToElement();
-	if (!node) {
-		//Signals are optional
-		std::cout << "oops! returning true!" << std::endl;
-		return true;
-	}
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("buscontrollers").FirstChild("buscontroller").ToElement();
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
@@ -494,15 +479,13 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 
         try {
             int timeValue = boost::lexical_cast<int>(timeAttr);
-            if (timeValue < 0)
-            {
+            if (timeValue < 0) {
                 std::cerr << "buscontrollers must have positive time attributes in the config file." << std::endl;
                 return false;
             }
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
-            sim_mob::BusController::registerBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
+            sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
-        	std::cout << "catch the loop error try!" << std::endl;
             std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
@@ -1072,8 +1055,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
-//	std::cout << "333" << endl;
-
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
 	handle = TiXmlHandle(&document);
@@ -1289,11 +1270,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
 
-    if(!loadXMLBusControllers(document, active_agents, pending_agents, "buscontroller")) {
+    if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
     	return "Couldn't load buscontrollers";
     }
-	if(!BusController::all_busctrllers_.empty()) {
+	if(BusController::HasBusControllers()) {
 		BusController::all_busctrllers_[0]->setPTSchedule();
 		BusController::all_busctrllers_[0]->assignBusTripChainWithPerson(active_agents);
 	}

@@ -15,20 +15,15 @@ vector<BusController*> BusController::all_busctrllers_;// Temporary saved all th
 
 void sim_mob::BusController::registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
-	//TODO: Why not just use the Agent auto-id generator? (id==-1)  ~Seth
-	BusController * busctrller = new sim_mob::BusController(999);// If needed , add more  busctrllers and design id for them
+	BusController* busctrller = new sim_mob::BusController(-1, mtxStrat);
 	busctrller->setStartTime(startTime);
 	all_busctrllers_.push_back(busctrller);
 }
 
-/*sim_mob::BusController::~BusController()
-{
-}*/
-
 sim_mob::Link* sim_mob::BusController::getCurrLink(){
 	return currLink;
 }
-void sim_mob::BusController::setCurrLink(sim_mob::Link* link){
+void sim_mob::BusController::setCurrLink(sim_mob::Link* link) {
 	currLink = link;
 }
 

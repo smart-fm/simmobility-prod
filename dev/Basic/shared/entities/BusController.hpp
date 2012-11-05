@@ -1,12 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-/*
- * BusController.hpp
- *
- *  Created on: 2012-6-11
- *      Author: Yao Jin
- */
-
 #pragma once
 
 #include <vector>
@@ -26,6 +19,11 @@ namespace sim_mob {
 
 class Bus;
 
+
+/*
+ * BusController class.
+ * \author Yao Jin
+ */
 class BusController : public sim_mob::Agent {
 private:
 	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
@@ -33,9 +31,6 @@ private:
 	{}
 
 public:
-	//Note: I am making this a pointer, since the all_agents array is now cleared and deleted on exit.
-	//      Otherwise, it will attempt to delete itself twice. ~Seth
-	static std::vector<BusController*> all_busctrllers_;
 	static void registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
 	//virtual ~BusController();
@@ -71,6 +66,10 @@ public:
 	void setPTSchedule();
 
 private:
+	//Note: For now, we have to store pointers, since the all_agents array is cleared and deleted on exit.
+	//      Otherwise, it will attempt to delete itself twice. ~Seth
+	static std::vector<BusController*> all_busctrllers_;
+
 	void dispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);

@@ -47,6 +47,23 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 }
 
 
+void sim_mob::BusController::DispatchAllControllers(vector<Entity*>& agents_list)
+{
+	//Push every item on the list into the agents array as an active agent
+	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+		agents_list.push_back(*it);
+	}
+}
+
+
+BusController* sim_mob::BusController::TEMP_Get_Bc_1()
+{
+	if (all_busctrllers_.size()!=1) {
+		throw std::runtime_error("BusControllers array is empty.");
+	}
+	return all_busctrllers_.front();
+}
+
 
 
 
@@ -68,18 +85,16 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 	ConfigParams& config = ConfigParams::GetInstance();
 	map<string, Busline*>& buslines = pt_schedule.get_busLines();
 	if(0 == buslines.size()) {
-		std::cout << "Error: No busline in the PT_Schedule, please check the setPTSchedule!!!! " << std::endl;
-		return;
+		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
-	std::cout << "buslines.size(): " << buslines.size() << std::endl;
-	Person* currAg = nullptr;
+
 	vector<const TripChainItem*> currAgTripChain;
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
-			currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
+			Person* currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
 
@@ -88,8 +103,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 
 			// scheduled for dispatch
 			addOrStashBuses(currAg, active_agents);
-			//Reset for the next (possible) Agent
-			currAg = nullptr;
 		}
 	}
 }
@@ -349,7 +362,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 	if (currTimeMS < getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			stringstream msg;
+			std::stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: "
 					<< getStartTime() << " but it is currently: " << currTimeMS
 					<< "; this indicates an error, and should be handled automatically.";

@@ -223,8 +223,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				bus->setPassengerCount(pCount);
 
-				if(!BusController::all_busctrllers_.empty()) {
-					BusController::all_busctrllers_[0]->receiveBusInformation("", 0, 0, p.currTimeMS);
+				if(BusController::HasBusControllers()) {
+					BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.currTimeMS);
 				}
 			}
 		}

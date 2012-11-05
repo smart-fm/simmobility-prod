@@ -205,7 +205,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<unsigned int, vector<TripChainItem*> >::const_iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		for (TCVectIt it=it_map->second.begin(); it!=it_map->second.end(); it++) {
-		const TripChainItem* const tc = *it;
+		TripChainItem* tc = *it;
 
 		//If the agent pointer is null, this record represents the start of a new agent.
 		if (!currAg) {
@@ -1369,9 +1369,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     // it here.
     //todo I think when a loop detector data are dynamically assigned to signal rather that being read from data base,
     //they should be handled with in the signal constructor, not here
-    if(!BusController::all_busctrllers_.empty())
-    {
-    	active_agents.push_back(BusController::all_busctrllers_[0]);
+    if(BusController::HasBusControllers()) {
+    	BusController::DispatchAllControllers(active_agents);
     }
 
 #ifndef SIMMOB_NEW_SIGNAL

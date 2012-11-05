@@ -134,7 +134,7 @@ void sim_mob::Busline::addBusTrip(BusTrip& aBusTrip)
 	busTrip_vec.push_back(aBusTrip);
 }
 
-void sim_mob::Busline::addFrequencyBusline(Frequency_Busline& aFrequencyBusline)
+void sim_mob::Busline::addFrequencyBusline(const Frequency_Busline& aFrequencyBusline)
 {
 	frequency_busline.push_back(aFrequencyBusline);
 }

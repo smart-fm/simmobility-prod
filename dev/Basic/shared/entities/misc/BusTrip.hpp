@@ -152,7 +152,7 @@ public:
 		return busline_id;
 	}
 	void addBusTrip(BusTrip& aBusTrip);
-	void addFrequencyBusline(Frequency_Busline& aFrequencyBusline);
+	void addFrequencyBusline(const Frequency_Busline& aFrequencyBusline);
 	const std::vector<BusTrip>& queryBusTrips() const {
 		return busTrip_vec;
 	}

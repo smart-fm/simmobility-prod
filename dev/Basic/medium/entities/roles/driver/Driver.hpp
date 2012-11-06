@@ -65,7 +65,7 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now) { throw std::runtime_error("frame_tick_output_mpi not implemented in Driver."); }
-	virtual UpdateParams& make_frame_tick_params(timeslice now, unsigned int currTimeMS);
+	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setParentBufferedData();			///<set next data to parent buffer data

@@ -255,7 +255,7 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		if(this->getId() == 555) {
 			std::cout << "555 is available " << std::endl;
 		}
-		checkAndReactToTripChain(now);
+		checkAndReactToTripChain(now.ms(), now.ms()+ConfigParams::GetInstance().baseGranMS);
 	}
 
 	//Failsafe

@@ -138,7 +138,7 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 			<<"\"" <<"agent" <<"\"" <<":" <<"\"" <<ag.getId() <<"\"" <<","
 			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<ag.currWorker <<"\"" <<",";
 	if (now) {
-		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame <<"\"" <<",";
+		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame() <<"\"" <<",";
 	}
 	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
 	if (!message.empty()) {

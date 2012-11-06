@@ -280,7 +280,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (p2.currLane && vehicle) {
-		if (update_movement(p2, p.frameNumber) && update_post_movement(p2, p.frameNumber)) {
+		if (update_movement(p2, p.now) && update_post_movement(p2, p.now)) {
 
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
@@ -438,7 +438,7 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
-			<<","<<p.frameNumber
+			<<","<<p.now.frame()
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())

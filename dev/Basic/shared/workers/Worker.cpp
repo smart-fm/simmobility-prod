@@ -20,7 +20,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep)
+sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, uint32_t endTick, uint32_t tickStep)
     : BufferedDataManager(),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick),
@@ -164,7 +164,7 @@ void sim_mob::Worker::barrier_mgmt()
 		addPendingEntities();
 
 		//Perform all our Agent updates, etc.
-		perform_main({currTick, currTick*msPerFrame});
+		perform_main(timeslice(currTick, currTick*msPerFrame));
 
 		//Remove Agents as requires
 		removePendingEntities();

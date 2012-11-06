@@ -218,13 +218,13 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
-				real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
+				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 
 				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				bus->setPassengerCount(pCount);
 
 				if(BusController::HasBusControllers()) {
-					BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.currTimeMS);
+					BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
 				}
 			}
 		}
@@ -383,7 +383,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	Bus* bus = dynamic_cast<Bus*>(vehicle);
 	LogOut("(\"BusDriver\""
-			<<","<<p.frameNumber
+			<<","<<p.now.frame()
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(bus->getX())

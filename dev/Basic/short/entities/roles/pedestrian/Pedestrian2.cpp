@@ -182,7 +182,7 @@ void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 	}
 
 #ifndef SIMMOB_DISABLE_OUTPUT
-	LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 #endif
 }
 

@@ -252,10 +252,10 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 {
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
-		if(this->getId() == 555) {
-			std::cout << "555 is available " << std::endl;
-		}
-		checkAndReactToTripChain(now.ms(), now.ms()+ConfigParams::GetInstance().baseGranMS);
+		checkAndReactToTripChain(now.ms());
+
+		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
+		setStartTime(now.ms());
 	}
 
 	//Failsafe
@@ -330,7 +330,10 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
 	if (isToBeRemoved()) {
-		retVal = checkAndReactToTripChain(now.ms(), now.ms()+ConfigParams::GetInstance().baseGranMS);
+		retVal = checkAndReactToTripChain(now.ms());
+
+		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
+		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
 	}
 
 	//Output if removal requested.
@@ -372,9 +375,9 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 		std::stringstream msg;
 		msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-		msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n" <<ex.what();
+		msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n  " <<ex.what();
 		LogOut(msg.str() <<std::endl);
 #endif
 		setToBeRemoved();
@@ -395,7 +398,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 }
 
 
-UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS) {
+UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
@@ -451,11 +454,9 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	}
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
-	//Set our start time to the NEXT time tick so that frame_init is called
-	//  on the first pass through.
+	//Indicate that this is the firstFrameTick of the new Role.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
-	setStartTime(nextValidTimeMS);
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return

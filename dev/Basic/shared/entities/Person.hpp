@@ -61,7 +61,7 @@ public:
 
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
-    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
+    Entity::UpdateStatus checkAndReactToTripChain(uint32_t currTimeMS);
 
     ///get this person's trip chain
     const std::vector<const TripChainItem*>& getTripChain() const

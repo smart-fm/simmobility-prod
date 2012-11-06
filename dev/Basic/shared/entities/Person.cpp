@@ -248,14 +248,14 @@ void sim_mob::Person::findNextItemInTripChain() {
 }
 
 
-void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, UpdateStatus& retVal)
+void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 {
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
 		if(this->getId() == 555) {
 			std::cout << "555 is available " << std::endl;
 		}
-		checkAndReactToTripChain(currTimeMS, currTimeMS);
+		checkAndReactToTripChain(now);
 	}
 
 	//Failsafe
@@ -264,16 +264,16 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	}
 
 	//Get an UpdateParams instance.
-	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
+	UpdateParams& params = currRole->make_frame_tick_params(now);
 	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
 	//Has update() been called early?
-	if (currTimeMS<getStartTime()) {
+	if (now.ms<getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			std::stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << currTimeMS
+					<< " but it is currently: " << now.ms
 					<< "; this indicates an error, and should be handled automatically.";
 			throw std::runtime_error(msg.str().c_str());
 		}
@@ -295,10 +295,10 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+			if (abs(now.ms-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 				std::stringstream msg;
 				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
+				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms << "\n";
 				msg << "Agent ID: " << getId() << "\n";
 				throw std::runtime_error(msg.str().c_str());
 			}
@@ -330,7 +330,7 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
 	if (isToBeRemoved()) {
-		retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
+		retVal = checkAndReactToTripChain(now.ms, now.ms+ConfigParams::GetInstance().baseGranMS);
 	}
 
 	//Output if removal requested.
@@ -343,13 +343,13 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 }
 
 
-UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentUpdateBegin(*this, frameNumber);
 #endif
 
 	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	//unsigned int currTimeMS = now.frame * ConfigParams::GetInstance().baseGranMS;
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -359,7 +359,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #endif
 
 		//Update functionality
-		update_time(frameNumber, currTimeMS, retVal);
+		update_time(now, retVal);
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS

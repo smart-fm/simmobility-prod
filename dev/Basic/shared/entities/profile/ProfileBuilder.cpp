@@ -105,14 +105,14 @@ string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
 
-void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, frame_t tickID)
+void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, timeslice now)
 {
-	logAgentUpdateGeneric(ag, "update-begin", &tickID);
+	logAgentUpdateGeneric(ag, "update-begin", &now);
 }
 
-void ProfileBuilder::logAgentUpdateEnd(const Agent& ag, frame_t tickID)
+void ProfileBuilder::logAgentUpdateEnd(const Agent& ag, timeslice now)
 {
-	logAgentUpdateGeneric(ag, "update-end", &tickID);
+	logAgentUpdateGeneric(ag, "update-end", &now);
 }
 
 void ProfileBuilder::logAgentCreated(const Agent& ag)
@@ -120,9 +120,9 @@ void ProfileBuilder::logAgentCreated(const Agent& ag)
 	logAgentUpdateGeneric(ag, "constructed");
 }
 
-void ProfileBuilder::logAgentException(const Agent& ag, frame_t tickID, const std::exception& ex)
+void ProfileBuilder::logAgentException(const Agent& ag, timeslice now, const std::exception& ex)
 {
-	logAgentUpdateGeneric(ag, "exception", &tickID, ex.what());
+	logAgentUpdateGeneric(ag, "exception", &now, ex.what());
 }
 
 void ProfileBuilder::logAgentDeleted(const Agent& ag)
@@ -131,14 +131,14 @@ void ProfileBuilder::logAgentDeleted(const Agent& ag)
 }
 
 
-void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const frame_t* const tickID, const string& message)
+void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const timeslice* const now, const string& message)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
 			<<"\"" <<"agent" <<"\"" <<":" <<"\"" <<ag.getId() <<"\"" <<","
 			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<ag.currWorker <<"\"" <<",";
-	if (tickID) {
-		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<*tickID <<"\"" <<",";
+	if (now) {
+		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame <<"\"" <<",";
 	}
 	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
 	if (!message.empty()) {

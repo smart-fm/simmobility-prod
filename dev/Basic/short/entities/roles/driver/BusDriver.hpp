@@ -33,7 +33,7 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(frame_t frameNumber);
+	virtual void frame_tick_output_mpi(timeslice now);
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.

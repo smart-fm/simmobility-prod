@@ -45,9 +45,9 @@ class PartitionManager;
 struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
 	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen) {}
 
-	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
+	virtual void reset(timeslice now)
 	{
-		sim_mob::UpdateParams::reset(frameNumber, currTimeMS);
+		sim_mob::UpdateParams::reset(now);
 
 		skipThisFrame = false;
 	}
@@ -76,8 +76,8 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_med(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(frame_t frameNumber);
-	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
+	virtual void frame_tick_output_mpi(timeslice now);
+	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	bool isOnCrossing() const;

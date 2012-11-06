@@ -417,7 +417,7 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) const{
+void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine) const{
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
@@ -438,7 +438,7 @@ void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) 
  * 8-reset the loop detector to make it ready for the next cycle
  * 8-start
  */
-UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
+UpdateStatus Signal_SCATS::update(timeslice now) {
 	if(!isIntersection_) return UpdateStatus::Continue;
 	isNewCycle = false;
 	outputTrafficLights(frameNumber,"");

@@ -63,7 +63,7 @@ public:
 	 */
 	std::string crossPCboundaryProcess(int time_step) CHECK_MPI_THROW ;
 	std::string crossPCBarrier() CHECK_MPI_THROW ;
-	std::string outputAllEntities(frame_t time_step) CHECK_MPI_THROW ;
+	std::string outputAllEntities(timeslice now) CHECK_MPI_THROW ;
 	std::string adaptiveLoadBalance() CHECK_MPI_THROW ;
 
 public:

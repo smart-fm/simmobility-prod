@@ -32,7 +32,7 @@ class Driver;
 struct DriverUpdateParams : public UpdateParams {
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0){}
 
-	virtual void reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner);
+	virtual void reset(timeslice now, const Driver& owner);
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 	size_t currLaneIndex; //Cache of currLane's index.

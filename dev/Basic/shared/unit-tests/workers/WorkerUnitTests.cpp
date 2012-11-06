@@ -52,7 +52,7 @@ class IncrAgent : public NullAgent {
 public:
 	IncrAgent() : value(0) {}
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+	virtual Entity::UpdateStatus update(timeslice now) {
 		value++;
 		return Entity::UpdateStatus::Continue;
 	}
@@ -69,9 +69,9 @@ class AddTickDivisibleAgent : public NullAgent {
 public:
 	AddTickDivisibleAgent(int divisor=1) : value(0), divisor(divisor) {}
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
-		if (frameNumber%divisor == 0) {
-			value.set(value.get()+frameNumber);
+	virtual Entity::UpdateStatus update(timeslice now) {
+		if (now.frame%divisor == 0) {
+			value.set(value.get()+now.frame);
 		}
 		return Entity::UpdateStatus::Continue;
 	}
@@ -92,7 +92,7 @@ class MultAgent : public NullAgent {
 public:
 	MultAgent(int& srcValue) : srcValue(srcValue) {}
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+	virtual Entity::UpdateStatus update(timeslice now) {
 		srcValue *= 2;
 		return Entity::UpdateStatus::Continue;
 	}
@@ -106,7 +106,7 @@ class FlagAgent : public NullAgent {
 public:
 	FlagAgent() : flag(0) {}
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+	virtual Entity::UpdateStatus update(timeslice now) {
 		if (flag.get()==0) {
 			flag.set(1);
 		} else {
@@ -128,7 +128,7 @@ class CondSumAgent : public NullAgent {
 public:
 	CondSumAgent(FlagAgent& flagAg) : flagAg(flagAg), count(0) {}
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+	virtual Entity::UpdateStatus update(timeslice now) {
 		if (flagAg.flag.get()>0) {
 			count++;
 		}

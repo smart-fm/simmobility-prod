@@ -188,9 +188,9 @@ string sim_mob::PartitionManager::crossPCBarrier()
 	return "";
 }
 
-string sim_mob::PartitionManager::outputAllEntities(frame_t time_step)
+string sim_mob::PartitionManager::outputAllEntities(timeslice now)
 {
-	return processor.outputAllEntities(time_step);
+	return processor.outputAllEntities(now);
 }
 
 string sim_mob::PartitionManager::stopMPIEnvironment()

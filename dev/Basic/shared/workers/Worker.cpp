@@ -153,13 +153,18 @@ void sim_mob::Worker::removePendingEntities()
 
 void sim_mob::Worker::barrier_mgmt()
 {
-	frame_t currTick = 0;
+	///TODO: Using ConfigParams here is risky, since unit-tests may not have access to an actual config file.
+	///      We might want to remove this later, but most of our simulator relies on ConfigParams anyway, so
+	///      this will be a major cleanup effort anyway.
+	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
+
+	uint32_t currTick = 0;
 	for (bool active=true; active;) {
 		//Add Agents as required.
 		addPendingEntities();
 
 		//Perform all our Agent updates, etc.
-		perform_main(currTick);
+		perform_main({currTick, currTick*msPerFrame});
 
 		//Remove Agents as requires
 		removePendingEntities();
@@ -266,11 +271,11 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
-void sim_mob::Worker::perform_main(frame_t frameNumber)
+void sim_mob::Worker::perform_main(timeslice currTime)
 {
 	//All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
-		UpdateStatus res = (*it)->update(frameNumber);
+		UpdateStatus res = (*it)->update(currTime);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
 			scheduleForRemoval(*it);

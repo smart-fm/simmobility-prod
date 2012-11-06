@@ -221,15 +221,15 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	}
 }
 
-sim_mob::UpdateParams& sim_mob::medium::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
+sim_mob::UpdateParams& sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 {
-	params.reset(frameNumber, currTimeMS, *this);
+	params.reset(now, *this);
 	return params;
 }
 
-void sim_mob::medium::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner)
+void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
-	UpdateParams::reset(frameNumber, currTimeMS);
+	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
@@ -331,7 +331,7 @@ void sim_mob::medium::Driver::calculateIntersectionTrajectory(DPoint movingFrom,
 }
 
 //~melani
-bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, frame_t frameNumber) {
+bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, timeslice now) {
 	//If reach the goal, get back to the origin
 	if (vehicle->isDone()) {
 		//Output
@@ -549,7 +549,7 @@ void sim_mob::medium::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 
 
 //~melani
-bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, frame_t frameNumber) {
+bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, timeslice now) {
 	//Are we done?
 	if (vehicle->isDone()) {
 		return false;

@@ -43,11 +43,11 @@ public:
 	static void InitLogFile(const std::string& path);
 
 
-	void logAgentUpdateBegin(const Agent& ag, frame_t tickID);
-	void logAgentUpdateEnd(const Agent& ag, frame_t tickID);
+	void logAgentUpdateBegin(const Agent& ag, timeslice now);
+	void logAgentUpdateEnd(const Agent& ag, timeslice now);
 	void logAgentCreated(const Agent& ag);
 	void logAgentDeleted(const Agent& ag);
-	void logAgentException(const Agent& ag, frame_t tickID, const std::exception& ex);
+	void logAgentException(const Agent& ag, timeslice now, const std::exception& ex);
 
 	///Used to log generic (non-agent) behavior.
 	void logGenericStart(const std::string& caption, const std::string& group);
@@ -61,7 +61,7 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
-	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const frame_t* const tickID=nullptr, const std::string& message="");
+	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 
 private:

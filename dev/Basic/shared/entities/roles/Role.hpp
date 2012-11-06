@@ -58,11 +58,11 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p) = 0;
 
 	//generate output with fake attributes for MPI
-	virtual void frame_tick_output_mpi(frame_t frameNumber) = 0;
+	virtual void frame_tick_output_mpi(timeslice now) = 0;
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) = 0;
+	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
 
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time

@@ -13,12 +13,30 @@
 
 #include <stdint.h>
 
-//! The type to represent frame numbers.
-//!
-//! Discrete-time simulation is like a stop-motion animation film.  Each simulation
-//! time-step is like a frame of the film.
-//!
-//! Frame numbers are 32 bits unsigned ints.  If the smallest time-step is 0.1 second,
-//! then this type can represent 429496729.6 seconds, or 119304.65 hours, or 4971.03 days,
-//! or 13.61 years.
-typedef uint32_t frame_t;
+
+/**
+ * A simple class representing a timeslice of the simulation.
+ *
+ * For a discrete time-stepped simulation like Sim Mobility, a single timeslice is updated
+ * all at once (conceptually). Thus, we can say "frame 10" is updated all at once. This
+ * "frame" is similar to a frame in film, and can be seen as a static view of the world at that given time "tick".
+ *
+ * In addition to the current frame, the current timeslice also stores the offset in ms from the start of the
+ * simulation. This is easy to compute externally, but since this single computation is performed so many times by
+ * so many Agents, we hope to minimize errors by consolidating it here. A timeslice is constant once constructed.
+ *
+ * Note that, for 32-bit unsigned integers, the maximum simulation time (based on the ms value) is just over 49
+ * days. This does not depend on the time-step of the simulation.
+ */
+class timeslice {
+public:
+	timeslice(uint32_t frame, uint32_t ms) : frame_(frame), ms_(ms) {}
+
+	uint32_t frame() { return frame_; }
+	uint32_t ms() { return ms_; }
+
+private:
+	uint32_t frame_;
+	uint32_t ms_;
+};
+

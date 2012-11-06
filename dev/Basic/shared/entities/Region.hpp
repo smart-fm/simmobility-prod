@@ -26,7 +26,7 @@ class Region : public Entity {
 public:
 	explicit Region(unsigned int id=0);
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(timeslice now);
 
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {} //Nothing for now
 

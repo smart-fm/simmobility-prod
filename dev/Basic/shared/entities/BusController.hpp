@@ -41,19 +41,24 @@ public:
 	///This is a hack for now; any function that uses this is doing something that I'm not 100% clear on. ~Seth
 	static BusController* TEMP_Get_Bc_1();
 
+	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
 	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
+
+	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads (since those likely haven't been created yet).
 	static void DispatchAllControllers(std::vector<sim_mob::Entity*>& agents_list);
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+public:
+	//May implement later
+	virtual void load(const std::map<std::string, std::string>& configProps){}
+
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
+	virtual Entity::UpdateStatus update(timeslice now);
 
 	void receiveBusInformation(const std::string& busline_i, int trip_k = 0, int busstopSequence_j = 0, unsigned int ATijk = 0);
 	unsigned int decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum);// return Departure MS from Aijk, DWijk etc
 	unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
-
-	//May implement later
-	virtual void load(const std::map<std::string, std::string>& configProps){}
 
 	//NOTE: There's two problems here:
 	//      1) You use a static "BusController", which is not flexible.
@@ -82,9 +87,9 @@ private:
 	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
 
-	void dispatchFrameTick(frame_t frameTick);
-	void frame_init(frame_t frameNumber);
-	void frame_tick_output(frame_t frameNumber);
+	void dispatchFrameTick(timeslice now);
+	void frame_init(timeslice now);
+	void frame_tick_output(timeslice now);
 
 	unsigned int scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk);// scheduled-based control
 	unsigned int headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk); // headway-based control
@@ -92,8 +97,8 @@ private:
 	unsigned int hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk); // hybrid-based control(evenheadway while restricting the maximum holding time)
 	unsigned int dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j); // dwell time calculation module
 
-	frame_t frameNumberCheck;// check some frame number to do control
-	frame_t nextTimeTickToStage;// next timeTick to be checked
+	uint32_t frameNumberCheck;// check some frame number to do control
+	uint32_t nextTimeTickToStage;// next timeTick to be checked
 	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses

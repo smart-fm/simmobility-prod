@@ -17,19 +17,15 @@ namespace sim_mob
 /// in Agent::make_frame_tick_params().
 ///Note that the mt19937 generator cannot be changed once this object is constructed.
 struct UpdateParams {
-	explicit UpdateParams(boost::mt19937& gen) : frameNumber(0), currTimeMS(0), gen(gen) {}
+	explicit UpdateParams(boost::mt19937& gen) : now(), gen(gen) {}
 
 	///Reset this struct for use with the next frame.
-	virtual void reset(frame_t frameNumber, unsigned int currTimeMS) {
-		this->frameNumber = frameNumber;
-		this->currTimeMS = currTimeMS;
+	virtual void reset(timeslice now) {
+		this->now = now;
 	}
 
-	///The current frame number.
-	mutable frame_t frameNumber;
-
-	//The current frame number translated to ms.
-	mutable unsigned int currTimeMS;
+	///The current timeslice.
+	timeslice now;
 
 	///The random number generator being used by this Agent.
 	boost::mt19937& gen;

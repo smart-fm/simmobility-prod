@@ -358,7 +358,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
 {
-	if (now.frame < parent->getStartTime())
+	if (now.frame() < parent->getStartTime())
 		return;
 
 	if (vehicle->isDone())
@@ -368,7 +368,7 @@ void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	std::stringstream logout;
 
-	logout << "(\"Driver\"" << "," << now.frame << "," << parent->getId() << ",{" << "\"xPos\":\""
+	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
 			<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
 			<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""

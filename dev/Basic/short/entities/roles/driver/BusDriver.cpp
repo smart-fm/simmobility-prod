@@ -399,7 +399,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 {
 	//Skip output?
-	if (now.frame<parent->getStartTime() || vehicle->isDone()) {
+	if (now.frame()<parent->getStartTime() || vehicle->isDone()) {
 		return;
 	}
 
@@ -410,7 +410,7 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
 	std::stringstream logout;
-	logout << "(\"Driver\"" << "," << now.frame << "," << parent->getId() << ",{" << "\"xPos\":\""
+	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
 			<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
 			<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""

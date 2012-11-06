@@ -70,8 +70,8 @@ public:
 	AddTickDivisibleAgent(int divisor=1) : value(0), divisor(divisor) {}
 
 	virtual Entity::UpdateStatus update(timeslice now) {
-		if (now.frame%divisor == 0) {
-			value.set(value.get()+now.frame);
+		if (now.frame()%divisor == 0) {
+			value.set(value.get()+now.frame());
 		}
 		return Entity::UpdateStatus::Continue;
 	}

@@ -77,19 +77,19 @@ UpdateStatus sim_mob::BusController::update(timeslice now)
 	//      what will later go into BusController::frame_tick.
 	// ~Seth
 
-//	unsigned int currTimeMS = now.frame*ConfigParams::GetInstance().baseGranMS;
+//	unsigned int currTimeMS = now.frame()*ConfigParams::GetInstance().baseGranMS;
 
 	//Has update() been called early?
 	//TODO: This should eventually go into its own helper function in the Agent class.
 	//      Aim for the following API:
 	//      if (updateBeforeStartTime() { return UpdateStatus::Continue; }
 	//      ...and have the parent function take care of throwing the error. ~Seth
-	if (now.ms < getStartTime()) {
+	if (now.ms() < getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			std::stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: "
-					<< getStartTime() << " but it is currently: " << now.ms
+					<< getStartTime() << " but it is currently: " << now.ms()
 					<< "; this indicates an error, and should be handled automatically.";
 			throw std::runtime_error(msg.str().c_str());
 		}
@@ -409,7 +409,7 @@ void sim_mob::BusController::frame_tick_output(timeslice now)
 
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"BusController\""
-			<<","<<now.frame
+			<<","<<now.frame()
 			<<","<<getId()
 			<<",{"
 			<<"\"managedBuses size\":\""<<static_cast<int>(managedBuses.size())

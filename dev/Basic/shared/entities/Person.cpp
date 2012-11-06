@@ -268,12 +268,12 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
 	//Has update() been called early?
-	if (now.ms<getStartTime()) {
+	if (now.ms()<getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			std::stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << now.ms
+					<< " but it is currently: " << now.ms()
 					<< "; this indicates an error, and should be handled automatically.";
 			throw std::runtime_error(msg.str().c_str());
 		}
@@ -295,10 +295,10 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(now.ms-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 				std::stringstream msg;
 				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms << "\n";
+				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms() << "\n";
 				msg << "Agent ID: " << getId() << "\n";
 				throw std::runtime_error(msg.str().c_str());
 			}
@@ -330,7 +330,7 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
 	if (isToBeRemoved()) {
-		retVal = checkAndReactToTripChain(now.ms, now.ms+ConfigParams::GetInstance().baseGranMS);
+		retVal = checkAndReactToTripChain(now.ms(), now.ms()+ConfigParams::GetInstance().baseGranMS);
 	}
 
 	//Output if removal requested.
@@ -349,7 +349,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #endif
 
 	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	//unsigned int currTimeMS = now.frame * ConfigParams::GetInstance().baseGranMS;
+	//unsigned int currTimeMS = now.frame() * ConfigParams::GetInstance().baseGranMS;
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);

@@ -33,7 +33,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , real_ArrivalTime(mtxStrat,0)
 {
 
-
+first_busstop=true;
 }
 
 
@@ -239,7 +239,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 								map<string, string> props;
 								props["#mode"]="travel";
-								props["time"]=0;
+								props["#time"]="0";
 
 								for (int no=0;no<no_passengers_boarding;no++)
 								{

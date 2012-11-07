@@ -44,7 +44,7 @@ public:
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
-	bool first_busstop=true;//added by Meenu
+	bool first_busstop;//added by Meenu
 
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;

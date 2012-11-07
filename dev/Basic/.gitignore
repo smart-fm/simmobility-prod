@@ -1,5 +1,4 @@
 GenConfig.h
 out.txt
-*.xml
 *.out
 /dev/visualizer/Traffic_Signal_Animation_Combined/bin/*

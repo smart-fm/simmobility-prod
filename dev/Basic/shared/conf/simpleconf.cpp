@@ -1097,8 +1097,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
-//	std::cout << "333" << endl;
-
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
 	handle = TiXmlHandle(&document);

@@ -140,7 +140,7 @@ public:
 
 	void putAgentOnConflux(Agent* ag);
 
-	const sim_mob::RoadSegment* findStartingRoadSegment(Agent* ag);
+	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 
 	Worker* locateWorker(unsigned int linkID);
 

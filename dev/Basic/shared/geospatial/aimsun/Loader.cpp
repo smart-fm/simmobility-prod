@@ -1867,8 +1867,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				}
 				else if((*segIt)->parentConflux != conflux)
 				{
-					debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << *segIt;
-					throw std::runtime_error(debugMsgs.str());
+					throw std::runtime_error("parentConflux is being re-assigned for segment");
 				}
 			}
 

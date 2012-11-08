@@ -104,7 +104,7 @@ public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
 		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr) {};
+		  parentWorker(nullptr), debugMsgs(std::stringstream::out) {};
 	virtual ~Conflux() {};
 
 	// functions from agent
@@ -165,6 +165,9 @@ public:
 	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
 	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);
 	void restoreSupplyStats(const Lane* lane);
+
+	//TODO: To be removed after debugging.
+	std::stringstream debugMsgs;
 };
 
 } /* namespace sim_mob */

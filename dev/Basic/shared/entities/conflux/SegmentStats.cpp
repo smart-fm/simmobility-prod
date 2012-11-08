@@ -118,6 +118,7 @@ namespace sim_mob {
 				allAgentsProcessed = false;
 				break;
 			}
+			i++;
 		}
 		return allAgentsProcessed;
 	}

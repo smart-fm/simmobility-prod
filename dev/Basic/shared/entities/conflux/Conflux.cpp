@@ -20,7 +20,7 @@ void sim_mob::Conflux::addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment
 }
 
 void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
-	throw std::runtime_error("Conflux::addAgent() not implemented");
+	segmentAgents[ag->getCurrSegment()]->laneInfinity.push(ag);
 }
 
 UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
@@ -91,21 +91,27 @@ double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehic
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
+	debugMsgs << std::endl << "Conflux " << this;
+	debugMsgs << std::endl <<  "links in the conflux: " << upstreamSegmentsMap.size();
 	resetCurrSegsOnUpLinks();
+	debugMsgs << std::endl << "currSegsOnUplinks size: " << currSegsOnUpLinks.size();
 	typedef std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator >::iterator currSegsOnUpLinksIt;
 	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	for (currSegsOnUpLinksIt i = currSegsOnUpLinks.begin(); i != currSegsOnUpLinks.end(); i++) {
 		lnk = (*i).first;
-		do {
-			rdSeg = *((*i).second);
-			segmentAgents[rdSeg]->resetFrontalAgents();
-			candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
-			if(candidateAgents[rdSeg] == nullptr) {
-				// this road segment is deserted. search the next (which is technically the previous).
-				currSegsOnUpLinks[lnk]++;
-			}
-		} while (currSegsOnUpLinks[lnk] != upstreamSegmentsMap[lnk].rend() && candidateAgents[rdSeg] == nullptr);
+		if((*i).second != upstreamSegmentsMap[lnk].rend()){
+			do {
+				rdSeg = *((*i).second);
+				segmentAgents[rdSeg]->resetFrontalAgents();
+				candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
+				debugMsgs << std::endl << "candidateAgents[" << rdSeg << "] = null? " << (candidateAgents[rdSeg] == nullptr)? "yes" : "no";
+				if(candidateAgents[rdSeg] == nullptr) {
+					// this road segment is deserted. search the next (which is technically the previous).
+					currSegsOnUpLinks[lnk]++;
+				}
+			} while (currSegsOnUpLinks[lnk] != upstreamSegmentsMap[lnk].rend() && candidateAgents[rdSeg] == nullptr);
+		}
 	}
 }
 
@@ -122,9 +128,11 @@ unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rd
 }
 
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
+	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
 			i != upstreamSegmentsMap.end(); i++) {
-			currSegsOnUpLinks[(*i).first] = (*i).second.rbegin();
+			debugMsgs << std::endl << "Link " << (*i).first << " rdSeg vector size: " << (*i).second.size();
+			currSegsOnUpLinks.insert(std::make_pair((*i).first, (*i).second.rbegin()));
 	}
 }
 
@@ -149,6 +157,7 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 				ag = (*i).second;
 			}
 		}
+		i++;
 	}
 	if(ag) {
 		candidateAgents[agRdSeg] = segmentAgents[agRdSeg]->getNext();

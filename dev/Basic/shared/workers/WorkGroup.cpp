@@ -537,11 +537,10 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
-	int numConfluxesPerWorker;
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		debugMsg << "\nConflux: confluxes.size() = " << confluxes.size() << "\t workers.size() = " << workers.size();
-		numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 		if(numConfluxesPerWorker > 0){
 			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesPerWorker << ")";
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
@@ -555,12 +554,15 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
 		int numConfluxesToAddInWorker)
 {
-	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	bool workerFilled = false;
+
 	if(numConfluxesToAddInWorker > 0)
 	{
 		worker->managedConfluxes.insert(conflux);
 		confluxes.erase(conflux);
+		numConfluxesToAddInWorker--;
+		conflux->setParentWorker(worker);
 
 		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
 
@@ -587,8 +589,8 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
 		{
 			// recusive call
-			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesToAddInWorker << ")";
-			assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
+			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << worker << ", " << numConfluxesToAddInWorker << ")";
+			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
 		}
 		else
 		{
@@ -602,12 +604,17 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
  * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
  */
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
-	const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(ag);
-	rdSeg->getParentConflux()->addAgent(ag);
+	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
+	if(person) {
+		std::cout << "Agent ID: " << ag->getId() << std::endl;
+		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
+		ag->setCurrSegment(rdSeg);
+		rdSeg->getParentConflux()->addAgent(ag);
+	}
 }
 
-const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Agent* ag) {
-	std::vector<const sim_mob::TripChainItem*> agTripChain = dynamic_cast<sim_mob::Person*>(ag)->getTripChain();
+const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
+	std::vector<const sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();

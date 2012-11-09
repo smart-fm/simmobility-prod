@@ -1155,11 +1155,8 @@ void PrintDB_Network_ptrBased()
 //		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "  getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" Before...";
 //		getchar();
 		for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
-//			std::cout << "Handling lane index " << laneID << " laneid: " << (*it)->getLanes()[laneID]->getLaneID() << "  for segment " << (*it)->getSegmentID() << std::endl;
-//			const vector<Point2D>& points =(*it)->getLanes()[laneID]->getPolyline(false);
 			const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
-//			std::cout << "Polyline size = " << points.size() << std::endl;
-			laneBuffer <<"\"lane-" <<laneID <<"\":\"[";
+			laneBuffer <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
 				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
@@ -1170,9 +1167,6 @@ void PrintDB_Network_ptrBased()
 			}
 
 		}
-
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" After...";
-//		getchar();
 
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
@@ -1225,9 +1219,15 @@ void PrintDB_Network_ptrBased()
 	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
 		//Retrieve relevant information
 		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
-		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
+//		std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),(*it)->getLaneFrom());
+		//temporary fix due to using Lane::laneID_ for some other purpose(which is incompatible with old visualizer)
+		unsigned int fromLane = std::distance(fromSeg->getLanes().begin(), std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),(*it)->getLaneFrom()));
+//		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
+//		const Lane* fromLane = (*it)->getLaneFrom();
 		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
-		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
+		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
+//		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
+//		const Lane* toLane = (*it)->getLaneTo();
 
 		//Output
 		LogOutNotSync("(\"lane-connector\", 0, " <<*it <<", {");
@@ -1239,8 +1239,8 @@ void PrintDB_Network_ptrBased()
 	}
 
 //	//Print the StreetDirectory graphs.
-//	StreetDirectory::instance().printDrivingGraph();
-//	StreetDirectory::instance().printWalkingGraph();
+	StreetDirectory::instance().printDrivingGraph();
+	StreetDirectory::instance().printWalkingGraph();
 //
 
 
@@ -1931,7 +1931,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     std::cout << "\n\n\n\n\n\nStreet Directory initialized" << std::endl;
 //    getchar();
-    PrintDB_Network_ptrBased();
+//    PrintDB_Network_ptrBased();
 //    PrintDB_Network();
 
        StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
@@ -2007,7 +2007,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
-    	PrintDB_Network();
+    	PrintDB_Network_ptrBased();
     	std::cout <<"------------------\n";
    // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";

@@ -1,4 +1,31 @@
 #include "xmlWriter.hpp"
+
+#include "buffering/Shared.hpp"
+#include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
+
+#include "geospatial/RoadItem.hpp"
+#include "geospatial/Roundabout.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/RoadSegment.hpp"
+//#include "geospatial/BusStop.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/Intersection.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Node.hpp"
+//#include "geospatial/Pavement.hpp"
+#include "geospatial/Traversable.hpp"
+#include "geospatial/UniNode.hpp"
+#include "conf/simpleconf.hpp"
+
+#include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/signal/Signal.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
@@ -914,6 +941,23 @@ void sim_mob::WriteXMLInput_TripChains(TiXmlElement * SimMobility)
 		}
 	}
 
+}
+
+void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal)
+{
+
+}
+void sim_mob::WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility)
+{
+	TiXmlElement * Signals;
+	Signals = new TiXmlElement( "Signals" );
+	SimMobility->LinkEndChild( Signals );
+
+	sim_mob::Signal::All_Signals &Signals_ = sim_mob::Signal::all_signals_;
+	for(sim_mob::Signal::all_signals_const_Iterator it = Signals_.begin(); it != Signals_.end(); it++)
+	{
+		WriteXMLInput_TrafficSignal(Signals, *it);
+	}
 }
 void sim_mob::WriteXMLInput(const std::string& XML_OutPutFileName)
 {

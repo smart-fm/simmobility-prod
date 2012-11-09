@@ -2,33 +2,28 @@
 #include <vector>
 #include <string>
 #include <ctime>
-#include "buffering/Shared.hpp"
-#include "util/DailyTime.hpp"
-#include "util/LangHelpers.hpp"
-#include "geospatial/RoadItem.hpp"
-#include "geospatial/Roundabout.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/Intersection.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/Node.hpp"
+
 #include "geospatial/Pavement.hpp"
-#include "geospatial/Traversable.hpp"
-#include "geospatial/UniNode.hpp"
-
-#include "conf/simpleconf.hpp"
-
+#include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "entities/roles/RoleFactory.hpp"
-#include "util/ReactionTimeDistributions.hpp"
+
 namespace sim_mob
 {
+//Forward Declaration
+
+class Crossing;
+class UniNode;
+class Node;
+class Link;
+class RoadSegment;
+class MultiNode;
+class Roundabout;
+class Intersection;
+class RoadNetwork;
+class Trip;
+class Activity;
+class Signal;
+
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y);
 void WriteXMLInput_laneEdgePolylines_cached(std::vector<std::vector<sim_mob::Point2D> >& polylines,TiXmlElement * laneEdgePolylines_cached);
@@ -58,5 +53,7 @@ std::string locationType_toString(TripChainItem::LocationType type);
 void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip);
 void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activity & activity);
 void WriteXMLInput_TripChains(TiXmlElement * SimMobility);
+void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility);
 void WriteXMLInput(const std::string& XML_OutPutFileName);
 }

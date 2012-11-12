@@ -263,40 +263,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
-<<<<<<< HEAD
-/*
-	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<vehicle->getLatVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<distanceToNextBusStop()<<std::endl;
-	std::cout<<"my bus distance moved in segment: "<<vehicle->getDistanceToSegmentStart()/100.0<<std::endl;
-	std::cout<<"but DistanceMovedInSegment"<<vehicle->getDistanceMovedInSegment()/100.0<<std::endl;
-	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;*/
-//	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
-//			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
-//	std::cout<<"current segment length: "<<segmentlength.getMagnitude()/100.0<<std::endl;
-
-//	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
-//	if (fwdDistance < 0)
-//		fwdDistance = 0;
-
-	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
-//	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
-
-	//Increase the vehicle's velocity based on its acceleration.
-
-//	//Retrieve a new acceleration value.
-//	double newFwdAcc = 0;
-//	//Convert back to m/s
-//	//TODO: Is this always m/s? We should rename the variable then...
-//	p.currSpeed = vehicle->getVelocity() / 100;
-//	//Call our model
-//	//Return the remaining amount (obtained by calling updatePositionOnLink)
-//	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
-//	//Update our chosen acceleration; update our position on the link.
-//	vehicle->setAcceleration(newFwdAcc * 100);
-=======
 
 	//Update our distance
 	lastTickDistanceToBusStop = distanceToNextBusStop();
@@ -305,7 +271,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
->>>>>>> YaoJin_PublicTransit
 	return updatePositionOnLink(p);
 }
 
@@ -379,13 +344,7 @@ double sim_mob::BusDriver::distanceToNextBusStop() const
 	}
 
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-<<<<<<< HEAD
-	double distanceToNextSegmentBusStop = -1;
-	if (vehicle->hasNextSegment(true))
-		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
-=======
 	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
->>>>>>> YaoJin_PublicTransit
 
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);

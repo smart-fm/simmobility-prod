@@ -759,8 +759,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	}
 
 	//Check if we should change lanes.
-	if (p.currTimeMS/1000.0 > 41.6 && parent->getId() == 24)
-		std::cout<<"find vh"<<std::endl;
+	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
+		std::cout<<"find vh"<<std::endl;*/
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
@@ -1360,8 +1360,8 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
-	if (params.currTimeMS/1000.0 > 41.8 && parent->getId() == 25)
-			std::cout<<"find vh"<<std::endl;
+	/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
+			std::cout<<"find vh"<<std::endl;*/
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}

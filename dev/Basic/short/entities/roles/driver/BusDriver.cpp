@@ -219,53 +219,50 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
 				real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
 
-
-
-						         PassengerDist* r1 = ConfigParams::GetInstance().passengerDist1;
-						         PassengerDist* r2 = ConfigParams::GetInstance().passengerDist_crowdness;
+                        PassengerDist* r1 = ConfigParams::GetInstance().passengerDist_busstop;
+						       //  PassengerDist* r2 = ConfigParams::GetInstance().passengerDist_crowdness;
 						         //create the passenger objects at the bus stop=random no-boarding passengers
-						         //if first bus stop only boarding
-						         //else boarding and alighting
-						         double no_boarding=ConfigParams::GetInstance().percent_boarding;
-						         double no_alighting=ConfigParams::GetInstance().percent_alighting;
-							if (r1 && r2) {
 
+					if (r1) {
+
+							    int bus_capacity=200;
 								no_passengers_busstop = r1->getnopassengers();
-								//no_passengers_bus= r2->getnopassengers();
-                                no_passengers_bus=bus->getPassengerCount();
-								no_passengers_boarding=(no_boarding/100)*no_passengers_busstop;
-								no_passengers_alighting=(no_alighting/100)*no_passengers_bus;
-								bus->setPassengerCount(no_passengers_bus+no_passengers_boarding-no_passengers_alighting);
+								no_passengers_bus=bus->getPassengerCount();
+								no_passengers_alighting=(ConfigParams::GetInstance().percent_alighting/100)*no_passengers_bus;
+							//	passengers_alight();//alight the bus
+								if(first_busstop== false)//passengers alight only if bus stop is not the first bus stop
+										{
+											//delete passenger objects in the bus
+											for (int no=0;no<no_passengers_alighting;no++)
+												{
+												  //delete passenger objects from the bus
+												  bus->passenger.pop_back();
+												}
 
-								map<string, string> props;
-								props["#mode"]="travel";
-								props["#time"]="0";
-
+										}
+								no_passengers_bus=no_passengers_bus - no_passengers_alighting;
+								bus->setPassengerCount(no_passengers_bus);
+								no_passengers_boarding=(ConfigParams::GetInstance().percent_boarding/100)*no_passengers_busstop;
+								if(no_passengers_boarding> bus_capacity-no_passengers_bus)
+									no_passengers_boarding=bus_capacity;
+								//passengers_board();//board the bus
 								for (int no=0;no<no_passengers_boarding;no++)
-								{
-								ConfigParams& config = ConfigParams::GetInstance();
-								int manualID= -1;
-								//create passenger objects in the bus,bus has a list of passenger objects
-							    //Create the Person agent with that given ID (or an auto-generated one)
-								Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
-								agent->setConfigProperties(props);
-								agent->setStartTime(0);
-								bus->passenger.push_back(agent);
-								}
-						 if(first_busstop== false)//passengers alight if bus stop is not the first bus stop
-						   {
-								//delete passenger objects in the bus
-								for (int no=0;no<no_passengers_alighting;no++)
-						      {
-								if(no_passengers_alighting>0)
-								 {
-									//delete passenger objects from the bus
-									bus->passenger.pop_back();
-								 }
-							  }
+									 {
+										map<string, string> props;
+										props["#mode"]="travel";
+										props["#time"]="0";
+										ConfigParams& config = ConfigParams::GetInstance();
+										int manualID= -1;
+										//create passenger objects in the bus,bus has a list of passenger objects
+										//Create the Person agent with that given ID (or an auto-generated one)
+										Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
+									    agent->setConfigProperties(props);
+										agent->setStartTime(0);
+										bus->passenger.push_back(agent);
+									}
+								bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
 
-						   }
-						 first_busstop= false;
+						         first_busstop= false;
 
 							} else {
 								throw std::runtime_error("Passenger distributions have not been initialized yet.");
@@ -409,7 +406,19 @@ double sim_mob::BusDriver::distanceToNextBusStop() const
 
 	return distanceToNextSegmentBusStop;
 }
+void sim_mob::BusDriver::passengers_board()
+{
 
+	//Bus* bus=b;
+
+}
+void sim_mob::BusDriver::passengers_alight()
+{
+
+
+	//Bus* bus=b;
+
+}
 double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) const
 {
 

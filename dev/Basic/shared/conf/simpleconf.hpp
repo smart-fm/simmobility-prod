@@ -101,11 +101,11 @@ public:
 	//for generating passenger distribution
 
 
-	PassengerDist* passengerDist1;
+	PassengerDist* passengerDist_busstop;
 	PassengerDist* passengerDist_crowdness;
 
-	double percent_boarding;
-	double percent_alighting;
+	int percent_boarding;
+	int percent_alighting;
 //	PassengerDist* passengerDist_alighting;
 
 
@@ -250,7 +250,7 @@ public:
 	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 
 private:
-	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr),passengerDist1(nullptr),passengerDist_crowdness(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
+	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr),passengerDist_busstop(nullptr),passengerDist_crowdness(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

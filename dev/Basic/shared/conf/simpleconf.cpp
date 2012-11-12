@@ -1027,12 +1027,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 
 	//Save passenger distribution parameters
-		int passengerdistributionType1,passenger_crowdness_dist;
-	    int passengermean1,passenger_crowdness_mean,passengers_boarding,passengers_alighting;
-	    int passengerstandardDev1,passenger_crowdness_standard_dev;
-		handle.FirstChild("passenger_distributionType1").ToElement()->Attribute("value",&passengerdistributionType1);
-		handle.FirstChild("passenger_mean1").ToElement()->Attribute("value",&passengermean1);
-		handle.FirstChild("passenger_standardDev1").ToElement()->Attribute("value",&passengerstandardDev1);
+		int passenger_busstop_dist,passenger_crowdness_dist;
+	    int passenger_busstop_mean,passenger_crowdness_mean,passengers_boarding,passengers_alighting;
+	    int passenger_busstop_standardDev,passenger_crowdness_standard_dev;
+		handle.FirstChild("passenger_distributionType1").ToElement()->Attribute("value",&passenger_busstop_dist);
+		handle.FirstChild("passenger_mean1").ToElement()->Attribute("value",&passenger_busstop_mean);
+		handle.FirstChild("passenger_standardDev1").ToElement()->Attribute("value",&passenger_busstop_standardDev);
 
 		handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passengers_boarding);
 
@@ -1050,13 +1050,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		srand(time(NULL));
 		ConfigParams::GetInstance().percent_boarding=passengers_boarding;
 		ConfigParams::GetInstance().percent_alighting=passengers_alighting;
-		if (passengerdistributionType1==0) {
-			ConfigParams::GetInstance().passengerDist1 = new NormalPassengerDist(passengermean1, passengerstandardDev1);
+		if (passenger_busstop_dist ==0) {
+			ConfigParams::GetInstance().passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
 
 
-		} else if (passengerdistributionType1==1) {
-			ConfigParams::GetInstance().passengerDist1 = new LognormalPassengerDist(passengermean1, passengerstandardDev1);
+		} else if (passenger_busstop_dist==1) {
+			ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 		} else {
 			throw std::runtime_error("Unknown magic reaction time number.");
 		}

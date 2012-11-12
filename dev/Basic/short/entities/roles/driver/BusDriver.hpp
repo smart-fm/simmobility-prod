@@ -45,12 +45,15 @@ public:
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
 	bool first_busstop;//added by Meenu
+	//double no_passengers_boarding,no_passengers_alighting;
 
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;
 	bool isBusArriveBusStop() const;
 	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
+	void passengers_board();
+	void passengers_alight();
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;

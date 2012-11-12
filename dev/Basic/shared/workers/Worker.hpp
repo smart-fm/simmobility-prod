@@ -53,7 +53,7 @@ public:
 	 *        the way we synchronize data).
 	 *
 	 */
-	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep);
+	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, uint32_t endTick, uint32_t tickStep);
 
 	virtual ~Worker();
 
@@ -87,7 +87,7 @@ public:
 	int getAgentSize() { return managedEntities.size(); }
 
 protected:
-	virtual void perform_main(frame_t frameNumber);
+	virtual void perform_main(timeslice currTime);
 	virtual void perform_flip();
 
 
@@ -108,9 +108,8 @@ protected:
 	boost::barrier* macro_tick_barr;
 
 	//Time management
-	//frame_t currTick;
-	frame_t endTick;
-	frame_t tickStep;
+	uint32_t endTick;
+	uint32_t tickStep;
 
 	//Saved
 	WorkGroup* const parent;

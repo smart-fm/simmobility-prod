@@ -47,7 +47,7 @@ public:
 	virtual ~Person();
 
 	///Update Person behavior
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(timeslice now);
 
 	///Load a Person's config-specified properties, creating a placeholder trip chain if
 	/// requested.
@@ -62,7 +62,7 @@ public:
 
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
-    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
+    Entity::UpdateStatus checkAndReactToTripChain(uint32_t currTimeMS);
 
     ///get this person's trip chain
     std::vector<TripChainItem*>& getTripChain()
@@ -90,7 +90,7 @@ public:
 
 private:
     //Internal update functionality
-    void update_time(frame_t frameNumber, unsigned int currTimeMS, Entity::UpdateStatus& retVal);
+    void update_time(timeslice now, Entity::UpdateStatus& retVal);
 
 
     //Properties

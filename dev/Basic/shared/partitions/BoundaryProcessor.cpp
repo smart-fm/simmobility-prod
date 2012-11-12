@@ -885,7 +885,7 @@ BoundarySegment* sim_mob::BoundaryProcessor::getBoundarySegmentByID(string segme
 	return 0;
 }
 
-string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
+string sim_mob::BoundaryProcessor::outputAllEntities(timeslice now)
 {
 
 	vector<Entity*>::iterator it = Agent::all_agents.begin();
@@ -895,12 +895,12 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 		Person* one_agent = dynamic_cast<Person*> (*it);
 
 		if ((one_agent) && (one_agent->toRemoved == false)) {
-			one_agent->currRole->frame_tick_output_mpi(time_step);
+			one_agent->currRole->frame_tick_output_mpi(now.frame());
 		}
 	}
 
 	//signal output every 10 seconds
-	if (time_step % ConfigParams::GetInstance().granSignalsTicks != 0)
+	if (now.frame() % ConfigParams::GetInstance().granSignalsTicks != 0)
 	{
 		return "";
 	}
@@ -910,14 +910,14 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{
 		Signal* one_signal = (*itr_sig);
-		one_signal->frame_output(time_step);
+		one_signal->frame_output(now.frame());
 	}
 #else
 	All_Signals::iterator itr_sig = Signal::all_signals_.begin();
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{
 		Signal* one_signal = (*itr_sig);
-		one_signal->outputTrafficLights(time_step,"");
+		one_signal->outputTrafficLights(now.frame(),"");
 	}
 #endif
 

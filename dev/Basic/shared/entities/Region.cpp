@@ -13,7 +13,7 @@ sim_mob::Region::Region(unsigned int id) : Entity(id) {
 }
 
 
-UpdateStatus sim_mob::Region::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Region::update(timeslice now) {
 	//Trivial. Todo: Update signals
 //	for (Signal::all_signals_Iterator it=signals.begin(); it!=signals.end(); it++) {
 //		//trivial(it->id);  //Again, for now do nothing.//how can u do something with an incomplete type :)) -->vahid

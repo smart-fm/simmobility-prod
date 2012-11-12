@@ -74,7 +74,7 @@ public:
    virtual TrafficColor getPedestrianLight(Crossing const & crossing) const { throw std::runtime_error("Not implemented"); };
    virtual std::string toString() const{ throw std::runtime_error("Not implemented"); };
    Node  const & getNode() const { return node_; }
-   virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
+   virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
@@ -117,7 +117,7 @@ public:
 	void updateTrafficLights();
 	void updatecurrSplitPlan();
 	void updateOffset();
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(timeslice now);
 	void newCycleUpdate();
 	bool updateCurrCycleTimer();
 
@@ -134,7 +134,7 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 
 	/*--------Miscellaneous----------*/
-	void frame_output(frame_t frameNumber);
+	void frame_output(timeslice now);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
 	std::string toString() const;
@@ -156,7 +156,7 @@ public:
 
 
     void updateIndicators();
-    void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
+    void outputTrafficLights(timeslice now,std::string newLine)const;
 
 private:
     bool isIntersection_;//generated

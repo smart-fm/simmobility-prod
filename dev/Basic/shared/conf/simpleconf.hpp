@@ -34,6 +34,8 @@
 #include "geospatial/RoadNetwork.hpp"
 
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusTrip.hpp"
+#include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 
@@ -57,6 +59,17 @@ class BusSchedule;
  * Temporary configuration pConfigParamsarser. Operates as a singleton. Contains all basic
  * configuation parameters.
  */
+
+enum DAY_OF_WEEK {
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY
+};
+
 class ConfigParams : private boost::noncopyable {
 public:
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
@@ -70,6 +83,8 @@ public:
 
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+
+	DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.
 	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
@@ -214,17 +229,38 @@ public:
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
+	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
+	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
+	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
 
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
+	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
 
 private:
-	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
+	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
+		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
+		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
+		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
+	{}
+
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
-//	std::vector<sim_mob::TripChainItem*> tripchains;
+	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
-	std::vector<sim_mob::BusSchedule*> busschedule;
+
+	// Temporary: Yao Jin
+	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
+	std::vector<sim_mob::PT_trip*> pt_trip;
+	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
+	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
+	// Temporary: Yao Jin
+
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
+	std::map<std::string, std::vector<const sim_mob::BusStop*> > routeID_busStops; // map<routeID, vector<BusStop*>>
 	bool sealedNetwork;
 };
 

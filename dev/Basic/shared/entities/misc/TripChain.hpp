@@ -45,7 +45,7 @@ public:
 	//Type of this trip chain item.
 	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
 	enum ItemType {
-		IT_TRIP, IT_ACTIVITY
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
 	};
 
 	unsigned int personID;//replaces entityID
@@ -55,7 +55,7 @@ public:
 	sim_mob::DailyTime endTime;
 
 	//TripChainItem();
-	TripChainItem(int entId=0, std::string type="Trip",
+	TripChainItem(int entId=-1, std::string type="Trip",
 				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 				unsigned int seqNumber=0);
 	virtual ~TripChainItem() {}
@@ -98,7 +98,7 @@ public:
 	const sim_mob::Node* toLocation;
 	TripChainItem::LocationType toLocationType;
 
-	Trip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+	Trip(int entId=-1, std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 			int tripId=0, Node* from=nullptr, std::string fromLocType="node",
 			Node* to=nullptr, std::string toLocType="node");
@@ -133,7 +133,7 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	SubTrip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+	SubTrip(int entId=-1, std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");

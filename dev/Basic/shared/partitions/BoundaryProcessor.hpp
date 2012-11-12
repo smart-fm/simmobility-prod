@@ -57,7 +57,7 @@ public:
 	 */
 	std::string boundaryProcessing(int time_step) CHECK_MPI_THROW ;
 
-	std::string outputAllEntities(frame_t time_step) CHECK_MPI_THROW ;
+	std::string outputAllEntities(timeslice now) CHECK_MPI_THROW ;
 
 	std::string releaseMPIEnvironment() CHECK_MPI_THROW ;
 

@@ -14,6 +14,7 @@
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "util/OutputUtil.hpp"
 
 namespace sim_mob
 {
@@ -83,7 +84,7 @@ public:
 	 *   and may be removed from the Simulation and deleted. Buffered types should all be considered
 	 *   moot at this point.
 	 */
-	virtual UpdateStatus update(frame_t frameNumber) = 0;
+	virtual UpdateStatus update(timeslice now) = 0;
 
 	//virtual Link* getCurrLink() = 0;
 	//virtual void setCurrLink(Link* link)= 0;

@@ -64,8 +64,8 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(frame_t frameNumber) { throw std::runtime_error("frame_tick_output_mpi not implemented in Driver."); }
-	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
+	virtual void frame_tick_output_mpi(timeslice now) { throw std::runtime_error("frame_tick_output_mpi not implemented in Driver."); }
+	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setParentBufferedData();			///<set next data to parent buffer data
@@ -77,8 +77,8 @@ public:
 
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
-	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
+	bool update_movement(DriverUpdateParams& params, timeslice now);       ///<Called to move vehicles forward.
+	bool update_post_movement(DriverUpdateParams& params, timeslice now);       ///<Called to deal with the consequences of moving forwards.
 	void intersectionDriving(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);

@@ -54,12 +54,11 @@ void sim_mob::ActivityPerformer::frame_tick(UpdateParams& p) {
 void sim_mob::ActivityPerformer::frame_tick_output(const UpdateParams& p) {
 }
 
-void sim_mob::ActivityPerformer::frame_tick_output_mpi(frame_t frameNumber) {
+void sim_mob::ActivityPerformer::frame_tick_output_mpi(timeslice now) {
 }
 
-UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(
-		frame_t frameNumber, unsigned int currTimeMS) {
-	params.reset(frameNumber, currTimeMS);
+UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) {
+	params.reset(now);
 	return params;
 }
 

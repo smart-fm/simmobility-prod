@@ -55,7 +55,6 @@ public:
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);
-
 	static void FixupLanesAndCrossings(sim_mob::RoadNetwork& res);
 
 	//Ugh

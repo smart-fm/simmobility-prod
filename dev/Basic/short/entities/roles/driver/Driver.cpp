@@ -278,13 +278,13 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	updateAdjacentLanes(p2);
 
 	//Update "current" time
-	perceivedFwdVel->update(params.currTimeMS);
-	perceivedFwdAcc->update(params.currTimeMS);
-	perceivedDistToFwdCar->update(params.currTimeMS);
-	perceivedVelOfFwdCar->update(params.currTimeMS);
-	perceivedAccOfFwdCar->update(params.currTimeMS);
-	perceivedTrafficColor->update(params.currTimeMS);
-	perceivedDistToTrafficSignal->update(params.currTimeMS);
+	perceivedFwdVel->update(params.now.ms());
+	perceivedFwdAcc->update(params.now.ms());
+	perceivedDistToFwdCar->update(params.now.ms());
+	perceivedVelOfFwdCar->update(params.now.ms());
+	perceivedAccOfFwdCar->update(params.now.ms());
+	perceivedTrafficColor->update(params.now.ms());
+	perceivedDistToTrafficSignal->update(params.now.ms());
 
 	//retrieved their current "sensed" values.
 	if (perceivedFwdVel->can_sense()) {
@@ -297,7 +297,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (p2.currLane && vehicle) {
 
-		if (update_sensors(p2, p.frameNumber) && update_movement(p2, p.frameNumber) && update_post_movement(p2, p.frameNumber)) {
+		if (update_sensors(p2, p.now) && update_movement(p2, p.now) && update_post_movement(p2, p.now)) {
 
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
@@ -349,7 +349,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
-			<<","<<p.frameNumber
+			<<","<<p.now.frame()
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
@@ -361,9 +361,9 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 #endif
 }
 
-void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
+void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
 {
-	if (frameNumber < parent->getStartTime())
+	if (now.frame() < parent->getStartTime())
 		return;
 
 	if (vehicle->isDone())
@@ -373,7 +373,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	std::stringstream logout;
 
-	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\""
+	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
 			<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
 			<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
@@ -391,9 +391,9 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 #endif
 }
 
-sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
+sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(timeslice now)
 {
-	params.reset(frameNumber, currTimeMS, *this);
+	params.reset(now, *this);
 	return params;
 }
 
@@ -426,9 +426,9 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	return res;
 }
 
-void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner)
+void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
-	UpdateParams::reset(frameNumber, currTimeMS);
+	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
@@ -529,7 +529,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 }
 
 
-bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNumber) {
+bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, timeslice now) {
 	//Are we done?
 	if (vehicle->isDone()) {
 		return false;
@@ -556,7 +556,7 @@ bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNu
 	return true;
 }
 
-bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameNumber) {
+bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now) {
 	//If reach the goal, get back to the origin
 	if (vehicle->isDone()) {
 		//Output
@@ -610,7 +610,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 	return true;
 }
 
-bool sim_mob::Driver::update_post_movement(DriverUpdateParams& params, frame_t frameNumber) {
+bool sim_mob::Driver::update_post_movement(DriverUpdateParams& params, timeslice now) {
 	//Are we done?
 	if (vehicle->isDone()) {
 		return false;

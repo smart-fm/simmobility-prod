@@ -308,7 +308,7 @@ public:
     ~Impl();
 
     // Check if any vehicle is hovering over any of the loop detectors or not.
-    bool check(frame_t frameNumber);
+    bool check(timeslice now);
 
     // Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
     void reset();
@@ -525,7 +525,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
 }
 
 bool
-LoopDetectorEntity::Impl::check(frame_t frameNumber)
+LoopDetectorEntity::Impl::check(timeslice now)
 {
     // Get all vehicles located within monitorArea_.
     boost::unordered_set<Vehicle const *> vehicles;
@@ -638,10 +638,10 @@ LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
 }
 
 /* virtual */ UpdateStatus
-LoopDetectorEntity::update(frame_t frameNumber)
+LoopDetectorEntity::update(timeslice now)
 {
     if (pimpl_)
-        return pimpl_->check(frameNumber) ? UpdateStatus::Continue : UpdateStatus::Done;
+        return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
     return UpdateStatus::Done;
 }
 

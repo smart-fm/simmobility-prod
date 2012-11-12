@@ -178,8 +178,8 @@ private:
 	bool started;
 
 	//Stays in sync with the Workers' time ticks; tells us which Workers to stage next.
-	frame_t currTimeTick;
-	frame_t nextTimeTick;  //All entities are staged based on this.
+	uint32_t currTimeTick;
+	uint32_t nextTimeTick;  //All entities are staged based on this.
 
 	//Contains information needed to migrate Entities
 	EntityLoadParams* loader;

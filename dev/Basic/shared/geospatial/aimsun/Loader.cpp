@@ -57,6 +57,7 @@
 // $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/BusSchedule.hpp"
+#include "entities/misc/PublicTransit.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -103,6 +104,8 @@ public:
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
+	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
+	const map<std::string, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
 
 private:
 	soci::session sql_;
@@ -122,6 +125,10 @@ private:
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
 
+	map<std::string, vector<const sim_mob::BusStop*> > route_BusStops;
+	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
+
+	map<Section*, sim_mob::RoadSegment*> sec_seg_;
 private:
 	void LoadNodes(const std::string& storedProc);
 	void LoadSections(const std::string& storedProc);
@@ -134,6 +141,8 @@ private:
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
+	void LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq);
+	void LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
 
 private:
@@ -355,7 +364,6 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 	}
 }
 
-
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
 	//Our SQL statement
@@ -457,15 +465,60 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
-void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure, std::vector<sim_mob::BusSchedule*>& busschedule)
+void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq)
 {
-    if (storedProcedure.empty())
+	if (storedProc.empty())
+	{
+		std::cout << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
+		return;
+	}
+	soci::rowset<sim_mob::PT_bus_dispatch_freq> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::PT_bus_dispatch_freq>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
+		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
+		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), isspace),
+				pt_bus_freqTemp.route_id.end());
+		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), isspace),
+				pt_bus_freqTemp.frequency_id.end());
+		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
+		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
+	}
+}
+
+void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
+{
+	//ConfigParams& config = ConfigParams::GetInstance();
+	if (storedProc.empty())
+	{
+		std::cout << "WARNING: An empty 'PT_bus_routes' stored-procedure was specified in the config file; " << std::endl;
+		return;
+	}
+	soci::rowset<sim_mob::PT_bus_routes> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::PT_bus_routes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
+		pt_bus_routes.push_back(pt_bus_routesTemp);
+		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
+		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
+		if(seg) {
+			routeID_roadSegments[iter->route_id].push_back(seg);
+			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getSegmentID() ;
+			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
+		}
+	}
+	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
+}
+
+void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
+{
+    if (storedProc.empty())
     {
         std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
-    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProc);
     for (soci::rowset<sim_mob::BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
     {
     	busschedule.push_back(new sim_mob::BusSchedule(*iter));
@@ -815,6 +868,39 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	return tripToSave;
 }
 
+sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::string, std::vector<const sim_mob::BusStop*> >& route_BusStops,
+	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments) {
+
+	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
+	sim_mob::BusTrip* BusTripToSave = nullptr;
+
+	// MakeRoute
+	std::string route_id = "";
+	sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(route_id);
+
+	const std::vector<const sim_mob::BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
+	for(std::vector<const sim_mob::BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
+	{
+		busRouteInfo->addBusStop(*it);
+	}
+
+	const std::vector<const sim_mob::RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
+	for(std::vector<const sim_mob::RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
+	{
+		busRouteInfo->addRoadSegment(*it1);
+	}
+
+
+//	const std::vector<const sim_mob::BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_busStopScheduledTimes is a map loaded from database
+//	for(std::vector<const sim_mob::BusStopInfo*>::const_iterator iter = busStopInfo_vecTemp.begin();iter != busStopInfo_vecTemp.end(); iter++)
+//	{
+//		busRouteInfo->addBusStopInfo(*iter);
+//	}
+
+	return BusTripToSave;
+
+}
+
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.personID = tcItem.personID;
@@ -839,8 +925,6 @@ void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	//Add it to the list.
 	parent->addSubTrip(subTrip);
 }
-
-
 
 void DatabaseLoader::DecorateAndTranslateObjects()
 {
@@ -1070,6 +1154,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->addObstacle(distOrigin, busstop);
+		(sim_mob::ConfigParams::GetInstance().getBusStopNo_BusStops())[busstop->busstopno_] = busstop;
 	}
 
 	/*vahid:
@@ -1567,12 +1652,15 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
+<<<<<<< HEAD
 sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln,set<sim_mob::RoadSegment*> linkSegments, unsigned long id)
 {
 	return new sim_mob::RoadSegment(ln,ln->getLinkId()*100 +linkSegments.size());
 //	return new sim_mob::RoadSegment(ln,id);
 }
 
+=======
+>>>>>>> YaoJin_PublicTransit
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {
 	//Skip Sections which start at a non-intersection. These will be filled in later.
@@ -1587,8 +1675,15 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
+<<<<<<< HEAD
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
 	src.generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
+=======
+	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
+	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
+	std::cout << "" << src.id << std::endl;
+
+>>>>>>> YaoJin_PublicTransit
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
@@ -1860,7 +1955,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
 
-
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 	//Step Two: Translate
@@ -1917,6 +2011,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 #endif
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
+
+	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_Map());
 	return "";
 }
 

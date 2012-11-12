@@ -87,5 +87,82 @@ struct type_conversion<sim_mob::BusSchedule>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::PT_trip>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_trip& pt_trip)
+    {
+    	pt_trip.trip_id = values.get<std::string>("trip_id", "");
+    	pt_trip.service_id = values.get<std::string>("service_id", "");
+    	pt_trip.route_id = values.get<std::string>("route_id", "");
+    	pt_trip.start_time = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    	pt_trip.end_time = sim_mob::DailyTime(values.get<std::string>("end_time", ""));
+    }
+
+    static void
+    to_base(sim_mob::PT_trip const & pt_trip, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("trip_id", pt_trip.trip_id);
+        values.set("service_id", pt_trip.service_id);
+        values.set("route_id", pt_trip.route_id);
+        values.set("start_time", pt_trip.start_time.toString());
+        values.set("end_time", pt_trip.end_time.toString());
+        indicator = i_ok;
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::PT_bus_dispatch_freq>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_dispatch_freq& pt_busdispatch_freq)
+    {
+    	pt_busdispatch_freq.frequency_id = values.get<std::string>("frequency_id", "");
+    	pt_busdispatch_freq.route_id = values.get<std::string>("route_id", "");
+    	pt_busdispatch_freq.start_time = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    	pt_busdispatch_freq.end_time = sim_mob::DailyTime(values.get<std::string>("end_time", ""));
+    	pt_busdispatch_freq.headway_sec = values.get<int>("headway_sec", 0);
+    }
+
+    static void
+    to_base(sim_mob::PT_bus_dispatch_freq const & pt_busdispatch_freq, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("frequency_id", pt_busdispatch_freq.frequency_id);
+        values.set("route_id", pt_busdispatch_freq.route_id);
+        values.set("start_time", pt_busdispatch_freq.start_time.toString());
+        values.set("end_time", pt_busdispatch_freq.end_time.toString());
+        values.set("headway_sec", pt_busdispatch_freq.headway_sec);
+        indicator = i_ok;
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::PT_bus_routes>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_routes& pt_bus_routes)
+    {
+    	pt_bus_routes.route_id = values.get<std::string>("route_id", "");
+    	pt_bus_routes.link_id = values.get<std::string>("link_id", "");
+    	pt_bus_routes.link_sequence_no = values.get<int>("link_sequence_no", 0);
+    }
+
+    static void
+    to_base(sim_mob::PT_bus_routes const & pt_bus_routes, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("route_id", pt_bus_routes.route_id);
+        values.set("link_id", pt_bus_routes.link_id);
+        values.set("link_sequence_no", pt_bus_routes.link_sequence_no);
+        indicator = i_ok;
+    }
+};
+
 
 }

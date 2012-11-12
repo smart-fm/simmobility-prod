@@ -116,11 +116,11 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(timeslice now);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	virtual void load(const std::map<std::string, std::string>& configProps) {}
 
-	void frame_output(frame_t frameNumber);
+	void frame_output(timeslice now);
 
 
 	static double fmax(const double proDS[]);
@@ -315,7 +315,7 @@ protected:
 
 protected:
         void setupIndexMaps();
-        void outputToVisualizer(frame_t frameNumber);
+        void outputToVisualizer(timeslice now);
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

@@ -39,7 +39,6 @@
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
-#include "entities/Bus.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFactory.hpp"

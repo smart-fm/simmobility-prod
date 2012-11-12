@@ -28,7 +28,6 @@ namespace sim_mob
  *   \li Times must be of the format HH:MM:SS  --the colon is not optional.
  *   \li Only the seconds component may have a fractional component: HH:MM:SS.ffff..fff
  *   \li Hours and minutes are mandatory. Seconds (and second fractions) are optional.
- *   \li The hour 24 cannot be used.
  *
  * \note
  * Many of these constraints are not enforced, but may be in the future. ~Seth
@@ -55,6 +54,43 @@ public:
 
 	//Accessors
 	std::string toString() const;
+
+	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()){}
+	DailyTime& operator=(const DailyTime& dailytime)
+	{
+        if (&dailytime != this)
+        {
+        	time_ = dailytime.getValue();
+        	repr_ = dailytime.getRepr_();
+        }
+        return *this;
+	}
+	inline uint32_t getValue() const {
+		return time_;
+	}
+	inline std::string getRepr_() const {
+		return repr_;
+	}
+    inline const DailyTime& operator+=(const DailyTime& dailytime)
+    {
+			time_ += dailytime.getValue();
+			repr_ = BuildStringRepr(time_);
+            return *this;
+    }
+    inline const DailyTime& operator-=(const DailyTime& dailytime)
+    {
+			time_ -= dailytime.getValue();
+			repr_ = BuildStringRepr(time_);
+            return *this;
+    }
+    friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)
+    {
+        return lhs += rhs;
+    }
+    friend const DailyTime operator-(DailyTime lhs, const DailyTime& rhs)
+    {
+        return lhs -= rhs;
+    }
 
 private:
 	///Helper method: create a string representation from a given time value in miliseconds.

@@ -83,9 +83,9 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_med(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(frame_t frameNumber);
+	virtual void frame_tick_output_mpi(timeslice now);
 
-	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
+	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 //Buffered data
@@ -158,10 +158,9 @@ private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
-	//void update_first_frame(DriverUpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
-	bool update_sensors(DriverUpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
-	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
+	bool update_sensors(DriverUpdateParams& params, timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(DriverUpdateParams& params, timeslice now);       ///<Called to move vehicles forward.
+	bool update_post_movement(DriverUpdateParams& params, timeslice now);  ///<Called to deal with the consequences of moving forwards.
 
     double currLinkOffset;
 	size_t targetLaneIndex;

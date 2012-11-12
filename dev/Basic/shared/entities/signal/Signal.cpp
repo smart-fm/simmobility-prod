@@ -338,11 +338,11 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) const{
+void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine) const{
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
-	output << "\"frame\": " << frameNumber << "," << newLine;
+	output << "\"frame\": " << now.frame() << "," << newLine;
 	output << plan_.outputTrafficLights(newLine);
 	LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
 }
@@ -359,10 +359,10 @@ void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) 
  * 8-reset the loop detector to make it ready for the next cycle
  * 8-start
  */
-UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
+UpdateStatus Signal_SCATS::update(timeslice now) {
 	if(!isIntersection_) return UpdateStatus::Continue;
 	isNewCycle = false;
-	outputTrafficLights(frameNumber,"");
+	outputTrafficLights(now,"");
 //	1- update current cycle timer( Signal_SCATS::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase

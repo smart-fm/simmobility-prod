@@ -273,7 +273,7 @@ void Signal::startSplitPlan() {
 	vote5 = 0;
 }
 
-void Signal::outputToVisualizer(frame_t frameNumber) {
+void Signal::outputToVisualizer(timeslice now) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
@@ -365,7 +365,7 @@ double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double 
 	return used_g/total_g;
 }
 
-UpdateStatus Signal::update(frame_t frameNumber) {
+UpdateStatus Signal::update(timeslice now) {
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
 	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
@@ -946,7 +946,7 @@ int Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, 
 	return ID;
 }
 
-void Signal::frame_output(frame_t frameNumber) {
+void Signal::frame_output(timeslice now) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 

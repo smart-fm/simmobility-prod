@@ -93,6 +93,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr)
 {
 	toRemoved = false;
+	nextPathPlanned = false;
 	dynamic_seed = id;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE

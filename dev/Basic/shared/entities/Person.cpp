@@ -246,8 +246,9 @@ void sim_mob::Person::getNextSubTripInTrip(){
 				}
 			}
 		}
-	}
-	else{
+	} else if (this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		std::cout << "BusTrip happens " << std::endl;
+	} else{
 		throw std::runtime_error("Invalid trip chain item type!");
 	}
 }
@@ -272,13 +273,15 @@ void sim_mob::Person::findNextItemInTripChain() {
 }
 
 
-void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, UpdateStatus& retVal)
+void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 {
 	int i =0;
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
-		std::cout << "Person::update_time::calling checkAndReactToTripChain_1\n";
-		checkAndReactToTripChain(currTimeMS, currTimeMS);
+		checkAndReactToTripChain(now.ms());
+
+		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
+		setStartTime(now.ms());
 	}
 	 i =0;
 	//Failsafe
@@ -287,16 +290,16 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	}
 	 i =0;
 	//Get an UpdateParams instance.
-	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
+	UpdateParams& params = currRole->make_frame_tick_params(now);
 	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 	 i =0;
 	//Has update() been called early?
-	if (currTimeMS<getStartTime()) {
+	if (now.ms()<getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			std::stringstream msg;
 			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << currTimeMS
+					<< " but it is currently: " << now.ms()
 					<< "; this indicates an error, and should be handled automatically.";
 			throw std::runtime_error(msg.str().c_str());
 		}
@@ -321,15 +324,10 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 		 i =0;
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			 i =0;
-			 bool temp;
-			 unsigned int t1 = ConfigParams::GetInstance().baseGranMS , t = currTimeMS;
-			 t -= getStartTime();
-			if (abs(t)>=t1) {
-				 i =0;
+			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 				std::stringstream msg;
 				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
+				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms() << "\n";
 				msg << "Agent ID: " << getId() << "\n";
 				throw std::runtime_error(msg.str().c_str());
 			}
@@ -362,9 +360,10 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
 	if (isToBeRemoved()) {
+		retVal = checkAndReactToTripChain(now.ms());
 
-		std::cout << "Person::update_time::calling checkAndReactToTripChain_2\n";
-		retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
+		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
+		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
 	}
 	 i =0;
 	//Output if removal requested.
@@ -378,13 +377,13 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 }
 
 
-UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentUpdateBegin(*this, frameNumber);
 #endif
 
 	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	//unsigned int currTimeMS = now.frame() * ConfigParams::GetInstance().baseGranMS;
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -393,7 +392,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	try {
 #endif
 		//Update functionality
-		update_time(frameNumber, currTimeMS, retVal);
+		update_time(now, retVal);
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
@@ -406,9 +405,9 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 		std::stringstream msg;
 		msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-		msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n" <<ex.what();
+		msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n  " <<ex.what();
 		LogOut(msg.str() <<std::endl);
 #endif
 		setToBeRemoved();
@@ -429,9 +428,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 }
 
 
-UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS) {
-
-
+UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
@@ -458,6 +455,8 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
 		originNode = this->currSubTrip->fromLocation;
 		destNode = this->currSubTrip->toLocation;
+	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		std::cout << "BusTrip happens " << std::endl;
 	} else {
 		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
 		destNode = originNode;
@@ -485,11 +484,9 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	}
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
-	//Set our start time to the NEXT time tick so that frame_init is called
-	//  on the first pass through.
+	//Indicate that this is the firstFrameTick of the new Role.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
-	setStartTime(nextValidTimeMS);
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return

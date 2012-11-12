@@ -195,9 +195,9 @@ void sim_mob::Pedestrian::frame_init(UpdateParams& p)
 }
 
 
-UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
+UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(timeslice now)
 {
-	params.reset(frameNumber, currTimeMS);
+	params.reset(now);
 	return params;
 }
 
@@ -316,20 +316,20 @@ void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 	}
 
 #ifndef SIMMOB_DISABLE_OUTPUT
-	LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+	LogOut("("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 #endif
 }
 
-void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
+void sim_mob::Pedestrian::frame_tick_output_mpi(timeslice now)
 {
-	if (frameNumber < 1 || frameNumber < parent->getStartTime())
+	if (now.frame() < 1 || now.frame() < parent->getStartTime())
 		return;
 
 #ifndef SIMMOB_DISABLE_OUTPUT
 	if (this->parent->isFake) {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 	} else {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 	}
 #endif
 }

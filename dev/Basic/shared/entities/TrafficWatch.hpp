@@ -72,7 +72,7 @@ public:
     }
 
 
-	void update(frame_t /* frameNumber */) {throw std::runtime_error("TrafficWatch not implemented");}
+	void update(timeslice now) {throw std::runtime_error("TrafficWatch not implemented");}
 
 
 

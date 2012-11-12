@@ -28,6 +28,7 @@ class Vehicle {
 public:
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width); //Test
 	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
@@ -67,6 +68,7 @@ public:
 	bool isMovingForwardsInLink() const;
 
 	//Special
+	int getVehicleID() const;
 	double getAngle() const;  ///<For display purposes only.
 	LANE_CHANGE_SIDE getTurningDirection() const;
 
@@ -119,6 +121,7 @@ public:
 	//temp
 private:
 	//Trying a slightly more dynamic moving model.
+	int vehicle_id;
 	GeneralPathMover fwdMovement;
 	double latMovement;
 	double fwdVelocity;

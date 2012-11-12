@@ -137,7 +137,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
 
-	vector<const TripChainItem*> currAgTripChain;
+	vector<TripChainItem*> currAgTripChain;
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
@@ -147,7 +147,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
 
-			currAgTripChain.push_back(&busTrip_vec[i]);// one person for one busTrip, currently not considering Activity for BusDriver
+			currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
 			currAg->setTripChain(currAgTripChain);
 
 			// scheduled for dispatch

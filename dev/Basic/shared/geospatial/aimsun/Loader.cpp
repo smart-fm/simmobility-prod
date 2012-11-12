@@ -1652,15 +1652,13 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
-<<<<<<< HEAD
 sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln,set<sim_mob::RoadSegment*> linkSegments, unsigned long id)
 {
 	return new sim_mob::RoadSegment(ln,ln->getLinkId()*100 +linkSegments.size());
 //	return new sim_mob::RoadSegment(ln,id);
 }
 
-=======
->>>>>>> YaoJin_PublicTransit
+
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {
 	//Skip Sections which start at a non-intersection. These will be filled in later.
@@ -1675,15 +1673,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-<<<<<<< HEAD
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
 	src.generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
-=======
-	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
-	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
-	std::cout << "" << src.id << std::endl;
-
->>>>>>> YaoJin_PublicTransit
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link

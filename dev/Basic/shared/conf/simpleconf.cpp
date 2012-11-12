@@ -243,6 +243,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				}
 			}
 
+
 			//Regardless, add this TripChainItem to the current Agent's trip chain.
 			currAgTripChain.push_back(tc);
 
@@ -263,14 +264,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	} //outer for loop(map)
 }
 
-
-//Helper output function
-/*void runXmlChecks(const std::vector<Link*>& links)
-{
-	//testing purpose only
-	std::cout << "Testin Road Network :\n";
-	std::cout << "Number of Links: " << links.size() << std::endl;
-}*/
 
 
 

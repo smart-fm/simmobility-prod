@@ -45,7 +45,7 @@ public:
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
-	bool first_busstop;//added by Meenu
+	bool first_busstop,last_busstop;//added by Meenu
 	//double no_passengers_boarding,no_passengers_alighting;
 
 	bool isBusFarawayBusStop() const;
@@ -56,6 +56,7 @@ public:
 	//void passengers_distribution(Bus* bus);
 	void passengers_board(Bus* bus);
 	void passengers_alight(Bus* bus);
+	void passenger_distribution(Bus* bus);
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;

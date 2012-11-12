@@ -51,6 +51,20 @@ public:
 
 	virtual double getnopassengers() { return varGen(); }
 };
+class UniformPassengerDist : public PassengerDist {
+private:
+	boost::mt19937 gen;
+	boost::uniform_int<int> dist;
+	boost::variate_generator<boost::mt19937, boost::uniform_int<int> > varGen;
+
+public:
+	UniformPassengerDist(int min, int max)
+	 : gen(), dist(min ,max), varGen(gen, dist)
+	{
+	}
+
+	virtual double getnopassengers() { return varGen(); }
+};
 
 
 }

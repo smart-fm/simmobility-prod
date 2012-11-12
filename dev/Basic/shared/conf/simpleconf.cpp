@@ -1027,23 +1027,25 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 
 	//Save passenger distribution parameters
-		int passenger_busstop_dist,passenger_crowdness_dist;
+		int passenger_busstop_dist,passenger_crowdness_dist,passengers_min_uniformDist,passengers_max_uniformDist;
 	    int passenger_busstop_mean,passenger_crowdness_mean,passengers_boarding,passengers_alighting;
 	    int passenger_busstop_standardDev,passenger_crowdness_standard_dev;
-		handle.FirstChild("passenger_distributionType1").ToElement()->Attribute("value",&passenger_busstop_dist);
-		handle.FirstChild("passenger_mean1").ToElement()->Attribute("value",&passenger_busstop_mean);
-		handle.FirstChild("passenger_standardDev1").ToElement()->Attribute("value",&passenger_busstop_standardDev);
+		handle.FirstChild("passenger_distribution_busstop").ToElement()->Attribute("value",&passenger_busstop_dist);
+		handle.FirstChild("passenger_mean_busstop").ToElement()->Attribute("value",&passenger_busstop_mean);
+		handle.FirstChild("passenger_standardDev_busstop").ToElement()->Attribute("value",&passenger_busstop_standardDev);
 
 		handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passengers_boarding);
 
 
 
 		//use distribution to get the random no of  passengers inside bus
-		handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
-		handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
-		handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
+		//handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
+		//handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
+		//handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
 
 		handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passengers_alighting);
+		handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
+		handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
 		//for alighting passengers
 		//TODO: Refactor to avoid magic numbers
 		int no_of_passengers;
@@ -1057,20 +1059,26 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 		} else if (passenger_busstop_dist==1) {
 			ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
-		} else {
+		}
+		else if(passenger_busstop_dist==2)//uniform distribution
+		{
+		   ConfigParams::GetInstance().passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
+		}
+
+		else {
 			throw std::runtime_error("Unknown magic reaction time number.");
 		}
 
 
-		//alighting passenger distribution
-		if (passenger_crowdness_dist==0) {
+
+	/*	if (passenger_crowdness_dist==0) {
 					ConfigParams::GetInstance().passengerDist_crowdness = new NormalPassengerDist(passenger_crowdness_mean, passenger_crowdness_standard_dev);
 
 				} else if (passenger_crowdness_dist==1) {
 					ConfigParams::GetInstance().passengerDist_crowdness = new LognormalPassengerDist(passenger_crowdness_mean, passenger_crowdness_standard_dev);
 				} else {
 					throw std::runtime_error("Unknown magic reaction time number.");
-				}
+				}*/
 	//Driver::distributionType1 = distributionType1;
 	int signalAlgorithm;
 

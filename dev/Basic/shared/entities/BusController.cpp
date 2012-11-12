@@ -139,7 +139,7 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
+	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j,0,0,0,0,0,0);
 	ETijk = std::max(SETijk - sij, ATijk + DTijk);
 
 	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
@@ -168,7 +168,7 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
+	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j,0,0,0,0,0,0);
 	ETijk = std::max((unsigned int)(ATijk_1 + alpha*Hi), ATijk + DTijk);
 
 	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
@@ -202,7 +202,7 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
+	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j,0,0,0,0,0,0);
 	ETijk = std::max((unsigned int)(ATijk_1 + (double)(ATimk_plus1 + SRTmj - ATijk_1)/2.0), ATijk + DTijk); // need some changes for precision
 
 	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
@@ -216,21 +216,30 @@ unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, i
 	return DTijk;
 }
 
-unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j)
+unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers)
 {
-	double alpha1 = 0.0;
-	double alpha2 = 0.0;
-	double alpha3 = 0.0;
-	double alpha4 = 0.0;
+	double alpha1 = 0.5;
+	double alpha2 = 0.5;
+	double alpha3 = 0.5;
+	double alpha4 = 0.5;
 
-	double beta1 = 0.0;
-	double beta2 = 0.0;
-	double beta3 = 0.0;
-	int Pfront = 1;
-
-	double PTijk_front = 0.0;
-	double PTijk_rear = 0.0;
-	unsigned int DTijk = 0;
+	double beta1 = 0.5;
+	double beta2 = 0.5;
+	double beta3 = 0.5;
+	//int Pfront = 1;
+	bool bus_crowdness_factor;
+		if(no_of_passengers>50)
+			bus_crowdness_factor=1;
+		else
+			bus_crowdness_factor=0;
+	double PTijk_front = alpha1 *Pfront*A + alpha2*B + alpha3*bus_crowdness_factor*B;
+	double PTijk_rear = alpha4*(1-Pfront)*A;
+	double PT;
+	if(PTijk_front > PTijk_rear)
+		PT=PTijk_front;
+	else
+		PT=PTijk_rear;
+	unsigned int DTijk = beta1+PT+beta2*delta_bay+beta3*delta_full;
 	return DTijk;
 }
 

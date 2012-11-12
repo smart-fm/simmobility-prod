@@ -4,6 +4,7 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
+#include "entities/vehicle/Bus.hpp"
 #include <vector>
 
 namespace sim_mob
@@ -15,7 +16,7 @@ class PackageUtils;
 class UnPackageUtils;
 class BusStop;
 class Person;
-
+class Bus;
 class Passenger;
 
 
@@ -52,8 +53,9 @@ public:
 	bool isBusArriveBusStop() const;
 	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
-	void passengers_board();
-	void passengers_alight();
+	//void passengers_distribution(Bus* bus);
+	void passengers_board(Bus* bus);
+	void passengers_alight(Bus* bus);
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
@@ -65,16 +67,17 @@ public:
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 
+	size_t no_passengers_busstop;
+	size_t no_passengers_boarding;
+	size_t no_passengers_bus;
+	size_t no_passengers_alighting;
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);
 
 //Basic data
 private:
-	size_t no_passengers_busstop;
-	size_t no_passengers_boarding;
-	size_t no_passengers_bus;
-	size_t no_passengers_alighting;
+
 	//BusRoute route;
 	const DemoBusStop* nextStop;
 	std::vector<DemoBusStop> stops;

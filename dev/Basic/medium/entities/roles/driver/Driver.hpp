@@ -5,11 +5,10 @@
 
 #include <vector>
 #include "entities/roles/Role.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
-#include "geospatial/StreetDirectory.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"

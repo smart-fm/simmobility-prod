@@ -594,7 +594,7 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -603,7 +603,7 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 				int x = path.size();
 				initTripChainSpecialString(specialValue);
 			} else {

@@ -1090,12 +1090,9 @@ void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const 
 	}
 }
 
-void sim_mob::WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal_)
+void sim_mob::WriteXMLInput_TrafficSignal_common(TiXmlElement * Signal,sim_mob::Signal *signal_)
 {
 	std::ostringstream out;
-	TiXmlElement * Signal;
-	Signal = new TiXmlElement( "Signal" );
-	Signals->LinkEndChild( Signal );
 	//signalID
 	TiXmlElement * signalID  = new TiXmlElement( "signalID" );
 	out << signal_->getSignalId();
@@ -1117,41 +1114,98 @@ void sim_mob::WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals,sim_mob:
 	//phases
 	TiXmlElement * phases  = new TiXmlElement( "phases" );
 	Signal->LinkEndChild( phases);
-	/*const std::vector<sim_mob::Phase>*/ const sim_mob::phases & phases_ = signal_->getPlan().getPhases();
+	/*const std::vector<sim_mob::Phase>*/ const sim_mob::phases & phases_ = signal_->getPhases();
 	WriteXMLInput_TrafficSignal_Phases(phases,phases_);
-	///////////////////////////////////////
-	//signalTimingMode
-	TiXmlElement * signalTimingMode  = new TiXmlElement( "signalTimingMode" );
-	if(signal_->getSignalTimingMode() == 0)
-	{
-		signalTimingMode->LinkEndChild( new TiXmlText("STM_FIXED"));
-		signalTimingMode->LinkEndChild( new TiXmlText("STM_ADAPTIVE"));
-	}else
-		if(signal_->getSignalTimingMode()  == 1)
-		{
-			signalTimingMode->LinkEndChild( new TiXmlText("STM_ADAPTIVE"));
-		}
-		else
-		{
-			std::cout << "signalTimingMode ( " << signal_->getSignalTimingMode()  << ") unknown, press any key ...\n";
-			getchar();
-		}
-
-	Signal->LinkEndChild(signalTimingMode);
 }
+void sim_mob::WriteXMLInput_TrafficSignal_SCATS_SplitPlan(TiXmlElement * SCATS,sim_mob::Signal_SCATS *signal_)
+{
+	std::ostringstream out;
+	sim_mob::SplitPlan &plan = signal_->getPlan();
+	//SplitPlan
+	TiXmlElement * SplitPlan  = new TiXmlElement( "SplitPlan" );
+	SCATS->LinkEndChild(SplitPlan);
+	//splitplanID
+	TiXmlElement * splitplanID  = new TiXmlElement( "splitplanID" );
+	SplitPlan->LinkEndChild(splitplanID);
+	out.str("");
+	out << plan.TMP_PlanID;
+	splitplanID->LinkEndChild(new TiXmlText(out.str()));
+	//cycleLength
+	TiXmlElement * cycleLength  = new TiXmlElement( "cycleLength" );
+	SplitPlan->LinkEndChild(cycleLength);
+	out.str("");
+	out << plan.getCycleLength();
+	cycleLength->LinkEndChild(new TiXmlText(out.str()));
+	//offset
+	TiXmlElement * offset  = new TiXmlElement( "offset" );
+	SplitPlan->LinkEndChild(offset);
+	out.str("");
+	out << plan.getOffset();
+	offset->LinkEndChild(new TiXmlText(out.str()));
 
-void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal_)
+	//ChoiceSet
+	TiXmlElement * ChoiceSet  = new TiXmlElement( "ChoiceSet" );
+	SplitPlan->LinkEndChild(ChoiceSet);
+	int i = 0;
+	for( std::vector< std::vector<double> >::iterator it_pl = plan.getChoiceSet().begin(), it_end(plan.getChoiceSet().end()); it_pl != it_end; it_pl++, i++)
+	{
+		//plan
+		TiXmlElement * plan  = new TiXmlElement( "plan" );
+		ChoiceSet->LinkEndChild(plan);
+
+		//planID
+		TiXmlElement * planID  = new TiXmlElement( "planID" );
+		plan->LinkEndChild(planID);
+		out.str("");
+		out << i;
+		planID->LinkEndChild(new TiXmlText(out.str()));
+		for(std::vector<double>::iterator it_ph = it_pl->begin(), it_end(it_pl->end()); it_ph != it_end; it_ph++)//Choke on it :)
+		{
+			//PhasePercentage
+			TiXmlElement * PhasePercentage  = new TiXmlElement( "PhasePercentage" );
+			plan->LinkEndChild(PhasePercentage);
+			out.str("");
+			out << *it_ph;
+			PhasePercentage->LinkEndChild(new TiXmlText(out.str()));
+		}
+	}
+}
+void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::Signal *signal_)
 {
 	//the common part
-	WriteXMLInput_TrafficSignal_common(Signals, signal_);
+	WriteXMLInput_TrafficSignal_common(Signal, signal_);
 	//SCATS specific part
+
+	//SCATS
+	sim_mob::Signal_SCATS* signal_scats = dynamic_cast<sim_mob::Signal_SCATS*>(signal_);
+	TiXmlElement * SCATS  = new TiXmlElement( "scats" );
+	Signal->LinkEndChild( SCATS);
+	//	signalTimingMode
+	TiXmlElement * signalTimingMode = new TiXmlElement("signalTimingMode");
+	if (signal_scats->getSignalTimingMode() == 0) {
+		signalTimingMode->LinkEndChild(new TiXmlText("STM_FIXED"));
+	} else if (signal_scats->getSignalTimingMode() == 1) {
+		signalTimingMode->LinkEndChild(new TiXmlText("STM_ADAPTIVE"));
+	} else {
+		std::cout << "signalTimingMode ( " << signal_scats->getSignalTimingMode()
+				<< ") unknown, press any key ...\n";
+		getchar();
+	}
+	SCATS->LinkEndChild(signalTimingMode);
+	//splitplan
+	WriteXMLInput_TrafficSignal_SCATS_SplitPlan(SCATS, signal_scats);
+
 
 }
 
-void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal_)
+void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal_)
 {
+
+	TiXmlElement * Signal;
+	Signal = new TiXmlElement( "Signal" );
+	Signals->LinkEndChild( Signal );
 	//if scats:
-	WriteXMLInput_TrafficSignal_SCATS(Signals,signal_);
+	WriteXMLInput_TrafficSignal_SCATS(Signal,signal_);
 	//else
 	//....
 }
@@ -1165,7 +1219,7 @@ void sim_mob::WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility)
 	sim_mob::Signal::All_Signals &Signals_ = sim_mob::Signal::all_signals_;
 	for(sim_mob::Signal::all_signals_const_Iterator it = Signals_.begin(); it != Signals_.end(); it++)
 	{
-		WriteXMLInput_TrafficSignal(Signals, dynamic_cast<sim_mob::Signal_SCATS*>(*it));
+		WriteXMLInput_TrafficSignal(Signals, (*it));
 	}
 }
 void sim_mob::WriteXMLInput(const std::string& XML_OutPutFileName)

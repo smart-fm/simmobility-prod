@@ -6,7 +6,6 @@
 
 #include "geospatial/Link.hpp"
 #include "geospatial/Crossing.hpp"
-#include "Phase.hpp"
 
 namespace sim_mob {
 

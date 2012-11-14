@@ -24,6 +24,7 @@ enum TrafficControlMode
 class SplitPlan
 {
 public:
+	//moved to a more globally accessible place
 //	typedef boost::multi_index_container<
 //			sim_mob::Phase,
 //			boost::multi_index::indexed_by<
@@ -31,8 +32,9 @@ public:
 //			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
 //	  >
 //	> phases;
-private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
+private:
+
     int signalTimingMode;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
@@ -88,6 +90,7 @@ public:
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
 	void setCoiceSet(std::vector< std::vector<double> >);
+	std::vector< std::vector<double> > &getChoiceSet();
 	void setDefaultSplitPlan(int);
 	void initialize();
 

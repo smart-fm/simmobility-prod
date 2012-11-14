@@ -552,8 +552,7 @@
   <xs:complexType name="Plan_t">
     <xs:sequence>
       <xs:element name="planID" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="PhasePercentage" type="xs:double" minOccurs="1" maxOccurs="unbounded"
-      />
+      <xs:element name="PhasePercentage" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -621,7 +620,6 @@
   <xs:complexType name="SplitPlan_t">
     <xs:sequence>
       <xs:element name="splitplanID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="signalTimingMode" type="geo:signalTimingMode_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="cycleLength" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
       <xs:element name="offset" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
       <xs:element name="ChoiceSet" type="geo:Plans_t" minOccurs="1" maxOccurs="1"/>
@@ -641,6 +639,9 @@
       <xs:element name="nodeID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="linkAndCrossings" type="geo:linkAndCrossings_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="Phases" type="geo:Phases_t" minOccurs="1" maxOccurs="1"/>
+    <xs:choice>
+      <xs:element name="SCATS" type="geo:SCATS_t" maxOccurs="1"/>
+    </xs:choice>
     </xs:sequence>
   </xs:complexType>
 

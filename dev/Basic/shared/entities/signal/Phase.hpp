@@ -1,6 +1,6 @@
 #pragma once
 #include<cstdio>
-#include "defaults.hpp"
+//#include "defaults.hpp"
 #include "Color.hpp"
 #include "geospatial/MultiNode.hpp"
 #include<vector>
@@ -15,7 +15,7 @@
 namespace sim_mob
 {
 //Forward declarations
-//class Crossing;
+class Crossing;
 //class Link;
 class SplitPlan;
 class RoadSegment;
@@ -89,6 +89,7 @@ typedef std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
 typedef crossings_map::const_iterator crossings_map_const_iterator;
 typedef crossings_map::iterator crossings_map_iterator;
 typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
  * in adaptive signal control, the cycle length, phase percentage and offset are likely to change
@@ -185,4 +186,13 @@ private:
 	friend class SplitPlan;
 	friend class Signal_SCATS;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef boost::multi_index_container<
+		sim_mob::Phase,
+		boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>
+		,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
+  >
+> phases;
 }//namespace

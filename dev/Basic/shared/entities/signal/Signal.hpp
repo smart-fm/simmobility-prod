@@ -74,10 +74,12 @@ public:
    virtual TrafficColor getPedestrianLight(Crossing const & crossing) const { throw std::runtime_error("Not implemented"); };
    virtual std::string toString() const{ throw std::runtime_error("Not implemented"); };
    Node  const & getNode() const { return node_; }
+   virtual unsigned int getSignalId(){}
    virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
+   virtual const sim_mob::phases getPhases(){}
 
    static std::vector<Signal *> all_signals_;
    typedef std::vector<Signal *> All_Signals;
@@ -149,6 +151,7 @@ public:
 	virtual void setCurrLink(const sim_mob::Link*){}
 	virtual const sim_mob::Lane* getCurrLane() const{return nullptr; }
 	virtual void setCurrLane(const sim_mob::Lane* lane){}
+	virtual const sim_mob::phases getPhases(){ return plan_.getPhases();}
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;

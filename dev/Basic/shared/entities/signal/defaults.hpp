@@ -9,6 +9,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 
 
+
 namespace sim_mob {
 
 //Forward declarations
@@ -16,15 +17,15 @@ class Crossing;
 class Link;
 
 
-enum TrafficColor
-{
-    Red =1,    			///< Stop, do not go beyond the stop line.
-    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
-    Green = 3,   		///< Proceed either in the forward, left, or right direction.
-    FlashingRed = 4,	///future use
-    FlashingAmber = 5,	///future use
-    FlashingGreen = 6	///future use
-};
+//enum TrafficColor
+//{
+//    Red =1,    			///< Stop, do not go beyond the stop line.
+//    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
+//    Green = 3,   		///< Proceed either in the forward, left, or right direction.
+//    FlashingRed = 4,	///future use
+//    FlashingAmber = 5,	///future use
+//    FlashingGreen = 6	///future use
+//};
 
 //Link and crossing of an intersection/traffic signal
 struct LinkAndCrossing
@@ -59,12 +60,6 @@ typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossing
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 
-typedef boost::multi_index_container<
-		sim_mob::Phase,
-		boost::multi_index::indexed_by<
-		boost::multi_index::random_access<>
-		,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
-  >
-> phases;
+
 }
 

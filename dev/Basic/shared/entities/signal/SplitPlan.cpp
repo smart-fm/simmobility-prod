@@ -13,6 +13,7 @@ namespace sim_mob
 void SplitPlan::setCycleLength(std::size_t c = 96) {cycleLength = c;}
 void SplitPlan::setcurrSplitPlanID(std::size_t index) { currSplitPlanID = index; }
 void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet = choiceset;}
+std::vector< vector<double> > &SplitPlan::getChoiceSet(){return choiceSet;}
 
 std::size_t SplitPlan::CurrSplitPlanID() { return currSplitPlanID; }
 double SplitPlan::getCycleLength() const {return cycleLength;}

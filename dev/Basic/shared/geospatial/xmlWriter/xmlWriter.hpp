@@ -60,9 +60,10 @@ void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activi
 void WriteXMLInput_TripChains(TiXmlElement * SimMobility);
 void WriteXMLInput_TrafficSignal_LinkAndCrossings(TiXmlElement * linkAndCrossings,const sim_mob::LinkAndCrossingByLink & LAC);
 void WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases,  /*const std::vector<sim_mob::Phase>*/const sim_mob::phases &phases_);
-void WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
-void WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
-void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
+void WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignal_SCATS_SplitPlan(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal_);
+void WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal *signal);
 void WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility);
 void WriteXMLInput(const std::string& XML_OutPutFileName);
 }

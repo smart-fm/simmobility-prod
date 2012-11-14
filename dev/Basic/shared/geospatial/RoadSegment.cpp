@@ -282,25 +282,17 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //TODO: Restore const-correctness after cleaning up sidewalks.
 const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) /*const*/
 {
-//	std::cout<< "getLaneEdgePolyline for " << this->getSegmentID() << "(width:" << width << "),  started\n";
 	//TEMP: Due to the way we manually insert sidewalks, this is needed for now.
 	bool syncNeeded = false;
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (lanes.at(i)->polyline_.empty()) {
-//			std::cout<< "getLaneEdgePolyline : lane index " << i << " , id: " << lanes.at(i)->getLaneID() << "(width:" << lanes.at(i)->getWidth_real() << ") laneEdgePolylines_cached.size()" << laneEdgePolylines_cached.size() << "  laneEdgePolylines_cached[" << i << "]=" << laneEdgePolylines_cached.at(i).size() << " has no polyline\n";
 			syncNeeded = true;
-//			break;
 		}
 	}
 
 	//Rebuild if needed
 	if (laneEdgePolylines_cached.empty() || syncNeeded) {
-//		std::cout << this->getSegmentID() << " : laneEdgePolylines_cached is " << (laneEdgePolylines_cached.empty() ? "empty" : "NOT empty") << " and syncNeeded is " << (syncNeeded ? "True" : "False") << std::endl;
 		syncLanePolylines();
-	}
-	else
-	{
-//		std::cout << this->getSegmentID() << " : getLaneEdgePolyline is not doing anythin\n";
 	}
 	return laneEdgePolylines_cached[laneID];
 }

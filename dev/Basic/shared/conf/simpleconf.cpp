@@ -1062,32 +1062,21 @@ void PrintDB_Network_ptrBased()
 		}
 
 
-		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
-				{
-					const RoadItem* ri = itBusStops->second;
-					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-						if (resBS) {
-						cachedBusStops.insert(resBS);
-					} else {
-//						std::cout <<"NOTE: Unknown obstacle!\n";
-					}
-//						std::cout<< std::endl;
-				}
+		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); ++obsIt) {
+			//Save BusStops for later.
+			const BusStop* resBS = dynamic_cast<const BusStop*>(obsIt->second);
+			if (resBS) {
+				cachedBusStops.insert(resBS);
+			}
 
-//TODO: add other types of obstacle.
-		//Save crossing info for later
-		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings)
-		{
-			const RoadItem* ri = itCrossings->second;
-			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
-				if (resC) {
+			//Save crossings for later.
+			const Crossing* resC = dynamic_cast<const Crossing*>(obsIt->second);
+			if (resC) {
 				cachedCrossings.insert(resC);
-			} else {
-				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
+
 
 		//Save Lane info for later
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
@@ -1096,8 +1085,6 @@ void PrintDB_Network_ptrBased()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "  getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" Before...";
-//		getchar();
 		for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
 			laneBuffer <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
@@ -1127,51 +1114,42 @@ void PrintDB_Network_ptrBased()
 	}
 
 	//Bus Stops are part of Segments
-		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
-			//LogOutNotSync("Surav's loop  is here!");
+	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin();
+			it != cachedBusStops.end(); it++) {
 		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
-		//	LogOutNotSync("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
-			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
-		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
-			                                double length = 400;
-							        		double width = 250;
-							        		double theta = atan(width/length);
-							        		double phi = M_PI * angle / 180;
-							                double diagonal_half = (sqrt(length*length + width*width))/2;
+		double length = 400;
+		double width = 250;
+		double theta = atan(width / length);
+		double phi = M_PI * angle / 180;
+		double diagonal_half = (sqrt(length * length + width * width)) / 2;
 
-							        		double x1d = x + diagonal_half*cos(phi+theta);
-							        		double y1d = y + diagonal_half*sin(phi+theta);
-							        		double x2d = x + diagonal_half*cos(M_PI+phi-theta);
-							        		double y2d = y + diagonal_half*sin(M_PI+phi-theta);
-							        		double x3d = x + diagonal_half*cos(M_PI+phi+theta);
-							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
-							        		double x4d = x + diagonal_half*cos(phi-theta);
-							        		double y4d = y + diagonal_half*sin(phi-theta);
+		double x1d = x + diagonal_half * cos(phi + theta);
+		double y1d = y + diagonal_half * sin(phi + theta);
+		double x2d = x + diagonal_half * cos(M_PI + phi - theta);
+		double y2d = y + diagonal_half * sin(M_PI + phi - theta);
+		double x3d = x + diagonal_half * cos(M_PI + phi + theta);
+		double y3d = y + diagonal_half * sin(M_PI + phi + theta);
+		double x4d = x + diagonal_half * cos(phi - theta);
+		double y4d = y + diagonal_half * sin(phi - theta);
 
-			LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-			LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-			LogOutNotSync("})" <<endl);
-		}
+		LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
+		LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+		LogOutNotSync("})" <<endl);
+	}
 
 
 	//Now print all Connectors
 	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
 		//Retrieve relevant information
 		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
-//		std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),(*it)->getLaneFrom());
-		//temporary fix due to using Lane::laneID_ for some other purpose(which is incompatible with old visualizer)
 		unsigned int fromLane = std::distance(fromSeg->getLanes().begin(), std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),(*it)->getLaneFrom()));
-//		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
-//		const Lane* fromLane = (*it)->getLaneFrom();
 		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
 		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
-//		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
-//		const Lane* toLane = (*it)->getLaneTo();
 
 		//Output
 		LogOutNotSync("(\"lane-connector\", 0, " <<*it <<", {");
@@ -1182,11 +1160,9 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("})" <<endl);
 	}
 
-//	//Print the StreetDirectory graphs.
+	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
-//
-
 
 #endif
 }
@@ -1310,29 +1286,21 @@ void PrintDB_Network_idBased()
 
 
 		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
-				{
-					const RoadItem* ri = itBusStops->second;
-					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-						if (resBS) {
-						cachedBusStops.insert(resBS);
-					} else {
-//						std::cout <<"NOTE: Unknown obstacle!\n";
-					}
-//						std::cout<< std::endl;
-				}
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
+			const RoadItem* ri = itBusStops->second;
+			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
+			if (resBS) {
+				cachedBusStops.insert(resBS);
+			}
+		}
 
 //TODO: add other types of obstacle.
 		//Save crossing info for later
 		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings)
-		{
-			const RoadItem* ri = itCrossings->second;
-			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings) {
+			const Crossing* resC = dynamic_cast<const Crossing*>(itCrossings->second);
 				if (resC) {
 				cachedCrossings.insert(resC);
-			} else {
-				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
 
@@ -1432,38 +1400,29 @@ void PrintDB_Network_idBased()
 #endif
 }
 
-void patchRoadNetworkwithLaneEdgePolyline()
-{
+void patchRoadNetworkwithLaneEdgePolyline() {
 	//Initial message
 	const RoadNetwork& rn = sim_mob::ConfigParams::GetInstance().getNetwork();
-	std::set<const RoadSegment*,Sorter> cachedSegments;
-for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-	//Cache all segments
-	vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-	for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
-		cachedSegments.insert(*i2);
-	}
-}
-	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
+	std::set<const RoadSegment*, Sorter> cachedSegments;
+	for (set<UniNode*>::const_iterator it = rn.getUniNodes().begin(); it != rn.getUniNodes().end(); it++) {
 		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
+		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
+		for (vector<const RoadSegment*>::const_iterator i2 = segs.begin(); i2 != segs.end(); ++i2) {
 			cachedSegments.insert(*i2);
 		}
 	}
-		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-//			std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" Before...\n";
-//			getchar();
-					for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
-						const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
-						std::cout << "getLaneEdgePolyline(" << laneID << ").size = " << points.size();
-					}
-//					std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() << " After...\n";
-//					std::cout << ".............................\n";
-					//					getchar();
+	for (vector<MultiNode*>::const_iterator it = rn.getNodes().begin(); it != rn.getNodes().end(); it++) {
+		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
+		//Cache all segments
+		for (set<RoadSegment*>::const_iterator i2 = nodeInt->getRoadSegments().begin(); i2 != nodeInt->getRoadSegments().end(); ++i2) {
+			cachedSegments.insert(*i2);
 		}
-
+	}
+	for (std::set<const RoadSegment*>::const_iterator it = cachedSegments.begin(); it != cachedSegments.end(); it++) {
+		for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
+			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
+		}
+	}
 }
 
 void printRoadNetwork_console()
@@ -1619,7 +1578,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	{
 		node->Attribute("value", &signalAlgorithm);
 	}
-	std::cout << ".............................loadXMLConf 2\n";
+
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
 	node = handle.FirstChild("partitioning_solution_id").ToElement();
@@ -1687,9 +1646,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement();
 	if (node) {
 		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
-		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
+		cout <<"*******************************************" <<endl;
 		cout <<"Manual override used for demo intersection." <<endl;
-		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
+		cout <<"*******************************************" <<endl;
 	}
 
 	//Misc.: disable dynamic dispatch?
@@ -2052,6 +2011,9 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//Parse it
 	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
 	delete doc;
+
+	//TEMP
+	//errorMsg = "Testing";
 
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;

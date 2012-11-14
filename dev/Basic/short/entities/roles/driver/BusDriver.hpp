@@ -45,7 +45,6 @@ public:
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
-	bool first_busstop,last_busstop;//added by Meenu
 	//double no_passengers_boarding,no_passengers_alighting;
 
 	bool isBusFarawayBusStop() const;
@@ -54,9 +53,9 @@ public:
 	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
 	//void passengers_distribution(Bus* bus);
-	void passengers_board(Bus* bus);
-	void passengers_alight(Bus* bus);
-	void passenger_distribution(Bus* bus);
+	void passengers_Board(Bus* bus);
+	void passengers_Alight(Bus* bus);
+	void passengerGenerationWithDist(Bus* bus);
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
@@ -68,6 +67,8 @@ public:
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 
+	bool first_busstop;
+	bool last_busstop;
 	size_t no_passengers_busstop;
 	size_t no_passengers_boarding;
 	size_t no_passengers_bus;

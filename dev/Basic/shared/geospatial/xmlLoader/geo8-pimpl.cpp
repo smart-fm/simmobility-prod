@@ -2088,20 +2088,20 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
     // return ... ;
   }
 
-  // signalAlgorithm_t_pimpl
+  // signalTimingMode_t_pimpl
   //
 
-  void signalAlgorithm_t_pimpl::
+  void signalTimingMode_t_pimpl::
   pre ()
   {
   }
 
-  void signalAlgorithm_t_pimpl::
-  post_signalAlgorithm_t ()
+  void signalTimingMode_t_pimpl::
+  post_signalTimingMode_t ()
   {
     const ::std::string& v (post_string ());
 
-    std::cout << "signalAlgorithm_t: " << v << std::endl;
+    std::cout << "signalTimingMode_t: " << v << std::endl;
   }
 
   // Plan_t_pimpl
@@ -2354,7 +2354,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void SplitPlan_t_pimpl::
-  signalAlgorithm ()
+  signalTimingMode ()
   {
   }
 
@@ -2409,7 +2409,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void Signal_t_pimpl::
-  signalAlgorithm ()
+  signalTimingMode ()
   {
   }
 

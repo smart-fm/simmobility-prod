@@ -262,7 +262,7 @@ public:
 
 private:
 
-    int signalAlgorithm;
+    int signalTimingMode;
     double Density[4];
     double DS_all;
 

@@ -1664,16 +1664,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 
 	//Driver::distributionType1 = distributionType1;
-	int signalAlgorithm;
+	int signalTimingMode;
 
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
 
-	node = handle.FirstChild("signalAlgorithm").ToElement();
+	node = handle.FirstChild("signalTimingMode").ToElement();
 	if(node)
 	{
-		node->Attribute("value", &signalAlgorithm);
+		node->Attribute("value", &signalTimingMode);
 	}
 	std::cout << ".............................loadXMLConf 2\n";
 #ifndef SIMMOB_DISABLE_MPI
@@ -1818,7 +1818,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.signalWorkGroupSize = signalWgSize;
     	config.simStartTime = DailyTime(simStartStr);
     	config.mutexStategy = mtStrat;
-    	config.signalAlgorithm = signalAlgorithm;
+    	config.signalTimingMode = signalTimingMode;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI

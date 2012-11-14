@@ -59,6 +59,12 @@ typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossing
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 
-
+typedef boost::multi_index_container<
+		sim_mob::Phase,
+		boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>
+		,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
+  >
+> phases;
 }
 

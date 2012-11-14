@@ -3,9 +3,13 @@
 #include <string>
 #include <ctime>
 
+#include "conf/simpleconf.hpp"
 #include "geospatial/Pavement.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/signal/defaults.hpp"
+#include "entities/signal/Phase.hpp"
+#include "entities/signal/SplitPlan.hpp"
 
 namespace sim_mob
 {
@@ -23,6 +27,7 @@ class RoadNetwork;
 class Trip;
 class Activity;
 class Signal;
+class Signal_SCATS;
 
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y);
@@ -53,7 +58,11 @@ std::string locationType_toString(TripChainItem::LocationType type);
 void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip);
 void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activity & activity);
 void WriteXMLInput_TripChains(TiXmlElement * SimMobility);
-void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignal_LinkAndCrossings(TiXmlElement * linkAndCrossings,const sim_mob::LinkAndCrossingByLink & LAC);
+void WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases,  /*const std::vector<sim_mob::Phase>*/const sim_mob::phases &phases_);
+void WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
+void WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
+void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal_SCATS *signal);
 void WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility);
 void WriteXMLInput(const std::string& XML_OutPutFileName);
 }

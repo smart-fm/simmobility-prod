@@ -1038,7 +1038,7 @@ namespace geo
     post_linkAndCrossings_t ();
   };
 
-  class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel,
+  class signalTimingMode_t_pimpl: public virtual signalTimingMode_t_pskel,
     public ::xml_schema::string_pimpl
   {
     public:
@@ -1046,7 +1046,7 @@ namespace geo
     pre ();
 
     virtual void
-    post_signalAlgorithm_t ();
+    post_signalTimingMode_t ();
   };
 
   class Plan_t_pimpl: public virtual Plan_t_pskel
@@ -1201,7 +1201,7 @@ namespace geo
     splitplanID (unsigned int);
 
     virtual void
-    signalAlgorithm ();
+    signalTimingMode ();
 
     virtual void
     cycleLength (unsigned char);
@@ -1232,7 +1232,7 @@ namespace geo
     nodeID (unsigned int);
 
     virtual void
-    signalAlgorithm ();
+    signalTimingMode ();
 
     virtual void
     linkAndCrossings (sim_mob::LinkAndCrossingC);

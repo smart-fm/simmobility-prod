@@ -542,10 +542,10 @@
       </xs:sequence>
     </xs:complexType>
 
-  <xs:simpleType name="signalAlgorithm_t">
+  <xs:simpleType name="signalTimingMode_t">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="SP_FIXED"/>
-      <xs:enumeration value="SP_ADAPTIVE"/>
+      <xs:enumeration value="STM_FIXED"/>
+      <xs:enumeration value="STM_ADAPTIVE"/>
     </xs:restriction>
   </xs:simpleType>
 
@@ -610,7 +610,7 @@
     <xs:sequence>
       <xs:element name="phaseID" type="xs:unsignedByte" minOccurs="0" maxOccurs="1"/>
       <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
-      <xs:element name="links_map" type="geo:links_maps_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="links_maps" type="geo:links_maps_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="Phases_t">
@@ -621,22 +621,26 @@
   <xs:complexType name="SplitPlan_t">
     <xs:sequence>
       <xs:element name="splitplanID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="signalAlgorithm" type="geo:signalAlgorithm_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="signalTimingMode" type="geo:signalTimingMode_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="cycleLength" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
       <xs:element name="offset" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
       <xs:element name="ChoiceSet" type="geo:Plans_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="Phases" type="geo:Phases_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
+<xs:complexType name="SCATS_t">
+    <xs:sequence>
+      <xs:element name="signalTimingMode" type="geo:signalTimingMode_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="SplitPlan" type="geo:SplitPlan_t" minOccurs="1" maxOccurs="1"/> 
+    </xs:sequence> 
+</xs:complexType>
 
   <xs:complexType name="Signal_t">
     <xs:sequence>
       <xs:element name="signalID" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
       <xs:element name="nodeID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="signalAlgorithm" type="geo:signalAlgorithm_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="linkAndCrossings" type="geo:linkAndCrossings_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="SplitPlan" type="geo:SplitPlan_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Phases" type="geo:Phases_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 

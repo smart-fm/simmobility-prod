@@ -80,7 +80,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   , loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	signalAlgorithm = config.signalAlgorithm;
+	signalTimingMode = config.signalTimingMode;
     initializeSignal();
     setupIndexMaps();
 }
@@ -378,7 +378,7 @@ UpdateStatus Signal::update(frame_t frameNumber) {
 void Signal::updateSignal(double DS[]) {
 	if (phaseCounter == 0) {
 		// 0 is fixed phase, 1 is scats
-		if(signalAlgorithm == 1)
+		if(signalTimingMode == 1)
 		{
 			//find the maximum DS
 			DS_all = fmax(DS);
@@ -436,7 +436,7 @@ void Signal::updateSignal(double DS[]) {
 	}
 
 	// 0 is fixed phase, 1 is scats
-	if(signalAlgorithm == 1)
+	if(signalTimingMode == 1)
 	{
 		if(currPhase%10!=prePhase%10||phaseCounter==0)
 		{

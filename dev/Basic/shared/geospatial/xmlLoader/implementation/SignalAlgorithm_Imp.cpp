@@ -3,11 +3,11 @@
 using namespace sim_mob::xml;
 
 
-void sim_mob::xml::signalAlgorithm_t_pimpl::pre ()
+void sim_mob::xml::signalTimingMode_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::signalAlgorithm_t_pimpl::post_signalAlgorithm_t ()
+void sim_mob::xml::signalTimingMode_t_pimpl::post_signalTimingMode_t ()
 {
 	//const ::std::string& v (post_string ());
 }

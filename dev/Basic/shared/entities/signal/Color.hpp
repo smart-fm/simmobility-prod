@@ -37,7 +37,7 @@ public:
 //		ColorDuration.push_back(std::make_pair(Amber,3));//a portion of the total time of the phase length is taken by amber
 //		ColorDuration.push_back(std::make_pair(Green,0));//Green is phase at green and should be calculated using the corresponding phase length
 //		ColorDuration.push_back(std::make_pair(Red,1));//All red moment ususally takes 1 second
-//		type = TrafficColorType;
+		type = TrafficColorType;
 	}
 
 	ColorSequence(std::vector< std::pair<TrafficColor,std::size_t> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :

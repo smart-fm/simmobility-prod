@@ -104,7 +104,7 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 
 	findSignalLinksAndCrossings();
 	//for future use when user needs to switch between fixed and adaptive control
-	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
+	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 //	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
@@ -378,12 +378,12 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 	else
 		throw std::runtime_error("currPhaseID out of range");
 
-	if((currPhaseID != temp_PhaseId) && signalAlgorithm)//separated coz we may need to transfer computeDS here
+	if((currPhaseID != temp_PhaseId) && signalTimingMode)//separated coz we may need to transfer computeDS here
 		{
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
 		}
-	if(isNewCycle && signalAlgorithm)
+	if(isNewCycle && signalTimingMode)
 		newCycleUpdate();//major update!
 
 //	outputToVisualizer(frameNumber);

@@ -2345,9 +2345,9 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel& p)
+    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
     {
-      this->signalAlgorithm_parser_ = &p;
+      this->signalTimingMode_parser_ = &p;
     }
 
     void SplitPlan_t_pskel::
@@ -2376,14 +2376,14 @@ namespace sim_mob
 
     void SplitPlan_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& splitplanID,
-             ::sim_mob::xml::signalAlgorithm_t_pskel& signalAlgorithm,
+             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::xml_schema::unsigned_byte_pskel& cycleLength,
              ::xml_schema::unsigned_byte_pskel& offset,
              ::sim_mob::xml::Plans_t_pskel& ChoiceSet,
              ::sim_mob::xml::Phases_t_pskel& Phases)
     {
       this->splitplanID_parser_ = &splitplanID;
-      this->signalAlgorithm_parser_ = &signalAlgorithm;
+      this->signalTimingMode_parser_ = &signalTimingMode;
       this->cycleLength_parser_ = &cycleLength;
       this->offset_parser_ = &offset;
       this->ChoiceSet_parser_ = &ChoiceSet;
@@ -2393,7 +2393,7 @@ namespace sim_mob
     SplitPlan_t_pskel::
     SplitPlan_t_pskel ()
     : splitplanID_parser_ (0),
-      signalAlgorithm_parser_ (0),
+      signalTimingMode_parser_ (0),
       cycleLength_parser_ (0),
       offset_parser_ (0),
       ChoiceSet_parser_ (0),
@@ -2417,9 +2417,9 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel& p)
+    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
     {
-      this->signalAlgorithm_parser_ = &p;
+      this->signalTimingMode_parser_ = &p;
     }
 
     void Signal_t_pskel::
@@ -2437,13 +2437,13 @@ namespace sim_mob
     void Signal_t_pskel::
     parsers (::xml_schema::unsigned_byte_pskel& signalID,
              ::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::signalAlgorithm_t_pskel& signalAlgorithm,
+             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
              ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
     {
       this->signalID_parser_ = &signalID;
       this->nodeID_parser_ = &nodeID;
-      this->signalAlgorithm_parser_ = &signalAlgorithm;
+      this->signalTimingMode_parser_ = &signalTimingMode;
       this->linkAndCrossings_parser_ = &linkAndCrossings;
       this->SplitPlan_parser_ = &SplitPlan;
     }
@@ -2452,7 +2452,7 @@ namespace sim_mob
     Signal_t_pskel ()
     : signalID_parser_ (0),
       nodeID_parser_ (0),
-      signalAlgorithm_parser_ (0),
+      signalTimingMode_parser_ (0),
       linkAndCrossings_parser_ (0),
       SplitPlan_parser_ (0)
     {
@@ -7604,11 +7604,11 @@ namespace sim_mob
       return false;
     }
 
-    // signalAlgorithm_t_pskel
+    // signalTimingMode_t_pskel
     //
 
-    void signalAlgorithm_t_pskel::
-    post_signalAlgorithm_t ()
+    void signalTimingMode_t_pskel::
+    post_signalTimingMode_t ()
     {
     }
 
@@ -8257,7 +8257,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    signalAlgorithm ()
+    signalTimingMode ()
     {
     }
 
@@ -8301,12 +8301,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
 
-        if (this->signalAlgorithm_parser_)
-          this->signalAlgorithm_parser_->pre ();
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode_parser_->pre ();
 
         return true;
       }
@@ -8369,12 +8369,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        if (this->signalAlgorithm_parser_)
+        if (this->signalTimingMode_parser_)
         {
-          this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-          this->signalAlgorithm ();
+          this->signalTimingMode_parser_->post_signalTimingMode_t ();
+          this->signalTimingMode ();
         }
 
         return true;
@@ -8435,7 +8435,7 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalAlgorithm ()
+    signalTimingMode ()
     {
     }
 
@@ -8479,12 +8479,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
 
-        if (this->signalAlgorithm_parser_)
-          this->signalAlgorithm_parser_->pre ();
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode_parser_->pre ();
 
         return true;
       }
@@ -8535,12 +8535,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        if (this->signalAlgorithm_parser_)
+        if (this->signalTimingMode_parser_)
         {
-          this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-          this->signalAlgorithm ();
+          this->signalTimingMode_parser_->post_signalTimingMode_t ();
+          this->signalTimingMode ();
         }
 
         return true;

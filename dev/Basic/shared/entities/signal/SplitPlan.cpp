@@ -1,6 +1,7 @@
 #include "SplitPlan.hpp"
 #include<stdio.h>
 #include<sstream>
+#include "conf/simpleconf.hpp"
 
 using namespace boost::multi_index;
 using std::vector;
@@ -224,9 +225,9 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 	return currPhaseID;
 }
 
-SplitPlan::SplitPlan(double cycleLength_,double offset_,int signalAlgorithm_):cycleLength(cycleLength_),offset(offset_),signalAlgorithm(signalAlgorithm_)
+SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),signalTimingMode(ConfigParams::GetInstance().signalTimingMode),TMP_PlanID(TMP_PlanID_)
 {
-//	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
+//	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 	currPhaseID = 0;
 	nextSplitPlanID = 0;
 	currSplitPlanID = 0;
@@ -246,7 +247,7 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
 	NOF_Plans = 5;
-	if(signalAlgorithm == 0)//fixed plan
+	if(signalTimingMode == 0)//fixed plan
 		NOF_Plans = 1;
 	int ii=5,jj=0;
 	double defaultChoiceSet_1[5][10] = {

@@ -103,7 +103,7 @@ namespace geo
   class TripChains_t_pskel;
   class linkAndCrossing_t_pskel;
   class linkAndCrossings_t_pskel;
-  class signalAlgorithm_t_pskel;
+  class signalTimingMode_t_pskel;
   class Plan_t_pskel;
   class Plans_t_pskel;
   class TrafficColor_t_pskel;
@@ -3275,7 +3275,7 @@ namespace geo
     ::geo::linkAndCrossing_t_pskel* linkAndCrossing_parser_;
   };
 
-  class signalAlgorithm_t_pskel: public virtual ::xml_schema::string_pskel
+  class signalTimingMode_t_pskel: public virtual ::xml_schema::string_pskel
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -3284,7 +3284,7 @@ namespace geo
     // pre ();
 
     virtual void
-    post_signalAlgorithm_t ();
+    post_signalTimingMode_t ();
   };
 
   class Plan_t_pskel: public ::xml_schema::complex_content
@@ -3719,7 +3719,7 @@ namespace geo
     splitplanID (unsigned int);
 
     virtual void
-    signalAlgorithm ();
+    signalTimingMode ();
 
     virtual void
     cycleLength (unsigned char);
@@ -3742,7 +3742,7 @@ namespace geo
     splitplanID_parser (::xml_schema::unsigned_int_pskel&);
 
     void
-    signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel&);
+    signalTimingMode_parser (::geo::signalTimingMode_t_pskel&);
 
     void
     cycleLength_parser (::xml_schema::unsigned_byte_pskel&);
@@ -3758,7 +3758,7 @@ namespace geo
 
     void
     parsers (::xml_schema::unsigned_int_pskel& /* splitplanID */,
-             ::geo::signalAlgorithm_t_pskel& /* signalAlgorithm */,
+             ::geo::signalTimingMode_t_pskel& /* signalTimingMode */,
              ::xml_schema::unsigned_byte_pskel& /* cycleLength */,
              ::xml_schema::unsigned_byte_pskel& /* offset */,
              ::geo::Plans_t_pskel& /* ChoiceSet */,
@@ -3782,7 +3782,7 @@ namespace geo
 
     protected:
     ::xml_schema::unsigned_int_pskel* splitplanID_parser_;
-    ::geo::signalAlgorithm_t_pskel* signalAlgorithm_parser_;
+    ::geo::signalTimingMode_t_pskel* signalTimingMode_parser_;
     ::xml_schema::unsigned_byte_pskel* cycleLength_parser_;
     ::xml_schema::unsigned_byte_pskel* offset_parser_;
     ::geo::Plans_t_pskel* ChoiceSet_parser_;
@@ -3804,7 +3804,7 @@ namespace geo
     nodeID (unsigned int);
 
     virtual void
-    signalAlgorithm ();
+    signalTimingMode ();
 
     virtual void
     linkAndCrossings (sim_mob::LinkAndCrossingC);
@@ -3824,7 +3824,7 @@ namespace geo
     nodeID_parser (::xml_schema::unsigned_int_pskel&);
 
     void
-    signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel&);
+    signalTimingMode_parser (::geo::signalTimingMode_t_pskel&);
 
     void
     linkAndCrossings_parser (::geo::linkAndCrossings_t_pskel&);
@@ -3835,7 +3835,7 @@ namespace geo
     void
     parsers (::xml_schema::unsigned_byte_pskel& /* signalID */,
              ::xml_schema::unsigned_int_pskel& /* nodeID */,
-             ::geo::signalAlgorithm_t_pskel& /* signalAlgorithm */,
+             ::geo::signalTimingMode_t_pskel& /* signalTimingMode */,
              ::geo::linkAndCrossings_t_pskel& /* linkAndCrossings */,
              ::geo::SplitPlan_t_pskel& /* SplitPlan */);
 
@@ -3858,7 +3858,7 @@ namespace geo
     protected:
     ::xml_schema::unsigned_byte_pskel* signalID_parser_;
     ::xml_schema::unsigned_int_pskel* nodeID_parser_;
-    ::geo::signalAlgorithm_t_pskel* signalAlgorithm_parser_;
+    ::geo::signalTimingMode_t_pskel* signalTimingMode_parser_;
     ::geo::linkAndCrossings_t_pskel* linkAndCrossings_parser_;
     ::geo::SplitPlan_t_pskel* SplitPlan_parser_;
   };

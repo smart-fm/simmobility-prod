@@ -105,7 +105,7 @@ namespace sim_mob
     class TripChains_t_pskel;
     class linkAndCrossing_t_pskel;
     class linkAndCrossings_t_pskel;
-    class signalAlgorithm_t_pskel;
+    class signalTimingMode_t_pskel;
     class Plan_t_pskel;
     class Plans_t_pskel;
     class TrafficColor_t_pskel;
@@ -3283,7 +3283,7 @@ namespace sim_mob
       ::sim_mob::xml::linkAndCrossing_t_pskel* linkAndCrossing_parser_;
     };
 
-    class signalAlgorithm_t_pskel: public virtual ::xml_schema::string_pskel
+    class signalTimingMode_t_pskel: public virtual ::xml_schema::string_pskel
     {
       public:
       // Parser callbacks. Override them in your implementation.
@@ -3292,7 +3292,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      post_signalAlgorithm_t ();
+      post_signalTimingMode_t ();
     };
 
     class Plan_t_pskel: public ::xml_schema::complex_content
@@ -3727,7 +3727,7 @@ namespace sim_mob
       splitplanID (unsigned int);
 
       virtual void
-      signalAlgorithm ();
+      signalTimingMode ();
 
       virtual void
       cycleLength (unsigned char);
@@ -3750,7 +3750,7 @@ namespace sim_mob
       splitplanID_parser (::xml_schema::unsigned_int_pskel&);
 
       void
-      signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel&);
+      signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel&);
 
       void
       cycleLength_parser (::xml_schema::unsigned_byte_pskel&);
@@ -3766,7 +3766,7 @@ namespace sim_mob
 
       void
       parsers (::xml_schema::unsigned_int_pskel& /* splitplanID */,
-               ::sim_mob::xml::signalAlgorithm_t_pskel& /* signalAlgorithm */,
+               ::sim_mob::xml::signalTimingMode_t_pskel& /* signalTimingMode */,
                ::xml_schema::unsigned_byte_pskel& /* cycleLength */,
                ::xml_schema::unsigned_byte_pskel& /* offset */,
                ::sim_mob::xml::Plans_t_pskel& /* ChoiceSet */,
@@ -3790,7 +3790,7 @@ namespace sim_mob
 
       protected:
       ::xml_schema::unsigned_int_pskel* splitplanID_parser_;
-      ::sim_mob::xml::signalAlgorithm_t_pskel* signalAlgorithm_parser_;
+      ::sim_mob::xml::signalTimingMode_t_pskel* signalTimingMode_parser_;
       ::xml_schema::unsigned_byte_pskel* cycleLength_parser_;
       ::xml_schema::unsigned_byte_pskel* offset_parser_;
       ::sim_mob::xml::Plans_t_pskel* ChoiceSet_parser_;
@@ -3812,7 +3812,7 @@ namespace sim_mob
       nodeID (unsigned int);
 
       virtual void
-      signalAlgorithm ();
+      signalTimingMode ();
 
       virtual void
       linkAndCrossings (sim_mob::LinkAndCrossingC);
@@ -3832,7 +3832,7 @@ namespace sim_mob
       nodeID_parser (::xml_schema::unsigned_int_pskel&);
 
       void
-      signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel&);
+      signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel&);
 
       void
       linkAndCrossings_parser (::sim_mob::xml::linkAndCrossings_t_pskel&);
@@ -3843,7 +3843,7 @@ namespace sim_mob
       void
       parsers (::xml_schema::unsigned_byte_pskel& /* signalID */,
                ::xml_schema::unsigned_int_pskel& /* nodeID */,
-               ::sim_mob::xml::signalAlgorithm_t_pskel& /* signalAlgorithm */,
+               ::sim_mob::xml::signalTimingMode_t_pskel& /* signalTimingMode */,
                ::sim_mob::xml::linkAndCrossings_t_pskel& /* linkAndCrossings */,
                ::sim_mob::xml::SplitPlan_t_pskel& /* SplitPlan */);
 
@@ -3866,7 +3866,7 @@ namespace sim_mob
       protected:
       ::xml_schema::unsigned_byte_pskel* signalID_parser_;
       ::xml_schema::unsigned_int_pskel* nodeID_parser_;
-      ::sim_mob::xml::signalAlgorithm_t_pskel* signalAlgorithm_parser_;
+      ::sim_mob::xml::signalTimingMode_t_pskel* signalTimingMode_parser_;
       ::sim_mob::xml::linkAndCrossings_t_pskel* linkAndCrossings_parser_;
       ::sim_mob::xml::SplitPlan_t_pskel* SplitPlan_parser_;
     };

@@ -90,7 +90,7 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
     ::geo::Signals_t_pimpl Signals_t_p;
     ::geo::Signal_t_pimpl Signal_t_p;
     ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
-    ::geo::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
+    ::geo::signalTimingMode_t_pimpl signalTimingMode_t_p;
     ::geo::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
     ::geo::linkAndCrossing_t_pimpl linkAndCrossing_t_p;
     ::geo::SplitPlan_t_pimpl SplitPlan_t_p;
@@ -355,7 +355,7 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
 
     Signal_t_p.parsers (unsigned_byte_p,
                         unsigned_int_p,
-                        signalAlgorithm_t_p,
+                        signalTimingMode_t_p,
                         linkAndCrossings_t_p,
                         SplitPlan_t_p);
 
@@ -367,7 +367,7 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
                                  unsigned_byte_p);
 
     SplitPlan_t_p.parsers (unsigned_int_p,
-                           signalAlgorithm_t_p,
+                           signalTimingMode_t_p,
                            unsigned_byte_p,
                            unsigned_byte_p,
                            Plans_t_p,

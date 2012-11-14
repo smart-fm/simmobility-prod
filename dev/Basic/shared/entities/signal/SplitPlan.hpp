@@ -6,7 +6,7 @@
 #include "Phase.hpp"
 #include "Cycle.hpp"
 //#include "Offset.hpp"
-#include "conf/simpleconf.hpp"
+//#include "conf/simpleconf.hpp"
 
 #define NUMBER_OF_VOTING_CYCLES 5
 
@@ -24,16 +24,16 @@ enum TrafficControlMode
 class SplitPlan
 {
 public:
-	typedef boost::multi_index_container<
-			sim_mob::Phase,
-			boost::multi_index::indexed_by<
-			boost::multi_index::random_access<>
-			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
-	  >
-	> phases;
+//	typedef boost::multi_index_container<
+//			sim_mob::Phase,
+//			boost::multi_index::indexed_by<
+//			boost::multi_index::random_access<>
+//			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
+//	  >
+//	> phases;
 private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
-    int signalAlgorithm;//Fixed plan or adaptive control
+    int signalTimingMode;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
 	std::size_t NOF_Phases; //NOF_Phases = number of phases = phases_.size()
@@ -78,7 +78,7 @@ public:
 		v = boost::multi_index::get<1>(phases_);
 	}
 	/*plan methods*/
-	SplitPlan(double cycleLength_ = 90,double offset_ = 0, int signalAlgorithm_= ConfigParams::GetInstance().signalAlgorithm);
+	SplitPlan(double cycleLength_ = 90,double offset_ = 0/*, int signalTimingMode_= ConfigParams::GetInstance().signalTimingMode*/, unsigned int TMP_PlanID_ = 1);
 	std::size_t CurrSplitPlanID();
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);

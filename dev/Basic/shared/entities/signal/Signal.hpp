@@ -91,7 +91,7 @@ private:
 
 
 class Signal_SCATS  : public sim_mob::Signal {
-
+friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal);
 public:
 
 	/*--------Initialization----------*/
@@ -134,6 +134,7 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 
 	/*--------Miscellaneous----------*/
+	int getSignalTimingMode() { return signalTimingMode;}
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
@@ -165,7 +166,7 @@ private:
     unsigned int signalID;//currently is equal to nodeId
 
     /* Fixed time or adaptive control */
-    int signalAlgorithm;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
+    int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/

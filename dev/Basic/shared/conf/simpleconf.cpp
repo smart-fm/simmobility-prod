@@ -1824,7 +1824,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
 #ifdef SIMMOB_PARTIAL_XML_READER
-    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW());
+    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW())) {
+    			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
+    		}
 #else
     		geo::InitAndLoadXML(XML_OutPutFileName);
 

@@ -31,11 +31,13 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::Segments_pimpl Segments_p(book);
 		::sim_mob::xml::Links_pimpl Links_p(book);
 		::sim_mob::xml::linkAndCrossing_t_pimpl linkAndCrossing_t_p(book);
+		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p(book);
+		::sim_mob::xml::intersection_t_pimpl intersection_t_p(book);
+
 
 		//Trivial parsers
 		::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
 		::sim_mob::xml::UniNodes_pimpl UniNodes_p;
-		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p;
 		::xml_schema::unsigned_int_pimpl unsigned_int_p;
 		::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
 		::xml_schema::unsigned_long_pimpl unsigned_long_p;
@@ -44,7 +46,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::connectors_t_pimpl connectors_t_p;
 		::sim_mob::xml::connector_t_pimpl connector_t_p;
 		::sim_mob::xml::Intersections_pimpl Intersections_p;
-		::sim_mob::xml::intersection_t_pimpl intersection_t_p;
 		::sim_mob::xml::RoadSegmentsAt_t_pimpl RoadSegmentsAt_t_p;
 		::sim_mob::xml::Multi_Connectors_t_pimpl Multi_Connectors_t_p;
 		::sim_mob::xml::Multi_Connector_t_pimpl Multi_Connector_t_p;

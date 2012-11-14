@@ -145,6 +145,8 @@ protected:
 
 class UniNode_t_pimpl: public virtual UniNode_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
+	UniNode_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::UniNode* post_UniNode_t ();
 
@@ -161,12 +163,16 @@ private:
 	//Due to a load cycle, we have to save these as integers.
 	std::set<std::pair<unsigned long,unsigned long> > connectors;
 	std::pair<SegmentPair, SegmentPair> segmentPairs;
+
+	helper::Bookkeeping& book;
 };
 
 
 
 class intersection_t_pimpl: public virtual intersection_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
+	intersection_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::MultiNode* post_intersection_t ();
 
@@ -187,6 +193,8 @@ private:
 	sim_mob::Intersection model;
 	LaneConnectSet connectors;
 	std::set<unsigned long> segmentsAt;
+
+	helper::Bookkeeping& book;
 };
 
 

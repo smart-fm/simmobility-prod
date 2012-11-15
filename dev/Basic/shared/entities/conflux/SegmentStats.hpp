@@ -42,8 +42,8 @@ public:
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
 	void removeAgent(sim_mob::Agent* ag);
 	sim_mob::Agent* dequeue();
-	int getQueuingAgentsCount();
-	int getMovingAgentsCount();
+	unsigned int getQueuingAgentsCount();
+	unsigned int getMovingAgentsCount();
 
 	void resetIterator();
 	sim_mob::Agent* next();
@@ -98,7 +98,7 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
+	void dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
 	std::vector<Agent*> getAgents(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;
@@ -129,9 +129,9 @@ public:
 	double getDensity(bool hasVehicle);
 	unsigned int getInitialQueueCount(const Lane* l);
 	/**
-	 * laneInfinity stores the agents which are added to this road segment (when they have just become active) and
-	 * their lane and moving/queuing status is still unknown. The frame_init function of the agent's role will have to
-	 * remove the agent from this priority queue and put them on moving/queuing vehicle lists on appropriate lane.
+	 * laneInfinity stores the new agents added to this road segment when they have just become active and their lane
+	 * and moving/queuing status is still unknown. The frame_init function of the agent's role will have to remove
+	 * the agent from this priority queue and put them on moving/queuing vehicle lists on appropriate lane.
 	 */
 	sim_mob::StartTimePriorityQueue laneInfinity;
 };

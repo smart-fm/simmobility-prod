@@ -540,6 +540,10 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
+		for(std::set<sim_mob::Conflux*>::iterator confluxIt = confluxes.begin();
+					confluxIt != confluxes.end(); confluxIt++) {
+				debugMsg << "Multinode: " << (*confluxIt)->getMultiNode()->getID() << std::endl;
+		}
 		debugMsg << "\nConflux: confluxes.size() = " << confluxes.size() << "\t workers.size() = " << workers.size();
 		if(numConfluxesPerWorker > 0){
 			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesPerWorker << ")";
@@ -559,7 +563,8 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 
 	if(numConfluxesToAddInWorker > 0)
 	{
-		worker->managedConfluxes.insert(conflux);
+		std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
+		debugMsg << "insertResult: <" << (*insertResult.first)->getMultiNode()->getID() << ", " << insertResult.second << "> worker: " << worker << std::endl;
 		confluxes.erase(conflux);
 		numConfluxesToAddInWorker--;
 		conflux->setParentWorker(worker);
@@ -571,17 +576,20 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
 				i++)
 		{
-			// the set container for managedConfluxes takes care of eliminating duplicates
-			std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
+			if(!(*i)->getParentConflux()->getParentWorker()) {
+				// insert this conflux if it has not already been assigned to another worker
+				// the set container for managedConfluxes takes care of eliminating duplicates
+				std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
+				debugMsg << "insertResult: <" << (*insertResult.first)->getMultiNode()->getID() << ", " << insertResult.second << "> worker: " << worker << std::endl;
+				if (insertResult.second)
+				{
+					// One conflux was added by the insert. So...
+					confluxes.erase((*i)->getParentConflux());
+					numConfluxesToAddInWorker--;
+					// set the worker pointer in the Conflux
+					(*i)->getParentConflux()->setParentWorker(worker);
 
-			if (insertResult.second)
-			{
-				// One conflux was added by the insert. So...
-				confluxes.erase((*i)->getParentConflux());
-				numConfluxesToAddInWorker--;
-
-				// set the worker pointer in the Conflux
-				(*i)->getParentConflux()->setParentWorker(worker);
+				}
 			}
 		}
 
@@ -609,6 +617,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 		std::cout << "Agent ID: " << ag->getId() << std::endl;
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		ag->setCurrSegment(rdSeg);
+		ag->setCurrLane(nullptr);
 		rdSeg->getParentConflux()->addAgent(ag);
 	}
 }

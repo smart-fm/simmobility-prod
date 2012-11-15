@@ -15,8 +15,8 @@ void sim_mob::Conflux::addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment
 	 * The agents always start at a node (for now), i.e. the start of a road segment.
 	 * So for now, we will always add the agent to the road segment in "lane infinity".
 	 */
-	sim_mob::SegmentStats* rdSegVehicles = segmentAgents.at(rdSeg);
-	rdSegVehicles->laneInfinity.push(ag);
+	sim_mob::SegmentStats* rdSegStats = segmentAgents.at(rdSeg);
+	rdSegStats->laneInfinity.push(ag);
 }
 
 void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
@@ -27,7 +27,7 @@ UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 	currFrameNumber = frameNumber;
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
-		updateSignalized();
+		updateUnsignalized(frameNumber); //TODO: Update Signalized must be implemented
 	}
 	else {
 		updateUnsignalized(frameNumber);
@@ -41,14 +41,24 @@ void sim_mob::Conflux::updateSignalized() {
 }
 
 void sim_mob::Conflux::updateUnsignalized(frame_t frameNumber) {
+	debugMsgs << "\nUpdate " << frameNumber << " - Multinode :" << getMultiNode()->getID() << std::endl;
 	initCandidateAgents();
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::Agent* >::iterator i = candidateAgents.begin();
+			i != candidateAgents.end(); i++) {
+		debugMsgs << "candidateAgent[start: " << (*i).first->getStart()->getID()
+				<< ", end: " << (*i).first->getEnd()->getID() << "]: Agent : "
+				<< (((*i).second == nullptr)?  0 : (*i).second->getId())
+				<< std::endl;
+	}
 	sim_mob::Agent* ag = agentClosestToIntersection();
-	while (ag != nullptr) {
+	while (ag) {
 		updateAgent(ag);
 
 		// get next agent to update
 		ag = agentClosestToIntersection();
 	}
+	std::cout << debugMsgs.str();
+	debugMsgs.str(std::string());
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
@@ -95,18 +105,21 @@ double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehic
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
-	debugMsgs << std::endl << "Conflux " << this;
-	debugMsgs << std::endl <<  "links in the conflux: " << upstreamSegmentsMap.size();
+	debugMsgs << "Conflux " << this  << std::endl;
+	debugMsgs  <<  "links in the conflux: " << upstreamSegmentsMap.size() << std::endl;
 	resetCurrSegsOnUpLinks();
-	debugMsgs << std::endl << "currSegsOnUplinks size: " << currSegsOnUpLinks.size();
+	debugMsgs << "currSegsOnUplinks size: " << currSegsOnUpLinks.size() << std::endl ;
 	typedef std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator >::iterator currSegsOnUpLinksIt;
 	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	for (currSegsOnUpLinksIt i = currSegsOnUpLinks.begin(); i != currSegsOnUpLinks.end(); i++) {
-		lnk = (*i).first;
-		if((*i).second != upstreamSegmentsMap[lnk].rend()){
+		lnk = i->first;
+		if(i->second != upstreamSegmentsMap[lnk].rend()){
 			do {
-				rdSeg = *((*i).second);
+				rdSeg = *(i->second);
+				if(rdSeg == 0){
+					throw std::runtime_error("Road Segment NULL");
+				getchar();}
 				segmentAgents[rdSeg]->resetFrontalAgents();
 				candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
 				debugMsgs << std::endl << "candidateAgents[" << rdSeg << "] = null? " << (candidateAgents[rdSeg] == nullptr)? "yes" : "no";
@@ -132,12 +145,11 @@ unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rd
 }
 
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
-	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
 			i != upstreamSegmentsMap.end(); i++) {
-			debugMsgs << std::endl << "Link " << (*i).first << " rdSeg vector size: " << (*i).second.size();
-			currSegsOnUpLinks.insert(std::make_pair((*i).first, (*i).second.rbegin()));
+		currSegsOnUpLinks.insert(std::make_pair((*i).first, (*i).second.rbegin()));
 	}
+
 }
 
 sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
@@ -165,6 +177,9 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 	}
 	if(ag) {
 		candidateAgents[agRdSeg] = segmentAgents[agRdSeg]->getNext();
+	}
+	if(ag){
+		debugMsgs << "Agent returned is: " << ag->getId() << std::endl;
 	}
 	return ag;
 }

@@ -32,8 +32,14 @@ namespace sim_mob {
 		laneStatsMap[lane]->removeAgent(ag);
 	}
 
-	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
-		return laneStatsMap[lane]->dequeue();
+	void SegmentStats::dequeue(const sim_mob::Lane* lane) {
+		if(lane) {
+			laneStatsMap[lane]->dequeue();
+		}
+		else {
+			// no lane indicates laneInfinity
+			laneInfinity.pop();
+		}
 	}
 
 	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
@@ -49,6 +55,9 @@ namespace sim_mob {
 				laneStatsMap[*i]->addAgents(segStats->getAgents(*i), segStats->getLaneAgentCounts(*i).first);
 			}
 		}
+		else {
+			throw std::runtime_error("SegmentStats::absorbAgents(segStats) called with invalid segStats.");
+		}
 	}
 
 	std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
@@ -60,11 +69,11 @@ namespace sim_mob {
 
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getAgentCountsOnLanes() {
 		std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
-		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
-		while(lane != roadSegment->getLanes().end())
+		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
+		while(laneIt != roadSegment->getLanes().end())
 		{
-			agentCountsOnLanes.insert(std::make_pair(*lane, getLaneAgentCounts(*lane)));
-			lane++;
+			agentCountsOnLanes.insert(std::make_pair(*laneIt, getLaneAgentCounts(*laneIt)));
+			laneIt++;
 		}
 		return agentCountsOnLanes;
 	}
@@ -149,10 +158,11 @@ namespace sim_mob {
 	}
 
 	sim_mob::Agent* SegmentStats::agentClosestToStopLine() {
-		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
 		sim_mob::Agent* ag = nullptr;
 		const sim_mob::Lane* agLane = nullptr;
-		double minDistance = std::numeric_limits<double>::infinity();
+		double minDistance = std::numeric_limits<double>::max();
+
+		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
 		while(i!=frontalAgents.end()) {
 			if((*i).second != nullptr) {
 				if(minDistance == (*i).second->distanceToEndOfSegment) {
@@ -175,7 +185,6 @@ namespace sim_mob {
 	}
 
 	void SegmentStats::resetFrontalAgents() {
-		typedef std::vector<sim_mob::Agent*>::iterator agIt;
 		for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin();
 				i != laneStatsMap.end(); i++) {
 			(*i).second->resetIterator();
@@ -190,9 +199,9 @@ namespace sim_mob {
 		return std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >();
 	}
 
-	void SegmentStats::setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal) {
+	void SegmentStats::setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginalCopy) {
 		if(isDownstreamCopy()) {
-			this->prevTickLaneCountsFromOriginal = prevTickLaneCountsFromOriginal;
+			prevTickLaneCountsFromOriginal = prevTickLaneCountsFromOriginalCopy;
 		}
 	}
 
@@ -200,6 +209,15 @@ namespace sim_mob {
 		sim_mob::Agent* ag = nullptr;
 		if (!allAgentsProcessed()) {
 			ag = agentClosestToStopLine();
+		}
+		else {
+			/* If all agents which were already in the SegmentStats are processed,
+			 * we must process the new starting agents in laneInfinity
+			 */
+			if (laneInfinity.size() > 0) {
+				ag = laneInfinity.top();
+				laneInfinity.pop();
+			}
 		}
 		return ag;
 	}
@@ -213,8 +231,12 @@ namespace sim_mob {
 		return ag;
 	}
 
-	int sim_mob::LaneStats::getQueuingAgentsCount() {
+	unsigned int sim_mob::LaneStats::getQueuingAgentsCount() {
 		return queueCount;
+	}
+
+	unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
+		return (laneAgents.size() - queueCount);
 	}
 
 	void sim_mob::LaneStats::addAgent(sim_mob::Agent* ag) {
@@ -248,10 +270,6 @@ namespace sim_mob {
 			queueCount--;
 		}
 		return ag;
-	}
-
-	int sim_mob::LaneStats::getMovingAgentsCount() {
-		return (laneAgents.size() - queueCount);
 	}
 
 	void LaneStats::resetIterator() {

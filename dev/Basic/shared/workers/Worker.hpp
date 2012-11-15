@@ -146,6 +146,9 @@ private:
 	//add by xuyan, in order to call migrate in and migrate out
 public:
 	friend class WorkGroup;
+
+public:
+	std::stringstream debugMsg; //TODO: Delete
 };
 
 }

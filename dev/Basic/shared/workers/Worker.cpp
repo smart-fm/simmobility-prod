@@ -27,7 +27,9 @@ sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrie
       endTick(endTick),
       tickStep(tickStep),
       parent(parent),
-      entityRemovalList(entityRemovalList)
+      entityRemovalList(entityRemovalList),
+      debugMsg(std::stringstream::out)
+
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
@@ -173,10 +175,10 @@ void sim_mob::Worker::barrier_mgmt()
 			frame_tick_barr->wait();
 		}
 
-		//TODO: Uncomment this when confluxes are made configurable again. ~ Harish
 		 //Now flip all remaining data.
 		perform_flip();
 
+		//TODO: Uncomment this when confluxes are made configurable again. ~ Harish
 		// handover agents which have crossed conflux boundaries
 		//perform_handover();
 
@@ -319,12 +321,18 @@ void sim_mob::Worker::perform_handover() {
 	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegStatsMap;
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
-		SegStatsMap handoverKeepersMap = (*it)->getSegmentAgentsDownstream();
-		for(SegStatsMap::iterator i = handoverKeepersMap.begin(); i != handoverKeepersMap.end(); i++)
+		SegStatsMap handoverSegStatsMap = (*it)->getSegmentAgentsDownstream();
+		for(SegStatsMap::iterator i = handoverSegStatsMap.begin(); i != handoverSegStatsMap.end(); i++)
 		{
 			sim_mob::Conflux* targetConflux = (*i).first->getParentConflux();
-			sim_mob::SegmentStats* downStreamAgKeeper = (*i).second;
-			targetConflux->absorbAgentsAndUpdateCounts(downStreamAgKeeper);
+			sim_mob::SegmentStats* downStreamSegStats = (*i).second;
+			if((*i).first->getParentConflux()->getParentWorker() == 0) {
+				//debugMsg << "worker for conflux of segment [" << (*i).first->getStart()->getID() << ", " << (*i).first->getEnd()->getID() << "] is null ";
+				//std::cout << debugMsg.str();
+				throw std::runtime_error("worker for conflux of segment ");
+			}
+			//std::cout << "handover " << downStreamSegStats->getRoadSegment() << " from " << (*it)->getParentWorker() << " to " << downStreamSegStats->getRoadSegment()->getParentConflux()->getParentWorker() << std::endl;
+			targetConflux->absorbAgentsAndUpdateCounts(downStreamSegStats);
 		}
 	}
 }

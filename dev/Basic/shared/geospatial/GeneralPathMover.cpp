@@ -31,7 +31,7 @@ using std::endl;
 
 sim_mob::GeneralPathMover::GeneralPathMover() :
 	distAlongPolyline(0), /*currPolylineLength(0),*/
-	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
+	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegment(0.0)
 {
 }
 

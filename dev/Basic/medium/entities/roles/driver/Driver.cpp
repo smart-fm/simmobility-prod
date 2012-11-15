@@ -552,14 +552,15 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	double xf = 0.0;
 	double tf = 0.0;
 
-	/*ss <<"upNode: "<<vehicle->getCurrSegment()->getStart()->getID()
+	ss << "Driver: " << parent->getId()
+			<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
 			<<"\tcurrSegment: "<< vehicle->getCurrSegment()->getSegmentID()
 			<<"\tLane: "<< currLane->getLaneID_str()
 			<<"\t time: " << t0
 			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
 			<<"\ttime: "<<currTimeMS + t0*1000<<endl;
 	std::cout << ss.str();
-*/
+
 	//getNextLinkAndPath();
 	if(!currLane)
 		throw std::runtime_error("agent's current lane is not set!");

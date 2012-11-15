@@ -312,15 +312,11 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	if (!isToBeRemoved()) {
 		//added to get the detailed plan before next activity
 		currRole->frame_tick(params);
-		//if mid-term
-		//currRole->frame_tick_med(params);
 	}
 
 	//Finally, save the output
 	if (!isToBeRemoved()) {
 		currRole->frame_tick_output(params);
-		//if mid-term
-		//currRole->frame_tick_med(params);
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.

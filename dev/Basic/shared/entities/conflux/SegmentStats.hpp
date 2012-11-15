@@ -36,7 +36,7 @@ public:
 class LaneStats {
 
 public:
-	LaneStats() : queueCount(0), laneParams(new LaneParams()) {}
+	LaneStats() : queueCount(0), initialQueueCount(0), laneParams(new LaneParams()) {}
 	std::vector<sim_mob::Agent*> laneAgents;
 	void addAgent(sim_mob::Agent* ag);
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
@@ -48,14 +48,24 @@ public:
 	void resetIterator();
 	sim_mob::Agent* next();
 
-	void initLaneParams(const sim_mob::Lane* lane, double upSpeed);
+	void initLaneParams(const sim_mob::Lane* lane, double vehSpeed, double pedSpeed);
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
+
+	unsigned int getInitialQueueCount() const {
+		return initialQueueCount;
+	}
+
+	void setInitialQueueCount(unsigned int initialQueueCount) {
+		this->initialQueueCount = initialQueueCount;
+	}
+
 	LaneParams* laneParams;
 
 private:
 	unsigned int queueCount;
+	unsigned int initialQueueCount;
 
 	std::vector<sim_mob::Agent*>::iterator laneAgentsIt;
 };
@@ -78,6 +88,9 @@ private:
 	bool downstreamCopy;
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
 
+	double segVehicleSpeed; //speed of vehicles in segment for each frame
+	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
+	double segDensity;
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
 
@@ -107,10 +120,14 @@ public:
 	unsigned int numQueueingInSegment(bool hasVehicle);
 
 	sim_mob::LaneParams* getLaneParams(const Lane* lane);
-	double speed_density_function(bool hasVehicle);
+	double speed_density_function(bool hasVehicle, double segDensity);
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
-
+	void updateLaneParams(frame_t frameNumber);
+	void reportSegmentStats(frame_t frameNumber);
+	double getSegSpeed(bool hasVehicle);
+	double getDensity(bool hasVehicle);
+	unsigned int getInitialQueueCount(const Lane* l);
 	/**
 	 * laneInfinity stores the agents which are added to this road segment (when they have just become active) and
 	 * their lane and moving/queuing status is still unknown. The frame_init function of the agent's role will have to

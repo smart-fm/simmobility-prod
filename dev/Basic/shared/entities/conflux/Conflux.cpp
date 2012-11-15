@@ -32,6 +32,7 @@ UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 	else {
 		updateUnsignalized(frameNumber);
 	}
+	updateSupplyStats(frameNumber);
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
 }
@@ -87,7 +88,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 }
 
 double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle){
-	return getSegmentAgents()[rdSeg]->speed_density_function(hasVehicle);
+	if (hasVehicle)
+		return getSegmentAgents()[rdSeg]->getSegSpeed(hasVehicle);
+	else
+		return getSegmentAgents()[rdSeg]->getSegSpeed(hasVehicle);
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
@@ -185,6 +189,7 @@ void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
 
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg,
 		bool hasVehicle) {
+	std::cout << "rdSeg in Conflux: "<<rdSeg <<std::endl;
 	return segmentAgents[rdSeg]->numQueueingInSegment(hasVehicle);
 }
 
@@ -214,4 +219,20 @@ void sim_mob::Conflux::restoreSupplyStats(const Lane* lane) {
 	segmentAgents[lane->getRoadSegment()]->restoreLaneParams(lane);
 }
 
+void sim_mob::Conflux::updateSupplyStats(frame_t frameNumber) {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.begin();
+	for( ; it != segmentAgents.end(); ++it )
+	{
+		(it->second)->updateLaneParams(frameNumber);
+		(it->second)->reportSegmentStats(frameNumber);
+	}
+}
 
+std::pair<unsigned int, unsigned int> sim_mob::Conflux::getLaneAgentCounts(
+		const sim_mob::Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getLaneAgentCounts(lane);
+}
+
+unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getInitialQueueCount(lane);
+}

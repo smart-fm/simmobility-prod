@@ -33,6 +33,9 @@ void
 AuraManager::Stats::printStatistics() const
 {
     std::cout << "AuraManager::Stats not implemented yet" << std::endl;
+    //implementing for mid-term specific stats
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,7 +439,6 @@ AuraManager::printStatistics() const
         std::cout << "No statistics was collected by the AuraManager singleton." << std::endl;
     }
 }
-
 } // end of sim_mob
 
 

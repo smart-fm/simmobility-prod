@@ -465,7 +465,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 //			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
-			//updateLaneState(currPhaseID);
+//			updateLaneState(currPhaseID);
 		}
 	if(isNewCycle && signalAlgorithm)
 		newCycleUpdate();//major update!
@@ -644,7 +644,7 @@ void Signal_SCATS::updateLaneState(int phaseId) {
 						if ((*iter).second.currColor == sim_mob::Red)
 						{
 							//update lane supply stats - output flow rate = 0
-							lane->getRoadSegment()->getParentConflux()->updateSupplyStats(lane, 0.0);
+							lane->getRoadSegment()->getParentConflux()->updateSupplyStats(lane, 0.001);
 						}
 						else if ((*iter).second.currColor == sim_mob::Green ||
 								(*iter).second.currColor == sim_mob::Amber)

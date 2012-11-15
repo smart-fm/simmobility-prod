@@ -173,12 +173,12 @@ void sim_mob::Worker::barrier_mgmt()
 			frame_tick_barr->wait();
 		}
 
-		/* TODO: Uncomment this when confluxes are made configurable again. ~ Harish
-		 * //Now flip all remaining data.
+		//TODO: Uncomment this when confluxes are made configurable again. ~ Harish
+		 //Now flip all remaining data.
 		perform_flip();
-		*/
+
 		// handover agents which have crossed conflux boundaries
-		perform_handover();
+		//perform_handover();
 
 		//Second barrier
 		if (buff_flip_barr) {
@@ -272,7 +272,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
-	/* TODO: Commenting this for now. Will have to enable this back when confluxes are configurable. ~ Harish
+	 //TODO: Commenting this for now. Will have to enable this back when confluxes are configurable. ~ Harish
 	 //All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 		UpdateStatus res = (*it)->update(frameNumber);
@@ -291,13 +291,13 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
 	}
-	*/
+
 
 	//All workers perform the same tasks for their set of managedConfluxes.
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		UpdateStatus res = (*it)->update(frameNumber);
-	}
+//	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+//	{
+//		UpdateStatus res = (*it)->update(frameNumber);
+//	}
 }
 
 bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){

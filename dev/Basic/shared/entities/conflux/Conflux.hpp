@@ -100,6 +100,10 @@ private:
 	/* selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Agent* agentClosestToIntersection();
 
+	/* updates lane params for all lanes within the conflux */
+	void updateSupplyStats(frame_t frameNumber);
+	void reportSupplyStats(frame_t frameNumber);
+
 public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
@@ -165,6 +169,8 @@ public:
 	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
 	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);
 	void restoreSupplyStats(const Lane* lane);
+	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
+	unsigned int getInitialQueueCount(const Lane* lane);
 };
 
 } /* namespace sim_mob */

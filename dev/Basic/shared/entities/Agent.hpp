@@ -120,6 +120,24 @@ private:
 	//For future reference.
 	const sim_mob::MutexStrategy mutexStrat;
 
+	//for mid-term link travel time computation
+	struct travelStats
+	{
+	public:
+		const Link* link_;
+		unsigned int linkTravelTime_;
+		unsigned int linkExitTime_;
+		bool hasVehicle_;
+
+		travelStats(const Link* link, unsigned int linkExitTime,
+				unsigned int linkTravelTime, bool hasVehicle)
+		: link_(link), linkTravelTime_(linkTravelTime),
+		  linkExitTime_(linkExitTime), hasVehicle_(hasVehicle)
+		{
+		}
+	};
+
+
 public:
 	//The agent's start/end nodes.
 	Node* originNode;
@@ -182,9 +200,15 @@ public:
 	PendingEvent* getCurrEvent() { return currEvent; }
 
 	//used for mid-term supply
+	void setTravelStats(const Link*, unsigned int linkExitTime, unsigned int linkTravelTime, bool hasVehicle);
+
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
+
+	//for mid-term, to compute link travel times
+	std::map<unsigned int, travelStats> travelStatsMap;
+	unsigned int linkEntryTime;
 
 	frame_t enqueueTick;
 

@@ -19,12 +19,12 @@ public:
 	static const bool WorkGroupSemantics = false;
 
 	///Debug Driver-specific behavior like changing lanes.
-	static const bool Drivers = true;
+	static const bool Drivers = false;
 
 	///Debug the General Path Mover; all advances, polyline changes, and segment changes.
 	/// It is recommended to turn off all other debugging flags when using this option, since
 	/// Path debugging uses a lot of output space and doesn't end every line with a newline.
-	static const bool Paths = true;
+	static const bool Paths = false;
 };
 
 

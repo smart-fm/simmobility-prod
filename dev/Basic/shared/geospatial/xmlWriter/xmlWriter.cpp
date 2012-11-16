@@ -1037,9 +1037,12 @@ void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const 
 		TiXmlElement * phase  = new TiXmlElement( "phase" );
 		phases->LinkEndChild( phase);
 		{
-			//phaseID
-			TiXmlElement * phaseID  = new TiXmlElement( "phaseID" );
-			phase->LinkEndChild( phaseID);//to be added later
+//			//phaseID
+//			TiXmlElement * phaseID  = new TiXmlElement( "phaseID" );
+//			phase->LinkEndChild( phaseID);//to be added later
+//			out.str("");
+//			out << it_phases->phaseID;
+//			phase->LinkEndChild(new TiXmlText(out.str()));
 			//name
 			TiXmlElement * name  = new TiXmlElement( "name" );
 			phase->LinkEndChild( name);
@@ -1155,16 +1158,16 @@ void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const 
 				crossings_maps->LinkEndChild(crossings_map);
 				//link
 				out.str("");
-				TiXmlElement * link  = new TiXmlElement( "link" );
-				crossings_map->LinkEndChild(link);
+				TiXmlElement * linkID  = new TiXmlElement( "linkID" );
+				crossings_map->LinkEndChild(linkID);
 				out << it_cm ->second.link->getLinkId();
-				link->LinkEndChild(new TiXmlText(out.str()));
+				linkID->LinkEndChild(new TiXmlText(out.str()));
 				//crossing
 				out.str("");
-				TiXmlElement * crossing  = new TiXmlElement( "crossing" );
-				crossings_map->LinkEndChild(crossing);
+				TiXmlElement * crossingID  = new TiXmlElement( "crossingID" );
+				crossings_map->LinkEndChild(crossingID);
 				out << it_cm ->second.crossig->getCrossingID();
-				crossing->LinkEndChild(new TiXmlText(out.str()));
+				crossingID->LinkEndChild(new TiXmlText(out.str()));
 				sim_mob::ColorSequence & colorSequence = const_cast<sim_mob::ColorSequence &>(it_cm->second.colorSequence);
 				//ColorSequence
 				WriteXMLInput_TrafficSignal_ColorSequence(crossings_map,colorSequence);
@@ -1262,7 +1265,7 @@ void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::S
 
 	//SCATS
 	sim_mob::Signal_SCATS* signal_scats = dynamic_cast<sim_mob::Signal_SCATS*>(signal_);
-	TiXmlElement * SCATS  = new TiXmlElement( "scats" );
+	TiXmlElement * SCATS  = new TiXmlElement( "SCATS" );
 	Signal->LinkEndChild( SCATS);
 	//	signalTimingMode
 	TiXmlElement * signalTimingMode = new TiXmlElement("signalTimingMode");
@@ -1273,7 +1276,7 @@ void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::S
 	} else {
 		std::cout << "signalTimingMode ( " << signal_scats->getSignalTimingMode()
 				<< ") unknown, press any key ...\n";
-		getchar();
+//		getchar();
 	}
 	SCATS->LinkEndChild(signalTimingMode);
 	//splitplan

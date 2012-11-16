@@ -55,7 +55,7 @@ public:
 		type(TrafficColorType){}
 
 	std::vector< std::pair<TrafficColor,std::size_t> > & getColorDuration();
-	TrafficLightType getTrafficLightType();
+	const TrafficLightType getTrafficLightType() const;
 
 	void addColorPair(std::pair<TrafficColor,std::size_t> p);
 	void addColorDuration(TrafficColor,std::size_t);

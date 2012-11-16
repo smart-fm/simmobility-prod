@@ -36,7 +36,7 @@ void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,std::si
 }
 
 std::vector< std::pair<TrafficColor,std::size_t> > & ColorSequence::getColorDuration() { return ColorDuration; }
-TrafficLightType ColorSequence::getTrafficLightType() { return type; }
+const TrafficLightType ColorSequence::getTrafficLightType() const { return type; }
 
 void ColorSequence::addColorDuration(TrafficColor color,std::size_t duration)
 {

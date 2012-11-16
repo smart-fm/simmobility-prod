@@ -970,7 +970,64 @@ void sim_mob::WriteXMLInput_TrafficSignal_LinkAndCrossings(TiXmlElement * linkAn
 		}
 	}
 }
+void sim_mob::WriteXMLInput_TrafficSignal_ColorSequence(TiXmlElement * parent, sim_mob::ColorSequence &colorSequence)
+{
+	std::ostringstream out;
+	//ColorSequence
+	TiXmlElement * ColorSequence  = new TiXmlElement( "ColorSequence" );
+	parent->LinkEndChild( ColorSequence);
 
+	//TrafficLightType
+	TiXmlElement * TrafficLightType  = new TiXmlElement( "TrafficLightType" );
+	ColorSequence->LinkEndChild( TrafficLightType);
+	out.str("");
+	out << (colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
+	TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
+
+	std::vector< std::pair<TrafficColor,std::size_t> > & cd = colorSequence.getColorDuration();
+	for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
+	{
+		//ColorDuration
+		TiXmlElement * ColorDuration  = new TiXmlElement( "ColorDuration" );
+		ColorSequence->LinkEndChild( ColorDuration);
+		{
+			//TrafficColor
+			TiXmlElement * TrafficColor__  = new TiXmlElement( "TrafficColor" );
+			ColorDuration->LinkEndChild( TrafficColor__);
+			out.str("");
+			switch(it_cd->first)
+			{
+			case Red:
+				out << "Red";
+				break;
+			case Green:
+				out << "Green";
+				break;
+			case Amber:
+				out << "Amber";
+				break;
+			case FlashingRed:
+				out << "FlashingRed";
+				break;
+			case FlashingGreen:
+				out << "FlashingGreen";
+				break;
+			case FlashingAmber:
+				out << "FlashingAmber";
+				break;
+			}
+			TrafficColor__->LinkEndChild(new  TiXmlText(out.str()));
+
+			//Duration
+			TiXmlElement * Duration  = new TiXmlElement( "Duration" );
+			ColorDuration->LinkEndChild( Duration);
+			out.str("");
+			out << it_cd->second;
+			Duration->LinkEndChild(new TiXmlText(out.str()));
+		}
+	}
+
+}
 void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const std::vector<sim_mob::Phase>*/const sim_mob::phases &phases_)
 {
 	std::ostringstream out;
@@ -1029,63 +1086,90 @@ void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const 
 				out.str("");
 				out << RS_To_->getSegmentID();
 				SegmentTo->LinkEndChild(new TiXmlText(out.str()));
-
 				//ColorSequence
-				TiXmlElement * ColorSequence  = new TiXmlElement( "ColorSequence" );
-				links_map->LinkEndChild( ColorSequence);
-
-				//TrafficLightType
-				TiXmlElement * TrafficLightType  = new TiXmlElement( "TrafficLightType" );
-				ColorSequence->LinkEndChild( TrafficLightType);
-				sim_mob::TrafficLightType tlt = sim_mob::Driver_Light;
-				out.str("");
-				out << (lm_.colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (lm_.colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
-				TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
-
-				std::vector< std::pair<TrafficColor,std::size_t> > & cd = lm_.colorSequence.getColorDuration();
-				for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
-				{
-					//ColorDuration
-					TiXmlElement * ColorDuration  = new TiXmlElement( "ColorDuration" );
-					ColorSequence->LinkEndChild( ColorDuration);
-					{
-						//TrafficColor
-						TiXmlElement * TrafficColor__  = new TiXmlElement( "TrafficColor" );
-						ColorDuration->LinkEndChild( TrafficColor__);
-						out.str("");
-						switch(it_cd->first)
-						{
-						case Red:
-							out << "Red";
-							break;
-						case Green:
-							out << "Green";
-							break;
-						case Amber:
-							out << "Amber";
-							break;
-						case FlashingRed:
-							out << "FlashingRed";
-							break;
-						case FlashingGreen:
-							out << "FlashingGreen";
-							break;
-						case FlashingAmber:
-							out << "FlashingAmber";
-							break;
-						}
-						TrafficColor__->LinkEndChild(new  TiXmlText(out.str()));
-
-						//Duration
-						TiXmlElement * Duration  = new TiXmlElement( "Duration" );
-						ColorDuration->LinkEndChild( Duration);
-						out.str("");
-						out << it_cd->second;
-						Duration->LinkEndChild(new TiXmlText(out.str()));
-					}
-				}
+				WriteXMLInput_TrafficSignal_ColorSequence(links_map,lm_.colorSequence);
+//				//ColorSequence
+//				TiXmlElement * ColorSequence  = new TiXmlElement( "ColorSequence" );
+//				links_map->LinkEndChild( ColorSequence);
+//
+//				//TrafficLightType
+//				TiXmlElement * TrafficLightType  = new TiXmlElement( "TrafficLightType" );
+//				ColorSequence->LinkEndChild( TrafficLightType);
+////				sim_mob::TrafficLightType tlt = sim_mob::Driver_Light;
+//				out.str("");
+//				out << (lm_.colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (lm_.colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
+//				TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
+//
+//				std::vector< std::pair<TrafficColor,std::size_t> > & cd = lm_.colorSequence.getColorDuration();
+//				for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
+//				{
+//					//ColorDuration
+//					TiXmlElement * ColorDuration  = new TiXmlElement( "ColorDuration" );
+//					ColorSequence->LinkEndChild( ColorDuration);
+//					{
+//						//TrafficColor
+//						TiXmlElement * TrafficColor__  = new TiXmlElement( "TrafficColor" );
+//						ColorDuration->LinkEndChild( TrafficColor__);
+//						out.str("");
+//						switch(it_cd->first)
+//						{
+//						case Red:
+//							out << "Red";
+//							break;
+//						case Green:
+//							out << "Green";
+//							break;
+//						case Amber:
+//							out << "Amber";
+//							break;
+//						case FlashingRed:
+//							out << "FlashingRed";
+//							break;
+//						case FlashingGreen:
+//							out << "FlashingGreen";
+//							break;
+//						case FlashingAmber:
+//							out << "FlashingAmber";
+//							break;
+//						}
+//						TrafficColor__->LinkEndChild(new  TiXmlText(out.str()));
+//
+//						//Duration
+//						TiXmlElement * Duration  = new TiXmlElement( "Duration" );
+//						ColorDuration->LinkEndChild( Duration);
+//						out.str("");
+//						out << it_cd->second;
+//						Duration->LinkEndChild(new TiXmlText(out.str()));
+//					}
+//				}
 
 			}
+			//crossings_maps
+			TiXmlElement * crossings_maps  = new TiXmlElement( "crossings_maps" );
+			phase->LinkEndChild( crossings_maps);
+			const sim_mob::crossings_map & cms_ = it_phases->getCrossingMaps();
+			for(sim_mob::crossings_map::const_iterator it_cm = cms_.begin(); it_cm != cms_.end(); it_cm++)
+			{
+				//crossings_map
+				TiXmlElement * crossings_map  = new TiXmlElement( "crossings_map" );
+				crossings_maps->LinkEndChild(crossings_map);
+				//link
+				out.str("");
+				TiXmlElement * link  = new TiXmlElement( "link" );
+				crossings_map->LinkEndChild(link);
+				out << it_cm ->second.link->getLinkId();
+				link->LinkEndChild(new TiXmlText(out.str()));
+				//crossing
+				out.str("");
+				TiXmlElement * crossing  = new TiXmlElement( "crossing" );
+				crossings_map->LinkEndChild(crossing);
+				out << it_cm ->second.crossig->getCrossingID();
+				crossing->LinkEndChild(new TiXmlText(out.str()));
+				sim_mob::ColorSequence & colorSequence = const_cast<sim_mob::ColorSequence &>(it_cm->second.colorSequence);
+				//ColorSequence
+				WriteXMLInput_TrafficSignal_ColorSequence(crossings_map,colorSequence);
+			}
+
 		}
 	}
 }

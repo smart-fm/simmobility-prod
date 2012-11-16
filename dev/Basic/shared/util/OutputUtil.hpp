@@ -14,9 +14,7 @@
 #include <vector>
 #include <string>
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 #include <boost/thread.hpp>
-#endif
 
 #include <iostream>
 #include <fstream>
@@ -38,7 +36,6 @@ namespace sim_mob {
  */
 void PrintArray(const std::vector<int>& ids, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 class Logger
 {
 public:
@@ -81,7 +78,6 @@ private:
 	static std::ofstream file_output;
 	static std::ofstream file_output1;
 };
-#endif
 
 } //End sim_mob namespace
 
@@ -104,6 +100,12 @@ private:
  *   else
  *       LogOutNotSync("Why don't you buy something?");
  *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
 #define LogOutNotSync( strm ) \
     do \
@@ -122,6 +124,12 @@ private:
  *   else
  *       LogOut("Why don't you buy something?");
  *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
  
 #define LogOut( strm ) \

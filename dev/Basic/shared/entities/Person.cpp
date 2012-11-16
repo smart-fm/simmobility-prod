@@ -368,10 +368,7 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	 i =0;
 	//Output if removal requested.
 	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
-#endif
+		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
 	}
 	 i =0;
 }
@@ -402,14 +399,14 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #endif
 
 		//Add a line to the output file.
-#ifndef SIMMOB_DISABLE_OUTPUT
-		std::stringstream msg;
-		msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-		msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n  " <<ex.what();
-		LogOut(msg.str() <<std::endl);
-#endif
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			std::stringstream msg;
+			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
+			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  " <<ex.what();
+			LogOut(msg.str() <<std::endl);
+		}
 		setToBeRemoved();
 	}
 #endif

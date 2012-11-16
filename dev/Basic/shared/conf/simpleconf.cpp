@@ -637,7 +637,10 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 void PrintDB_Network()
 {
-#ifndef SIMMOB_DISABLE_OUTPUT
+	if (ConfigParams::GetInstance().OutputDisabled()) {
+		return;
+	}
+
 	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*> cachedSegments;
 	std::set<LaneConnector*> cachedConnectors;
@@ -819,36 +822,32 @@ void PrintDB_Network()
 	}
 
 	//Bus Stops are part of Segments
-		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
-			//LogOutNotSync("Surav's loop  is here!");
+	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
 		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
-		//	LogOutNotSync("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
-			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
-		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
-			                                double length = 400;
-							        		double width = 250;
-							        		double theta = atan(width/length);
-							        		double phi = M_PI * angle / 180;
-							                double diagonal_half = (sqrt(length*length + width*width))/2;
+		double length = 400;
+		double width = 250;
+		double theta = atan(width / length);
+		double phi = M_PI * angle / 180;
+		double diagonal_half = (sqrt(length * length + width * width)) / 2;
 
-							        		double x1d = x + diagonal_half*cos(phi+theta);
-							        		double y1d = y + diagonal_half*sin(phi+theta);
-							        		double x2d = x + diagonal_half*cos(M_PI+phi-theta);
-							        		double y2d = y + diagonal_half*sin(M_PI+phi-theta);
-							        		double x3d = x + diagonal_half*cos(M_PI+phi+theta);
-							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
-							        		double x4d = x + diagonal_half*cos(phi-theta);
-							        		double y4d = y + diagonal_half*sin(phi-theta);
+		double x1d = x + diagonal_half * cos(phi + theta);
+		double y1d = y + diagonal_half * sin(phi + theta);
+		double x2d = x + diagonal_half * cos(M_PI + phi - theta);
+		double y2d = y + diagonal_half * sin(M_PI + phi - theta);
+		double x3d = x + diagonal_half * cos(M_PI + phi + theta);
+		double y3d = y + diagonal_half * sin(M_PI + phi + theta);
+		double x4d = x + diagonal_half * cos(phi - theta);
+		double y4d = y + diagonal_half * sin(phi - theta);
 
-			LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-			LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-			LogOutNotSync("})" <<endl);
-		}
+		LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
+		LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+		LogOutNotSync("})" <<endl);
+	}
 
 
 	//Now print all Connectors
@@ -871,9 +870,8 @@ void PrintDB_Network()
 	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
-
-#endif
 }
+
 struct Sorter {
   bool operator() (const sim_mob::RoadSegment* a,const sim_mob::RoadSegment* b)
   {
@@ -937,9 +935,11 @@ struct Sorter {
 
 void PrintDB_Network_ptrBased()
 {
-#ifndef SIMMOB_DISABLE_OUTPUT
-	//Save RoadSegments/Connectors to make output simpler
+	if (ConfigParams::GetInstance().OutputDisabled()) {
+		return;
+	}
 
+	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*,Sorter> cachedSegments;
 	std::set<LaneConnector*,Sorter> cachedConnectors;
 
@@ -1164,7 +1164,6 @@ void PrintDB_Network_ptrBased()
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
 
-#endif
 }
 
 
@@ -1172,9 +1171,11 @@ void PrintDB_Network_ptrBased()
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 void PrintDB_Network_idBased()
 {
-#ifndef SIMMOB_DISABLE_OUTPUT
-	//Save RoadSegments/Connectors to make output simpler
+	if (ConfigParams::GetInstance().OutputDisabled()) {
+		return;
+	}
 
+	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*,Sorter> cachedSegments;
 	std::set<LaneConnector*,Sorter> cachedConnectors;
 
@@ -1391,13 +1392,6 @@ void PrintDB_Network_idBased()
 		LogOutNotSync("})" <<endl);
 	}
 
-//	//Print the StreetDirectory graphs.
-//	StreetDirectory::instance().printDrivingGraph();
-//	StreetDirectory::instance().printWalkingGraph();
-//
-
-
-#endif
 }
 
 void patchRoadNetworkwithLaneEdgePolyline() {
@@ -1470,15 +1464,6 @@ void printRoadNetwork_console()
 		std::cout << "\n\n\n\n";
 		sum_segments += (*it)->getUniqueSegments().size();
 
-//		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//		{
-//			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
-//			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
-//			{
-//				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
-//			}
-//			sum_lane += (*it_seg)->getLanes().size();
-//		}
 		std::cout << "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl;
 		sum_lanes += sum_lane;
 		std::cout << "--------------------------------------------------------\n";

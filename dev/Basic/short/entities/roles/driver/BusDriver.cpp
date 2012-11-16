@@ -404,7 +404,6 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	Bus* bus = dynamic_cast<Bus*>(vehicle);
 	LogOut("(\"BusDriver\""
@@ -418,7 +417,6 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
 			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
 			<<"\"})"<<std::endl);
-#endif
 }
 
 void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
@@ -428,29 +426,30 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-	//The BusDriver class will only maintain buses as the current vehicle.
-	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-	std::stringstream logout;
-	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
-			<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
-			<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
-			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-			<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
-			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0);
+		//The BusDriver class will only maintain buses as the current vehicle.
+		const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
-	if (this->parent->isFake) {
-		logout << "\",\"fake\":\"" << "true";
-	} else {
-		logout << "\",\"fake\":\"" << "false";
+		std::stringstream logout;
+		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
+				<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
+				<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
+				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
+				<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0);
+
+		if (this->parent->isFake) {
+			logout << "\",\"fake\":\"" << "true";
+		} else {
+			logout << "\",\"fake\":\"" << "false";
+		}
+
+		logout << "\"})" << std::endl;
+
+		LogOut(logout.str());
 	}
-
-	logout << "\"})" << std::endl;
-
-	LogOut(logout.str());
-#endif
 }
 

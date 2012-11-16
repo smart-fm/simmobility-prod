@@ -1006,23 +1006,21 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
-#ifndef SIMMOB_DISABLE_OUTPUT
-		{
+		if (ConfigParams::GetInstance().OutputEnabled()) {
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			cout << "Approximate Tick Boundary: " << currTick << ", ";
 			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				cout << "  Warmup; output ignored." << endl;
 			}
+		} else {
+			//We don't need to lock this output if general output is disabled, since Agents won't
+			//  perform any output (and hence there will be no contention)
+			if (currTickPercent-lastTickPercent>9) {
+				lastTickPercent = currTickPercent;
+				cout <<currTickPercent <<"%" <<endl;
+			}
 		}
-#else
-		//We don't need to lock this output if general output is disabled, since Agents won't
-		//  perform any output (and hence there will be no contention)
-		if (currTickPercent-lastTickPercent>9) {
-			lastTickPercent = currTickPercent;
-			cout <<currTickPercent <<"%" <<endl;
-		}
-#endif
 
 		///
 		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -1167,28 +1165,20 @@ int main(int argc, char* argv[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-#ifndef SIMMOB_DISABLE_OUTPUT
-	if (argc > 2) {
-		if (!Logger::log_init(argv[2]))
-		{
-			cout << "Loading output file failed; using cout" << endl;
-			cout << argv[2] << endl;
+	string logFileName = argc>2 ? argv[2] : "";
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (!Logger::log_init(logFileName)) {
+			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
-	} else {
-		Logger::log_init("");
-		cout << "No output file specified; using cout." << endl;
 	}
-
-
-#endif
 
 	//Perform main loop
 	int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
 
 	//Close log file, return.
-#ifndef SIMMOB_DISABLE_OUTPUT
-	Logger::log_done();
-#endif
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Logger::log_done();
+	}
 	cout << "Done" << endl;
 	return returnVal;
 }

@@ -177,10 +177,7 @@ bool performMainMed(const std::string& configFileName) {
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = diff_ms(loop_start_time, start_time_med);
 
-#ifdef SIMMOB_DISABLE_OUTPUT
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-#endif
-
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -192,23 +189,21 @@ bool performMainMed(const std::string& configFileName) {
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
-#ifndef SIMMOB_DISABLE_OUTPUT
-		{
+		if (ConfigParams::GetInstance().OutputEnabled()) {
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			cout << "Approximate Tick Boundary: " << currTick << ", ";
 			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				cout << "  Warmup; output ignored." << endl;
 			}
+		} else {
+			//We don't need to lock this output if general output is disabled, since Agents won't
+			//  perform any output (and hence there will be no contention)
+			if (currTickPercent-lastTickPercent>9) {
+				lastTickPercent = currTickPercent;
+				cout <<currTickPercent <<"%" <<endl;
+			}
 		}
-#else
-		//We don't need to lock this output if general output is disabled, since Agents won't
-		//  perform any output (and hence there will be no contention)
-		if (currTickPercent-lastTickPercent>9) {
-			lastTickPercent = currTickPercent;
-			cout <<currTickPercent <<"%" <<endl;
-		}
-#endif
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		WorkGroup::WaitAllGroups();
@@ -355,18 +350,12 @@ int main(int argc, char* argv[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-#ifndef SIMMOB_DISABLE_OUTPUT
-	if (argc > 2) {
-		if (!Logger::log_init(argv[2]))
-		{
-			cout << "Loading output file failed; using cout" << endl;
-			cout << argv[2] << endl;
+	string logFileName = argc>2 ? argv[2] : "";
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (!Logger::log_init(logFileName)) {
+			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
-	} else {
-		Logger::log_init("");
-		cout << "No output file specified; using cout." << endl;
 	}
-#endif
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -379,9 +368,9 @@ int main(int argc, char* argv[])
 	int returnVal = performMainMed(configFileName) ? 0 : 1;
 
 	//Close log file, return.
-#ifndef SIMMOB_DISABLE_OUTPUT
-	Logger::log_done();
-#endif
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Logger::log_done();
+	}
 	cout << "Done" << endl;
 	return returnVal;
 }

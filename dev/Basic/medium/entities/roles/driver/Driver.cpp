@@ -188,10 +188,7 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
-#endif
+		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
 	}
 
 	//Updating location information for agent for density calculations
@@ -316,11 +313,7 @@ void sim_mob::medium::Driver::setParentBufferedData() {
 void sim_mob::medium::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
-				<< std::endl;
-#endif
+		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
 		return;
 	}
 
@@ -337,12 +330,11 @@ bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, timesl
 	if (vehicle->isDone()) {
 		//Output
 		if (Debug::Drivers && !DebugStream.str().empty()) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-			DebugStream << ">>>Vehicle done." << endl;
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << DebugStream.str();
-			DebugStream.str("");
-#endif
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				DebugStream << ">>>Vehicle done." << endl;
+				LogOut( DebugStream.str() );
+				DebugStream.str("");
+			}
 		}
 
 		return false;
@@ -437,7 +429,6 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
 			<<","<<parent->getId()
@@ -448,7 +439,6 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
-#endif
 
 	//Updating location information for agent for density calculations
 	parent->setCurrLane(params.currLane);
@@ -479,11 +469,11 @@ double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		res = vehicle->moveFwd(fwdDistance);
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-			DebugStream << ">>>Exception: " << ex.what() << endl;
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << DebugStream.str();
-#endif
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				DebugStream << ">>>Exception: " << ex.what() << endl;
+				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+				std::cout << DebugStream.str();
+			}
 		}
 
 		std::stringstream msg;

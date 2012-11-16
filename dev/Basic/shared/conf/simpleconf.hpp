@@ -149,13 +149,19 @@ public:
 	}
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool Output_Disabled() const {
+	bool OutputDisabled() const {
 #ifdef SIMMOB_DISABLE_OUTPUT
 		return true;
 #else
 		return false;
 #endif
 	}
+
+	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
+	bool OutputEnabled() const {
+		return !OutputDisabled();
+	}
+
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const {

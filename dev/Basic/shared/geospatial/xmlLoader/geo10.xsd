@@ -603,6 +603,20 @@
       <xs:element name="ColorSequence" type="geo:ColorSequence_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
+    
+    <xs:complexType name="crossings_maps_t">
+    <xs:sequence>
+      <xs:element name="crossings_map" type="geo:crossings_map_t" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="crossings_map_t">
+    <xs:sequence>
+      <xs:element name="linkID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="crossingID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="ColorSequence" type="geo:ColorSequence_t" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
 
 
   <xs:complexType name="Phase_t">
@@ -610,6 +624,7 @@
       <xs:element name="phaseID" type="xs:unsignedByte" minOccurs="0" maxOccurs="1"/>
       <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
       <xs:element name="links_maps" type="geo:links_maps_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="crossings_maps" type="geo:crossings_maps_t"  minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="Phases_t">

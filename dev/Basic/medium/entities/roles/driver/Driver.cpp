@@ -157,7 +157,8 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	if(canGoToNextRdSeg(p, t))
 	{
 		currLane = nextLaneInNextSegment;
-		parent->setCurrLink(vehicle->getCurrSegment()->getLink());
+	//	parent->setCurrLink(vehicle->getCurrSegment()->getLink());
+		setParentData();
 	}
 	else
 	{
@@ -166,7 +167,6 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 		std::cout << "Driver cannot be started in new segment, will remain in lane infinity!\n";
 #endif
 	}
-	//addToMovingList();
 }
 
 sim_mob::UpdateParams& sim_mob::medium::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
@@ -316,7 +316,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		if (isNewLinkNext)
 		{
 			//Updating location information for agent for density calculations
-			parent->setCurrLink((currLane)->getRoadSegment()->getLink());
+		//	parent->setCurrLink((currLane)->getRoadSegment()->getLink());
 			//set Link Travel time for previous link
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 		if ( !prevSeg){
@@ -467,7 +467,6 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 		throw std::runtime_error(msg.str().c_str());
 	}
 
-	vehicle->setPositionInSegment(vehicle->getPositionInSegment() + distance);
 	return true;
 }
 
@@ -551,11 +550,12 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	double x0 = vehicle->getPositionInSegment();/* vehicle->getCurrSegment()->length - vehicle->getDistanceToSegmentStart();*/
 	double xf = 0.0;
 	double tf = 0.0;
-
+	ss.flush();
 	ss << "Driver: " << parent->getId()
 			<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
-			<<"\tcurrSegment: "<< vehicle->getCurrSegment()->getSegmentID()
+			<<"\tcurrSegment: "<< vehicle->getCurrSegment()
 			<<"\tLane: "<< currLane->getLaneID_str()
+			<<"\tMovCount: "<<currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).second
 			<<"\t time: " << t0
 			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
 			<<"\ttime: "<<currTimeMS + t0*1000<<endl;
@@ -698,15 +698,14 @@ bool sim_mob::medium::Driver::advanceMovingVehicleWithInitialQ(DriverUpdateParam
 void sim_mob::medium::Driver::getSegSpeed(){
 	// Fetch number of moving vehicles in the segment and compute speed from the speed density function
 	//just for testing. need to remove later
-	double density = vehicle->getCurrSegment()->getParentConflux()->
+/*	double density = vehicle->getCurrSegment()->getParentConflux()->
 			getSegmentAgents()[vehicle->getCurrSegment()]->getDensity(true);
 	double speed = vehicle->getCurrSegment()->getParentConflux()->
 				getSegmentAgents()[vehicle->getCurrSegment()]->speed_density_function(true, density);
-	/*vehicle->setVelocity(vehicle->getCurrSegment()->
-			getParentConflux()->getSegmentSpeed(vehicle->getCurrSegment(), true));
-	commented for testing, for now
 	*/
-	vehicle->setVelocity(speed);
+	vehicle->setVelocity(vehicle->getCurrSegment()->
+			getParentConflux()->getSegmentSpeed(vehicle->getCurrSegment(), true));
+	//vehicle->setVelocity(speed);
 }
 
 int sim_mob::medium::Driver::getOutputCounter(const Lane* l) {

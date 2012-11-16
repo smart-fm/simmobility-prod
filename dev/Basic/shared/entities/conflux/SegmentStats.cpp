@@ -109,28 +109,24 @@ namespace sim_mob {
 		int movingCounts = 0;
 		double movingLength = 0.0;
 		const int vehicle_length = 400;
-		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
-		while(lane != roadSegment->getLanes().end())
+		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
+		while(laneIt != roadSegment->getLanes().end())
 		{
-			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
-				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
+			if ((hasVehicle && !(*laneIt)->is_pedestrian_lane())
+				|| ( !hasVehicle && (*laneIt)->is_pedestrian_lane()))
 			{
-				movingCounts += laneStatsMap[*lane]->getMovingAgentsCount();
+				movingCounts += laneStatsMap[*laneIt]->getMovingAgentsCount();
 				movingLength += roadSegment->computeLaneZeroLength()
-						- laneStatsMap[*lane]->getQueuingAgentsCount()*vehicle_length;
+						- laneStatsMap[*laneIt]->getQueuingAgentsCount()*vehicle_length;
 			}
-			lane++;
+			laneIt++;
 		}
 		return movingCounts/(movingLength/100.0);
 	}
 
 	unsigned int SegmentStats::numQueueingInSegment(bool hasVehicle) {
 		int queuingCounts = 0;
-		std::stringstream ss;
-		if(roadSegment)
-				ss << "RoadSegment: "<< roadSegment
-						/*<<"\tnLanes: "<< roadSegment->getLanes().size()*/ << std::endl;
-				std::cout << ss.str();
+
 		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
 		while(lane != roadSegment->getLanes().end())
 		{
@@ -216,7 +212,6 @@ namespace sim_mob {
 			 */
 			if (laneInfinity.size() > 0) {
 				ag = laneInfinity.top();
-				laneInfinity.pop();
 			}
 		}
 		return ag;
@@ -240,10 +235,10 @@ namespace sim_mob {
 	}
 
 	void sim_mob::LaneStats::addAgent(sim_mob::Agent* ag) {
-		if (std::find(laneAgents.begin(), laneAgents.end(), ag)!=laneAgents.end())
+		if (std::find(laneAgents.begin(), laneAgents.end(), ag)==laneAgents.end())
 			laneAgents.push_back(ag);
 		else
-			throw std::runtime_error("addAgentToQueue for agent who's not added to the lane");
+			throw std::runtime_error("Attempting to addAgent to the lane twice!");
 		if(ag->isQueuing)
 			queueCount++;
 	}
@@ -302,13 +297,13 @@ namespace sim_mob {
 			laneParams->outputCounter = float(tmp) + 1.0;
 		} else
 			laneParams->outputCounter = float(tmp);
-		std::stringstream ss;
+		/*std::stringstream ss;
 		ss << "Lane: " << lane->getLaneID_str()
 		<< "\toutputFlowRate: "<< laneParams->outputFlowRate
 		<< "\toutputCounter: " << laneParams->outputCounter
 		<< "\tfraction: " << laneParams->fraction<< std::endl;
 		std::cout << ss.str();
-	}
+	*/}
 
 	void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 		const double omega = 0.01;
@@ -399,7 +394,7 @@ namespace sim_mob {
 //		("segmentState",20,0xa0e30d8,{"speed":"10.4","flow":"8","density":"12"})
 		LogOut("(\"segmentState\""
 			<<","<<frameNumber
-			<<","<<roadSegment->getId()
+			<<","<<roadSegment
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed
 			<<"\",\"flow\":\""<<0

@@ -71,13 +71,13 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 		//This Entity is done; schedule for deletion.
 		parentWorker->scheduleForRemoval(ag);
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
-		//Still going, but we may have properties to start/stop managing
+		/*//Still going, but we may have properties to start/stop managing
 		for (std::set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
 			parentWorker->stopManaging(*it);
 		}
 		for (std::set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
 			parentWorker->beginManaging(*it);
-		}
+		}*/
 	} else {
 		throw std::runtime_error("Unknown/unexpected update() return status.");
 	}

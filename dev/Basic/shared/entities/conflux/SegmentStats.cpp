@@ -21,6 +21,7 @@ namespace sim_mob {
 			laneStatsMap[*lane]->initLaneParams(*lane, segVehicleSpeed, segPedSpeed);
 			lane++;
 		}
+		downstreamCopy = isDownstream;
 	}
 
 

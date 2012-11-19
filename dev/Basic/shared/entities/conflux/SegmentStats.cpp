@@ -176,6 +176,7 @@ namespace sim_mob {
 					ag = (*i).second;
 				}
 			}
+			i++;
 		}
 		frontalAgents[agLane] = laneStatsMap[agLane]->next();
 		return ag;

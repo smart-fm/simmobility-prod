@@ -26,12 +26,34 @@ PosHexIntStrong = '0x[0-9a-f]+' #For now we take advantage of the fact that IDs 
 PotentialID = Regexp.new(PosHexIntStrong)
 
 
-
 #Class to hold our results as we build them.
 class LogRes
   def initialize()
+    @origItems = {}    #physID=>LogItem, origFile
+    @newItems = {}     #physID=>LogItem, newFile
+    @compareItems = {} #virtID=>LogLitemPair; nil = no comparison
   end
+
+  attr_accessor :origItems
+  attr_accessor :newItems
+  attr_accessor :compareItems
 end
+
+#A "log item", indexed by ID
+class LogItem
+  def initialize(physID, virtID, origLine)
+    @physID = physID      #The {type=>props string}
+    @virtID = virtID      #The physID, with all IDs inside that replaced by their virtual IDs.
+    @origLine = origLine  #The line used to build this 
+  end
+
+  attr_reader :physID
+  attr_reader :virtID
+  attr_reader :origLine
+end
+
+#A pair of log items
+LogItemPair = Struct.new(:origItem, :newItem)
 
 
 #Helper: Remove parent-link from props
@@ -75,14 +97,15 @@ def getVirtId(knownIDs, type, propsStr)
 end
 
 
-#If buildRes is true, then logRes is updated with the Log lines. Otherwise, it is checked.
-def read_file(logRes, fileName, buildRes)
+#origFile specifies if we are building the "original" or the "new" file's results.
+def read_file(logRes, fileName, origFile)
   #Our list of "unparsed" lines
   unprocessed = []
 
+  #Which array do we populate?
+  items = origFile ? logRes.origItems : logRes.newItems
+
   #Parse the file once, looking for IDs
-  knownIDs = {}
-  origLogLines = {}
   File.open(fileName).each { |line|
     line.chomp!
     if m = line.match(HeaderRegex)
@@ -91,7 +114,7 @@ def read_file(logRes, fileName, buildRes)
       next if m[1].downcase == "sd-edge"
 
       #Save the ID
-      knownIDs[m[3]] = nil
+      items[m[3]] = nil
 
       #Save the line
       unprocessed.push(line)
@@ -111,13 +134,12 @@ def read_file(logRes, fileName, buildRes)
 
       #Ensure no ID, frame is zero
       raise "Non-zero frame number" unless frameID == '0'
-      raise "Duplicate ID (should be unique) (#{objID})" if knownIDs[objID]
+      raise "Duplicate ID (should be unique) (#{objID})" if items[objID]
 
       #Attempt to get an ID for this object
-      virtObjID = getVirtId(knownIDs, type, props)
+      virtObjID = getVirtId(items, type, props)
       if (virtObjID)
-        knownIDs[objID] = virtObjID
-        origLogLines[objID] = line
+        items[objID] = LogItem.new(objID, virtObjID, line)
       else
         remaining.push(line)
       end
@@ -128,10 +150,22 @@ def read_file(logRes, fileName, buildRes)
     unprocessed = remaining
   end
 
-  #Now import (or check) these results
-  if buildRes
-  else
-  end
+  #Now build our half of the LogRes array
+  items.each{|key, val|
+    raise "Unexpected leftover null value" unless val
+    unless logRes.compareItems.has_key? val.virtID
+      logRes.compareItems[val.virtID] = LogItemPair.new
+    end
+
+    raise "Duplicate key (1)" if origFile and logRes.compareItems[val.virtID].origItem
+    raise "Duplicate key (2)" if !origFile and logRes.compareItems[val.virtID].newItem
+
+    if origFile
+      logRes.compareItems[val.virtID].origItem = val
+    else
+      logRes.compareItems[val.virtID].newItem = val
+    end
+  }
 end
 
 
@@ -146,6 +180,23 @@ def run_main()
   res = LogRes.new()
   read_file(res, ARGV[0], true)
   read_file(res, ARGV[1], false)
+
+  #Scan the results
+  origHas = []
+  newHas = []
+  res.compareItems.each{|key, value|
+    next if value.origItem and value.newItem
+    raise 'Unexpected double-null' unless value.origItem or value.newItem
+
+    origHas.push(value.origItem) if value.origItem
+    origHas.push(value.newItem) if value.newItem
+  }
+
+  #Display results
+  puts "Missing in new file: (#{origHas.size}/#{res.compareItems.size})"
+  origHas.each{|item| puts item.origLine }
+  puts "Extra lines in new file: (#{newHas.size}/#{res.compareItems.size})"
+  newHas.each{|item| puts item.origLine }
 
   puts 'Done'
 end

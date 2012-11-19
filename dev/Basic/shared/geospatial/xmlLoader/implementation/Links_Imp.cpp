@@ -19,8 +19,10 @@ std::vector<sim_mob::Link*> Links_pimpl::post_Links ()
 {
 	for (std::vector<sim_mob::Link*>::iterator it=model.begin(); it!=model.end(); it++) {
 		book.addLink(*it);
+
+		std::cout <<"Adding Link: " <<(*it)->roadName <<std::endl;
 	}
 
-	  return model;
+	return model;
 }
 

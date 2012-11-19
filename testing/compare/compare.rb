@@ -82,7 +82,7 @@ def getVirtId(knownIDs, type, propsStr)
         return nil unless repKey
 
         #Slightly harder case: replace this and keep searching
-        newPropStr = "#{m.pre_match}#{repKey}#{m.post_match}"
+        newPropStr = "#{m.pre_match}#{repKey.virtID}#{m.post_match}"
         offset = 0
         scanAgain = true
       else

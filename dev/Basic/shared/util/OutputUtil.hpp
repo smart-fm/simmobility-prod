@@ -87,6 +87,8 @@ private:
 //Simply destroy this text; no logging; no locking
 #define LogOutNotSync( strm )  ;
 #define LogOut( strm )  ;
+#define SyncCout( strm )  ;
+
 
 #else
 
@@ -139,14 +141,31 @@ private:
         sim_mob::Logger::log_file() << strm; \
     } \
     while (0)
-/*
-#define LogOut( strm ) \
+
+/**
+ * Write a message to cout, thread-safe.
+ *
+ * Usage:
+ *   \code
+ *   if (count)
+ *       SyncCout("The total cost of " << count << " apples is " << count * unit_price);
+ *   else
+ *       SyncCout("Why don't you buy something?");
+ *   \endcode
+ *
+ * \note
+ * Like the other logging functions, this does nothing if SIMMOB_DISABLE_OUTPUT is defined.
+ * Consider using a regular "cout" for simple debugging messages that are not performance-related
+ * (as SIMMOB_DISABLE_OUTPUT exists for performance purposes).
+ */
+
+#define SyncCout( strm ) \
     do \
     { \
         boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
-        sim_mob::Logger::log_file() << strm; \
+        std::cout << strm; \
     } \
     while (0)
-*/
+
 
 #endif

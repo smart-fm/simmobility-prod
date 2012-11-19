@@ -79,7 +79,7 @@ private:
 	unsigned int headwayDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk); // headway-based control
 	unsigned int evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum); // evenheadway-based control
 	unsigned int hybridDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk); // hybrid-based control(evenheadway while restricting the maximum holding time)
-	unsigned int dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
+	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	frame_t nextTimeTickToStage;// next timeTick to be checked

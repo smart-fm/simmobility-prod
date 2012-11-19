@@ -6,22 +6,20 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::Links_pimpl::pre ()
 {
-	//Clear it in case post() wasn't called.
-	//Lookup.clear();
+	model.clear();
 }
 
-void sim_mob::xml::Links_pimpl::Link (sim_mob::Link* Link)
+void sim_mob::xml::Links_pimpl::Link (sim_mob::Link* value)
 {
-	model.push_back(Link);
+	model.push_back(value);
 }
 
 std::vector<sim_mob::Link*> Links_pimpl::post_Links ()
 {
-	for (std::vector<sim_mob::Link*>::iterator it=model.begin(); it!=model.end(); it++) {
-		book.addLink(*it);
-
-		std::cout <<"Adding Link: " <<(*it)->roadName <<std::endl;
+	for (std::vector<sim_mob::Link*>::iterator linkIt=model.begin(); linkIt!=model.end(); linkIt++) {
+		book.addLink(*linkIt);
 	}
+
 
 	return model;
 }

@@ -5,6 +5,7 @@
 #include <boost/thread.hpp>
 #include "Lane.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "util/OutputUtil.hpp"
 
 using namespace sim_mob;
 
@@ -46,6 +47,10 @@ const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 		if (secondPair.second) {
 			cachedSegmentsList.push_back(secondPair.second);
 		}
+	}
+
+	if (cachedSegmentsList.empty()) {
+		LogOut("Warning: UniNode segment list still empty after call to \"set\"" <<std::endl);
 	}
 
 	return cachedSegmentsList;

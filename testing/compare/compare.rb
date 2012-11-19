@@ -140,6 +140,7 @@ def read_file(logRes, fileName, origFile)
       virtObjID = getVirtId(items, type, props)
       if (virtObjID)
         items[objID] = LogItem.new(objID, virtObjID, line)
+        #puts "V: #{virtObjID}" if virtObjID and props =~ /WATERLOO STREET/
       else
         remaining.push(line)
       end

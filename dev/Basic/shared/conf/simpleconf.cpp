@@ -1032,13 +1032,12 @@ void PrintDB_Network_ptrBased()
 	}
 
 
-
-
 	//Now print all Segments
 	std::set<const Crossing*,Sorter> cachedCrossings;
 	std::set<const BusStop*,Sorter> cachedBusStops;
 		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
+
+			LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
 		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
 		LogOutNotSync("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
 		LogOutNotSync("\"width\":\"" <<(*it)->width <<"\",");
@@ -1510,14 +1509,12 @@ void printRoadNetwork_console()
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
-	std::cout << ".............................loadXMLConf \n";
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
 	int baseGran = ReadGranularity(handle, "base_granularity");
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
-	std::cout << ".............................loadXMLConf0\n";
 	//Save reaction time parameters
 	int distributionType1, distributionType2;
     int mean1, mean2;
@@ -1795,7 +1792,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }
 
-throw 1; //DEBUG
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
@@ -1821,13 +1817,9 @@ throw 1; //DEBUG
  #endif
     patchRoadNetworkwithLaneEdgePolyline();//apparently, must be called before StreetDirectory.init
 
-    std::cout << "\n\n\n\n\n\nStreet Directory initialized" << std::endl;
-//    getchar();
-//    PrintDB_Network_ptrBased();
-//    PrintDB_Network();
+    std::cout << "Street Directory initialized" << std::endl;
+    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
-       StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
-    //  return "returning \n";
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
@@ -1878,6 +1870,7 @@ throw 1; //DEBUG
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
+
 
 
     //Display
@@ -1998,9 +1991,6 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//Parse it
 	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
 	delete doc;
-
-	//TEMP
-	//errorMsg = "Testing";
 
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;

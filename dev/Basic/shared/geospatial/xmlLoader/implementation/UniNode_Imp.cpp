@@ -17,6 +17,8 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 
 	//Save the lane connectors for later.
 	book.addUniNodeLaneConnectorCache(res, connectors);
+	book.addUniNodeSegmentPairCache(res, segmentPairs);
+
 
 	//NOTE: This retrieves the parent Node*, but it also allocates it. Replace it as a value type return if possible.
 	sim_mob::Node tempNode = Node_t_pimpl::post_Node_t();

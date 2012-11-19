@@ -3,14 +3,16 @@
 using namespace sim_mob::xml;
 
 
+void sim_mob::xml::RoadNetwork_t_pimpl::pre ()
+{
+}
+
+
 sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 {
 	return modelRef;
 }
 
-void sim_mob::xml::RoadNetwork_t_pimpl::pre ()
-{
-}
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 {

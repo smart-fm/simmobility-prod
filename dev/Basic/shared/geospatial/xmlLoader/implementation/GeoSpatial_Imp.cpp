@@ -19,6 +19,24 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 	}
 }
 
+//Helper: Create segment pairs entries for a single UniNode
+void ProcessUniNodeSegPairs(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::SegPair segPair) {
+	node->firstPair = std::make_pair(book.getSegment(segPair.first.first), book.getSegment(segPair.first.second));
+
+	//Second pair may not exist
+	if (segPair.second.first!=0 && segPair.second.second!=0) {
+		node->secondPair = std::make_pair(book.getSegment(segPair.second.first), book.getSegment(segPair.second.second));
+	}
+}
+
+//Helper: Save segment pairs from UniNodes
+void ProcessUniNodeSegPairs(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
+	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
+		ProcessUniNodeSegPairs(book, *it, book.getUniNodeSegmentPairCache(*it));
+	}
+}
+
+
 
 //Helper: Create LaneConnector entries for a single MultiNode
 void ProcessMultiNodeConnectors(const helper::Bookkeeping& book,sim_mob::MultiNode* node, helper::Bookkeeping::MNConnect connectors) {
@@ -93,6 +111,9 @@ void sim_mob::xml::GeoSpatial_t_pimpl::post_GeoSpatial_t ()
 
 void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 {
+	//This needs to be done first
+	ProcessUniNodeSegPairs(book, rn.getUniNodes());
+
 	//Parse and save "RoadSegmentsAt"
 	CacheRoadSegmentsAtUniNodes(rn.getUniNodes());
 	CacheRoadSegmentsAtMultiNodes(rn.getLinks());

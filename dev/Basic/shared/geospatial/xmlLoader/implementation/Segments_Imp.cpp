@@ -29,6 +29,5 @@ std::pair<Segments_pimpl::SegmentList,Segments_pimpl::SegmentList> sim_mob::xml:
 		book.addSegment(*it);
 	}
 
-
 	return std::make_pair(fwd,rev);
 }

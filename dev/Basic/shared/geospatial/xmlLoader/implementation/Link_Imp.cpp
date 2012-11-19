@@ -57,7 +57,5 @@ void sim_mob::xml::link_t_pimpl::Segments (const std::pair<std::vector<sim_mob::
 {
 	//Copy over.
 	model.setSegmentList(value.first, value.second);
-
-	//uniquesegments (are done automatically in "setSegmentList")
 }
 

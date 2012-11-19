@@ -297,7 +297,8 @@ namespace sim_mob {
 			laneParams->outputCounter = float(tmp) + 1.0;
 		} else
 			laneParams->outputCounter = float(tmp);
-		/*std::stringstream ss;
+
+	/*	std::stringstream ss;
 		ss << "Lane: " << lane->getLaneID_str()
 		<< "\toutputFlowRate: "<< laneParams->outputFlowRate
 		<< "\toutputCounter: " << laneParams->outputCounter

@@ -177,15 +177,15 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		busline->addFrequencyBusline(Frequency_Busline(curr->start_time,curr->end_time,curr->headway_sec));
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
-		sim_mob::DailyTime nextTime = nextTime = curr->end_time;
-		if(next != busdispatch_freq.end()) {
-			nextTime = next->start_time;
-		}
+		sim_mob::DailyTime nextTime = curr->end_time;
+//		if(next != busdispatch_freq.end()) {
+//			nextTime = next->start_time;
+//		}
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
 		DailyTime advance(curr->headway_sec*50);
-		for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += advance) {
+		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
 			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, curr->route_id, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 			vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];

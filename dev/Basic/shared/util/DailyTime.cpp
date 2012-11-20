@@ -26,9 +26,19 @@ bool sim_mob::DailyTime::isBefore(const DailyTime& other) const
 	return time_ < other.time_;
 }
 
+bool sim_mob::DailyTime::isBeforeEqual(const DailyTime& other) const
+{
+	return time_ <= other.time_;
+}
+
 bool sim_mob::DailyTime::isAfter(const DailyTime& other) const
 {
 	return time_ > other.time_;
+}
+
+bool sim_mob::DailyTime::isAfterEqual(const DailyTime& other) const
+{
+	return time_ >= other.time_;
 }
 
 bool sim_mob::DailyTime::isEqual(const DailyTime& other) const

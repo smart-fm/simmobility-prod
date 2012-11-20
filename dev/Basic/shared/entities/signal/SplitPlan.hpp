@@ -10,6 +10,10 @@
 
 #define NUMBER_OF_VOTING_CYCLES 5
 
+namespace geo
+{
+class SplitPlan_t_pimpl;
+}
 namespace sim_mob
 {
 //Forward dseclaration
@@ -23,6 +27,8 @@ enum TrafficControlMode
 
 class SplitPlan
 {
+
+	friend class geo::SplitPlan_t_pimpl;
 public:
 	//moved to a more globally accessible place
 //	typedef boost::multi_index_container<
@@ -44,7 +50,7 @@ private:
 	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
 	sim_mob::Cycle cycle_;
-	phases phases_;
+	sim_mob::phases phases_;
 	sim_mob::Signal_SCATS *parentSignal;
 
 	/*

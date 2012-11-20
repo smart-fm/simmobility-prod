@@ -81,8 +81,9 @@ public:
    virtual void load(const std::map<std::string, std::string>&) {}
    virtual const sim_mob::phases getPhases(){}
 
-   static std::vector<Signal *> all_signals_;
+
    typedef std::vector<Signal *> All_Signals;
+   static All_Signals all_signals_;
    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 
@@ -137,6 +138,7 @@ public:
 
 	/*--------Miscellaneous----------*/
 	int getSignalTimingMode() { return signalTimingMode;}
+	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.

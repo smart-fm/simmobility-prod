@@ -1091,60 +1091,6 @@ void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const 
 				SegmentTo->LinkEndChild(new TiXmlText(out.str()));
 				//ColorSequence
 				WriteXMLInput_TrafficSignal_ColorSequence(links_map,lm_.colorSequence);
-//				//ColorSequence
-//				TiXmlElement * ColorSequence  = new TiXmlElement( "ColorSequence" );
-//				links_map->LinkEndChild( ColorSequence);
-//
-//				//TrafficLightType
-//				TiXmlElement * TrafficLightType  = new TiXmlElement( "TrafficLightType" );
-//				ColorSequence->LinkEndChild( TrafficLightType);
-////				sim_mob::TrafficLightType tlt = sim_mob::Driver_Light;
-//				out.str("");
-//				out << (lm_.colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (lm_.colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
-//				TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
-//
-//				std::vector< std::pair<TrafficColor,std::size_t> > & cd = lm_.colorSequence.getColorDuration();
-//				for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
-//				{
-//					//ColorDuration
-//					TiXmlElement * ColorDuration  = new TiXmlElement( "ColorDuration" );
-//					ColorSequence->LinkEndChild( ColorDuration);
-//					{
-//						//TrafficColor
-//						TiXmlElement * TrafficColor__  = new TiXmlElement( "TrafficColor" );
-//						ColorDuration->LinkEndChild( TrafficColor__);
-//						out.str("");
-//						switch(it_cd->first)
-//						{
-//						case Red:
-//							out << "Red";
-//							break;
-//						case Green:
-//							out << "Green";
-//							break;
-//						case Amber:
-//							out << "Amber";
-//							break;
-//						case FlashingRed:
-//							out << "FlashingRed";
-//							break;
-//						case FlashingGreen:
-//							out << "FlashingGreen";
-//							break;
-//						case FlashingAmber:
-//							out << "FlashingAmber";
-//							break;
-//						}
-//						TrafficColor__->LinkEndChild(new  TiXmlText(out.str()));
-//
-//						//Duration
-//						TiXmlElement * Duration  = new TiXmlElement( "Duration" );
-//						ColorDuration->LinkEndChild( Duration);
-//						out.str("");
-//						out << it_cd->second;
-//						Duration->LinkEndChild(new TiXmlText(out.str()));
-//					}
-//				}
 
 			}
 			//crossings_maps

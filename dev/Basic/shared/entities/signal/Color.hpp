@@ -10,6 +10,7 @@ class Phase;
 
 enum TrafficColor
 {
+	InvalidTrafficColor = -1,
     Red =1,    			///< Stop, do not go beyond the stop line.
     Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
     Green = 3,   		///< Proceed either in the forward, left, or right direction.
@@ -36,7 +37,8 @@ struct VehicleTrafficColors
 enum TrafficLightType
 {
 	Driver_Light,
-	Pedestrian_Light
+	Pedestrian_Light,
+	InvalidTrafficLightType
 };
 
 class ColorSequence
@@ -66,9 +68,18 @@ public:
 	//computes the supposed color of the sequence after a give time lapse
 	TrafficColor computeColor(double Duration);
 	void setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> >);
+	void setTrafficLightType(TrafficLightType);
 private:
 	std::vector< std::pair<TrafficColor,std::size_t> > ColorDuration;
 	TrafficLightType type;
+//public:
+//	void operator= (const  ColorSequence & c)
+//	{
+//		type = c.type;
+//		ColorDuration = c.ColorDuration;
+////		return this;
+//	}
+
 
 	friend class sim_mob::Phase;
 };

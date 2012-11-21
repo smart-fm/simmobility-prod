@@ -33,6 +33,18 @@ UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 		updateUnsignalized(frameNumber);
 	}
 	updateSupplyStats(frameNumber);
+
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it_sa=segmentAgents.begin();
+	while((it_sa) != segmentAgents.end()){
+		std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > counts = (*it_sa).second->getAgentCountsOnLanes();
+		std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >::iterator i = counts.begin();
+		while(i != counts.end()) {
+			std::cout << multiNode->getID()<<": "<< (*it_sa).second << ": " << (*i).second.second << std::endl;
+			i++;
+		}
+		it_sa++;
+	}
+
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
 }
@@ -43,29 +55,26 @@ void sim_mob::Conflux::updateSignalized() {
 void sim_mob::Conflux::updateUnsignalized(frame_t frameNumber) {
 //	debugMsgs << "\nUpdate " << frameNumber << " - Multinode :" << getMultiNode()->getID() << std::endl;
 	initCandidateAgents();
-/*	for(std::map<const sim_mob::RoadSegment*, sim_mob::Agent* >::iterator i = candidateAgents.begin();
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::Agent* >::iterator i = candidateAgents.begin();
 			i != candidateAgents.end(); i++) {
-		debugMsgs << "candidateAgent[start: " << (*i).first->getStart()->getID()
+		debugMsgs << "candidateAgent[start:" << (*i).first->getStart()->getID()
 				<< ", end: " << (*i).first->getEnd()->getID() << "]: Agent : "
 				<< (((*i).second == nullptr)?  0 : (*i).second->getId())
 				<< std::endl;
-	}*/
+	}
 	sim_mob::Agent* ag = agentClosestToIntersection();
 	while (ag) {
 		updateAgent(ag);
-
 		// get next agent to update
 		ag = agentClosestToIntersection();
 	}
-//	std::cout << debugMsgs.str();
+	std::cout << debugMsgs.str();
 	debugMsgs.str(std::string());
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
-
-	//call agent's update
 	UpdateStatus res = ag->update(currFrameNumber);
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Entity is done; schedule for deletion.
@@ -84,16 +93,16 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 
 	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
-
 	if((segBeforeUpdate != segAfterUpdate) || ( !laneBeforeUpdate)) {
 		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
+		std::cout<< "Before segmentAgents[" << segBeforeUpdate->getStart()->getID() << "]->addAgent(): "<< segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size() << std::endl;
 		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
-			// remove agent from current Keeper and insert into the next agent keeper.
 			segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
 		}
 		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
 			segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
 		}
+		std::cout<< "After segmentAgents[" << segAfterUpdate->getStart()->getID() << "]->addAgent(): "<< segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size() << std::endl;
 	}
 }
 
@@ -119,10 +128,21 @@ void sim_mob::Conflux::initCandidateAgents() {
 				rdSeg = *(i->second);
 				if(rdSeg == 0){
 					throw std::runtime_error("Road Segment NULL");
-				getchar();}
+				}
+
+				if(rdSeg->getStart()->getID() == 58950) {
+							std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > counts = segmentAgents[rdSeg]->getAgentCountsOnLanes();
+							std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >::iterator i = counts.begin();
+							while(i != counts.end()) {
+								std::cout << multiNode->getID()<<": "<< "58950" << ": " << (*i).second.second << std::endl;
+								i++;
+							}
+				}
 				segmentAgents[rdSeg]->resetFrontalAgents();
 				candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
-				debugMsgs << std::endl << "candidateAgents[" << rdSeg << "] = null? " << (candidateAgents[rdSeg] == nullptr)? "yes" : "no";
+				debugMsgs << std::endl << "candidateAgents[" << rdSeg->getStart()->getID() << "] = null? " << ((candidateAgents[rdSeg] == nullptr)? "yes" : "no");
+				std::cout << debugMsgs.str() << std::endl;
+				debugMsgs.clear();
 				if(candidateAgents[rdSeg] == nullptr) {
 					// this road segment is deserted. search the next (which is technically the previous).
 					currSegsOnUpLinks[lnk]++;

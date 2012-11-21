@@ -108,7 +108,7 @@ public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
 		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr), debugMsgs(std::stringstream::out) {};
+		  parentWorker(nullptr), currFrameNumber(0), debugMsgs(std::stringstream::out) {};
 	virtual ~Conflux() {};
 
 	// functions from agent

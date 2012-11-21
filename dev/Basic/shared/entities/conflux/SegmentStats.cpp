@@ -9,7 +9,7 @@ using std::string;
 namespace sim_mob {
 
 	SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
-		: roadSegment(rdSeg), segDensity(0.0)
+		: roadSegment(rdSeg), segDensity(0.0), lastAcceptTime(0.0)
 	{
 		segVehicleSpeed = getRoadSegment()->maxSpeed/3.6 *100; //converting from kmph to m/s
 		segPedSpeed = 0.0;
@@ -33,14 +33,17 @@ namespace sim_mob {
 		laneStatsMap[lane]->removeAgent(ag);
 	}
 
-	void SegmentStats::dequeue(const sim_mob::Lane* lane) {
+	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
+		Agent* ag = nullptr;
 		if(lane) {
-			laneStatsMap[lane]->dequeue();
+			ag = laneStatsMap[lane]->dequeue();
 		}
 		else {
 			// no lane indicates laneInfinity
+			ag = laneInfinity.top();
 			laneInfinity.pop();
 		}
+		return ag;
 	}
 
 	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
@@ -183,10 +186,15 @@ namespace sim_mob {
 	}
 
 	void SegmentStats::resetFrontalAgents() {
+		frontalAgents.clear();
 		for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin();
 				i != laneStatsMap.end(); i++) {
 			(*i).second->resetIterator();
-			frontalAgents[(*i).first] = (*i).second->next();
+			Agent* agent = (*i).second->next();
+			frontalAgents.insert(std::make_pair((*i).first, agent));
+			if(agent)
+				std::cout << "frontalAgents[" << (*i).first->getRoadSegment()->getStart()->getID()
+					<< "|" << (*i).first->getLaneID_str() << "] = " <<  agent->getId() << std::endl;
 		}
 	}
 
@@ -271,6 +279,9 @@ namespace sim_mob {
 
 	void LaneStats::resetIterator() {
 		laneAgentsIt = laneAgents.begin();
+		if(laneAgentsIt != laneAgents.end())
+			std::cout<<"laneAgent resetIterator: " <<(*laneAgentsIt)->getId()
+			<< " RdSeg: " << (*laneAgentsIt)->getCurrSegment()->getStart()->getID() <<std::endl;
 	}
 
 	void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed, double pedSpeed) {
@@ -306,7 +317,7 @@ namespace sim_mob {
 		<< "\toutputCounter: " << laneParams->outputCounter
 		<< "\tfraction: " << laneParams->fraction<< std::endl;
 		std::cout << ss.str();
-	*/}
+*/	}
 
 	void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 		const double omega = 0.01;

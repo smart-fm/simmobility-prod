@@ -91,6 +91,7 @@ private:
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
 	double segDensity;
+	double lastAcceptTime;
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
 
@@ -98,7 +99,7 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	void dequeue(const sim_mob::Lane* lane);
+	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
 	std::vector<Agent*> getAgents(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;

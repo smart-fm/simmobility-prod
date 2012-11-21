@@ -310,7 +310,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		}
 
 		currLane = nextLaneInNextSegment;
-		p.timeThisTick = p.timeThisTick + t;
+	//	p.timeThisTick = p.timeThisTick + t;
 		unsigned int linkExitTime = p.currTimeMS + p.timeThisTick * 1000;
 
 		if (isNewLinkNext)
@@ -472,10 +472,12 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
+	std::cout<<"Entering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
 	if (vehicle->isDone()) {
+		std::cout << "removed when frame_tick is called" << std::endl;
 		parent->setToBeRemoved();
 		return;
 	}
@@ -604,9 +606,11 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	}
 	else //no queue or no initial queue
 	{
+		std::cout << "no queue" << std::endl;
 		tf = t0 + x0/vu;
 		if (tf < p.elapsedSeconds)
 		{
+			std::cout << "tf less than tick" << std::endl;
 			if (output > 0)
 			{
 				p.timeThisTick = tf;
@@ -620,6 +624,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 		}
 		else
 		{
+			std::cout << "tf more than tick" << std::endl;
 			tf = p.elapsedSeconds;
 			xf = x0-vu*(tf-t0);
 			res = moveInSegment(p, x0-xf);
@@ -635,6 +640,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 //	vehicle->setPositionInSegment(xf);
 //	p.timeThisTick = tf;
 
+	std::cout<< "end of advanceMoving - res:"<< (res? "True":"False") << std::endl;
 	return res;
 }
 

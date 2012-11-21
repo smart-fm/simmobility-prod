@@ -274,9 +274,9 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
-	/* //TODO: Commenting this for now. Will have to enable this back when confluxes are configurable. ~ Harish
+#ifndef SIMMOB_USE_CONFLUXES
 	 //All Entity workers perform the same tasks for their set of managedEntities.
-/*	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 		UpdateStatus res = (*it)->update(frameNumber);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
@@ -292,14 +292,15 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 		} else {
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
-	}*/
-
+	}
+#else
 
 	//All workers perform the same tasks for their set of managedConfluxes.
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		UpdateStatus res = (*it)->update(frameNumber);
 	}
+#endif
 }
 
 bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){

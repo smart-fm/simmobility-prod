@@ -80,13 +80,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 		//This Entity is done; schedule for deletion.
 		parentWorker->scheduleForRemoval(ag);
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
-		/*//Still going, but we may have properties to start/stop managing
-		for (std::set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-			parentWorker->stopManaging(*it);
-		}
-		for (std::set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-			parentWorker->beginManaging(*it);
-		}*/
+		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
 	} else {
 		throw std::runtime_error("Unknown/unexpected update() return status.");
 	}
@@ -95,14 +89,12 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
 	if((segBeforeUpdate != segAfterUpdate) || ( !laneBeforeUpdate)) {
 		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
-		std::cout<< "Before segmentAgents[" << segBeforeUpdate->getStart()->getID() << "]->addAgent(): "<< segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size() << std::endl;
 		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
 			segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
 		}
 		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
 			segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
 		}
-		std::cout<< "After segmentAgents[" << segAfterUpdate->getStart()->getID() << "]->addAgent(): "<< segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size() << std::endl;
 	}
 }
 
@@ -114,10 +106,7 @@ double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehic
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
-//	debugMsgs << "Conflux " << this  << std::endl;
-//	debugMsgs  <<  "links in the conflux: " << upstreamSegmentsMap.size() << std::endl;
 	resetCurrSegsOnUpLinks();
-//	debugMsgs << "currSegsOnUplinks size: " << currSegsOnUpLinks.size() << std::endl ;
 	typedef std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator >::iterator currSegsOnUpLinksIt;
 	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
@@ -128,15 +117,6 @@ void sim_mob::Conflux::initCandidateAgents() {
 				rdSeg = *(i->second);
 				if(rdSeg == 0){
 					throw std::runtime_error("Road Segment NULL");
-				}
-
-				if(rdSeg->getStart()->getID() == 58950) {
-							std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > counts = segmentAgents[rdSeg]->getAgentCountsOnLanes();
-							std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >::iterator i = counts.begin();
-							while(i != counts.end()) {
-								std::cout << multiNode->getID()<<": "<< "58950" << ": " << (*i).second.second << std::endl;
-								i++;
-							}
 				}
 				segmentAgents[rdSeg]->resetFrontalAgents();
 				candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
@@ -179,9 +159,6 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 	double minDistance = std::numeric_limits<double>::max();
 	while(i != candidateAgents.end()) {
 		if((*i).second != nullptr) {
-			if(multiNode->getID() == 66508) {
-				int a = 1;
-			}
 			if(minDistance == ((*i).second->distanceToEndOfSegment + lengthsOfSegmentsAhead[(*i).first])) {
 				// If current ag and (*i) are at equal distance to the stop line, we toss a coin and choose one of them
 				bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);

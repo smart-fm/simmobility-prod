@@ -192,8 +192,6 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
 	safe_delete_item(macro_tick_barr);
-
-	std::cout << debugMsg.str();
 }
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
@@ -542,16 +540,11 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		for(std::set<sim_mob::Conflux*>::iterator confluxIt = confluxes.begin();
 					confluxIt != confluxes.end(); confluxIt++) {
-				debugMsg << "Multinode: " << (*confluxIt)->getMultiNode()->getID() << std::endl;
 		}
-		debugMsg << "\nConflux: confluxes.size() = " << confluxes.size() << "\t workers.size() = " << workers.size();
 		if(numConfluxesPerWorker > 0){
-			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << numConfluxesPerWorker << ")";
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
-		debugMsg << "\nConflux: Worker " << (*i) << " manages " << (*i)->managedConfluxes.size() << " confluxes";
 	}
-	std::cout << debugMsg.str();
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
@@ -564,7 +557,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 	if(numConfluxesToAddInWorker > 0)
 	{
 		std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
-		debugMsg << "insertResult: <" << (*insertResult.first)->getMultiNode()->getID() << ", " << insertResult.second << "> worker: " << worker << std::endl;
 		confluxes.erase(conflux);
 		numConfluxesToAddInWorker--;
 		conflux->setParentWorker(worker);
@@ -580,7 +572,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 				// insert this conflux if it has not already been assigned to another worker
 				// the set container for managedConfluxes takes care of eliminating duplicates
 				std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
-				debugMsg << "insertResult: <" << (*insertResult.first)->getMultiNode()->getID() << ", " << insertResult.second << "> worker: " << worker << std::endl;
 				if (insertResult.second)
 				{
 					// One conflux was added by the insert. So...
@@ -597,7 +588,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
 		{
 			// recusive call
-			debugMsg << "\nConflux: Calling assignConfluxToWorkerRecursive(" << *confluxes.begin() << ", " << worker << ", " << numConfluxesToAddInWorker << ")";
 			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
 		}
 		else

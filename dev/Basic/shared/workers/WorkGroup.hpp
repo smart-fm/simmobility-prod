@@ -213,7 +213,6 @@ private:
 
 public:
 	std::stringstream debugMsg;
-
 };
 
 

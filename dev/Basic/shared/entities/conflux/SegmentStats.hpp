@@ -38,6 +38,14 @@ class LaneStats {
 public:
 	LaneStats() : queueCount(0), initialQueueCount(0), laneParams(new LaneParams()) {}
 	std::vector<sim_mob::Agent*> laneAgents;
+
+	/**
+	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
+	 * laneAgentsIt will iterate on laneAgentsCopy and stays intact. Any handover of agents to the next segment
+	 * is done by removing the agent from laneAgents and adding to laneAgents of the next segment. ~ Harish
+	 */
+	std::vector<sim_mob::Agent*> laneAgentsCopy;
+
 	void addAgent(sim_mob::Agent* ag);
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
 	void removeAgent(sim_mob::Agent* ag);

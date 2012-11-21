@@ -229,7 +229,7 @@ namespace sim_mob {
 
 	sim_mob::Agent* LaneStats::next() {
 		sim_mob::Agent* ag = nullptr;
-		if (laneAgentsIt != laneAgents.end()) {
+		if (laneAgentsIt != laneAgentsCopy.end()) {
 			ag = *laneAgentsIt;
 			laneAgentsIt++;
 		}
@@ -245,7 +245,7 @@ namespace sim_mob {
 	}
 
 	void sim_mob::LaneStats::addAgent(sim_mob::Agent* ag) {
-		if (std::find(laneAgents.begin(), laneAgents.end(), ag)==laneAgents.end())
+		if (std::find(laneAgents.begin(), laneAgents.end(), ag)==laneAgents.end()) // if agent is not already in the lane add him
 			laneAgents.push_back(ag);
 		else
 			throw std::runtime_error("Attempting to addAgent to the lane twice!");
@@ -278,10 +278,8 @@ namespace sim_mob {
 	}
 
 	void LaneStats::resetIterator() {
-		laneAgentsIt = laneAgents.begin();
-		if(laneAgentsIt != laneAgents.end())
-			std::cout<<"laneAgent resetIterator: " <<(*laneAgentsIt)->getId()
-			<< " RdSeg: " << (*laneAgentsIt)->getCurrSegment()->getStart()->getID() <<std::endl;
+		laneAgentsCopy = laneAgents;
+		laneAgentsIt = laneAgentsCopy.begin();
 	}
 
 	void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed, double pedSpeed) {

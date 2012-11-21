@@ -128,25 +128,20 @@ bool performMainMed(const std::string& configFileName) {
 	}
 
 	{ //Begin scope: WorkGroups
-		std::cout << "Calling NewWorkGroup()" << std::endl;
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
-	std::cout << "Calling InitAllGroups()" << std::endl;
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
 
-	std::cout << "Calling initWorkers()" << std::endl;
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 
 
-	std::cout << "Calling assignConfluxToWorkers()" << std::endl;
 	agentWorkers->assignConfluxToWorkers();
 
-	std::cout << "Agent::all_agents.size()" << Agent::all_agents.size() << std::endl;
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
 	 * they will be assigned a worker.

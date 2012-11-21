@@ -81,7 +81,7 @@ sim_mob::medium::Driver::~Driver() {
 	safe_delete_item(vehicle);
 
 	ss << "!!__________________________________________!!" << endl;
-	std::cout << ss.str();
+	//std::cout << ss.str();
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -558,6 +558,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 			<<"\tcurrSegment: "<< vehicle->getCurrSegment()
 			<<"\tLane: "<< currLane->getLaneID_str()
 			<<"\tMovCount: "<<currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).second
+			<<"\tQCount: " << currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).first
 			<<"\t time: " << t0
 			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
 			<<"\ttime: "<<currTimeMS + t0*1000<<endl;

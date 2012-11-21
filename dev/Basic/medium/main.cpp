@@ -81,6 +81,10 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+#ifdef SIMMOB_USE_CONFLUXES
+	std::cout << "Confluxes ON!" << std::endl;
+#endif
+
 	ProfileBuilder* prof = nullptr;
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	ProfileBuilder::InitLogFile("agent_update_trace.txt");
@@ -127,7 +131,7 @@ bool performMainMed(const std::string& configFileName) {
 		std::cout << "Calling NewWorkGroup()" << std::endl;
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	//WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	std::cout << "Calling InitAllGroups()" << std::endl;
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
@@ -136,7 +140,7 @@ bool performMainMed(const std::string& configFileName) {
 	std::cout << "Calling initWorkers()" << std::endl;
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
-	//signalStatusWorkers->initWorkers(nullptr);
+	signalStatusWorkers->initWorkers(nullptr);
 
 
 	std::cout << "Calling assignConfluxToWorkers()" << std::endl;
@@ -154,7 +158,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
-		//signalStatusWorkers->assignAWorker(*it);
+		signalStatusWorkers->assignAWorker(*it);
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
@@ -168,7 +172,7 @@ bool performMainMed(const std::string& configFileName) {
 	//
 	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		//partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}

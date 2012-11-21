@@ -28,6 +28,7 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/CommunicationManager.h"
 
 #ifdef SIMMOB_NEW_SIGNAL
 	#include "entities/signal/Signal.hpp"
@@ -879,7 +880,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  */
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
-	
+
 	ProfileBuilder* prof = nullptr;
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	ProfileBuilder::InitLogFile("agent_update_trace.txt");
@@ -1111,6 +1112,9 @@ int main(int argc, char* argv[])
 #else
 	std::cout << "Not Using New Signal Model" << std::endl;
 #endif
+	boost::thread workerThread(boost::bind(&CommunicationManager::start, CommunicationManager::GetInstance()));
+//	workerThread.join();
+//	CommunicationManager::GetInstance()->start();
 	//Save start time
 	gettimeofday(&start_time, nullptr);
 

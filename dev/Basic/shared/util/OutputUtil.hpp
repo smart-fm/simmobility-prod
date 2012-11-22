@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include <fstream>
-
+//#include "util/CommunicationManager.h"
 
 namespace sim_mob {
 
@@ -134,6 +134,7 @@ private:
  * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
  
+//#ifndef SIMMOB_REALTIME
 #define LogOut( strm ) \
     do \
     { \
@@ -141,6 +142,20 @@ private:
         sim_mob::Logger::log_file() << strm; \
     } \
     while (0)
+//#else
+//#define LogOut( strm ) \
+//    do \
+//    { \
+//        boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
+//        sim_mob::Logger::log_file() << strm; \
+//        std::ostringstream stream; \
+//        stream << strm; \
+//        std::string str =  stream.str(); \
+//        CommunicationManager::GetInstance()->sendData(str); \
+//    } \
+//    while (0)
+//#endif
+/*
 
 /**
  * Write a message to cout, thread-safe.

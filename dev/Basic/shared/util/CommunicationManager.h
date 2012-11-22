@@ -8,10 +8,12 @@
 #ifndef COMMUNICATIONMANAGER_H_
 #define COMMUNICATIONMANAGER_H_
 
+#include <queue>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 namespace sim_mob {
 
@@ -23,11 +25,30 @@ public:
 	static CommunicationManager* GetInstance();
 	~CommunicationManager();
 	void start();
+	std::queue<std::string> *getQueue() { return &dataQueue;}
+	void sendData(std::string &s) {
+		boost::mutex::scoped_lock lock(guard);
+		dataQueue.push(s);}
+	bool getData(std::string &s) {
+		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
+		if(!dataQueue.empty())
+		{
+			boost::mutex::scoped_lock lock(guard);
+			s = dataQueue.front();
+			dataQueue.pop();
+			return true;
+		}
+		return false;
+	}
+	bool isAllDataOut() { return dataQueue.empty(); }
 private:
 	CommunicationManager();
 	static CommunicationManager *instance;
 	boost::asio::io_service io_service;
 	int listenPort;
+private:
+	std::queue<std::string> dataQueue;
+	boost::mutex guard;
 };
 
 class tcp_connection
@@ -48,46 +69,101 @@ public:
 
   void start()
   {
-    for(int i=0;i<10;++i)
-    {
-    	std::ostringstream stream;
-    	stream<< "test send " ;
-    	stream<<i;
-    	stream<<"\n";
-    	message_=stream.str();
-    	std::cout<<"send message: "<<message_<<std::endl;
-    	if(socket_.is_open())
-    	{
-//			boost::asio::async_write(socket_, boost::asio::buffer(message_),
-//				boost::bind(&tcp_connection::handle_write, shared_from_this(),
-//				  boost::asio::placeholders::error,
-//				  boost::asio::placeholders::bytes_transferred));
-    		boost::system::error_code err;
-    		 try
-    		 {
-    			 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
-    			 //size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all());
-    			 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
-    			 if(err)
-    			 {
-    				 std::cerr<<"start: send error "<<err.message()<<std::endl;
-    				 break;
-    			 }
-    		 }
-    		 catch (std::exception& e)
-    		 {
-    			 std::cerr <<"start: "<< e.what() << std::endl;
-    			 break;
-    		 }
+//	  std::queue<std::string> *dataQueue = CommunicationManager::GetInstance()->getQueue();
+	  for(;;)
+	  {
+//		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
+		  if(CommunicationManager::GetInstance()->getData(message_))
+		  {
+			if(socket_.is_open())
+			{
+				std::ostringstream stream;
+				stream<< message_;
+				std::string body = "{=" + stream.str()+"=}";
 
-			sleep(1);
-		}
-    	else
-    	{
-    		std::cout<<"start: socket broken"<<std::endl;
-    		break;
-    	}
-    }
+				char msg[20]="\0";
+				//head size 12
+				sprintf(msg,"{=%08d=}",body.size());
+				std::string head=msg;
+
+				message_=head+body;
+				std::cout<<"send message: "<<message_<<std::endl;
+				boost::system::error_code err;
+				 try
+				 {
+					 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
+					 //size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all());
+					 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
+					 if(err)
+					 {
+						 std::cerr<<"start: send error "<<err.message()<<std::endl;
+						 socket_.close();
+						 return;
+					 }
+				 }
+				 catch (std::exception& e)
+				 {
+					 std::cerr <<"start: "<< e.what() << std::endl;
+					 socket_.close();
+					 return;
+				 }
+
+//				 dataQueue->pop();
+
+			}
+			else
+			{
+				std::cout<<"start: socket broken"<<std::endl;
+				socket_.close();
+				return;
+			}
+		  }//end of while
+		  sleep(0.1);
+	  }
+
+//    for(int i=0;i<10;++i)
+//    {
+//    	if(socket_.is_open())
+//    	{
+//    		std::ostringstream stream;
+//			stream<< "it is data. " ;
+//			stream<<i;
+//			stream<<"\n";
+//			std::string body = "{=" + stream.str()+"=}";
+//
+//			char msg[2048]="\0";
+//			//head size 12
+//			sprintf(msg,"{=%08d=}",body.size());
+//			std::string head=msg;
+//
+//			message_=head+body;
+//			std::cout<<"send message: "<<message_<<std::endl;
+//    		boost::system::error_code err;
+//    		 try
+//    		 {
+//    			 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
+//    			 //size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all());
+//    			 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
+//    			 if(err)
+//    			 {
+//    				 std::cerr<<"start: send error "<<err.message()<<std::endl;
+//    				 break;
+//    			 }
+//    		 }
+//    		 catch (std::exception& e)
+//    		 {
+//    			 std::cerr <<"start: "<< e.what() << std::endl;
+//    			 break;
+//    		 }
+//
+//			sleep(1);
+//		}
+//    	else
+//    	{
+//    		std::cout<<"start: socket broken"<<std::endl;
+//    		break;
+//    	}
+//    }
   }
 
 private:

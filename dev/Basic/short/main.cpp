@@ -1185,6 +1185,13 @@ int main(int argc, char* argv[])
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
+#ifdef SIMMOB_REALTIME
+
+	while(!CommunicationManager::GetInstance()->isAllDataOut())
+	{
+		sleep(1);
+	}
+#endif
 	cout << "Done" << endl;
 	return returnVal;
 }

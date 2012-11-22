@@ -24,7 +24,7 @@
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
-
+#include "util/CommunicationManager.h"
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else
@@ -181,6 +181,11 @@ void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
+
+	std::ostringstream stream;
+	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
+	std::string s=stream.str();
+	CommunicationManager::GetInstance()->sendData(s);
 
 	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 }

@@ -9,6 +9,7 @@
 #include <boost/thread.hpp>
 
 sim_mob::CommunicationManager* sim_mob::CommunicationManager::instance = NULL;
+//std::queue<std::string> sim_mob::CommunicationManager::dataQueue = NULL;
 
 sim_mob::CommunicationManager* sim_mob::CommunicationManager::GetInstance() {
      if (!instance) {

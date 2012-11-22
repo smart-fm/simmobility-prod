@@ -14,7 +14,9 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-
+#include <iostream>
+#include <fstream>
+#include <ctime>
 namespace sim_mob {
 
 using boost::asio::ip::tcp;
@@ -30,7 +32,7 @@ public:
 		boost::mutex::scoped_lock lock(guard);
 		dataQueue.push(s);}
 	bool getData(std::string &s) {
-		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
+//		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
 		if(!dataQueue.empty())
 		{
 			boost::mutex::scoped_lock lock(guard);
@@ -67,13 +69,30 @@ public:
     return socket_;
   }
 
+  void handle_write(const boost::system::error_code& /*error*/,
+        size_t /*bytes_transferred*/)
+    {
+	  std::cout<<"write: "<<std::endl;
+    }
+  std::string make_daytime_string()
+  {
+    using namespace std; // For time_t, time and ctime;
+    time_t now = std::time(0);
+    return std::ctime(&now);
+  }
   void start()
   {
 //	  std::queue<std::string> *dataQueue = CommunicationManager::GetInstance()->getQueue();
+	  std::ofstream file_output;
+	  file_output.open("/home/redheli/new_simmob/new_simmob/simmobility/dev/Basic/senddata.txt");
+//	  file_output<<"asdf";
+//	  std::ostream log_file_or_cout = file_output;
+//	  log_file_or_cout<<"test";
+	  CommunicationManager *com = CommunicationManager::GetInstance() ;
 	  for(;;)
 	  {
 //		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
-		  if(CommunicationManager::GetInstance()->getData(message_))
+		  if(com->getData(message_))
 		  {
 			if(socket_.is_open())
 			{
@@ -87,13 +106,20 @@ public:
 				std::string head=msg;
 
 				message_=head+body;
-				std::cout<<"send message: "<<message_<<std::endl;
+//				std::cout<<"send message: "<<message_<<std::endl;
+				file_output<<"send begin: "<<make_daytime_string();
+				file_output<<message_;
+				file_output<<"\n";
 				boost::system::error_code err;
 				 try
 				 {
-					 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
-					 //size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all());
-					 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
+//					 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
+					 boost::asio::async_write(socket_, boost::asio::buffer(message_),
+					                          boost::bind(&tcp_connection::handle_write,shared_from_this(),
+					                          boost::asio::placeholders::error,
+					                          boost::asio::placeholders::bytes_transferred));
+//					 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
+					 file_output<<"send over: "<<make_daytime_string();
 					 if(err)
 					 {
 						 std::cerr<<"start: send error "<<err.message()<<std::endl;
@@ -108,8 +134,6 @@ public:
 					 return;
 				 }
 
-//				 dataQueue->pop();
-
 			}
 			else
 			{
@@ -118,9 +142,11 @@ public:
 				return;
 			}
 		  }//end of while
-		  sleep(0.1);
+//		  sleep(0.001);
 	  }
-
+//	  if (file_output.is_open()) {
+	  			file_output.close();
+//	  		}
 //    for(int i=0;i<10;++i)
 //    {
 //    	if(socket_.is_open())
@@ -201,11 +227,12 @@ public:
   {
     start_accept();
   }
-
+  tcp_connection::pointer new_connection;
+  bool isClientConnect() { return new_connection->socket().is_open();}
 private:
   void start_accept()
   {
-    tcp_connection::pointer new_connection =
+    new_connection =
       tcp_connection::create(acceptor_.get_io_service());
 
     acceptor_.async_accept(new_connection->socket(),

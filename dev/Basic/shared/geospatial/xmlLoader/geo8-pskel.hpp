@@ -3797,7 +3797,7 @@ namespace geo
     virtual void
     phase (sim_mob::Phase);
 
-    virtual sim_mob::phases
+    virtual sim_mob::Signal::phases
     post_Phases_t () = 0;
 
     // Parser construction API.
@@ -3962,7 +3962,7 @@ namespace geo
     linkAndCrossings (sim_mob::LinkAndCrossingC);
 
     virtual void
-    phases (sim_mob::phases);
+    phases (sim_mob::Signal::phases);
 
     virtual void
     SCATS ();

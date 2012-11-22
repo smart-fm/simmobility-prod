@@ -1028,10 +1028,10 @@ void sim_mob::WriteXMLInput_TrafficSignal_ColorSequence(TiXmlElement * parent, s
 	}
 
 }
-void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases, /*const std::vector<sim_mob::Phase>*/const sim_mob::phases &phases_)
+void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases,  std::vector<sim_mob::Phase> &phases_)
 {
 	std::ostringstream out;
-	for(sim_mob::phases::const_iterator it_phases = phases_.begin(); it_phases != phases_.end(); it_phases++)
+	for(sim_mob::Signal::phases::const_iterator it_phases = phases_.begin(); it_phases != phases_.end(); it_phases++)
 	{
 		//phase
 		TiXmlElement * phase  = new TiXmlElement( "phase" );
@@ -1147,7 +1147,7 @@ void sim_mob::WriteXMLInput_TrafficSignal_common(TiXmlElement * Signal,sim_mob::
 	//phases
 	TiXmlElement * phases  = new TiXmlElement( "phases" );
 	Signal->LinkEndChild( phases);
-	/*const std::vector<sim_mob::Phase>*/ const sim_mob::phases & phases_ = signal_->getPhases();
+	/*const std::vector<sim_mob::Phase>*/ sim_mob::Signal::phases & phases_ = signal_->getPhases();
 	WriteXMLInput_TrafficSignal_Phases(phases,phases_);
 }
 void sim_mob::WriteXMLInput_TrafficSignal_SCATS_SplitPlan(TiXmlElement * SCATS,sim_mob::Signal_SCATS *signal_)

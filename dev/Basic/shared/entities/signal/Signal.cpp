@@ -356,7 +356,7 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) const{
+void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) {
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
@@ -476,7 +476,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
  * He will get three colors for three options of heading directions(left, forward,right)
  */
 
-TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane)const  {
+TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
 	RoadSegment const * fromRoad = fromLane.getRoadSegment();
 	Link * const fromLink = fromRoad->getLink();
 
@@ -503,7 +503,7 @@ TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & to
 /*checks current phase for the current color of the crossing(if the crossing found),
  * other cases and phases, just return red.
  */
-TrafficColor Signal_SCATS::getPedestrianLight(Crossing const & crossing) const
+TrafficColor Signal_SCATS::getPedestrianLight (Crossing const & crossing) const
 {
 	const sim_mob::Phase & phase = getCurrPhase();
 	const sim_mob::Phase::crossings_map_const_iterator it = phase.getCrossingMaps().find((const_cast<Crossing *>(&crossing)));
@@ -536,21 +536,20 @@ void Signal_SCATS::initializePhases() {
 		throw std::runtime_error("Mismatch on number of phases");
 	int i = 0 ; double percentage_sum =0;
 	//setting percentage and phaseoffset for each phase
-	std::cout << "Analyzing phase .for signal "<< this->getId() << std::endl;
-	std::cout << "nof phases = " << getPhases().size() << std::endl;
+//	std::cout << "Analyzing phase .for signal "<< this->getId() << std::endl;
+//	std::cout << "nof phases = " << getPhases().size() << std::endl;
 //	getchar();
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 	{
 		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
-		std::cout << "Analyzing phase " << (getPhases()[ph_it]).getName()  << std::endl;
+//		std::cout << "Analyzing phase " << (getPhases()[ph_it]).getName()  << std::endl;
 		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(getPhases()[ph_it]);
-		std::cout << " ....  done with casting phase " << target_phase.getName() << std::endl;
-//		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
-//		(target_phase).setPercentage(choice[i]);
-//		(target_phase).setPhaseOffset(percentage_sum * plan_.getCycleLength() / 100);
-//		std::cout << "Signal " << this->getId() << "  Set phaseoffset for " << (target_phase).getPhaseName() /*<< " to " << (target_phase).getPhaseOffset()*/ << std::endl;
+//		std::cout << " ....  done with casting phase " << target_phase.getName() << std::endl;
+		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
+		(target_phase).setPercentage(choice[i]);
+		(target_phase).setPhaseOffset(percentage_sum * plan_.getCycleLength() / 100);
+//		std::cout << "Signal " << this->getId() << "  Set phaseoffset for " << (target_phase).getPhaseName() << " to " << (target_phase).getPhaseOffset() << std::endl;
 	}
-	getchar();
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize();

@@ -1223,8 +1223,7 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 
 	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
-	sim_mob::Signal_SCATS::phases_name_iterator sim_ph_it;
-	const sim_mob::Signal_SCATS::phases_view & ppv = signal.getPhases().get<1>();
+	sim_mob::Signal_SCATS::phases::iterator sim_ph_it;
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
@@ -1234,7 +1233,12 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 //		ll.RS_From = (*ph_it).second.FromSection->generatedSegment;
 //		ll.RS_To = (*ph_it).second.ToSection->generatedSegment;
 		std::string name = (*ph_it).second.name;
-		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
+		for(sim_ph_it = signal.getPhases().begin(); sim_ph_it != signal.getPhases().end(); sim_ph_it++)
+		{
+			if(sim_ph_it->getName() == name)
+				break;
+		}
+		if(sim_ph_it != signal.getPhases().end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
 			sim_ph_it->addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 		}

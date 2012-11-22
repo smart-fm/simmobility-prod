@@ -76,6 +76,7 @@ enum signalType
 class Signal  : public sim_mob::Agent
 {
 public:
+	typedef std::vector<sim_mob::Phase> phases;
 	friend class geo::Signal_t_pimpl;
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC)
 	  : Agent(mtxStrat, id), node_(node){};
@@ -88,7 +89,7 @@ public:
    LinkAndCrossingC const& getLinkAndCrossing()const { return LinkAndCrossings_;}
    LinkAndCrossingC & getLinkAndCrossing() { return LinkAndCrossings_;}
    virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("getDriverLight Not implemented"); } ;
-   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const { throw std::runtime_error("getPedestrianLight Not implemented"); };
+   virtual TrafficColor getPedestrianLight (Crossing const & crossing)const { throw std::runtime_error("getPedestrianLight Not implemented"); };
    virtual std::string toString() const{ throw std::runtime_error("toString Not implemented"); };
    Node  const & getNode() const { return node_; }
    virtual unsigned int getSignalId(){}
@@ -97,7 +98,8 @@ public:
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
    virtual Entity::UpdateStatus update(frame_t frameNumber){}
-   virtual const sim_mob::phases getPhases()const{ return phases_;}
+   virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
+   virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
 
    typedef std::vector<Signal *> All_Signals;
@@ -110,7 +112,7 @@ private:
    sim_mob::Node const & node_;
    sim_mob::signalType signalType_;
    LinkAndCrossingC LinkAndCrossings_;
-   sim_mob::phases phases_;
+   sim_mob::Signal::phases phases_;
 };
 
 
@@ -118,10 +120,7 @@ class Signal_SCATS  : public sim_mob::Signal {
 	friend class geo::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal);
 public:
-	typedef boost::multi_index::nth_index<phases,0>::type PhasesByName;
-	typedef PhasesByName::iterator phases_iterator;
-	typedef boost::multi_index::nth_index_iterator<phases,1>::type phases_name_iterator;
-	typedef boost::multi_index::nth_index<phases,1>::type phases_view;
+	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/
 	void initialize();
@@ -180,26 +179,27 @@ public:
 	virtual void setCurrLink(const sim_mob::Link*){}
 	virtual const sim_mob::Lane* getCurrLane() const{return nullptr; }
 	virtual void setCurrLane(const sim_mob::Lane* lane){}
-//	virtual const sim_mob::phases getPhases(){ return phases_;}
+//	virtual const sim_mob::Signal::phases getPhases(){ return phases_;}
 
 	/*--------The cause of this Module----------*/
-    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
-	TrafficColor getPedestrianLight(Crossing const & crossing) const;
+    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+	TrafficColor getPedestrianLight  (Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 
 
-    void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
+    void outputTrafficLights(frame_t frameNumber,std::string newLine);
 
     /* phase
      *
      */
-    std::size_t getNOF_Phases()  const {
+    std::size_t getNOF_Phases() {
     	return getPhases().size();
 //    return getNOF_Phases();
     }
     std::size_t & getCurrPhaseID() { return currPhaseID; }
     std::size_t computeCurrPhase(double currCycleTimer);
-    const  sim_mob::Phase & getCurrPhase() const { return getPhases()[currPhaseID]; }
+    const sim_mob::Phase & getCurrPhase() const {
+    	return getPhases()[currPhaseID]; }
 
     void initializePhases();
     void printColors(double currCycleTimer);

@@ -209,11 +209,11 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef boost::multi_index_container<
-		sim_mob::Phase,
-		boost::multi_index::indexed_by<
-		boost::multi_index::random_access<>
-		,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
-  >
-> phases;
+//typedef boost::multi_index_container<
+//		sim_mob::Phase,
+//		boost::multi_index::indexed_by<
+//		boost::multi_index::random_access<>
+//		,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
+//  >
+//> phases;
 }//namespace

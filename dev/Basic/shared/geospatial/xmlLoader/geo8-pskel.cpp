@@ -8666,7 +8666,7 @@ namespace geo
   }
 
   void Signal_t_pskel::
-  phases (sim_mob::phases)
+  phases (sim_mob::Signal::phases)
   {
   }
 

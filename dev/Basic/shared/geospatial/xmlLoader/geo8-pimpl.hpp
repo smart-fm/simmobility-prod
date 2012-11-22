@@ -1229,7 +1229,7 @@ namespace geo
 
   class Phases_t_pimpl: public virtual Phases_t_pskel
   {
-	  sim_mob::phases model;
+	  sim_mob::Signal::phases model;
     public:
     virtual void
     pre ();
@@ -1237,7 +1237,7 @@ namespace geo
     virtual void
     phase (sim_mob::Phase);
 
-    virtual sim_mob::phases
+    virtual sim_mob::Signal::phases
     post_Phases_t ();
   };
 
@@ -1298,7 +1298,7 @@ namespace geo
     linkAndCrossings (sim_mob::LinkAndCrossingC);
 
     virtual void
-    phases (sim_mob::phases);
+    phases (sim_mob::Signal::phases);
 
     virtual void
     SCATS ();

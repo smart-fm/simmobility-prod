@@ -2434,7 +2434,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 	  model.push_back(phase);
   }
 
-  sim_mob::phases Phases_t_pimpl::
+  sim_mob::Signal::phases Phases_t_pimpl::
   post_Phases_t ()
   {
     return model;
@@ -2542,7 +2542,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void Signal_t_pimpl::
-  phases (sim_mob::phases phases)//todo:make reference
+  phases (sim_mob::Signal::phases phases)//todo:make reference
   {
     basicSignal->phases_ = phases;
   }

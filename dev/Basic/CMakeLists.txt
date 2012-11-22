@@ -263,6 +263,19 @@ ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
   add_library(simmob_geoxml SHARED  ${SharedCode_CPP})
 ENDIF()
 
+#Install targets for our shared library (header files)
+#TODO: We currently install *all* header files in Shared.
+#FILE(GLOB_RECURSE GeoHeaderFiles "${CMAKE_CURRENT_SOURCE_DIR}/shared/*.hpp")
+#INSTALL(FILES ${GeoHeaderFiles} DESTINATION include/sim_mob)
+install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp")
+
+#Install the library too.
+INSTALL(TARGETS simmob_geoxml
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 #Build the Short term?
 IF (${BUILD_SHORT} MATCHES "ON")
 	add_subdirectory(short)

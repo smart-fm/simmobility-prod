@@ -218,9 +218,11 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 //		segment_based
 		output << "\"segments\":" << newLine << "[" << newLine;
 		//link_based
-//		output << "\"links\":" << newLine << "[" << newLine;
-		links_map_iterator it = links_map_.begin();
-		while (it != links_map_.end()) {
+		std::cout << " creating string representation for phase " << name  << std::endl;
+		std::cout << " links_map_.size() = " << links_map_.size() << std::endl;
+		for(links_map_iterator it = links_map_.begin(); it != links_map_.end() ; it++)
+		{
+			std::cout << " links_map_.size() = "  << std::endl;
 			output << "{";
 			//link_based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
@@ -228,12 +230,22 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 //			//segment_based
 			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //segmentFrom
 			output << "\"segment_to\":\"" << (*it).second.RS_To << "\"}";
-
-			it++;
-			if (it != links_map_.end())
-				output << "," << newLine;
-
+			output << "," << newLine;
 		}
+//		links_map_iterator it = links_map_.begin();
+//		while (it != links_map_.end()) {
+//			output << "{";
+//			//link_based
+////			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
+////			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
+////			//segment_based
+//			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //segmentFrom
+//			output << "\"segment_to\":\"" << (*it).second.RS_To << "\"}";
+//			it++;
+//			if (it != links_map_.end())
+//				output << "," << newLine;
+//
+//		}
 		output << newLine << "]," << newLine;
 	}
 	output << "\"crossings\":" << newLine << "[" << newLine;
@@ -390,8 +402,9 @@ const std::string & Phase::getName() const
 std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 {
 	std::ostringstream output;
+	output.str("");
 	if (links_map_.size() == 0 && crossings_map_.size() == 0)
-		return 0;
+		return output.str();
 	output << newLine << "{" << newLine;
 	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;

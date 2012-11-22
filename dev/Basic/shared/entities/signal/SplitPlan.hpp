@@ -13,6 +13,7 @@
 namespace geo
 {
 class SplitPlan_t_pimpl;
+class Signal_t_pimpl;
 }
 namespace sim_mob
 {
@@ -29,28 +30,19 @@ class SplitPlan
 {
 
 	friend class geo::SplitPlan_t_pimpl;
+	friend class geo::Signal_t_pimpl;
 public:
-	//moved to a more globally accessible place
-//	typedef boost::multi_index_container<
-//			sim_mob::Phase,
-//			boost::multi_index::indexed_by<
-//			boost::multi_index::random_access<>
-//			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
-//	  >
-//	> phases;
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
 private:
 
     int signalTimingMode;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
-	std::size_t NOF_Phases; //NOF_Phases = number of phases = phases_.size()
+
 	std::size_t currSplitPlanID;
 	std::size_t nextSplitPlanID;
-	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
 	sim_mob::Cycle cycle_;
-	sim_mob::phases phases_;
 	sim_mob::Signal_SCATS *parentSignal;
 
 	/*
@@ -78,13 +70,6 @@ private:
 	std::vector< std::vector<int> > votes;  //votes[cycle][plan]
 
 public:
-	typedef boost::multi_index::nth_index_iterator<phases,0>::type phases_iterator;
-	typedef boost::multi_index::nth_index_iterator<phases,1>::type phases_name_iterator;
-	typedef boost::multi_index::nth_index<phases,1>::type plan_phases_view;
-	void get_PlanPhasesByName(plan_phases_view & v) const
-	{
-		v = boost::multi_index::get<1>(phases_);
-	}
 	/*plan methods*/
 	SplitPlan(double cycleLength_ = 90,double offset_ = 0/*, int signalTimingMode_= ConfigParams::GetInstance().signalTimingMode*/, unsigned int TMP_PlanID_ = 1);
 	std::size_t CurrSplitPlanID();
@@ -104,17 +89,7 @@ public:
 	double getCycleLength() const ;
 	void setCycleLength(std::size_t);
 
-	/*phase related methods*/
-	std::size_t & CurrPhaseID();
-//	const std::vector<sim_mob::Phase> & getPhases() const;
-//	std::vector<sim_mob::Phase> & getPhases();//over load for database loader
-	void addPhase(sim_mob::Phase);
-	std::size_t nofPhases();
-	std::size_t find_NOF_Phases();
-	std::size_t computeCurrPhase(double currCycleTimer);
-	const sim_mob::Phase & CurrPhase() const;
-	int getPhaseIndex(std::string);
-	const phases & getPhases(){return phases_;}
+
 
 	/*offset related methods*/
 	std::size_t getOffset();
@@ -135,7 +110,7 @@ public:
 	sim_mob::Signal_SCATS * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);
 	double fmax(std::vector<double> &DS);
-	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
+//	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
 
 	/*friends*/
 	friend class Signal_SCATS;

@@ -79,7 +79,14 @@ struct BusStopInfo
 	}
 } bs_info;
 
-sim_mob::Signal *currSignal;
+struct SCATS_Info
+{
+	int signalTimingMode;
+	sim_mob::SplitPlan SplitPlan;
+}SCATS_Info_;
+
+sim_mob::Signal *targetSignal;
+sim_mob::Signal *basicSignal;
 
 std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 
@@ -278,14 +285,6 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void lane_t_pimpl::
   PolyLine (std::vector<sim_mob::Point2D> PolyLine)
   {
-//	  if(this->lane->getLaneID() == 1000001000)
-//	  {
-//		  for(std::vector<sim_mob::Point2D>::iterator it = PolyLine.begin(); it != PolyLine.end(); it++)
-//		  {
-//			  std::cout << "Lane 1000001000 polypoint " << it->getX() << "," << it->getY() << std::endl;
-//		  }
-//		  getchar();
-//	  }
 	  this->lane->setLanePolyline(PolyLine);
   }
 
@@ -2096,7 +2095,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   post_signalTimingMode_t ()
   {
     const ::std::string& v (post_string ());
-    std::cout << "signalTimingMode_t: " << v << std::endl;
+//    std::cout << "signalTimingMode_t: " << v << std::endl;
     if(v == "STM_FIXED") return 0;
     if(v == "STM_ADAPTIVE") return 1;
     return -1;
@@ -2121,7 +2120,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void Plan_t_pimpl::
   PhasePercentage (double PhasePercentage)
   {
-    std::cout << "PhasePercentage: " << PhasePercentage << std::endl;
+//    std::cout << "PhasePercentage: " << PhasePercentage << std::endl;
     model.second.push_back(PhasePercentage);
   }
 
@@ -2143,6 +2142,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void Plans_t_pimpl::
   plan (std::pair<short,std::vector<double> > plan)
   {
+//	  std::cout << "Plans_t_pimpl::plan  plan received: " << std::endl;
 //    model.insert(model.begin() + plan.first, plan.second);
 	  model.push_back(plan.second);
   }
@@ -2271,6 +2271,8 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   {
 	  model.first = 0;
 	  ll.LinkTo = 0;
+	  ll.RS_From = 0;
+	  ll.RS_To = 0;
 	  linkFrom_ = 0;
   }
 
@@ -2329,11 +2331,13 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings> crossings_map)
   {
     model[crossings_map.first] = crossings_map.second;
+//    std::cout << "Crossing " << crossings_map.first << " Added to the map, new size of map = " << model.size() << std::endl;
   }
 
   std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_maps_t_pimpl::
   post_crossings_maps_t ()
   {
+	  std::cout << "Sending Crossing map of size " << model.size() << std::endl;
     return model;
   }
 
@@ -2361,15 +2365,16 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void crossings_map_t_pimpl::
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > > ColorSequence)
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > > ColorSequence)//todo:make reference
   {
     model.colorSequence.setColorDuration(ColorSequence.second);
     model.colorSequence.setTrafficLightType(ColorSequence.first);
   }
 
-  std::pair<sim_mob::Crossing *, sim_mob::Crossings> crossings_map_t_pimpl::
+  std::pair<sim_mob::Crossing *, sim_mob::Crossings> crossings_map_t_pimpl:://todo:make reference
   post_crossings_map_t ()
   {
+	std::cout << "Sending a crossing pair with key " << model.crossig << "\n";
     return std::make_pair(model.crossig,model);
   }
 
@@ -2397,13 +2402,13 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void Phase_t_pimpl::
-  links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink> links_maps)
+  links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink> links_maps)//todo:make reference
   {
 	  model.links_map_ = links_maps;
   }
 
   void Phase_t_pimpl::
-  crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_maps)
+  crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_maps)//todo:make reference
   {
 	  model.crossings_map_ = crossings_maps;
   }
@@ -2447,28 +2452,30 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void SplitPlan_t_pimpl::
   splitplanID (unsigned int splitplanID)
   {
-    std::cout << "splitplanID: " << splitplanID << std::endl;
+//    std::cout << "splitplanID: " << splitplanID << std::endl;
     model.TMP_PlanID = splitplanID;
   }
 
   void SplitPlan_t_pimpl::
   cycleLength (unsigned char cycleLength)
   {
-    std::cout << "cycleLength: " << static_cast<unsigned short> (cycleLength) << std::endl;
+//    std::cout << "cycleLength: " << static_cast<unsigned short> (cycleLength) << std::endl;
     model.cycleLength = cycleLength;
   }
 
   void SplitPlan_t_pimpl::
   offset (unsigned char offset)
   {
-    std::cout << "offset: " << static_cast<unsigned short> (offset) << std::endl;
+//    std::cout << "offset: " << static_cast<unsigned short> (offset) << std::endl;
     model.offset = offset;
   }
 
   void SplitPlan_t_pimpl::
-  ChoiceSet (std::vector<std::vector<double> > ChoiceSet)
+  ChoiceSet (std::vector<std::vector<double> > ChoiceSet)//todo:make reference
   {
-	  model.choiceSet = ChoiceSet;
+//	  std::cout << "ChoiceSet assigned" << std::endl;
+//	  model.choiceSet = ChoiceSet;
+	  model.setCoiceSet(ChoiceSet);
   }
 
   sim_mob::SplitPlan SplitPlan_t_pimpl::
@@ -2482,21 +2489,20 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void SCATS_t_pimpl::
   pre ()
   {
+	  //todo:don't know how to re-initialize SCATS_Info_ vahid
+
   }
 
   void SCATS_t_pimpl::
-  signalTimingMode (int signalTimingMode)
+  signalTimingMode (int signalTimingMode)//todo:make reference
   {
-
-	  sim_mob::Signal_SCATS * signal = dynamic_cast<sim_mob::Signal_SCATS *>(currSignal);
-	  signal->setSignalTimingMode(signalTimingMode);
+	  SCATS_Info_.signalTimingMode = signalTimingMode;
   }
 
   void SCATS_t_pimpl::
-  SplitPlan (sim_mob::SplitPlan SplitPlan)
+  SplitPlan (sim_mob::SplitPlan SplitPlan)//todo:make reference
   {
-	  sim_mob::Signal_SCATS * signal = dynamic_cast<sim_mob::Signal_SCATS *>(currSignal);
-	  signal->setSplitPlan(SplitPlan);
+	  SCATS_Info_.SplitPlan = SplitPlan;
   }
 
   void SCATS_t_pimpl::
@@ -2510,46 +2516,58 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void Signal_t_pimpl::
   pre ()
   {
-	  currSignal = 0;
+	  targetSignal = 0;
+	  basicSignal = 0;
   }
 
   void Signal_t_pimpl::
   signalID (unsigned int signalID)
   {
+	  signalID_ = signalID;
     std::cout << "signalID: " << signalID << std::endl;
+
   }
 
   void Signal_t_pimpl::
   nodeID (unsigned int nodeID)
   {
     std::cout << "nodeID: " << nodeID << std::endl;
+    basicSignal = new sim_mob::Signal(*geo_Nodes_[nodeID],sim_mob::ConfigParams::GetInstance().mutexStategy,signalID_);
   }
 
   void Signal_t_pimpl::
-  linkAndCrossings (sim_mob::LinkAndCrossingC linkAndCrossings)
+  linkAndCrossings (sim_mob::LinkAndCrossingC linkAndCrossings)//todo:make reference
   {
-    // TODO
-    //
+    basicSignal->LinkAndCrossings_ = linkAndCrossings;
   }
 
   void Signal_t_pimpl::
-  phases (sim_mob::phases phases)
+  phases (sim_mob::phases phases)//todo:make reference
   {
-    // TODO
-    //
+    basicSignal->phases_ = phases;
   }
 
   void Signal_t_pimpl::
   SCATS ()
   {
+	  targetSignal = new sim_mob::Signal_SCATS(basicSignal->getNode(),sim_mob::ConfigParams::GetInstance().mutexStategy,signalID_,SIG_SCATS);
+//	  std::cout << "Signal_t_pimpl::SCATS  Signal " << targetSignal->getId() << "  Has " <<  targetSignal->phases_.size() << " phases\n"; getchar();
+	  targetSignal->phases_ = basicSignal->phases_;
+	  targetSignal->LinkAndCrossings_ = basicSignal->LinkAndCrossings_;
+	  sim_mob::Signal_SCATS *temp = dynamic_cast<sim_mob::Signal_SCATS *>(targetSignal);
+	  temp->setSignalTimingMode(SCATS_Info_.signalTimingMode);
+	  temp->plan_ = SCATS_Info_.SplitPlan;
+	  temp->plan_.parentSignal = temp;
+	  temp->initialize();
+	  delete basicSignal;
+
   }
 
   sim_mob::Signal* Signal_t_pimpl::
   post_Signal_t ()
   {
-    // TODO
-    //
-    // return ... ;
+
+    return targetSignal;
   }
 
   // Signals_t_pimpl
@@ -2563,16 +2581,15 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void Signals_t_pimpl::
   Signal (sim_mob::Signal* Signal)
   {
-    // TODO
-    //
+//	  std::cout << "Signal " << Signal->getId() << "  Has " <<  Signal->getPhases().size() << " phases\n"; getchar();
+	  sim_mob::Signal::all_signals_.push_back(Signal);
+//	  std::cout << "Signal " << sim_mob::Signal::all_signals_.back()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.back()->getPhases().size() << " phases\n";/* getchar();*/
   }
 
   sim_mob::Signal::All_Signals Signals_t_pimpl::
   post_Signals_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return sim_mob::Signal::all_signals_; //might not be very necessary
   }
 
   // GeoSpatial_t_pimpl

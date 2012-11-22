@@ -1199,7 +1199,7 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 		createPhases(signal);
 
 		//now that we have the number of phases, we can continue initializing our split plan.
-		int nof_phases = plan.find_NOF_Phases();
+		int nof_phases = signal.getNOF_Phases();
 //		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
 			if((nof_phases > 5)||(nof_phases < 1))
@@ -1207,22 +1207,6 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 			else
 			{
 				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
-//				//Now you know the each phase percentage from the choice set,
-//				//so you may set the phase percntage and phase offset of each phase, then calculate its phase length
-//				std::vector<double> choice = plan.CurrSplitPlan();
-//				if(choice.size() != nof_phases)
-//					throw std::runtime_error("Mismatch on number of phases");
-//				int i = 0 ; double percentage_sum =0;
-//				sim_mob::SplitPlan::phases_iterator ph_it = plan.getPhases().begin();
-//				for(;ph_it != plan.getPhases().end(); ph_it++, i++)
-//				{
-//					//this ugly line of code is due to the fact that multi index renders constant versions of its elements
-//					sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
-//					if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
-//					(target_phase).setPercentage(choice[i]);
-//					(target_phase).setPhaseOffset(percentage_sum);
-////					(target_phase).calculatePhaseLength();
-//				}
 			}
 		else
 			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
@@ -1239,17 +1223,11 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 
 	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
-	sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
-	const sim_mob::SplitPlan::plan_phases_view & ppv = signal.getPlan().getPhases().get<1>();
+	sim_mob::Signal_SCATS::phases_name_iterator sim_ph_it;
+	const sim_mob::Signal_SCATS::phases_view & ppv = signal.getPhases().get<1>();
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
-		//TODO delete debugging
-//		if(((*ph_it).second.nodeId == 66508)&&((*ph_it).second.name == "C"))
-//		{
-//			std::cout << "Node 66508, sections in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection << " : " << (*ph_it).second.ToSection << "\n";
-//			std::cout << "Node 66508, SeGments in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection->generatedSegment << " : " << (*ph_it).second.ToSection->generatedSegment << "\n";
-//		}
 		sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
 		sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
 		sim_mob::linkToLink ll(linkTo,(*ph_it).second.FromSection->generatedSegment,(*ph_it).second.ToSection->generatedSegment);
@@ -1271,7 +1249,7 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 			}
 			phase.addLinkMapping(linkFrom,ll,mNode);
 			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),mNode);
-			signal.getPlan().addPhase(phase);//congrates
+			signal.addPhase(phase);//congrates
 		}
 	}
 }

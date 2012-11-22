@@ -40,7 +40,7 @@ struct ll
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
 
 		currColor = sim_mob::Red;
-		std::cout << "Setting RS to " << "Zero\n";
+//		std::cout << "Setting RS to " << "Zero\n";
 		RS_From = RS_To = 0;
 	}
 	ll(sim_mob::Link *linkto,sim_mob::RoadSegment *RS_From_, sim_mob::RoadSegment *RS_To_):LinkTo(linkto) {
@@ -180,7 +180,7 @@ public:
 	void printColorDuration() ;
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
-	 std::string outputPhaseTrafficLight(std::string newLine) const;
+	std::string outputPhaseTrafficLight(std::string newLine) const;
 	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
 
 	std::string name; //we can assign a name to a phase for ease of identification

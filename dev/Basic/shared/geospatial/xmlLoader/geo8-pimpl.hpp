@@ -1266,6 +1266,7 @@ namespace geo
 
   class SCATS_t_pimpl: public virtual SCATS_t_pskel
   {
+	  sim_mob::Signal_SCATS * model;
     public:
     virtual void
     pre ();
@@ -1282,6 +1283,7 @@ namespace geo
 
   class Signal_t_pimpl: public virtual Signal_t_pskel
   {
+	  unsigned int signalID_;
     public:
     virtual void
     pre ();

@@ -232,6 +232,8 @@ list(REMOVE_DUPLICATES LibraryList)
 
 #Find all of our Shared source files
 FILE(GLOB_RECURSE SharedCode_CPP shared/*.cpp)
+FILE(GLOB_RECURSE SharedCode_HPP shared/*.hpp)
+
 
 #Remove tests
 FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*.c")
@@ -239,6 +241,11 @@ LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")
+
+  FILE(GLOB_RECURSE Partial_XML_CPP "shared/geospatial/xmlLoader/implementation/*.cpp")
+  LIST(REMOVE_ITEM SharedCode_CPP ${Partial_XML_CPP})
+#  FILE(GLOB_RECURSE Partial_XML_HPP "shared/geospatial/xmlLoader/implementation/*.hpp")
+#  LIST(REMOVE_ITEM SharedCode_HPP ${Partial_XML_HPP})
 
 #Build a shared object file for short-term, mid-term, long-term, and tests to use
 add_library(SimMob_Shared OBJECT ${SharedCode_CPP})

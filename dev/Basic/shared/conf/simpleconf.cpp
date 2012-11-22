@@ -2052,15 +2052,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     for (size_t i = 0; i < all_signals.size(); ++i)
     {
-
-    	Signal  * signal =  dynamic_cast<Signal  *>(all_signals[i]);
+    	Signal  * signal;
 //        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
 	#ifndef SIMMOB_NEW_SIGNAL
+    	signal =  dynamic_cast<Signal  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
 	#else
+    	signal =  dynamic_cast<Signal_SCATS  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
 	#endif
-
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }

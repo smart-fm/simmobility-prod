@@ -87,8 +87,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	Person* person = dynamic_cast<Person*>(parent);
 	if(person)
 	{
-		if(person->getAgentSrc() == "DB_TripChain") {
-			newVeh = initializePath_bus(true);
+		if(person->getAgentSrc() == "BusController") {
+			newVeh = initializePath_bus(true);// no need any node information
 		} else {
 			newVeh = initializePath(true);// previous node to node calculation
 		}

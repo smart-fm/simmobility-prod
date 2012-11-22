@@ -79,26 +79,26 @@ bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res,
 
 
 
-void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments)
+void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& newSegs)
 {
 	//We build in two directions; forward and backwards. We also maintain a list of which
 	// road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
-	bool res1 = buildLinkList(segments, fwdSegments, usedSegments, start, end);
-	bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
+	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
+	//bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
 
 	//Ensure we have at least ONE path (for one-way Links)
-	if (!res1 && !res2) {
+	if (!res1) {
 		throw std::runtime_error("Incomplete link; missing RoadSegment.");
 	}
 
 	//Double-check that everything's been read at least once.
-	if (usedSegments.size() < segments.size()) {
+	if (usedSegments.size() < newSegs.size()) {
 		throw std::runtime_error("Link constructed without the use of all its segments.");
 	}
 
 	//Save all segments
-	uniqueSegments.insert(segments.begin(), segments.end());
+	uniqueSegments.insert(newSegs.begin(), newSegs.end());
 }
 
 
@@ -124,22 +124,24 @@ const std::string & sim_mob::Link::getRoadName() const
 }
 
 
-const vector<RoadSegment*>& sim_mob::Link::getPath(bool isForward) const
+const vector<RoadSegment*>& sim_mob::Link::getPath() const
 {
-	if (isForward) {
+	return segs;
+	/*if (isForward) {
 		return fwdSegments;
 	} else {
 		return revSegments;
-	}
+	}*/
 }
 
-vector<RoadSegment*>& sim_mob::Link::getPath(bool isForward)
+vector<RoadSegment*>& sim_mob::Link::getPath()
 {
-	if (isForward) {
+	return segs;
+	/*if (isForward) {
 		return fwdSegments;
 	} else {
 		return revSegments;
-	}
+	}*/
 }
 
 string sim_mob::Link::getSegmentName(const RoadSegment* segment)

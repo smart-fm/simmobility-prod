@@ -517,11 +517,6 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         		"for instance, while calculating laneDS";
     	throw std::runtime_error(str.str());
     }
-    else
-    {
-
-//    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
-    }
 }
 
 bool

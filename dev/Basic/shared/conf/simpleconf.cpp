@@ -721,15 +721,15 @@ void PrintDB_Network()
 		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
 		LogOutNotSync("\"fwd-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
 			LogOutNotSync(*segIt <<",");
 		}
 		LogOutNotSync("]\",");
-		LogOutNotSync("\"rev-path\":\"[");
+/*		LogOutNotSync("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
 			LogOutNotSync(*segIt <<",");
 		}
-		LogOutNotSync("]\",");
+		LogOutNotSync("]\",");*/
 		LogOutNotSync("})" <<endl);
 	}
 
@@ -1019,15 +1019,15 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
 		LogOutNotSync("\"fwd-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
 			LogOutNotSync(*segIt <<",");
 		}
 		LogOutNotSync("]\",");
-		LogOutNotSync("\"rev-path\":\"[");
+/*		LogOutNotSync("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
 			LogOutNotSync(*segIt <<",");
 		}
-		LogOutNotSync("]\",");
+		LogOutNotSync("]\",");*/
 		LogOutNotSync("})" <<endl);
 	}
 
@@ -1240,15 +1240,15 @@ void PrintDB_Network_idBased()
 		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart()->getID() <<"\",");
 		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
 		LogOutNotSync("\"fwd-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
 			LogOutNotSync((*segIt)->getSegmentID() <<",");
 		}
 		LogOutNotSync("]\",");
-		LogOutNotSync("\"rev-path\":\"[");
+/*		LogOutNotSync("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
 			LogOutNotSync((*segIt)->getSegmentID() <<",");
 		}
-		LogOutNotSync("]\",");
+		LogOutNotSync("]\",");*/
 		LogOutNotSync("})" <<endl);
 	}
 

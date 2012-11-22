@@ -7,7 +7,8 @@ IF (POLICY CMP0017)
 ENDIF (POLICY CMP0017)
 
 #Fairly reasonable way of determining if we're on OSX
-IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+#If you have an "/Applications" directory on *nix... just why?
+IF(EXISTS "/Applications/")
   SET(USING_OSX ON)
 ENDIF(EXISTS "/Applications/")
 
@@ -48,6 +49,15 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #IF(USING_OSX)
 #  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -D_GLIBCXX_FULLY_DYNAMIC_STRING=1")
 #ENDIF(USING_OSX)
+
+#TODO: We use fPIC for everything in Debug mode, to avoid building twice. 
+#      This (may) make Sim Mobility slower in Debug mode. In release mode,
+#      we build two versions of the code: non-PIC for the executable, and 
+#      PIC for the library. Of course, this slows the build process down.
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
@@ -242,6 +252,16 @@ include_directories("${PROJECT_SOURCE_DIR}/shared")
 
 #Build a shared object file for short-term, mid-term, long-term, and tests to use
 add_library(SimMob_Shared OBJECT ${SharedCode_CPP})
+
+#Build an *actual* shared object for the geospatial code & XML loader.
+#TODO: For now we just include everything in the shared lib. Later we can slim it down.
+IF (CMAKE_BUILD_TYPE MATCHES "Debug") 
+  #The debug code already uses PIC
+  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
+  #We need to re-build Release mode, since PIC is (likely) off.
+  add_library(simmob_geoxml SHARED  ${SharedCode_CPP})
+ENDIF()
 
 #Build the Short term?
 IF (${BUILD_SHORT} MATCHES "ON")

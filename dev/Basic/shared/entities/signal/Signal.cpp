@@ -76,10 +76,11 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 			output << "\"simmob_id\":\"" <<  signalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
 //			output << plan_.createStringRepresentation(newLine); 2nd time
+			output << "\"phases\":" << newLine << "[";
 			for(int i = 0; i < getPhases().size(); i++)
 			{
 				output << ( getPhases()[i]).createStringRepresentation(newLine);
-				output << ",";
+				if((i + 1) < getPhases().size()) output << ",";
 			}
 //				while(it !=getPhases().end())
 //				{
@@ -376,7 +377,7 @@ void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) 
 	for(int i =0; i < getPhases().size(); i++)
 	{
 		output << getPhases()[i].outputPhaseTrafficLight(newLine);
-		output << ",";
+		if((i + 1) < getPhases().size()) output << ",";
 	}
 	output << newLine << "]";
 //	getchar();
@@ -535,15 +536,21 @@ void Signal_SCATS::initializePhases() {
 		throw std::runtime_error("Mismatch on number of phases");
 	int i = 0 ; double percentage_sum =0;
 	//setting percentage and phaseoffset for each phase
-
+	std::cout << "Analyzing phase .for signal "<< this->getId() << std::endl;
+	std::cout << "nof phases = " << getPhases().size() << std::endl;
+//	getchar();
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 	{
 		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
+		std::cout << "Analyzing phase " << (getPhases()[ph_it]).getName()  << std::endl;
 		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(getPhases()[ph_it]);
-		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
-		(target_phase).setPercentage(choice[i]);
-		(target_phase).setPhaseOffset(percentage_sum * plan_.getCycleLength() / 100);
+		std::cout << " ....  done with casting phase " << target_phase.getName() << std::endl;
+//		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
+//		(target_phase).setPercentage(choice[i]);
+//		(target_phase).setPhaseOffset(percentage_sum * plan_.getCycleLength() / 100);
+//		std::cout << "Signal " << this->getId() << "  Set phaseoffset for " << (target_phase).getPhaseName() /*<< " to " << (target_phase).getPhaseOffset()*/ << std::endl;
 	}
+	getchar();
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize();

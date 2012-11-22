@@ -132,6 +132,11 @@ public:
 	{
 		phaseOffset = p;
 	}
+
+	double getPhaseOffset()
+	{
+		return phaseOffset ;
+	}
 	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
 		return links_map_.equal_range(LinkFrom);
@@ -188,7 +193,7 @@ private:
 	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;
 	mutable std::size_t percentage;
-	double phaseOffset; //the amount of time from cycle start until this phase start
+	mutable double phaseOffset; //the amount of time from cycle start until this phase start
 	double phaseLength;
 	double total_g;
 

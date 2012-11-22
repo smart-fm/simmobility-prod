@@ -27,6 +27,7 @@
 #cmakedefine SIMMOB_LATEST_STANDARD
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
 #cmakedefine SIMMOB_NEW_SIGNAL
+#cmakedefine SIMMOB_REALTIME
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
 #cmakedefine SIMMOB_XML_READER

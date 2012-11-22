@@ -1112,7 +1112,10 @@ int main(int argc, char* argv[])
 #else
 	std::cout << "Not Using New Signal Model" << std::endl;
 #endif
+
+#ifdef SIMMOB_REALTIME
 	boost::thread workerThread(boost::bind(&CommunicationManager::start, CommunicationManager::GetInstance()));
+#endif
 //	workerThread.join();
 //	CommunicationManager::GetInstance()->start();
 	//Save start time

@@ -51,8 +51,9 @@ public:
     for(int i=0;i<10;++i)
     {
     	std::ostringstream stream;
-    	stream<< "test send ";
+    	stream<< "test send " ;
     	stream<<i;
+    	stream<<"\n";
     	message_=stream.str();
     	std::cout<<"send message: "<<message_<<std::endl;
     	if(socket_.is_open())

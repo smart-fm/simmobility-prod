@@ -83,7 +83,16 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//      creation of the Vehicle (e.g., its width/height). These are both
 	//      very different for Cars and Buses, but until we un-tangle the code
 	//      we'll need to rely on hacks like this.
-	Vehicle* newVeh = initializePath_bus(true);
+	Vehicle* newVeh = nullptr;
+	Person* person = dynamic_cast<Person*>(parent);
+	if(person)
+	{
+		if(person->getAgentSrc() == "DB_TripChain") {
+			newVeh = initializePath_bus(true);
+		} else {
+			newVeh = initializePath(true);// previous node to node calculation
+		}
+	}
 
 	//Save the path, create a vehicle.
 	if (newVeh) {

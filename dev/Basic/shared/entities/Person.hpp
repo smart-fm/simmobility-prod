@@ -81,12 +81,17 @@ public:
 
     void getNextSubTripInTrip();
     void findNextItemInTripChain();
+	const std::string& getAgentSrc() const {
+		return agentSrc;
+	}
 
     TripChainItem* currTripChainItem; // pointer to current item in trip chain
     SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
+
+
 
 private:
     //Internal update functionality
@@ -99,7 +104,6 @@ private:
 
     //Can be helpful for debugging
     std::string agentSrc;
-
 
     int currTripChainSequenceNumber;
     std::vector<TripChainItem*> tripChain;

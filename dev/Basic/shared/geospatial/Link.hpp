@@ -59,14 +59,12 @@ public:
 	//TODO: Temp, for XML
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
-	void setSegmentList(const std::vector<sim_mob::RoadSegment*>& fwd, const std::vector<sim_mob::RoadSegment*>& rev) {
-		this->fwdSegments = fwd;
-		this->revSegments = rev;
+	void setSegments(const std::vector<sim_mob::RoadSegment*>& segs) {
+		this->segs = segs;
 
 		//Rebuild unique list
 		uniqueSegments.clear();
-		std::copy(fwdSegments.begin(), fwdSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
-		std::copy(revSegments.begin(), revSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
+		std::copy(segs.begin(), segs.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
 	}
 
 	//Initialize a link with the given set of segments
@@ -91,8 +89,8 @@ public:
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-	const std::vector<sim_mob::RoadSegment*> & getFwdSegments();
-	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
+	const std::vector<sim_mob::RoadSegment*> & getSegments();
+//	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
@@ -116,8 +114,8 @@ public:
 
 protected:
 	//List of pointers to RoadSegments in each direction
-	std::vector<sim_mob::RoadSegment*> fwdSegments;
-	std::vector<sim_mob::RoadSegment*> revSegments;
+	std::vector<sim_mob::RoadSegment*> segs;
+//	std::vector<sim_mob::RoadSegment*> revSegments;
 	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
 

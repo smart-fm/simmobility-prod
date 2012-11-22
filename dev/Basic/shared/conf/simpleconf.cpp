@@ -1433,9 +1433,9 @@ void printRoadNetwork_console()
 	{
 		std::cout << "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl;
 		sum_lane = 0;
-		std::cout << "Forward Segments:\n";
+		std::cout << "Segments:\n";
 
-		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getSegments().begin(); it_seg != (*it)->getSegments().end(); it_seg++)
 		{
 			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
 			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
@@ -1447,7 +1447,7 @@ void printRoadNetwork_console()
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
-		std::cout << "\n\nBackward Segments:\n";
+/*		std::cout << "\n\nBackward Segments:\n";
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
 		{
 			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
@@ -1459,7 +1459,7 @@ void printRoadNetwork_console()
 				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
 			}
 			sum_lane += (*it_seg)->getLanes().size();
-		}
+		}*/
 		std::cout << "\n\n\n\n";
 		sum_segments += (*it)->getUniqueSegments().size();
 

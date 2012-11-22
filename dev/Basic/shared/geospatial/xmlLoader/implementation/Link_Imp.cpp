@@ -53,9 +53,9 @@ void sim_mob::xml::link_t_pimpl::EndingNode (unsigned int value)
 	model.setEnd(book.getNode(value));
 }
 
-void sim_mob::xml::link_t_pimpl::Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >& value)
+void sim_mob::xml::link_t_pimpl::Segments (std::vector<sim_mob::RoadSegment*> value)
 {
 	//Copy over.
-	model.setSegmentList(value.first, value.second);
+	model.setSegments(value);
 }
 

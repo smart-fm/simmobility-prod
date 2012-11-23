@@ -38,6 +38,7 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	// get distance to bus stop (meter)
 	double distanceToNextBusStop() const;
@@ -64,7 +65,7 @@ public:
 
 	mutable double lastTickDistanceToBusStop;
 	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
-	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
+	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop

@@ -216,6 +216,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 //				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
+				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
 				DwellTime_ijk.set(passengerGeneration(bus));
 
@@ -581,7 +582,8 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
 			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
 			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
-			<<"\",\"dwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+			<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
+			<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
 			<<"\"})"<<std::endl);
 #endif
 }
@@ -617,5 +619,17 @@ void sim_mob::BusDriver::frame_tick_output_mpi(frame_t frameNumber)
 
 	LogOut(logout.str());
 #endif
+}
+
+vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
+	vector<BufferedBase*> res;
+	res = Driver::getSubscriptionParams();
+
+	// BusDriver's features
+	res.push_back(&(lastVisited_BusStop));
+	res.push_back(&(real_DepartureTime));
+	res.push_back(&(real_ArrivalTime));
+	res.push_back(&(DwellTime_ijk));
+	return res;
 }
 

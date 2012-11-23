@@ -151,13 +151,9 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 	std::stringstream res;
 	res <<roadName;
 
-	vector<RoadSegment*>::iterator it = std::find(fwdSegments.begin(), fwdSegments.end(), segment);
-	if (it!=fwdSegments.end()) {
-		res <<"-" <<(it-fwdSegments.begin()+1) <<"F";
-	}
-	it = std::find(revSegments.begin(), revSegments.end(), segment);
-	if (it!=revSegments.end()) {
-		res <<"-" <<(it-revSegments.begin()+1) <<"R";
+	vector<RoadSegment*>::iterator it = std::find(segs.begin(), segs.end(), segment);
+	if (it!=segs.end()) {
+		res <<"-" <<(it-segs.begin()+1);
 	}
 
 	return res.str();
@@ -167,18 +163,11 @@ const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
 {
 	return uniqueSegments;
 }
-const std::vector<sim_mob::RoadSegment*> & sim_mob::Link::getFwdSegments()
-{
-	return fwdSegments;
-}
-const std::vector<sim_mob::RoadSegment*> & sim_mob::Link::getRevSegments(){
-	return revSegments;
-}
 
 void sim_mob::Link::extendPolylinesBetweenRoadSegments()
 {
-	extendPolylinesBetweenRoadSegments(fwdSegments);
-	extendPolylinesBetweenRoadSegments(revSegments);
+	extendPolylinesBetweenRoadSegments(segs);
+	//extendPolylinesBetweenRoadSegments(revSegments);
 }
 
 void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments)
@@ -240,17 +229,13 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	std::cout << " \n";
 }
 
-sim_mob::Worker* sim_mob::Link::getCurrWorker() const {
-		return currWorker;
-	}
-void sim_mob::Link::setCurrWorker(sim_mob::Worker* w){
-		currWorker = w;
-	}
+sim_mob::Worker* sim_mob::Link::getCurrWorker() const
+{
+	return currWorker;
+}
 
-#ifndef SIMMOB_DISABLE_MPI
-
-//TODO: I think this merged incorrectly. ~Seth
-//void sim_mob::Link::pack(PackageUtils& package,const Link* one_link) {}
-
-#endif
+void sim_mob::Link::setCurrWorker(sim_mob::Worker* w)
+{
+	currWorker = w;
+}
 

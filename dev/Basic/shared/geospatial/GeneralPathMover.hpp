@@ -163,6 +163,8 @@ public:
 	bool inIntersection;
 
 	//We might be moving backwards on a Link.
+	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.
+	//       Note that we need to merge this code with GeneralPathMover2.
 	bool isMovingForwardsInLink;
 
 	//For tracking lane IDs

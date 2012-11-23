@@ -70,7 +70,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	}
 
 	//Determine whether or not the first one is fwd.
-	bool isFwd;
+	bool OLD_isFwd; //(Probably?) not used anymore.
 	if (path.empty()) {
 		throw std::runtime_error("Attempting to set a path with 0 road segments");
 	}
@@ -92,26 +92,20 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	//First check: end
 	if (lastSeg->getEnd() == lastSeg->getLink()->getEnd())
 	{
-		isFwd = true;
+		OLD_isFwd = true;
 	}
 	else if (lastSeg->getEnd() == lastSeg->getLink()->getStart())
 	{
-		isFwd = false;
-
-		//Send check: start
+		OLD_isFwd = false;
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getStart())
 	{
-		isFwd = true;
+		OLD_isFwd = true;
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getEnd())
 	{
-		isFwd = false;
-
-		//Failure:
-	}
-	else
-	{
+		OLD_isFwd = false;
+	} else {
 		std::stringstream msg;
 		msg << "Attempting to set a path with segments that aren't in order:\n";
 		for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++)
@@ -124,25 +118,20 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
-	bool fwd = isFwd;
+	//bool fwd = isFwd;
 	fullPath.clear();
-	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++)
-	{
+	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++) {
 		fullPath.push_back(*it);
 
-		if (Debug::Paths)
-		{
+		if (Debug::Paths) {
 			DebugStream << "  " << (*it)->getStart()->originalDB_ID.getLogItem() << "=>" << (*it)->getEnd()->originalDB_ID.getLogItem();
-			if ((*it)->getLink() != currLink)
-			{
+			if ((*it)->getLink() != currLink) {
 				currLink = (*it)->getLink();
-				if (it != path.begin())
-				{
-					fwd = sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getStart()->location)
-						< sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getEnd()->location);
+				if (it != path.begin()) {
+					//fwd = sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getStart()->location)
+					//	< sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getEnd()->location);
 				}
-				DebugStream << "  Link: " << currLink << " fwd: " << (fwd ? "true" : "false") << "  length: " << Fmt_M(currLink->getLength(fwd)) << "  poly-length: " << Fmt_M(
-						CalcSegmentLaneZeroDist(it, path.end()));
+				DebugStream << "  Link: " << currLink  << "  length: " << Fmt_M(currLink->getLength()) << "  poly-length: " << Fmt_M(CalcSegmentLaneZeroDist(it, path.end()));
 			}
 			DebugStream << endl;
 			DebugStream << "    Euclidean length: " << Fmt_M(dist((*it)->getStart()->location, (*it)->getEnd()->location)) << "   reported length: " << Fmt_M((*it)->length) << endl;
@@ -152,7 +141,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
-	isMovingForwardsInLink = isFwd;
+	isMovingForwardsInLink = true;
 
 	//Ensure that the current lane is valid
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
@@ -180,7 +169,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	}
 
 	//Determine whether or not the first one is fwd.
-	bool isFwd;
+	bool OLD_isFwd; //TODO: Likely isn't needed anymore
 	if (path.empty())
 	{
 		throw std::runtime_error("Attempting to set a path with 0 road segments");
@@ -205,39 +194,30 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	{
 		LogOut("lastSeg->getEnd()->location.xPos = "<<lastSeg->getEnd()->location.getX()<<", lastSeg->getEnd()->location.yPos = "<<lastSeg->getEnd()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 1"<<std::endl);
-		isFwd = true;
+		OLD_isFwd = true;
 	}
 	else if (lastSeg->getEnd() == lastSeg->getLink()->getStart())
 	{
 		LogOut("lastSeg->getEnd()->location.xPos = "<<lastSeg->getEnd()->location.getX()<<", lastSeg->getEnd()->location.yPos = "<<lastSeg->getEnd()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 2"<<std::endl);
-		isFwd = false;
-
-		//Send check: start
+		OLD_isFwd = false;
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getStart())
 	{
 		LogOut("firstSeg->getStart()->location.xPos = "<<firstSeg->getStart()->location.getX()<<", firstSeg->getStart()->location.yPos = "<<firstSeg->getStart()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 3"<<std::endl);
-		isFwd = true;
+		OLD_isFwd = true;
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getEnd())
 	{
 		LogOut("firstSeg->getStart()->location.xPos = "<<firstSeg->getStart()->location.getX()<<", firstSeg->getStart()->location.yPos = "<<firstSeg->getStart()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 4"<<std::endl);
-		isFwd = false;
-
-		//Failure:
-	}
-	else
-	{
+		OLD_isFwd = false;
+	} else {
 		std::stringstream msg;
 		msg << "Attempting to set a path with segments that aren't in order:\n";
 		for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++)
 		{
-//			Node * start = (*it)->getStart();
-//			Node * end = (*it)->getEnd();
-//			std::cout << "start(" << start->getID() << ")  end(" << end->getID() << ")\n";
 			msg << "  " << (*it)->getStart()->originalDB_ID.getLogItem() ;
 			msg << " => " << (*it)->getEnd()->originalDB_ID.getLogItem() << "\n";
 		}
@@ -245,22 +225,19 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	}
 
-	areFwds.insert(areFwds.begin(), isFwd);
+	areFwds.insert(areFwds.begin(), true);
 	//areFwds.front() = isFwd;
 
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
 	fullPath.clear();
-	bool fwd = isFwd;
+	//bool fwd = isFwd;
 
-	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++)
-	{
+	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++) {
 		fullPath.push_back(*it);
 
-		if (it != path.begin())
-		{
-			areFwds.insert(areFwds.end(), fwd);
-			LogOut("NoteForIsFwd point 5 fwd: "<< (fwd ? "true" : "false") <<std::endl);
+		if (it != path.begin()) {
+			areFwds.insert(areFwds.end(), true);
 		}
 
 		if (Debug::Paths)
@@ -269,7 +246,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 			if ((*it)->getLink() != currLink)
 			{
 				currLink = (*it)->getLink();
-				DebugStream << "  Link: " << currLink << " fwd: " << (fwd ? "true" : "false") << "  length: " << Fmt_M(currLink->getLength(fwd)) << "  poly-length: " << Fmt_M(
+				DebugStream << "  Link: " << currLink << "  length: " << Fmt_M(currLink->getLength()) << "  poly-length: " << Fmt_M(
 						CalcSegmentLaneZeroDist(it, path.end()));
 			}
 			DebugStream << endl;
@@ -280,7 +257,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
-	isMovingForwardsInLink = isFwd;
+	isMovingForwardsInLink = true;
 
 	//Ensure that the current lane is valid
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
@@ -788,7 +765,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 
 double sim_mob::GeneralPathMover::getCurrLinkReportedLength() const
 {
-	return getCurrLink()->getLength(isMovingForwardsInLink);
+	return getCurrLink()->getLength();
 }
 
 const RoadSegment* sim_mob::GeneralPathMover::getCurrSegment() const

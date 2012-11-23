@@ -1691,12 +1691,12 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//ln->end->setLinkLoc(ln);
 
 		//Now, check for segments going both forwards and backwards. Add both.
-		for (size_t i=0; i<2; i++) {
+		//for (size_t i=0; i<2; i++) {
 			//Phase 1 = find a reverse segment
 			Section* found = nullptr;
-			if (i==0) {
+			//if (i==0) {
 				found = currSect;
-			} else {
+			/*} else {
 				for (vector<Section*>::iterator iSec=currSect->toNode->sectionsAtNode.begin(); iSec!=currSect->toNode->sectionsAtNode.end(); iSec++) {
 					Section* newSec = *iSec;
 					if (newSec->fromNode==currSect->toNode && newSec->toNode==currSect->fromNode) {
@@ -1704,7 +1704,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 						break;
 					}
 				}
-			}
+			}*/
 
 			//Check: No reverse segment
 			if (!found) {
@@ -1729,9 +1729,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 				convertSegId.clear();
 				convertSegId.str(std::string());
 				found->generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
-			}
-			else
-			{
+			} else {
 //				std::cout << "Bypassing\n";
 			}
 
@@ -1764,7 +1762,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//NOTE: This can be done easily later from the Link's point-of-view.
 			rs->lanesLeftOfDivider = 0;
 			linkSegments.insert(rs);
-		}
+		//}
 
 		//Break?
 		if (!currSect->toNode->candidateForSegmentNode) {

@@ -377,9 +377,6 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 //		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
 	}
 
-	//Won't work yet.
-	throw ("TODO: signal.getLinkAndCrossingsByLink() must return both fwd and bckwd Links.");
-
 	//TODO: This code will need some re-writing, once merged with Vahid's branch.
     for (; iter != LAC.end(); ++iter) {
     	const Link* link  = iter->link;
@@ -576,7 +573,7 @@ LoopDetectorEntity::Impl::reset(Lane const & lane)
     }
     std::ostringstream stream;
     stream << "LoopDetectorEntity::Impl::reset() was called on invalid lane";
-    throw stream.str();
+    throw std::runtime_error(stream.str().c_str());
 }
 
 /** \endcond ignoreLoopDetectorInnards -- End of block to be ignored by doxygen.  */

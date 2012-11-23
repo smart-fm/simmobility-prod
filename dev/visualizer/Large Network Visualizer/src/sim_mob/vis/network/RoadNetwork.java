@@ -357,7 +357,7 @@ public class RoadNetwork {
 
 	    
 	    //Check and parse properties.
-		if (!pRes.confirmProps(new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"})) {
+		if (!pRes.confirmProps(new String[]{"road-name", "start-node", "end-node", "fwd-path"})) {
 			throw new IOException("Missing required key in type: " + pRes.type);
 		}
 	    
@@ -378,8 +378,8 @@ public class RoadNetwork {
 	    
 	    //Create a new Link, save it
 	    Link toAdd = new Link(name, startNode, endNode, pRes.objID);
-	    toAdd.setFwdPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("fwd-path")));
-	    toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("rev-path")));
+	    toAdd.setPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("fwd-path")));
+	    //toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("rev-path")));
 	    links.put(pRes.objID, toAdd);
 	}
 	
@@ -953,8 +953,8 @@ public class RoadNetwork {
 	
 	private void smoothSegmentJoins() {
 		for(Link link : links.values()){
-			smoothSegmentJoins(link.getFwdPathSegmentIDs());
-			smoothSegmentJoins(link.getRevPathSegmentIDs());
+			smoothSegmentJoins(link.getPathSegmentIDs());
+			//smoothSegmentJoins(link.getRevPathSegmentIDs());
 		}
 	}
 

@@ -2,6 +2,7 @@
 
 #include "RoadSegment.hpp"
 
+#include "streetdir/StreetDirectory.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 
@@ -151,18 +152,17 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	if(parentLink)
 	{
 		//Check whether the link is one-way
-		if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
+		if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
+		//if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
 		{
 			//Add a sidewalk on the other side of the road segment
 			Lane* swLane2 = new Lane(this, lanes.size());
 			swLane2->is_pedestrian_lane(true);
-//			std::cout << "swLane2......: "  << "lanes.front()->id=" << lanes.front()->getLaneID() << " width=" << lanes.front()->width_ << std::endl;
 
 			swLane2->width_ = lanes.front()->width_/2;
 			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
 			lanes.insert(lanes.begin(), swLane2);
 
-//			std::cout << "swLane2: " <<  swLane2->getLaneID() <<  " width: :"<< swLane2->width_ << "lanes.front()->id=" << lanes.front()->getLaneID() << "width=" << lanes.front()->width_ << std::endl;
 			width += swLane2->width_;
 			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
 		}

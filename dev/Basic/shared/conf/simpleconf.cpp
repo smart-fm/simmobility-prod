@@ -1509,6 +1509,8 @@ void printRoadNetwork_console()
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
+	//std::string XML_OutPutFileName = "data/XML_OutPut.xml";
+
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");

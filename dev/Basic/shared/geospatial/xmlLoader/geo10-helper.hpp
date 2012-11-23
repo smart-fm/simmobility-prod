@@ -58,7 +58,9 @@ public:
 	void addLane(sim_mob::Lane* lane) {
 		unsigned long id = lane->getLaneID();
 		if (laneLookup.count(id)>0) {
-			throw std::runtime_error("Lane already registered with bookkeeper.");
+			std::stringstream msg;
+			msg <<"Lane already registered with bookkeeper: " <<id;
+			throw std::runtime_error(msg.str().c_str());
 		}
 		laneLookup[id] = lane;
 	}

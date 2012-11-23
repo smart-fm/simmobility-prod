@@ -98,7 +98,7 @@ public:
   bool sendData(std::string data)
   {
 	  std::ostringstream stream;
-		stream<< message_;
+		stream<< data;
 		std::string body = "{=" + stream.str()+"=}";
 
 		char msg[20]="\0";
@@ -230,7 +230,7 @@ public:
 					}
 					else
 					{
-						file_output<<recv_data;
+						file_output<<recv_data<<"\n";
 						if(recv_data != "RECEIVED")
 						{
 							commDone();
@@ -244,74 +244,6 @@ public:
 					commDone();
 					break;
 				}
-//				std::ostringstream stream;
-//				stream<< message_;
-//				std::string body = "{=" + stream.str()+"=}";
-//
-//				char msg[20]="\0";
-//				//head size 12
-//				sprintf(msg,"{=%08d=}",body.size());
-//				std::string head=msg;
-//
-//				message_=head+body;
-////				std::cout<<"send message: "<<message_<<std::endl;
-//				file_output<<"send begin: "<<make_daytime_string();
-//				file_output<<message_;
-//				file_output<<"\n";
-//				boost::system::error_code err;
-//				 try
-//				 {
-////					 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
-//					 boost::asio::async_write(socket_, boost::asio::buffer(message_),
-//					                          boost::bind(&tcp_connection::handle_write,shared_from_this(),
-//					                          boost::asio::placeholders::error,
-//					                          boost::asio::placeholders::bytes_transferred));
-////					 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
-//					 file_output<<"send over: "<<make_daytime_string();
-//					 if(err)
-//					 {
-//						 std::cerr<<"start: send error "<<err.message()<<std::endl;
-////						 socket_.close();
-//						 commDone();
-//						 return;
-//					 }
-//				 }
-//				 catch (std::exception& e)
-//				 {
-//					 std::cerr <<"start: "<< e.what() << std::endl;
-////					 socket_.close();
-//					 commDone();
-//					 return;
-//				 }
-//				// after send data , lets expect the response from visualizer
-//				int head_len=12;
-//				boost::array<char, 12> buf;
-//				socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
-//			    size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
-//				std::string data(buf.begin(), buf.end());
-//				file_output<<data<<"\n";
-//				boost::regex head_regex("^\\+\\{(\\d+)\\}\\+$",boost::regex::perl);
-//				boost::smatch what;
-//				if( regex_match( data, what,head_regex ) )
-//				{
-//					std::string s=what[1];
-//					if (RECEIVED != atoi(s.c_str()))
-//					{
-////						std::cout<<"unknown res "<<std::endl;
-//						file_output<<"unknown res "<<"\n";
-////						socket_.close();
-//						commDone();
-//					}
-//				}
-//				else
-//				{
-//					std::cout<<"bad res "<<std::endl;
-//					file_output<<"bad res "<<"\n";
-////					socket_.close();
-//					commDone();
-//					return;
-//				}
-
 			}
 			else
 			{
@@ -326,7 +258,10 @@ public:
 			  if(com->isSimulationDone())
 			  {
 				  std::cout<<"start: simulation done and all data out"<<std::endl;
-//				  socket_.close();
+				  std::string str="SHUTDOWN";
+				  file_output<<str<<"\n";
+				  sendData(str);
+				  sleep(1);
 				  commDone();
 				  return;
 			  }

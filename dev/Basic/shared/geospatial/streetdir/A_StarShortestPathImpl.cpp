@@ -107,14 +107,14 @@ void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const vector<Link*>&
 
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingNodes(drivingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddDrivingNodes(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddDrivingNodes(drivingMap_, (*iter)->getPath(), nodeLookup);
+    	//procAddDrivingNodes(drivingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingLinks(drivingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddDrivingLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddDrivingLinks(drivingMap_, (*iter)->getPath(), nodeLookup);
+    	//procAddDrivingLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Now add all Intersection edges (lane connectors)
@@ -137,8 +137,8 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
 
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(true), nodeLookup, unresolvedNodes);
-    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(false), nodeLookup, unresolvedNodes);
+    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(), nodeLookup, unresolvedNodes);
+    	//procAddWalkingNodes(walkingMap_, (*iter)->getPath(false), nodeLookup, unresolvedNodes);
     }
 
     //Resolve MultiNodes here:
@@ -147,16 +147,16 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingLinks(walkingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddWalkingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddWalkingLinks(walkingMap_, (*iter)->getPath(), nodeLookup);
+    	//procAddWalkingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Now add all Crossings
     {
     set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(true), nodeLookup, completedCrossings);
-    	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(false), nodeLookup, completedCrossings);
+    	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(), nodeLookup, completedCrossings);
+    	//procAddWalkingCrossings(walkingMap_, (*iter)->getPath(false), nodeLookup, completedCrossings);
     }
     }
 

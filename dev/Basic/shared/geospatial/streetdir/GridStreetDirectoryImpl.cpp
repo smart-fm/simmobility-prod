@@ -74,8 +74,8 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     //Build additional lookups
     set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
-    	buildLookups((*iter)->getPath(true), completedCrossings);
-    	buildLookups((*iter)->getPath(false), completedCrossings);
+    	buildLookups((*iter)->getPath(), completedCrossings);
+    	//buildLookups((*iter)->getPath(false), completedCrossings);
     }
 }
 
@@ -93,8 +93,8 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadNetwork& network)
     for (size_t i=0; i<links.size(); i++) {
     	const Link* link = links[i];
         if(link) {
-        	partition(link->getPath(true), true);
-        	partition(link->getPath(false), true);
+        	partition(link->getPath(), true);
+        	//partition(link->getPath(false), true);
         }
     }
 }

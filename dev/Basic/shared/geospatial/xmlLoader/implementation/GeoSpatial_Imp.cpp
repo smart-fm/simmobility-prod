@@ -84,8 +84,8 @@ void CacheRoadSegmentsAtMultiNodes(std::vector<sim_mob::RoadSegment*>& roadway) 
 //Helper: Handle "RoadSegmentsAt" for MultiNodes (Link->Segment)
 void CacheRoadSegmentsAtMultiNodes(std::vector<sim_mob::Link*>& links) {
 	for (std::vector<sim_mob::Link*>::iterator it=links.begin(); it!=links.end(); it++) {
-		CacheRoadSegmentsAtMultiNodes((*it)->getPath(true));
-		CacheRoadSegmentsAtMultiNodes((*it)->getPath(false));
+		CacheRoadSegmentsAtMultiNodes((*it)->getPath());
+	//	CacheRoadSegmentsAtMultiNodes((*it)->getPath(false));
 	}
 }
 

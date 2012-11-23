@@ -1467,15 +1467,16 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 	int numLinks = vecLinks.size();
 
 	//TODO more comments needed
-	for(int n = 0; n < numLinks; ++n)
+	//for(int n = 0; n < numLinks; ++n)
+	for (std::vector<sim_mob::Link*>::const_iterator vIt = vecLinks.begin(); vIt!=vecLinks.end(); vIt++)
 	{
-		sim_mob::Link* link = vecLinks[n];
+		sim_mob::Link* link = *vIt;
 
-		const std::vector<sim_mob::RoadSegment*>& vecForwardSegs = link->getPath(true);
-		const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
+		const std::vector<sim_mob::RoadSegment*>& fwdSegs = link->getPath();
+		//const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
 		std::set<sim_mob::RoadSegment*> roadSegs;
-		roadSegs.insert(vecForwardSegs.begin(), vecForwardSegs.end());
-		roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());
+		roadSegs.insert(fwdSegs.begin(), fwdSegs.end());
+		//roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());
 		for(std::set<sim_mob::RoadSegment*>::const_iterator itRS = roadSegs.begin(); itRS!=roadSegs.end(); ++itRS)
 		{
 			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator itObstacles = (*itRS)->obstacles.begin(); itObstacles != (*itRS)->obstacles.end(); ++itObstacles)

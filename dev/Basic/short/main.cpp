@@ -1187,7 +1187,8 @@ int main(int argc, char* argv[])
 	}
 #ifdef SIMMOB_REALTIME
 
-	while(CommunicationManager::GetInstance()->isKeepLive())
+	CommunicationManager::GetInstance()->setSimulationDone(true);
+	while(!CommunicationManager::GetInstance()->isCommDone())
 	{
 		sleep(1);
 	}

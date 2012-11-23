@@ -20,6 +20,8 @@ sim_mob::CommunicationManager* sim_mob::CommunicationManager::GetInstance() {
 
 sim_mob::CommunicationManager::CommunicationManager() {
 	listenPort = 13333;
+	simulationDone = false;
+	CommDone = true;
 }
 
 void sim_mob::CommunicationManager::start()

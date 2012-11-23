@@ -14,13 +14,16 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <boost/regex.hpp>
 #include <iostream>
 #include <fstream>
 #include <ctime>
 namespace sim_mob {
 
 using boost::asio::ip::tcp;
-
+enum COMM_STATE{
+	RECEIVED=1
+};
 class CommunicationManager {
 
 public:
@@ -43,6 +46,7 @@ public:
 		return false;
 	}
 	bool isAllDataOut() { return dataQueue.empty(); }
+	bool isKeepLive() { return true; }
 private:
 	CommunicationManager();
 	static CommunicationManager *instance;
@@ -82,12 +86,8 @@ public:
   }
   void start()
   {
-//	  std::queue<std::string> *dataQueue = CommunicationManager::GetInstance()->getQueue();
 	  std::ofstream file_output;
-	  file_output.open("/home/redheli/new_simmob/new_simmob/simmobility/dev/Basic/senddata.txt");
-//	  file_output<<"asdf";
-//	  std::ostream log_file_or_cout = file_output;
-//	  log_file_or_cout<<"test";
+	  file_output.open("./senddata.txt");
 	  CommunicationManager *com = CommunicationManager::GetInstance() ;
 	  for(;;)
 	  {
@@ -133,6 +133,32 @@ public:
 					 socket_.close();
 					 return;
 				 }
+				// after send data , lets expect the response from visualizer
+				int head_len=12;
+				boost::array<char, 12> buf;
+				socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
+			    size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
+				std::string data(buf.begin(), buf.end());
+				file_output<<data<<"\n";
+				boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
+				boost::smatch what;
+				if( regex_match( data, what,head_regex ) )
+				{
+					std::string s=what[1];
+					if (RECEIVED != atoi(s.c_str()))
+					{
+//						std::cout<<"unknown res "<<std::endl;
+						file_output<<"unknown res "<<"\n";
+						socket_.close();
+					}
+				}
+				else
+				{
+					std::cout<<"bad res "<<std::endl;
+					file_output<<"bad res "<<"\n";
+					socket_.close();
+					return;
+				}
 
 			}
 			else

@@ -202,6 +202,10 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
+#Find boost-mpi
+find_package(Boost COMPONENTS regex REQUIRED)
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi

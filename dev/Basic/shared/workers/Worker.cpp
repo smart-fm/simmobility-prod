@@ -15,6 +15,7 @@ using boost::function;
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include "util/ControlManager.h"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -159,7 +160,61 @@ void sim_mob::Worker::barrier_mgmt()
 	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
 
 	uint32_t currTick = 0;
+#ifdef SIMMOB_REALTIME
+	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+#endif
+
 	for (bool active=true; active;) {
+#ifdef SIMMOB_REALTIME
+		if (ctrlMgr->getSimState() != PAUSE)  //
+		{
+			sleep(1);
+			//Add Agents as required.
+			addPendingEntities();
+
+			//Perform all our Agent updates, etc.
+			perform_main(timeslice(currTick, currTick*msPerFrame));
+
+			//Remove Agents as requires
+			removePendingEntities();
+
+			//Advance local time-step.
+			currTick += tickStep;
+			active = (endTick==0 || currTick<endTick);
+
+			//First barrier
+			if (frame_tick_barr) {
+				frame_tick_barr->wait();
+			}
+
+			//Now flip all remaining data.
+			perform_flip();
+
+			//Second barrier
+			if (buff_flip_barr) {
+				buff_flip_barr->wait();
+			}
+
+			// Wait for the AuraManager
+			if (aura_mgr_barr) {
+				aura_mgr_barr->wait();
+			}
+
+			//If we have a macro barrier, we must wait exactly once more.
+			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+			//  once more at the end of tick 9.
+			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+			bool extraActive = (endTick==0 || (currTick-1)<endTick);
+			if (macro_tick_barr && extraActive) {
+				macro_tick_barr->wait();
+			}
+		}
+		else
+		{
+			// we in pause loop
+			sleep(0.01);
+		}
+#else
 		//Add Agents as required.
 		addPendingEntities();
 
@@ -199,6 +254,7 @@ void sim_mob::Worker::barrier_mgmt()
 		if (macro_tick_barr && extraActive) {
 			macro_tick_barr->wait();
 		}
+#endif
 	}
 }
 

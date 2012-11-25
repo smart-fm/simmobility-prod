@@ -29,7 +29,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/CommunicationManager.h"
-
+#include "util/ControlManager.h"
 #ifdef SIMMOB_NEW_SIGNAL
 	#include "entities/signal/Signal.hpp"
 #else
@@ -1115,6 +1115,7 @@ int main(int argc, char* argv[])
 
 #ifdef SIMMOB_REALTIME
 	boost::thread workerThread(boost::bind(&CommunicationManager::start, CommunicationManager::GetInstance()));
+	boost::thread workerThread2(boost::bind(&ControlManager::start, ControlManager::GetInstance()));
 #endif
 //	workerThread.join();
 //	CommunicationManager::GetInstance()->start();

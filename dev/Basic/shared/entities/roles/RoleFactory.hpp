@@ -49,6 +49,8 @@ public:
 	///            be unified; for now, we have to do this manually.
 	static std::string GetTripChainMode(const sim_mob::TripChainItem* currTripChainItem);
 
+	void clear() { prototypes.clear(); }
+
 private:
 	//Helper
 	const sim_mob::Role* getPrototype(const std::string& name) const;

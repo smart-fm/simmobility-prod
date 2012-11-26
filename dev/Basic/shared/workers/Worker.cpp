@@ -162,11 +162,14 @@ void sim_mob::Worker::barrier_mgmt()
 	uint32_t currTick = 0;
 #ifdef SIMMOB_REALTIME
 	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
-#endif
-
 	for (bool active=true; active;) {
-#ifdef SIMMOB_REALTIME
-		if (ctrlMgr->getSimState() != PAUSE)  //
+
+		if (ctrlMgr->getSimState() == PAUSE)  //
+		{
+			// we in pause loop
+			sleep(0.01);
+		}
+		else if (ctrlMgr->getSimState() == RUNNING)
 		{
 			sleep(1);
 			//Add Agents as required.
@@ -180,8 +183,12 @@ void sim_mob::Worker::barrier_mgmt()
 
 			//Advance local time-step.
 			currTick += tickStep;
+			//get stop cmd, stop loop
+//			if(ctrlMgr->getSimState() == STOP)
+//			{
+//				currTick = endTick;
+//			}
 			active = (endTick==0 || currTick<endTick);
-
 			//First barrier
 			if (frame_tick_barr) {
 				frame_tick_barr->wait();
@@ -209,12 +216,10 @@ void sim_mob::Worker::barrier_mgmt()
 				macro_tick_barr->wait();
 			}
 		}
-		else
-		{
-			// we in pause loop
-			sleep(0.01);
-		}
+
+	}
 #else
+		for (bool active=true; active;) {
 		//Add Agents as required.
 		addPendingEntities();
 
@@ -254,8 +259,8 @@ void sim_mob::Worker::barrier_mgmt()
 		if (macro_tick_barr && extraActive) {
 			macro_tick_barr->wait();
 		}
+		}
 #endif
-	}
 }
 
 

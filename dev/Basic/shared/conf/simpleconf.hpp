@@ -198,6 +198,11 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
+	void reset()
+	{
+		sealedNetwork=false;
+		roleFact.clear();
+	}
 	std::vector<SubTrip> subTrips;
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called

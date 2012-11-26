@@ -76,6 +76,7 @@ public:  //Static methods
 	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
 	///  for the next simulation.
 	static void FinalizeAllWorkGroups();
+	void clear();
 
 
 private: //Static fields

@@ -8,6 +8,9 @@
 #include "ControlManager.h"
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
+
 sim_mob::ControlManager* sim_mob::ControlManager::instance = NULL;
 
 sim_mob::ControlManager* sim_mob::ControlManager::GetInstance() {
@@ -44,6 +47,7 @@ sim_mob::ControlManager::ControlManager()
 void sim_mob::ControlManager::start()
 {
 	int ret;
+	std::cout<<"simmob"<<">"<<std::flush;
 	while(1)
 	 {
 		ret = poll(&fds, 1, 0);
@@ -52,20 +56,82 @@ void sim_mob::ControlManager::start()
 			std::cout<<"Yep get input: ";
 			char buff[255] = "\0";
 			read(fds.fd, buff, 255);
-//			std::cout<<buff;
 			std::string cmd = buff;
-			std::cout<<cmd;
-			boost::erase_all(cmd, "\n");
-			if(cmd == "pause")
-			{
-				simState=PAUSE;
-			}
-			if(cmd == "run")
-				simState=RUNNING;
+			handleInput(cmd);
+//			std::cout<<cmd;
+//			boost::erase_all(cmd, "\n");
+//			if(cmd == "pause")
+//			{
+//				simState=PAUSE;
+//			}
+//			if(cmd == "run")
+//				simState=RUNNING;
 			std::cout<<"simmob"<<">"<<std::flush;
 		}
 		sleep(0.01);
 	 } // end of while
+}
+bool sim_mob::ControlManager::handleInput(std::string& input)
+{
+	boost::erase_all(input, "\n");
+	if(input.size()<3)
+	{
+		return false;
+	}
+	std::cout<<input<<std::endl;
+	boost::char_separator<char> sep(" ");
+	boost::tokenizer<boost::char_separator<char> > tokens(input, sep);
+	//for(boost::tokenizer<boost::char_separator<char> >::iterator beg=tokens.begin(); beg!=tokens.end();++beg)
+//	{
+	boost::tokenizer<boost::char_separator<char> >::iterator beg=tokens.begin();
+	std::string cmd = *beg;
+	std::cout<<cmd<< std::endl;
+	if(cmd == "pause")
+	{
+//		simState=PAUSE;
+		setSimState(PAUSE);
+		return true;
+	}
+	else if(cmd == "run")
+	{
+//		simState=RUNNING;
+		setSimState(RUNNING);
+		return true;
+	}
+	else if(cmd == "loadscenario")
+	{
+		beg++;
+		if(beg == tokens.end())
+		{
+			std::cout<<"no scenario file name "<<std::endl;
+			return true;
+		}
+		std::string configFileName = *beg;
+		loadScenarioParas.clear();
+		loadScenarioParas["configFileName"] = configFileName;
+//		simState=LOADSCENARIO;
+		setSimState(LOADSCENARIO);
+		return true;
+	}
+	else if(cmd == "stop")
+	{
+		setSimState(STOP);
+		return true;
+	}
+	else if(cmd == "quit")
+	{
+		setSimState(QUIT);
+		return true;
+	}
+	else
+	{
+		std::cout<<"unknow command"<<std::endl;
+		return false;
+	}
+//	}
+
+//	std::cout<<"simmob"<<">"<<std::flush;
+	return true;
 }
 sim_mob::ControlManager::~ControlManager() {
 	if(instance)

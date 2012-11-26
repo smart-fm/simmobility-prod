@@ -148,7 +148,8 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 {
 	//First, join and delete all WorkGroups
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		delete *it;
+//		delete *it;
+		(*it)->clear();
 	}
 
 	//Finally, reset all properties.
@@ -159,7 +160,20 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 	safe_delete_item(WorkGroup::BuffFlipBarr);
 	safe_delete_item(WorkGroup::AuraMgrBarr);
 }
+void sim_mob::WorkGroup::clear()
+{
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
+	}
+	workers.clear();
 
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
 
 ////////////////////////////////////////////////////////////////////
 // Normal methods (non-static)

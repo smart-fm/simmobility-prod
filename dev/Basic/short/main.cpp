@@ -994,6 +994,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	ParitionDebugOutput debug;
 
+	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
@@ -1030,6 +1032,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		WorkGroup::WaitAllGroups();
+		if(ctrlMgr->getSimState() == STOP)
+		{
+			break;
+		}
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -1095,15 +1101,41 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-	WorkGroup::FinalizeAllWorkGroups();
-
-	//Test: At this point, it should be possible to delete all Signals and Agents.
-	clear_delete_vector(Signal::all_signals_);
-	clear_delete_vector(Agent::all_agents);
+//	WorkGroup::FinalizeAllWorkGroups();
+//
+//	//Test: At this point, it should be possible to delete all Signals and Agents.
+//	clear_delete_vector(Signal::all_signals_);
+//	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;
 }
+
+#ifdef SIMMOB_REALTIME
+void start()
+{
+	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+	while(1)
+	{
+		if(ctrlMgr->getSimState() == LOADSCENARIO)
+		{
+			ctrlMgr->setSimState(RUNNING);
+			std::map<std::string,std::string> paras;
+			ctrlMgr->getLoadScenarioParas(paras);
+			std::string configFileName = paras["configFileName"];
+			int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+			ctrlMgr->setSimState(STOP);
+			ConfigParams::GetInstance().reset();
+			std::cout<<"scenario finished"<<std::cout;
+		}
+		if(ctrlMgr->getSimState() == QUIT)
+		{
+			std::cout<<"Thank you for using SIMMOB. Have a good day!"<<std::endl;
+			break;
+		}
+	}
+}
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -1178,9 +1210,13 @@ int main(int argc, char* argv[])
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}
-
+#ifdef SIMMOB_REALTIME
+	start();
+	int returnVal=0;
+#else
 	//Perform main loop
 	int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+#endif
 
 	//Close log file, return.
 	if (ConfigParams::GetInstance().OutputEnabled()) {

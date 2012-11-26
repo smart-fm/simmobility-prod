@@ -177,11 +177,11 @@ public:
 	double computeTotalG() const;//total green time
 	const std::string & getPhaseName() { return name;}
 	std::string createStringRepresentation(std::string newLine) const;
-	void initialize();
+	void initialize(sim_mob::SplitPlan&);
 	void calculateGreen();
 	void calculateGreen_Crossings();
 	void calculateGreen_Links();
-	void calculatePhaseLength();
+	void calculatePhaseLength();//one day this function needs to beome vritual coz its calculations may be dependent on parameters that may or may not exist in all traffic signal algorithms
 	void printColorDuration() ;
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;

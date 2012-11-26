@@ -78,6 +78,8 @@ std::string getColor(size_t id)
 				o << "currentCycleTimer :" << currentCycleTimer << "  phaseOffset :" << phaseOffset  << "--->lapse :" << lapse << "\n creates out of range color";
 				throw std::runtime_error(o.str());
 			}
+//			std::cout << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*link_it).second.currColor << std::endl;
+//			getchar();
 		}
 
 //		std::cout << "calling compute for crossings" << std::endl;
@@ -254,7 +256,8 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 	output << newLine << "}" << newLine;
 	return output.str();
 }
-void Phase::initialize(){
+void Phase::initialize(sim_mob::SplitPlan& plan){
+	parentPlan = &plan;
 	calculatePhaseLength();
 	calculateGreen();
 //	printColorDuration();
@@ -278,6 +281,7 @@ void Phase::printColorDuration()
 
 void Phase::calculatePhaseLength(){
 	phaseLength = parentPlan->getCycleLength() * percentage /100;
+//	std::cout << "phase " << name << " phaselength = " <<  phaseLength << "  (parentPlan->getCycleLength() * percentage /100):(" <<  parentPlan->getCycleLength() << "*" <<  percentage << ")\n";
 
 }
 
@@ -288,7 +292,7 @@ void Phase::calculateGreen_Links(){
 	 * 1.what is the amount of time that is assigned to this phase,(phaseLength might be already calculated)
 	 * 2.find out how long the colors other than green will take
 	 * 3.subtract them
-	 * what is the output? yes, it is the green time. yes yes, i know! you are a Genuis!
+	 * this time is allocated to which color? yes, it is the green time.... yes yes, i know! you are a Genuis!
 	 */
 
 	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
@@ -308,7 +312,7 @@ void Phase::calculateGreen_Links(){
 				other_than_green += it_color->second;
 			}
 			else
-				greenIndex = tempgreenIndex;//we need to know the location of green, right after this loop ends
+				greenIndex = tempgreenIndex;//we need to know the location(index) of the green, right after this loop ends
 
 			tempgreenIndex ++;
 		}
@@ -316,6 +320,8 @@ void Phase::calculateGreen_Links(){
 		if(greenIndex > -1)
 		{
 			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
+//			std::cout << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - other_than_green):(" << phaseLength << " - " << other_than_green << ")" << std::endl;
+//			getchar();
 		}
 	}
 }

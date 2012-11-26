@@ -805,9 +805,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
-			" acceleration: "<<vehicle->getAcceleration()/100.0<<
-			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
+//	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
+//			" acceleration: "<<vehicle->getAcceleration()/100.0<<
+//			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
 	return updatePositionOnLink(p);
 }
 

@@ -1008,6 +1008,22 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
 	}
+//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+//		Node origin = (*it).second;
+//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
+//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
+//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
+//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
+//					{
+//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
+//						if((cr))
+//						{
+//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
+//						}
+//					}
+//		}
+//	}
+//	getchar();
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
@@ -1061,15 +1077,20 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	{
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;
 
 		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->addObstacle(distOrigin, busstop);
+		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+//		if(100001500 == busstop->parentSegment_->getSegmentID())
+//		{
+//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
+//			getchar();
+//		}
 	}
 
 	/*vahid:

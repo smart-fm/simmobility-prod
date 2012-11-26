@@ -291,7 +291,7 @@ namespace geo
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
-    Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
+    Obstacles (std::map<sim_mob::centimeter_t, RoadItem*>);
 
     virtual void
     KurbLine (std::vector<sim_mob::Point2D>);
@@ -800,7 +800,7 @@ namespace geo
 
   class RoadItems_t_pimpl: public virtual RoadItems_t_pskel
   {
-	  std::map<centimeter_t,const RoadItem*> RoadItems;
+	  std::map<centimeter_t, RoadItem*> RoadItems;
     public:
     virtual void
     pre ();
@@ -817,7 +817,7 @@ namespace geo
     virtual void
     RoadBump ();
 
-    virtual std::map<sim_mob::centimeter_t,const RoadItem*>
+    virtual std::map<sim_mob::centimeter_t, RoadItem*>
     post_RoadItems_t ();
   };
 

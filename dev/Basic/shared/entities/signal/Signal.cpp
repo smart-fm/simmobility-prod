@@ -128,6 +128,9 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
 //    setupIndexMaps();  I guess this function is Not needed any more
+#ifdef SIMMOB_XML_WRITER
+	findSignalLinksAndCrossings();
+#endif
 }
 
 // Return the Crossing object, if any, in the specified road segment.  If there are more
@@ -138,32 +141,41 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 	//double offset = std::numeric_limits<double>::max();
 	int currOffset = 0;
 	int minus = 1;
-	int i;
+	bool isFwd;
+	//find the crossings which belong to this signal not the signal located at the other end of the segment(if any)
+	int searchLength = road->length / 2;
 	if(road->getStart() == &(this->getNode()))
 	{
 		currOffset = 0;
 		minus = 1;//increment offset
+		isFwd = true;
 	}
 	else
 	{
 		currOffset = road->length;
-//		minus = -1;//decrement offset
+		isFwd = false;
+		minus = -1;//decrement offset
 	}
-	for (i =0;;i++) {
+	for (;;) {
 		//Get the next item, if any.
-		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
+		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, isFwd);
+		//break if you didn't find anything
 		if (!res.item) {
-			std::cout << "breaking after " << i <<" iterations " << std::endl;
 			break;
 		}
+		//discard the findings beyond the half length of the segment:
+
+		//break if you started from BEGINNING of the segment and you are half way through the segment length without finding anything
+		if(isFwd == true)//starting from the beginning of the segment
+			if(currOffset > searchLength)
+				break;
+		//break if you started from END of the segment and you are half way through the segment length without finding anything
+		if(isFwd == false)//starting from end of the segment
+			if(currOffset < searchLength)
+				break;
 
 		//Check if it's a Crossing.
 		if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item)) {
-			if(getNode().getID()== 115436)
-			{
-				std::cout << "Crossing for node 115436 found at offset " << currOffset << "minus is : " << minus << std::endl;
-//				//getchar();
-			}
 			//Success
 			return crossing;
 		}
@@ -171,7 +183,6 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 		//Increment OR Decrement
 		currOffset += (minus) * (res.offset);
 	}
-		std::cout << "No Crossing for this segment of node 115436 found after " << i <<" iterations minus was : " << minus << std::endl;
 
 	//Failure.
 	return nullptr;
@@ -408,8 +419,13 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 	for(i = 0; i < getNOF_Phases(); i++)
 	{
 		//expanded the single line loop, for better understanding of future readers
-		sum += plan_.getCycleLength() * currSplitPlan[i] / 100;
-		if(sum > currCycleTimer) break;
+		sum += plan_.getCycleLength() * currSplitPlan[i] / 100; //in each iteration sum will represent the time (with respect to cycle length) each phase would end
+		if(sum > currCycleTimer)
+			{
+//				std::cout << "Sum(" <<  sum << ") > currCycleTimer(" << currCycleTimer << "), time to change phase to " << getPhases()[i].getPhaseName() << " (" << i << ")" << std::endl;
+//				getchar();
+				break;
+			}
 	}
 //	  std::cout << "Signal " << sim_mob::Signal::all_signals_.front()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.front()->getPhases().size() << " phases\n"; getchar();
 
@@ -552,7 +568,7 @@ void Signal_SCATS::initializePhases() {
 	}
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
-		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize();
+		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize(plan_);//phaselength,and green time..
 	//.......................
 }
 

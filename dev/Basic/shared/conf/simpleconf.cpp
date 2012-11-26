@@ -214,7 +214,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
 		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
-		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
+//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
 //		//getchar();
 //		const Trip* trip = dynamic_cast<const Trip*>(tc);
 //		const Activity* act = dynamic_cast<const Activity*>(tc);
@@ -241,7 +241,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				}
 			}
 		} else {
-			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
+//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
 			addOrStashEntity(currAg, active_agents, pending_agents);
 		}
 
@@ -1873,6 +1873,27 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
+
+//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
+//    		{
+//    			if((*it)->getLinkId() != 1000010) continue;
+//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
+//    			{
+//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
+//    				{
+//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
+//    					{
+//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
+//    						if((cr))
+//    						{
+//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
+//    						}
+//    					}
+//    				}
+//    			}
+//    		}
+//    		getchar();
+
 #else
        		/**************************************************
        		 *

@@ -279,7 +279,7 @@ void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, 
 		WriteXMLInput_Location(second,false,crossing->farLine.second.getX(),crossing->farLine.second.getY());
 	}
 }
-void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle)
+bool sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle)
 {
 	sim_mob::Crossing * crossing = dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item));
 	if(crossing)
@@ -292,6 +292,11 @@ void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlEl
 			sim_mob::BusStop * bs = dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item));
 //			sim_mob::RoadSegment * rs = bs->getRoadSegment();
 			WriteXMLInput_BusStop(bs, res.offset, Obstacle);
+
+		}
+		else
+		{
+			return false;
 		}
 	}
 }
@@ -354,15 +359,36 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 		i++;
 	}
 	TiXmlElement * Obstacles = new TiXmlElement("Obstacles"); Segment->LinkEndChild(Obstacles);
-	for (int currOffset = 0;currOffset <= rs->length ;) {
-		//Get the next item, if any.
-		RoadItemAndOffsetPair res = rs->nextObstacle(currOffset, true);
-		if (!res.item) {
-			break;
-		}
+	for (std::map<centimeter_t, const RoadItem*>::iterator it = rs->getObstacles().begin(); it != rs->getObstacles().end(); it++) {
+		//just for the sake of backward compatibility  as well as easier future improvements
+		sim_mob::RoadItemAndOffsetPair res(it->second,it->first);
 		WriteXMLInput_Obstacle(res, Obstacles);
-		currOffset += res.offset + 1;
 	}
+//	for (int currOffset = 0;currOffset <= rs->length ;) {
+//		//Get the next item, if any.
+//		RoadItemAndOffsetPair res = rs->nextObstacle(currOffset, true);
+//		if (!res.item) {
+//			break;
+//		}
+//		if(!WriteXMLInput_Obstacle(res, Obstacles))
+//		{
+//			if(100001500 == rs->getSegmentID())
+//			{
+//				std::cout << "Segment 100001500, One of the obstacles at offset " << res.offset << " just didn't tally\n";
+//				getchar();
+//			}
+//		}
+//		else
+//		{
+//			if(100001500 == rs->getSegmentID())
+//			{
+//				std::cout << "Segment 100001500, an obstacles at offset " << res.offset << " was serialized\n";
+//				getchar();
+//			}
+//
+//		}
+//		currOffset += res.offset + 1;
+//	}
 
 }
 

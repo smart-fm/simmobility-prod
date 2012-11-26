@@ -3964,7 +3964,7 @@ namespace geo
   }
 
   void segment_t_pskel::
-  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>)
+  Obstacles (std::map<centimeter_t, RoadItem*>)
   {
   }
 

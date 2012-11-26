@@ -36,7 +36,7 @@ void WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D>& polylines,TiXml
 void WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes);
 void WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle);
 void WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiXmlElement *Obstacle);
-void WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle);
+bool WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle);
 void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments);
 void WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link);
 void WriteXMLInput_Links(const std::vector<sim_mob::Link*>& link,TiXmlElement * RoadNetwork);

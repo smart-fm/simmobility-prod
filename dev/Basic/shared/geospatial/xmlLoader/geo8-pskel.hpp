@@ -1094,7 +1094,7 @@ namespace geo
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
-    Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
+    Obstacles (std::map<sim_mob::centimeter_t, RoadItem*>);
 
     virtual void
     KurbLine (std::vector<sim_mob::Point2D>);
@@ -2651,7 +2651,7 @@ namespace geo
     virtual void
     RoadBump ();
 
-    virtual std::map<sim_mob::centimeter_t,const RoadItem*>
+    virtual std::map<sim_mob::centimeter_t, RoadItem*>
     post_RoadItems_t () = 0;
 
     // Parser construction API.

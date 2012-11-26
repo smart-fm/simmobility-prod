@@ -395,7 +395,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void fwdBckSegments_t_pimpl::
   pre ()
   {
-	  std::cout << "in fwdBckSegments_t_pimpl::pre () " << std::endl;
+//	  std::cout << "in fwdBckSegments_t_pimpl::pre () " << std::endl;
 	  Segments.clear();
   }
 
@@ -414,7 +414,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   std::vector<sim_mob::RoadSegment*> fwdBckSegments_t_pimpl::
   post_fwdBckSegments_t ()
   {
-	  std::cout << "in fwdBckSegments_t_pimpl::post_fwdBckSegments_t () " << std::endl;
+//	  std::cout << "in fwdBckSegments_t_pimpl::post_fwdBckSegments_t () " << std::endl;
 	  return Segments;
   }
 
@@ -453,7 +453,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void laneEdgePolyline_cached_t_pimpl::
   laneNumber (short laneNumber)
   {
-    std::cout << "laneNumber: " << laneNumber << std::endl;
+//    std::cout << "laneNumber: " << laneNumber << std::endl;
     thePair.first = laneNumber;
   }
 
@@ -499,7 +499,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void segment_t_pimpl::
   pre ()
   {
-	  std::cout << "In segment_t_pimpl:: pre ()\n";
+//	  std::cout << "In segment_t_pimpl:: pre ()\n";
 	  rs = NULL;
 	  rs = new sim_mob::RoadSegment();
 	  rs->lanesLeftOfDivider = 0;
@@ -521,14 +521,14 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void segment_t_pimpl::
   startingNode (unsigned int startingNode)
   {
-	  std::cout << "In segment_t_pimpl::   startingNode ()\n";
+//	  std::cout << "In segment_t_pimpl::   startingNode ()\n";
 	  this->rs->setStart(geo_Nodes_[startingNode]);
   }
 
   void segment_t_pimpl::
   endingNode (unsigned int endingNode)
   {
-	  std::cout << "In segment_t_pimpl::   endingNode ()\n";
+//	  std::cout << "In segment_t_pimpl::   endingNode ()\n";
 	  this->rs->setEnd(geo_Nodes_[endingNode]);
   }
 
@@ -553,7 +553,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void segment_t_pimpl::
   originalDB_ID (const ::std::string& originalDB_ID)
   {
-    std::cout << "originalDB_ID: " << originalDB_ID << std::endl;
+//    std::cout << "originalDB_ID: " << originalDB_ID << std::endl;
     this->rs->originalDB_ID = originalDB_ID;
   }
   void segment_t_pimpl::
@@ -574,7 +574,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void segment_t_pimpl::
   Lanes (std::vector<sim_mob::Lane*> Lanes)
   {
-	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
+//	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
 	  this->rs->setLanes(Lanes);
 	  //set parentsegment for each lane
 
@@ -582,25 +582,32 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 		  {
 		  	 (*it)->setParentSegment(this->rs);
 		  }
-	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
+//	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
  }
 
   void segment_t_pimpl::
-  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*> Obstacles)
+  Obstacles (std::map<sim_mob::centimeter_t, RoadItem*> Obstacles)
   {
 //	  std::cout << "in segment_t_pimpl::Obstacles () " << std::endl;
 	  //we set roadSegment* element of Crossing(and similar roadItems) in here
 	  //street directory has already done that, but that is not a good place to do this setting
 	  //for one reason, this XML reader can be used in GUI also, and there is no mechanism to set such elements there.
-	  for(std::map<sim_mob::centimeter_t,const RoadItem*>::iterator it = Obstacles.begin(); it != Obstacles.end(); it++)
+	  for(std::map<sim_mob::centimeter_t, RoadItem*>::iterator it = Obstacles.begin(); it != Obstacles.end(); it++)
 	  {
-		  RoadItem* temp = const_cast<RoadItem*>(it->second);
+		  RoadItem* temp = /*const_cast<RoadItem*>*/(it->second);
 		  if (temp)
 			  temp->setParentSegment(this->rs);
+		  this->rs->obstacles[it->first] = it->second;//due to constant nature of this map's data, we set through iteration
+		  sim_mob::Crossing *cr = 0;
+		  cr = dynamic_cast<sim_mob::Crossing*>(it->second);
+		  if(cr)
+		  if(geo_Crossings[cr->getCrossingID()] != it->second)
+			  throw std::runtime_error("crossing mismatch\n");
+
 	  }
 
 
-	  this->rs->obstacles = Obstacles;
+//	  this->rs->obstacles = Obstacles;
   }
 
   void segment_t_pimpl::
@@ -633,7 +640,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void link_t_pimpl::
   linkID (unsigned int linkID)
   {
-	std::cout << "In linkID \n";
+//	std::cout << "In linkID \n";
 	link->linkID = linkID;
 	geo_Links_[link->linkID] = link;
 //	std::cout << "linkID : "  << linkID << " Has link " << link;
@@ -688,7 +695,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 	  link->setSegmentList(Segments.first, Segments.second);
 
 	  //uniquesegments (are done automatically in "setSegmentList")
-	  std::cout << "In link_t_pimpl::Segments(" << Segments.first.size() << "," << Segments.second.size() << "\n";
+//	  std::cout << "In link_t_pimpl::Segments(" << Segments.first.size() << "," << Segments.second.size() << "\n";
   }
 
   sim_mob::Link* link_t_pimpl::
@@ -1261,28 +1268,28 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void RoadItem_t_pimpl::
   Offset (unsigned short Offset)
   {
-    std::cout << "in RoadItem_t_pimpl::Offset: " << Offset << std::endl;
+//    std::cout << "in RoadItem_t_pimpl::Offset: " << Offset << std::endl;
     Offset_ = Offset;
   }
 
   void RoadItem_t_pimpl::
   start (sim_mob::Point2D start)
   {
-	  std::cout << "in RoadItem_t_pimpl::start\n";
+//	  std::cout << "in RoadItem_t_pimpl::start\n";
 	  start_ = start;
   }
 
   void RoadItem_t_pimpl::
   end (sim_mob::Point2D end)
   {
-	  std::cout << "in RoadItem_t_pimpl::end\n";
+//	  std::cout << "in RoadItem_t_pimpl::end\n";
 	  end_ = end;
   }
 
   std::pair<unsigned long,sim_mob::RoadItem*> RoadItem_t_pimpl::
   post_RoadItem_t ()
   {
-	  std::cout << "in RoadItem_t_pimpl::post_RoadItem_t\n";
+//	  std::cout << "in RoadItem_t_pimpl::post_RoadItem_t\n";
 
 	  sim_mob::RoadItem *ri = new sim_mob::RoadItem;
 	  ri->id = id_;
@@ -1298,7 +1305,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void BusStop_t_pimpl::
   pre ()
   {
-	    std::cout << "in BusStop_t_pimpl::pre ()\n";
+//	    std::cout << "in BusStop_t_pimpl::pre ()\n";
 	    bs = new sim_mob::BusStop();
 	    bs_info = BusStopInfo();
 	    bs_info.busStop = bs;
@@ -1307,56 +1314,56 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void BusStop_t_pimpl::
   xPos (double xPos)
   {
-    std::cout << "xPos: " << xPos << std::endl;
+//    std::cout << "xPos: " << xPos << std::endl;
     bs->xPos = xPos;
   }
 
   void BusStop_t_pimpl::
   yPos (double yPos)
   {
-    std::cout << "yPos: " << yPos << std::endl;
+//    std::cout << "yPos: " << yPos << std::endl;
     bs->yPos = yPos;
   }
 
   void BusStop_t_pimpl::
   lane_location (unsigned long long lane_location)
   {
-    std::cout << "lane_location: " << lane_location << std::endl;
+//    std::cout << "lane_location: " << lane_location << std::endl;
     bs_info.lane_location = lane_location;
   }
 
   void BusStop_t_pimpl::
   is_terminal (bool is_terminal)
   {
-    std::cout << "is_Terminal: " << is_terminal << std::endl;
+//    std::cout << "is_Terminal: " << is_terminal << std::endl;
     bs->is_terminal = is_terminal;
   }
 
   void BusStop_t_pimpl::
   is_bay (bool is_bay)
   {
-    std::cout << "is_Bay: " << is_bay << std::endl;
+//    std::cout << "is_Bay: " << is_bay << std::endl;
     bs->is_bay = is_bay;
   }
 
   void BusStop_t_pimpl::
   has_shelter (bool has_shelter)
   {
-    std::cout << "has_shelter: " << has_shelter << std::endl;
+//    std::cout << "has_shelter: " << has_shelter << std::endl;
     bs->has_shelter = has_shelter;
   }
 
   void BusStop_t_pimpl::
   busCapacityAsLength (unsigned int busCapacityAsLength)
   {
-    std::cout << "busCapacityAsLength: " << busCapacityAsLength << std::endl;
+//    std::cout << "busCapacityAsLength: " << busCapacityAsLength << std::endl;
     bs->busCapacityAsLength = busCapacityAsLength;
   }
 
   void BusStop_t_pimpl::
   busstopno (const ::std::string& busstopno)
   {
-    std::cout << "busstopno: " << busstopno << std::endl;
+//    std::cout << "busstopno: " << busstopno << std::endl;
     bs->busstopno_ = busstopno;
   }
 
@@ -1461,8 +1468,8 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   pre ()
   {
 
-	  std::cout << "in crossing_t_pimpl::pre () " << std::endl;
 	    crossing = new sim_mob::Crossing();
+	  std::cout << "in crossing_t_pimpl::pre () crossing created: " << crossing << std::endl;
       }
 
   void crossing_t_pimpl::
@@ -1485,9 +1492,28 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
     std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
     
 //    sim_mob::Crossing* crossing = new sim_mob::Crossing();
+
 	crossing->id = v.second->getRoadItemID();
     crossing->start = v.second->getStart();
     crossing->end   = v.second->getEnd();
+    if(crossing->id == 1000010051)
+    	std::cout << "crossing->id =" << crossing->id << "  ,v.first=" << v.first << ", " << crossing << " is being returned " << std::endl;
+
+//    std::cout << "crossing->id =" << crossing->id << "  ,v.first=" << v.first << std::endl;
+//    std::cout << "returning "
+    //oops, hold on a second! what if this is a t-way road and you have to share a crossing
+    //with your neighbouring  segment who serves the opposite direction?
+    //what if that segment already created this crossing for you and you just have to share it?
+    if(geo_Crossings[crossing->id])
+    {
+    	//the above line MAY return non-null garbage, so doule check it:
+    	if(geo_Crossings[crossing->id]->getCrossingID() != crossing->id)
+    		throw std::runtime_error("Crossing mismatch!\n");
+    	delete crossing;
+    	crossing = geo_Crossings[v.second->getRoadItemID()];//reuse the already created crossing
+    	std::cout << "Crossing " << v.second->getRoadItemID() << "  reused\n";
+//    	getchar();
+    }
     delete v.second; //cleanup
     return std::make_pair(v.first, crossing);
   }
@@ -1543,8 +1569,9 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void RoadNetwork_t_pimpl::
   Links (std::vector<sim_mob::Link*> Links)
   {
+//	  getchar();
 	  rn.setLinks(Links);
-	  std::cout << "Links Done	\n";
+//	  std::cout << "Links Done	\n";
   }
 
   void RoadNetwork_t_pimpl::
@@ -1558,7 +1585,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void RoadItems_t_pimpl::
   pre ()
   {
-	  std::cout << "in RoadItems_t_pimpl::pre () " << std::endl;
+//	  std::cout << "in RoadItems_t_pimpl::pre () " << std::endl;
 	  RoadItems.clear();
   }
 
@@ -1576,9 +1603,17 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void RoadItems_t_pimpl::
   Crossing (std::pair<unsigned long,sim_mob::Crossing*> Crossing)
   {
-	  std::cout << "in RoadItems_t_pimpl::Crossing () " << std::endl;
+//	  std::cout << "in RoadItems_t_pimpl::Crossing () " << std::endl;
 	  RoadItems[Crossing.first] = Crossing.second;
 	  geo_Crossings[Crossing.second->getCrossingID()] = Crossing.second;
+
+//	    if(Crossing.second->getCrossingID() == 1000010051)
+//	    {
+//	    	std::cout << "crossing->id =" << Crossing.second->getCrossingID() << "  " << Crossing.second << " is received and recorded into Roaditems and temporary geo_crossing " << std::endl;
+//	    	getchar();
+//	    }
+//	  std::cout << "geo_Crossings[" << Crossing.second->getCrossingID() << "] = " <<  Crossing.second << "\n";
+//	  getchar();
   }
 
   void RoadItems_t_pimpl::
@@ -1586,11 +1621,11 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   {
   }
 
-  std::map<sim_mob::centimeter_t,const RoadItem*> RoadItems_t_pimpl::
+  std::map<sim_mob::centimeter_t, RoadItem*> RoadItems_t_pimpl::
   post_RoadItems_t ()
   {
 
-	  std::cout << "in RoadItems_t_pimpl::post_RoadItems_t () " << std::endl;
+//	  std::cout << "in RoadItems_t_pimpl::post_RoadItems_t () " << std::endl;
 	  return RoadItems;
 
   }
@@ -2047,7 +2082,11 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   crossingID (unsigned int crossingID)
   {
     std::cout << "crossingID: " << crossingID << std::endl;
+    std::map<unsigned int,sim_mob::Crossing*>::iterator it = geo_Crossings.find(crossingID);
+    if(it == geo_Crossings.end()) throw std::runtime_error("invalid crossingID\n");
     LAC.crossing = geo_Crossings[crossingID];
+    std::cout << "Crossing " << crossingID << "[" << geo_Crossings[crossingID] << "] added to link and crossing\n";
+//    getchar();
   }
 
   void linkAndCrossing_t_pimpl::
@@ -2331,7 +2370,8 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings> crossings_map)
   {
     model[crossings_map.first] = crossings_map.second;
-//    std::cout << "Crossing " << crossings_map.first << " Added to the map, new size of map = " << model.size() << std::endl;
+    std::cout << "Crossing " << crossings_map.first << " Added to the map, new size of map = " << model.size() << std::endl;
+//    getchar();
   }
 
   std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_maps_t_pimpl::
@@ -2817,7 +2857,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   Link (sim_mob::Link* Link)
   {
 	  links.push_back(Link);
-	  std::cout << "Link Pushed\n";
+//	  std::cout << "Link Pushed\n";
   }
 
   std::vector<sim_mob::Link*> Links_pimpl::

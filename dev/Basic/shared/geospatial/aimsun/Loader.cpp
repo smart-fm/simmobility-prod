@@ -1097,9 +1097,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
 
-#ifndef SKIP_AUTOMATE
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
-#endif
+
 	//Save all trip chains
 	sim_mob::Trip* tripToSave = nullptr;
 	for (vector<TripChainItem>::const_iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
@@ -1916,7 +1915,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.SaveSimMobilityNetwork(rn, tcs);
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
-#ifndef SKIP_AUTOMATE
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
@@ -1926,7 +1924,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	if (prof) {
 		prof->logGenericEnd("PostProc", "main-prof");
 	}
-#endif
 
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)

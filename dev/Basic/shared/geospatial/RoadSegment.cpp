@@ -115,8 +115,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		}
 	}
 
-#ifndef SKIP_AUTOMATE
-
 	//TEMP FIX
 	//Now, add one more edge and one more lane representing the sidewalk.
 	//TODO: This requires our function (and several others) to be declared non-const.
@@ -156,13 +154,8 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
 		}
 	}
-#endif
 }
 
-#ifndef SIMMOB_DISABLE_MPI
-
-
-#endif
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {

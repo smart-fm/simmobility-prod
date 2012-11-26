@@ -53,10 +53,7 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
         stats_ = new Stats;
     }
     pimpl_ = new GridStreetDirectoryImpl(network, gridWidth, gridHeight);
-
-#ifndef SKIP_AUTOMATE
     spImpl_ = new A_StarShortestPathImpl(network);
-#endif
 
     //Save a cache of Nodes to Links
 	const std::vector<sim_mob::Link*>& links = network.getLinks();

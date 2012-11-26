@@ -190,6 +190,9 @@ public class Intersection {
 					tempCrossingIds.add(cr.id);
 			}
 			this.trafficSignalCrossings.put(ph.name, tempCrossingIds);
+			
+//			for(Long CrossingId:tempCrossingIds)
+//				System.out.println("Intersection: " + getIntersectID() + ".trafficSignalCrossings.put(ph.name=[" + ph.name + "], tempCrossingIds=" + CrossingId );
 		}
 		this.signalCrossingIDs = new ArrayList <Long>();
 		for(Long s : tempSet) this.signalCrossingIDs.add(s);

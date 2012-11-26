@@ -574,7 +574,7 @@ public class NetworkVisualizer {
 				if(network.getTrafficSignalCrossing() == null)
 					System.out.println("network.getTrafficSignalCrossing() is NULL");
 				if(network.getTrafficSignalCrossing().get(crossingId)==null)
-					System.out.println("Frame " + currFrame + " network.getTrafficSignalCrossing().get(crossingId) is NULL for intersection" + at.getIntersectionID());
+					System.out.println("Frame " + currFrame + " network.getTrafficSignalCrossing().get(" + crossingId + ") is NULL for intersection "  + at.getIntersectionID());
 				else
 				{
 					network.getTrafficSignalCrossing().get(crossingId).setCurrColor(at.getCrossingID_Map().get(crossingId));

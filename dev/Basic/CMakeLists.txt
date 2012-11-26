@@ -55,8 +55,8 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #      we build two versions of the code: non-PIC for the executable, and 
 #      PIC for the library. Of course, this slows the build process down.
 IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fPIC")
-  SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fPIC")
+  SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC")
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.

@@ -1,5 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+
 #include "Loader.hpp"
 
 #include<set>
@@ -1866,6 +1867,14 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	//      only feature one primary connector per Segment pair.
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
+			//Bounds check: temp
+			/*if (fromLaneID>=src.fromSection->generatedSegment->lanes.size() ||
+				toLaneID >= src.toSection->generatedSegment->lanes.size()) {
+				std::cout <<"SKIPPING LANE\n";
+				continue;
+			}*/
+
+			//Process
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
@@ -1875,30 +1884,6 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
-
-//		{//debug
-//			std::cout <<  "Connectors..................\n";
-//		map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
-//		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
-//		{
-//			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
-//			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
-//			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
-//			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
-//			{
-//				s.insert(*it);
-//			}
-//			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
-//			{
-//				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
-//				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
-//
-//				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
-//			}
-//			std::cout <<  "\n";
-//		}
-//		std::cout <<  "Connectors..................end\n";
-//		}//debug
 	}
 
 }
@@ -1950,37 +1935,15 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step Two: Translate
 	if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
 	loader.DecorateAndTranslateObjects();
+
 	//Step Three: Perform data-guided cleanup.
 	loader.PostProcessNetwork();
+
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
-//		{//debug
-//			std::cout <<  "aimsun::loader  Connectors..................\n";
-//			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-//		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->connectors;
-//		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
-//		{
-//			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
-//			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
-//			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
-//			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
-//			{
-//				s.insert(*it);
-//			}
-//			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
-//			{
-//				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
-//				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
-//
-//				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
-//			}
-//			std::cout <<  "\n";
-//		}
-//			}
-//		std::cout <<  "aimsun::loader  Connectors..................end\n";
-//		}//debug
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
+#ifndef SKIP_AUTOMATE
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
@@ -1990,6 +1953,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	if (prof) {
 		prof->logGenericEnd("PostProc", "main-prof");
 	}
+#endif
 
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)

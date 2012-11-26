@@ -330,19 +330,7 @@ unsigned int sim_mob::BusController::hybridDecision(const string& busline_i, int
 
 unsigned int sim_mob::BusController::dwellTimeCalculation(const string& busline_i, int trip_k, int busstopSequence_j)
 {
-	double alpha1 = 0.0;
-	double alpha2 = 0.0;
-	double alpha3 = 0.0;
-	double alpha4 = 0.0;
-
-	double beta1 = 0.0;
-	double beta2 = 0.0;
-	double beta3 = 0.0;
-	int Pfront = 1;
-
-	double PTijk_front = 0.0;
-	double PTijk_rear = 0.0;
-	unsigned int DTijk = 0;
+	double DTijk = 0.0;
 	return DTijk;
 }
 

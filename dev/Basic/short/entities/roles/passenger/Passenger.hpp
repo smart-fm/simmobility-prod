@@ -24,18 +24,24 @@ namespace sim_mob
  */
 class Passenger : public sim_mob::Role {
 public:
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const {
-		throw std::runtime_error("Clone not implemented for Passenger");
-	}
+	Passenger(Agent* parent)
+	{
 
+	}
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const {
+		return new Passenger(parent);;
+	}
+	virtual ~Passenger()
+	{
+	}
 	virtual void update(timeslice now) { throw std::runtime_error("Passenger not yet implemented."); }
 
 	//todo
-	virtual void frame_init(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
-	virtual void frame_tick(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
-	virtual void frame_tick_output(const UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
-	virtual void frame_tick_output_mpi(timeslice now) {throw std::runtime_error("Passenger not yet implemented."); }
-	virtual UpdateParams& make_frame_tick_params(timeslice now) { throw std::runtime_error("Passenger not yet implemented."); }
+	virtual void frame_init(UpdateParams& p) {}
+	virtual void frame_tick(UpdateParams& p) {}
+	virtual void frame_tick_output(const UpdateParams& p) {}
+	virtual void frame_tick_output_mpi(timeslice now) {}
+	virtual UpdateParams& make_frame_tick_params(timeslice now) {}
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams()
 	{

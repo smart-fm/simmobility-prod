@@ -38,6 +38,7 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
 
 
 namespace sim_mob
@@ -96,6 +97,15 @@ public:
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
 	ReactionTimeDist* reactDist2;
+	//for generating passenger distribution
+
+
+	PassengerDist* passengerDist_busstop;
+	PassengerDist* passengerDist_crowdness;
+
+	int percent_boarding;
+	int percent_alighting;
+//	PassengerDist* passengerDist_alighting;
 
 
 	//Number of agents skipped in loading

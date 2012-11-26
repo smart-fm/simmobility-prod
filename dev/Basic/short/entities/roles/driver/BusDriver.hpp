@@ -4,6 +4,7 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
+#include "entities/vehicle/Bus.hpp"
 #include <vector>
 
 namespace sim_mob {
@@ -14,6 +15,8 @@ class PackageUtils;
 class UnPackageUtils;
 class BusStop;
 class Person;
+class Bus;
+class Passenger;
 
 
 /**
@@ -34,6 +37,7 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.
@@ -43,13 +47,19 @@ public:
 	/// A negative return value indicates that there is no relevant bus stop nearby.
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
 
+	//double no_passengers_boarding,no_passengers_alighting;
+
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;
 	bool isBusArriveBusStop() const;
 	bool isBusLeavingBusStop() const;
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
-
+	//void passengers_distribution(Bus* bus);
+	void passengers_Board(Bus* bus);
+	void passengers_Alight(Bus* bus);
+	double passengerGeneration(Bus* bus);
+	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
@@ -58,9 +68,15 @@ public:
 
 	double lastTickDistanceToBusStop;
 	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
-	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
+	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
+	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
+
+	bool first_busstop;
+	bool last_busstop;
+	size_t no_passengers_boarding;
+	size_t no_passengers_alighting;
 
 protected:
 	//Override the following behavior
@@ -68,6 +84,7 @@ protected:
 
 //Basic data
 private:
+
 	//BusRoute route;
 	const DemoBusStop* nextStop;
 	std::vector<DemoBusStop> stops;

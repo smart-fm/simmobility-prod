@@ -93,8 +93,8 @@ public class RoadNetwork {
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
 
-	public Hashtable<Long, StDirVertex> getDrivingGraphVertices() { return sdVertices.get(sdDrivingGraphID); }
-	public Hashtable<Long, StDirEdge> getDrivingGraphEdges() { return sdEdges.get(sdDrivingGraphID); }
+	public Hashtable<Long, StDirVertex> getDrivingGraphVertices() { return sdDrivingGraphID!=null ? sdVertices.get(sdDrivingGraphID) : null; }
+	public Hashtable<Long, StDirEdge> getDrivingGraphEdges() { return sdDrivingGraphID!=null ? sdEdges.get(sdDrivingGraphID) : null; }
 	public Hashtable<Long, StDirVertex> getWalkingGraphVertices() { return sdWalkingGraphID==null? null : sdVertices.get(sdWalkingGraphID); }
 	public Hashtable<Long, StDirEdge> getWalkingGraphEdges() { return sdWalkingGraphID==null ? null : sdEdges.get(sdWalkingGraphID); }	
 

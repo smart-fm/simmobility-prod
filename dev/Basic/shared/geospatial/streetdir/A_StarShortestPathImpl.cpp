@@ -553,6 +553,11 @@ void sim_mob::A_StarShortestPathImpl::procResolveWalkingMultiNodes(StreetDirecto
 			}
 		}
 
+		//Nothing to do?
+		if (distLookup.empty()) {
+			continue;
+		}
+
 		//Iterate in order, pairing the two closest elements if their total distance is less than 1/2 of the maximum distance.
 		//Note that map::begin/end is essentially in order. (Also, we keep a list of what's been tagged already).
 		map<double, std::pair<NodeDescriptor, NodeDescriptor> >::const_iterator lastValue = distLookup.end();

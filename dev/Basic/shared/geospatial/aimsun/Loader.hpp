@@ -3,7 +3,7 @@
 #pragma once
 
 //Temporary flag: turn off all automation (sidewalks, etc.). Just show what's loaded from the DB.
-//#define SKIP_AUTOMATE
+#define SKIP_AUTOMATE
 
 #include <vector>
 #include <string>

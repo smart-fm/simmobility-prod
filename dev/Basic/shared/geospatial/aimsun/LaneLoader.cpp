@@ -420,10 +420,10 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 		startPoint = *originPoints.back();
 		endPoint = *endingPoints.back();
 	} else {
-		throw std::runtime_error("LaneLoader is no longer able to support multi-directional Links.");
+		//throw std::runtime_error("LaneLoader is no longer able to support multi-directional Links.");
 		//...otherwise, we deal with each point separately.
-		//startPoint = DetermineNormalMedian(originPoints, fwdFirstLastSection.first, revFirstLastSection.second);
-		//endPoint = DetermineNormalMedian(endingPoints, revFirstLastSection.first, fwdFirstLastSection.second);
+		startPoint = DetermineNormalMedian(originPoints, fwdFirstLastSection.first, revFirstLastSection.second);
+		endPoint = DetermineNormalMedian(endingPoints, revFirstLastSection.first, fwdFirstLastSection.second);
 	}
 
 	return std::make_pair(startPoint, endPoint);
@@ -703,17 +703,21 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	pair< size_t, size_t > maxCandidates(1, 1); //start, end (natural +1 each)
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
 		//Sanity check
-		if (((*it)->toNode==start) || ((*it)->fromNode==end)) {
-			throw std::runtime_error("Links are one-way; shouldn't have reverse Segments.");
-		}
+		//if (((*it)->toNode==start) || ((*it)->fromNode==end)) {
+		//	throw std::runtime_error("Links are one-way; shouldn't have reverse Segments.");
+		//}
 
-		//Start node?
+		//"from" or "to" the start?
 		if ((*it)->fromNode==start) {
+			maxCandidates.first += (*it)->numLanes;
+		} else if ((*it)->toNode==start) {
 			maxCandidates.first += (*it)->numLanes;
 		}
 
-		//End node?
-		if ((*it)->toNode==end) {
+		//"from" or "to" the end?
+		if ((*it)->fromNode==end) {
+			maxCandidates.second += (*it)->numLanes;
+		} else if ((*it)->toNode==end) {
 			maxCandidates.second += (*it)->numLanes;
 		}
 	}

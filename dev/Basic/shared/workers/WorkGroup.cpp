@@ -148,8 +148,7 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 {
 	//First, join and delete all WorkGroups
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-//		delete *it;
-		(*it)->clear();
+		delete *it;
 	}
 
 	//Finally, reset all properties.
@@ -190,8 +189,10 @@ sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks,
 
 sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are wait()-ing. But it prevents undefined behavior in boost.
 {
+//	safe_delete_item(macro_tick_barr);
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
+		wk->interrupt();
 		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
 		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
 		delete wk;
@@ -200,7 +201,7 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
-	safe_delete_item(macro_tick_barr);
+//	safe_delete_item(macro_tick_barr);
 }
 
 

@@ -169,9 +169,9 @@ void sim_mob::Worker::barrier_mgmt()
 			// we in pause loop
 			sleep(0.01);
 		}
-		else if (ctrlMgr->getSimState() == RUNNING)
+		else /*if (ctrlMgr->getSimState() == RUNNING)*/
 		{
-			sleep(1);
+			sleep(0.1);
 			//Add Agents as required.
 			addPendingEntities();
 
@@ -184,36 +184,55 @@ void sim_mob::Worker::barrier_mgmt()
 			//Advance local time-step.
 			currTick += tickStep;
 			//get stop cmd, stop loop
-//			if(ctrlMgr->getSimState() == STOP)
-//			{
-//				currTick = endTick;
-//			}
+			if (ctrlMgr->getSimState() == STOP)  //
+			{
+				int a=0;
+				while (ctrlMgr->getEndTick() < 0)
+				{
+					int t=currTick+2;
+					ctrlMgr->setEndTick(t);
+				}
+				endTick = ctrlMgr->getEndTick();
+			}
 			active = (endTick==0 || currTick<endTick);
-			//First barrier
-			if (frame_tick_barr) {
-				frame_tick_barr->wait();
+
+			try
+			{
+				//First barrier
+				if (frame_tick_barr) {
+					frame_tick_barr->wait();
+				}
+
+				//Now flip all remaining data.
+				perform_flip();
+
+				//Second barrier
+				if (buff_flip_barr) {
+					buff_flip_barr->wait();
+				}
+
+				// Wait for the AuraManager
+				if (aura_mgr_barr) {
+					aura_mgr_barr->wait();
+				}
+
+				//If we have a macro barrier, we must wait exactly once more.
+				//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+				//  once more at the end of tick 9.
+				//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+				bool extraActive = (endTick==0 || (currTick-1)<endTick);
+	//			if(ctrlMgr->getSimState() == STOP)
+	//			{
+	//				macro_tick_barr = NULL;
+	//			}
+				if (macro_tick_barr && extraActive) {
+					macro_tick_barr->wait();
+				}
 			}
-
-			//Now flip all remaining data.
-			perform_flip();
-
-			//Second barrier
-			if (buff_flip_barr) {
-				buff_flip_barr->wait();
-			}
-
-			// Wait for the AuraManager
-			if (aura_mgr_barr) {
-				aura_mgr_barr->wait();
-			}
-
-			//If we have a macro barrier, we must wait exactly once more.
-			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
-			//  once more at the end of tick 9.
-			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-			bool extraActive = (endTick==0 || (currTick-1)<endTick);
-			if (macro_tick_barr && extraActive) {
-				macro_tick_barr->wait();
+			catch(...)
+			{
+				std::cout<<"thread out"<<std::endl;
+				return;
 			}
 		}
 

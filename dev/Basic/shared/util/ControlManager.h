@@ -36,6 +36,12 @@ public:
 	int getSimState() { return simState; }
 	void getLoadScenarioParas(std::map<std::string,std::string> &para) { para=loadScenarioParas; }
 	bool handleInput(std::string& input);
+	void setEndTick(int t) {
+		boost::mutex::scoped_lock local_lock(lockEndTick);
+		if (endTick<0)
+			endTick = t;
+	}
+	int getEndTick() { return endTick;}
 private:
 	ControlManager();
 	static ControlManager *instance;
@@ -43,6 +49,8 @@ private:
 	int simState;
 	std::map<std::string,std::string> loadScenarioParas;
 	boost::mutex lock;
+	boost::mutex lockEndTick;
+	int endTick;
 };
 
 }

@@ -200,6 +200,7 @@ private:
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
 
+
 };
 
 

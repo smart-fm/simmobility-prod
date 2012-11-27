@@ -7,7 +7,9 @@ sim_mob::FlexiBarrier::FlexiBarrier(unsigned int count) : m_threshold(count), m_
 		throw std::runtime_error("FlexiBarrier constructor: count cannot be zero.");
 	}
 }
-
+sim_mob::FlexiBarrier::~FlexiBarrier()
+{
+}
 
 bool sim_mob::FlexiBarrier::wait(unsigned int amount)
 {

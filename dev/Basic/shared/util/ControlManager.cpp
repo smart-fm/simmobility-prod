@@ -23,6 +23,7 @@ sim_mob::ControlManager* sim_mob::ControlManager::GetInstance() {
 sim_mob::ControlManager::ControlManager()
 	:simState(NOTREADY)
 {
+	endTick=-1;
 	 int flags;
 	 fds.fd = 0; /* this is STDIN */
 	 fds.events = POLLIN;
@@ -98,7 +99,7 @@ bool sim_mob::ControlManager::handleInput(std::string& input)
 		setSimState(RUNNING);
 		return true;
 	}
-	else if(cmd == "loadscenario")
+	else if(cmd == "load")
 	{
 		beg++;
 		if(beg == tokens.end())

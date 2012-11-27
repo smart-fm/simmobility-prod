@@ -997,7 +997,18 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
+	bool active=true;
+	int totalTick = config.totalRuntimeTicks;
+	for (unsigned int currTick = 0; currTick < totalTick && active; currTick++) {
+		if(ctrlMgr->getSimState() == STOP)
+		{
+			while (ctrlMgr->getEndTick() < 0)
+			{
+				int t=currTick+2;
+				ctrlMgr->setEndTick(t);
+			}
+			totalTick = ctrlMgr->getEndTick();
+		}
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -1032,10 +1043,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		WorkGroup::WaitAllGroups();
-		if(ctrlMgr->getSimState() == STOP)
-		{
-			break;
-		}
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -1101,9 +1108,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-//	WorkGroup::FinalizeAllWorkGroups();
-//
-//	//Test: At this point, it should be possible to delete all Signals and Agents.
+	WorkGroup::FinalizeAllWorkGroups();
+
+	//Test: At this point, it should be possible to delete all Signals and Agents.
+		Signal::all_signals_.clear();
+		Agent::all_agents.clear();
 //	clear_delete_vector(Signal::all_signals_);
 //	clear_delete_vector(Agent::all_agents);
 

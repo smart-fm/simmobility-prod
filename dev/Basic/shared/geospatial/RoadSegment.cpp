@@ -140,7 +140,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	{
 		//Make sure we're not generating Lanes for XML data
 		if (parentLink->hasOpposingLink<0) {
-			throw std::runtime_error("Link::hasOpposingLink should not be used by XML loaders!");
+			throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
 		}
 
 		//Check whether the link is one-way

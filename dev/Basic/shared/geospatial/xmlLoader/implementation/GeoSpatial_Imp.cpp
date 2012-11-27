@@ -121,5 +121,20 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
+
+	//Ugh; this shouldn't be needed.... (see Loader.cpp)
+	//TODO: Remove this; Lanes should never have to be "generated" at runtime (or if so, the conditions should be fully controlled).
+	{
+	std::map<std::pair<sim_mob::Node*, sim_mob::Node*>, sim_mob::Link*> startEndLinkMap;
+	//Scan first.
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		startEndLinkMap[std::make_pair((*linkIt)->getStart(), (*linkIt)->getEnd())] = *linkIt;
+	}
+	//Now tag
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		bool hasOpp = startEndLinkMap.count(std::make_pair((*linkIt)->getEnd(), (*linkIt)->getStart()))>0;
+		(*linkIt)->hasOpposingLink = hasOpp ? 1 : 0;
+	}
+	}
 }
 

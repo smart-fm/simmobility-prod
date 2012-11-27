@@ -204,63 +204,48 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	//The current agent we are working on.
 	Person* currAg = nullptr;
 	std::string trip_mode;
-	std::vector<TripChainItem*> currAgTripChain;
+	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		for (TCVectIt it = it_map->second.begin(); it != it_map->second.end(); it++) {
-			TripChainItem* tc = *it;
-
-			//If the agent pointer is null, this record represents the start of a new agent.
-			if (!currAg) {
-				//Might have an EntityID conflict here...
-				currAg = new Person("DB_TripChain", config.mutexStategy,
-						tc->personID);
-
-				//Update the TripChain's ID (in case the Person auto-generated an ID)
-				//TODO: This won't work quite right for agents with multiple Trips and an ID of -1.
-				tc->personID = currAg->getId();
-
-				//Set the start time for this Agent; clear the trip chain.
-				currAg->setStartTime(
-						tc->startTime.offsetMS_From(
-								ConfigParams::GetInstance().simStartTime));
-				currAgTripChain.clear();
-
-				//The origin and destination depend on whether this is a Trip or an Activity
-				const Trip* trip = dynamic_cast<const Trip*>(tc);
-				const Activity* act = dynamic_cast<const Activity*>(tc);
-
-				if (trip && tc->itemType == TripChainItem::IT_TRIP) {
-					currAg->originNode = trip->fromLocation;
-					currAg->destNode = trip->toLocation;
-					trip_mode = trip->getSubTrips()[0].mode; // currently choose the first subtrip mode as the mode of the trip
-				} else if (act && tc->itemType == TripChainItem::IT_ACTIVITY) {
-					currAg->originNode = currAg->destNode = act->location;
-				} else { //Offer some protection
-					throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+		TripChainItem* tc = it_map->second.front();
+		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
+//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
+//		//getchar();
+//		const Trip* trip = dynamic_cast<const Trip*>(tc);
+//		const Activity* act = dynamic_cast<const Activity*>(tc);
+//
+//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
+//			//Origin and destination must be those of the first subtrip if current item is a trip
+//			currAg->originNode = firstSubTrip.fromLocation;
+//			currAg->destNode = firstSubTrip.toLocation;
+//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
+//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+//			currAg->originNode = currAg->destNode = act->location;
+//		} else { //Offer some protection
+//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+//		}
+//
+//		currAg->setTripChain(it_map->second);
+		if (currAg->currSubTrip) {
+			if (currAg->currSubTrip->mode == "Bus") {
+				// currently only one
+				if (!BusController::all_busctrllers_.empty()) {
+					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
+							active_agents);
 				}
 			}
+		} else {
+//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
+			addOrStashEntity(currAg, active_agents, pending_agents);
+		}
 
+		//Reset for the next (possible) Agent
+		currAg = nullptr;
 
-			//Regardless, add this TripChainItem to the current Agent's trip chain.
-			currAgTripChain.push_back(tc);
-
-			//We must finalize this agent if we are at the end of the array, or if the next item does not have the same entity ID.
-			TCVectIt next = it + 1;
-			if (next == it_map->second.end() || (*next)->personID != currAg->getId()) {
-				//Save the trip chain and the Agent.
-				currAg->setTripChain(currAgTripChain);
-				if (trip_mode == "Bus") {
-					std::cout << "Skip the TripChain Buses!!!" << std::endl;
-				} else {
-					addOrStashEntity(currAg, active_agents, pending_agents);
-				}
-				//Reset for the next (possible) Agent
-				currAg = nullptr;
-			}
-		} //inner for loop(vector)
+		
 	} //outer for loop(map)
 }
 
@@ -1036,8 +1021,7 @@ void PrintDB_Network_ptrBased()
 	std::set<const Crossing*,Sorter> cachedCrossings;
 	std::set<const BusStop*,Sorter> cachedBusStops;
 		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-
-			LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
+		LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
 		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
 		LogOutNotSync("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
 		LogOutNotSync("\"width\":\"" <<(*it)->width <<"\",");
@@ -1113,8 +1097,7 @@ void PrintDB_Network_ptrBased()
 	}
 
 	//Bus Stops are part of Segments
-	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin();
-			it != cachedBusStops.end(); it++) {
+	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
 		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
@@ -1549,16 +1532,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 
 	//Driver::distributionType1 = distributionType1;
-	int signalAlgorithm;
+	int signalTimingMode;
 
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
 
-	node = handle.FirstChild("signalAlgorithm").ToElement();
+	node = handle.FirstChild("signalTimingMode").ToElement();
 	if(node)
 	{
-		node->Attribute("value", &signalAlgorithm);
+		node->Attribute("value", &signalTimingMode);
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -1703,7 +1686,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.signalWorkGroupSize = signalWgSize;
     	config.simStartTime = DailyTime(simStartStr);
     	config.mutexStategy = mtStrat;
-    	config.signalAlgorithm = signalAlgorithm;
+    	config.signalTimingMode = signalTimingMode;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
@@ -1758,6 +1741,27 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
+
+//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
+//    		{
+//    			if((*it)->getLinkId() != 1000010) continue;
+//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
+//    			{
+//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
+//    				{
+//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
+//    					{
+//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
+//    						if((cr))
+//    						{
+//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
+//    						}
+//    					}
+//    				}
+//    			}
+//    		}
+//    		getchar();
+
 #else
        		/**************************************************
        		 *
@@ -1942,15 +1946,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     for (size_t i = 0; i < all_signals.size(); ++i)
     {
-
-    	Signal  * signal =  dynamic_cast<Signal  *>(all_signals[i]);
+    	Signal  * signal;
 //        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
 	#ifndef SIMMOB_NEW_SIGNAL
+    	signal =  dynamic_cast<Signal  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
 	#else
+    	signal =  dynamic_cast<Signal_SCATS  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
 	#endif
-
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }

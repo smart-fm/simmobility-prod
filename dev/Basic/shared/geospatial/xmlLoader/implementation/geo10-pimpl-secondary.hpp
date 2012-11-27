@@ -372,10 +372,10 @@ public:
 };
 
 
-class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel, public ::xml_schema::string_pimpl {
+class signalTimingMode_t_pimpl: public virtual signalTimingMode_t_pskel, public ::xml_schema::string_pimpl {
 public:
 	virtual void pre ();
-	virtual void post_signalAlgorithm_t ();
+	virtual void post_signalTimingMode_t ();
 };
 
 class Plans_t_pimpl: public virtual Plans_t_pskel {

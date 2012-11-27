@@ -89,7 +89,7 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::Signals_t_pimpl Signals_t_p;
 		::sim_mob::xml::Signal_t_pimpl Signal_t_p;
 		::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
-		::sim_mob::xml::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
+		::sim_mob::xml::signalTimingMode_t_pimpl signalTimingMode_t_p;
 		::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
 		::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
 		::sim_mob::xml::Plans_t_pimpl Plans_t_p;
@@ -238,7 +238,7 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 
 		Signals_t_p.parsers(Signal_t_p);
 
-		Signal_t_p.parsers(unsigned_byte_p, unsigned_int_p, signalAlgorithm_t_p,
+		Signal_t_p.parsers(unsigned_byte_p, unsigned_int_p, signalTimingMode_t_p,
 				linkAndCrossings_t_p, SplitPlan_t_p);
 
 		linkAndCrossings_t_p.parsers(linkAndCrossing_t_p);
@@ -246,7 +246,7 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		linkAndCrossing_t_p.parsers(unsigned_byte_p, unsigned_int_p,
 				unsigned_int_p, unsigned_byte_p);
 
-		SplitPlan_t_p.parsers(unsigned_int_p, signalAlgorithm_t_p,
+		SplitPlan_t_p.parsers(unsigned_int_p, signalTimingMode_t_p,
 				unsigned_byte_p, unsigned_byte_p, Plans_t_p, Phases_t_p);
 
 		Plans_t_p.parsers(Plan_t_p);

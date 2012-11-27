@@ -371,7 +371,7 @@ public:
 	virtual sim_mob::SplitPlan post_SplitPlan_t ();
 
 	virtual void splitplanID (unsigned int);
-	virtual void signalAlgorithm ();
+	virtual void signalTimingMode ();
 	virtual void cycleLength (unsigned char);
 	virtual void offset (unsigned char);
 	virtual void ChoiceSet ();
@@ -386,7 +386,7 @@ public:
 
 	virtual void signalID (unsigned char);
 	virtual void nodeID (unsigned int);
-	virtual void signalAlgorithm ();
+	virtual void signalTimingMode ();
 	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
 	virtual void SplitPlan (sim_mob::SplitPlan);
 };

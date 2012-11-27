@@ -174,6 +174,7 @@ public class RoadNetwork {
 			if (newStyle) {
 //				System.out.println("Inside rn.loadFileAndReport.newstyle");
 				//Parse this line as json.
+//				System.out.println("Parsing gson line " + line);
 				GsonResObj gRes = Utility.ParseGsonLine(line);
 				int tTick = gRes.getTimeTick();
 				//Add this object to the simulation

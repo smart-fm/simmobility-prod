@@ -89,13 +89,9 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
     ::geo::Activity_t_pimpl Activity_t_p;
     ::geo::Signals_t_pimpl Signals_t_p;
     ::geo::Signal_t_pimpl Signal_t_p;
-    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
-    ::geo::signalAlgorithm_t_pimpl signalAlgorithm_t_p;
     ::geo::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
     ::geo::linkAndCrossing_t_pimpl linkAndCrossing_t_p;
-    ::geo::SplitPlan_t_pimpl SplitPlan_t_p;
-    ::geo::Plans_t_pimpl Plans_t_p;
-    ::geo::Plan_t_pimpl Plan_t_p;
+    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
     ::geo::Phases_t_pimpl Phases_t_p;
     ::geo::Phase_t_pimpl Phase_t_p;
     ::geo::links_maps_t_pimpl links_maps_t_p;
@@ -103,6 +99,13 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
     ::geo::ColorSequence_t_pimpl ColorSequence_t_p;
     ::geo::ColorDuration_t_pimpl ColorDuration_t_p;
     ::geo::TrafficColor_t_pimpl TrafficColor_t_p;
+    ::geo::crossings_maps_t_pimpl crossings_maps_t_p;
+    ::geo::crossings_map_t_pimpl crossings_map_t_p;
+    ::geo::SCATS_t_pimpl SCATS_t_p;
+    ::geo::signalTimingMode_t_pimpl signalTimingMode_t_p;
+    ::geo::SplitPlan_t_pimpl SplitPlan_t_p;
+    ::geo::Plans_t_pimpl Plans_t_p;
+    ::geo::Plan_t_pimpl Plan_t_p;
 
     // Connect the parsers together.
     //
@@ -353,11 +356,11 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
 
     Signals_t_p.parsers (Signal_t_p);
 
-    Signal_t_p.parsers (unsigned_byte_p,
+    Signal_t_p.parsers (unsigned_int_p,
                         unsigned_int_p,
-                        signalAlgorithm_t_p,
                         linkAndCrossings_t_p,
-                        SplitPlan_t_p);
+                        Phases_t_p,
+                        SCATS_t_p);
 
     linkAndCrossings_t_p.parsers (linkAndCrossing_t_p);
 
@@ -366,23 +369,12 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
                                  unsigned_int_p,
                                  unsigned_byte_p);
 
-    SplitPlan_t_p.parsers (unsigned_int_p,
-                           signalAlgorithm_t_p,
-                           unsigned_byte_p,
-                           unsigned_byte_p,
-                           Plans_t_p,
-                           Phases_t_p);
-
-    Plans_t_p.parsers (Plan_t_p);
-
-    Plan_t_p.parsers (unsigned_byte_p,
-                      double_p);
-
     Phases_t_p.parsers (Phase_t_p);
 
     Phase_t_p.parsers (unsigned_byte_p,
                        string_p,
-                       links_maps_t_p);
+                       links_maps_t_p,
+                       crossings_maps_t_p);
 
     links_maps_t_p.parsers (links_map_t_p);
 
@@ -397,6 +389,25 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
 
     ColorDuration_t_p.parsers (TrafficColor_t_p,
                                unsigned_byte_p);
+
+    crossings_maps_t_p.parsers (crossings_map_t_p);
+
+    crossings_map_t_p.parsers (unsigned_int_p,
+                               unsigned_int_p,
+                               ColorSequence_t_p);
+
+    SCATS_t_p.parsers (signalTimingMode_t_p,
+                       SplitPlan_t_p);
+
+    SplitPlan_t_p.parsers (unsigned_int_p,
+                           unsigned_byte_p,
+                           unsigned_byte_p,
+                           Plans_t_p);
+
+    Plans_t_p.parsers (Plan_t_p);
+
+    Plan_t_p.parsers (unsigned_byte_p,
+                      double_p);
 
     // Parse the XML document.
     //

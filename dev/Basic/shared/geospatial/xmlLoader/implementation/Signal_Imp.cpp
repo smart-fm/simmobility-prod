@@ -22,7 +22,7 @@ void sim_mob::xml::Signal_t_pimpl::nodeID (unsigned int value)
 	//std::cout << "nodeID: " <<value << std::endl;
 }
 
-void sim_mob::xml::Signal_t_pimpl::signalAlgorithm ()
+void sim_mob::xml::Signal_t_pimpl::signalTimingMode ()
 {
 }
 

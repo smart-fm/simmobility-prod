@@ -623,6 +623,7 @@ LoopDetectorEntity::~LoopDetectorEntity()
 void
 LoopDetectorEntity::init(Signal const & signal)
 {
+
     pimpl_ = new Impl(signal, *this);
 }
 

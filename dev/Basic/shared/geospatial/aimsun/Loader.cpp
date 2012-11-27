@@ -1092,6 +1092,22 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
 	}
+//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+//		Node origin = (*it).second;
+//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
+//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
+//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
+//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
+//					{
+//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
+//						if((cr))
+//						{
+//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
+//						}
+//					}
+//		}
+//	}
+//	getchar();
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
@@ -1145,16 +1161,23 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	{
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;
 
 		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->addObstacle(distOrigin, busstop);
+
 		(sim_mob::ConfigParams::GetInstance().getBusStopNo_BusStops())[busstop->busstopno_] = busstop;
+
+		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+//		if(100001500 == busstop->parentSegment_->getSegmentID())
+//		{
+//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
+//			getchar();
+//		}
 	}
 
 	/*vahid:
@@ -1284,7 +1307,7 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 		createPhases(signal);
 
 		//now that we have the number of phases, we can continue initializing our split plan.
-		int nof_phases = plan.find_NOF_Phases();
+		int nof_phases = signal.getNOF_Phases();
 //		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
 			if((nof_phases > 5)||(nof_phases < 1))
@@ -1292,22 +1315,6 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 			else
 			{
 				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
-//				//Now you know the each phase percentage from the choice set,
-//				//so you may set the phase percntage and phase offset of each phase, then calculate its phase length
-//				std::vector<double> choice = plan.CurrSplitPlan();
-//				if(choice.size() != nof_phases)
-//					throw std::runtime_error("Mismatch on number of phases");
-//				int i = 0 ; double percentage_sum =0;
-//				sim_mob::SplitPlan::phases_iterator ph_it = plan.getPhases().begin();
-//				for(;ph_it != plan.getPhases().end(); ph_it++, i++)
-//				{
-//					//this ugly line of code is due to the fact that multi index renders constant versions of its elements
-//					sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
-//					if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
-//					(target_phase).setPercentage(choice[i]);
-//					(target_phase).setPhaseOffset(percentage_sum);
-////					(target_phase).calculatePhaseLength();
-//				}
 			}
 		else
 			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
@@ -1324,24 +1331,22 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 
 	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
-	sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
-	const sim_mob::SplitPlan::plan_phases_view & ppv = signal.getPlan().getPhases().get<1>();
+	sim_mob::Signal_SCATS::phases::iterator sim_ph_it;
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
-		//TODO delete debugging
-//		if(((*ph_it).second.nodeId == 66508)&&((*ph_it).second.name == "C"))
-//		{
-//			std::cout << "Node 66508, sections in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection << " : " << (*ph_it).second.ToSection << "\n";
-//			std::cout << "Node 66508, SeGments in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection->generatedSegment << " : " << (*ph_it).second.ToSection->generatedSegment << "\n";
-//		}
 		sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
 		sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
 		sim_mob::linkToLink ll(linkTo,(*ph_it).second.FromSection->generatedSegment,(*ph_it).second.ToSection->generatedSegment);
 //		ll.RS_From = (*ph_it).second.FromSection->generatedSegment;
 //		ll.RS_To = (*ph_it).second.ToSection->generatedSegment;
 		std::string name = (*ph_it).second.name;
-		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
+		for(sim_ph_it = signal.getPhases().begin(); sim_ph_it != signal.getPhases().end(); sim_ph_it++)
+		{
+			if(sim_ph_it->getName() == name)
+				break;
+		}
+		if(sim_ph_it != signal.getPhases().end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
 			sim_ph_it->addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 		}
@@ -1356,7 +1361,7 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 			}
 			phase.addLinkMapping(linkFrom,ll,mNode);
 			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),mNode);
-			signal.getPlan().addPhase(phase);//congrates
+			signal.addPhase(phase);//congrates
 		}
 	}
 }

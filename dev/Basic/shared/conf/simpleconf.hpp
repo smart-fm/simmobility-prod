@@ -112,7 +112,7 @@ public:
 
 public:
 
-	int signalAlgorithm;
+	int signalTimingMode;
 
 	//When the simulation begins
 	DailyTime simStartTime;

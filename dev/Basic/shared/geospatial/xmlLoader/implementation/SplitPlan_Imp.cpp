@@ -16,7 +16,7 @@ void sim_mob::xml::SplitPlan_t_pimpl::splitplanID (unsigned int value)
 	//std::cout << "splitplanID: " <<value << std::endl;
 }
 
-void sim_mob::xml::SplitPlan_t_pimpl::signalAlgorithm ()
+void sim_mob::xml::SplitPlan_t_pimpl::signalTimingMode ()
 {
 }
 

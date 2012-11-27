@@ -1,6 +1,8 @@
 #include "SplitPlan.hpp"
 #include<stdio.h>
 #include<sstream>
+#include "conf/simpleconf.hpp"
+#include "Signal.hpp"
 
 using namespace boost::multi_index;
 using std::vector;
@@ -11,7 +13,8 @@ namespace sim_mob
 
 void SplitPlan::setCycleLength(std::size_t c = 96) {cycleLength = c;}
 void SplitPlan::setcurrSplitPlanID(std::size_t index) { currSplitPlanID = index; }
-void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet = choiceset;}
+void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet = choiceset; NOF_Plans = choiceSet.size();}
+std::vector< vector<double> > &SplitPlan::getChoiceSet(){return choiceSet;}
 
 std::size_t SplitPlan::CurrSplitPlanID() { return currSplitPlanID; }
 double SplitPlan::getCycleLength() const {return cycleLength;}
@@ -21,17 +24,6 @@ double SplitPlan::getCycleLength() const {return cycleLength;}
 std::size_t SplitPlan::getOffset() {return offset;}
 
 void SplitPlan::setOffset(std::size_t o) {offset = o;}
-
-
-
-//const std::vector<sim_mob::Phase> & SplitPlan::getPhases() const { return phases_; }
-//std::vector<sim_mob::Phase> & SplitPlan::getPhases() { return phases_; }
-
-void SplitPlan::addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
-
-std::size_t & SplitPlan::CurrPhaseID() { return currPhaseID; }
-
-const  sim_mob::Phase & SplitPlan::CurrPhase() const { return phases_[currPhaseID]; }
 
 /*
  * This function has 2 duties
@@ -55,11 +47,11 @@ std::size_t SplitPlan::Vote(std::vector<double> maxproDS) {
 void SplitPlan::calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS)
 {
 	double maax=0.0;
-	vector<double> proDS(NOF_Phases, 0);
+	vector<double> proDS(parentSignal->getNOF_Phases(), 0);
 	for(int i=0; i < NOF_Plans; i++)//traversing the columns of Phase::choiceSet matrix
 	{
 		maax = 0.0;
-		for(int j=0; j < NOF_Phases; j++)
+		for(int j=0; j < parentSignal->getNOF_Phases(); j++)
 		{
 			//calculate the projected DS for this plan
 			proDS[j] = DS[j] * choiceSet[currSplitPlanID][j]/choiceSet[i][j];
@@ -92,28 +84,6 @@ void SplitPlan::updatecurrSplitPlan() {
 
 void SplitPlan::initialize()
 {
-	/*
-	 * Now you know the each phase percentage from the choice set,
-		so you may set the phase percntage and phase offset of each phase,
-		then initialize phases(calculate its phase length, green time ...)
-	 */
-	std::vector<double> choice = CurrSplitPlan();
-	if(choice.size() != find_NOF_Phases())
-		throw std::runtime_error("Mismatch on number of phases");
-	int i = 0 ; double percentage_sum =0;
-	//setting percentage and phaseoffset for each phase
-	for(sim_mob::SplitPlan::phases_iterator ph_it = getPhases().begin();ph_it != getPhases().end(); ph_it++, i++)
-	{
-		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
-		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
-		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
-		(target_phase).setPercentage(choice[i]);
-		(target_phase).setPhaseOffset(percentage_sum * cycleLength / 100);
-	}
-	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
-	for(phases_iterator it = phases_.begin(); it != phases_.end()  ; it++)
-		const_cast<sim_mob::Phase &>(*it).initialize();
-//	//getchar();
 }
 
 ///////////////////////////////Not so Important //////////////////////////////////////////////////////////////////////
@@ -156,20 +126,14 @@ std::vector< double >  SplitPlan::CurrSplitPlan()
 {
 	if(choiceSet.size() == 0)
 	{
-		throw std::runtime_error( "Choice Set is empty the program can crash without it");
+		std::ostringstream out("") ;
+		out << "Signal " << this->parentSignal->getId() << " .  Choice Set is empty the program can crash without it";
+		throw std::runtime_error( out.str() );
 	}
 	return choiceSet[currSplitPlanID];
 }
 
-std::size_t SplitPlan::nofPhases()
-{
-	return NOF_Phases;
-}
 
-std::size_t SplitPlan::find_NOF_Phases()
-{
-	return NOF_Phases=phases_.size();
-}
 std::size_t SplitPlan::nofPlans()
 {
 	return NOF_Plans;
@@ -200,37 +164,13 @@ void SplitPlan::Update(std::vector<double> &DS)
  * based on the currCycleTimer(= cycle-time lapse so far)
  * at the moment, this function just returns what phase it is going to be(does not set any thing)
  */
-std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
+
+
+SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),signalTimingMode(ConfigParams::GetInstance().signalTimingMode),TMP_PlanID(TMP_PlanID_)
 {
-	std::vector< double > currSplitPlan = CurrSplitPlan();
-
-	double sum = 0;
-	int i;
-	for(i = 0; i < NOF_Phases; i++)
-	{
-		//expanded the single line loop, for better understanding of future readers
-		sum += cycleLength * currSplitPlan[i] / 100;
-		if(sum > currCycleTimer) break;
-	}
-
-	if(i >= NOF_Phases)
-		{
-			std::stringstream str;
-			str << "CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << cycleLength << ") NOF_Phases(" <<  NOF_Phases << ") , sum of cycleLength chunks(" << sum << ")";
-//			 +currCycleTimer+") NOF_Phases("+ NOF_Phases +"sum of cycleLength chunks(" + sum+")"
-			throw std::runtime_error(str.str());
-		}
-	currPhaseID = (std::size_t)(i);
-	return currPhaseID;
-}
-
-SplitPlan::SplitPlan(double cycleLength_,double offset_,int signalAlgorithm_):cycleLength(cycleLength_),offset(offset_),signalAlgorithm(signalAlgorithm_)
-{
-//	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
-	currPhaseID = 0;
+//	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 	nextSplitPlanID = 0;
 	currSplitPlanID = 0;
-	NOF_Phases = 0;
 	NOF_Plans = 0;
 	cycle_.setCurrCL(cycleLength_);
 }
@@ -246,7 +186,7 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
 	NOF_Plans = 5;
-	if(signalAlgorithm == 0)//fixed plan
+	if(signalTimingMode == 0)//fixed plan
 		NOF_Plans = 1;
 	int ii=5,jj=0;
 	double defaultChoiceSet_1[5][10] = {
@@ -306,108 +246,29 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	}
 
 	currSplitPlanID = 0;
-	currPhaseID = 0; //what the hell :)
 }
 
 std::string SplitPlan::createStringRepresentation(std::string newLine)
 {
-	if(phases_.size() == 0)
-		{
-			return 0;
-		}
-	std::ostringstream output;
-	output << "\"phases\":" << newLine << "[";
-	phases_iterator it = phases_.begin();
-	while(it !=phases_.end())
-	{
-		output << (*it).createStringRepresentation(newLine);
-		it++;
-		if(it !=phases_.end())
-			output << ",";
-	}
-	output << newLine << "]";
-	return output.str();
-}
-
-void
-SplitPlan::printColors(double currCycleTimer)
-{
-	phases_iterator it = phases_.begin();
-	while(it !=phases_.end())
-	{
-		(*it).printPhaseColors(currCycleTimer);
-		it++;
-	}
-}
-
-std::string SplitPlan::outputTrafficLights(std::string newLine, int phaseId) const
-{
-//	if (phaseId > phases_.size())
+//	if(phases_.size() == 0)
+//		{
+//			return 0;
+//		}
+//	std::ostringstream output;
+//	output << "\"phases\":" << newLine << "[";
+//	phases_iterator it = phases_.begin();
+//	while(it !=phases_.end())
 //	{
-//		std::ostringstream err;
-//		err << "phaseId out of range.. phaseId:" << phaseId << " phases_.size():"<<  phases_.size() << std::endl;
-//		throw std::runtime_error(err.str());
+//		output << (*it).createStringRepresentation(newLine);
+//		it++;
+//		if(it !=phases_.end())
+//			output << ",";
 //	}
-
-
-	if(phases_.size() == 0)
-		{
-			return 0;
-		}
-	std::ostringstream output;
-	output << "\"currPhase\": \"" << phases_[currPhaseID].getName() << "\"," << newLine;
-	output << "\"phases\":" << newLine << "[";
-	phases_iterator it = phases_.begin();
-	while(it !=phases_.end())
-	{
-		output << (*it).outputPhaseTrafficLight(newLine);
-		it++;
-		if(it !=phases_.end())
-			output << ",";
-	}
-	output << newLine << "]";
-	return output.str();
-
+//	output << newLine << "]";
+//	return output.str();
 }
+
 
 
 };//namespace
 
-////find te split plan Id which currently has the maximum vote
-//int SplitPlan::getPlanId_w_MaxVote()
-//{
-//	int PlanId_w_MaxVote = -1 , SplitPlanID , max_vote_value = -1, vote_sum = 0;
-//	for(SplitPlanID = 0 ; SplitPlanID < votes.size(); SplitPlanID++)
-//	{
-//		for(int i=0, vote_sum = 0; i < NUMBER_OF_VOTING_CYCLES ; vote_sum += votes[SplitPlanID][i++]);//calculating sum of votes in each column
-//		if(max_vote_value < vote_sum)
-//		{
-//			max_vote_value = vote_sum;
-//			PlanId_w_MaxVote = SplitPlanID;// SplitPlanID with max vote so far
-//		}
-//	}
-//	return PlanId_w_MaxVote;
-//}
-//
-////4.3 Split Plan Selection (use DS to choose SplitPlan for next cycle)(section 4.3 of the Li Qu's manual)
-//void SplitPlan::setnextSplitPlan(std::vector<double> DS) {
-//	std::vector<int> vote(SplitPlan.size(),0);
-//	std::vector<double> proDS(DS.size(),0);// projected DS
-//	std::vector<double>  maxproDS(plan_.getPhases().size(),0);// max projected DS of each SplitPlan
-//	int i,j;
-//
-//	//step 1:Calculate the projected DS for each approach (and find the maximum projected DS)
-//	calProDS_MaxProDS(proDS,maxproDS);
-//	//Step 2: The split plan with the ' lowest "Maximum Projected DS" ' will get a vote
-//	vote[fmin_ID(maxproDS)]++;//the corresponding split plan's vote is incremented by one(the rests are zero)
-//	votes.push_back(vote);
-//	if(votes.size() > NUMBER_OF_VOTING_CYCLES) votes.erase(0); //removing the oldest vote if necessary(wee keep only NUMBER_OF_VOTING_CYCLES records)
-//	/*
-//	 * step 3: The split plan with the highest vote in the last certain number of cycles will win the vote
-//	 *         no need to eat up your brain, in the following chunk of code I will get the id of the maximum
-//	 *         value in vote vector and that id will actually be my nextSplitPlanID
-//	*/
-//	nextSplitPlanID = getPlanId_w_MaxVote();
-//	//enjoy the result
-//	nextSplitPlan = SplitPlan[nextSplitPlanID];
-//}

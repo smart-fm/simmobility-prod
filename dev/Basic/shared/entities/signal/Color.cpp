@@ -26,7 +26,7 @@ TrafficColor ColorSequence::computeColor(double Duration)
 	//the return inside the loop must execute befor the loop exits otherwise something is wrong!
 //	std::cout << "returniung " << sim_mob::getColor((*it).first); //getchar();
 //	return ColorDuration[ColorDuration.size() -1].first; //will return the last color in the sequence if there is an error!
-	std::cout << "Didn't find anything " << std::endl;
+	std::cout << "Didn't find anything for duration " << Duration << " (finally comared to " << sum << " )" << std::endl;
 	return sim_mob::Red;
 }
 
@@ -35,8 +35,12 @@ void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,std::si
 	ColorDuration = cs;
 }
 
+void ColorSequence::setTrafficLightType(TrafficLightType t)
+{
+	type = t;
+}
 std::vector< std::pair<TrafficColor,std::size_t> > & ColorSequence::getColorDuration() { return ColorDuration; }
-TrafficLightType ColorSequence::getTrafficLightType() { return type; }
+const TrafficLightType ColorSequence::getTrafficLightType() const { return type; }
 
 void ColorSequence::addColorDuration(TrafficColor color,std::size_t duration)
 {

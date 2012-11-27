@@ -1914,6 +1914,22 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
 
+	//Temporary Workaround: Links need to know about any "reverse" direction Links.
+	//The StreetDirectory can provide this, but that hasn't been initialized yet.
+	//So, we set a temporary flag in the Link class itself.
+	{
+	map<std::pair<sim_mob::Node*, sim_mob::Node*>, sim_mob::Link*> startEndLinkMap;
+	//Scan first.
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		startEndLinkMap[std::make_pair((*linkIt)->getStart(), (*linkIt)->getEnd())] = *linkIt;
+	}
+	//Now tag
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		bool hasOpp = startEndLinkMap.count(std::make_pair((*linkIt)->getEnd(), (*linkIt)->getStart()))>0;
+		(*linkIt)->hasOpposingLink = hasOpp ? 1 : 0;
+	}
+	}
+
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);

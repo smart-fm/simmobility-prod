@@ -53,8 +53,13 @@ class Loader;
  */
 class Link : public sim_mob::Traversable {
 public:
-	Link() : Traversable(), linkID(0), currWorker(nullptr) {}
-	Link(unsigned int linkID_) : Traversable(),linkID(linkID_), currWorker(nullptr) {}
+	Link() : Traversable(), hasOpposingLink(-1), linkID(0), currWorker(nullptr) {}
+	Link(unsigned int linkID_) : Traversable(), hasOpposingLink(-1), linkID(linkID_), currWorker(nullptr) {}
+
+	//Does this Link have an "opposing" 2-way link? NOTE: This should *not* be serialized into XML.
+	//Unless you are loading from the database, this value should always be -1. (0==no, 1==yes)
+	//TODO: This is a temporary fix.
+	int hasOpposingLink;
 
 	//TODO: Temp, for XML
 	void setStart(sim_mob::Node* st) { this->start = st; }

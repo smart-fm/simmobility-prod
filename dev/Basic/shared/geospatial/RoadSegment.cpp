@@ -138,8 +138,14 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 
 	if(parentLink)
 	{
+		//Make sure we're not generating Lanes for XML data
+		if (parentLink->hasOpposingLink<0) {
+			throw std::runtime_error("Link::hasOpposingLink should not be used by XML loaders!");
+		}
+
 		//Check whether the link is one-way
-		if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
+		if (parentLink->hasOpposingLink==0)
+		//if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
 		//if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
 		{
 			//Add a sidewalk on the other side of the road segment

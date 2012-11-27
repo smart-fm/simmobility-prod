@@ -166,6 +166,10 @@ const sim_mob::Link* sim_mob::StreetDirectory::getLinkLoc(const sim_mob::Node* n
 
 const sim_mob::Link* sim_mob::StreetDirectory::searchLink(const sim_mob::Node* start, const sim_mob::Node* end)
 {
+	if (!pimpl_) {
+		throw std::runtime_error("Can't call searchLink; StreetDirectory has not been initialized yet.");
+	}
+
 	std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*>::iterator it = links_by_node.find(std::make_pair(start, end));
 	if (it!=links_by_node.end()) {
 		return it->second;

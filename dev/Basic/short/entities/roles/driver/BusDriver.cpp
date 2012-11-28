@@ -279,6 +279,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 							setWaitTime_BusStop(waitTime);
 						}
 					}
+				} else {
+					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 			}
 		}

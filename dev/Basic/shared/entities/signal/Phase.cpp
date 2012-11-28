@@ -139,6 +139,8 @@ std::string getColor(size_t id)
  * todo: update this part
  */
 void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::MultiNode *node) const {
+//	std::cout << "Phase::addDefaultCrossings \n";
+//	getchar();
 	bool flag = false;
 	if (links_map_.size() == 0)
 		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
@@ -147,6 +149,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 	if(it == LAC.end())
 	{
 		std::cout << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
+//		getchar();
 		return;
 	}
 	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
@@ -181,7 +184,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 		}
 	}
 //	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
-//	//getchar();
+//	getchar();
 }
 
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {

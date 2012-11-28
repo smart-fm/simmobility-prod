@@ -128,7 +128,11 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
 //    setupIndexMaps();  I guess this function is Not needed any more
-#ifdef SIMMOB_XML_WRITER
+#ifndef SIMMOB_XML_WRITER
+#ifndef SIMMOB_XML_READER
+	findSignalLinksAndCrossings();
+#endif
+#else
 	findSignalLinksAndCrossings();
 #endif
 }

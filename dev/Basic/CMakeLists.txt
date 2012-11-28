@@ -252,8 +252,8 @@ LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")
 
-  FILE(GLOB_RECURSE Partial_XML_CPP "shared/geospatial/xmlLoader/implementation/*.cpp")
-  LIST(REMOVE_ITEM SharedCode_CPP ${Partial_XML_CPP})
+  #FILE(GLOB_RECURSE Partial_XML_CPP "shared/geospatial/xmlLoader/implementation/*.cpp")
+  #LIST(REMOVE_ITEM SharedCode_CPP ${Partial_XML_CPP})
 #  FILE(GLOB_RECURSE Partial_XML_HPP "shared/geospatial/xmlLoader/implementation/*.hpp")
 #  LIST(REMOVE_ITEM SharedCode_HPP ${Partial_XML_HPP})
 

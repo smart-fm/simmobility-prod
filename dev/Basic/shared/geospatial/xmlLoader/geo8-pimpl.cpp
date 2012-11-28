@@ -692,7 +692,9 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 	  }
 
 	  //Copy over.
-	  link->setSegmentList(Segments.first, Segments.second);
+	  //TODO: This should eventually only require one Segments list. ~Seth
+	  //link->setSegmens(Segments.first, Segments.second);
+	  link->setSegments(Segments.first);
 
 	  //uniquesegments (are done automatically in "setSegmentList")
 //	  std::cout << "In link_t_pimpl::Segments(" << Segments.first.size() << "," << Segments.second.size() << "\n";

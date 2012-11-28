@@ -117,7 +117,7 @@ public:
 	virtual void roadName (const ::std::string&);
 	virtual void StartingNode (unsigned int);
 	virtual void EndingNode (unsigned int);
-	virtual void Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&);
+	virtual void Segments (std::vector<sim_mob::RoadSegment*>);
 
 private:
 	sim_mob::Link model;

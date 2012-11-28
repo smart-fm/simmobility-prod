@@ -392,23 +392,25 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 
 }
 
+//TODO: Not sure I fixed this correctly. ~Seth
+//      (But we will switch to Xerces output anyway...)
 void sim_mob::WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link)
 {
 	//Segments element first
 	TiXmlElement * Segments = new TiXmlElement("Segments");
 		//FWDSegments
-    TiXmlElement * FWDSegments = new TiXmlElement("FWDSegments");
-    std::vector<sim_mob::RoadSegment*>::const_iterator SegObj_it = (LinkObj)->getFwdSegments().begin();
+    //TiXmlElement * FWDSegments = new TiXmlElement("FWDSegments");
+    std::vector<sim_mob::RoadSegment*>::const_iterator SegObj_it = (LinkObj)->getSegments().begin();
     //validation
-    if(SegObj_it != (LinkObj)->getFwdSegments().end())
-    	Segments->LinkEndChild(FWDSegments);
-    for(; (SegObj_it != (LinkObj)->getFwdSegments().end()) ; SegObj_it++)
+    /*if(SegObj_it != (LinkObj)->getSegments().end())
+    	Segments->LinkEndChild(FWDSegments);*/
+    for(; (SegObj_it != (LinkObj)->getSegments().end()) ; SegObj_it++)
     {
-    	WriteXMLInput_Segment(*SegObj_it,FWDSegments);
+    	WriteXMLInput_Segment(*SegObj_it,Segments);
     }
 
     //BKDSegments
-    TiXmlElement * BKDSegments = new TiXmlElement("BKDSegments");
+    /*(TiXmlElement * BKDSegments = new TiXmlElement("BKDSegments");
     SegObj_it = (LinkObj)->getRevSegments().begin();
     //validation
     if((LinkObj)->getRevSegments().begin() != (LinkObj)->getRevSegments().end())
@@ -416,9 +418,9 @@ void sim_mob::WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link
     for(; (SegObj_it != (LinkObj)->getRevSegments().end()) ; SegObj_it++)
     {
       	WriteXMLInput_Segment(*SegObj_it,BKDSegments);
-    }
+    }*/
     //validation:if you don't have any FWDSegments and BKDSegments, don't add parent element 'Segments'
-    if(!(((LinkObj)->getRevSegments().begin() == (LinkObj)->getRevSegments().end())&&((LinkObj)->getFwdSegments().begin() == (LinkObj)->getFwdSegments().end())))
+ //   if(!(((LinkObj)->getFwdSegments().begin() == (LinkObj)->getFwdSegments().end())))
     	Link->LinkEndChild(Segments);
 }
 

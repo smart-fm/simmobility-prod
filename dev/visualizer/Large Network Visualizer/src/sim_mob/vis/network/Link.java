@@ -26,8 +26,8 @@ public class Link implements DrawableItem {
 	private Node start;
 	private Node end;
 	private long id;
-	private ArrayList<Long> fwdPathSegmentIDs;
-	private ArrayList<Long> revPathSegmentIDs;
+	private ArrayList<Long> pathSegmentIDs;
+	//private ArrayList<Long> revPathSegmentIDs;
 	
 	
 	public int getZOrder() {
@@ -82,10 +82,10 @@ public class Link implements DrawableItem {
 		return (smaller!=null?smaller.hashCode():"<null>") + ":" + (larger!=null?larger.hashCode():"<null>");
 	}
 	
-	public ArrayList<Long> getFwdPathSegmentIDs() { return fwdPathSegmentIDs; }
-	public ArrayList<Long> getRevPathSegmentIDs() { return revPathSegmentIDs; }
-	public void setFwdPathSegmentIDs(ArrayList<Long> segIDs) { fwdPathSegmentIDs = segIDs; }
-	public void setRevPathSegmentIDs(ArrayList<Long> segIDs) { revPathSegmentIDs = segIDs; }
+	public ArrayList<Long> getPathSegmentIDs() { return pathSegmentIDs; }
+	//public ArrayList<Long> getRevPathSegmentIDs() { return revPathSegmentIDs; }
+	public void setPathSegmentIDs(ArrayList<Long> segIDs) { pathSegmentIDs = segIDs; }
+//	public void setRevPathSegmentIDs(ArrayList<Long> segIDs) { revPathSegmentIDs = segIDs; }
 	
 	public void draw(Graphics2D g, DrawParams params) {
 		g.setColor(roadColor);

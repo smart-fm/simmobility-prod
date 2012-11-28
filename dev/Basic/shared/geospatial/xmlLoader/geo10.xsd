@@ -135,14 +135,14 @@
       <xs:element name="roadName" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="StartingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="EndingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="Segments" minOccurs="1" maxOccurs="1">
-        <xs:complexType>
+      <xs:element name="Segments" type="geo:fwdBckSegments_t" minOccurs="1" maxOccurs="1"/>
+<!--        <xs:complexType>
           <xs:sequence>
             <xs:element name="FWDSegments" type="geo:fwdBckSegments_t" minOccurs="0" maxOccurs="1"/>
             <xs:element name="BKDSegments" type="geo:fwdBckSegments_t" minOccurs="0" maxOccurs="1"/>
           </xs:sequence>
-        </xs:complexType>
-      </xs:element>
+        </xs:complexType>  
+      </xs:element>-->
     </xs:sequence>
   </xs:complexType>
 
@@ -219,7 +219,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="nodeID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="linkLoc" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
+<!--      <xs:element name="linkLoc" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/> -->
       <xs:element name="originalDB_ID" type="xs:string" minOccurs="1" maxOccurs="1"/>
     </xs:choice>
   </xs:complexType>

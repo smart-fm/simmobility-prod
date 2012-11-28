@@ -13,19 +13,19 @@ sim_mob::Link* sim_mob::xml::link_t_pimpl::post_link_t ()
 	sim_mob::Link* res = new sim_mob::Link(model);
 
 	//parentLink
-	{
-	const std::vector<sim_mob::RoadSegment*>& fwd = res->getPath(true);
+	//{
+	const std::vector<sim_mob::RoadSegment*>& fwd = res->getPath();
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator it = fwd.begin(); it != fwd.end(); it++) {
 		const_cast<sim_mob::RoadSegment*>(*it)->setParentLink(res);
 	}
-	}
+	//}
 
-	{
+	/*{
 	const std::vector<sim_mob::RoadSegment*>& rev = res->getPath(false);
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator it = rev.begin(); it != rev.end(); it++) {
 		const_cast<sim_mob::RoadSegment*>(*it)->setParentLink(res);
 	}
-	}
+	}*/
 
 	return res;
 }
@@ -53,9 +53,9 @@ void sim_mob::xml::link_t_pimpl::EndingNode (unsigned int value)
 	model.setEnd(book.getNode(value));
 }
 
-void sim_mob::xml::link_t_pimpl::Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >& value)
+void sim_mob::xml::link_t_pimpl::Segments (std::vector<sim_mob::RoadSegment*> value)
 {
 	//Copy over.
-	model.setSegmentList(value.first, value.second);
+	model.setSegments(value);
 }
 

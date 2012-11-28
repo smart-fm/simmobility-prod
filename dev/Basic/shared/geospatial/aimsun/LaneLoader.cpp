@@ -122,36 +122,62 @@ struct LinkHelperStruct {
 	set<Section*> sections;
 	LinkHelperStruct() : start(nullptr), end(nullptr) {}
 };
-map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
+vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
-	map<sim_mob::Link*, LinkHelperStruct> res;
-	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
-		//Always add the section
-		sim_mob::Link* parent = it->second.generatedSegment->getLink();
-		res[parent].sections.insert(&(it->second));
+	//We can index on anything. We'll do a "start,end" index, and just check for both.
+	map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct> res;
 
-		//Conditionally add the start/end
-		if (!res[parent].start) {
-			if (it->second.fromNode->generatedNode == parent->getStart()) {
-				res[parent].start = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getStart()) {
-				res[parent].start = it->second.toNode;
+	//Build our index.
+	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		//Add an item if it doesn't exist.
+		sim_mob::Link* parent = it->second.generatedSegment->getLink();
+		map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct>::iterator helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
+		if (helpIt==res.end()) {
+			//Try again
+			helpIt = res.find(std::make_pair(parent->getEnd(), parent->getStart()));
+			if (helpIt==res.end()) {
+				//Add it.
+				res[std::make_pair(parent->getStart(), parent->getEnd())];
+
+				//Try again
+				helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
+
+				//Sanity check.
+				if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
 			}
 		}
-		if (!res[parent].end) {
+
+		//Always add the section
+		helpIt->second.sections.insert(&(it->second));
+
+		//Conditionally add the start/end
+		if (!helpIt->second.start) {
+			if (it->second.fromNode->generatedNode == parent->getStart()) {
+				helpIt->second.start = it->second.fromNode;
+			} else if (it->second.toNode->generatedNode == parent->getStart()) {
+				helpIt->second.start = it->second.toNode;
+			}
+		}
+		if (!helpIt->second.end) {
 			if (it->second.fromNode->generatedNode == parent->getEnd()) {
-				res[parent].end = it->second.fromNode;
+				helpIt->second.end = it->second.fromNode;
 			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
-				res[parent].end = it->second.toNode;
+				helpIt->second.end = it->second.toNode;
 			}
 		}
 	}
 
+	//Actual results
+	vector<LinkHelperStruct> actRes;
 
 	std::pair<int,int> errorCount(0,0);
 	std::stringstream msg;
 	msg <<"Error: Not all Links are represented in full: \n";
-	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=res.begin(); it!=res.end(); it++) {
+	for (map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct>::iterator it=res.begin(); it!=res.end(); it++) {
+		//Save it.
+		actRes.push_back(it->second);
+
+		//Check it.
 		int count = 0;
 		if (!it->second.start) {
 			errorCount.first++;
@@ -163,7 +189,7 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 		}
 
 		if (count > 0) {
-			msg <<"Road: " <<it->first->roadName <<" missing(" <<count <<")" <<"\n";
+			msg <<"Road missing(" <<count <<")" <<"\n";
 		}
 	}
 	if (errorCount.first+errorCount.second > 0) {
@@ -172,7 +198,7 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 	}
 
 
-	return res;
+	return actRes;
 }
 
 
@@ -394,6 +420,7 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 		startPoint = *originPoints.back();
 		endPoint = *endingPoints.back();
 	} else {
+		//throw std::runtime_error("LaneLoader is no longer able to support multi-directional Links.");
 		//...otherwise, we deal with each point separately.
 		startPoint = DetermineNormalMedian(originPoints, fwdFirstLastSection.first, revFirstLastSection.second);
 		endPoint = DetermineNormalMedian(endingPoints, revFirstLastSection.first, fwdFirstLastSection.second);
@@ -631,9 +658,10 @@ void sim_mob::aimsun::LaneLoader::DecorateLanes(map<int, Section>& sections, vec
 //Driver function for GenerateLinkLaneZero
 void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& rn, std::map<int, sim_mob::aimsun::Node>& nodes, std::map<int, sim_mob::aimsun::Section>& sections)
 {
-	map<sim_mob::Link*, LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
-	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-		LaneLoader::GenerateLinkLaneZero(rn, it->second.start, it->second.end, it->second.sections);
+
+	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
+	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
+		LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
 	}
 }
 
@@ -672,26 +700,25 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	//        with a median. Note that one-way Links only have NumLanes+1.
 	//        Each Link may, of course, have less than the total number of points, which usually
 	//        indicates missing data.
-	pair< size_t, size_t > maxCandidates(0, 0); //start, end
-	int extra1 = 1; //We will disable the +2 by default
-	int extra2 = 1; //We will disable the +2 by default
+	pair< size_t, size_t > maxCandidates(1, 1); //start, end (natural +1 each)
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+		//Sanity check
+		//if (((*it)->toNode==start) || ((*it)->fromNode==end)) {
+		//	throw std::runtime_error("Links are one-way; shouldn't have reverse Segments.");
+		//}
+
 		//"from" or "to" the start?
 		if ((*it)->fromNode==start) {
-			maxCandidates.first += (*it)->numLanes + extra1;
-			extra1 = 0;
+			maxCandidates.first += (*it)->numLanes;
 		} else if ((*it)->toNode==start) {
-			maxCandidates.first += (*it)->numLanes + extra1;
-			extra1 = 0;
+			maxCandidates.first += (*it)->numLanes;
 		}
 
 		//"from" or "to" the end?
 		if ((*it)->fromNode==end) {
-			maxCandidates.second += (*it)->numLanes + extra2;
-			extra2 = 0;
+			maxCandidates.second += (*it)->numLanes;
 		} else if ((*it)->toNode==end) {
-			maxCandidates.second += (*it)->numLanes + extra2;
-			extra2 = 0;
+			maxCandidates.second += (*it)->numLanes;
 		}
 	}
 
@@ -714,6 +741,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	// NOTE:  The algorithm described above has to be performed for each Section, and then saved in the
 	//        generated RoadSegment.
 	// NOTE:  We also update the segment width.
+	//TODO:   Actually now we only have to take the nearest (farthest?) lines; no medians are shared.
 	pair<Lane, Lane> medianEndpoints;
 
 	if(!candidates.first.empty() && !candidates.second.empty())

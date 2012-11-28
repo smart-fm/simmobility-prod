@@ -1,5 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+//TEMP
+#include "geospatial/aimsun/Loader.hpp"
+
 #include "StreetDirectory.hpp"
 
 #include <stdexcept>
@@ -59,6 +62,13 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
 		node_link_loc_cache[(*it)->getStart()] = *it;
 		node_link_loc_cache[(*it)->getEnd()] = *it;
 	}
+
+	//Save a cache of start,end Nodes to Links
+	for (std::vector<sim_mob::Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
+		//Just overwrite the saved value for that Node; this is why node_link_loc is an arbitrary field.
+		links_by_node[std::make_pair((*it)->getStart(), (*it)->getEnd())] = *it;
+	}
+
 
 
 }
@@ -153,6 +163,20 @@ const sim_mob::Link* sim_mob::StreetDirectory::getLinkLoc(const sim_mob::Node* n
 	}
 	return nullptr;
 }
+
+const sim_mob::Link* sim_mob::StreetDirectory::searchLink(const sim_mob::Node* start, const sim_mob::Node* end)
+{
+	if (!pimpl_) {
+		throw std::runtime_error("Can't call searchLink; StreetDirectory has not been initialized yet.");
+	}
+
+	std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*>::iterator it = links_by_node.find(std::make_pair(start, end));
+	if (it!=links_by_node.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
 
 double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
 {

@@ -2,6 +2,10 @@
 
 #include "RoadSegment.hpp"
 
+//TEMP
+#include "geospatial/aimsun/Loader.hpp"
+
+#include "streetdir/StreetDirectory.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 
@@ -80,7 +84,6 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 /// leave the system in a questionable state.
 void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 {
-//	std::cout << "syncLanePolylines started rs width =  " << this->width << " \n";
 	//Check our width (and all lane widths) are up-to-date:
 	int totalWidth = 0;
     for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
@@ -89,42 +92,28 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
     	}
     	totalWidth += (*it)->getWidth();
     }
-//    for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
-//    	std::cout << "Lane " << (*it)->getLaneID() << " width: " << (*it)->getWidth_real() << std::endl;
-//    }
-//    std::cout <<  std::endl;
 
     if (width == 0) {
     	width = totalWidth;
     }
-//    std::cout << "Again rs width =  " << this->width << " \n";
-//	for (size_t i=0; i<lanes.size(); i++) {
-//		std::cout << "Again Lane " << lanes.at(i)->getLaneID() << " width: " << lanes.at(i)->getWidth_real() << std::endl;
-//	}
+
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
-//			std::cout << "lane index " << i << "  (id: " << lanes.at(i)->getLaneID() << "): makeLanePolylineFromEdges, sending laneEdgePolylines_cached i, i+1" << " .....\n";
 			makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
 		} else {
-//			std::cout << "lane index " << i << "  (id: " << lanes.at(i)->getLaneID() << "): makePolylineFromParentSegment";
 			lanes[i]->makePolylineFromParentSegment();
 		}
 	}
-//	for (size_t i=0; i<lanes.size(); i++) {
-//		std::cout << "AAgain Lane " << lanes.at(i)->getLaneID() << " width: " << lanes.at(i)->getWidth_real() << std::endl;
-//	}
+
 	//Next, if our edges array doesn't exist, re-generate it from the computed lanes.
 	if (!edgesExist) {
-//		std::cout << " makeLaneEdgeFromPolyline  for each lane and push to laneEdgePolylines_cached\n";
 		for (size_t i=0; i<=lanes.size(); i++) {
 			bool edgeIsRight = i<lanes.size();
 			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
 		}
 	}
-	else
-		std::cout << std::endl;
 
 	//TEMP FIX
 	//Now, add one more edge and one more lane representing the sidewalk.
@@ -136,43 +125,43 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	swLane->is_pedestrian_lane(true);
 	swLane->width_ = lanes.back()->width_/2;
 	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
+
 	//Add it, update
 	lanes.push_back(swLane);
-//	std::cout << "swLane: " <<  swLane->getLaneID() <<  " width: :"<< swLane->width_ << std::endl;
-
-
 	width += swLane->width_;
 
 	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
 	laneEdgePolylines_cached.push_back(res);//crash -vahid
+
 	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 	sim_mob::Link* parentLink = getLink();
 
 	if(parentLink)
 	{
+		//Make sure we're not generating Lanes for XML data
+		if (parentLink->hasOpposingLink<0) {
+			throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
+		}
+
 		//Check whether the link is one-way
-		if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
+		if (parentLink->hasOpposingLink==0)
+		//if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
+		//if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
 		{
 			//Add a sidewalk on the other side of the road segment
 			Lane* swLane2 = new Lane(this, lanes.size());
 			swLane2->is_pedestrian_lane(true);
-//			std::cout << "swLane2......: "  << "lanes.front()->id=" << lanes.front()->getLaneID() << " width=" << lanes.front()->width_ << std::endl;
 
 			swLane2->width_ = lanes.front()->width_/2;
 			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
 			lanes.insert(lanes.begin(), swLane2);
 
-//			std::cout << "swLane2: " <<  swLane2->getLaneID() <<  " width: :"<< swLane2->width_ << "lanes.front()->id=" << lanes.front()->getLaneID() << "width=" << lanes.front()->width_ << std::endl;
 			width += swLane2->width_;
 			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
 		}
 	}
 }
 
-#ifndef SIMMOB_DISABLE_MPI
-
-
-#endif
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {

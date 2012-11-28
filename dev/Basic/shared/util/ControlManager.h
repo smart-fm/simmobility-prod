@@ -32,7 +32,7 @@ public:
 	static ControlManager* GetInstance();
 	void start();
 	~ControlManager();
-	void setSimState(int s) { boost::mutex::scoped_lock local_lock(lock); simState = s;}
+	void setSimState(int s) { boost::mutex::scoped_lock local_lock(lock); simState = s; std::cout<<"simmob"<<">"<<std::flush;}
 	int getSimState() { return simState; }
 	void getLoadScenarioParas(std::map<std::string,std::string> &para) { para=loadScenarioParas; }
 	bool handleInput(std::string& input);

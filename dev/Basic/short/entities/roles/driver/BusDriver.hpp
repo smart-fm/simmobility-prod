@@ -52,7 +52,7 @@ public:
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;
 	bool isBusArriveBusStop() const;
-	bool isBusLeavingBusStop() const;
+	bool isBusLeavingBusStop();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
 	//void passengers_distribution(Bus* bus);

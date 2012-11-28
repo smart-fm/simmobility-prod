@@ -347,20 +347,33 @@ bool sim_mob::BusDriver::isBusArriveBusStop() const
 	return  (distance>0 && distance <10);
 }
 
-bool sim_mob::BusDriver::isBusLeavingBusStop() const
+bool sim_mob::BusDriver::isBusLeavingBusStop()
 {
 	double distance = distanceToNextBusStop();
-	return distance>=10 && distance<50 && lastTickDistanceToBusStop<distance;
+	if (distance >=10 && distance < 50) {
+		if (distance < 0) {
+			lastTickDistanceToBusStop = distance;
+			return true;
+		} else if (lastTickDistanceToBusStop < distance) {
+			lastTickDistanceToBusStop = distance;
+			return true;
+		}
+	}
+
+	lastTickDistanceToBusStop = distance;
+	return false;
 }
 
 double sim_mob::BusDriver::distanceToNextBusStop() const
 {
-	if (!vehicle->getCurrSegment() || !vehicle->hasNextSegment(true)) {
-		return -1;
-	}
+//	if (!vehicle->getCurrSegment() || !vehicle->hasNextSegment(true)) {
+//		return -1;
+//	}
 
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
+	double distanceToNextSegmentBusStop = -1;
+	if (vehicle->hasNextSegment(true))
+		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);
@@ -480,7 +493,7 @@ double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k, int b
 
 double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) const
 {
-	double distance = -1;
+	double distance = -100;
 	double currentX = vehicle->getX();
 	double currentY = vehicle->getY();
 
@@ -501,6 +514,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 				if (stopPoint >= 0) {
 					DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(), rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					distance = stopPoint - vehicle->getDistanceMovedInSegment();
+					break;
 				}
 			} else {
 				DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());

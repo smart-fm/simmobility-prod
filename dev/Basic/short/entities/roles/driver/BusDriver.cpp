@@ -24,7 +24,7 @@ using std::map;
 using std::string;
 
 namespace {
-const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+//const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 } //End anonymous namespace
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
@@ -33,6 +33,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , real_ArrivalTime(mtxStrat,0), DwellTime_ijk(mtxStrat,0), first_busstop(true)
 , last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
+	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 }
 
 
@@ -262,9 +263,22 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
-
+			}
+			if ((waitAtStopMS == p.elapsedSeconds * 2.0) && bus) {
+				// 0.2sec, return and reset BUS_STOP_WAIT_PASSENGER_TIME_SEC
+				// (no control: use dwellTime;
+				// has Control: use DwellTime to calculate the holding strategy and return BUS_STOP_WAIT_PASSENGER_TIME_SEC
 				if(BusController::HasBusControllers()) {
-					BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
+					//BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
+					Person* person = dynamic_cast<Person*>(parent);
+					if(person) {
+						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
+						if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+							double waitTime = 0;
+							waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(bustrip->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),0,real_ArrivalTime.get(),DwellTime_ijk.get(),0);
+							setWaitTime_BusStop(waitTime);
+						}
+					}
 				}
 			}
 		}
@@ -276,6 +290,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
+		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}

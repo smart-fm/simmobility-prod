@@ -64,6 +64,9 @@ public:
 
 	double getPositionX() const;
 	double getPositionY() const;
+
+	double getWaitTime_BusStop() { return BUS_STOP_WAIT_PASSENGER_TIME_SEC; }
+	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_PASSENGER_TIME_SEC = time; }
 	Vehicle* initializePath_bus(bool allocateVehicle);
 
 	double lastTickDistanceToBusStop;
@@ -91,6 +94,8 @@ private:
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
 	std::vector<const sim_mob::BusStop*> busStops;
+
+	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 
 
 	//Serialization, not implemented

@@ -367,11 +367,11 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) {
+void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
-	output << "\"frame\": " << frameNumber << "," << newLine;
+	output << "\"frame\": " << now.frame() << "," << newLine;
 	//phase.......
 //	output << plan_.outputTrafficLights(newLine);
 	if(getNOF_Phases() == 0)

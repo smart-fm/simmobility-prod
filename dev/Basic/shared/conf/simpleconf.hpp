@@ -247,7 +247,7 @@ private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
+		dynamicDispatchDisabled(false), signalTimingMode(0), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
 	{}
 

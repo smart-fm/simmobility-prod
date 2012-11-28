@@ -323,7 +323,6 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 	
 	//Is this the first frame tick for this Agent?
 	if (firstFrameTick) {
-		 i =0;
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {

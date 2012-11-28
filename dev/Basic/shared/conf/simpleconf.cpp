@@ -229,15 +229,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 //		}
 //
 //		currAg->setTripChain(it_map->second);
-		if (currAg->currSubTrip) {
-			if (currAg->currSubTrip->mode == "Bus") {
-				// currently only one
-				if (!BusController::all_busctrllers_.empty()) {
-					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
-							active_agents);
-				}
-			}
-		} else {
+//		if (currAg->currSubTrip) {
+//			if (currAg->currSubTrip->mode == "Bus") {
+//				// currently only one
+//				if (!BusController::all_busctrllers_.empty()) {
+//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
+//							active_agents);
+//				}
+//			}
+//		}
+//		else
+		{
 //			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
 			addOrStashEntity(currAg, active_agents, pending_agents);
 		}

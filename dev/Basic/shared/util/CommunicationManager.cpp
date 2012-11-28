@@ -24,6 +24,12 @@ sim_mob::CommunicationManager::CommunicationManager() {
 	CommDone = true;
 }
 
+sim_mob::CommunicationManager::CommunicationManager(int port) {
+	listenPort = port;
+	simulationDone = false;
+	CommDone = true;
+}
+
 void sim_mob::CommunicationManager::start()
 {
 	try

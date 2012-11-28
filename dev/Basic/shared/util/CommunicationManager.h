@@ -29,6 +29,8 @@ class CommunicationManager {
 
 public:
 	static CommunicationManager* GetInstance();
+	CommunicationManager();
+	CommunicationManager(int port);
 	~CommunicationManager();
 	void start();
 	std::queue<std::string> *getQueue() { return &dataQueue;}
@@ -52,7 +54,7 @@ public:
 	void setSimulationDone(bool b) { simulationDone = b; }
 	bool isSimulationDone() { return simulationDone; }
 private:
-	CommunicationManager();
+//	CommunicationManager();
 	static CommunicationManager *instance;
 	boost::asio::io_service io_service;
 	int listenPort;

@@ -1155,7 +1155,8 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef SIMMOB_REALTIME
-	boost::thread workerThread(boost::bind(&CommunicationManager::start, CommunicationManager::GetInstance()));
+	CommunicationManager *dataServer = new CommunicationManager(13333);
+	boost::thread workerThread(boost::bind(&CommunicationManager::start, dataServer));
 	boost::thread workerThread2(boost::bind(&ControlManager::start, ControlManager::GetInstance()));
 #endif
 //	workerThread.join();

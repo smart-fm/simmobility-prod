@@ -177,6 +177,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
+
 //	if (p.nvFwd.exists())
 //		p.space = p.nvFwd.distance;
 //	else
@@ -194,8 +195,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
 	//if (isBusFarawayBusStop()) {
-	double acci = busAccelerating(p)*100;
-		vehicle->setAcceleration(acci);
+//	double acci = busAccelerating(p)*100;
+//	vehicle->setAcceleration(acci);
+	p.currSpeed = vehicle->getVelocity() / 100;
+	double newFwdAcc = 0;
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	vehicle->setAcceleration(newFwdAcc * 100);
 	//}
 
 //	//Retrieve a new acceleration value.

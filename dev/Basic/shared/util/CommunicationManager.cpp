@@ -7,6 +7,7 @@
 
 #include "CommunicationManager.h"
 #include <boost/thread.hpp>
+#include "ControlManager.h"
 
 //sim_mob::CommunicationManager* sim_mob::CommunicationManager::instance = NULL;
 sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::instance = NULL;
@@ -253,6 +254,7 @@ void sim_mob::tcp_connection::cmdDataStart()
 			  else
 			{
 				file_output<<recv_cmd<<" "<<recv_data<<"\n";
+				ControlManager::GetInstance()->handleInput(recv_data);
 				std::string fk_cmd = "FEEDBACK";
 				std::string fk_msg="RECEIVED";
 				if(!sendData(fk_cmd,fk_msg))

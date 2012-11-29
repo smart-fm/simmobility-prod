@@ -25,42 +25,53 @@ enum COMM_COMMAND{
 	RECEIVED=1,
 	SHUTDOWN=2
 };
+class CommunicationDataManager
+{
+public:
+	static CommunicationDataManager* GetInstance();
+	void sendTrafficData(std::string &s);
+	bool getTrafficData(std::string &s);
+	bool getCmdData(std::string &s);
+	bool getRoadNetworkData(std::string &s);
+	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
+private:
+	CommunicationDataManager();
+	static CommunicationDataManager *instance;
+	std::queue<std::string> trafficDataQueue;
+	std::queue<std::string> cmdDataQueue;
+	std::queue<std::string> roadNetworkDataQueue;
+	boost::mutex trafficDataGuard;
+	boost::mutex cmdDataGuard;
+	boost::mutex roadNetworkDataGuard;
+};
 class CommunicationManager {
 
 public:
-	static CommunicationManager* GetInstance();
-	CommunicationManager();
+//	static CommunicationManager* GetInstance();
 	CommunicationManager(int port);
 	~CommunicationManager();
 	void start();
-	std::queue<std::string> *getQueue() { return &dataQueue;}
-	void sendData(std::string &s) {
-		boost::mutex::scoped_lock lock(guard);
-		dataQueue.push(s);}
-	bool getData(std::string &s) {
-//		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
-		if(!dataQueue.empty())
-		{
-			boost::mutex::scoped_lock lock(guard);
-			s = dataQueue.front();
-			dataQueue.pop();
-			return true;
-		}
-		return false;
-	}
-	bool isAllDataOut() { return dataQueue.empty(); }
+//	void sendTrafficData(std::string &s);
+//	bool getTrafficData(std::string &s);
+//	bool getCmdData(std::string &s);
+//	bool getRoadNetworkData(std::string &s);
+//	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
 	bool isCommDone() { return CommDone; }
 	void setCommDone(bool b) { CommDone = b; }
 	void setSimulationDone(bool b) { simulationDone = b; }
 	bool isSimulationDone() { return simulationDone; }
 private:
 //	CommunicationManager();
-	static CommunicationManager *instance;
+//	static CommunicationManager *instance;
 	boost::asio::io_service io_service;
 	int listenPort;
 private:
-	std::queue<std::string> dataQueue;
-	boost::mutex guard;
+//	std::queue<std::string> trafficDataQueue;
+//	std::queue<std::string> cmdDataQueue;
+//	std::queue<std::string> roadNetworkDataQueue;
+//	boost::mutex trafficDataGuard;
+//	boost::mutex cmdDataGuard;
+//	boost::mutex roadNetworkDataGuard;
 	bool simulationDone;
 	bool CommDone;
 };
@@ -92,16 +103,18 @@ public:
     time_t now = std::time(0);
     return std::ctime(&now);
   }
-  void commDone()
+  void commDone();
+//  {
+//	  socket_.close();
+//	  CommunicationManager::GetInstance()->setCommDone(true);
+//  }
+  bool sendData(std::string &cmd,std::string data)
   {
-	  socket_.close();
-	  CommunicationManager::GetInstance()->setCommDone(true);
-  }
-  bool sendData(std::string data)
-  {
-	  std::ostringstream stream;
-		stream<< data;
-		std::string body = "{=" + stream.str()+"=}";
+//	  std::ostringstream stream;
+//		stream<< data;
+	  std::string message_;
+		std::string body = "{=" + cmd+"=}{@="+data+"=@}";
+
 
 		char msg[20]="\0";
 		//head size 12
@@ -141,182 +154,73 @@ public:
 
 		 return true;
   }
-  bool receiveData(std::string &data)
-  {
-	  // after send data , lets expect the response from visualizer
-		int head_len=12;
-		boost::array<char, 12> buf;
-		socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
-		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
-		std::string head_data(buf.begin(), buf.end());
-//		file_output<<data<<"\n";
-		boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
-		boost::smatch what;
-		int body_len=0;
-		if( regex_match( head_data, what,head_regex ) )
-		{
-			  std::string s=what[1];
-			  body_len= atoi(s.c_str());
-//			if (RECEIVED != atoi(s.c_str()))
-//			{
-////						std::cout<<"unknown res "<<std::endl;
-////				file_output<<"unknown res "<<"\n";
-////						socket_.close();
-//				commDone();
-//				return false;
-//			}
-		}
-		else
-		{
-			std::cout<<"bad head: "<<head_data<<std::endl;
-//			file_output<<"bad res "<<"\n";
-//					socket_.close();
-//			commDone();
-			return false;
-		}
-		// read body
-		  if (body_len == 0)
-		  {
-			  std::cout<< " body len zero "<<std::endl;
-	//		  break;
-//			  commDone();
-			  return false;
-		   }
-		  char buf_body[2048]="\0";
-		  socket_.set_option(boost::asio::socket_base::receive_buffer_size(body_len));
-		//    	  len = socket.read_some(boost::asio::buffer(buf_body), error);
-		  len = boost::asio::read(socket_,boost::asio::buffer(buf_body,body_len),boost::asio::transfer_at_least(body_len));
-		//    	  std::cout<<" read body len: "<<len<<std::endl;
-		  std::string data_body_str(buf_body,body_len);
-		  boost::regex body_regex("^\\{\\=(.*)\\=\\}$",boost::regex::perl);
-	//	  file_output<<data_body_str<<"\n";
-		  if( regex_match( data_body_str, what,body_regex ) )
-		  {
-			  data =what[1];
-		//		  file_output<<s<<"\n";
-		  }
-		  else
-		  {
-			  std::cout<<"not good body: "<<data_body_str<<std::endl;
-	//		  break;
-			  return false;
-		  }
-		return true;
-  }
-  void start()
-  {
-	  std::ofstream file_output;
-	  file_output.open("./senddata.txt");
-	  CommunicationManager *com = CommunicationManager::GetInstance() ;
-	  com->GetInstance()->setCommDone(false);
-	  for(;;)
-	  {
-//		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
-		  if(com->getData(message_))
-		  {
-			if(socket_.is_open())
-			{
-
-				file_output<<"send begin: "<<make_daytime_string();
-				if(sendData(message_))
-				{
-					file_output<<message_;
-					file_output<<"\n";
-					file_output<<"send over: "<<make_daytime_string();
-					std::string recv_data;
-					if(!receiveData(recv_data))
-					{
-						std::cout<<"receive client response err "<<std::endl;
-						commDone();
-						break;
-					}
-					else
-					{
-						file_output<<recv_data<<"\n";
-						if(recv_data != "RECEIVED")
-						{
-							commDone();
-							break;
-						}
-					}
-				}
-				else
-				{
-					std::cout<<"send err "<<std::endl;
-					commDone();
-					break;
-				}
-			}
-			else
-			{
-				std::cout<<"start: socket broken"<<std::endl;
-//				socket_.close();
-				commDone();
-				return;
-			}
-		  }//end of if
-		  else
-		  {
-			  if(com->isSimulationDone())
-			  {
-				  std::cout<<"start: simulation done and all data out"<<std::endl;
-				  std::string str="SHUTDOWN";
-				  file_output<<str<<"\n";
-				  sendData(str);
-				  sleep(1);
-				  commDone();
-				  return;
-			  }
-		  }
-//		  sleep(0.001);
-	  }
-//	  if (file_output.is_open()) {
-	  			file_output.close();
-//	  		}
-//    for(int i=0;i<10;++i)
-//    {
-//    	if(socket_.is_open())
-//    	{
-//    		std::ostringstream stream;
-//			stream<< "it is data. " ;
-//			stream<<i;
-//			stream<<"\n";
-//			std::string body = "{=" + stream.str()+"=}";
-//
-//			char msg[2048]="\0";
-//			//head size 12
-//			sprintf(msg,"{=%08d=}",body.size());
-//			std::string head=msg;
-//
-//			message_=head+body;
-//			std::cout<<"send message: "<<message_<<std::endl;
-//    		boost::system::error_code err;
-//    		 try
-//    		 {
-//    			 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
-//    			 //size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all());
-//    			 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
-//    			 if(err)
-//    			 {
-//    				 std::cerr<<"start: send error "<<err.message()<<std::endl;
-//    				 break;
-//    			 }
-//    		 }
-//    		 catch (std::exception& e)
-//    		 {
-//    			 std::cerr <<"start: "<< e.what() << std::endl;
-//    			 break;
-//    		 }
-//
-//			sleep(1);
+  bool receiveData(std::string &cmd,std::string &data);
+//  {
+//	  // after send data , lets expect the response from visualizer
+//		int head_len=12;
+//		boost::array<char, 12> buf;
+//		socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
+//		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
+//		std::string head_data(buf.begin(), buf.end());
+////		file_output<<data<<"\n";
+//		boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
+//		boost::smatch what;
+//		int body_len=0;
+//		if( regex_match( head_data, what,head_regex ) )
+//		{
+//			  std::string s=what[1];
+//			  body_len= atoi(s.c_str());
+////			if (RECEIVED != atoi(s.c_str()))
+////			{
+//////						std::cout<<"unknown res "<<std::endl;
+//////				file_output<<"unknown res "<<"\n";
+//////						socket_.close();
+////				commDone();
+////				return false;
+////			}
 //		}
-//    	else
-//    	{
-//    		std::cout<<"start: socket broken"<<std::endl;
-//    		break;
-//    	}
-//    }
-  }
+//		else
+//		{
+//			std::cout<<"bad head: "<<head_data<<std::endl;
+////			file_output<<"bad res "<<"\n";
+////					socket_.close();
+////			commDone();
+//			return false;
+//		}
+//		// read body
+//		  if (body_len == 0)
+//		  {
+//			  std::cout<< " body len zero "<<std::endl;
+//	//		  break;
+////			  commDone();
+//			  return false;
+//		   }
+//		  char buf_body[2048]="\0";
+//		  socket_.set_option(boost::asio::socket_base::receive_buffer_size(body_len));
+//		//    	  len = socket.read_some(boost::asio::buffer(buf_body), error);
+//		  len = boost::asio::read(socket_,boost::asio::buffer(buf_body,body_len),boost::asio::transfer_at_least(body_len));
+//		//    	  std::cout<<" read body len: "<<len<<std::endl;
+//		  std::string data_body_str(buf_body,body_len);
+////		  boost::regex body_regex("^\\{\\=(.*)\\=\\}$",boost::regex::perl);
+//		  boost::regex body_regex("^\\{\\=(.*)\\=\\}\\{\\@\\=(.*)\\=\\@\\}$",boost::regex::perl);
+//	//	  file_output<<data_body_str<<"\n";
+//		  if( regex_match( data_body_str, what,body_regex ) )
+//		  {
+//			  cmd = what[1];
+//			  data =what[2];
+//		//		  file_output<<s<<"\n";
+//		  }
+//		  else
+//		  {
+//			  std::cout<<"not good body: "<<data_body_str<<std::endl;
+//	//		  break;
+//			  return false;
+//		  }
+//		return true;
+//  }
+  void trafficDataStart();
+  void cmdDataStart();
+  void roadNetworkDataStart();
 
 private:
   tcp_connection(boost::asio::io_service& io_service)
@@ -342,7 +246,6 @@ private:
 //  }
 
   tcp::socket socket_;
-  std::string message_;
 };
 
 class tcp_server
@@ -351,11 +254,13 @@ public:
   tcp_server(boost::asio::io_service& io_service,int port)
     : acceptor_(io_service, tcp::endpoint(tcp::v4(), port))
   {
+	 myPort=port;
     start_accept();
   }
   tcp_connection::pointer new_connection;
   bool isClientConnect() { return new_connection->socket().is_open();}
 private:
+  int myPort;
   void start_accept()
   {
     new_connection =
@@ -371,7 +276,23 @@ private:
   {
     if (!error)
     {
-      new_connection->start();
+    	if(myPort==13333)
+    	{
+    		new_connection->trafficDataStart();
+    	}
+    	else if(myPort==13334)
+		{
+			new_connection->cmdDataStart();
+		}
+    	else if(myPort==13335)
+		{
+			new_connection->roadNetworkDataStart();
+		}
+    	else
+    	{
+    		std::cout<<"handle_accept: what port it is? "<<myPort<<std::endl;
+    	}
+
     }
 
     start_accept();

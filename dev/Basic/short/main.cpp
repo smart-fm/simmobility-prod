@@ -1156,7 +1156,11 @@ int main(int argc, char* argv[])
 
 #ifdef SIMMOB_REALTIME
 	CommunicationManager *dataServer = new CommunicationManager(13333);
-	boost::thread workerThread(boost::bind(&CommunicationManager::start, dataServer));
+	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
+	CommunicationManager *cmdServer = new CommunicationManager(13334);
+	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335);
+	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
 	boost::thread workerThread2(boost::bind(&ControlManager::start, ControlManager::GetInstance()));
 #endif
 //	workerThread.join();
@@ -1234,11 +1238,11 @@ int main(int argc, char* argv[])
 	}
 #ifdef SIMMOB_REALTIME
 
-	CommunicationManager::GetInstance()->setSimulationDone(true);
-	while(!CommunicationManager::GetInstance()->isCommDone())
-	{
-		sleep(1);
-	}
+//	CommunicationManager::GetInstance()->setSimulationDone(true);
+//	while(!CommunicationManager::GetInstance()->isCommDone())
+//	{
+//		sleep(1);
+//	}
 #endif
 	cout << "Done" << endl;
 	return returnVal;

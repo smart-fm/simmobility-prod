@@ -258,7 +258,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
-	std::cout << "Driver Ticking\n";
+	std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 //	getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
@@ -678,6 +678,12 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
+	if(!tempNode )
+		{
+			tempNode = const_cast<Node*>(vehicle->getNodeMovingTowards());
+			std::cout <<"Driver " << this <<  " getNodeMovingTowards Node  : " << tempNode->getID() << std::endl;
+			getchar();
+        }
 
 	if (!vehicle->hasNextSegment(true)) // has seg in current link
 	{
@@ -702,6 +708,78 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //
 //	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
 //		p.nextLaneIndex = p.currLaneIndex;
+
+
+	//vahid begins
+//	find out the last trip that this driver has to finally take
+	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
+	std::vector<TripChainItem*>& tripchain = person->getTripChain();
+	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), person->currTripChainItem);
+    Trip* trip_1; // pointer to current item in trip chain
+    while(tripChainItem_it != tripchain.end())
+    {
+    	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
+    	{
+    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
+    	}
+    	tripChainItem_it++;
+    }
+    //now find the last sub trip within that trip
+    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
+//    std::cout << "Our last stop according to trip chain is: " << lastSubTripEndingNode->getID() << std::endl;
+//    getchar();
+    if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
+	{
+    	std::cout << "We are in business\n";
+    	getchar();
+    	if (p.dis2stop >=10 &&  p.dis2stop <= 50) {//is approaching the park point?
+        	std::cout << "(p.dis2stop >=10 &&  p.dis2stop <= 50)\n";
+        	getchar();
+
+//    		double acc = busAccelerating(p)*100;
+    		//Retrieve a new acceleration value.
+    		double acc = 0;
+    		//Convert back to m/s
+    		//TODO: Is this always m/s? We should rename the variable then...
+    		p.currSpeed = vehicle->getVelocity() / 100;
+    		//Call our model
+    		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
+    		//move to most left lane
+    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+
+			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+    		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+    		vehicle->setTurningDirection(lcs);
+    		double newLatVel;
+    		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+    		vehicle->setLatVelocity(newLatVel*5);
+
+    		// reduce speed
+    		if (vehicle->getVelocity() / 100.0 > 2.0)
+    		{
+    			if (acc<-500.0)
+    			{
+    				vehicle->setAcceleration(acc);
+    			} else
+    				vehicle->setAcceleration(-500);
+    		}
+
+    		park.setElapsedParkingTime(0);
+    	}
+
+    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver())) {
+        	std::cout << "(p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
+        	getchar();
+
+    		if (vehicle->getVelocity() > 0)
+    			vehicle->setAcceleration(-5000);
+    		if (vehicle->getVelocity() < 0.1 && (!park.isparkingTimeOver())) {
+    			park.setElapsedParkingTime(park.getElapsedParkingTime() + p.elapsedSeconds);
+    		}
+    	}
+
+	}
+    //....end of vahid
 
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
@@ -750,8 +828,10 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 					}
 				}
 			} // end of if (!lcs)
+
 		}
-	}
+
+		}
 
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)

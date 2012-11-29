@@ -43,6 +43,25 @@ class UnPackageUtils;
 #endif
 
 
+class Park
+{
+	bool parkingEnabled;
+	double parkingTime;
+	double elapsedParkingTime;
+public:
+	Park(double parkingTime_,bool parkingEnabled_ = true) : parkingTime(parkingTime_), parkingEnabled(parkingEnabled_), elapsedParkingTime(0){}
+	void enableParking() { parkingEnabled = true; }
+	void disableParking() { parkingEnabled = false; }
+	bool isParkingEnabled(){ return parkingEnabled;}
+	void setParkingTime(double time) { parkingTime = time; }
+	double getParkingTime() { return parkingTime; }
+	void incrementElapsedParkingTime(double time) { elapsedParkingTime += time;}
+	void setElapsedParkingTime(double time) { elapsedParkingTime = time;}
+	double getElapsedParkingTime() { return elapsedParkingTime;}
+	bool isparkingTimeOver() { return elapsedParkingTime >= parkingTime; }
+};
+
+
 /**
  * \author Wang Xinyuan
  * \author Li Zhemin
@@ -73,7 +92,11 @@ public:
 
 
 
+
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
+
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, Park park_=Park(20,1));
+
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

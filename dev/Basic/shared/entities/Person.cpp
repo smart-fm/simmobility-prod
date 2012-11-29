@@ -103,6 +103,29 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	} else { //Offer some protection
 		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 	}
+
+
+	//debug
+	//debug
+	//find out the last trip that this driver has to finally take
+	std::cout << " Places that this vehicle is supposed to visit : \n";
+//		sim_mob::Person * person = this;
+		std::vector<TripChainItem*>& tripchain = /*person->getTripChain()*/tcs;
+		std::vector<TripChainItem*>::iterator tripChainItem_it = tripchain.begin();
+	    Trip* trip_1; // pointer to current item in trip chain
+	    while(tripChainItem_it != tripchain.end())
+	    {
+	    	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	    	{
+	    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
+	    		for(std::vector<SubTrip>::const_iterator it = trip_1->getSubTrips().begin(); it != trip_1->getSubTrips().end(); it++)
+	    		{
+	    			std::cout << "Person::Person()=>   Person Id: " << it->personID << ": From " << it->fromLocation->getID() << "  to  " << it->toLocation->getID() << std::endl;
+	    		}
+	    	}
+	    	tripChainItem_it++;
+	    }
+
 //	std::cout << "Person::preson " << this->id << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 
 }

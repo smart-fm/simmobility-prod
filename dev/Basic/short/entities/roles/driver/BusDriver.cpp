@@ -113,7 +113,17 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 
 		//Set the bus's origin and set of stops.
 		setOrigin(params);
-		busStops = findBusStopInPath(vehicle->getCompletePath());
+		if(person)
+		{
+			if(person->getAgentSrc() == "BusController") {
+				const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
+				if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+					busStops = bustrip->getBusRouteInfo().getBusStops();
+				}
+			} else {
+				busStops = findBusStopInPath(vehicle->getCompletePath());
+			}
+		}
 
 		//Unique to BusDrivers: reset your route
 		waitAtStopMS = 0.0;
@@ -340,7 +350,7 @@ double sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 	//vehicle->setAcceleration(newFwdAcc * 100);
 }
 
-bool sim_mob::BusDriver::isBusFarawayBusStop() const
+bool sim_mob::BusDriver::isBusFarawayBusStop()
 {
 	bool res = false;
 	double distance = distanceToNextBusStop();
@@ -350,7 +360,7 @@ bool sim_mob::BusDriver::isBusFarawayBusStop() const
 	return res;
 }
 
-bool sim_mob::BusDriver::isBusApproachingBusStop() const
+bool sim_mob::BusDriver::isBusApproachingBusStop()
 {
 	double distance = distanceToNextBusStop();
 	if (distance >=10 && distance <= 50) {
@@ -363,7 +373,7 @@ bool sim_mob::BusDriver::isBusApproachingBusStop() const
 	return false;
 }
 
-bool sim_mob::BusDriver::isBusArriveBusStop() const
+bool sim_mob::BusDriver::isBusArriveBusStop()
 {
 	double distance = distanceToNextBusStop();
 	return  (distance>0 && distance <10);
@@ -386,7 +396,7 @@ bool sim_mob::BusDriver::isBusLeavingBusStop()
 	return false;
 }
 
-double sim_mob::BusDriver::distanceToNextBusStop() const
+double sim_mob::BusDriver::distanceToNextBusStop()
 {
 //	if (!vehicle->getCurrSegment() || !vehicle->hasNextSegment(true)) {
 //		return -1;
@@ -448,8 +458,17 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 	if (bus && passenger_dist) {
 		no_passengers_busstop = passenger_dist->getnopassengers();
 		no_passengers_bus = bus->getPassengerCount();
+		//if last busstop,only alighting
+		if(last_busstop==true)
+		{
+			no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+			passengers_Alight(bus);//alight the bus
+			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
+			bus->setPassengerCount(no_passengers_bus);
+			last_busstop = false;
+		}
 		//if first busstop,only boarding
-		if(first_busstop ==true)
+		else if(first_busstop ==true)
 		{
 			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
 			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
@@ -458,15 +477,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
 			first_busstop= false;
 		}
-		//if last busstop,only alighting
-		else if(last_busstop==true)
-		{
-			no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
-			passengers_Alight(bus);//alight the bus
-			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			last_busstop = false;
-		}
+
 		//normal busstop,both boarding and alighting
 		else
 		{
@@ -513,7 +524,7 @@ double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k, int b
 	return DTijk;
 }
 
-double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) const
+double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 {
 	double distance = -100;
 	double currentX = vehicle->getX();
@@ -527,21 +538,41 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 		int stopPoint = o_it->first;
 
 		if (bs) {
-			if (rs == vehicle->getCurrSegment()) {
-
-				if (stopPoint < 0) {
-					throw std::runtime_error("BusDriver offset in obstacles list should never be <0");
-				}
-
-				if (stopPoint >= 0) {
-					DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(), rs->getStart()->location.getX(),rs->getStart()->location.getY());
-					distance = stopPoint - vehicle->getDistanceMovedInSegment();
+			// check bs
+			int i = 0;
+			int busstop_sequence_no = 0;
+			bool isFound=false;
+			for(i=0;i < busStops.size();++i)
+			{
+				if (bs->getBusstopno_() == busStops[i]->getBusstopno_())
+				{
+					isFound=true;
+					busstop_sequence_no = i;
 					break;
 				}
-			} else {
-				DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
 			}
+			if(isFound)
+			{
+				if (busstop_sequence_no == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
+				{
+					last_busstop = true;
+				}
+				if (rs == vehicle->getCurrSegment()) {
+
+					if (stopPoint < 0) {
+						throw std::runtime_error("BusDriver offset in obstacles list should never be <0");
+					}
+
+					if (stopPoint >= 0) {
+						DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(), rs->getStart()->location.getX(),rs->getStart()->location.getY());
+						distance = stopPoint - vehicle->getDistanceMovedInSegment();
+						break;
+					}
+				} else {
+					DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
+					distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
+				}
+			} // end of if isFound
 		}
 	}
 

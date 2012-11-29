@@ -164,5 +164,28 @@ struct type_conversion<sim_mob::PT_bus_routes>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::PT_bus_stops>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_stops& pt_bus_stops)
+    {
+    	pt_bus_stops.route_id = values.get<std::string>("route_id", "");
+    	pt_bus_stops.busstop_no = values.get<std::string>("busstop_no", "");
+    	pt_bus_stops.busstop_sequence_no = values.get<int>("busstop_sequence_no", 0);
+    }
+
+    static void
+    to_base(sim_mob::PT_bus_stops const & pt_bus_stops, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("route_id", pt_bus_stops.route_id);
+        values.set("busstop_no", pt_bus_stops.busstop_no);
+        values.set("busstop_sequence_no", pt_bus_stops.busstop_sequence_no);
+        indicator = i_ok;
+    }
+};
+
 
 }

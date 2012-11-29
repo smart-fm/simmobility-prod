@@ -242,6 +242,7 @@ public:
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
 	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
+	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops() { return pt_bus_stops; }
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
@@ -267,6 +268,7 @@ private:
 	std::vector<sim_mob::PT_trip*> pt_trip;
 	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
 	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
+	std::vector<sim_mob::PT_bus_stops> pt_bus_stops;
 	// Temporary: Yao Jin
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>

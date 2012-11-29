@@ -41,17 +41,17 @@ public:
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.
-	double distanceToNextBusStop() const;
+	double distanceToNextBusStop();
 
 	/// get distance to bus stop of particular segment (meter)
 	/// A negative return value indicates that there is no relevant bus stop nearby.
-	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
+	double getDistanceToBusStopOfSegment(const RoadSegment* rs);
 
 	//double no_passengers_boarding,no_passengers_alighting;
 
-	bool isBusFarawayBusStop() const;
-	bool isBusApproachingBusStop() const;
-	bool isBusArriveBusStop() const;
+	bool isBusFarawayBusStop();
+	bool isBusApproachingBusStop();
+	bool isBusArriveBusStop();
 	bool isBusLeavingBusStop();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
@@ -93,7 +93,7 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	std::vector<const sim_mob::BusStop*> busStops;
+	std::vector<const BusStop*> busStops;
 
 	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 

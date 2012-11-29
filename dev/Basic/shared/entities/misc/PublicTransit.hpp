@@ -34,4 +34,11 @@ public:
 	int link_sequence_no;
 };
 
+class PT_bus_stops {
+public:
+	std::string route_id;
+	std::string busstop_no;
+	int busstop_sequence_no;
+};
+
 }

@@ -43,17 +43,18 @@ class LaneLoader;
  * \author Harish
  */
 struct SupplyParams {
-	double freeFlowSpeed; //Maximum speed of the road segment
-	double jamDensity; //density during traffic jam in vehicles / m
-	double minDensity; //minimum traffic density in vehicles / m
-	double minSpeed; //minimum speed in the segment
-	double capacity; //segment capacity in vehicles/second
-	double alpha; //Model parameter of speed density function
-	double beta; //Model parameter of speed density function
+	double freeFlowSpeed;  ///<Maximum speed of the road segment
+	double jamDensity;     ///<density during traffic jam in vehicles / m
+	double minDensity;     ///<minimum traffic density in vehicles / m
+	double minSpeed;       ///<minimum speed in the segment
+	double capacity;       ///<segment capacity in vehicles/second
+	double alpha;          ///<Model parameter of speed density function
+	double beta;           ///<Model parameter of speed density function
 
 
 	SupplyParams(double maxSpeed, double minSpeed, double maxDensity, double minDensity, double capacity, double a, double b)
-		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b){}
+		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b)
+	{}
 };
 
 /**
@@ -157,22 +158,20 @@ private:
 	//int getBustStopID;
 	///Computed polylines are cached here.
 	///These run from 0 (for the median) to lanes.size()+1 (for the outer edge).
-	void specifyEdgePolylines(
-			const std::vector<std::vector<sim_mob::Point2D> >& calcdPolylines);
-	void makeLanePolylineFromEdges(sim_mob::Lane* lane,
-			const std::vector<sim_mob::Point2D>& inner,
-			const std::vector<sim_mob::Point2D>& outer) const;
-	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(
-			sim_mob::Lane* refLane, bool edgeIsRight) const;
-	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
+	void specifyEdgePolylines(const std::vector<std::vector<sim_mob::Point2D> >& calcdPolylines);
+	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
+	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline( sim_mob::Lane* refLane, bool edgeIsRight) const;
+
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
 	unsigned int lanesLeftOfDivider;
+
 	///Which link this appears in
 	sim_mob::Link* parentLink;
+
 	/// Conflux to which this segment belongs to
 	mutable sim_mob::Conflux* parentConflux;
-	//	std::string segmentID;
+
 	unsigned long segmentID;
 
 	friend class sim_mob::aimsun::Loader;

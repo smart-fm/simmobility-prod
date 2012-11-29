@@ -115,7 +115,7 @@ private:
     }
 
     /*Map to store the vehicle counts of each road segment. */
-    boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
+    //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
 
     // No need to define the dtor.
 

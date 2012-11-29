@@ -362,33 +362,6 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-/*void AuraManager::Impl::mergeAgentKeeperFromWorkers() {
-	typedef boost::unordered_map<const RoadSegment*, sim_mob::AgentKeeper*> segMap_t;
-	segMap_t temp_global;
-	for (std::vector<sim_mob::WorkGroup*>::const_iterator it = sim_mob::WorkGroup::getRegisteredWorkGroups().begin();
-			it != sim_mob::WorkGroup::getRegisteredWorkGroups().end(); it++) {
-		for(int i = 0; i < (*it)->size(); i++){
-
-			sim_mob::Worker* worker = (*it)->getWorker(i);
-			segMap_t agentsFromWorker = worker->getAgentsOnSegments();
-
-			if(!agentsFromWorker.empty()){
-				for(segMap_t::iterator segIt = agentsFromWorker.begin();
-						segIt != agentsFromWorker.end(); segIt++){
-
-					const sim_mob::RoadSegment* rdSeg = (*segIt).first;
-					sim_mob::AgentKeeper* agKeeperFromWorker = (*segIt).second;
-					sim_mob::AgentKeeper* agKeeperFromTemp = temp_global[rdSeg];
-					agKeeperFromTemp->merge(agKeeperFromWorker);
-				} // for loop
-			} // if
-		} // for loop iterating workers
-	} // for loop for iterating RegisteredWorkGroups
-
-	// Assign the constructed vehicle lists and queues to aura manager
-	AuraManager::instance().agentsOnSegments_global = temp_global;
-
-}*/
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 

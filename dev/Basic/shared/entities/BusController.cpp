@@ -187,7 +187,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		DailyTime advance(curr->headway_sec*50);
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
-			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, curr->route_id, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
+			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 			vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
 			vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
 			if(bustrip.setBusRouteInfo(segments, stops)) {

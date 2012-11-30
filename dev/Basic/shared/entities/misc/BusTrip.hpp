@@ -89,16 +89,13 @@ public:
 	//Note: I am changing the default entID value to "-1", which *should* generate Agent IDs correctly.
 	BusTrip(int entId=-1, std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTripRun_sequenceNum=0,
-			std::string busLine_id="", Busline* busline=nullptr, int vehicle_id=0, std::string busRoute_id="",
+			Busline* busline=nullptr, int vehicle_id=0, std::string busRoute_id="",
 			Node* from=nullptr, std::string fromLocType="node", Node* to=nullptr,
 			std::string toLocType="node");
 	virtual ~BusTrip() {}
 
 	const int getBusTripRun_SequenceNum() const {
 		return busTripRun_sequenceNum;
-	}
-	const std::string& getBusLineID() const {
-		return busLine_id;
 	}
 	void setBusline(Busline* aBusline) {
 		busline = aBusline;
@@ -124,10 +121,9 @@ public:
 		return busStopRealTimes_vec;
 	}
 private:
-	std::string busLine_id;
-	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	int busTripRun_sequenceNum;
 	int vehicle_id;
+	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
 	std::vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>

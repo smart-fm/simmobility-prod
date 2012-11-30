@@ -48,11 +48,11 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 }
 
 sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int busTripRun_sequenceNum, std::string busLine_id,
+		DailyTime start, DailyTime end, int busTripRun_sequenceNum,
 		Busline* busline, int vehicle_id, std::string busRoute_id, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busline(busline), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
+busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
 
 }

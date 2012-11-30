@@ -182,12 +182,13 @@ public:
 	virtual ~PT_Schedule();
 
 	void registerBusLine(const std::string busline_id, Busline* aBusline);
+	void registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType);
 	Busline* findBusline(const std::string& busline_id);
-	const CONTROL_TYPE findBuslineControlType(const std::string& busline_id) const;
+	CONTROL_TYPE findBuslineControlType(const std::string& busline_id);
 	std::map<std::string, Busline*>& get_busLines() { return buslineID_busline; }
 private:
 	std::map<std::string, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
-	std::map<std::string, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
+	std::map<std::string, CONTROL_TYPE> buslineID_controlType;// busline--->controlType
 };
 
 }

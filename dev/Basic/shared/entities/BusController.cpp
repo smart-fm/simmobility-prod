@@ -169,7 +169,9 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
 			busline = new sim_mob::Busline(curr->route_id,"no_control");
+			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
 			pt_schedule.registerBusLine(curr->route_id, busline);
+			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
 			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth
 		}
 
@@ -209,19 +211,19 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 	switch(controltype) {
 	case SCHEDULE_BASED:
 		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
-		waitTime_BusStop = departure_time - (double)(ATijk);
+		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case HEADWAY_BASED:
 		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
-		waitTime_BusStop = departure_time - (double)(ATijk);
+		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case EVENHEADWAY_BASED:
 		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStopSeqNum);
-		waitTime_BusStop = departure_time - (double)(ATijk);
+		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case HYBRID_BASED:
 		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
-		waitTime_BusStop = departure_time - (double)(ATijk);
+		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	default:
 		// may add default scheduled departure time here
@@ -281,10 +283,18 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 	if (0 == trip_k) {
 		// the first trip just use Dwell Time, no holding strategy
 		ETijk = (double)(ATijk) + (DTijk * 1000.0);
+
+		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
+		std::cout << "busStop_RealTimes : output " << busStop_RealTimes.real_ArrivalTime.getRepr_() << std::endl;
+
+		// here need test, need add fake RealTimes first
+		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
+		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
+		std::cout << "busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 		Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 				- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
@@ -317,6 +327,9 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 	if (0 == trip_k) {
 		// the first trip just use Dwell Time, no holding strategy
 		ETijk = (double)(ATijk) + (DTijk * 1000.0);
+
+		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
+		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();

@@ -48,11 +48,11 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 }
 
 sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int busTripRun_sequenceNum, std::string busLine_id, int vehicle_id,
-		std::string busRoute_id, Node* from, std::string fromLocType, Node* to,
-		std::string toLocType)
+		DailyTime start, DailyTime end, int busTripRun_sequenceNum, std::string busLine_id,
+		Busline* busline, int vehicle_id, std::string busRoute_id, Node* from,
+		std::string fromLocType, Node* to, std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
+busLine_id(busLine_id), busline(busline), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
 
 }
@@ -102,7 +102,7 @@ sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime en
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
-
+	control_TimePointNum = 2;// the number 2 in( 0->1->2->3 )
 }
 
 sim_mob::Busline::~Busline()

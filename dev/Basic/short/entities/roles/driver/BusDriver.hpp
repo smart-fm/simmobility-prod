@@ -75,6 +75,7 @@ public:
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
+	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
 
 	bool first_busstop;
 	bool last_busstop;

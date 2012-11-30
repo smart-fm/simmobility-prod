@@ -30,8 +30,8 @@ namespace {
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
 , lastVisited_BusStop(mtxStrat,nullptr), lastVisited_BusStopSequenceNum(mtxStrat,0), real_DepartureTime(mtxStrat,0)
-, real_ArrivalTime(mtxStrat,0), DwellTime_ijk(mtxStrat,0), first_busstop(true)
-, last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
+, real_ArrivalTime(mtxStrat,0), DwellTime_ijk(mtxStrat,0), busstop_sequence_no(mtxStrat,0)
+, first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
 	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 }
@@ -119,6 +119,11 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 				const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
 				if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
+					if (busStops.empty()) {
+						std::cout << "Error: No BusStops assigned from BusTrips!!! " << std::endl;
+						// This case can be true, so use the BusStops found by Path instead
+						busStops = findBusStopInPath(vehicle->getCompletePath());
+					}
 				}
 			} else {
 				busStops = findBusStopInPath(vehicle->getCompletePath());
@@ -289,9 +294,19 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					if(person) {
 						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
 						if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
-							double waitTime = 0;
-							waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(bustrip->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),0,real_ArrivalTime.get(),DwellTime_ijk.get(),0);
-							setWaitTime_BusStop(waitTime);
+							const Busline* busline = bustrip->getBusline();
+							if(busline) {
+								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
+									double waitTime = 0;
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),0);
+									setWaitTime_BusStop(waitTime);
+								} else {
+									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
+								}
+							} else {
+								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
+								setWaitTime_BusStop(DwellTime_ijk.get());
+							}
 						}
 					}
 				} else {
@@ -540,20 +555,20 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 		if (bs) {
 			// check bs
 			int i = 0;
-			int busstop_sequence_no = 0;
+			//int busstop_sequence_no = 0;
 			bool isFound=false;
 			for(i=0;i < busStops.size();++i)
 			{
 				if (bs->getBusstopno_() == busStops[i]->getBusstopno_())
 				{
 					isFound=true;
-					busstop_sequence_no = i;
+					busstop_sequence_no.set(i);
 					break;
 				}
 			}
 			if(isFound)
 			{
-				if (busstop_sequence_no == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
+				if (busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
 				{
 					last_busstop = true;
 				}
@@ -655,6 +670,7 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	res.push_back(&(real_DepartureTime));
 	res.push_back(&(real_ArrivalTime));
 	res.push_back(&(DwellTime_ijk));
+	res.push_back(&(busstop_sequence_no));
 	return res;
 }
 

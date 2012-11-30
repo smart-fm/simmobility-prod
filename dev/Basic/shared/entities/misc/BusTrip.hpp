@@ -22,6 +22,7 @@
 #endif
 
 namespace sim_mob {
+class Busline;
 
 // offsetMS_From(ConfigParams::GetInstance().simStartTime)???
 class BusStop_ScheduledTimes{
@@ -88,7 +89,7 @@ public:
 	//Note: I am changing the default entID value to "-1", which *should* generate Agent IDs correctly.
 	BusTrip(int entId=-1, std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTripRun_sequenceNum=0,
-			std::string busLine_id="", int vehicle_id=0, std::string busRoute_id="",
+			std::string busLine_id="", Busline* busline=nullptr, int vehicle_id=0, std::string busRoute_id="",
 			Node* from=nullptr, std::string fromLocType="node", Node* to=nullptr,
 			std::string toLocType="node");
 	virtual ~BusTrip() {}
@@ -99,12 +100,19 @@ public:
 	const std::string& getBusLineID() const {
 		return busLine_id;
 	}
+	void setBusline(Busline* aBusline) {
+		busline = aBusline;
+	}
+	const Busline* getBusline() const {
+		return busline;
+	}
 	int getVehicleID() const {
 		return vehicle_id;
 	}
 	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
+
 	bool setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
@@ -117,6 +125,7 @@ public:
 	}
 private:
 	std::string busLine_id;
+	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	int busTripRun_sequenceNum;
 	int vehicle_id;
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
@@ -151,6 +160,9 @@ public:
 	const std::string& getBusLineID() const {
 		return busline_id;
 	}
+	const int getControl_TimePointNum() const {
+		return control_TimePointNum;
+	}
 	void addBusTrip(BusTrip& aBusTrip);
 	void addFrequencyBusline(const Frequency_Busline& aFrequencyBusline);
 	const std::vector<BusTrip>& queryBusTrips() const {
@@ -165,6 +177,7 @@ private:
 	CONTROL_TYPE controlType;
 	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
+	int control_TimePointNum; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly

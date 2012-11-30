@@ -148,8 +148,9 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
   }
 void sim_mob::tcp_connection::trafficDataStart()
 {
-	  std::ofstream file_output;
-	  file_output.open("./logSimmobTrafficData.txt");
+//	  std::ofstream file_output;
+//	  file_output.open("./logSimmobTrafficData.txt");
+	std::fstream file_output("./log_SimmobTrafficData.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 	  CommunicationDataManager *com = CommunicationDataManager::GetInstance() ;
 //	  com->GetInstance()->setCommDone(false);
 	  std::string cmd_;
@@ -162,13 +163,14 @@ void sim_mob::tcp_connection::trafficDataStart()
 			if(socket_.is_open())
 			{
 
-				file_output<<"send begin: "<<make_daytime_string();
+//				file_output<<"send begin: "<<make_daytime_string();
 				std::string send_cmd = "TRAFFICDATA";
 				if(sendData(send_cmd,message_))
 				{
-					file_output<<message_;
-					file_output<<"\n";
-					file_output<<"send over: "<<make_daytime_string();
+//					file_output<<message_;
+//					file_output<<"\n";
+//					file_output<<"send over: "<<make_daytime_string();
+//					file_output.flush();
 					std::string recv_cmd;
 					std::string recv_data;
 					if(!receiveData(recv_cmd,recv_data))
@@ -179,7 +181,8 @@ void sim_mob::tcp_connection::trafficDataStart()
 					}
 					else
 					{
-						file_output<<recv_cmd<<" "<<recv_data<<"\n";
+//						file_output<<recv_cmd<<" "<<recv_data<<"\n";
+//						file_output.flush();
 						if(recv_data != "RECEIVED")
 						{
 							commDone();
@@ -217,12 +220,16 @@ void sim_mob::tcp_connection::trafficDataStart()
 //		  }
 //		  sleep(0.001);
 	  }
+	  file_output.flush();
 	  file_output.close();
   }
 void sim_mob::tcp_connection::cmdDataStart()
 {
-	  std::ofstream file_output;
-	  file_output.open("./logSimmobCmdData.txt");
+//	  std::ofstream file_output2;
+//	  file_output2.open("./logSimmobCmdData2.txt");
+	std::fstream file_output2("./logSimmobCmdData2.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+	file_output2<<"asdfasdfasfdasdf"<<"\n";
+	file_output2.flush();
 	  CommunicationDataManager *com = CommunicationDataManager::GetInstance() ;
 //	  com->GetInstance()->setCommDone(false);
 	  //
@@ -253,7 +260,8 @@ void sim_mob::tcp_connection::cmdDataStart()
 			  }
 			  else
 			{
-				file_output<<recv_cmd<<" "<<recv_data<<"\n";
+				  file_output2<<recv_cmd<<" "<<recv_data<<"\n";
+				  file_output2.flush();
 				ControlManager::GetInstance()->handleInput(recv_data);
 				std::string fk_cmd = "FEEDBACK";
 				std::string fk_msg="RECEIVED";
@@ -270,12 +278,13 @@ void sim_mob::tcp_connection::cmdDataStart()
 			if(socket_.is_open())
 			{
 
-				file_output<<"send begin: "<<make_daytime_string();
+				file_output2<<"send begin: "<<make_daytime_string();
 				if(sendData(send_cmd,message_))
 				{
-					file_output<<message_;
-					file_output<<"\n";
-					file_output<<"send over: "<<make_daytime_string();
+					file_output2<<message_;
+					file_output2<<"\n";
+					file_output2<<"send over: "<<make_daytime_string();
+					file_output2.flush();
 					std::string recv_cmd;
 					std::string recv_data;
 					if(!receiveData(recv_cmd,recv_data))
@@ -286,7 +295,8 @@ void sim_mob::tcp_connection::cmdDataStart()
 					}
 					else
 					{
-						file_output<<recv_cmd<<" "<<recv_data<<"\n";
+						file_output2<<recv_cmd<<" "<<recv_data<<"\n";
+						file_output2.flush();
 						if(recv_data != "RECEIVED")
 						{
 							commDone();
@@ -324,7 +334,8 @@ void sim_mob::tcp_connection::cmdDataStart()
 //		  }
 //		  sleep(0.001);
 	  }
-	  file_output.close();
+	  file_output2.flush();
+	  file_output2.close();
   }
 void sim_mob::tcp_connection::commDone()
 {
@@ -353,6 +364,7 @@ void sim_mob::tcp_connection::roadNetworkDataStart()
 					file_output<<message_;
 					file_output<<"\n";
 					file_output<<"send over: "<<make_daytime_string();
+					file_output.flush();
 					std::string recv_cmd;
 					std::string recv_data;
 					if(!receiveData(recv_cmd,recv_data))
@@ -401,5 +413,6 @@ void sim_mob::tcp_connection::roadNetworkDataStart()
 //		  }
 //		  sleep(0.001);
 	  }
+	  file_output.flush();
 	  file_output.close();
   }

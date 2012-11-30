@@ -42,6 +42,9 @@
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 //#include "../short/xmlWriter/xmlWriter.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+#include "util/CommunicationManager.h"
+#endif
 
 using std::cout;
 using std::endl;
@@ -975,7 +978,19 @@ void PrintDB_Network_ptrBased()
 			LogOutNotSync((*it)->originalDB_ID.getLogItem());
 		}
 		LogOutNotSync("})" <<endl);
-
+		//
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"uni-node\", 0, " <<*it <<", {";
+		stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+		stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			stream<<(*it)->originalDB_ID.getLogItem();
+				}
+		stream<<"})" <<endl;
+		std::string s=stream.str();
+		CommunicationDataManager::GetInstance()->sendTrafficData(s);
+#endif
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
 		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {

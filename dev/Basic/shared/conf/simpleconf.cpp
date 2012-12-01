@@ -1007,6 +1007,18 @@ void PrintDB_Network_ptrBased()
 		}
 		LogOutNotSync("})" <<endl);
 
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"multi-node\", 0, " <<*it <<", {";
+		stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+		stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			stream<<(*it)->originalDB_ID.getLogItem();
+				}
+		stream<<"})";
+		std::string s=stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
 		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
@@ -1044,8 +1056,28 @@ void PrintDB_Network_ptrBased()
 		}
 		LogOutNotSync("]\",");
 		LogOutNotSync("})" <<endl);
-	}
 
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"link\", 0, " <<*it <<", {";
+		stream<<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		stream<<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		stream<<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		stream<<"\"fwd-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+			stream<<*segIt <<",";
+		}
+		stream<<"]\",";
+		stream<<"\"rev-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
+			stream<<*segIt <<",";
+		}
+		stream<<"]\",";
+		stream<<"})";
+		std::string s=stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
+	}
 
 	//Now print all Segments
 	std::set<const Crossing*,Sorter> cachedCrossings;
@@ -1075,7 +1107,35 @@ void PrintDB_Network_ptrBased()
 			LogOutNotSync("})" <<endl);
 		}
 
-
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"road-segment\", 0, " <<*it <<", {";
+		stream<<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
+		stream<<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
+		stream<<"\"width\":\"" <<(*it)->width <<"\",";
+		stream<<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+		stream<<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
+		stream<<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			stream<<(*it)->originalDB_ID.getLogItem();
+		}
+		stream<<"})";
+		std::string s1=stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s1);
+		stream.clear();
+		if (!(*it)->polyline.empty()) {
+			stream<<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+			stream<<"\"parent-segment\":\"" <<*it <<"\",";
+			stream<<"\"points\":\"[";
+			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
+				stream<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+			}
+			stream<<"]\",";
+			stream<<"})";
+		}
+		std::string ss=stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(ss);
+#endif
 		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
 		for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); ++obsIt) {
 			//Save BusStops for later.
@@ -1115,6 +1175,10 @@ void PrintDB_Network_ptrBased()
 
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
+#ifdef SIMMOB_REALTIME
+		string s = laneBuffer.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
 	}
 
 	//Crossings are part of Segments
@@ -1125,6 +1189,18 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
 		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
 		LogOutNotSync("})" <<endl);
+
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"crossing\", 0, " <<*it <<", {";
+		stream<<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
+		stream<<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
+		stream<<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
+		stream<<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
+		stream<<"})";
+		string s = stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
 	}
 
 	//Bus Stops are part of Segments
@@ -1154,6 +1230,18 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
 		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
 		LogOutNotSync("})" <<endl);
+
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"busstop\", 0, " <<*it <<", {";
+		stream<<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
+		stream<<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
+		stream<<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
+		stream<<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
+		stream<<"})";
+		string s = stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
 	}
 
 
@@ -1172,6 +1260,18 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"to-segment\":\"" <<toSeg <<"\",");
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
+
+#ifdef SIMMOB_REALTIME
+		std::ostringstream stream;
+		stream<<"(\"lane-connector\", 0, " <<*it <<", {";
+		stream<<"\"from-segment\":\"" <<fromSeg <<"\",";
+		stream<<"\"from-lane\":\"" <<fromLane <<"\",";
+		stream<<"\"to-segment\":\"" <<toSeg <<"\",";
+		stream<<"\"to-lane\":\"" <<toLane <<"\",";
+		stream<<"})";
+		string s = stream.str();
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+#endif
 	}
 
 	//Print the StreetDirectory graphs.

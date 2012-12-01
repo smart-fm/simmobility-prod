@@ -1122,18 +1122,19 @@ void PrintDB_Network_ptrBased()
 		stream<<"})";
 		std::string s1=stream.str();
 		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s1);
-		stream.clear();
+
+		std::ostringstream stream2;
 		if (!(*it)->polyline.empty()) {
-			stream<<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
-			stream<<"\"parent-segment\":\"" <<*it <<"\",";
-			stream<<"\"points\":\"[";
+			stream2<<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+			stream2<<"\"parent-segment\":\"" <<*it <<"\",";
+			stream2<<"\"points\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				stream<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+				stream2<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
-			stream<<"]\",";
-			stream<<"})";
+			stream2<<"]\",";
+			stream2<<"})";
 		}
-		std::string ss=stream.str();
+		std::string ss=stream2.str();
 		CommunicationDataManager::GetInstance()->sendRoadNetworkData(ss);
 #endif
 		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
@@ -1172,13 +1173,29 @@ void PrintDB_Network_ptrBased()
 			}
 
 		}
-
-		laneBuffer <<"})" <<endl;
-		LogOutNotSync(laneBuffer.str());
 #ifdef SIMMOB_REALTIME
-		string s = laneBuffer.str();
+		std::stringstream stream1;
+		stream1 <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
+		stream1 <<"\"parent-segment\":\"" <<*it <<"\",";
+		for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
+			const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
+			stream1 <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
+			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
+				stream1 <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+			}
+			stream1 <<"]\",";
+
+			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
+				stream1 <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+			}
+		}
+		stream1<<"})";
+		string s = stream1.str();
 		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
 #endif
+		laneBuffer <<"})" <<endl;
+		LogOutNotSync(laneBuffer.str());
+
 	}
 
 	//Crossings are part of Segments
@@ -1273,6 +1290,10 @@ void PrintDB_Network_ptrBased()
 		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
 #endif
 	}
+#ifdef SIMMOB_REALTIME
+	string end = "END";
+	CommunicationDataManager::GetInstance()->sendRoadNetworkData(end);
+#endif
 
 	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph();

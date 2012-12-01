@@ -27,6 +27,11 @@ void sim_mob::CommunicationDataManager::sendTrafficData(std::string &s)
 		boost::mutex::scoped_lock lock(trafficDataGuard);
 		trafficDataQueue.push(s);
 }
+void sim_mob::CommunicationDataManager::sendRoadNetworkData(std::string &s)
+{
+		boost::mutex::scoped_lock lock(roadNetworkDataGuard);
+		roadNetworkDataQueue.push(s);
+}
 bool sim_mob::CommunicationDataManager::getTrafficData(std::string &s) {
 //		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
 		if(!trafficDataQueue.empty())
@@ -163,13 +168,13 @@ void sim_mob::tcp_connection::trafficDataStart()
 			if(socket_.is_open())
 			{
 
-//				file_output<<"send begin: "<<make_daytime_string();
+				file_output<<"send begin: "<<make_daytime_string();
 				std::string send_cmd = "TRAFFICDATA";
 				if(sendData(send_cmd,message_))
 				{
-//					file_output<<message_;
-//					file_output<<"\n";
-//					file_output<<"send over: "<<make_daytime_string();
+					file_output<<message_;
+					file_output<<"\n";
+					file_output<<"send over: "<<make_daytime_string();
 //					file_output.flush();
 					std::string recv_cmd;
 					std::string recv_data;
@@ -181,7 +186,7 @@ void sim_mob::tcp_connection::trafficDataStart()
 					}
 					else
 					{
-//						file_output<<recv_cmd<<" "<<recv_data<<"\n";
+						file_output<<recv_cmd<<" "<<recv_data<<"\n";
 //						file_output.flush();
 						if(recv_data != "RECEIVED")
 						{
@@ -369,7 +374,7 @@ void sim_mob::tcp_connection::roadNetworkDataStart()
 					std::string recv_data;
 					if(!receiveData(recv_cmd,recv_data))
 					{
-						std::cout<<"receive client response err "<<std::endl;
+						std::cout<<"roadNetworkDataStart:receive client response err "<<std::endl;
 						commDone();
 						break;
 					}
@@ -385,14 +390,14 @@ void sim_mob::tcp_connection::roadNetworkDataStart()
 				}
 				else
 				{
-					std::cout<<"send err "<<std::endl;
+					std::cout<<"roadNetworkDataStart: send err "<<std::endl;
 					commDone();
 					break;
 				}
 			}
 			else
 			{
-				std::cout<<"start: socket broken"<<std::endl;
+				std::cout<<"roadNetworkDataStart: socket broken"<<std::endl;
 //				socket_.close();
 				commDone();
 				return;

@@ -987,9 +987,9 @@ void PrintDB_Network_ptrBased()
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
 			stream<<(*it)->originalDB_ID.getLogItem();
 				}
-		stream<<"})" <<endl;
+		stream<<"})";
 		std::string s=stream.str();
-		CommunicationDataManager::GetInstance()->sendTrafficData(s);
+		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
 #endif
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();

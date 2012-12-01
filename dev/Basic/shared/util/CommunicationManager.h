@@ -30,6 +30,7 @@ class CommunicationDataManager
 public:
 	static CommunicationDataManager* GetInstance();
 	void sendTrafficData(std::string &s);
+	void sendRoadNetworkData(std::string &s);
 	bool getTrafficData(std::string &s);
 	bool getCmdData(std::string &s);
 	bool getRoadNetworkData(std::string &s);

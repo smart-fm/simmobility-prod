@@ -39,6 +39,7 @@
 
 #include "partitions/PartitionManager.hpp"
 
+#include "util/CommunicationManager.h"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -343,6 +344,14 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 	}
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+
+    std::ostringstream stream;
+	stream<<"DriverSegment"
+            <<","<<p.now.frame()
+            <<","<<vehicle->getCurrSegment()
+            <<","<<vehicle->getCurrentSegmentLength()/100.0;
+	std::string s=stream.str();
+	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()

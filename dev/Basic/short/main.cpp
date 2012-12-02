@@ -905,6 +905,15 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
+#ifdef SIMMOB_REALTIME
+	std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
+	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+	ctrlMgr->setSimState(IDLE);
+	while(ctrlMgr->getSimState() == IDLE)
+	{
+		sleep(0.01);
+	}
+#endif
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
@@ -994,7 +1003,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	ParitionDebugOutput debug;
 
-	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+//	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	bool active=true;

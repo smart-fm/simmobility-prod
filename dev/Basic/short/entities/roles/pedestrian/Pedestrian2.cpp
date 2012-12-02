@@ -182,10 +182,10 @@ void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
-	std::ostringstream stream;
-	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
-	std::string s=stream.str();
-	CommunicationDataManager::GetInstance()->sendTrafficData(s);
+//	std::ostringstream stream;
+//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
+//	std::string s=stream.str();
+//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
 	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 }

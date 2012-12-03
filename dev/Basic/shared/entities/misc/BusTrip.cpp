@@ -18,6 +18,13 @@ sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(DailyTime scheduled_Arri
 sim_mob::BusStop_RealTimes::BusStop_RealTimes(DailyTime real_ArrivalTime, DailyTime real_DepartureTime)
 : real_ArrivalTime(real_ArrivalTime), real_DepartureTime(real_DepartureTime)
 {
+	Real_busStop = nullptr;
+}
+
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(const BusStop_RealTimes& copyFrom)
+: real_ArrivalTime(copyFrom.real_ArrivalTime), real_DepartureTime(copyFrom.real_DepartureTime)
+, Real_busStop(copyFrom.Real_busStop)
+{
 
 }
 
@@ -54,7 +61,7 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
-
+	curr_busStopRealTimes = nullptr;
 }
 
 void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
@@ -67,9 +74,12 @@ void sim_mob::BusTrip::addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRe
 	busStopRealTimes_vec.push_back(aBusStopRealTime);
 }
 
-void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
+void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes)
 {
-	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
+	//std::cout << "busStopRealTimes " << busStopRealTimes->real_ArrivalTime.getRepr_() << " " << busStopRealTimes->real_DepartureTime.getRepr_() << std::endl;
+	if(!busStopRealTimes_vec.empty()) {
+		busStopRealTimes_vec[busstopSequence_j] = busStopRealTimes;
+	}
 }
 
 bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec)
@@ -90,6 +100,14 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 	for(int j = 0; j < busStop_vec.size(); j++) {
 		bus_RouteInfo.addBusStop(busStop_vec[j]);
 	}
+	// curr_busStopRealTimes, addBusStopRealTimes and addBusStopScheduledTimes, first time fake Times
+	ConfigParams& config = ConfigParams::GetInstance();
+	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
+	for(int k = 0; k < busStop_vec.size(); k++) {
+		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
+		addBusStopRealTimes(pBusStopRealTimes);
+	}
+	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;
 }
 
@@ -102,7 +120,7 @@ sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime en
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
-	control_TimePointNum = 2;// the number 2 in( 0->1->2->3 )
+	control_TimePointNum = 1;// the number 2 in( 0->1->2->3 )
 }
 
 sim_mob::Busline::~Busline()
@@ -139,7 +157,7 @@ void sim_mob::Busline::addFrequencyBusline(const Frequency_Busline& aFrequencyBu
 	frequency_busline.push_back(aFrequencyBusline);
 }
 
-void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
+void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes)
 {
 	if(!busTrip_vec.empty()) {
 		//BusTrip& busTripK = busTrip_vec[trip_k];

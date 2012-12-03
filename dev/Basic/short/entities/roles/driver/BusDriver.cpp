@@ -430,6 +430,7 @@ double sim_mob::BusDriver::distanceToNextBusStop()
 
 	return distanceToNextSegmentBusStop;
 }
+
 void sim_mob::BusDriver::passengers_Board(Bus* bus)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -450,6 +451,7 @@ void sim_mob::BusDriver::passengers_Board(Bus* bus)
 	}
 
 }
+
 void sim_mob::BusDriver::passengers_Alight(Bus* bus)
 {
 	//delete passenger objects in the bus
@@ -461,6 +463,7 @@ void sim_mob::BusDriver::passengers_Alight(Bus* bus)
 		}
 	}
 }
+
 double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 {
 	double DTijk = 0.0;

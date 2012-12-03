@@ -15,6 +15,7 @@
 #include "TripChain.hpp"
 #include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
+#include "conf/simpleconf.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -29,7 +30,7 @@ class BusStop_ScheduledTimes{
 public:
 	explicit BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime);
 	~BusStop_ScheduledTimes() {}
-	BusStop* Scheduled_busStop;
+	BusStop* Scheduled_busStop; // use this to check whether the whole set is valid or not
 	DailyTime scheduled_ArrivalTime;
 	DailyTime scheduled_DepartureTime;
 };
@@ -37,6 +38,7 @@ public:
 class BusStop_RealTimes{
 public:
 	explicit BusStop_RealTimes(DailyTime real_ArrivalTime = DailyTime("00:00:00"), DailyTime real_DepartureTime = DailyTime("00:00:00"));
+	BusStop_RealTimes(const BusStop_RealTimes& copyFrom);
 	~BusStop_RealTimes() {}
 	BusStop* Real_busStop;
 	DailyTime real_ArrivalTime;// real Arrival Time
@@ -113,12 +115,15 @@ public:
 	bool setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
-	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
+	void setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);
 	const std::vector<BusStop_ScheduledTimes>& getBusStopScheduledTimes() const {
 		return busStopScheduledTimes_vec;
 	}
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
+	}
+	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() const {
+		return curr_busStopRealTimes;
 	}
 private:
 	int busTripRun_sequenceNum;
@@ -126,6 +131,7 @@ private:
 	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
+	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	std::vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };
@@ -167,7 +173,7 @@ public:
 	const std::vector<Frequency_Busline>& query_Frequency_Busline() const {
 		return frequency_busline;
 	}
-	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);// mainly for realTimes
+	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);// mainly for realTimes
 private:
 	std::string busline_id;
 	CONTROL_TYPE controlType;

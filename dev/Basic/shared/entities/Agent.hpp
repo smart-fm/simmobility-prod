@@ -210,7 +210,7 @@ public:
 	std::map<unsigned int, travelStats> travelStatsMap;
 	unsigned int linkEntryTime;
 
-	frame_t enqueueTick;
+	//timeslice enqueueTick;
 
 private:
 	//unsigned int currMode;

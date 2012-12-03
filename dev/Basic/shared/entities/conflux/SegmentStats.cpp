@@ -385,7 +385,7 @@ namespace sim_mob {
 		laneStatsMap[lane]->updateAcceptRate(lane, upSpeed);
 	}
 
-	void sim_mob::SegmentStats::updateLaneParams(frame_t frameNumber){
+	void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber){
 		segDensity = getDensity(true);
 		segVehicleSpeed = speed_density_function(true, segDensity);
 		//need to update segPedSpeed in future
@@ -401,11 +401,11 @@ namespace sim_mob {
 		}
 	}
 
-	void sim_mob::SegmentStats::reportSegmentStats(frame_t frameNumber){
+	void sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 #ifndef SIMMOB_DISABLE_OUTPUT
 //		("segmentState",20,0xa0e30d8,{"speed":"10.4","flow":"8","density":"12"})
 		LogOut("(\"segmentState\""
-			<<","<<frameNumber
+			<<","<<frameNumber.frame()
 			<<","<<roadSegment
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed

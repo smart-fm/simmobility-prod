@@ -23,7 +23,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
 	segmentAgents[ag->getCurrSegment()]->laneInfinity.push(ag);
 }
 
-UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
@@ -52,7 +52,7 @@ UpdateStatus sim_mob::Conflux::update(frame_t frameNumber) {
 void sim_mob::Conflux::updateSignalized() {
 }
 
-void sim_mob::Conflux::updateUnsignalized(frame_t frameNumber) {
+void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
 //	debugMsgs << "\nUpdate " << frameNumber << " - Multinode :" << getMultiNode()->getID() << std::endl;
 	initCandidateAgents();
 	for(std::map<const sim_mob::RoadSegment*, sim_mob::Agent* >::iterator i = candidateAgents.begin();
@@ -234,7 +234,7 @@ void sim_mob::Conflux::restoreSupplyStats(const Lane* lane) {
 	segmentAgents[lane->getRoadSegment()]->restoreLaneParams(lane);
 }
 
-void sim_mob::Conflux::updateSupplyStats(frame_t frameNumber) {
+void sim_mob::Conflux::updateSupplyStats(timeslice frameNumber) {
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.begin();
 	for( ; it != segmentAgents.end(); ++it )
 	{

@@ -16,7 +16,7 @@
 #include "partitions/PartitionManager.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 
 using std::map;
@@ -613,7 +613,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 }
 
 const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
-	std::vector<const sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
@@ -623,11 +623,11 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	if (role == "driver") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().shortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+		path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
 	}
 	else if (role == "pedestrian") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().shortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+		path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
 	}
 	else if (role == "busdriver") {
 		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");

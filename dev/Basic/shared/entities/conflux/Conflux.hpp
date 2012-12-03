@@ -16,7 +16,7 @@
 #include "entities/Agent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "SegmentStats.hpp"
 #include "workers/Worker.hpp"
@@ -78,7 +78,7 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
-	frame_t currFrameNumber;
+	timeslice currFrameNumber;
 
 	void prepareLengthsOfSegmentsAhead();
 
@@ -86,7 +86,7 @@ private:
 	void updateSignalized();
 
 	/* function to call agents' updates if the MultiNode is not signalized */
-	void updateUnsignalized(frame_t frameNumber);
+	void updateUnsignalized(timeslice frameNumber);
 
 	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
 	void updateAgent(sim_mob::Agent* ag);
@@ -101,19 +101,19 @@ private:
 	sim_mob::Agent* agentClosestToIntersection();
 
 	/* updates lane params for all lanes within the conflux */
-	void updateSupplyStats(frame_t frameNumber);
-	void reportSupplyStats(frame_t frameNumber);
+	void updateSupplyStats(timeslice frameNumber);
+	void reportSupplyStats(timeslice frameNumber);
 
 public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
 		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr), currFrameNumber(0), debugMsgs(std::stringstream::out) {};
+		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {};
 	virtual ~Conflux() {};
 
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
-	virtual Entity::UpdateStatus update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
 	// Getters
 	const sim_mob::MultiNode* getMultiNode() const {

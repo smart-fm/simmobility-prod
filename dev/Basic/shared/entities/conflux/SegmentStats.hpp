@@ -132,8 +132,8 @@ public:
 	double speed_density_function(bool hasVehicle, double segDensity);
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
-	void updateLaneParams(frame_t frameNumber);
-	void reportSegmentStats(frame_t frameNumber);
+	void updateLaneParams(timeslice frameNumber);
+	void reportSegmentStats(timeslice frameNumber);
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
 	unsigned int getInitialQueueCount(const Lane* l);

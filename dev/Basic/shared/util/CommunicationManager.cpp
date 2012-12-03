@@ -153,6 +153,9 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
   }
 void sim_mob::tcp_connection::trafficDataStart()
 {
+	std::cout<<std::endl;
+	std::cout<<"visualizer connected"<<std::endl;
+	std::cout<<"simmob"<<">"<<std::flush;
 //	  std::ofstream file_output;
 //	  file_output.open("./logSimmobTrafficData.txt");
 	std::fstream file_output("./log_SimmobTrafficData.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);

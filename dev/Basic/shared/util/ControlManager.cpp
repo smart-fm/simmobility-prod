@@ -54,7 +54,7 @@ void sim_mob::ControlManager::start()
 		ret = poll(&fds, 1, 0);
 		if(ret == 1)
 		{
-			std::cout<<"Yep get input: ";
+//			std::cout<<"Yep get input: ";
 			char buff[255] = "\0";
 			read(fds.fd, buff, 255);
 			std::string cmd = buff;

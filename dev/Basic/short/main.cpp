@@ -1227,7 +1227,7 @@ int main(int argc, char* argv[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	string logFileName = argc>2 ? argv[2] : "";
+	string logFileName = argc>2 ? argv[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;

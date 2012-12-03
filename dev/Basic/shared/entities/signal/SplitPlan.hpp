@@ -32,6 +32,14 @@ class SplitPlan
 	friend class geo::SplitPlan_t_pimpl;
 	friend class geo::Signal_t_pimpl;
 public:
+	/*typedef boost::multi_index_container<
+			sim_mob::Phase,
+			boost::multi_index::indexed_by<
+			boost::multi_index::random_access<>
+			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,std::string, &Phase::name> >
+	  >
+	> phases;*/
+private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
 private:
 

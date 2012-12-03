@@ -16,7 +16,10 @@ bool do_a_test() {
 int main(int argc, char* argv[])
 {
 	do_a_test();
-  std::cout <<"Long-Term simulator (not yet implemented)." <<std::endl;
+  std::cout <<"Long-term simulation complete." <<std::endl;
+  std::cout <<"Results:\n"
+		    <<"  * Godzilla is attacking your city.\n"
+		    <<"  * Consider relocating some of your infrastructure." <<std::endl;
 
   return 0;
 }

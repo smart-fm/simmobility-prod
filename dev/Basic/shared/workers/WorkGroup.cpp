@@ -14,9 +14,14 @@
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/misc/TripChain.hpp"
+#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 using std::map;
 using std::vector;
+using std::set;
 using boost::barrier;
 using boost::function;
 
@@ -169,7 +174,7 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
 	numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr), debugMsg(std::stringstream::out)
 {
 }
 
@@ -188,7 +193,6 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
 	safe_delete_item(macro_tick_barr);
 }
-
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
 {
@@ -508,6 +512,136 @@ void sim_mob::WorkGroup::interrupt()
 	for (size_t i=0; i<workers.size(); i++)
 		workers[i]->interrupt();
 }
+
+// providing read only access to public for RegisteredWorkGroups. AuraManager requires this
+const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
+	return sim_mob::WorkGroup::RegisteredWorkGroups;
+}
+
+/*
+ * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent
+ * confluxes to the same worker.
+ *
+ * Future work:
+ * If this assignment performs badly, we might want to think of a heuristics based optimization algorithm
+ * which improves this assignment. We can indeed model this problem as a graph partitioning problem. Each
+ * worker is a partition; the confluxes can be modeled as the nodes of the graph; and the edges will represent
+ * the flow of vehicles between confluxes. Our objective is to minimize the (expected) flow of agents from one
+ * partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses algorithm
+ * for partitioning, if it works. This is a little more complex due to the variable flow rates of vehicles
+ * (edge weights); might require more thinking.
+ *
+ * TODO: Must see if this assignment is acceptable and try to optimize if necessary.
+ * ~ Harish
+ */
+void sim_mob::WorkGroup::assignConfluxToWorkers() {
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
+	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
+		for(std::set<sim_mob::Conflux*>::iterator confluxIt = confluxes.begin();
+					confluxIt != confluxes.end(); confluxIt++) {
+		}
+		if(numConfluxesPerWorker > 0){
+			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
+		}
+	}
+}
+
+bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
+		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
+		int numConfluxesToAddInWorker)
+{
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	bool workerFilled = false;
+
+	if(numConfluxesToAddInWorker > 0)
+	{
+		std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
+		confluxes.erase(conflux);
+		numConfluxesToAddInWorker--;
+		conflux->setParentWorker(worker);
+
+		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+
+		// assign the confluxes of the downstream MultiNodes to the same worker if possible
+		for(std::set<const sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
+				i++)
+		{
+			if(!(*i)->getParentConflux()->getParentWorker()) {
+				// insert this conflux if it has not already been assigned to another worker
+				// the set container for managedConfluxes takes care of eliminating duplicates
+				std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
+				if (insertResult.second)
+				{
+					// One conflux was added by the insert. So...
+					confluxes.erase((*i)->getParentConflux());
+					numConfluxesToAddInWorker--;
+					// set the worker pointer in the Conflux
+					(*i)->getParentConflux()->setParentWorker(worker);
+
+				}
+			}
+		}
+
+		// after inserting all confluxes of the downstream segments
+		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
+		{
+			// recusive call
+			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
+		}
+		else
+		{
+			workerFilled = true;
+		}
+	}
+	return workerFilled;
+}
+
+/**
+ * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
+ */
+void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
+	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
+	if(person) {
+		std::cout << "Agent ID: " << ag->getId() << std::endl;
+		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
+		ag->setCurrSegment(rdSeg);
+		ag->setCurrLane(nullptr);
+		rdSeg->getParentConflux()->addAgent(ag);
+	}
+}
+
+const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
+	std::vector<const sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	const sim_mob::TripChainItem* firstItem = agTripChain.front();
+
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	std::string role = rf.GetTripChainMode(firstItem);
+
+	vector<WayPoint> path;
+	const sim_mob::RoadSegment* rdSeg = nullptr;
+	if (role == "driver") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = StreetDirectory::instance().shortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+	}
+	else if (role == "pedestrian") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = StreetDirectory::instance().shortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+	}
+	else if (role == "busdriver") {
+		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+	}
+
+	 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+	 // you will get into.
+	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+		rdSeg = path.at(1).roadSegment_;
+	}
+
+	return rdSeg;
+}
+
 
 
 

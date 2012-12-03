@@ -14,10 +14,12 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -35,6 +37,7 @@
 using std::map;
 using std::vector;
 using std::string;
+using std::set;
 
 using namespace boost::multi_index;
 using boost::multi_index::get;
@@ -478,6 +481,7 @@ UpdateStatus Signal_SCATS::update(timeslice now) {
 		{
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
+//			updateLaneState(currPhaseID);
 		}
 	if(isNewCycle && signalTimingMode)
 	{
@@ -596,6 +600,83 @@ sim_mob::SplitPlan & Signal_SCATS::getPlan()
 	return plan_;
 }
 
-}//namespace
+/**
+ * computes and returns the signal phases in the next t seconds if the signal algorithm is Fixed.
+ * returns a vector of pairs of <phase, time in the phase>
+ */
+std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(double t)
+{
+	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
+	if(signalAlgorithm == 0 /*Fixed*/ && t > 0){
+		int phaseId = currPhaseID;
+		sim_mob::Phase p = plan_.phases_[phaseId];
+		// add the remaining time in the current phase
+		double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
+		phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
+		t = t - remainingTimeInCurrPhase;
+
+		// add the subsequent phases which fit into this time window
+		while(t > 0) {
+			phaseId = (phaseId + 1) % plan_.NOF_Phases;
+			sim_mob::Phase p = plan_.phases_[phaseId];
+			if (p.phaseLength <= t) {
+				phaseTimes.push_back(std::make_pair(p, p.phaseLength));
+				t = t - p.phaseLength;
+			}
+			else {
+				phaseTimes.push_back(std::make_pair(p, t));
+				t = 0;
+			}
+		}
+	}
+	return phaseTimes;
+}
+
+void Signal_SCATS::updateLaneState(int phaseId) {
+
+	sim_mob::Phase p_it = plan_.phases_[phaseId];
+
+	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
+	for (; link_it != (p_it).LinkFrom_end();
+			link_it = (p_it).links_map_.upper_bound((*link_it).first)) { //Loop2===>link
+
+		const std::vector<sim_mob::RoadSegment*> segments = (*link_it).first->getFwdSegments();
+
+		std::vector<sim_mob::RoadSegment*>::const_iterator seg_it = segments.begin();
+		for (; seg_it != segments.end(); seg_it++) { //Loop3===>road segment
+			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection either)
+			//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+			if ((*seg_it)->getEnd() != &getNode())
+				continue;
+			const MultiNode* endNode = dynamic_cast<const MultiNode*>(&getNode());
+			const set<LaneConnector*>& lcs = endNode->getOutgoingLanes(*(*seg_it));
+			for (set<LaneConnector*>::const_iterator it_lcs = lcs.begin(); it_lcs != lcs.end(); it_lcs++) {
+				sim_mob::Phase::links_map_equal_range range = p_it.getLinkTos((*link_it).first);
+				sim_mob::Phase::links_map_const_iterator iter;
+				for(iter = range.first; iter != range.second ; iter++ )
+				{
+					if( (*iter).second.LinkTo == (*it_lcs)->getLaneTo()->getRoadSegment()->getLink()) {
+						const Lane* lane = (*it_lcs)->getLaneFrom();
+						if (lane->is_pedestrian_lane())
+							continue;
+						if ((*iter).second.currColor == sim_mob::Red)
+						{
+							//update lane supply stats - output flow rate = 0
+							lane->getRoadSegment()->getParentConflux()->updateSupplyStats(lane, 0.001);
+						}
+						else if ((*iter).second.currColor == sim_mob::Green ||
+								(*iter).second.currColor == sim_mob::Amber)
+						{
+							//update lane supply stats - set output flow rate to origOutputFlowRate
+							lane->getRoadSegment()->getParentConflux()->restoreSupplyStats(lane);
+						}
+					}
+
+				}
+			}
+		}
+	}
+}
+} //namespace
 
 #endif

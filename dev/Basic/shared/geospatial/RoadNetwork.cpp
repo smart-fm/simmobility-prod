@@ -6,11 +6,12 @@
 #include "UniNode.hpp"
 #include "MultiNode.hpp"
 #include "Point2D.hpp"
-
+//#include "Conflux.hpp"
 #include <cmath>
 
 using std::vector;
 using std::set;
+using std::pair;
 using namespace sim_mob;
 
 
@@ -89,4 +90,5 @@ Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUni
 
 	return candidate;
 }
+
 

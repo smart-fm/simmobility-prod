@@ -192,8 +192,6 @@ public:
 	TrafficColor getPedestrianLight  (Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 
-
-
     void outputTrafficLights(timeslice now,std::string newLine)const;
 
 
@@ -212,6 +210,13 @@ public:
     void initializePhases();
     void printColors(double currCycleTimer);
 
+/* From workers (may not need)
+    void updateIndicators();
+    void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
+    void updateLaneState(int phaseId);//for mid-term use
+
+    std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
+*/
 
 private:
     bool isIntersection_;//generated

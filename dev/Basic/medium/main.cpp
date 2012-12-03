@@ -81,6 +81,10 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+#ifdef SIMMOB_USE_CONFLUXES
+	std::cout << "Confluxes ON!" << std::endl;
+#endif
+
 	ProfileBuilder* prof = nullptr;
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	ProfileBuilder::InitLogFile("agent_update_trace.txt");
@@ -124,7 +128,6 @@ bool performMainMed(const std::string& configFileName) {
 	}
 
 	{ //Begin scope: WorkGroups
-
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
@@ -137,9 +140,15 @@ bool performMainMed(const std::string& configFileName) {
 	signalStatusWorkers->initWorkers(nullptr);
 
 
+	agentWorkers->assignConfluxToWorkers();
+
 	//Anything in all_agents is starting on time 0, and should be added now.
+	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
+	 * they will be assigned a worker.
+	 */
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		agentWorkers->assignAWorker(*it);
+		// agentWorkers->assignAWorker(*it);
+		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
 	//Assign all signals too

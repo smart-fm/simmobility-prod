@@ -319,7 +319,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 //		Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 //				- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-		Hi = 141000;// 140000(headway*100), 138000, 60000(headway*50)
+		Hi = 141000;// 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
 
 		ETijk = std::max(ATijk_1 + alpha*Hi, (double)(ATijk) + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 

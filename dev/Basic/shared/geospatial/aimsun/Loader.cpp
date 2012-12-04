@@ -1659,8 +1659,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, unsigned long id)
 {
-	return new sim_mob::RoadSegment(ln,ln->getLinkId()*100 +numExistingSegsInLink);
-//	return new sim_mob::RoadSegment(ln,id);
+	return new sim_mob::RoadSegment(ln, nullptr, ln->getLinkId()*100 +numExistingSegsInLink);
 }
 
 
@@ -1970,66 +1969,89 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
 	sim_mob::Conflux* conflux = nullptr;
+
+	//Make a temporary map of road nodes-to-road segments
+	//TODO: This should be done automatically *before* it's needed.
+	std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> > roadSegmentsAt;
+	for (std::vector<sim_mob::Link*>::const_iterator it=rdnw.links.begin(); it!=rdnw.links.end(); it++) {
+		sim_mob::MultiNode* start = dynamic_cast<sim_mob::MultiNode*>((*it)->getStart());
+		sim_mob::MultiNode* end = dynamic_cast<sim_mob::MultiNode*>((*it)->getEnd());
+		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
+
+		roadSegmentsAt[start].insert((*it)->getSegments().front());
+		roadSegmentsAt[end].insert((*it)->getSegments().back());
+	}
+
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
 	//	debugMsgs << "\nProcessConfluxes\t Multinode: " << *i;
 		conflux = new sim_mob::Conflux(*i, mtxStrat);
 
 		upsegCtr = 0;
-		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
-				segmt!=(*i)->roadSegmentsCircular.end();segmt++ )
-		{
-		//	debugMsgs << "\nProcessConfluxes\t roadSegmentsCircular: " << (*segmt).first << "\t" << (*segmt).second;
-			sim_mob::Link* lnk = (*segmt).first->getLink();
-		//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
-			std::vector<sim_mob::RoadSegment*> upSegs;
-			std::vector<sim_mob::RoadSegment*> downSegs;
 
-			if(lnk->getEnd() == (*i))
-			{
-		//		debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
-				upSegs = lnk->getFwdSegments();
-				downSegs = lnk->getRevSegments();
-				conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-				conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-			}
-			else if (lnk->getStart() == (*i))
-			{
-		//		debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
-				upSegs = lnk->getRevSegments();
-				downSegs = lnk->getFwdSegments();
-				conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-				conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-			}
 
-			// set conflux pointer to the segments and create AgentKeeper for the segment
-			for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-					segIt != upSegs.end(); segIt++)
-			{
-				if((*segIt)->parentConflux == nullptr)
+		//NOTE: This probably wasn't doing what you thought it was. ~Seth
+		//for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin(); segmt!=(*i)->roadSegmentsCircular.end();segmt++ ) {
+		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
+		if (segsAt!=roadSegmentsAt.end()) {
+			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
+
+
+			//	debugMsgs << "\nProcessConfluxes\t roadSegmentsCircular: " << (*segmt).first << "\t" << (*segmt).second;
+				sim_mob::Link* lnk = (*segmt)->getLink();
+			//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
+				std::vector<sim_mob::RoadSegment*> upSegs;
+				std::vector<sim_mob::RoadSegment*> downSegs;
+
+				//If the Link in question *ends* at the Node we are considering for a Conflux.
+				if(lnk->getEnd() == (*i))
 				{
-					// assign only if not already assigned
-					upsegCtr++;
-					(*segIt)->parentConflux = conflux;
-					conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-		//			debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
+					//NOTE: There will *only* be upstream segments in this case.
+			//		debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
+					upSegs = lnk->getSegments();
+					//downSegs = lnk->getRevSegments();
+					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+					//conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
-				else if((*segIt)->parentConflux != conflux)
+				else if (lnk->getStart() == (*i))
 				{
-					debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << *segIt;
-					throw std::runtime_error(debugMsgs.str());
+					//NOTE: There will *only* be downstream segments in this case.
+			//		debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
+					//upSegs = lnk->getRevSegments();
+					downSegs = lnk->getSegments();
+					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
-			}
 
-			// create AgentKeeper for downstream segments by sending true for isDownstream
-			for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
-					segIt != downSegs.end(); segIt++)
-			{
-				conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new SegmentStats(*segIt, true)));
-		//		debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tDownstream";
-			}
+				// set conflux pointer to the segments and create AgentKeeper for the segment
+				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+						segIt != upSegs.end(); segIt++)
+				{
+					if((*segIt)->parentConflux == nullptr)
+					{
+						// assign only if not already assigned
+						upsegCtr++;
+						(*segIt)->parentConflux = conflux;
+						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
+			//			debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
+					}
+					else if((*segIt)->parentConflux != conflux)
+					{
+						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << *segIt;
+						throw std::runtime_error(debugMsgs.str());
+					}
+				}
 
-		} // for
+				// create AgentKeeper for downstream segments by sending true for isDownstream
+				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
+						segIt != downSegs.end(); segIt++)
+				{
+					conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new SegmentStats(*segIt, true)));
+			//		debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tDownstream";
+				}
+
+			} // for
+		}
 		conflux->prepareLengthsOfSegmentsAhead();
 		confluxes.insert(conflux);
 	//	debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()

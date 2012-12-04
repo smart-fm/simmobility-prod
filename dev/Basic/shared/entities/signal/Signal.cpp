@@ -606,10 +606,11 @@ sim_mob::SplitPlan & Signal_SCATS::getPlan()
  */
 std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(double t)
 {
-	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
-	if(signalAlgorithm == 0 /*Fixed*/ && t > 0){
+	throw std::runtime_error("Signal_SCATS::predictSignal() is based on an old Signal.hpp; you'll have to change it.");
+/*	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
+	if(signalTimingMode == 0  && t > 0){
 		int phaseId = currPhaseID;
-		sim_mob::Phase p = plan_.phases_[phaseId];
+		sim_mob::Phase p = plan_.phases[phaseId];
 		// add the remaining time in the current phase
 		double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
 		phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
@@ -617,8 +618,8 @@ std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(doub
 
 		// add the subsequent phases which fit into this time window
 		while(t > 0) {
-			phaseId = (phaseId + 1) % plan_.NOF_Phases;
-			sim_mob::Phase p = plan_.phases_[phaseId];
+			phaseId = (phaseId + 1) % plan_.NOF_Plans;
+			sim_mob::Phase p = plan_.phases[phaseId];
 			if (p.phaseLength <= t) {
 				phaseTimes.push_back(std::make_pair(p, p.phaseLength));
 				t = t - p.phaseLength;
@@ -629,12 +630,12 @@ std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(doub
 			}
 		}
 	}
-	return phaseTimes;
+	return phaseTimes;*/
 }
 
-void Signal_SCATS::updateLaneState(int phaseId) {
+/*void Signal_SCATS::updateLaneState(int phaseId) {
 
-	sim_mob::Phase p_it = plan_.phases_[phaseId];
+	sim_mob::Phase p_it = plan_.phases[phaseId];
 
 	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
 	for (; link_it != (p_it).LinkFrom_end();
@@ -676,7 +677,7 @@ void Signal_SCATS::updateLaneState(int phaseId) {
 			}
 		}
 	}
-}
+}*/
 } //namespace
 
 #endif

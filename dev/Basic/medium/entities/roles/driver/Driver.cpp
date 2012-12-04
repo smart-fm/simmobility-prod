@@ -137,7 +137,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 
 	parent->linkEntryTime = parent->getStartTime();
 	//set time to start - to accommodate drivers starting during the frame
-	stepFwdInTime(p, parent->getStartTime() - p.currTimeMS);
+	stepFwdInTime(p, parent->getStartTime() - p.now.ms());
 
 	const sim_mob::RoadSegment* nextRdSeg = nullptr;
 	if (vehicle->hasNextSegment(true))
@@ -150,7 +150,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 
 	//getLastAccept not implemented yet
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
-	double t = std::max(p.timeThisTick, departTime - (p.currTimeMS/1000.0));
+	double t = std::max(p.timeThisTick, departTime - (p.now.ms()/1000.0));
 
 	if(canGoToNextRdSeg(p, t))
 	{
@@ -206,7 +206,7 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 #ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 	logout << "(\"Driver\""
-			<<","<<p.frameNumber
+			<<","<<p.now.frame()
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"RoadSegment\":\""<<static_cast<int>(vehicle->getCurrSegment()->getSegmentID())
@@ -241,7 +241,7 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 		}
 		//TODO: Start in lane 0?
 		int startlaneID = 0;
@@ -297,7 +297,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 	//getLastAccept not implemented yet
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
-	double t = std::max(p.timeThisTick, departTime - p.currTimeMS/1000.0);
+	double t = std::max(p.timeThisTick, departTime - p.now.ms()/1000.0);
 
 	if (canGoToNextRdSeg(p, t)){
 		if (vehicle->isQueuing){
@@ -309,7 +309,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 		currLane = nextLaneInNextSegment;
 	//	p.timeThisTick = p.timeThisTick + t;
-		unsigned int linkExitTime = p.currTimeMS + p.timeThisTick * 1000;
+		unsigned int linkExitTime = p.now.ms() + p.timeThisTick * 1000;
 
 		if (isNewLinkNext)
 		{
@@ -482,7 +482,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	}
 
 	if (vehicle and currLane) {
-		if (advance(p2, p.currTimeMS)) {
+		if (advance(p2, p.now.ms())) {
 				//Update parent data. Only works if we're not "done" for a bad reason.
 				setParentData();
 		}
@@ -738,7 +738,7 @@ bool sim_mob::medium::Driver::isConnectedToNextSeg(const Lane* lane, const RoadS
 	if (nextRdSeg->getLink() != lane->getRoadSegment()->getLink()){
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
 		if (currEndNode && nextRdSeg) {
-			const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*(lane->getRoadSegment()));
+			const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes((lane->getRoadSegment()));
 			for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 				if ((*it)->getLaneTo()->getRoadSegment() == nextRdSeg && (*it)->getLaneFrom() == lane) {
 					return true;

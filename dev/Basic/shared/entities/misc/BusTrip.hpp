@@ -40,6 +40,7 @@ public:
 	explicit BusStop_RealTimes(DailyTime real_ArrivalTime = DailyTime("00:00:00"), DailyTime real_DepartureTime = DailyTime("00:00:00"));
 	BusStop_RealTimes(const BusStop_RealTimes& copyFrom);
 	~BusStop_RealTimes() {}
+	void setReal_BusStop(const BusStop* real_busStop);
 	BusStop* Real_busStop;
 	DailyTime real_ArrivalTime;// real Arrival Time
 	DailyTime real_DepartureTime;// real Departure Time
@@ -122,16 +123,13 @@ public:
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
-	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() const {
-		return curr_busStopRealTimes;
-	}
+
 private:
 	int busTripRun_sequenceNum;
 	int vehicle_id;
 	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
-	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	std::vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };

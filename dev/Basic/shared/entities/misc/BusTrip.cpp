@@ -28,6 +28,11 @@ sim_mob::BusStop_RealTimes::BusStop_RealTimes(const BusStop_RealTimes& copyFrom)
 
 }
 
+void sim_mob::BusStop_RealTimes::setReal_BusStop(const BusStop* real_busStop)
+{
+	Real_busStop = const_cast<BusStop*>(real_busStop);
+}
+
 //BusStop
 //BusRoute
 sim_mob::BusRouteInfo::BusRouteInfo(std::string busRoute_id)
@@ -61,7 +66,6 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
-	curr_busStopRealTimes = nullptr;
 }
 
 void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
@@ -100,9 +104,8 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 	for(int j = 0; j < busStop_vec.size(); j++) {
 		bus_RouteInfo.addBusStop(busStop_vec[j]);
 	}
-	// curr_busStopRealTimes, addBusStopRealTimes and addBusStopScheduledTimes, first time fake Times
+	// addBusStopRealTimes and addBusStopScheduledTimes, first time fake Times
 	ConfigParams& config = ConfigParams::GetInstance();
-	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
 	for(int k = 0; k < busStop_vec.size(); k++) {
 		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);

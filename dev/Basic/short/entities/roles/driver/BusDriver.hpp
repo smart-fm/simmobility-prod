@@ -68,12 +68,16 @@ public:
 	double getWaitTime_BusStop() { return BUS_STOP_WAIT_PASSENGER_TIME_SEC; }
 	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_PASSENGER_TIME_SEC = time; }
 	Vehicle* initializePath_bus(bool allocateVehicle);
+	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
+		return curr_busStopRealTimes;
+	}
 
 	double lastTickDistanceToBusStop;
-	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
+	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
+	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
 

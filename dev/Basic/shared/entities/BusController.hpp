@@ -56,7 +56,7 @@ public:
 	virtual Entity::UpdateStatus update(timeslice now);
 
 	void receiveBusInformation(const std::string& busline_i, int trip_k = 0, int busstopSequence_j = 0, unsigned int ATijk = 0);
-	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, int lastVisited_BusStopSeqNum);// return Departure MS from Aijk, DWijk etc
+	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_BusStop, int lastVisited_BusStopSeqNum);// return Departure MS from Aijk, DWijk etc
 	unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
@@ -91,10 +91,10 @@ private:
 	void frame_init(timeslice now);
 	void frame_tick_output(timeslice now);
 
-	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk);// scheduled-based control
-	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk); // headway-based control
-	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, int lastVisited_BusStopSeqNum); // evenheadway-based control
-	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk); // hybrid-based control(evenheadway while restricting the maximum holding time)
+	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop);// scheduled-based control
+	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop); // headway-based control
+	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop, int lastVisited_BusStopSeqNum); // evenheadway-based control
+	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
 	double dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j); // dwell time calculation module
 
 	uint32_t frameNumberCheck;// check some frame number to do control

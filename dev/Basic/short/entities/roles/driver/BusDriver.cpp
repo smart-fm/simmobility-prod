@@ -34,6 +34,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
 	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
 }
 
 
@@ -280,7 +281,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 				DwellTime_ijk.set(passengerGeneration(bus));
-
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
 			}
@@ -298,7 +298,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 							if(busline) {
 								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
 									double waitTime = 0;
-									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),0);
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
 									setWaitTime_BusStop(waitTime);
 								} else {
 									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
@@ -566,6 +566,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 				{
 					isFound=true;
 					busstop_sequence_no.set(i);
+					lastVisited_BusStop.set(busStops[i]);
 					break;
 				}
 			}
@@ -674,6 +675,7 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	res.push_back(&(real_ArrivalTime));
 	res.push_back(&(DwellTime_ijk));
 	res.push_back(&(busstop_sequence_no));
+	res.push_back(curr_busStopRealTimes);
 	return res;
 }
 

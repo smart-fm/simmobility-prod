@@ -203,48 +203,53 @@ void sim_mob::BusController::receiveBusInformation(const string& busline_i, int 
 	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
 }
 
-double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, int lastVisited_BusStopSeqNum)
+double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_BusStop, int lastVisited_BusStopSeqNum)
 {
 	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	Busline* busline = pt_schedule.findBusline(busline_i);
+	if(!busline) {
+		std::cout << "wrong busline assigned:" << std::endl;
+		return -1;
+	}
 	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const BusStop* lastvisited_busStop = lastVisited_BusStop;// stored it for no control side
 
 	double departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
 	double waitTime_BusStop = 0;
 	switch(controltype) {
 	case SCHEDULE_BASED:
-		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
+		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, curr_busStopRealTimes, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case HEADWAY_BASED:
-		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
-		if(true) {
-			const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK = BusTrips[trip_k].getBusStopRealTimes();
-			std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK.size() << std::endl;
-			std::cout << "busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime: " << busStopRealTime_tripK[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
-			std::cout << "busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime: " << busStopRealTime_tripK[busstopSequence_j]->get().real_DepartureTime.getRepr_() << std::endl;
-		}
-
+		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, curr_busStopRealTimes, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case EVENHEADWAY_BASED:
-		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStopSeqNum);
+		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, curr_busStopRealTimes, lastVisited_BusStop, lastVisited_BusStopSeqNum);
 		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	case HYBRID_BASED:
-		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk);
+		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, curr_busStopRealTimes, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - (double)(ATijk)) * 0.001;
 		break;
 	default:
 		// may add default scheduled departure time here
 		std::cout<<"No Control Decision is used!!!---> only DwellTime"<<std::endl;
+		departure_time = (double)(ATijk) + (DTijk * 1000.0);
+		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
+		busStop_RealTimes.setReal_BusStop(lastvisited_busStop);
+		curr_busStopRealTimes->set(busStop_RealTimes);
+
+		// here need test, need add fake RealTimes first
+		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
 		waitTime_BusStop = DTijk;
 		break;
 	}
 	return waitTime_BusStop;
 }
 
-double sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk)
+double sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop)
 {
 //	Busline* busline = pt_schedule.findBusline(busline_i);
 //	if(!busline) {
@@ -275,7 +280,7 @@ double sim_mob::BusController::scheduledDecision(const string& busline_i, int tr
 //	return ETijk;
 }
 
-double sim_mob::BusController::headwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk)
+double sim_mob::BusController::headwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
@@ -300,38 +305,43 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		std::cout << "busStop_RealTimes : real_ArrivalTime output " << busStopRealTime_tripK[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		std::cout << "busStop_RealTimes : real_DepartureTime output " << busStopRealTime_tripK[busstopSequence_j]->get().real_DepartureTime.getRepr_() << std::endl;
 		// Test
-		Shared<BusStop_RealTimes>* curr_BusStopRealTimes = BusTrips[trip_k].getCurrentBusStopRealTimes();
-		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
-		curr_BusStopRealTimes->force(busStop_RealTimes);
-
-		// here need test, need add fake RealTimes first
-		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_BusStopRealTimes);// set this value for next step
+//		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
+//		busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
+//		curr_busStopRealTimes->set(busStop_RealTimes);
+//
+//		// here need test, need add fake RealTimes first
+//		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
 		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		std::cout << "busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
+		std::cout << "real_ArrivalTime: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << " Real_busStop->getBusstopno_(): " << busStopRealTime_tripK_1[busstopSequence_j]->get().Real_busStop->getBusstopno_() << std::endl;
 		ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 //		Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 //				- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 		Hi = 140000;// 140000(headway*100), 130000, 60000(headway*50)
 
-		//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 		ETijk = std::max(ATijk_1 + alpha*Hi, (double)(ATijk) + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 
-		Shared<BusStop_RealTimes>* curr_BusStopRealTimes = BusTrips[trip_k].getCurrentBusStopRealTimes();
-		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
-		curr_BusStopRealTimes->force(busStop_RealTimes);
-		std::cout << "busStop_RealTimes : real_ArrivalTime output " << busStop_RealTimes.real_ArrivalTime.getRepr_() << std::endl;
-		std::cout << "busStop_RealTimes : real_DepartureTime output " << busStop_RealTimes.real_DepartureTime.getRepr_() << std::endl;
-		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_BusStopRealTimes);// set this value for next step
+//		//Shared<BusStop_RealTimes>* curr_BusStopRealTimes = BusTrips[trip_k].getCurrentBusStopRealTimes();
+//		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
+//		busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
+//		curr_busStopRealTimes->set(busStop_RealTimes);
+//		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
 	}
+
+	BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
+	busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
+	curr_busStopRealTimes->set(busStop_RealTimes);
+
+	// here need test, need add fake RealTimes first
+	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
 
 	return ETijk;
 }
 
-double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, double DTijk, int lastVisited_BusStopSeqNum)
+double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop, int lastVisited_BusStopSeqNum)
 {
 //	Busline* busline = pt_schedule.findBusline(busline_i);
 //	if(!busline) {
@@ -374,7 +384,7 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 //	return ETijk;
 }
 
-double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk)
+double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop)
 {
 	//unsigned int DTijk = 0;
 	return DTijk;

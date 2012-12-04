@@ -1080,6 +1080,13 @@ void PrintDB_Network_ptrBased()
 
 			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
 				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				if(laneID != 0 && laneID <(*it)->getLanes().size())
+				{
+					int i = 0;
+					i++;
+//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
+//					getchar();
+				}
 			}
 
 		}
@@ -1800,6 +1807,25 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }
 
+    //debug: detect sidewalks which are in the middle of road
+    {
+    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
+    	{
+    		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+    		{
+    			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*seg_it)->getLanes().begin(), it_end((*seg_it)->getLanes().end()); lane_it != it_end ; lane_it++)
+    			{
+    				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
+    				{
+    					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
+    					getchar();
+    				}
+    			}
+    		}
+    	}
+    }
+    //debug.. end
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();

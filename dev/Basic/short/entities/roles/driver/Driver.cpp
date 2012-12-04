@@ -678,12 +678,12 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
-	if(!tempNode )
-		{
-			tempNode = const_cast<Node*>(vehicle->getNodeMovingTowards());
-			std::cout <<"Driver " << this <<  " getNodeMovingTowards Node  : " << tempNode->getID() << std::endl;
-			getchar();
-        }
+//	if(!tempNode )
+//		{
+//			tempNode = const_cast<Node*>(vehicle->getNodeMovingTowards());
+//			std::cout <<"Driver " << this <<  " getNodeMovingTowards Node  : " << tempNode->getID() << std::endl;
+//			getchar();
+//        }
 
 	if (!vehicle->hasNextSegment(true)) // has seg in current link
 	{

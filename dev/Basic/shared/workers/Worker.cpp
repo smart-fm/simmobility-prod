@@ -297,7 +297,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	//All workers perform the same tasks for their set of managedConfluxes.
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
-		UpdateStatus res = (*it)->update(frameNumber);
+		UpdateStatus res = (*it)->update(currTime);
 	}
 #endif
 }

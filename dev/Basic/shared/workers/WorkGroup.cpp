@@ -535,16 +535,31 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
+//	std::stringstream debugMsgs(std::stringstream::out);
+
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
-		for(std::set<sim_mob::Conflux*>::iterator confluxIt = confluxes.begin();
-					confluxIt != confluxes.end(); confluxIt++) {
-		}
 		if(numConfluxesPerWorker > 0){
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
+//		for(std::set<sim_mob::Conflux*>::iterator it = (*i)->managedConfluxes.begin(); it != (*i)->managedConfluxes.end(); it++) {
+//			debugMsgs << "\nassignConfluxToWorkers\tConflux MN:" << (*it)->getMultiNode()->nodeId << "\tparentWrkr:" << (*it)->getParentWorker();
+//		}
 	}
+	if(confluxes.size() > 0) {
+		/* There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
+		 * Assign these to the last worker which has all its upstream confluxes.
+		 */
+		sim_mob::Worker* worker = workers.back();
+//		debugMsgs << "\n" << confluxes.size() << " confluxes are unassigned. Assigning to last worker.\n" ;
+		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
+			std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(*i);
+			if (insertResult.second) { (*i)->setParentWorker(worker); }
+		}
+		confluxes.clear();
+	}
+//	std::cout << debugMsgs.str();
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
@@ -557,9 +572,11 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 	if(numConfluxesToAddInWorker > 0)
 	{
 		std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
-		confluxes.erase(conflux);
-		numConfluxesToAddInWorker--;
-		conflux->setParentWorker(worker);
+		if (insertResult.second) {
+			confluxes.erase(conflux);
+			numConfluxesToAddInWorker--;
+			conflux->setParentWorker(worker);
+		}
 
 		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
 
@@ -579,7 +596,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 					numConfluxesToAddInWorker--;
 					// set the worker pointer in the Conflux
 					(*i)->getParentConflux()->setParentWorker(worker);
-
 				}
 			}
 		}

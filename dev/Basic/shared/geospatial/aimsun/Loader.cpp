@@ -2023,7 +2023,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
 
-				// set conflux pointer to the segments and create AgentKeeper for the segment
+				// set conflux pointer to the segments and create SegmentStats for the segment
 				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
 						segIt != upSegs.end(); segIt++)
 				{
@@ -2054,10 +2054,9 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		}
 		conflux->prepareLengthsOfSegmentsAhead();
 		confluxes.insert(conflux);
-	//	debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
-	//			<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
+		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
+				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
-//	debugMsgs << "\nProcessConfluxes\t Confluxes count: " << confluxes.size();
-//	std::cout << debugMsgs.str();
+	std::cout << debugMsgs.str();
 }
 

@@ -297,7 +297,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 	double ETijk = 0;
 	double ATijk_1 = 0;
 	double Hi = 0;
-	double alpha = 0.6;// range from 0.6 to 0.8
+	double alpha = 0.6;// 0.7(Hi = 100000) range from 0.6 to 0.8
 
 	if (0 == trip_k) {
 		// the first trip just use Dwell Time, no holding strategy
@@ -319,7 +319,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 //		Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 //				- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-		Hi = 141000;// 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+		Hi = 143000;// 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
 
 		ETijk = std::max(ATijk_1 + alpha*Hi, (double)(ATijk) + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 

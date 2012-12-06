@@ -19,30 +19,30 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, sim_mob::Park park_) :
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), park(park_) {
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width, sim_mob::Park park_) :
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), park(park_) {
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME) {
+sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, sim_mob::Park park_) :
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), park(park_) {
 	fwdMovement.setPath(path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle() :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) {
+sim_mob::Vehicle::Vehicle(sim_mob::Park park_) :
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) , park(park_){
 }
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(LCS_SAME) {
+					copyFrom.error_state), turningDirection(LCS_SAME),park(copyFrom.park) {
 
 }
 
@@ -103,7 +103,9 @@ const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 }
 
 const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
-	return fwdMovement.getNextSegment(inSameLink);
+	if(!fwdMovement.isDoneWithEntireRoute())
+		return fwdMovement.getNextSegment(inSameLink);
+	return nullptr;
 }
 
 const RoadSegment* sim_mob::Vehicle::getPrevSegment() const {
@@ -311,7 +313,10 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
-	return fwdMovement.isDoneWithEntireRoute();
+	bool done = (fwdMovement.isDoneWithEntireRoute() && park.isparkingTimeOver());
+	std::cout << (park.isparkingTimeOver()? "Vehicle::isDone=> parkingTimeOver" : "Vehicle::isDone=> parking NOT TimeOver");
+	std::cout << "\n\n\n";
+	return done;
 }
 
 

@@ -348,7 +348,7 @@ void Signal_SCATS::cycle_reset()
 //This is a part of Signal_SCATS::update function that is executed only if a new cycle has reached
 void Signal_SCATS::newCycleUpdate()
 {
-	std::cout << "Inside newCycleUpdate \n";
+//	std::cout << "Inside newCycleUpdate \n";
 
 	//	6-update split plan
 		plan_.Update(Phase_Density);

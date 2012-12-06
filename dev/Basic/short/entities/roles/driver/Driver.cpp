@@ -300,6 +300,14 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 			setParentBufferedData();
 		}
 	}
+	else if(vehicle)
+	{
+		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
+		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p2.elapsedSeconds);
+		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+		std::cout << "\n\n\n";
+	}
 
 
 	//Update our Buffered types
@@ -599,7 +607,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 
 
 	//Has the segment changed?
-	if (!vehicle->isDone()) {
+	if ((!vehicle->isDone()) && (!vehicle->hasPath()) ) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment() != prevSegment);
 	}
 	return true;
@@ -685,13 +693,17 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //			getchar();
 //        }
 
+	std::cout << "in Driver::linkDriving\n";
+//	getchar();
+
 	if (!vehicle->hasNextSegment(true)) // has seg in current link
 	{
-		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
-				/ 2 - 300;
+		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
+		std::cout << "A. Original p.dis2stop = " << p.dis2stop << std::endl;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
+		std::cout << "A. 1st change to p.dis2stop = " << p.dis2stop << std::endl;
 	}
 	else
 	{
@@ -700,10 +712,13 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		{
 			p.nextLaneIndex--;
 			p.dis2stop = vehicle->getCurrPolylineLength() - vehicle->getDistanceMovedInSegment() + 1000;
+			std::cout << "B. Original p.dis2stop = " << p.dis2stop << std::endl;
 			p.dis2stop /= 100;
 		}
 		else
 			p.dis2stop = 1000;//defalut 1000m
+
+		std::cout << "B. 1st change to p.dis2stop = " << p.dis2stop << std::endl;
 	}
 //
 //	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
@@ -727,59 +742,72 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
     //now find the last sub trip within that trip
     const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
 //    std::cout << "Our last stop according to trip chain is: " << lastSubTripEndingNode->getID() << std::endl;
-//    getchar();
     if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
 	{
-    	std::cout << "We are in business\n";
-    	getchar();
-    	if (p.dis2stop >=10 &&  p.dis2stop <= 50) {//is approaching the park point?
-        	std::cout << "(p.dis2stop >=10 &&  p.dis2stop <= 50)\n";
-        	getchar();
-
-//    		double acc = busAccelerating(p)*100;
+    	std::cout << "1-  We are in business\n";
+    	if (p.dis2stop >=0 &&  p.dis2stop <= 100) {//is approaching the park point?
+        	std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
     		//Retrieve a new acceleration value.
     		double acc = 0;
     		//Convert back to m/s
     		//TODO: Is this always m/s? We should rename the variable then...
     		p.currSpeed = vehicle->getVelocity() / 100;
+    		std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
     		//Call our model
     		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
     		//move to most left lane
-    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
+//    		std::vector<sim_mob::Lane*>::iterator it = vehicle->getCurrSegment()->getLanes().begin();
+////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
+//    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
+    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
 
 			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
     		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+    		std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
     		vehicle->setTurningDirection(lcs);
+    		std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
     		double newLatVel;
     		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
-    		vehicle->setLatVelocity(newLatVel*5);
+    		vehicle->setLatVelocity(newLatVel*20);
 
-    		// reduce speed
+//    		// reduce speed
     		if (vehicle->getVelocity() / 100.0 > 2.0)
     		{
-    			if (acc<-500.0)
+    			std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
+    			if (acc<-5000.0)
     			{
     				vehicle->setAcceleration(acc);
     			} else
-    				vehicle->setAcceleration(-500);
+    				vehicle->setAcceleration(-5000);
+    			std::cout << "  to " << vehicle->getAcceleration() << "\n";
     		}
 
-    		park.setElapsedParkingTime(0);
+//    		vehicle->getParkState().setElapsedParkingTime(0);
     	}
 
-    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver())) {
-        	std::cout << "(p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
-        	getchar();
+    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!vehicle->getParkState().isparkingTimeOver())) {
+        	std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
+        	std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
+        	std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
+        	std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
+        	std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
 
     		if (vehicle->getVelocity() > 0)
     			vehicle->setAcceleration(-5000);
-    		if (vehicle->getVelocity() < 0.1 && (!park.isparkingTimeOver())) {
-    			park.setElapsedParkingTime(park.getElapsedParkingTime() + p.elapsedSeconds);
+    		std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
+    		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
+    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+    		std::cout << "\n\n\n";
     		}
-    	}
-
+//    	}
+//    	getchar();
+//    	getchar();
 	}
     //....end of vahid
+
 
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
@@ -1882,7 +1910,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 
 
-			std::cout << "The driver light is " << color << std::endl;
+//			std::cout << "The driver light is " << color << std::endl;
 		} else {
 			/*vahid:
 			 * Basically,there is no notion of left, right forward any more.

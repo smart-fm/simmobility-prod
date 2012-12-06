@@ -24,12 +24,30 @@ namespace sim_mob {
 class PackageUtils;
 class UnPackageUtils;
 
+class Park
+{
+	bool parkingEnabled;
+	double parkingTime;
+	double elapsedParkingTime;
+public:
+	Park(double parkingTime_,bool parkingEnabled_ = true) : parkingTime(parkingTime_), parkingEnabled(parkingEnabled_), elapsedParkingTime(0){}
+	void enableParking() { parkingEnabled = true; }
+	void disableParking() { parkingEnabled = false; }
+	bool isParkingEnabled(){ return parkingEnabled;}
+	void setParkingTime(double time) { parkingTime = time; }
+	double getParkingTime() { return parkingTime; }
+	void incrementElapsedParkingTime(double time) { elapsedParkingTime += time;}
+	void setElapsedParkingTime(double time) { elapsedParkingTime = time;}
+	double getElapsedParkingTime() { return elapsedParkingTime;}
+	bool isparkingTimeOver() const { return elapsedParkingTime >= parkingTime; }
+};
+
 class Vehicle {
 public:
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width); //Test
-	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, Park park_=Park(3,1));
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width, Park park_=Park(3,1)); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, Park park_=Park(3,1)); //Test
+	Vehicle(Park park_=Park(20,1));  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -132,8 +150,10 @@ private:
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 
+	sim_mob::Park park;
 public:
 	DPoint getPosition() const;
+	sim_mob::Park & getParkState() { return park;}
 private:
 
 

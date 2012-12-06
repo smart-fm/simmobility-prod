@@ -79,6 +79,7 @@ public:
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
+	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
 
 	bool first_busstop;

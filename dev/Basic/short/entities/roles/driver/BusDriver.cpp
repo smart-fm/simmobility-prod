@@ -34,6 +34,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
 	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+	dwellTime_record = 0;
 	passengerCountOld_display_flag = false;
 	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
 }
@@ -281,7 +282,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
-				DwellTime_ijk.set(passengerGeneration(bus));
+				dwellTime_record = passengerGeneration(bus);
+				DwellTime_ijk.set(dwellTime_record);
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
 			}
@@ -314,7 +316,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 			}
-			if(BUS_STOP_WAIT_PASSENGER_TIME_SEC - waitAtStopMS > p.elapsedSeconds * 1.0) {
+//			if(DwellTime_ijk.get() - waitAtStopMS > p.elapsedSeconds * 1.0) {
+//				passengerCountOld_display_flag = true;
+//			}
+			if(waitAtStopMS >= dwellTime_record) {
+				passengerCountOld_display_flag = false;
+			} else {
 				passengerCountOld_display_flag = true;
 			}
 		}
@@ -327,7 +334,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
-		passengerCountOld_display_flag = false;
+		//passengerCountOld_display_flag = false;
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}

@@ -112,6 +112,7 @@ struct DriverUpdateParams : public UpdateParams {
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.
+	NearestVehicle nvFwdNextLink;
 	NearestVehicle nvFwd;
 	NearestVehicle nvBack;
 	NearestVehicle nvLeftFwd;

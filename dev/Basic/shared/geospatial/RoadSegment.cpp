@@ -15,12 +15,13 @@
 #endif
 
 #include "Lane.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 using namespace sim_mob;
 
 using std::pair;
 using std::vector;
-
+using std::set;
 
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {
@@ -30,6 +31,7 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 {
 	this->lanes = lanes;
 }
+
 
 void sim_mob::RoadSegment::setParentLink(Link* parent)
 {
@@ -163,6 +165,16 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 }
 
 
+double sim_mob::RoadSegment::computeLaneZeroLength() const{
+	double res = 0.0;
+	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
+	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+	{
+		res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+	}
+	return res;
+}
+
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {
 	//Sanity check
@@ -285,5 +297,3 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	}
 	return laneEdgePolylines_cached[laneID];
 }
-
-

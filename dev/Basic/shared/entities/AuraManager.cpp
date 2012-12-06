@@ -33,6 +33,9 @@ void
 AuraManager::Stats::printStatistics() const
 {
     std::cout << "AuraManager::Stats not implemented yet" << std::endl;
+    //implementing for mid-term specific stats
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,17 +252,15 @@ public:
     nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
-
-
 private:
     R_tree tree_;
 
     /* First dirty version... Will change eventually.
      * This method is called from within the update of the AuraManager.
-     * This method increments the vehicle count for the road segment
-     * on which the Agent's vehicle is currently in.
+     * This method collects the moving and queuing agents on each road segment in the network
+     * and stores it in the corresponding list for moving and queuing agents.
      */
-    void updateDensity(const Agent* ag);
+    //void mergeAgentKeeperFromWorkers();
 };
 
 void
@@ -283,15 +284,11 @@ AuraManager::Impl::update()
     	throw std::runtime_error("all_agents is somehow storing an entity.");
     }
 
-    sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
     while (agents.size() > 1)
     {
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
-
-        //This is required for the medium term; adds a minor overhead in short term.
-		updateDensity(agent);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
@@ -365,14 +362,6 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-void AuraManager::Impl::updateDensity(const Agent* ag) {
-	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
-	if(ag->getCurrLane()){
-		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
-
-		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
-	}
-}
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 
@@ -423,18 +412,6 @@ AuraManager::printStatistics() const
         std::cout << "No statistics was collected by the AuraManager singleton." << std::endl;
     }
 }
-
-double AuraManager::getDensity(const RoadSegment* rdSeg) {
-	if(densityMap.empty()){
-		throw std::runtime_error("densityMap is empty");
-	}
-	std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdSeg);
-	if(densityMapIt == densityMap.end()){
-		throw std::runtime_error("Requested road segment not found");
-	}
-	return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
-}
-}
-
+} // end of sim_mob
 
 

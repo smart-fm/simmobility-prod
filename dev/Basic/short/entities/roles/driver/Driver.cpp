@@ -332,17 +332,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 }
 
-void sim_mob::Driver::frame_tick_med(UpdateParams& p){
-	//first, plan the next path if not yet planned
-	initializePathMed();
-
-	/* To be added by supply team to update location of driver after every frame tick
-	 * remember
-	 * 		1. Update all the activity parameters of the agent after every ACTIVITY_END event,
-	 * 		2. Update the nextPathPlanned flag to indicate whether agent needs to request for next detailed path
-	 */
-}
-
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?

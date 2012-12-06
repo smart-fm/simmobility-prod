@@ -20,30 +20,29 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, sim_mob::Park park_) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), park(park_) {
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width, sim_mob::Park park_) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), park(park_) {
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, sim_mob::Park park_) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), park(park_) {
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
 	fwdMovement.setPath(path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(sim_mob::Park park_) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) , park(park_){
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), isQueuing(false) , park(park_){
 }
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(LCS_SAME),park(copyFrom.park) {
-
+					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing),park(copyFrom.park) {
 }
 
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID) {
@@ -101,6 +100,9 @@ double sim_mob::Vehicle::getCurrentSegmentLength()
 const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
 }
+const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {
+	return fwdMovement.getNextToNextSegment();
+}
 
 const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
 	if(!fwdMovement.isDoneWithEntireRoute())
@@ -108,8 +110,8 @@ const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
 	return nullptr;
 }
 
-const RoadSegment* sim_mob::Vehicle::getPrevSegment() const {
-	return fwdMovement.getPrevSegment(true);
+const RoadSegment* sim_mob::Vehicle::getPrevSegment(bool inSameLink) const {
+	return fwdMovement.getPrevSegment(inSameLink);
 }
 
 const Node* sim_mob::Vehicle::getNodeMovingTowards() const {
@@ -180,6 +182,14 @@ DPoint sim_mob::Vehicle::getPosition() const {
 		origPos.y += latMv.getY();
 	}
 	return origPos;
+}
+
+double sim_mob::Vehicle::getPositionInSegment(){
+	return fwdMovement.getPositionInSegment();
+}
+
+void sim_mob::Vehicle::setPositionInSegment(double newDist2end){
+	fwdMovement.setPositionInSegment(newDist2end);
 }
 
 void sim_mob::Vehicle::shiftToNewLanePolyline(bool moveLeft) {
@@ -279,6 +289,16 @@ double sim_mob::Vehicle::moveFwd(double amt) {
 	return fwdMovement.advance(amt);
 }
 
+void sim_mob::Vehicle::moveFwd_med(double amt) {
+	throw_if_error();
+	fwdMovement.advance_med(amt);
+}
+
+void sim_mob::Vehicle::actualMoveToNextSegmentAndUpdateDir_med() {
+	throw_if_error();
+	fwdMovement.actualMoveToNextSegmentAndUpdateDir_med();
+}
+
 void sim_mob::Vehicle::moveLat(double amt) {
 	throw_if_error();
 	latMovement += amt;
@@ -319,6 +339,9 @@ bool sim_mob::Vehicle::isDone() const {
 	return done;
 }
 
+double sim_mob::Vehicle::getNextSegmentLength(){
+	return fwdMovement.getNextSegmentLength();
+}
 
 #ifndef SIMMOB_DISABLE_MPI
 //void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {

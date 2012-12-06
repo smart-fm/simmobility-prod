@@ -88,7 +88,6 @@ public:
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_med(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 

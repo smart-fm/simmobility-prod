@@ -25,7 +25,7 @@ class UniNode;
 class MultiNode;
 class Point2D;
 class Link;
-
+class Conflux;
 
 namespace aimsun
 {
@@ -99,6 +99,7 @@ public:
 
 	//Temporary: Not exposed publicly
 	std::set<sim_mob::UniNode*> segmentnodes;
+
 	//todo remove public from here
 public:
 	//todo check whether the network is sealed -vahid
@@ -107,7 +108,6 @@ public:
 	/*std::vector<sim_mob::MultiNode*>& getNodesRW() { return nodes; }
 	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }
 	std::vector<sim_mob::Link*>& getLinksRW() { return links; }*/
-
 
 };
 

@@ -96,7 +96,10 @@ option(BUILD_SHORT "Build short-term simulator." ON)
 option(BUILD_MEDIUM "Build medium-term simulator." ON)
 
 #Option: build long term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_LONG "Build long-term simulator." ON)    
+option(BUILD_LONG "Build long-term simulator." ON)   
+
+#Option: enable confluxes
+option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
 
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.

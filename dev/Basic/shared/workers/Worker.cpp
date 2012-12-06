@@ -15,6 +15,7 @@ using boost::function;
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -26,7 +27,9 @@ sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrie
       endTick(endTick),
       tickStep(tickStep),
       parent(parent),
-      entityRemovalList(entityRemovalList)
+      entityRemovalList(entityRemovalList),
+      debugMsg(std::stringstream::out)
+
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
@@ -129,7 +132,6 @@ void sim_mob::Worker::addPendingEntities()
 	toBeAdded.clear();
 }
 
-
 void sim_mob::Worker::removePendingEntities()
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
@@ -178,8 +180,12 @@ void sim_mob::Worker::barrier_mgmt()
 			frame_tick_barr->wait();
 		}
 
-		//Now flip all remaining data.
+		 //Now flip all remaining data.
 		perform_flip();
+
+		//TODO: Uncomment this when confluxes are made configurable again. ~ Harish
+		// handover agents which have crossed conflux boundaries
+		perform_handover();
 
 		//Second barrier
 		if (buff_flip_barr) {
@@ -267,7 +273,8 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(timeslice currTime)
 {
-	//All Entity workers perform the same tasks for their set of managedEntities.
+#ifndef SIMMOB_USE_CONFLUXES
+	 //All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 		UpdateStatus res = (*it)->update(currTime);
 		if (res.status == UpdateStatus::RS_DONE) {
@@ -284,21 +291,15 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		} else {
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
-
-		//added by Jenny to update the list of agents that this worker manages
-		//to be uncommented for medium term simulator
-		/*
-		 *
-		Link* currLink = (*it)->getCurrLink();
-		//if the current link is not managed by this thread
-		if(!isThisLinkManaged(currLink->linkID)){
-			//remove the agent from this worker
-			toBeRemoved.push_back(*it);
-			//add the agent to the worker that manages the current link
-			currLink->getCurrWorker()->toBeAdded.push_back(*it);
-		}
-		*/
 	}
+#else
+
+	//All workers perform the same tasks for their set of managedConfluxes.
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		UpdateStatus res = (*it)->update(currTime);
+	}
+#endif
 }
 
 bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
@@ -313,6 +314,27 @@ void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
+}
+
+void sim_mob::Worker::perform_handover() {
+	// Agents to be handed over are in the downstream segments's SegmentStats
+	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegStatsMap;
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		SegStatsMap handoverSegStatsMap = (*it)->getSegmentAgentsDownstream();
+		for(SegStatsMap::iterator i = handoverSegStatsMap.begin(); i != handoverSegStatsMap.end(); i++)
+		{
+			sim_mob::Conflux* targetConflux = (*i).first->getParentConflux();
+			sim_mob::SegmentStats* downStreamSegStats = (*i).second;
+			if((*i).first->getParentConflux()->getParentWorker() == 0) {
+				//debugMsg << "worker for conflux of segment [" << (*i).first->getStart()->getID() << ", " << (*i).first->getEnd()->getID() << "] is null ";
+				//std::cout << debugMsg.str();
+				throw std::runtime_error("worker for conflux of segment ");
+			}
+			//std::cout << "handover " << downStreamSegStats->getRoadSegment() << " from " << (*it)->getParentWorker() << " to " << downStreamSegStats->getRoadSegment()->getParentConflux()->getParentWorker() << std::endl;
+			targetConflux->absorbAgentsAndUpdateCounts(downStreamSegStats);
+		}
+	}
 }
 
 //Methods to manage list of links managed by the worker

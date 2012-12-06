@@ -1477,7 +1477,9 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	}
 	else if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
 		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
-
+			// 1. host vh's target lane is == other_driver's lane
+			// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
+			// 3. compare the distance and set params.nvFwdNextLink
 		}
 	} // end of in different link
 

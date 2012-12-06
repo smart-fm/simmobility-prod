@@ -48,8 +48,8 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		Person* person = dynamic_cast<Person*>(parent);
 		int vehicle_id = 0;
 		if(person) {
-			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
-			if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+			if(bustrip && (*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) {
 				path = bustrip->getBusRouteInfo().getRoadSegments();
 				vehicle_id = bustrip->getVehicleID();
 			}

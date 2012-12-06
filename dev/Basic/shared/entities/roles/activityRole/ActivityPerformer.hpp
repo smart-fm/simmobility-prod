@@ -65,8 +65,8 @@ class ActivityPerformer : public sim_mob::Role {
 public:
 	int remainingTimeToComplete;
 
-	ActivityPerformer(Agent* parent);
-	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity);
+	ActivityPerformer(Agent* parent, std::string roleName = "activityRole");
+	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, std::string roleName = "activityRole");
 	virtual ~ActivityPerformer() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -82,15 +82,15 @@ public:
 	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
 	sim_mob::DailyTime getActivityStartTime() const;
 	void setActivityStartTime(sim_mob::DailyTime activityStartTime);
-	const sim_mob::Node* getLocation() const;
-	void setLocation(const sim_mob::Node* location);
+	sim_mob::Node* getLocation() const;
+	void setLocation(sim_mob::Node* location);
 	void initializeRemainingTime();
 	void updateRemainingTime();
 
 private:
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
-	const sim_mob::Node* location;
+	sim_mob::Node* location;
 
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.

@@ -21,6 +21,19 @@ void sim_mob::RoleFactory::registerRole(const std::string& name, const Role* pro
 	prototypes[name] = prototype;
 }
 
+void sim_mob::RoleFactory::registerRole(const Role* prototype)
+{
+	if (prototypes.count(prototype->getRoleName())>0) {
+		throw std::runtime_error("Duplicate role type.");
+	}
+
+	if ((prototype->getRoleName().size() == 0)||(prototype->getRoleName().empty())) {
+		throw std::runtime_error("Invalid Key for Role type.");
+	}
+
+	prototypes[prototype->getRoleName()] = prototype;
+}
+
 const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 {
 	map<string, const Role*>::const_iterator it = prototypes.find(name);
@@ -28,6 +41,11 @@ const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 		return it->second;
 	}
 	return nullptr;
+}
+
+std::string const getRoleName(const Role* role)
+{
+//	for(std::map<std::string, const sim_mob::Role*>::iterator)
 }
 
 bool sim_mob::RoleFactory::isKnownRole(const string& roleName) const
@@ -62,6 +80,32 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 	}
 }
 
+string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
+{
+		if (subTrip.mode=="Car")    return "driver";
+		if (subTrip.mode=="Walk")   return "pedestrian";
+		if (subTrip.mode=="Bus")    return "busdriver";
+		std::cout << " throwing error\n";
+		throw std::runtime_error("Unknown SubTrip mode.");
+}
+
+//gets mode of transfer from tripchain item and converts it to a mapping understandable by rolfactory and person classes, that is all
+const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const{
+	const std::string roleName = tripChainItem->getMode(subTrip);//(subTrip ? tripChainItem->getMode(subTrip) : "");
+//	std::cout << "subTrip = " << subTrip << std::endl;
+	if (roleName == "Car")
+		return "driver";
+	if (roleName == "Walk")
+		return "pedestrian";
+	if (roleName == "Bus")
+		return "busdriver";
+	if (roleName == "Activity")
+		return "activityRole";
+	std::ostringstream out;
+	out << "Unknown SubTrip mode : " << roleName;
+	throw std::runtime_error(out.str());
+}
+
 map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& roleName) const
 {
 	//For now, all Roles have the same set of required attributes.
@@ -70,6 +114,13 @@ map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& role
 	res["destPos"] = false;
 	res["time"] = false;
 	return res;
+}
+
+
+Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem,const sim_mob::SubTrip *subTrip_, Person* parent) const
+{
+	string roleName = RoleFactory::GetTripChainItemMode(currTripChainItem,subTrip_ );
+	return createRole(roleName, parent);
 }
 
 Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
@@ -82,10 +133,16 @@ Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 	return prot->clone(parent);
 }
 
-Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const
-{
-	string roleName = RoleFactory::GetTripChainMode(currTripChainItem);
-	return createRole(roleName, parent);
-}
+//Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const
+//{
+//	string roleName = RoleFactory::GetTripChainMode(currTripChainItem);
+//	return createRole(roleName, parent);
+//}
+//
+//Role* sim_mob::RoleFactory::createRole(const sim_mob::SubTrip &subTrip_, Person* parent) const
+//{
+//	string roleName = RoleFactory::GetSubTripMode(subTrip_);
+//	return createRole(roleName, parent);
+//}
 
 

@@ -718,7 +718,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //	find out the last trip that this driver has to finally take
 	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
 	std::vector<TripChainItem*>& tripchain = person->getTripChain();
-	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), person->currTripChainItem);
+	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
     Trip* trip_1; // pointer to current item in trip chain
     while(tripChainItem_it != tripchain.end())
     {

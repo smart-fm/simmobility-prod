@@ -20,6 +20,10 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 
+//Needed to prevent a declaration error.
+class NearestVehicle {};
+
+
 namespace medium
 {
 class Driver;

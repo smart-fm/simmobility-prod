@@ -2,9 +2,12 @@
 
 #pragma once
 
-#include "DriverUpdateParams.hpp"
-
 namespace sim_mob {
+
+//Forward declaration
+class DriverUpdateParams;
+class NearestVehicle;
+
 
 /*
  * \file CarFollowModel.hpp

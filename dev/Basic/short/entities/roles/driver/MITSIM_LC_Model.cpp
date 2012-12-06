@@ -12,9 +12,9 @@
 #include <limits>
 
 #include "entities/vehicle/Vehicle.hpp"
-#include "LaneChangeModel.hpp"
+#include "entities/models/LaneChangeModel.hpp"
 #include "Driver.hpp"
-#include "../../../../shared/geospatial/LaneConnector.hpp"
+#include "geospatial/LaneConnector.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;

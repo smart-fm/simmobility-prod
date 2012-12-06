@@ -2,6 +2,9 @@
 //tripChains Branch
 #include "simpleconf.hpp"
 
+//Make sure our "test" (new) Config variant compiles.
+#include "Config.hpp"
+
 #include <tinyxml.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>

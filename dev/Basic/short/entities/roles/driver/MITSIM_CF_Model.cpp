@@ -12,7 +12,7 @@
 #include <limits>
 
 #include "entities/vehicle/Vehicle.hpp"
-#include "CarFollowModel.hpp"
+#include "entities/models/CarFollowModel.hpp"
 #include "Driver.hpp"
 
 using std::numeric_limits;

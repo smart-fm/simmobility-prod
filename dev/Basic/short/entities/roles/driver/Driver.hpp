@@ -15,9 +15,9 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 
-#include "CarFollowModel.hpp"
-#include "LaneChangeModel.hpp"
-#include "IntersectionDrivingModel.hpp"
+#include "entities/models/CarFollowModel.hpp"
+#include "entities/models/LaneChangeModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
 //TODO: Once the new signal class is stabilized, replace this include with a forward declaration:

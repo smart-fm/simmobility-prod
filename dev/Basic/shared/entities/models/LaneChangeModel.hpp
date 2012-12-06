@@ -1,13 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-
 #pragma once
 
-
-#include "DriverUpdateParams.hpp"
-
+#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
+
+//Forward declaration
+class DriverUpdateParams;
 
 
 /*

@@ -1,7 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include <limits>
 
-#include "LaneChangeModel.hpp"
+#include "entities/models/LaneChangeModel.hpp"
+#include "geospatial/Lane.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;

@@ -83,6 +83,7 @@ public:
 
 	bool first_busstop;
 	bool last_busstop;
+	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
 

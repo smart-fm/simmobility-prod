@@ -34,6 +34,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 , first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
 	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+	passengerCountOld_display_flag = false;
 	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
 }
 
@@ -313,6 +314,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 			}
+			if(BUS_STOP_WAIT_PASSENGER_TIME_SEC - waitAtStopMS > p.elapsedSeconds * 1.0) {
+				passengerCountOld_display_flag = true;
+			}
 		}
 	}
 //	else if (isBusArriveBusStop()) {
@@ -323,6 +327,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
+		passengerCountOld_display_flag = false;
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
@@ -476,10 +481,13 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 	if (bus && passenger_dist) {
 		no_passengers_busstop = passenger_dist->getnopassengers();
 		no_passengers_bus = bus->getPassengerCount();
+		bus->setPassengerCountOld(no_passengers_bus);// record the old passenger number
 		//if last busstop,only alighting
 		if(last_busstop==true)
 		{
-			no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+			//no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+			no_passengers_alighting=no_passengers_bus;// last bus stop, all alighting
+			no_passengers_boarding=0;// reset boarding passengers to be zero at the last bus stop(for dwell time)
 			passengers_Alight(bus);//alight the bus
 			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
 			bus->setPassengerCount(no_passengers_bus);
@@ -616,19 +624,36 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 #ifndef SIMMOB_DISABLE_OUTPUT
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	Bus* bus = dynamic_cast<Bus*>(vehicle);
-	LogOut("(\"BusDriver\""
-			<<","<<p.now.frame()
-			<<","<<parent->getId()
-			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(bus->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
-			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
-			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
-			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
-			<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
-			<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
-			<<"\"})"<<std::endl);
+	if(!passengerCountOld_display_flag) {
+		LogOut("(\"BusDriver\""
+				<<","<<p.now.frame()
+				<<","<<parent->getId()
+				<<",{"
+				<<"\"xPos\":\""<<static_cast<int>(bus->getX())
+				<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
+				<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+				<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
+				<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
+				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
+				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\"})"<<std::endl);
+	} else {
+		LogOut("(\"BusDriver\""
+				<<","<<p.now.frame()
+				<<","<<parent->getId()
+				<<",{"
+				<<"\"xPos\":\""<<static_cast<int>(bus->getX())
+				<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
+				<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+				<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
+				<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0)
+				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
+				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\"})"<<std::endl);
+	}
+
 #endif
 }
 
@@ -646,12 +671,22 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
 	std::stringstream logout;
-	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
-			<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
-			<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
-			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-			<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
-			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0);
+	if(!passengerCountOld_display_flag) {
+		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
+				<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
+				<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
+				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
+				<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0);
+	} else {
+		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
+				<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
+				<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
+				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
+				<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0);
+	}
+
 
 	if (this->parent->isFake) {
 		logout << "\",\"fake\":\"" << "true";

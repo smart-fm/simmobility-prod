@@ -164,23 +164,24 @@ namespace sim_mob {
 
 		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
 		while(i!=frontalAgents.end()) {
-			if((*i).second != nullptr) {
-				if(minDistance == (*i).second->distanceToEndOfSegment) {
+			if(i->second != nullptr) {
+				if(minDistance == i->second->distanceToEndOfSegment) {
 					// If current ag and (*i) are at equal distance to the stop line, we toss a coin and choose one of them
 					bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
 					if(coinTossResult) {
-						agLane = (*i).first;
-						ag = (*i).second;
+						agLane = i->first;
+						ag = i->second;
 					}
 				}
-				else if (minDistance > (*i).second->distanceToEndOfSegment) {
-					minDistance = (*i).second->distanceToEndOfSegment;
-					agLane = (*i).first;
-					ag = (*i).second;
+				else if (minDistance > i->second->distanceToEndOfSegment) {
+					minDistance = i->second->distanceToEndOfSegment;
+					agLane = i->first;
+					ag = i->second;
 				}
 			}
 			i++;
 		}
+		frontalAgents.erase(agLane);
 		frontalAgents[agLane] = laneStatsMap[agLane]->next();
 		return ag;
 	}
@@ -189,12 +190,9 @@ namespace sim_mob {
 		frontalAgents.clear();
 		for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin();
 				i != laneStatsMap.end(); i++) {
-			(*i).second->resetIterator();
-			Agent* agent = (*i).second->next();
-			frontalAgents.insert(std::make_pair((*i).first, agent));
-			if(agent)
-				std::cout << "frontalAgents[" << (*i).first->getRoadSegment()->getStart()->getID()
-					<< "|" << (*i).first->getLaneID_str() << "] = " <<  agent->getId() << std::endl;
+			i->second->resetIterator();
+			Agent* agent = i->second->next();
+			frontalAgents.insert(std::make_pair(i->first, agent));
 		}
 	}
 
@@ -217,7 +215,7 @@ namespace sim_mob {
 			ag = agentClosestToStopLine();
 		}
 		else {
-			/* If all agents which were already in the SegmentStats are processed,
+			/* If all agents who were already in the SegmentStats are processed,
 			 * we must process the new starting agents in laneInfinity
 			 */
 			if (laneInfinity.size() > 0) {
@@ -419,6 +417,18 @@ namespace sim_mob {
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){
 		if (hasVehicle) return segVehicleSpeed;
 		else return segPedSpeed;
+	}
+
+	bool SegmentStats::hasAgents() {
+		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
+		while(laneIt != roadSegment->getLanes().end())
+		{
+			if(laneStatsMap[*laneIt]->laneAgents.size() > 0){
+				return true;
+			}
+			laneIt++;
+		}
+		return false;
 	}
 
 	unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane){

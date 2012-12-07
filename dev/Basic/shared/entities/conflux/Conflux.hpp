@@ -52,8 +52,8 @@ private:
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
-	/* keeps an iterator on each link to keep tract of the current segment that is being processed*/
-	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator > currSegsOnUpLinks;
+	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
+	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
 	/* segments on downstream links
 	 * These half-links conceptually belong to another conflux.

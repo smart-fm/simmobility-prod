@@ -122,6 +122,8 @@ public:
 		return downstreamCopy;
 	}
 
+	bool hasAgents();
+
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
 	void setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
 

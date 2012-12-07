@@ -80,9 +80,7 @@ sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
 sim_mob::medium::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
-
-	ss << "!!__________________________________________!!" << endl;
-	//std::cout << ss.str();
+	std::cout << ss.str() << endl;
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -471,7 +469,7 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
-	std::cout<<"Entering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
+	ss << "\nEntering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
@@ -551,12 +549,11 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	double xf = 0.0;
 	double tf = 0.0;
 	ss.flush();
-	ss << "Driver: " << parent->getId()
+	ss << "\nadvanceMovingVehicle " << parent->getId()
 			<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
 			<<"\tcurrSegment: "<< vehicle->getCurrSegment()
 			<<"\tLane: "<< currLane->getLaneID_str()
-			<<"\tMovCount: "<<currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).second
-			<<"\tQCount: " << currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).first
+			<<"\tConfluxMN: "<<currLane->getRoadSegment()->getParentConflux()->getMultiNode()->getID()
 			<<"\t time: " << t0
 			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
 			<<"\ttime: "<<currTimeMS + t0*1000<<endl;

@@ -392,31 +392,31 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 //todo uncomment try-catch
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try {
-#endif
+//#ifndef SIMMOB_STRICT_AGENT_ERRORS
+//	try {
+//#endif
 		//Update functionality
 		update_time(now, retVal);
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	} catch (std::exception& ex) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentException(*this, frameNumber, ex);
-#endif
-
-		//Add a line to the output file.
-		if (ConfigParams::GetInstance().OutputEnabled()) {
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
-		}
-		setToBeRemoved();
-	}
-#endif
+//#ifndef SIMMOB_STRICT_AGENT_ERRORS
+//	} catch (std::exception& ex) {
+//#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+//		profile.logAgentException(*this, frameNumber, ex);
+//#endif
+//
+//		//Add a line to the output file.
+//		if (ConfigParams::GetInstance().OutputEnabled()) {
+//			std::stringstream msg;
+//			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
+//			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+//			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+//			msg <<"\n  " <<ex.what();
+//			LogOut(msg.str() <<std::endl);
+//		}
+//		setToBeRemoved();
+//	}
+//#endif
 
 	//Return true unless we are scheduled for removal.
 	//NOTE: Make sure you set this flag AFTER performing your final output.
@@ -478,7 +478,7 @@ bool sim_mob::Person::updatePersonRole()
 		sim_mob::Role* newRole = rf.createRole(*(this->currTripChainItem),temp, this);
 		changeRole(newRole);
 		std::cout << "role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << std::endl;
-		getchar();
+//		getchar();
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {

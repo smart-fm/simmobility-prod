@@ -56,15 +56,16 @@ public:
 	std::string toString() const;
 
 	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()){}
-	DailyTime& operator=(const DailyTime& dailytime)
-	{
-        if (&dailytime != this)
-        {
-        	time_ = dailytime.getValue();
-        	repr_ = dailytime.getRepr_();
-        }
-        return *this;
-	}
+//	DailyTime& operator=(const DailyTime& dailytime)
+//	{
+//        if (&dailytime != this)
+//        {
+//        	time_ = dailytime.getValue();
+//        	std::string temp = dailytime.getRepr_();
+//        	repr_ = temp;
+//        }
+//        return *this;
+//	}
 	inline uint32_t getValue() const {
 		return time_;
 	}

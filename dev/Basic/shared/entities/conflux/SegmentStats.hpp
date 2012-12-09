@@ -49,6 +49,7 @@ public:
 	void addAgent(sim_mob::Agent* ag);
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
 	void removeAgent(sim_mob::Agent* ag);
+	void clear();
 	sim_mob::Agent* dequeue();
 	unsigned int getQueuingAgentsCount();
 	unsigned int getMovingAgentsCount();
@@ -107,6 +108,7 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
+	void clear();
 	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
 	std::vector<Agent*> getAgents(const sim_mob::Lane* lane);

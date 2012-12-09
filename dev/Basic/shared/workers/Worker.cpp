@@ -299,6 +299,11 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	{
 		UpdateStatus res = (*it)->update(currTime);
 	}
+
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		(*it)->handoverDownstreamAgents();
+	}
 #endif
 }
 

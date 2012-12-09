@@ -61,30 +61,33 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 
 	const sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
+
 	UpdateStatus res = ag->update(currFrameNumber);
-	if (res.status == UpdateStatus::RS_DONE) {
-		//This Entity is done; schedule for deletion.
-		parentWorker->scheduleForRemoval(ag);
-	} else if (res.status == UpdateStatus::RS_CONTINUE) {
-		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
-	} else {
-		throw std::runtime_error("Unknown/unexpected update() return status.");
-	}
 
 	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
+
 	if((segBeforeUpdate != segAfterUpdate) || (!laneBeforeUpdate)) {
 		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
 		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
-			debugMsgs << "\nAdding agent " << ag->getId() << " to lane " << laneAfterUpdate->getLaneID()
-						<< " of Segment [" << segAfterUpdate->getStart()->getID() << "->" << segAfterUpdate->getEnd()->getID() << "]";
-			debugMsgs << "\nBefore addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
+//			debugMsgs << "\nAdding agent " << ag->getId() << " to lane " << laneAfterUpdate->getLaneID()
+//						<< " of Segment [" << segAfterUpdate->getStart()->getID() << "->" << segAfterUpdate->getEnd()->getID() << "]";
+//			debugMsgs << "\nBefore addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
 			segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
-			debugMsgs << "\nAfter addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
+//			debugMsgs << "\nAfter addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
 		}
 		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
 			segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
 		}
+	}
+
+	if (res.status == UpdateStatus::RS_DONE) {
+		//This agent is done. Remove from simulation. TODO: Check if this is valid for trip chaining. ~ Harish
+		killAgent(ag);
+	} else if (res.status == UpdateStatus::RS_CONTINUE) {
+		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
+	} else {
+		throw std::runtime_error("Unknown/unexpected update() return status.");
 	}
 }
 
@@ -96,10 +99,6 @@ double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehic
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
-	if(multiNode->getID() == 66508) {
-		int harish;
-		harish = 10;
-	}
 	resetCurrSegsOnUpLinks();
 	typedef std::map<sim_mob::Link*, const sim_mob::RoadSegment* >::iterator currSegsOnUpLinksIt;
 	sim_mob::Link* lnk = nullptr;
@@ -132,10 +131,6 @@ void sim_mob::Conflux::initCandidateAgents() {
 			debugMsgs.clear();
 		}
 	}
-}
-
-void sim_mob::Conflux::prepareAgentForHandover(sim_mob::Agent* ag) {
-	throw std::runtime_error("Conflux::prepareAgentForHandover() not implemented");
 }
 
 std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > sim_mob::Conflux::getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg) {
@@ -227,10 +222,11 @@ int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
 	return segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->getOutputCounter();
 }
 
-void sim_mob::Conflux::absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* segStats) {
-	segmentAgents[segStats->getRoadSegment()]->absorbAgents(segStats);
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > laneCounts = segmentAgents[segStats->getRoadSegment()]->getAgentCountsOnLanes();
-	segStats->setPrevTickLaneCountsFromOriginal(laneCounts);
+void sim_mob::Conflux::absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats) {
+	segmentAgents[sourceSegStats->getRoadSegment()]->absorbAgents(sourceSegStats);
+	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > laneCounts = segmentAgents[sourceSegStats->getRoadSegment()]->getAgentCountsOnLanes();
+	sourceSegStats->setPrevTickLaneCountsFromOriginal(laneCounts);
+	sourceSegStats->clear();
 }
 
 double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
@@ -261,4 +257,16 @@ std::pair<unsigned int, unsigned int> sim_mob::Conflux::getLaneAgentCounts(
 
 unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 	return segmentAgents[lane->getRoadSegment()]->getInitialQueueCount(lane);
+}
+
+void sim_mob::Conflux::killAgent(sim_mob::Agent* ag) {
+	segmentAgents[ag->getCurrSegment()]->removeAgent(ag->getCurrLane(), ag);
+}
+
+void sim_mob::Conflux::handoverDownstreamAgents() {
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i = segmentAgentsDownstream.begin();
+			i != segmentAgentsDownstream.end(); i++)
+	{
+		i->second->getRoadSegment()->getParentConflux()->absorbAgentsAndUpdateCounts(i->second);
+	}
 }

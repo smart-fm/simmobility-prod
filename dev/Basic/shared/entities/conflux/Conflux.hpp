@@ -38,8 +38,6 @@ class Loader;
 class Conflux : sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;
-public:
-
 
 private:
 	/* MultiNode around which this conflux is constructed */
@@ -80,6 +78,8 @@ private:
 
 	timeslice currFrameNumber;
 
+	std::vector<Entity*> toBeRemoved;
+
 	void prepareLengthsOfSegmentsAhead();
 
 	/* function to call agents' updates if the MultiNode is signalized */
@@ -103,6 +103,8 @@ private:
 	/* updates lane params for all lanes within the conflux */
 	void updateSupplyStats(timeslice frameNumber);
 	void reportSupplyStats(timeslice frameNumber);
+
+	void killAgent(sim_mob::Agent* ag);
 
 public:
 	//constructors and destructor
@@ -150,9 +152,6 @@ public:
 	// adds the agent into this conflux (to segmentAgents list)
 	void addAgent(sim_mob::Agent* ag);
 
-	// adds this agent into segmentAgentsDownstream list
-	void prepareAgentForHandover(sim_mob::Agent* ag);
-
 	// get agent counts in a segment
 	// lanewise
 	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
@@ -161,7 +160,8 @@ public:
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
-	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* agKeeper);
+	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats);
+	void handoverDownstreamAgents();
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);

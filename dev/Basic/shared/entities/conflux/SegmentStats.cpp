@@ -252,8 +252,10 @@ namespace sim_mob {
 	}
 
 	void LaneStats::addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing) {
-		queueCount = queueCount + numQueuing;
-		laneAgents.insert(laneAgents.end(), agents.begin(), agents.end());
+		if(agents.size() > 0) {
+			queueCount = queueCount + numQueuing;
+			laneAgents.insert(laneAgents.end(), agents.begin(), agents.end());
+		}
 	}
 
 	void sim_mob::LaneStats::removeAgent(sim_mob::Agent* ag) {
@@ -323,6 +325,10 @@ namespace sim_mob {
 		double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
 		double acceptRateB = (omega*vehicle_length)/upSpeed;
 		double acceptRate = std::max( acceptRateA, acceptRateB);
+	}
+
+	void LaneStats::clear() {
+		laneAgents.clear();
 	}
 
 	sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) {
@@ -433,6 +439,18 @@ namespace sim_mob {
 
 	unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane){
 		return laneStatsMap[lane]->getInitialQueueCount();
+	}
+
+	void SegmentStats::clear() {
+		// Only agents in the downstream copy of SegmentStats are meant to cleared with this function.
+		if(isDownstreamCopy())
+		{
+			for(std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
+					laneIt != roadSegment->getLanes().end(); laneIt++)
+			{
+				laneStatsMap[*laneIt]->clear();
+			}
+		}
 	}
 }// end of namespace sim_mob
 

@@ -346,6 +346,7 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		}
 		 
 		//Now that the Role has been fully constructed, initialize it.
+		std::cout << "Calling update_time.frame_init at frame " << now.frame() << std::endl;
 		currRole->frame_init(params);
 
 		//Done
@@ -395,6 +396,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
+		std::cout << "Calling update_time at frame " << now.frame() << std::endl;
 		//Update functionality
 		update_time(now, retVal);
 

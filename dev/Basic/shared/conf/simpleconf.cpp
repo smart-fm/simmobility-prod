@@ -196,7 +196,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
+	std::cout << "tcs.count = " << tcs[2].size() << std::endl;
 //	getchar();
 	//The current agent we are working on.
 	Person* person = nullptr;

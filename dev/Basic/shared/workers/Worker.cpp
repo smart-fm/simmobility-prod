@@ -164,6 +164,8 @@ void sim_mob::Worker::barrier_mgmt()
 	for (bool active=true; active;) {
 		//Add Agents as required.
 		addPendingEntities();
+		std::cout << " worker " << this << " has " << getAgentSize() << " agents\n";
+		std::cout << "\nCalling Worker(" << this << ")::barrier_mgmt::perform_main at frame " << currTick << std::endl;
 
 		//Perform all our Agent updates, etc.
 		perform_main(timeslice(currTick, currTick*msPerFrame));
@@ -276,6 +278,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 #ifndef SIMMOB_USE_CONFLUXES
 	 //All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+		std::cout<< "calling a worker(" << this <<")::perform_main at frame " << currTime.frame() << std::endl;
 		UpdateStatus res = (*it)->update(currTime);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.

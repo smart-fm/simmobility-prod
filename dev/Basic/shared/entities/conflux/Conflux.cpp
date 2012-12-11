@@ -271,3 +271,11 @@ void sim_mob::Conflux::handoverDownstreamAgents() {
 		i->first->getParentConflux()->absorbAgentsAndUpdateCounts(i->second);
 	}
 }
+
+double sim_mob::Conflux::getLastAccept(const Lane* lane) {
+	return segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->getLastAccept();
+}
+
+void sim_mob::Conflux::setLastAccept(const Lane* lane, double lastAcceptTime) {
+	segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->setLastAccept(lastAcceptTime);
+}

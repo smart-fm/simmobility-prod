@@ -89,6 +89,8 @@ public:
 	double getOutputFlowRate(const Lane* l);
 	double getAcceptRate(const Lane* l);
 	double getQueueLength(const Lane* l);
+	double getLastAccept(const Lane* l);
+	void setLastAccept(const Lane* l, double lastAccept);
 
 private:
 	//void chooseNextLaneForNextLink(DriverUpdateParams& p);

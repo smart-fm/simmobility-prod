@@ -56,11 +56,6 @@ size_t getLaneIndex(const Lane* l) {
 	}
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
-
-//TODO: not implemented yet
-double getLastAccept(const Lane* l) {
-	return -1.0;
-}
 } //end of anonymous namespace
 
 //Initialize
@@ -129,11 +124,6 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	//Vehicles start at rest
 	vehicle->setVelocity(0);
 
-	//set position to start
-	if(vehicle->getCurrSegment())
-		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
-
-	parent->linkEntryTime = parent->getStartTime();
 	//set time to start - to accommodate drivers starting during the frame
 	stepFwdInTime(p, parent->getStartTime() - p.now.ms());
 
@@ -146,14 +136,27 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 
 	nextLaneInNextSegment = getBestTargetLane(vehicle->getCurrSegment(), nextRdSeg);
 
-	//getLastAccept not implemented yet
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
-	double t = std::max(p.timeThisTick, departTime - (p.now.ms()/1000.0));
 
+	double t = std::max(p.timeThisTick, (departTime - p.now.ms())/1000.0);
+	std::cout<< "time to start: "<<t
+			<< "\ttimeThisTick: "<<p.timeThisTick
+			<< "\tdepartTime: "<<departTime
+			<< "\ttime now: "<<p.now.ms()/1000
+			<< "\tlane: "<<nextLaneInNextSegment
+			<< "\taccept rate: "<<getAcceptRate(nextLaneInNextSegment)
+			<<"\tlastAccept: "<<getLastAccept(nextLaneInNextSegment)
+			<< std::endl;
 	if(canGoToNextRdSeg(p, t))
 	{
+		//set position to start
+		if(vehicle->getCurrSegment())
+				vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+
 		currLane = nextLaneInNextSegment;
-	//	parent->setCurrLink(vehicle->getCurrSegment()->getLink());
+		double actualT = t + p.now.ms();
+		parent->linkEntryTime = actualT;
+		setLastAccept(currLane, actualT);
 		setParentData();
 	}
 	else
@@ -204,8 +207,8 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 #ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 	logout << "(\"Driver\""
-			<<","<<p.now.frame()
 			<<","<<parent->getId()
+			<<","<<p.now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<<static_cast<int>(vehicle->getCurrSegment()->getSegmentID())
 			<<"\",\"Lane\":\""<<static_cast<int>(vehicle->getCurrLane()->getLaneID())
@@ -295,8 +298,9 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 	//getLastAccept not implemented yet
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
-	double t = std::max(p.timeThisTick, departTime - p.now.ms()/1000.0);
-
+	double t = std::max(p.timeThisTick, (departTime - p.now.ms())/1000.0);
+	ss<<"Time: "<<t<<endl;
+	std::cout<<ss.str();
 	if (canGoToNextRdSeg(p, t)){
 		if (vehicle->isQueuing){
 			removeFromQueue();
@@ -307,7 +311,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 		currLane = nextLaneInNextSegment;
 	//	p.timeThisTick = p.timeThisTick + t;
-		unsigned int linkExitTime = p.now.ms() + p.timeThisTick * 1000;
+		unsigned int linkExitTimeMS = p.now.ms() + p.timeThisTick * 1000;
 
 		if (isNewLinkNext)
 		{
@@ -317,19 +321,21 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 		if ( !prevSeg){
 				const Link* prevLink = prevSeg->getLink();
-				parent->setTravelStats(prevLink, linkExitTime, parent->linkEntryTime, true);
+				parent->setTravelStats(prevLink, linkExitTimeMS, parent->linkEntryTime, true);
 			}
+		parent->linkEntryTime = linkExitTimeMS;
 		}
 
-		parent->linkEntryTime = linkExitTime;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 		addToMovingList();
 
 		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+		setLastAccept(currLane, linkExitTimeMS);
 		res = advance(p, currTimeMS);
 	}
 
 	else{
+		std::cout<<"canGoTo failed!"<<std::endl;
 		if (vehicle->isQueuing){
 			moveInQueue();
 		}
@@ -469,7 +475,7 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
-	ss << "\nEntering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
+//	ss << "\nEntering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
@@ -548,18 +554,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	double x0 = vehicle->getPositionInSegment();/* vehicle->getCurrSegment()->length - vehicle->getDistanceToSegmentStart();*/
 	double xf = 0.0;
 	double tf = 0.0;
-	ss.flush();
-	ss << "\nadvanceMovingVehicle " << parent->getId()
-			<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
-			<<"\tcurrSegment: "<< vehicle->getCurrSegment()
-			<<"\tLane: "<< currLane->getLaneID_str()
-			<<"\tConfluxMN: "<<currLane->getRoadSegment()->getParentConflux()->getMultiNode()->getID()
-			<<"\t time: " << t0
-			<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
-			<<"\ttime: "<<currTimeMS + t0*1000<<endl;
-	std::cout << ss.str();
 
-	//getNextLinkAndPath();
 	if(!currLane)
 		throw std::runtime_error("agent's current lane is not set!");
 
@@ -569,6 +564,17 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 	//not implemented
 	double output = getOutputCounter(currLane);
+	ss.flush();
+		ss << "\nadvanceMovingVehicle " << parent->getId()
+				<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
+				<<"\tcurrSegment: "<< vehicle->getCurrSegment()
+				<<"\tLane: "<< currLane->getLaneID_str()
+				<<"\tConfluxMN: "<<currLane->getRoadSegment()->getParentConflux()->getMultiNode()->getID()
+				<<"\t time: " << t0
+				<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
+				<<"\tActualTime: "<<currTimeMS + t0*1000
+				<<"\toutputCout: "<<output<<endl;
+		std::cout << ss.str();
 
 	//get current location
 	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane
@@ -752,4 +758,12 @@ bool sim_mob::medium::Driver::isConnectedToNextSeg(const Lane* lane, const RoadS
 
 double sim_mob::medium::Driver::getInitialQueueLength(const Lane* l) {
 	return l->getRoadSegment()->getParentConflux()->getInitialQueueCount(l) * vehicle->length;
+}
+
+double sim_mob::medium::Driver::getLastAccept(const Lane* l){
+	return l->getRoadSegment()->getParentConflux()->getLastAccept(l);
+}
+
+void sim_mob::medium::Driver::setLastAccept(const Lane* l, double lastAccept){
+	l->getRoadSegment()->getParentConflux()->setLastAccept(l, lastAccept);
 }

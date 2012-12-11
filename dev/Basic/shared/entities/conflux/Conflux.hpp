@@ -102,7 +102,6 @@ private:
 
 	/* updates lane params for all lanes within the conflux */
 	void updateSupplyStats(timeslice frameNumber);
-	void reportSupplyStats(timeslice frameNumber);
 
 	void killAgent(sim_mob::Agent* ag);
 
@@ -171,6 +170,8 @@ public:
 	void restoreSupplyStats(const Lane* lane);
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int getInitialQueueCount(const Lane* lane);
+	double getLastAccept(const Lane* lane);
+	void setLastAccept(const Lane* lane, double lastAccept);
 
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;

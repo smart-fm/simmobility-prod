@@ -311,11 +311,13 @@ namespace sim_mob {
 
 	/*	std::stringstream ss;
 		ss << "Lane: " << lane->getLaneID_str()
+		<< "\tupNode: " << lane->getRoadSegment()->getStart()->getID()
+		<< "\telapsedSec: " << elapsedSeconds
 		<< "\toutputFlowRate: "<< laneParams->outputFlowRate
 		<< "\toutputCounter: " << laneParams->outputCounter
 		<< "\tfraction: " << laneParams->fraction<< std::endl;
-		std::cout << ss.str();
-*/	}
+		std::cout << ss.str();*/
+	}
 
 	void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 		const double omega = 0.01;
@@ -324,6 +326,12 @@ namespace sim_mob {
 		double capacity = laneParams->outputFlowRate*elapsedSeconds;
 		double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
 		double acceptRateB = (omega*vehicle_length)/upSpeed;
+	/*	std::cout<< "lane: "<<lane<<"\tupNode:"<<lane->getRoadSegment()->getStart()->getID()
+						<<"\tcapacity: "<<capacity
+						<<"\tacRateA: "<<acceptRateA
+						<<"\tacRateB: "<<acceptRateB
+						<< std::endl;
+*/
 		double acceptRate = std::max( acceptRateA, acceptRateB);
 	}
 

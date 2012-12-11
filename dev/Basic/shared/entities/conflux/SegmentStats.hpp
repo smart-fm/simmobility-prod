@@ -20,10 +20,11 @@ private:
 	int outputCounter;
 	double acceptRate;
 	double fraction;
+	double lastAcceptTime;
 
 public:
 	LaneParams() : outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0),
-			acceptRate(0.0), fraction(0.0){}
+			acceptRate(0.0), fraction(0.0), lastAcceptTime(0.0){}
 
 	double getOutputFlowRate() {return outputFlowRate;}
 	int getOutputCounter() {return outputCounter;}
@@ -31,6 +32,9 @@ public:
 
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
+
+	void setLastAccept(double lastAccept) {lastAcceptTime = lastAccept;}
+	double getLastAccept() {return lastAcceptTime;}
 };
 
 class LaneStats {
@@ -141,6 +145,9 @@ public:
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
 	unsigned int getInitialQueueCount(const Lane* l);
+	void setLastAccept(const Lane* l, double lastAccept);
+	double getLastAccept(const Lane* l);
+
 	/**
 	 * laneInfinity stores the new agents added to this road segment when they have just become active and their lane
 	 * and moving/queuing status is still unknown. The frame_init function of the agent's role will have to remove

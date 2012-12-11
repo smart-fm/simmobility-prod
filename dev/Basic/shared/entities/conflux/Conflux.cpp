@@ -38,6 +38,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 }
 
 void sim_mob::Conflux::updateSignalized() {
+	throw std::runtime_error("Conflux::updateSignalized() not implemented yet.");
 }
 
 void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
@@ -267,6 +268,6 @@ void sim_mob::Conflux::handoverDownstreamAgents() {
 	for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i = segmentAgentsDownstream.begin();
 			i != segmentAgentsDownstream.end(); i++)
 	{
-		i->second->getRoadSegment()->getParentConflux()->absorbAgentsAndUpdateCounts(i->second);
+		i->first->getParentConflux()->absorbAgentsAndUpdateCounts(i->second);
 	}
 }

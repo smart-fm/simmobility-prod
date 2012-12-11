@@ -287,8 +287,12 @@ void sim_mob::WorkGroup::stageEntities()
 		//Add it to our global list.
 		loader->entity_dest.push_back(ag);
 
-		//Find a worker to assign this to and send it the Entity to manage.
+		//Find a worker/conflux to assign this to and send it the Entity to manage.
+#ifdef SIMMOB_USE_CONFLUXES
+		putAgentOnConflux(ag);
+#else
 		assignAWorker(ag);
+#endif
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
 	}

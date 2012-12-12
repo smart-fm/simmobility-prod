@@ -177,7 +177,8 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		busline->addFrequencyBusline(Frequency_Busline(curr->start_time,curr->end_time,curr->headway_sec));
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
-		sim_mob::DailyTime nextTime = nextTime = curr->end_time;
+		sim_mob::DailyTime nextTime;
+		nextTime = curr->end_time;
 		if(next != busdispatch_freq.end()) {
 			nextTime = next->start_time;
 		}

@@ -144,15 +144,18 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
 			Person* currAg = new Person("BusController", config.mutexStategy, busTrip_vec[i].personID);
+			std::cout << "BusController::assignBusTripChainWithPerson->Creating Person " << busTrip_vec[i].personID << std::endl;
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
 
 			currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
 			currAg->setTripChain(currAgTripChain);
+			currAg->initTripChain();
 
 			// scheduled for dispatch
 			addOrStashBuses(currAg, active_agents);
 		}
+//		getchar();
 	}
 }
 
@@ -181,7 +184,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
 		sim_mob::DailyTime nextTime ;
 		nextTime = curr->end_time;
-
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.

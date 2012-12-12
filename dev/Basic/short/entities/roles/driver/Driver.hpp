@@ -43,6 +43,9 @@ class UnPackageUtils;
 #endif
 
 
+
+
+
 /**
  * \author Wang Xinyuan
  * \author Li Zhemin
@@ -73,7 +76,11 @@ public:
 
 
 
+
+//	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
+
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
+
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

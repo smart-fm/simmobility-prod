@@ -3,8 +3,6 @@
 #include "simpleconf.hpp"
 
 #include <tinyxml.h>
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -42,7 +40,6 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
-//#include "../short/xmlWriter/xmlWriter.hpp"
 
 using std::cout;
 using std::endl;
@@ -197,63 +194,38 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
+	std::cout << "we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+//	getchar();
 	//The current agent we are working on.
-	Person* currAg = nullptr;
+	Person* person = nullptr;
 	std::string trip_mode;
-	std::vector<const TripChainItem*> currAgTripChain;
-
+	std::vector<const TripChainItem*> personTripChain;
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
-//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
-//		//getchar();
-//		const Trip* trip = dynamic_cast<const Trip*>(tc);
-//		const Activity* act = dynamic_cast<const Activity*>(tc);
-//
-//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
-//			//Origin and destination must be those of the first subtrip if current item is a trip
-//			currAg->originNode = firstSubTrip.fromLocation;
-//			currAg->destNode = firstSubTrip.toLocation;
-//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
-//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-//			currAg->originNode = currAg->destNode = act->location;
-//		} else { //Offer some protection
-//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-//		}
-//
-//		currAg->setTripChain(it_map->second);
-//		if (currAg->currSubTrip) {
-//			if (currAg->currSubTrip->mode == "Bus") {
+		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << std::endl;
+		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+//		std::cout << "Person::preson " << person->getId() << "[" << person << "] : currTripChainItem[" << person->currTripChainItem << "] : currSubTrip[" << person->currSubTrip << "]" << std::endl;
+/*		if (person->currSubTrip) {
+//			if (person->currSubTrip->mode == "Bus") {
 //				// currently only one
 //				if (!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
-//							active_agents);
+//					BusController::all_busctrllers_[0]->addOrStashBuses(person,	active_agents);
 //				}
 //			}
-//		}
-//		else
-		{
-//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
-			addOrStashEntity(currAg, active_agents, pending_agents);
+		} else*/ {
+			addOrStashEntity(person, active_agents, pending_agents);
 		}
-
 		//Reset for the next (possible) Agent
-		currAg = nullptr;
-
-		
-	} //outer for loop(map)
+		person = nullptr;
+	}//outer for loop(map)
+//	getchar();
 }
-
-
-
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
@@ -405,6 +377,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
+        	std::cout << "catch the loop error try!" << std::endl;
             std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
@@ -431,7 +404,6 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
-		std::cout << "ooops! returning true!" << std::endl;
 		return true;
 	}
 
@@ -777,8 +749,6 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " Before...";
-//		getchar();
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
@@ -792,9 +762,6 @@ void PrintDB_Network()
 			}
 
 		}
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " After...";
-//		getchar();
-
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -1063,7 +1030,6 @@ void PrintDB_Network_ptrBased()
 			}
 		}
 
-
 		//Save Lane info for later
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
@@ -1081,6 +1047,15 @@ void PrintDB_Network_ptrBased()
 
 			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
 				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				//debug
+				if(laneID != 0 && laneID <(*it)->getLanes().size())
+				{
+					int i = 0;
+					i++;
+//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
+//					getchar();
+				}
+				//debug ends
 			}
 
 		}
@@ -1153,7 +1128,9 @@ void PrintDB_Network_ptrBased()
 
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
+//
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
+//obsolete
 void PrintDB_Network_idBased()
 {
 	if (ConfigParams::GetInstance().OutputDisabled()) {
@@ -1403,7 +1380,7 @@ void patchRoadNetworkwithLaneEdgePolyline() {
 		}
 	}
 }
-
+//obsolete
 void printRoadNetwork_console()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
@@ -1782,27 +1759,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-
-//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
-//    		{
-//    			if((*it)->getLinkId() != 1000010) continue;
-//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//    			{
-//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
-//    				{
-//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//    					{
-//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//    						if((cr))
-//    						{
-//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
-//    						}
-//    					}
-//    				}
-//    			}
-//    		}
-//    		getchar();
-
 #else
        		/**************************************************
        		 *
@@ -1837,6 +1793,25 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }
 
+    //debug: detect sidewalks which are in the middle of road
+    {
+    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
+    	{
+    		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+    		{
+    			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*seg_it)->getLanes().begin(), it_end((*seg_it)->getLanes().end()); lane_it != it_end ; lane_it++)
+    			{
+    				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
+    				{
+    					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
+    					getchar();
+    				}
+    			}
+    		}
+    	}
+    }
+    //debug.. end
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();

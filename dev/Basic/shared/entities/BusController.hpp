@@ -1,5 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+/*
+ * BusController.hpp
+ *
+ *  Created on: 2012-6-11
+ *      Author: Yao Jin
+ */
+
 #pragma once
 
 #include <vector>

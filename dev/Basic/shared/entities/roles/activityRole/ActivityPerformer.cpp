@@ -14,15 +14,14 @@
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent) :
-		Role(parent), params(parent->getGenerator()) {
+sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, std::string roleName) :
+		Role(parent,  roleName), params(parent->getGenerator()) {
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
 }
 
-sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent,
-		const sim_mob::Activity& currActivity) :
-		Role(parent), params(parent->getGenerator()){
+sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, std::string roleName) :
+		Role(parent, roleName), params(parent->getGenerator()){
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
 	activityStartTime = currActivity.startTime;
@@ -82,14 +81,16 @@ sim_mob::DailyTime sim_mob::ActivityPerformer::getActivityStartTime() const {
 
 void sim_mob::ActivityPerformer::setActivityStartTime(
 		sim_mob::DailyTime activityStartTime) {
-	this->activityStartTime = activityStartTime;
+
+	std::cout << "startTime = " << activityStartTime.toString() <<"\n";
+	this->activityStartTime = DailyTime(activityStartTime.toString());
 }
 
-const sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const {
+sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const {
 	return location;
 }
 
-void sim_mob::ActivityPerformer::setLocation(const sim_mob::Node* location) {
+void sim_mob::ActivityPerformer::setLocation(sim_mob::Node* location) {
 	this->location = location;
 }
 

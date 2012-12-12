@@ -56,12 +56,23 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		Person* person = dynamic_cast<Person*>(parent);
 		int vehicle_id = 0;
 		if(person) {
-			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
-			if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+			if(!bustrip)	std::cout << "bustrip is null\n";
+			if(bustrip && (*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) {
 				path = bustrip->getBusRouteInfo().getRoadSegments();
+				std::cout << "BusTrip path size = " << path.size() << std::endl;
 				vehicle_id = bustrip->getVehicleID();
 			}
+			else
+			{
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_TRIP) std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_ACTIVITY) std::cout << "IT_ACTIVITY\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) std::cout << "IT_BUSTRIP\n";
+				std::cout << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = " << (*(person->currTripChainItem))->itemType << std::endl;
+			}
+
 		}
+
 
 		//TODO: Start in lane 0?
 		int startlaneID = 0;
@@ -119,8 +130,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 		if(person)
 		{
 			if(person->getAgentSrc() == "BusController") {
-				const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
-				if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+				const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+				if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
 					if (busStops.empty()) {
 						std::cout << "Error: No BusStops assigned from BusTrips!!! " << std::endl;
@@ -295,8 +306,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					//BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
 					Person* person = dynamic_cast<Person*>(parent);
 					if(person) {
-						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
-						if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
 								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points

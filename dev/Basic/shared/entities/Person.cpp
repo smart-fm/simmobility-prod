@@ -90,7 +90,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	currRole = nullptr;
 	agentSrc = src;
 	call_frame_init = true;
-	first_update_tick = true;
 	tripChain = tcs;
 //	currTripChainItem(nullptr);
 //	currSubTrip(nullptr);
@@ -115,6 +114,7 @@ void sim_mob::Person::initTripChain(){
 		std::cout << "Pesron " << this << "  is going to ride a bus\n";
 	}
 	setNextPathPlanned(false);
+	first_update_tick = true;
 	tripchainInitialized = true;
 }
 sim_mob::Person::~Person() {
@@ -544,7 +544,8 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	call_frame_init = true;
 
 	//Update our origin/dest pair.
-	updateOD(*currTripChainItem, &(*currSubTrip));
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)//put if to avoid & evade bustrips, can be removed when everything is ok
+		updateOD(*currTripChainItem, &(*currSubTrip));
 
 	//Create a return type based on the differences in these Roles
 	vector<BufferedBase*> prevParams;

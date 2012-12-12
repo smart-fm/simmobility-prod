@@ -96,14 +96,15 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 
 //gets mode of transfer from tripchain item and converts it to a mapping understandable by rolfactory and person classes, that is all
 const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const{
+	if(tripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) return "busdriver";
 	const std::string roleName = tripChainItem->getMode(subTrip);//(subTrip ? tripChainItem->getMode(subTrip) : "");
 //	std::cout << "subTrip = " << subTrip << std::endl;
 	if (roleName == "Car")
 		return "driver";
 	if (roleName == "Walk")
 		return "pedestrian";
-	if (roleName == "Bus")
-		return "busdriver";
+//	if (roleName == "Bus")
+//		return "busdriver";
 	if (roleName == "Activity")
 		return "activityRole";
 	std::ostringstream out;

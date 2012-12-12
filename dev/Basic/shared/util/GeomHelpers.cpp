@@ -434,9 +434,9 @@ const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D*
 	std::vector<sim_mob::Link*>::const_iterator itr = all_links.begin();
 	for (; itr != all_links.end(); itr++)
 	{
-		sim_mob::Link* one_link = (*itr);
+		sim_mob::Link* one_link = *itr;
 
-		vector<RoadSegment*> one_direction_segments = one_link->getPath(true);
+		vector<RoadSegment*> one_direction_segments = one_link->getPath();
 		vector<RoadSegment*>::iterator itr_seg = one_direction_segments.begin();
 		for (; itr_seg != one_direction_segments.end(); itr_seg++)
 		{
@@ -454,7 +454,7 @@ const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D*
 			}
 		}
 
-		vector<RoadSegment*> second_direction_segments = one_link->getPath(false);
+		/*vector<RoadSegment*> second_direction_segments = one_link->getPath(false);
 		itr_seg = second_direction_segments.begin();
 		for (; itr_seg != second_direction_segments.end(); itr_seg++)
 		{
@@ -470,7 +470,7 @@ const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D*
 					return one_cross;
 				}
 			}
-		}
+		}*/
 	}
 
 	return 0;

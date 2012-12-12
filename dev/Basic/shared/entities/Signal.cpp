@@ -80,7 +80,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   , loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	signalAlgorithm = config.signalAlgorithm;
+	signalTimingMode = config.signalTimingMode;
     initializeSignal();
     setupIndexMaps();
 }
@@ -274,7 +274,7 @@ void Signal::startSplitPlan() {
 }
 
 void Signal::outputToVisualizer(timeslice now) {
-#ifndef SIMMOB_DISABLE_OUTPUT
+	if (ConfigParams::GetInstance().OutputEnabled()) {
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
 	for (int i = 0; i < 3; i++) {
@@ -318,7 +318,7 @@ void Signal::outputToVisualizer(timeslice now) {
 	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
 	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
 	LogOut(logout.str());
-#endif
+	}
 }
 
 //You mean eVVVry time you want to draw to lanes? why not have a vector to store references?
@@ -378,7 +378,7 @@ UpdateStatus Signal::update(timeslice now) {
 void Signal::updateSignal(double DS[]) {
 	if (phaseCounter == 0) {
 		// 0 is fixed phase, 1 is scats
-		if(signalAlgorithm == 1)
+		if(signalTimingMode == 1)
 		{
 			//find the maximum DS
 			DS_all = fmax(DS);
@@ -436,7 +436,7 @@ void Signal::updateSignal(double DS[]) {
 	}
 
 	// 0 is fixed phase, 1 is scats
-	if(signalAlgorithm == 1)
+	if(signalTimingMode == 1)
 	{
 		if(currPhase%10!=prePhase%10||phaseCounter==0)
 		{
@@ -470,10 +470,7 @@ void Signal::setnextCL(double DS) {
 		RL0 = CLmed + (DS - DSmed) * (CLmax - CLmed) / (DSmax - DSmed);
 	}
 	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout<<"DS "<<DS<<std::endl;
-#endif
+		LogOut("DS "<<DS<<std::endl);
 	}
 
 	int sign;
@@ -502,21 +499,13 @@ void Signal::setnextCL(double DS) {
 	double RL = w1 * RL1 + w2 * prevRL1 + w3 * prevRL2;
 
 	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout<<"RL "<<RL<<std::endl;
-#endif
+		LogOut("RL "<<RL<<std::endl);
 	}
 	//update previous RL
 	prevRL2 = prevRL1;
 	prevRL1 = RL1;
 
 	sign = (RL >= currCL) ? 1 : -1; //This is equivalent.
-	/*if(RL >= currCL) {
-	 sign = 1;
-	 } else {
-	 sign = -1;
-	 }*/
 
 	//set the maximum change as 6s
 	if (abs(RL - currCL) <= 6) {
@@ -947,7 +936,7 @@ int Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, 
 }
 
 void Signal::frame_output(timeslice now) {
-#ifndef SIMMOB_DISABLE_OUTPUT
+	if (ConfigParams::GetInstance().OutputEnabled()) {
 	std::stringstream logout;
 
 	logout << "(\"Signal\",";
@@ -1005,7 +994,7 @@ void Signal::frame_output(timeslice now) {
 
 	logout << "\"})" << std::endl;
 	LogOut(logout.str());
-#endif
+	}
 }
 
 #ifndef SIMMOB_DISABLE_MPI

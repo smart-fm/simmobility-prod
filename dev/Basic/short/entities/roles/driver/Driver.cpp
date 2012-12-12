@@ -149,7 +149,7 @@ vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& p
 		}
 
 		//Add each Segment in the Link's fwd/rev path to the result.
-		const vector<RoadSegment*>& segPath = nextLink.first->getPath(nextLink.second);
+		const vector<RoadSegment*>& segPath = nextLink.first->getPath();
 		for (vector<RoadSegment*>::const_iterator pthIt = segPath.begin(); pthIt != segPath.end(); pthIt++) {
 			res.push_back(WayPoint(*pthIt));
 		}
@@ -250,10 +250,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "ERROR: Vehicle[short] could not be created for driver; no route!\n";
-#endif
+		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
 	}
 }
 
@@ -327,17 +324,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 }
 
-void sim_mob::Driver::frame_tick_med(UpdateParams& p){
-	//first, plan the next path if not yet planned
-	initializePathMed();
-
-	/* To be added by supply team to update location of driver after every frame tick
-	 * remember
-	 * 		1. Update all the activity parameters of the agent after every ACTIVITY_END event,
-	 * 		2. Update the nextPathPlanned flag to indicate whether agent needs to request for next detailed path
-	 */
-}
-
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
@@ -347,7 +333,6 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
 			<<","<<parent->getId()
@@ -358,7 +343,6 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
-#endif
 }
 
 void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
@@ -369,26 +353,26 @@ void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
 	if (vehicle->isDone())
 		return;
 
-#ifndef SIMMOB_DISABLE_OUTPUT
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
-	std::stringstream logout;
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+		std::stringstream logout;
 
-	logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
-			<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
-			<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
-			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-			<< static_cast<int> (vehicle->length) << "\",\"width\":\"" << static_cast<int> (vehicle->width);
+		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
+				<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
+				<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
+				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
+				<< static_cast<int> (vehicle->length) << "\",\"width\":\"" << static_cast<int> (vehicle->width);
 
-	if (this->parent->isFake) {
-		logout << "\",\"fake\":\"" << "true";
-	} else {
-		logout << "\",\"fake\":\"" << "false";
+		if (this->parent->isFake) {
+			logout << "\",\"fake\":\"" << "true";
+		} else {
+			logout << "\",\"fake\":\"" << "false";
+		}
+
+		logout << "\"})" << std::endl;
+
+		LogOut(logout.str());
 	}
-
-	logout << "\"})" << std::endl;
-
-	LogOut(logout.str());
-#endif
 }
 
 sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(timeslice now)
@@ -561,12 +545,12 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 	if (vehicle->isDone()) {
 		//Output
 		if (Debug::Drivers && !DebugStream.str().empty()) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-			DebugStream << ">>>Vehicle done." << endl;
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << DebugStream.str();
-			DebugStream.str("");
-#endif
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				DebugStream << ">>>Vehicle done." << endl;
+				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+				std::cout << DebugStream.str();
+				DebugStream.str("");
+			}
 		}
 
 		return false;
@@ -805,9 +789,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
-			" acceleration: "<<vehicle->getAcceleration()/100.0<<
-			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
+//	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
+//			" acceleration: "<<vehicle->getAcceleration()/100.0<<
+//			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
 	return updatePositionOnLink(p);
 }
 
@@ -1042,11 +1026,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
-				<< std::endl;
-#endif
+		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
 		return;
 	}
 
@@ -1302,11 +1282,11 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-			DebugStream << ">>>Exception: " << ex.what() << endl;
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << DebugStream.str();
-#endif
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				DebugStream << ">>>Exception: " << ex.what() << endl;
+				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+				std::cout << DebugStream.str();
+			}
 		}
 
 		std::stringstream msg;
@@ -1722,11 +1702,11 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 			if (p.currLane->is_pedestrian_lane()) {
 				//Flush debug output (we are debugging this error).
 				if (Debug::Drivers) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-					DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-					boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-					std::cout << DebugStream.str();
-#endif
+					if (ConfigParams::GetInstance().OutputEnabled()) {
+						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
+						boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+						std::cout << DebugStream.str();
+					}
 				}
 
 				//TEMP OVERRIDE:

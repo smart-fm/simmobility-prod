@@ -434,6 +434,9 @@ public:
     ///Helper: find the nearest MultiNode to this Segment.
     static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
 
+    ///Return the Link associated with a given start and end Node.
+    const sim_mob::Link* searchLink(const sim_mob::Node* start, const sim_mob::Node* end);
+
 private:
     //Helper: Find the point closest to the origin.
     static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);
@@ -457,25 +460,16 @@ private:
     Stats* stats_;
 
     ///A lookup of all Signals in the RoadNetwork
-    std::map<const Node*, Signal const*> signals_;
+    std::map<const Node*, const Signal*> signals_;
 
     ///A lookup of all Nodes/Links by a very specific criteria; see getLinkLoc() above.
     /// This criteria should definitely be re-examined.
 	std::map<const sim_mob::Node*, const sim_mob::Link*> node_link_loc_cache;
 
+	///A lookup of all Links by their start/end Nodes
+	///key is <start, end>
+    std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*> links_by_node;
 
-
-    // Using the pimple design pattern.  Impl is defined in the source file.
-    /*class Impl;
-    Impl* pimpl_;
-    friend class Impl;  //allow access to stats_.
-
-    //A private class to calculate distance-based shortest paths for drivers and pedestrians.
-    class ShortestPathImpl;
-    ShortestPathImpl* spImpl_;
-
-    class Stats;
-    Stats* stats_;*/
 
 
 };

@@ -179,10 +179,9 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		busline->addFrequencyBusline(Frequency_Busline(curr->start_time,curr->end_time,curr->headway_sec));
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
-		sim_mob::DailyTime nextTime = curr->end_time;
-//		if(next != busdispatch_freq.end()) {
-//			nextTime = next->start_time;
-//		}
+		sim_mob::DailyTime nextTime ;
+		nextTime = curr->end_time;
+
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
@@ -454,7 +453,6 @@ void sim_mob::BusController::frame_tick_output(timeslice now)
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"BusController\""
 			<<","<<now.frame()
 			<<","<<getId()
@@ -463,7 +461,6 @@ void sim_mob::BusController::frame_tick_output(timeslice now)
 			<<"\",\"Bus_xPos\":\""<<static_cast<int>(posBus.x)
 			<<"\",\"Bus_yPos\":\""<<static_cast<int>(posBus.y)
 			<<"\"})"<<std::endl);
-#endif
 }
 
 

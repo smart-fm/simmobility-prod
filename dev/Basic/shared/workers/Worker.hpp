@@ -22,8 +22,10 @@
 #include <iostream>
 
 #include <vector>
+#include <set>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
+#include <boost/unordered_map.hpp>
 #include "util/FlexiBarrier.hpp"
 
 #include "GenConfig.h"
@@ -35,13 +37,13 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
-
+#include "entities/conflux/SegmentStats.hpp"
 
 namespace sim_mob
 {
 
 class WorkGroup;
-
+class Conflux;
 
 class Worker : public BufferedDataManager {
 public:
@@ -89,6 +91,7 @@ public:
 protected:
 	virtual void perform_main(timeslice currTime);
 	virtual void perform_flip();
+	virtual void perform_handover();
 
 
 private:
@@ -137,10 +140,14 @@ private:
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
+	std::set<Conflux*> managedConfluxes;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:
 	friend class WorkGroup;
+
+public:
+	std::stringstream debugMsg; //TODO: Delete
 };
 
 }

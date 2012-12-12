@@ -651,7 +651,7 @@ namespace sim_mob
     }
 
     void link_t_pskel::
-    Segments_parser (::sim_mob::xml::Segments_pskel& p)
+    Segments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
     {
       this->Segments_parser_ = &p;
     }
@@ -661,7 +661,7 @@ namespace sim_mob
              ::xml_schema::string_pskel& roadName,
              ::xml_schema::unsigned_int_pskel& StartingNode,
              ::xml_schema::unsigned_int_pskel& EndingNode,
-             ::sim_mob::xml::Segments_pskel& Segments)
+             ::sim_mob::xml::fwdBckSegments_t_pskel& Segments)
     {
       this->linkID_parser_ = &linkID;
       this->roadName_parser_ = &roadName;
@@ -972,12 +972,6 @@ namespace sim_mob
     }
 
     void Node_t_pskel::
-    linkLoc_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->linkLoc_parser_ = &p;
-    }
-
-    void Node_t_pskel::
     originalDB_ID_parser (::xml_schema::string_pskel& p)
     {
       this->originalDB_ID_parser_ = &p;
@@ -986,12 +980,10 @@ namespace sim_mob
     void Node_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& nodeID,
              ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::unsigned_long_pskel& linkLoc,
              ::xml_schema::string_pskel& originalDB_ID)
     {
       this->nodeID_parser_ = &nodeID;
       this->location_parser_ = &location;
-      this->linkLoc_parser_ = &linkLoc;
       this->originalDB_ID_parser_ = &originalDB_ID;
     }
 
@@ -999,7 +991,6 @@ namespace sim_mob
     Node_t_pskel ()
     : nodeID_parser_ (0),
       location_parser_ (0),
-      linkLoc_parser_ (0),
       originalDB_ID_parser_ (0)
     {
     }
@@ -1058,7 +1049,6 @@ namespace sim_mob
     void UniNode_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& nodeID,
              ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::unsigned_long_pskel& linkLoc,
              ::xml_schema::string_pskel& originalDB_ID,
              ::sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
              ::sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
@@ -1066,7 +1056,6 @@ namespace sim_mob
     {
       this->nodeID_parser_ = &nodeID;
       this->location_parser_ = &location;
-      this->linkLoc_parser_ = &linkLoc;
       this->originalDB_ID_parser_ = &originalDB_ID;
       this->firstPair_parser_ = &firstPair;
       this->secondPair_parser_ = &secondPair;
@@ -1141,7 +1130,6 @@ namespace sim_mob
     void roundabout_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& nodeID,
              ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::unsigned_long_pskel& linkLoc,
              ::xml_schema::string_pskel& originalDB_ID,
              ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
              ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
@@ -1155,7 +1143,6 @@ namespace sim_mob
     {
       this->nodeID_parser_ = &nodeID;
       this->location_parser_ = &location;
-      this->linkLoc_parser_ = &linkLoc;
       this->originalDB_ID_parser_ = &originalDB_ID;
       this->roadSegmentsAt_parser_ = &roadSegmentsAt;
       this->Connectors_parser_ = &Connectors;
@@ -1236,7 +1223,6 @@ namespace sim_mob
     void intersection_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& nodeID,
              ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::unsigned_long_pskel& linkLoc,
              ::xml_schema::string_pskel& originalDB_ID,
              ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
              ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
@@ -1249,7 +1235,6 @@ namespace sim_mob
     {
       this->nodeID_parser_ = &nodeID;
       this->location_parser_ = &location;
-      this->linkLoc_parser_ = &linkLoc;
       this->originalDB_ID_parser_ = &originalDB_ID;
       this->roadSegmentsAt_parser_ = &roadSegmentsAt;
       this->Connectors_parser_ = &Connectors;
@@ -2345,9 +2330,9 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel& p)
+    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
     {
-      this->signalAlgorithm_parser_ = &p;
+      this->signalTimingMode_parser_ = &p;
     }
 
     void SplitPlan_t_pskel::
@@ -2376,14 +2361,14 @@ namespace sim_mob
 
     void SplitPlan_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& splitplanID,
-             ::sim_mob::xml::signalAlgorithm_t_pskel& signalAlgorithm,
+             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::xml_schema::unsigned_byte_pskel& cycleLength,
              ::xml_schema::unsigned_byte_pskel& offset,
              ::sim_mob::xml::Plans_t_pskel& ChoiceSet,
              ::sim_mob::xml::Phases_t_pskel& Phases)
     {
       this->splitplanID_parser_ = &splitplanID;
-      this->signalAlgorithm_parser_ = &signalAlgorithm;
+      this->signalTimingMode_parser_ = &signalTimingMode;
       this->cycleLength_parser_ = &cycleLength;
       this->offset_parser_ = &offset;
       this->ChoiceSet_parser_ = &ChoiceSet;
@@ -2393,7 +2378,7 @@ namespace sim_mob
     SplitPlan_t_pskel::
     SplitPlan_t_pskel ()
     : splitplanID_parser_ (0),
-      signalAlgorithm_parser_ (0),
+      signalTimingMode_parser_ (0),
       cycleLength_parser_ (0),
       offset_parser_ (0),
       ChoiceSet_parser_ (0),
@@ -2417,9 +2402,9 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalAlgorithm_parser (::sim_mob::xml::signalAlgorithm_t_pskel& p)
+    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
     {
-      this->signalAlgorithm_parser_ = &p;
+      this->signalTimingMode_parser_ = &p;
     }
 
     void Signal_t_pskel::
@@ -2437,13 +2422,13 @@ namespace sim_mob
     void Signal_t_pskel::
     parsers (::xml_schema::unsigned_byte_pskel& signalID,
              ::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::signalAlgorithm_t_pskel& signalAlgorithm,
+             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
              ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
     {
       this->signalID_parser_ = &signalID;
       this->nodeID_parser_ = &nodeID;
-      this->signalAlgorithm_parser_ = &signalAlgorithm;
+      this->signalTimingMode_parser_ = &signalTimingMode;
       this->linkAndCrossings_parser_ = &linkAndCrossings;
       this->SplitPlan_parser_ = &SplitPlan;
     }
@@ -2452,7 +2437,7 @@ namespace sim_mob
     Signal_t_pskel ()
     : signalID_parser_ (0),
       nodeID_parser_ (0),
-      signalAlgorithm_parser_ (0),
+      signalTimingMode_parser_ (0),
       linkAndCrossings_parser_ (0),
       SplitPlan_parser_ (0)
     {
@@ -2557,36 +2542,6 @@ namespace sim_mob
     Lanes_pskel::
     Lanes_pskel ()
     : Lane_parser_ (0)
-    {
-    }
-
-    // Segments_pskel
-    //
-
-    void Segments_pskel::
-    FWDSegments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
-    {
-      this->FWDSegments_parser_ = &p;
-    }
-
-    void Segments_pskel::
-    BKDSegments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
-    {
-      this->BKDSegments_parser_ = &p;
-    }
-
-    void Segments_pskel::
-    parsers (::sim_mob::xml::fwdBckSegments_t_pskel& FWDSegments,
-             ::sim_mob::xml::fwdBckSegments_t_pskel& BKDSegments)
-    {
-      this->FWDSegments_parser_ = &FWDSegments;
-      this->BKDSegments_parser_ = &BKDSegments;
-    }
-
-    Segments_pskel::
-    Segments_pskel ()
-    : FWDSegments_parser_ (0),
-      BKDSegments_parser_ (0)
     {
     }
 
@@ -4162,7 +4117,7 @@ namespace sim_mob
     }
 
     void link_t_pskel::
-    Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&)
+    Segments (std::vector<sim_mob::RoadSegment*>)
     {
     }
 
@@ -4271,7 +4226,7 @@ namespace sim_mob
       if (n == "Segments" && ns.empty ())
       {
         if (this->Segments_parser_)
-          this->Segments (this->Segments_parser_->post_Segments ());
+          this->Segments (this->Segments_parser_->post_fwdBckSegments_t ());
 
         return true;
       }
@@ -5017,11 +4972,6 @@ namespace sim_mob
     }
 
     void Node_t_pskel::
-    linkLoc (unsigned long long)
-    {
-    }
-
-    void Node_t_pskel::
     originalDB_ID (const ::std::string&)
     {
     }
@@ -5052,16 +5002,6 @@ namespace sim_mob
 
         if (this->location_parser_)
           this->location_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "linkLoc" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkLoc_parser_;
-
-        if (this->linkLoc_parser_)
-          this->linkLoc_parser_->pre ();
 
         return true;
       }
@@ -5098,14 +5038,6 @@ namespace sim_mob
       {
         if (this->location_parser_)
           this->location (this->location_parser_->post_Point2D_t ());
-
-        return true;
-      }
-
-      if (n == "linkLoc" && ns.empty ())
-      {
-        if (this->linkLoc_parser_)
-          this->linkLoc (this->linkLoc_parser_->post_unsigned_long ());
 
         return true;
       }
@@ -7604,11 +7536,11 @@ namespace sim_mob
       return false;
     }
 
-    // signalAlgorithm_t_pskel
+    // signalTimingMode_t_pskel
     //
 
-    void signalAlgorithm_t_pskel::
-    post_signalAlgorithm_t ()
+    void signalTimingMode_t_pskel::
+    post_signalTimingMode_t ()
     {
     }
 
@@ -8257,7 +8189,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    signalAlgorithm ()
+    signalTimingMode ()
     {
     }
 
@@ -8301,12 +8233,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
 
-        if (this->signalAlgorithm_parser_)
-          this->signalAlgorithm_parser_->pre ();
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode_parser_->pre ();
 
         return true;
       }
@@ -8369,12 +8301,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        if (this->signalAlgorithm_parser_)
+        if (this->signalTimingMode_parser_)
         {
-          this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-          this->signalAlgorithm ();
+          this->signalTimingMode_parser_->post_signalTimingMode_t ();
+          this->signalTimingMode ();
         }
 
         return true;
@@ -8435,7 +8367,7 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalAlgorithm ()
+    signalTimingMode ()
     {
     }
 
@@ -8479,12 +8411,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
 
-        if (this->signalAlgorithm_parser_)
-          this->signalAlgorithm_parser_->pre ();
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode_parser_->pre ();
 
         return true;
       }
@@ -8535,12 +8467,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalAlgorithm" && ns.empty ())
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        if (this->signalAlgorithm_parser_)
+        if (this->signalTimingMode_parser_)
         {
-          this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-          this->signalAlgorithm ();
+          this->signalTimingMode_parser_->post_signalTimingMode_t ();
+          this->signalTimingMode ();
         }
 
         return true;
@@ -8824,78 +8756,6 @@ namespace sim_mob
       {
         if (this->Lane_parser_)
           this->Lane (this->Lane_parser_->post_lane_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Segments_pskel
-    //
-
-    void Segments_pskel::
-    FWDSegments (std::vector<sim_mob::RoadSegment*>)
-    {
-    }
-
-    void Segments_pskel::
-    BKDSegments (std::vector<sim_mob::RoadSegment*>)
-    {
-    }
-
-    bool Segments_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "FWDSegments" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->FWDSegments_parser_;
-
-        if (this->FWDSegments_parser_)
-          this->FWDSegments_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "BKDSegments" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->BKDSegments_parser_;
-
-        if (this->BKDSegments_parser_)
-          this->BKDSegments_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Segments_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "FWDSegments" && ns.empty ())
-      {
-        if (this->FWDSegments_parser_)
-          this->FWDSegments (this->FWDSegments_parser_->post_fwdBckSegments_t ());
-
-        return true;
-      }
-
-      if (n == "BKDSegments" && ns.empty ())
-      {
-        if (this->BKDSegments_parser_)
-          this->BKDSegments (this->BKDSegments_parser_->post_fwdBckSegments_t ());
 
         return true;
       }

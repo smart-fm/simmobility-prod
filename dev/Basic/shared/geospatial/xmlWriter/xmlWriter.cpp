@@ -1,4 +1,33 @@
 #include "xmlWriter.hpp"
+
+#include "buffering/Shared.hpp"
+#include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
+
+#include "geospatial/RoadItem.hpp"
+#include "geospatial/Roundabout.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/RoadSegment.hpp"
+//#include "geospatial/BusStop.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/Intersection.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Node.hpp"
+//#include "geospatial/Pavement.hpp"
+#include "geospatial/Traversable.hpp"
+#include "geospatial/UniNode.hpp"
+#include "conf/simpleconf.hpp"
+
+#include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/signal/Signal.hpp"
+#include "entities/signal/Color.hpp"
+
+#include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
@@ -250,7 +279,7 @@ void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, 
 		WriteXMLInput_Location(second,false,crossing->farLine.second.getX(),crossing->farLine.second.getY());
 	}
 }
-void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle)
+bool sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle)
 {
 	sim_mob::Crossing * crossing = dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item));
 	if(crossing)
@@ -263,6 +292,11 @@ void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlEl
 			sim_mob::BusStop * bs = dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item));
 //			sim_mob::RoadSegment * rs = bs->getRoadSegment();
 			WriteXMLInput_BusStop(bs, res.offset, Obstacle);
+
+		}
+		else
+		{
+			return false;
 		}
 	}
 }
@@ -325,35 +359,58 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 		i++;
 	}
 	TiXmlElement * Obstacles = new TiXmlElement("Obstacles"); Segment->LinkEndChild(Obstacles);
-	for (int currOffset = 0;currOffset <= rs->length ;) {
-		//Get the next item, if any.
-		RoadItemAndOffsetPair res = rs->nextObstacle(currOffset, true);
-		if (!res.item) {
-			break;
-		}
+	for (std::map<centimeter_t, const RoadItem*>::iterator it = rs->getObstacles().begin(); it != rs->getObstacles().end(); it++) {
+		//just for the sake of backward compatibility  as well as easier future improvements
+		sim_mob::RoadItemAndOffsetPair res(it->second,it->first);
 		WriteXMLInput_Obstacle(res, Obstacles);
-		currOffset += res.offset + 1;
 	}
+//	for (int currOffset = 0;currOffset <= rs->length ;) {
+//		//Get the next item, if any.
+//		RoadItemAndOffsetPair res = rs->nextObstacle(currOffset, true);
+//		if (!res.item) {
+//			break;
+//		}
+//		if(!WriteXMLInput_Obstacle(res, Obstacles))
+//		{
+//			if(100001500 == rs->getSegmentID())
+//			{
+//				std::cout << "Segment 100001500, One of the obstacles at offset " << res.offset << " just didn't tally\n";
+//				getchar();
+//			}
+//		}
+//		else
+//		{
+//			if(100001500 == rs->getSegmentID())
+//			{
+//				std::cout << "Segment 100001500, an obstacles at offset " << res.offset << " was serialized\n";
+//				getchar();
+//			}
+//
+//		}
+//		currOffset += res.offset + 1;
+//	}
 
 }
 
+//TODO: Not sure I fixed this correctly. ~Seth
+//      (But we will switch to Xerces output anyway...)
 void sim_mob::WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link)
 {
 	//Segments element first
 	TiXmlElement * Segments = new TiXmlElement("Segments");
 		//FWDSegments
-    TiXmlElement * FWDSegments = new TiXmlElement("FWDSegments");
-    std::vector<sim_mob::RoadSegment*>::const_iterator SegObj_it = (LinkObj)->getFwdSegments().begin();
+    //TiXmlElement * FWDSegments = new TiXmlElement("FWDSegments");
+    std::vector<sim_mob::RoadSegment*>::const_iterator SegObj_it = (LinkObj)->getSegments().begin();
     //validation
-    if(SegObj_it != (LinkObj)->getFwdSegments().end())
-    	Segments->LinkEndChild(FWDSegments);
-    for(; (SegObj_it != (LinkObj)->getFwdSegments().end()) ; SegObj_it++)
+    /*if(SegObj_it != (LinkObj)->getSegments().end())
+    	Segments->LinkEndChild(FWDSegments);*/
+    for(; (SegObj_it != (LinkObj)->getSegments().end()) ; SegObj_it++)
     {
-    	WriteXMLInput_Segment(*SegObj_it,FWDSegments);
+    	WriteXMLInput_Segment(*SegObj_it,Segments);
     }
 
     //BKDSegments
-    TiXmlElement * BKDSegments = new TiXmlElement("BKDSegments");
+    /*(TiXmlElement * BKDSegments = new TiXmlElement("BKDSegments");
     SegObj_it = (LinkObj)->getRevSegments().begin();
     //validation
     if((LinkObj)->getRevSegments().begin() != (LinkObj)->getRevSegments().end())
@@ -361,9 +418,9 @@ void sim_mob::WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link
     for(; (SegObj_it != (LinkObj)->getRevSegments().end()) ; SegObj_it++)
     {
       	WriteXMLInput_Segment(*SegObj_it,BKDSegments);
-    }
+    }*/
     //validation:if you don't have any FWDSegments and BKDSegments, don't add parent element 'Segments'
-    if(!(((LinkObj)->getRevSegments().begin() == (LinkObj)->getRevSegments().end())&&((LinkObj)->getFwdSegments().begin() == (LinkObj)->getFwdSegments().end())))
+ //   if(!(((LinkObj)->getFwdSegments().begin() == (LinkObj)->getFwdSegments().end())))
     	Link->LinkEndChild(Segments);
 }
 
@@ -915,6 +972,317 @@ void sim_mob::WriteXMLInput_TripChains(TiXmlElement * SimMobility)
 	}
 
 }
+
+void sim_mob::WriteXMLInput_TrafficSignal_LinkAndCrossings(TiXmlElement * linkAndCrossings,const LinkAndCrossingByLink & LAC)
+{
+	std::ostringstream out;
+	//linkAndCrossings
+	for(LinkAndCrossingByLink::iterator it = LAC.begin(); it != LAC.end(); it++)
+	{
+		//linkAndCrossing
+		TiXmlElement * linkAndCrossing  = new TiXmlElement( "linkAndCrossing" );
+		linkAndCrossings->LinkEndChild( linkAndCrossing);
+		{
+			//linkID
+			TiXmlElement * linkID  = new TiXmlElement( "linkID" );
+			out.str("");
+			out << it->link->getLinkId();
+			linkID->LinkEndChild( new TiXmlText(out.str()));
+			linkAndCrossing->LinkEndChild(linkID);
+			//crossingID
+			TiXmlElement * crossingID  = new TiXmlElement( "crossingID" );
+			out.str("");
+			out << it->crossing->getCrossingID();
+			crossingID->LinkEndChild( new TiXmlText(out.str()));
+			linkAndCrossing->LinkEndChild(crossingID);
+		}
+	}
+}
+void sim_mob::WriteXMLInput_TrafficSignal_ColorSequence(TiXmlElement * parent, sim_mob::ColorSequence &colorSequence)
+{
+	std::ostringstream out;
+	//ColorSequence
+	TiXmlElement * ColorSequence  = new TiXmlElement( "ColorSequence" );
+	parent->LinkEndChild( ColorSequence);
+
+	//TrafficLightType
+	TiXmlElement * TrafficLightType  = new TiXmlElement( "TrafficLightType" );
+	ColorSequence->LinkEndChild( TrafficLightType);
+	out.str("");
+	out << (colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
+	TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
+
+	std::vector< std::pair<TrafficColor,std::size_t> > & cd = colorSequence.getColorDuration();
+	for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
+	{
+		//ColorDuration
+		TiXmlElement * ColorDuration  = new TiXmlElement( "ColorDuration" );
+		ColorSequence->LinkEndChild( ColorDuration);
+		{
+			//TrafficColor
+			TiXmlElement * TrafficColor__  = new TiXmlElement( "TrafficColor" );
+			ColorDuration->LinkEndChild( TrafficColor__);
+			out.str("");
+			switch(it_cd->first)
+			{
+			case Red:
+				out << "Red";
+				break;
+			case Green:
+				out << "Green";
+				break;
+			case Amber:
+				out << "Amber";
+				break;
+			case FlashingRed:
+				out << "FlashingRed";
+				break;
+			case FlashingGreen:
+				out << "FlashingGreen";
+				break;
+			case FlashingAmber:
+				out << "FlashingAmber";
+				break;
+			}
+			TrafficColor__->LinkEndChild(new  TiXmlText(out.str()));
+
+			//Duration
+			TiXmlElement * Duration  = new TiXmlElement( "Duration" );
+			ColorDuration->LinkEndChild( Duration);
+			out.str("");
+			out << it_cd->second;
+			Duration->LinkEndChild(new TiXmlText(out.str()));
+		}
+	}
+
+}
+void sim_mob::WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases,  std::vector<sim_mob::Phase> &phases_)
+{
+	std::ostringstream out;
+	for(sim_mob::Signal::phases::const_iterator it_phases = phases_.begin(); it_phases != phases_.end(); it_phases++)
+	{
+		//phase
+		TiXmlElement * phase  = new TiXmlElement( "phase" );
+		phases->LinkEndChild( phase);
+		{
+//			//phaseID
+//			TiXmlElement * phaseID  = new TiXmlElement( "phaseID" );
+//			phase->LinkEndChild( phaseID);//to be added later
+//			out.str("");
+//			out << it_phases->phaseID;
+//			phase->LinkEndChild(new TiXmlText(out.str()));
+			//name
+			TiXmlElement * name  = new TiXmlElement( "name" );
+			phase->LinkEndChild( name);
+			out.str("");
+			out << it_phases->getName();
+			name->LinkEndChild(new TiXmlText(out.str()));
+			//links_maps
+			TiXmlElement * links_maps  = new TiXmlElement( "links_maps" );
+			phase->LinkEndChild( links_maps);
+			const sim_mob::links_map & lms_ = it_phases->getLinkMaps();
+			for(sim_mob::links_map::const_iterator it_lm = lms_.begin(); it_lm != lms_.end(); it_lm++)
+			{
+
+				sim_mob::Link * linkFrom_ = it_lm->first;
+				sim_mob::linkToLink lm_= it_lm->second;
+				sim_mob::Link *linkTo_ = lm_.LinkTo;
+				sim_mob::RoadSegment *RS_From_ = lm_.RS_From;
+				sim_mob::RoadSegment *RS_To_ = lm_.RS_To;
+				//links_map
+				TiXmlElement * links_map  = new TiXmlElement( "links_map" );
+				links_maps->LinkEndChild( links_map);
+
+				//linkFrom
+				TiXmlElement * linkFrom  = new TiXmlElement( "linkFrom" );
+				links_map->LinkEndChild( linkFrom);
+				out.str("");
+				out << linkFrom_->getLinkId();
+				linkFrom->LinkEndChild(new TiXmlText(out.str()));
+				//linkTo
+				TiXmlElement * linkTo  = new TiXmlElement( "linkTo" );
+				links_map->LinkEndChild( linkTo);
+				out.str("");
+				out << linkTo_->getLinkId();
+				linkTo->LinkEndChild(new TiXmlText(out.str()));
+				//SegmentFrom
+				TiXmlElement * SegmentFrom  = new TiXmlElement( "SegmentFrom" );
+				links_map->LinkEndChild( SegmentFrom);
+				out.str("");
+				out << RS_From_->getSegmentID();
+				SegmentFrom->LinkEndChild(new TiXmlText(out.str()));
+				//SegmentTo
+				TiXmlElement * SegmentTo  = new TiXmlElement( "SegmentTo" );
+				links_map->LinkEndChild( SegmentTo);
+				out.str("");
+				out << RS_To_->getSegmentID();
+				SegmentTo->LinkEndChild(new TiXmlText(out.str()));
+				//ColorSequence
+				WriteXMLInput_TrafficSignal_ColorSequence(links_map,lm_.colorSequence);
+
+			}
+			//crossings_maps
+			TiXmlElement * crossings_maps  = new TiXmlElement( "crossings_maps" );
+			phase->LinkEndChild( crossings_maps);
+			const sim_mob::crossings_map & cms_ = it_phases->getCrossingMaps();
+			for(sim_mob::crossings_map::const_iterator it_cm = cms_.begin(); it_cm != cms_.end(); it_cm++)
+			{
+				//crossings_map
+				TiXmlElement * crossings_map  = new TiXmlElement( "crossings_map" );
+				crossings_maps->LinkEndChild(crossings_map);
+				//link
+				out.str("");
+				TiXmlElement * linkID  = new TiXmlElement( "linkID" );
+				crossings_map->LinkEndChild(linkID);
+				out << it_cm ->second.link->getLinkId();
+				linkID->LinkEndChild(new TiXmlText(out.str()));
+				//crossing
+				out.str("");
+				TiXmlElement * crossingID  = new TiXmlElement( "crossingID" );
+				crossings_map->LinkEndChild(crossingID);
+				out << it_cm ->second.crossig->getCrossingID();
+				crossingID->LinkEndChild(new TiXmlText(out.str()));
+				sim_mob::ColorSequence & colorSequence = const_cast<sim_mob::ColorSequence &>(it_cm->second.colorSequence);
+				//ColorSequence
+				WriteXMLInput_TrafficSignal_ColorSequence(crossings_map,colorSequence);
+			}
+
+		}
+	}
+}
+
+void sim_mob::WriteXMLInput_TrafficSignal_common(TiXmlElement * Signal,sim_mob::Signal *signal_)
+{
+	std::ostringstream out;
+	//signalID
+	TiXmlElement * signalID  = new TiXmlElement( "signalID" );
+	out << signal_->getSignalId();
+	signalID->LinkEndChild( new TiXmlText(out.str()));
+	Signal->LinkEndChild(signalID);
+	//nodeID
+	TiXmlElement * nodeID  = new TiXmlElement( "nodeID" );
+	out.str("");
+	out << signal_->getNode().getID();
+	nodeID->LinkEndChild( new TiXmlText(out.str()));
+	Signal->LinkEndChild(nodeID);
+
+	//linkAndCrossings
+	TiXmlElement * linkAndCrossings  = new TiXmlElement( "linkAndCrossings" );
+	Signal->LinkEndChild( linkAndCrossings);
+	const LinkAndCrossingByLink & LAC = signal_->getLinkAndCrossingsByLink();
+	WriteXMLInput_TrafficSignal_LinkAndCrossings(linkAndCrossings,LAC);
+
+	//phases
+	TiXmlElement * phases  = new TiXmlElement( "phases" );
+	Signal->LinkEndChild( phases);
+	/*const std::vector<sim_mob::Phase>*/ sim_mob::Signal::phases & phases_ = signal_->getPhases();
+	WriteXMLInput_TrafficSignal_Phases(phases,phases_);
+}
+void sim_mob::WriteXMLInput_TrafficSignal_SCATS_SplitPlan(TiXmlElement * SCATS,sim_mob::Signal_SCATS *signal_)
+{
+	std::ostringstream out;
+	sim_mob::SplitPlan &plan = signal_->getPlan();
+	//SplitPlan
+	TiXmlElement * SplitPlan  = new TiXmlElement( "SplitPlan" );
+	SCATS->LinkEndChild(SplitPlan);
+	//splitplanID
+	TiXmlElement * splitplanID  = new TiXmlElement( "splitplanID" );
+	SplitPlan->LinkEndChild(splitplanID);
+	out.str("");
+	out << plan.TMP_PlanID;
+	splitplanID->LinkEndChild(new TiXmlText(out.str()));
+	//cycleLength
+	TiXmlElement * cycleLength  = new TiXmlElement( "cycleLength" );
+	SplitPlan->LinkEndChild(cycleLength);
+	out.str("");
+	out << plan.getCycleLength();
+	cycleLength->LinkEndChild(new TiXmlText(out.str()));
+	//offset
+	TiXmlElement * offset  = new TiXmlElement( "offset" );
+	SplitPlan->LinkEndChild(offset);
+	out.str("");
+	out << plan.getOffset();
+	offset->LinkEndChild(new TiXmlText(out.str()));
+
+	//ChoiceSet
+	TiXmlElement * ChoiceSet  = new TiXmlElement( "ChoiceSet" );
+	SplitPlan->LinkEndChild(ChoiceSet);
+	int i = 0;
+	for( std::vector< std::vector<double> >::iterator it_pl = plan.getChoiceSet().begin(), it_end(plan.getChoiceSet().end()); it_pl != it_end; it_pl++, i++)
+	{
+		//plan
+		TiXmlElement * plan  = new TiXmlElement( "plan" );
+		ChoiceSet->LinkEndChild(plan);
+
+		//planID
+		TiXmlElement * planID  = new TiXmlElement( "planID" );
+		plan->LinkEndChild(planID);
+		out.str("");
+		out << i;
+		planID->LinkEndChild(new TiXmlText(out.str()));
+		for(std::vector<double>::iterator it_ph = it_pl->begin(), it_end(it_pl->end()); it_ph != it_end; it_ph++)//Choke on it :)
+		{
+			//PhasePercentage
+			TiXmlElement * PhasePercentage  = new TiXmlElement( "PhasePercentage" );
+			plan->LinkEndChild(PhasePercentage);
+			out.str("");
+			out << *it_ph;
+			PhasePercentage->LinkEndChild(new TiXmlText(out.str()));
+		}
+	}
+}
+void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::Signal *signal_)
+{
+	//the common part
+	WriteXMLInput_TrafficSignal_common(Signal, signal_);
+	//SCATS specific part
+
+	//SCATS
+	sim_mob::Signal_SCATS* signal_scats = dynamic_cast<sim_mob::Signal_SCATS*>(signal_);
+	TiXmlElement * SCATS  = new TiXmlElement( "SCATS" );
+	Signal->LinkEndChild( SCATS);
+	//	signalTimingMode
+	TiXmlElement * signalTimingMode = new TiXmlElement("signalTimingMode");
+	if (signal_scats->getSignalTimingMode() == 0) {
+		signalTimingMode->LinkEndChild(new TiXmlText("STM_FIXED"));
+	} else if (signal_scats->getSignalTimingMode() == 1) {
+		signalTimingMode->LinkEndChild(new TiXmlText("STM_ADAPTIVE"));
+	} else {
+		std::cout << "signalTimingMode ( " << signal_scats->getSignalTimingMode()
+				<< ") unknown, press any key ...\n";
+//		getchar();
+	}
+	SCATS->LinkEndChild(signalTimingMode);
+	//splitplan
+	WriteXMLInput_TrafficSignal_SCATS_SplitPlan(SCATS, signal_scats);
+
+
+}
+
+void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal_)
+{
+
+	TiXmlElement * Signal;
+	Signal = new TiXmlElement( "Signal" );
+	Signals->LinkEndChild( Signal );
+	//if scats:
+	WriteXMLInput_TrafficSignal_SCATS(Signal,signal_);
+	//else
+	//....
+}
+
+void sim_mob::WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility)
+{
+	TiXmlElement * Signals;
+	Signals = new TiXmlElement( "Signals" );
+	SimMobility->LinkEndChild( Signals );
+
+	sim_mob::Signal::All_Signals &Signals_ = sim_mob::Signal::all_signals_;
+	for(sim_mob::Signal::all_signals_const_Iterator it = Signals_.begin(); it != Signals_.end(); it++)
+	{
+		WriteXMLInput_TrafficSignal(Signals, (*it));
+	}
+}
 void sim_mob::WriteXMLInput(const std::string& XML_OutPutFileName)
 {
 
@@ -931,5 +1299,6 @@ void sim_mob::WriteXMLInput(const std::string& XML_OutPutFileName)
 
 	WriteXMLInput_GeoSpatial(SimMobility);
 	WriteXMLInput_TripChains(SimMobility);
+	WriteXMLInput_TrafficSignals(SimMobility);
     doc.SaveFile( XML_OutPutFileName );
 }

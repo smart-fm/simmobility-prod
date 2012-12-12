@@ -52,7 +52,6 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
-
 /**
  * Basic Agent class.
  *
@@ -98,19 +97,46 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
-	/* Keeping these methods in Agent class enable to determine the location of the agent without having to
-	 * determine the type of the agent and its Role. If it is irrelevant for some sub class of agent to have these methods,
-	 * (Signal for example) the sub class can just choose to ignore these. ~ Harish*/
+	/* *
+	 * I'm keeping getters and setters for current lane and link in Agent class to be able to determine the
+	 * location of the agent without having to dynamic_cast to Person and get the role.
+	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just ignore these.
+	 * ~ Harish
+	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
+	virtual const sim_mob::RoadSegment* getCurrSegment() const;
+	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
 
-	//Getter an setter for only Lane is kept here. Road segment of the agent can be determined from lane.
+	/* *
+	 * Getter an setter for only the Lane is kept here.
+	 * Road segment of the agent can be determined from lane.
+	 * ~ Harish
+	 */
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
 private:
 	//For future reference.
 	const sim_mob::MutexStrategy mutexStrat;
+
+	//for mid-term link travel time computation
+	struct travelStats
+	{
+	public:
+		const Link* link_;
+		unsigned int linkTravelTime_;
+		unsigned int linkExitTime_;
+		bool hasVehicle_;
+
+		travelStats(const Link* link, unsigned int linkExitTime,
+				unsigned int linkTravelTime, bool hasVehicle)
+		: link_(link), linkTravelTime_(linkTravelTime),
+		  linkExitTime_(linkExitTime), hasVehicle_(hasVehicle)
+		{
+		}
+	};
+
 
 public:
 	//The agent's start/end nodes.
@@ -173,6 +199,18 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
+	//used for mid-term supply
+	void setTravelStats(const Link*, unsigned int linkExitTime, unsigned int linkTravelTime, bool hasVehicle);
+
+	bool isQueuing;
+	double distanceToEndOfSegment;
+	double movingVelocity;
+
+	//for mid-term, to compute link travel times
+	std::map<unsigned int, travelStats> travelStatsMap;
+	unsigned int linkEntryTime;
+
+	//timeslice enqueueTick;
 
 private:
 	//unsigned int currMode;
@@ -199,6 +237,7 @@ protected:
 	boost::mt19937 gen;
 	const sim_mob::Link* currLink;
 	const sim_mob::Lane* currLane;
+	const sim_mob::RoadSegment* currSegment;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	sim_mob::ProfileBuilder profile;

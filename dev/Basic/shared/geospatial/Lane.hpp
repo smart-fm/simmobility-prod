@@ -309,7 +309,6 @@ public:
     	this->polyline_ = polyline;
     }
 
-
 public:
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -422,11 +421,13 @@ private:
 
 
 	friend class RoadSegment;
+
 	friend void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *);
 
 public:
     // polyline_ is mutable so that getPolyline() can be a const method.
 mutable std::vector<Point2D> polyline_;//todo make it private after your debugging is over-vahid
+
 
 };
 

@@ -7,7 +7,8 @@ IF (POLICY CMP0017)
 ENDIF (POLICY CMP0017)
 
 #Fairly reasonable way of determining if we're on OSX
-IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+#If you have an "/Applications" directory on *nix... just why?
+IF(EXISTS "/Applications/")
   SET(USING_OSX ON)
 ENDIF(EXISTS "/Applications/")
 
@@ -49,6 +50,15 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -D_GLIBCXX_FULLY_DYNAMIC_STRING=1")
 #ENDIF(USING_OSX)
 
+#TODO: We use fPIC for everything in Debug mode, to avoid building twice. 
+#      This (may) make Sim Mobility slower in Debug mode. In release mode,
+#      we build two versions of the code: non-PIC for the executable, and 
+#      PIC for the library. Of course, this slows the build process down.
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fPIC")
+  SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
 
@@ -86,7 +96,10 @@ option(BUILD_SHORT "Build short-term simulator." ON)
 option(BUILD_MEDIUM "Build medium-term simulator." ON)
 
 #Option: build long term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_LONG "Build long-term simulator." ON)    
+option(BUILD_LONG "Build long-term simulator." ON)   
+
+#Option: enable confluxes
+option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
 
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
@@ -232,6 +245,8 @@ list(REMOVE_DUPLICATES LibraryList)
 
 #Find all of our Shared source files
 FILE(GLOB_RECURSE SharedCode_CPP shared/*.cpp)
+FILE(GLOB_RECURSE SharedCode_HPP shared/*.hpp)
+
 
 #Remove tests
 FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*.c")
@@ -240,8 +255,36 @@ LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")
 
+  #FILE(GLOB_RECURSE Partial_XML_CPP "shared/geospatial/xmlLoader/implementation/*.cpp")
+  #LIST(REMOVE_ITEM SharedCode_CPP ${Partial_XML_CPP})
+#  FILE(GLOB_RECURSE Partial_XML_HPP "shared/geospatial/xmlLoader/implementation/*.hpp")
+#  LIST(REMOVE_ITEM SharedCode_HPP ${Partial_XML_HPP})
+
 #Build a shared object file for short-term, mid-term, long-term, and tests to use
 add_library(SimMob_Shared OBJECT ${SharedCode_CPP})
+
+#Build an *actual* shared object for the geospatial code & XML loader.
+#TODO: For now we just include everything in the shared lib. Later we can slim it down.
+IF (CMAKE_BUILD_TYPE MATCHES "Debug") 
+  #The debug code already uses PIC
+  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
+  #We need to re-build Release mode, since PIC is (likely) off.
+  add_library(simmob_geoxml SHARED  ${SharedCode_CPP})
+ENDIF()
+
+#Install targets for our shared library (header files)
+#TODO: We currently install *all* header files in Shared.
+#FILE(GLOB_RECURSE GeoHeaderFiles "${CMAKE_CURRENT_SOURCE_DIR}/shared/*.hpp")
+#INSTALL(FILES ${GeoHeaderFiles} DESTINATION include/sim_mob)
+install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp")
+
+#Install the library too.
+INSTALL(TARGETS simmob_geoxml
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
 #Build the Short term?
 IF (${BUILD_SHORT} MATCHES "ON")

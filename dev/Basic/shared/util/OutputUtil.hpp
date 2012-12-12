@@ -14,9 +14,7 @@
 #include <vector>
 #include <string>
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 #include <boost/thread.hpp>
-#endif
 
 #include <iostream>
 #include <fstream>
@@ -38,7 +36,6 @@ namespace sim_mob {
  */
 void PrintArray(const std::vector<int>& ids, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 class Logger
 {
 public:
@@ -81,7 +78,6 @@ private:
 	static std::ofstream file_output;
 	static std::ofstream file_output1;
 };
-#endif
 
 } //End sim_mob namespace
 
@@ -91,6 +87,8 @@ private:
 //Simply destroy this text; no logging; no locking
 #define LogOutNotSync( strm )  ;
 #define LogOut( strm )  ;
+#define SyncCout( strm )  ;
+
 
 #else
 
@@ -104,6 +102,12 @@ private:
  *   else
  *       LogOutNotSync("Why don't you buy something?");
  *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
 #define LogOutNotSync( strm ) \
     do \
@@ -122,6 +126,12 @@ private:
  *   else
  *       LogOut("Why don't you buy something?");
  *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
  
 #define LogOut( strm ) \
@@ -131,14 +141,31 @@ private:
         sim_mob::Logger::log_file() << strm; \
     } \
     while (0)
-/*
-#define LogOut( strm ) \
+
+/**
+ * Write a message to cout, thread-safe.
+ *
+ * Usage:
+ *   \code
+ *   if (count)
+ *       SyncCout("The total cost of " << count << " apples is " << count * unit_price);
+ *   else
+ *       SyncCout("Why don't you buy something?");
+ *   \endcode
+ *
+ * \note
+ * Like the other logging functions, this does nothing if SIMMOB_DISABLE_OUTPUT is defined.
+ * Consider using a regular "cout" for simple debugging messages that are not performance-related
+ * (as SIMMOB_DISABLE_OUTPUT exists for performance purposes).
+ */
+
+#define SyncCout( strm ) \
     do \
     { \
         boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
-        sim_mob::Logger::log_file() << strm; \
+        std::cout << strm; \
     } \
     while (0)
-*/
+
 
 #endif

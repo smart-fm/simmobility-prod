@@ -275,24 +275,26 @@ void sim_mob::Person::findNextItemInTripChain() {
 
 void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 {
-	int i =0;
+	
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
+
 		checkAndReactToTripChain(now.ms());
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms());
+
 	}
-	 i =0;
+	 
 	//Failsafe
 	if (!currRole) {
 		throw std::runtime_error("Person has no Role.");
 	}
-	 i =0;
+	 
 	//Get an UpdateParams instance.
 	UpdateParams& params = currRole->make_frame_tick_params(now);
 	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
-	 i =0;
+	 
 	//Has update() been called early?
 	if (now.ms()<getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
@@ -306,22 +308,21 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		retVal = UpdateStatus::Continue;
 		return;
 	}
-	 i =0;
+	 
 	//Has update() been called too late?
 	if (isToBeRemoved()) {
-		 i =0;
+		 
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("Agent is already done, but hasn't been removed.");
 		}
-		 i =0;
+		 
 		retVal = UpdateStatus::Continue;
 		return;
 	}
-	 i =0;
+	
 	//Is this the first frame tick for this Agent?
 	if (firstFrameTick) {
-		 i =0;
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
@@ -331,31 +332,27 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 				msg << "Agent ID: " << getId() << "\n";
 				throw std::runtime_error(msg.str().c_str());
 			}
-			 i =0;
+			 
 		}
-		 i =0;
+		 
 		//Now that the Role has been fully constructed, initialize it.
 		currRole->frame_init(params);
 
 		//Done
 		firstFrameTick = false;
 	}
-	 i =0;
+	 
 	//Now perform the main update tick
 	if (!isToBeRemoved()) {
 		//added to get the detailed plan before next activity
 		currRole->frame_tick(params);
-		//if mid-term
-		//currRole->frame_tick_med(params);
 	}
-	 i =0;
+	 
 	//Finally, save the output
 	if (!isToBeRemoved()) {
 		currRole->frame_tick_output(params);
-		//if mid-term
-		//currRole->frame_tick_med(params);
 	}
-	 i =0;
+	 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
@@ -365,15 +362,12 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
 	}
-	 i =0;
+	 
 	//Output if removal requested.
 	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
-#endif
+		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
 	}
-	 i =0;
+	 
 }
 
 
@@ -402,14 +396,14 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #endif
 
 		//Add a line to the output file.
-#ifndef SIMMOB_DISABLE_OUTPUT
-		std::stringstream msg;
-		msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-		msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-		msg <<"\n  " <<ex.what();
-		LogOut(msg.str() <<std::endl);
-#endif
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			std::stringstream msg;
+			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
+			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  " <<ex.what();
+			LogOut(msg.str() <<std::endl);
+		}
 		setToBeRemoved();
 	}
 #endif
@@ -438,7 +432,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 	if (!this->currTripChainItem) {
 		return UpdateStatus::Done;
 	}
-	std::cout << "Person::checkAndReactToTripChain " << this->id  << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
+//	std::cout << "Person::checkAndReactToTripChain " << this->id  << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.

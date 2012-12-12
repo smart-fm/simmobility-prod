@@ -7,7 +7,9 @@
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
 #include "geospatial/RoadSegment.hpp"
-
+#include "conflux/SegmentStats.hpp"
+#include "workers/WorkGroup.hpp"
+#include "workers/Worker.hpp"
 
 namespace sim_mob
 {
@@ -15,7 +17,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
-class RoadSegment;
+class SegmentStats;
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -100,16 +102,10 @@ public:
 
     /**
      * Print statistics collected on internal operationss.
-     *
      * Useful only if \c keepStats is \c true when \c init() was called.
      */
     void
     printStatistics() const;
-
-    /*
-     * Returns the density of the road segment. Will be called by driver agents in medium term.
-     */
-    double getDensity(const RoadSegment* rdseg);
 
 private:
     AuraManager()
@@ -118,8 +114,8 @@ private:
     {
     }
 
-    /*Map to store the density of each road segment. */
-    std::map<const RoadSegment*, unsigned short> densityMap;
+    /*Map to store the vehicle counts of each road segment. */
+    //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
 
     // No need to define the dtor.
 

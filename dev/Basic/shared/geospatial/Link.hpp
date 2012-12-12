@@ -53,20 +53,23 @@ class Loader;
  */
 class Link : public sim_mob::Traversable {
 public:
-	Link() : Traversable(), linkID(0), currWorker(nullptr) {}
-	Link(unsigned int linkID_) : Traversable(),linkID(linkID_), currWorker(nullptr) {}
+	Link() : Traversable(), hasOpposingLink(-1), linkID(0), currWorker(nullptr) {}
+	Link(unsigned int linkID_) : Traversable(), hasOpposingLink(-1), linkID(linkID_), currWorker(nullptr) {}
+
+	//Does this Link have an "opposing" 2-way link? NOTE: This should *not* be serialized into XML.
+	//Unless you are loading from the database, this value should always be -1. (0==no, 1==yes)
+	//TODO: This is a temporary fix.
+	int hasOpposingLink;
 
 	//TODO: Temp, for XML
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
-	void setSegmentList(const std::vector<sim_mob::RoadSegment*>& fwd, const std::vector<sim_mob::RoadSegment*>& rev) {
-		this->fwdSegments = fwd;
-		this->revSegments = rev;
+	void setSegments(const std::vector<sim_mob::RoadSegment*>& segs) {
+		this->segs = segs;
 
 		//Rebuild unique list
 		uniqueSegments.clear();
-		std::copy(fwdSegments.begin(), fwdSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
-		std::copy(revSegments.begin(), revSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
+		std::copy(segs.begin(), segs.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
 	}
 
 	//Initialize a link with the given set of segments
@@ -74,7 +77,7 @@ public:
 
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
-	int getLength(bool isForward) const;
+	int getLength() const;
 	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
 	///Return the RoadSegments which make up this Link, in either the forward
@@ -84,15 +87,15 @@ public:
 	/// If bidirectional segments are present, this path may include
 	/// RoadSegments that should actually be read as end->start, not start->end.
 	 
-	const std::vector<sim_mob::RoadSegment*>& getPath(bool isForward) const;
-	std::vector<sim_mob::RoadSegment*>& getPath(bool isForward);
+	const std::vector<sim_mob::RoadSegment*>& getPath() const;
+	std::vector<sim_mob::RoadSegment*>& getPath();
 
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-	const std::vector<sim_mob::RoadSegment*> & getFwdSegments();
-	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
+	const std::vector<sim_mob::RoadSegment*> & getSegments() { return segs; }
+//	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
@@ -116,8 +119,8 @@ public:
 
 protected:
 	//List of pointers to RoadSegments in each direction
-	std::vector<sim_mob::RoadSegment*> fwdSegments;
-	std::vector<sim_mob::RoadSegment*> revSegments;
+	std::vector<sim_mob::RoadSegment*> segs;
+//	std::vector<sim_mob::RoadSegment*> revSegments;
 	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
 

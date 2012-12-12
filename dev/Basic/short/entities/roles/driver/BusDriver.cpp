@@ -662,6 +662,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 	}
 
 #endif
+
 }
 
 void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
@@ -671,12 +672,11 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-	//The BusDriver class will only maintain buses as the current vehicle.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+//The BusDriver class will only maintain buses as the current vehicle.
 	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
-
 	std::stringstream logout;
 	if(!passengerCountOld_display_flag) {
 		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
@@ -703,8 +703,8 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 
 	logout << "\"})" << std::endl;
 
-	LogOut(logout.str());
-#endif
+		LogOut(logout.str());
+	}
 }
 
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {

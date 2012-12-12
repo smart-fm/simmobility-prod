@@ -10,17 +10,15 @@
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
-void sim_mob::Conflux::addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment* rdSeg) {
-	/**
-	 * The agents always start at a node (for now), i.e. the start of a road segment.
-	 * So for now, we will always add the agent to the road segment in "lane infinity".
-	 */
-	sim_mob::SegmentStats* rdSegStats = segmentAgents.at(rdSeg);
-	rdSegStats->laneInfinity.push(ag);
-}
-
 void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
-	segmentAgents[ag->getCurrSegment()]->laneInfinity.push(ag);
+	/**
+	 * The agents always start at a node (for now).
+	 * we will always add the agent to the road segment in "lane infinity".
+	 */
+	sim_mob::SegmentStats* rdSegStats = segmentAgents.at(ag->getCurrSegment());
+	ag->setCurrLane(rdSegStats->laneInfinity);
+	ag->distanceToEndOfSegment = ag->getCurrSegment()->computeLaneZeroLength();
+	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
@@ -42,7 +40,6 @@ void sim_mob::Conflux::updateSignalized() {
 }
 
 void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
-//	debugMsgs << "\nUpdate " << frameNumber << " - Multinode :" << getMultiNode()->getID() << std::endl;
 	initCandidateAgents();
 	sim_mob::Agent* ag = agentClosestToIntersection();
 	while (ag) {
@@ -50,16 +47,9 @@ void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
 		// get next agent to update
 		ag = agentClosestToIntersection();
 	}
-	std::cout << debugMsgs.str();
-	debugMsgs.str(std::string());
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
-	debugMsgs << "\ncurrFrameNumber:" << currFrameNumber.frame()
-			<< "\tag:" << ag->getId()
-			<< "\tseg: [" << ag->getCurrSegment()->getStart()->getID() << "->" << ag->getCurrSegment()->getEnd()->getID() << "]"
-			<< "\tDist:" << ag->distanceToEndOfSegment;
-
 	const sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
 
@@ -68,14 +58,11 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
 
-	if((segBeforeUpdate != segAfterUpdate) || (!laneBeforeUpdate)) {
+	if((segBeforeUpdate != segAfterUpdate) ||
+			(laneBeforeUpdate == segmentAgents[segBeforeUpdate]->laneInfinity && laneBeforeUpdate != laneAfterUpdate)) {
 		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
 		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
-//			debugMsgs << "\nAdding agent " << ag->getId() << " to lane " << laneAfterUpdate->getLaneID()
-//						<< " of Segment [" << segAfterUpdate->getStart()->getID() << "->" << segAfterUpdate->getEnd()->getID() << "]";
-//			debugMsgs << "\nBefore addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
 			segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
-//			debugMsgs << "\nAfter addAgent size(" << laneAfterUpdate->getLaneID() << ") = " << segmentAgents[segAfterUpdate]->getAgents(laneAfterUpdate).size();
 		}
 		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
 			segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
@@ -128,8 +115,6 @@ void sim_mob::Conflux::initCandidateAgents() {
 				}
 			}
 			else { break; }
-			std::cout << debugMsgs.str() << std::endl;
-			debugMsgs.clear();
 		}
 	}
 }
@@ -179,12 +164,8 @@ sim_mob::Agent* sim_mob::Conflux::agentClosestToIntersection() {
 		sim_mob::Agent* nextAg = segmentAgents[agRdSeg]->getNext();
 		std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), agRdSeg);
 		while(!nextAg && rdSegIt != segments.begin()){
-			//debugMsgs << "\nConfluxMN:" << multiNode->getID() << "\t[" << (*rdSegIt)->getStart()->getID() << "->" << (*rdSegIt)->getEnd()->getID() << "] is deserted. ";
 			rdSegIt--;
-			//debugMsgs << "Looking in [" << (*rdSegIt)->getStart()->getID() << "->" << (*rdSegIt)->getEnd()->getID() << "]";
 			nextAg = segmentAgents[*rdSegIt]->getNext();
-			//std::cout << debugMsgs.str() << std::endl;
-			//debugMsgs.clear();
 		}
 		candidateAgents[agRdSeg] = nextAg;
 	}

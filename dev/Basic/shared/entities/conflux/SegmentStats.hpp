@@ -149,11 +149,13 @@ public:
 	double getLastAccept(const Lane* l);
 
 	/**
-	 * laneInfinity stores the new agents added to this road segment when they have just become active and their lane
-	 * and moving/queuing status is still unknown. The frame_init function of the agent's role will have to remove
-	 * the agent from this priority queue and put them on moving/queuing vehicle lists on appropriate lane.
+	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects.
+	 * The LaneStats object created for laneInfinity stores the new agents who will start at this road segment. An agent will be
+	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his  start time falls within the current tick. The lane
+	 * and moving/queuing status is still unknown for agents in laneInfinity. The frame_init function of the agent's role will have
+	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
-	sim_mob::StartTimePriorityQueue laneInfinity;
+	const sim_mob::Lane* laneInfinity;
 };
 
 }

@@ -21,6 +21,10 @@ namespace sim_mob {
 			laneStatsMap[*lane]->initLaneParams(*lane, segVehicleSpeed, segPedSpeed);
 			lane++;
 		}
+
+		laneInfinity = new sim_mob::Lane();
+		laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats()));
+
 		downstreamCopy = isDownstream;
 	}
 
@@ -34,16 +38,7 @@ namespace sim_mob {
 	}
 
 	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
-		Agent* ag = nullptr;
-		if(lane) {
-			ag = laneStatsMap[lane]->dequeue();
-		}
-		else {
-			// no lane indicates laneInfinity
-			ag = laneInfinity.top();
-			laneInfinity.pop();
-		}
-		return ag;
+		return laneStatsMap[lane]->dequeue();
 	}
 
 	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
@@ -148,7 +143,7 @@ namespace sim_mob {
 		bool allAgentsProcessed = true;
 		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
 		while(i!=frontalAgents.end()) {
-			if((*i).second != nullptr) {
+			if(i->second) {
 				allAgentsProcessed = false;
 				break;
 			}
@@ -164,7 +159,7 @@ namespace sim_mob {
 
 		std::map<const sim_mob::Lane*, sim_mob::Agent* >::iterator i = frontalAgents.begin();
 		while(i!=frontalAgents.end()) {
-			if(i->second != nullptr) {
+			if(i->second) {
 				if(minDistance == i->second->distanceToEndOfSegment) {
 					// If current ag and (*i) are at equal distance to the stop line, we toss a coin and choose one of them
 					bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
@@ -213,14 +208,6 @@ namespace sim_mob {
 		sim_mob::Agent* ag = nullptr;
 		if (!allAgentsProcessed()) {
 			ag = agentClosestToStopLine();
-		}
-		else {
-			/* If all agents who were already in the SegmentStats are processed,
-			 * we must process the new starting agents in laneInfinity
-			 */
-			if (laneInfinity.size() > 0) {
-				ag = laneInfinity.top();
-			}
 		}
 		return ag;
 	}

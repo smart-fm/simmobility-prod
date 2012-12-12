@@ -627,7 +627,6 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 		std::cout << "Agent ID: " << ag->getId() << std::endl;
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		ag->setCurrSegment(rdSeg);
-		ag->setCurrLane(nullptr);
 		rdSeg->getParentConflux()->addAgent(ag);
 	}
 }

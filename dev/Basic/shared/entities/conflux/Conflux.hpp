@@ -145,10 +145,7 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
-	// adds an agent who has just become active to this conflux
-	void addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment* rdSeg);
-
-	// adds the agent into this conflux (to segmentAgents list)
+	// adds the agent into this conflux
 	void addAgent(sim_mob::Agent* ag);
 
 	// get agent counts in a segment

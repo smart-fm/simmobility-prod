@@ -475,7 +475,6 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
-//	ss << "\nEntering frame_tick for driver " << parent->getId() << "for roadSeg "<< vehicle->getCurrSegment()->getStart()->getID()<< std::endl;
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
@@ -564,18 +563,6 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 	//not implemented
 	double output = getOutputCounter(currLane);
-	ss.flush();
-		ss << "\nadvanceMovingVehicle " << parent->getId()
-				<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
-				<<"\tcurrSegment: "<< vehicle->getCurrSegment()
-				<<"\tLane: "<< currLane->getLaneID_str()
-				<<"\tConfluxMN: "<<currLane->getRoadSegment()->getParentConflux()->getMultiNode()->getID()
-				<<"\t time: " << t0
-				<<"\t distance: " << x0 << "\tseg length: " << vehicle->getCurrLinkLaneZeroLength()
-				<<"\tActualTime: "<<currTimeMS + t0*1000
-				<<"\toutputCout: "<<output<<endl;
-		std::cout << ss.str();
-
 	//get current location
 	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane
 	double laneQueueLength = getQueueLength(currLane);

@@ -159,7 +159,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
 	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
-	setStartPositionInSegment(); //for mid-term
+//	setStartPositionInSegment(); //for mid-term
 }
 
 

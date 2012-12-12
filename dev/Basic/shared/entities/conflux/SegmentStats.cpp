@@ -273,7 +273,7 @@ namespace sim_mob {
 		//laneParams = sim_mob::LaneParams();
 		int numLanes = lane->getRoadSegment()->getLanes().size();
 		if (numLanes > 0) {
-			double orig = lane->getRoadSegment()->capacity/(numLanes*3600.0);
+			double orig = lane->getRoadSegment()->capacity/(numLanes/**3600.0*/);
 			laneParams->setOrigOutputFlowRate(orig);
 		}
 		laneParams->outputFlowRate = laneParams->origOutputFlowRate;
@@ -313,7 +313,7 @@ namespace sim_mob {
 		double capacity = laneParams->outputFlowRate*elapsedSeconds;
 		double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
 		double acceptRateB = (omega*vehicle_length)/upSpeed;
-	/*	std::cout<< "lane: "<<lane<<"\tupNode:"<<lane->getRoadSegment()->getStart()->getID()
+		/*std::cout<< "lane: "<<lane->getLaneID_str()<<"\tupNode:"<<lane->getRoadSegment()->getStart()->getID()
 						<<"\tcapacity: "<<capacity
 						<<"\tacRateA: "<<acceptRateA
 						<<"\tacRateB: "<<acceptRateB
@@ -395,6 +395,9 @@ namespace sim_mob {
 			if ( !(it->first)->is_pedestrian_lane()){
 				(it->second)->updateOutputCounter(it->first);
 				(it->second)->updateAcceptRate(it->first, segVehicleSpeed);
+				std::cout<<"frameNumber:"<<frameNumber.ms()/1000
+					<<" flowRate: "<<(it->second)->laneParams->getOutputFlowRate()
+					<<" acceptRate: "<<(it->second)->laneParams->getAcceptRate()<<std::endl;
 				(it->second)->setInitialQueueCount(it->second->getQueuingAgentsCount());
 			}
 		}

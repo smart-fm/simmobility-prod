@@ -101,13 +101,6 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 		vehicle = newVeh;
 		currResource = newVeh;
 	}
-
-	//Set some properties about the current path, such as the current polyline, etc.
-	if (vehicle && vehicle->hasPath()) {
-		setOrigin(params);
-	} else {
-		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
-	}
 }
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p) {
@@ -139,14 +132,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment);
 
 	double t = std::max(p.timeThisTick, (departTime - p.now.ms())/1000.0);
-	std::cout<< "time to start: "<<t
-			<< "\ttimeThisTick: "<<p.timeThisTick
-			<< "\tdepartTime: "<<departTime
-			<< "\ttime now: "<<p.now.ms()/1000
-			<< "\tlane: "<<nextLaneInNextSegment
-			<< "\taccept rate: "<<getAcceptRate(nextLaneInNextSegment)
-			<<"\tlastAccept: "<<getLastAccept(nextLaneInNextSegment)
-			<< std::endl;
+
 	if(canGoToNextRdSeg(p, t))
 	{
 		//set position to start
@@ -157,10 +143,13 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 		double actualT = t + p.now.ms();
 		parent->linkEntryTime = actualT;
 		setLastAccept(currLane, actualT);
+		std::cout<<actualT<<std::endl;
+		std::cout<<"lane: "<<currLane->getLaneID_str()<<" lastAccept: "<<getLastAccept(currLane)<<std::endl;
 		setParentData();
 	}
 	else
 	{
+		std::cout<<"cangoto failed!"<<std::endl;
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "Driver cannot be started in new segment, will remain in lane infinity!\n";
@@ -477,6 +466,18 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
+	const Lane* laneInfinity = nullptr;
+	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->
+			getSegmentAgents()[vehicle->getCurrSegment()]->laneInfinity;
+
+	if (vehicle and vehicle->hasPath()) {
+		//at start vehicle will be in lane infinity. set origin will move it to the correct lane
+		if (parent->getCurrLane() == laneInfinity) //for now
+			setOrigin(params);
+	} else {
+		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
+	}
+
 	//Are we done already?
 	if (vehicle->isDone()) {
 		std::cout << "removed when frame_tick is called" << std::endl;
@@ -484,11 +485,16 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		return;
 	}
 
-	if (vehicle and currLane) {
+	//if vehicle is still in lane infinity, it shouldn't be advanced
+	if (parent->getCurrLane() != laneInfinity)
+	{
 		if (advance(p2, p.now.ms())) {
 				//Update parent data. Only works if we're not "done" for a bad reason.
 				setParentData();
 		}
+	}
+	else{
+		std::cout << "lane or vehicle is not set for driver " <<parent->getId() << std::endl;
 	}
 }
 
@@ -563,6 +569,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 	//not implemented
 	double output = getOutputCounter(currLane);
+
 	//get current location
 	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane
 	double laneQueueLength = getQueueLength(currLane);
@@ -704,9 +711,7 @@ void sim_mob::medium::Driver::getSegSpeed(){
 }
 
 int sim_mob::medium::Driver::getOutputCounter(const Lane* l) {
-	//return l->getRoadSegment()->getParentConflux()->getOutputCounter(l);
-	//commented for testing, for now
-	return 1;
+	return l->getRoadSegment()->getParentConflux()->getOutputCounter(l);
 }
 
 double sim_mob::medium::Driver::getOutputFlowRate(const Lane* l) {

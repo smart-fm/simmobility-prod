@@ -59,8 +59,7 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 //{
 //	return LocationType;
 //}
-TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
-		std::string itemType)
+TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType)
 {
 	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace),
 			itemType.end());

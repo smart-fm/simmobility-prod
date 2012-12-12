@@ -196,7 +196,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[2].size() << std::endl;
+	std::cout << "we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
 //	getchar();
 	//The current agent we are working on.
 	Person* person = nullptr;
@@ -205,7 +205,9 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
+		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << std::endl;
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
 //		std::cout << "Person::preson " << person->getId() << "[" << person << "] : currTripChainItem[" << person->currTripChainItem << "] : currSubTrip[" << person->currSubTrip << "]" << std::endl;
 /*		if (person->currSubTrip) {
@@ -221,6 +223,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//Reset for the next (possible) Agent
 		person = nullptr;
 	}//outer for loop(map)
+//	getchar();
 }
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)

@@ -80,6 +80,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 	currSubTrip(nullptr),*/ call_frame_init(true)
 
 {
+	tripchainInitialized = false;
 	//throw 1;
 }
 
@@ -93,20 +94,28 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	tripChain = tcs;
 //	currTripChainItem(nullptr);
 //	currSubTrip(nullptr);
-	init();
+	tripchainInitialized = false;
+	initTripChain();
 
 }
 
-void sim_mob::Person::init(){
+void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();
+		//consider putting this in IT_TRIP clause
+		if(!updateOD(*currTripChainItem)){ //Offer some protection
+				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+		}
 	}
-	if(!updateOD(*currTripChainItem)){ //Offer some protection
-			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP)
+	{
+		std::cout << "Pesron " << this << "  is going to ride a bus\n";
 	}
 	setNextPathPlanned(false);
+	tripchainInitialized = true;
 }
 sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
@@ -396,7 +405,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-		std::cout << "Calling update_time at frame " << now.frame() << std::endl;
+//		std::cout << "Calling update_time at frame " << now.frame() << std::endl;
 		//Update functionality
 		update_time(now, retVal);
 
@@ -484,8 +493,40 @@ bool sim_mob::Person::updatePersonRole()
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
-//	std::cout << "oooooooooooo checkTripChain ooooooooooooooo \n";
-	std::cout << "checking the tripchain for person " << (*currTripChainItem)->personID << std::endl;
+	if(!(tripchainInitialized))
+	{
+		int i = 0;
+		i = tripChain.size();
+		std::cout << "person " << this << "  has no currTripChainItem and has " << i << " tripchains\n";
+		if(i)
+		{
+			int j = 0;
+			if(tripChain.front()->itemType == TripChainItem::IT_BUSTRIP)
+			{
+				j++;
+			}
+			if(tripChain.front()->itemType == TripChainItem::IT_TRIP)
+			{
+				j++;
+			}
+			if(tripChain.front()->itemType == TripChainItem::IT_ACTIVITY)
+			{
+				j++;
+			}
+		}
+	}
+	else
+	{
+		std::cout << "person " << this << "  has  currTripChainItem\n";
+	}
+	std::cout << "checking the tripchain for person " << this ;
+	if(currTripChainItem == tripChain.end())
+	{
+		getchar();
+	}
+	std::cout << "[currTripChainItem: " << (*currTripChainItem) ;
+	std::cout << ", personID: " <<(*currTripChainItem)->personID << "]" << std::endl;
+
 	//some normal checks
 	if(tripChain.size() < 1) return UpdateStatus::Done;
 	//advance the trip,subtrip or activity....
@@ -525,7 +566,6 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();
-//	std::cout << "oooooooooooo checkTripChain-end oooooooooooo \n\n";
 	return res;
 }
 

@@ -47,11 +47,12 @@ class Person : public sim_mob::Agent {
 //	bool advanceCurrentTripChainItem_Activity();
 	inline std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
 public:
+	bool tripchainInitialized;
 	///The "src" variable is used to help flag how this person was created.
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat,unsigned int id=-1);
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
 	virtual ~Person();
-	void init();
+	void initTripChain();
 	///Update Person behavior
 	virtual Entity::UpdateStatus update(timeslice now);
 

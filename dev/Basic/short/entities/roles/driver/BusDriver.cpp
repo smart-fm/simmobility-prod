@@ -49,11 +49,22 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		int vehicle_id = 0;
 		if(person) {
 			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+			if(!bustrip)	std::cout << "bustrip is null\n";
 			if(bustrip && (*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) {
 				path = bustrip->getBusRouteInfo().getRoadSegments();
+				std::cout << "BusTrip path size = " << path.size() << std::endl;
 				vehicle_id = bustrip->getVehicleID();
 			}
+			else
+			{
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_TRIP) std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_ACTIVITY) std::cout << "IT_ACTIVITY\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) std::cout << "IT_BUSTRIP\n";
+				std::cout << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = " << (*(person->currTripChainItem))->itemType << std::endl;
+			}
+
 		}
+
 
 		//TODO: Start in lane 0?
 		int startlaneID = 0;

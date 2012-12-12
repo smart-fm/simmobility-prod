@@ -1332,7 +1332,15 @@ void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double dis
 	}
 
 }
-
+void sim_mob::Driver::check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh,
+		const Driver* other) {
+	//Subtract the size of the car from the distance between them
+	distance = fabs(distance) - other->getVehicleLength() / 2;
+	if (distance <= res.distance) {
+		res.driver = other;
+		res.distance = distance;
+	}
+}
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
@@ -1476,10 +1484,18 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		}
 	}
 	else if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
-		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
+		if (vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
 			// 1. host vh's target lane is == other_driver's lane
-			// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
-			// 3. compare the distance and set params.nvFwdNextLink
+			//
+			size_t targetLaneIndex = params.nextLaneIndex;
+			size_t otherVhLaneIndex = getLaneIndex(other_lane);
+			if (targetLaneIndex == otherVhLaneIndex)
+			{
+				// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
+				double distance = other_driver->vehicle->getDistanceMovedInSegment();
+				// 3. compare the distance and set params.nvFwdNextLink
+				check_and_set_min_nextlink_car_dist(params.nvFwdNextLink, distance, vehicle, other_driver);
+			}
 		}
 	} // end of in different link
 
@@ -1530,6 +1546,9 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 
 	//Update each nearby Pedestrian/Driver
 
+	//
+	params.nvFwdNextLink.driver=NULL;
+	params.nvFwdNextLink.distance = 50000;
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -1591,6 +1610,11 @@ NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 	  rightDis = p.nvRightFwd.distance;
 	if(p.nvFwd.exists())
 	  currentDis = p.nvFwd.distance;
+	else if(p.nvFwdNextLink.exists())
+	{
+		currentDis = p.nvFwdNextLink.distance;
+		return p.nvFwdNextLink;
+	}
 	if(leftDis<currentDis)
 	{
 		//the vehicle in the left lane is turning to right

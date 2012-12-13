@@ -397,7 +397,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	//Retrieve a rowset for this set of trip chains.
 	tripchains_.clear();
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-
+//	std::cout << " Found "
 	//Execute as a rowset to avoid repeatedly building the query.
 	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//The following are set regardless.
@@ -1810,7 +1810,7 @@ struct MyLaneConectorSorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 
@@ -1837,7 +1837,7 @@ struct MyLaneConectorSorter {
 	  if(!(a && b))
 	  {
 		  std::cout << "A lane from is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))

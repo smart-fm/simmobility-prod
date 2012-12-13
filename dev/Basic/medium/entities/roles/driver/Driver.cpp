@@ -95,7 +95,8 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const
 {
-	return new Driver(parent, parent->getMutexStrategy());
+	Role* role = new Driver(parent, parent->getMutexStrategy());
+	return role;
 }
 
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)

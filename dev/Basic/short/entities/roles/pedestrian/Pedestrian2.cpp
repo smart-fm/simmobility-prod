@@ -77,7 +77,7 @@ double Pedestrian2::collisionForce = 20;
 double Pedestrian2::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian2::Pedestrian2(Agent* parent) : Role(parent),
+sim_mob::Pedestrian2::Pedestrian2(Agent* parent, std::string roleName) : Role(parent,roleName),
 	trafficSignal(nullptr), currCrossing(nullptr),
 	isUsingGenPathMover(true), params(parent->getGenerator()) {
 	//Check non-null parent. Perhaps references may be of use here?
@@ -118,7 +118,8 @@ void sim_mob::Pedestrian2::frame_init(UpdateParams& p)
 }
 Role* sim_mob::Pedestrian2::clone(Person* parent) const
 {
-	return new Pedestrian2(parent);
+	Role* role = new Pedestrian2(parent);
+	return role;
 }
 
 UpdateParams& sim_mob::Pedestrian2::make_frame_tick_params(timeslice now)
@@ -158,7 +159,12 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 	else {
 		if (!pedMovement.isDoneWithEntireRoute())
 			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+		else
+		{
+			parent->setToBeRemoved();
+		}
 	}
+
 		pedMovement.advance(vel);
 
 		parent->xPos.set(pedMovement.getPosition().x);

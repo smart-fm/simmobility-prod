@@ -332,7 +332,13 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(currLaneChangeDir != LCS_SAME) { //Performing a lane change.
 		//Set the lateral velocity of the vehicle; move it.
-		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
+		int lcsSign ;
+		if(currLaneChangeDir==LCS_RIGHT)
+			lcsSign = -1;
+
+		if(currLaneChangeDir==LCS_LEFT)
+			lcsSign = 1;
+
 		return lcsSign*150;//p.laneChangingVelocity;
 	}
 

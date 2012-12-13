@@ -94,6 +94,10 @@ const std::string sim_mob::Trip::getMode(const sim_mob::SubTrip *subTrip) const{
 	return subTrip->getMode();
 }
 
+const std::string sim_mob::SubTrip::getMode() const {
+		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
+		return mode;
+	}
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.

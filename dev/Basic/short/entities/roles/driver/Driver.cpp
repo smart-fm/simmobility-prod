@@ -178,8 +178,8 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 
 //Initialize
-sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
-	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
+sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string roleName_) :
+	Role(parent,roleName_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
 	params(parent->getGenerator())
 {
@@ -232,7 +232,9 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 
 Role* sim_mob::Driver::clone(Person* parent) const
 {
-	return new Driver(parent, parent->getMutexStrategy());
+	Role* role = 0;
+	role = new Driver(parent, parent->getMutexStrategy());
+	return role;
 }
 
 
@@ -728,9 +730,19 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
     	}
     	tripChainItem_it++;
     }
+//    Node *lastSubTripEndingNode = 0;
+    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
+    Node * lastSubTripEndingNode = 0;
+    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
+    {
+    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
+    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
+    	nextNonTrip_it ++;
+    }
     //now find the last sub trip within that trip
-    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
-//    std::cout << "Our last stop according to trip chain is: " << lastSubTripEndingNode->getID() << std::endl;
+//    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
+    if(lastSubTripEndingNode)
+    	std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
     if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
 	{
     	std::cout << "1-  We are in business\n";
@@ -745,15 +757,15 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
     		//Call our model
     		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
     		//move to most left lane
-    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
+//    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
 //    		std::vector<sim_mob::Lane*>::iterator it = vehicle->getCurrSegment()->getLanes().begin();
 ////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
 //    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
     		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
-    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
+    		std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
 
 			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-    		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+    		LANE_CHANGE_SIDE lcs = LCS_LEFT;//mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
     		std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
     		vehicle->setTurningDirection(lcs);
     		std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
@@ -1230,8 +1242,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 			std::cout << "Driver path has " << path.size() << "  elements\n";
-			getchar();
-			getchar();
+//			getchar();
+//			getchar();
 		} else {
 //			std::cout << "Driver Has no path\n";
 //			getchar();

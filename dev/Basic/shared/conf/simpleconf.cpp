@@ -198,29 +198,19 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
 	std::cout << "we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+	std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << std::endl;
 //	getchar();
 	//The current agent we are working on.
 	Person* person = nullptr;
 	std::string trip_mode;
-	std::vector<const TripChainItem*> personTripChain;
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << std::endl;
+		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << " with size " << it_map->second.size() << " tripchain items\n" << std::endl;
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-//		std::cout << "Person::preson " << person->getId() << "[" << person << "] : currTripChainItem[" << person->currTripChainItem << "] : currSubTrip[" << person->currSubTrip << "]" << std::endl;
-/*		if (person->currSubTrip) {
-//			if (person->currSubTrip->mode == "Bus") {
-//				// currently only one
-//				if (!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(person,	active_agents);
-//				}
-//			}
-		} else*/ {
-			addOrStashEntity(person, active_agents, pending_agents);
-		}
+		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent
 		person = nullptr;
 	}//outer for loop(map)
@@ -851,7 +841,7 @@ struct Sorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 
@@ -1805,7 +1795,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
     				{
     					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
-    					getchar();
+//    					getchar();
     				}
     			}
     		}
@@ -1864,8 +1854,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if (((*it) == "database")||((*it) == "xml-tripchains")) {
     	    	 //Create an agent for each Trip Chain in the database.
+//    		std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+//    		std::cout << "-we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+//    		std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << " with size " << tcs.begin()->second.size() << std::endl;
     	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
-    	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	    	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
     	    	return	 "Couldn't load drivers";

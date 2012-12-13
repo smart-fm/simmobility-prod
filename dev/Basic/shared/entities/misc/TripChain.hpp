@@ -144,7 +144,11 @@ public:
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
-	const std::string getMode() const {return mode;}//this is not implementation of a vrtual function
+	const std::string getMode() const ;
+//	{
+//		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
+//		return mode;
+//	}//this is not implementation of a vrtual function
 	virtual ~SubTrip() {}
 };
 

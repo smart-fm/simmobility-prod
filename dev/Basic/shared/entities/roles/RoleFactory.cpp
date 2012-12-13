@@ -38,7 +38,9 @@ const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 {
 	map<string, const Role*>::const_iterator it = prototypes.find(name);
 	if (it!=prototypes.end()) {
-		return it->second;
+		std::cout << name << " found in the prototypes\n";
+		const Role* role = it->second;
+		return role;
 	}
 	return nullptr;
 }
@@ -58,10 +60,14 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 	//This is a temporary function; it involves global knowledge of roles, so it's inelegant.
 	// Also, our "modes" seem to be increasingly similar to our "roles", so there shouldn't be
 	// two names for them
-	const Trip* trip = dynamic_cast<const Trip*>(currTripChainItem);
-	const Activity* act = dynamic_cast<const Activity*>(currTripChainItem);
-	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(currTripChainItem);
-	if (trip && currTripChainItem->itemType==TripChainItem::IT_TRIP) {
+//	const Trip* trip = dynamic_cast<const Trip*>(currTripChainItem);
+//	const Activity* act = dynamic_cast<const Activity*>(currTripChainItem);
+//	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(currTripChainItem);
+	if (currTripChainItem->itemType==TripChainItem::IT_TRIP)
+	{
+		const Trip* trip = dynamic_cast<const Trip*>(currTripChainItem);
+		if(trip)
+		{
 		if (trip->getSubTrips().front().mode=="Car") {
 			return "driver";
 		} else if (trip->getSubTrips().front().mode=="Walk") {
@@ -76,12 +82,22 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 		else {
 			throw std::runtime_error("Unknown Trip subclass.");
 		}
-	} else if (act && currTripChainItem->itemType==TripChainItem::IT_ACTIVITY) {
-		return "activityRole";
-	} else if (bustrip && currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
-		return "busdriver";
+	}
+	}else if (currTripChainItem->itemType==TripChainItem::IT_ACTIVITY) {
+		if(dynamic_cast<const Activity*>(currTripChainItem))
+			return "activityRole";
+		else{
+			throw std::runtime_error("Unknown Activity subclass.");
+		}
+
+	} else if (currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+		if(dynamic_cast<const BusTrip*>(currTripChainItem))
+			return "busdriver";
+		else{
+			throw std::runtime_error("Unknown bus trip subclass.");
+		}
 	} else { //Offer some protection
-		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+		throw std::runtime_error("Trip/Activity/bustrip mismatch, or unknown TripChainItem subclass.");
 	}
 }
 
@@ -98,7 +114,9 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const{
 	if(tripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) return "busdriver";
 	const std::string roleName = tripChainItem->getMode(subTrip);//(subTrip ? tripChainItem->getMode(subTrip) : "");
-//	std::cout << "subTrip = " << subTrip << std::endl;
+	std::cout << "tripChainItem->personid " << (tripChainItem)->personID << std::endl;
+	std::cout << "rolename = " << roleName << std::endl;
+//	std::cout << "subTrip->mode = " << subTrip->mode << std::endl;
 	if (roleName == "Car")
 		return "driver";
 	if (roleName == "Walk")
@@ -135,8 +153,8 @@ Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 	if (!prot) {
 		throw std::runtime_error("Unknown role type; cannot clone.");
 	}
-
-	return prot->clone(parent);
+	Role* role = prot->clone(parent);
+	return role;
 }
 
 //Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const

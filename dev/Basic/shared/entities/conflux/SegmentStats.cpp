@@ -273,7 +273,7 @@ namespace sim_mob {
 		//laneParams = sim_mob::LaneParams();
 		int numLanes = lane->getRoadSegment()->getLanes().size();
 		if (numLanes > 0) {
-			double orig = lane->getRoadSegment()->capacity/(numLanes/**3600.0*/);
+			double orig = (lane->getRoadSegment()->capacity)/(numLanes/**3600.0*/);
 			laneParams->setOrigOutputFlowRate(orig);
 		}
 		laneParams->outputFlowRate = laneParams->origOutputFlowRate;
@@ -395,9 +395,14 @@ namespace sim_mob {
 			if ( !(it->first)->is_pedestrian_lane()){
 				(it->second)->updateOutputCounter(it->first);
 				(it->second)->updateAcceptRate(it->first, segVehicleSpeed);
-				std::cout<<"frameNumber:"<<frameNumber.ms()/1000
+				std::stringstream ss;
+			/*	ss<<"frameNumber:"<<frameNumber.ms()/1000
+					<<" lane: "<<(it->first)->getLaneID_str()
 					<<" flowRate: "<<(it->second)->laneParams->getOutputFlowRate()
-					<<" acceptRate: "<<(it->second)->laneParams->getAcceptRate()<<std::endl;
+					<<" acceptRate: "<<(it->second)->laneParams->getAcceptRate()
+					<<"outputCounter: "<<(it->second)->laneParams->getOutputCounter()<<std::endl;
+				std::cout<<ss.str();
+				ss.str("");*/
 				(it->second)->setInitialQueueCount(it->second->getQueuingAgentsCount());
 			}
 		}

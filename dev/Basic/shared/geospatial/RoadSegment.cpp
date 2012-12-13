@@ -175,6 +175,10 @@ double sim_mob::RoadSegment::computeLaneZeroLength() const{
 	return res;
 }
 
+void sim_mob::RoadSegment::setCapacity() {
+	capacity = lanes.size()*940.0;
+}
+
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {
 	//Sanity check

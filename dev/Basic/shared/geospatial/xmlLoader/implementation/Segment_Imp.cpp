@@ -86,6 +86,7 @@ void sim_mob::xml::segment_t_pimpl::laneEdgePolylines_cached (std::vector<std::v
 void sim_mob::xml::segment_t_pimpl::Lanes (std::vector<sim_mob::Lane*> value)
 {
 	model.setLanes(value);
+	model.setCapacity(); //to be removed after xml is changed to provide capacity values
 }
 
 void sim_mob::xml::segment_t_pimpl::Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*> value)

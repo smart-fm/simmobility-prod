@@ -260,11 +260,6 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 	bool res = false;
 
-	if (vehicle->isDone()) {
-		parent->setToBeRemoved();
-		return false;
-	}
-
 	bool isNewLinkNext = ( !vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false));
 
 	const sim_mob::RoadSegment* nextRdSeg = nullptr;
@@ -278,8 +273,13 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 	if ( !nextRdSeg) {
 		//vehicle is done
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
+		if (vehicle->isDone()) {
+				parent->setToBeRemoved();
+			}
 		return false;
 	}
+
+
 
 	const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 
@@ -308,7 +308,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		//	parent->setCurrLink((currLane)->getRoadSegment()->getLink());
 			//set Link Travel time for previous link
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
-		if ( !prevSeg){
+		if (prevSeg){
 				const Link* prevLink = prevSeg->getLink();
 				parent->setTravelStats(prevLink, linkExitTimeMS, parent->linkEntryTime, true);
 			}
@@ -606,7 +606,10 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 		tf = t0 + x0/vu;
 		if (tf < p.elapsedSeconds)
 		{
-			std::cout << "tf less than tick" << std::endl;
+			ss << "tf less than tick | output: " << output << endl;
+			std::cout<<ss.str();
+			ss.str("");
+
 			if (output > 0)
 			{
 				p.timeThisTick = tf;
@@ -614,6 +617,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 			}
 			else
 			{
+				std::cout<<"add to queue"<<std::endl;
 				addToQueue(currLane);
 				p.timeThisTick = p.elapsedSeconds;
 			}

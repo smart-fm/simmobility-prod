@@ -278,7 +278,10 @@ public class SimulationResults {
 		
 		//Returns true if this was a known property
 		boolean dispatchConstructionRequest(Utility.ParseResults pRes) throws IOException {
-			if (pRes.type.equals("Driver")) {
+			if (pRes.type.equals("Activity")) {
+				parseActivity(pRes);
+			} 
+			else if (pRes.type.equals("Driver")) {
 				parseDriver(pRes);
 			} else if (pRes.type.equals("BusDriver")) {
 				parseBusDriver(pRes);
@@ -372,7 +375,27 @@ public class SimulationResults {
 		  saveTempAgent(pRes.frame, tempDriver, tracking);
 		}
 		
-		
+		void parseActivity(Utility.ParseResults pRes) throws IOException {			
+		    //Check and parse properties.
+			if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
+		    
+		    //Now save the relevant information
+		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
+		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
+		    
+		    
+		    //Create temp driver
+		    ActivityTick tempActivity = new ActivityTick((int)pRes.objID, xPos, yPos);
+		    
+		    
+		  //Add it to our temporary list
+//		    System.out.println("Adding activity for frame " + pRes.frame);
+		  saveTempAgent(pRes.frame, tempActivity, false);
+		  
+		}
+			
 		//TODO: This shares a lot of functionality with parseDriver(). Can we merge some of it?
 		void parseBusDriver(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.

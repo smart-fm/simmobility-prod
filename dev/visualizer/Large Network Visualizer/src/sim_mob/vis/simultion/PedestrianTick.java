@@ -82,6 +82,11 @@ public class PedestrianTick extends AgentTick {
 	//Let's assume a person is 1m square?
 	public Rectangle2D getBounds() {
 		final double NODE_CM = 1*100; //1m square 
+		double x = (pos.getUnscaledX()-NODE_CM/2);
+		double y = pos.getUnscaledY()-NODE_CM/2;
+//		System.out.println("pedestrian.Rectangle2D.Double(" + x +","+ y +","+NODE_CM+","+ NODE_CM +")");
+//		System.out.println("pedestrian.pos.getUnscaledX() = " + pos.getUnscaledX());
+//		System.out.println("pedestrian.pos.getUnscaledY() = " + pos.getUnscaledY());
 		return new Rectangle2D.Double(
 			pos.getUnscaledX()-NODE_CM/2,
 			pos.getUnscaledY()-NODE_CM/2,

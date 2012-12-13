@@ -381,6 +381,22 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+		//since start time of the activity is usually later than what is configured initially,
+		//we have to make adjustments so that it waits for exact amount of time
+		if(currTripChainItem != tripChain.end())
+		if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+		{
+			sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
+			std::cout << "intial Activity start time = " << (*currTripChainItem)->startTime.toString() << " to " << (*currTripChainItem)->endTime.toString() << std::endl;
+			std::cout << "intial Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
+			ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
+			ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
+			std::cout << "later Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
+			ap->initializeRemainingTime();
+			std::cout << "Activity remaining time initialized to " << ap->remainingTimeToComplete << std::endl;
+//			getchar();
+		}
 	}
 	 
 	//Output if removal requested.

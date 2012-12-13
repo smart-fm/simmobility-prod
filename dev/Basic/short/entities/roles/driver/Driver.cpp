@@ -258,7 +258,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
-	std::cout << "Driver Ticking\n";
+//	std::cout << "Driver Ticking\n";
 //	getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
@@ -1615,26 +1615,26 @@ NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 		currentDis = p.nvFwdNextLink.distance;
 		return p.nvFwdNextLink;
 	}
-	if(leftDis<currentDis)
-	{
-		//the vehicle in the left lane is turning to right
-		//or subject vehicle is turning to left
-		if(p.nvLeftFwd.driver->turningDirection.get()==LCS_RIGHT ||
-				vehicle->getTurningDirection()==LCS_LEFT)
-		{
-//			std::cout<<"nearestVehicle: left forward"<<std::endl;
-			return p.nvLeftFwd;
-		}
-	}
-	else if(rightDis<currentDis)
-	{
-		if(p.nvRightFwd.driver->turningDirection.get()==LCS_LEFT ||
-				vehicle->getTurningDirection()==LCS_RIGHT)
-		{
-//			std::cout<<"nearestVehicle: right forward: rightDis,currentDis: "<<rightDis<<" "<<currentDis<<std::endl;
-			return p.nvRightFwd;
-		}
-	}
+//	if(leftDis<currentDis)
+//	{
+//		//the vehicle in the left lane is turning to right
+//		//or subject vehicle is turning to left
+//		if(p.nvLeftFwd.driver->turningDirection.get()==LCS_RIGHT &&
+//				vehicle->getTurningDirection()==LCS_LEFT && p.nvLeftFwd.driver->getVehicle()->getVelocity()>500)
+//		{
+////			std::cout<<"nearestVehicle: left forward"<<std::endl;
+//			return p.nvLeftFwd;
+//		}
+//	}
+//	else if(rightDis<currentDis)
+//	{
+//		if(p.nvRightFwd.driver->turningDirection.get()==LCS_LEFT &&
+//				vehicle->getTurningDirection()==LCS_RIGHT && p.nvRightFwd.driver->getVehicle()->getVelocity()>500)
+//		{
+////			std::cout<<"nearestVehicle: right forward: rightDis,currentDis: "<<rightDis<<" "<<currentDis<<std::endl;
+//			return p.nvRightFwd;
+//		}
+//	}
 //	if (p.nvFwd.exists())
 //		std::cout<<"nearestVehicle: forward"<<std::endl;
 	return p.nvFwd;
@@ -1822,7 +1822,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 
 
-			std::cout << "The driver light is " << color << std::endl;
+//			std::cout << "The driver light is " << color << std::endl;
 		} else {
 			/*vahid:
 			 * Basically,there is no notion of left, right forward any more.

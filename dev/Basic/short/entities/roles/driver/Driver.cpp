@@ -748,6 +748,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
+	newLatVel  = newLatVel*10;
 	vehicle->setLatVelocity(newLatVel);
 	if(vehicle->getLatVelocity()>0)
 		vehicle->setTurningDirection(LCS_LEFT);
@@ -1586,10 +1587,10 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 		}
 		else
 		{
-			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->fwdVelocity.get():0;
-			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->latVelocity.get():0;
-			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->fwdAccel.get():0;
-			params.perceivedDistToFwdCar = params.nvFwd.distance;
+			params.perceivedFwdVelocityOfFwdCar = nv.driver?nv.driver->fwdVelocity.get():0;
+			params.perceivedLatVelocityOfFwdCar = nv.driver?nv.driver->latVelocity.get():0;
+			params.perceivedAccelerationOfFwdCar = nv.driver?nv.driver->fwdAccel.get():0;
+			params.perceivedDistToFwdCar = nv.distance;
 		}
 		perceivedDistToFwdCar->delay(nv.distance);
 		perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());

@@ -136,8 +136,12 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		if(!nv.exists()) {
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 		}
+		// when nv is left/right vh , can not use perceivedxxx!
 		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
 		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
+
+//		p.v_lead = nv.driver->fwdVelocity/100;
+//		p.a_lead = nv.driver->fwdAccel/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
@@ -184,7 +188,8 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
     double distanceToTrafficSignal;
     distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
     color = p.perceivedTrafficColor;
-	if(distanceToTrafficSignal < 5000)
+    double dis = p.perceivedDistToFwdCar/100;
+	if(distanceToTrafficSignal < dis)
 	{
 	double dis = distanceToTrafficSignal/100;
 #ifdef NEW_SIGNAL

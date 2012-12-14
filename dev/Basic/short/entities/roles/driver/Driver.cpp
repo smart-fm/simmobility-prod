@@ -13,7 +13,6 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
-
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else
@@ -709,7 +708,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				if(p.currLane->is_pedestrian_lane())
 					std::cout<<"drive on pedestrian lane"<<std::endl;
 				bool currentLaneConnectToNextLink = false;
-				size_t targetLaneIndex=-1;
+				size_t targetLaneIndex=p.currLaneIndex;
 				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 						// current lane connect to next link
@@ -725,7 +724,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				{
 					//check target lane first
 					if(targetLaneIndex == -1) // no target lane?
-						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+					{
+//						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+					}
 					p.nextLaneIndex = targetLaneIndex;
 					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
@@ -748,7 +749,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
-	newLatVel  = newLatVel*10;
+//	newLatVel  = newLatVel*10;
 	vehicle->setLatVelocity(newLatVel);
 	if(vehicle->getLatVelocity()>0)
 		vehicle->setTurningDirection(LCS_LEFT);
@@ -1326,7 +1327,12 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh,
 		const Driver* other) {
 	//Subtract the size of the car from the distance between them
+	bool fwd=false;
+	if (distance>=0)
+		fwd = true;
 	distance = fabs(distance) - veh->length / 2 - other->getVehicleLength() / 2;
+	if(fwd && distance <0)
+		distance = 0.1;
 	if (distance <= res.distance) {
 		res.driver = other;
 		res.distance = distance;

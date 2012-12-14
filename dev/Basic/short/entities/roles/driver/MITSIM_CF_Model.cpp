@@ -149,7 +149,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
-			double emergSpace = nv.distance/100;
+			double emergSpace = p.perceivedDistToFwdCar/100;
 			double emergHeadway = CalcHeadway(emergSpace, speed, p.elapsedSeconds, maxAcceleration);
 			if (emergHeadway < hBufferLower) {
 				//We need to brake. Override.

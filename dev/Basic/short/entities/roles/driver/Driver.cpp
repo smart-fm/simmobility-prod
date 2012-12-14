@@ -1550,6 +1550,8 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	//
 	params.nvFwdNextLink.driver=NULL;
 	params.nvFwdNextLink.distance = 50000;
+	params.nvFwd.driver=NULL;
+	params.nvFwd.distance = 50000;
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -1569,6 +1571,13 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 	//Update your perceptions for leading vehicle and gap
 	if (nv.exists()) {
 
+		if (reacTime == 0)
+		{
+			params.perceivedFwdVelocityOfFwdCar = nv.driver?nv.driver->fwdVelocity.get():0;
+			params.perceivedLatVelocityOfFwdCar = nv.driver?nv.driver->latVelocity.get():0;
+			params.perceivedAccelerationOfFwdCar = nv.driver?nv.driver->fwdAccel.get():0;
+			params.perceivedDistToFwdCar = nv.distance;
+		}
 		//Change perception delay
 		perceivedDistToFwdCar->set_delay(reacTime);
 		perceivedVelOfFwdCar->set_delay(reacTime);
@@ -1614,6 +1623,12 @@ NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 	else if(p.nvFwdNextLink.exists())
 	{
 		currentDis = p.nvFwdNextLink.distance;
+		if (currentDis<200 && params.now.ms()/1000.0 > 105.8 && parent->getId() == 314)
+		{
+			std::cout<<"find one"<<std::endl;
+		}
+		/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
+					std::cout<<"find vh"<<std::endl;*/
 		return p.nvFwdNextLink;
 	}
 //	if(leftDis<currentDis)

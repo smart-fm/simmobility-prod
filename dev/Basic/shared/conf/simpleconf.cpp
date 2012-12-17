@@ -209,6 +209,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 //		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
 		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << " with size " << it_map->second.size() << " tripchain items\n" << std::endl;
+//		getchar();
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
 		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent

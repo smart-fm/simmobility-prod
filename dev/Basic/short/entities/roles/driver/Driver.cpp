@@ -1242,8 +1242,6 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 			std::cout << "Driver path has " << path.size() << "  elements\n";
-//			getchar();
-//			getchar();
 		} else {
 //			std::cout << "Driver Has no path\n";
 //			getchar();

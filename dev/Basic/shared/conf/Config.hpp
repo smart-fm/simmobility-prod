@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <boost/noncopyable.hpp>
+
 //NOTE: Try to include only a minimum subset of files here, since Config.hpp is linked to from many places.
 #include "Constructs.hpp"
 

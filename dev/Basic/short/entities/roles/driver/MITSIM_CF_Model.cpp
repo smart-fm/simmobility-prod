@@ -132,6 +132,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
+	if ( p.space < 2.0 && p.isAlreadyStart )
+		return maxDeceleration;
 	if(p.space > 0) {
 		if(!nv.exists()) {
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);

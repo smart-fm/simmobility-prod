@@ -23,7 +23,20 @@ const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 	}
 	return nullptr;
 }
-
+std::vector<sim_mob::Lane*> sim_mob::UniNode::getOutgoingLanes(Lane& from)
+{
+	std::vector<sim_mob::Lane*> res;
+	std::map<const sim_mob::Lane*, sim_mob::Lane* >::iterator it;
+	for (it = connectors.begin();it!=connectors.end();++it)
+	{
+		const sim_mob::Lane * l = it->first;
+		if(l->getLaneID() == from.getLaneID())
+		{
+			res.push_back(it->second);
+		}
+	}
+	return res;
+}
 
 const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& sim_mob::UniNode::getRoadSegmentPair(bool first) const
 {

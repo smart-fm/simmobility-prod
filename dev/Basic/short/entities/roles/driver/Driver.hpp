@@ -125,6 +125,9 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
+	double startTime;
+	bool isAleadyStarted;
+
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
@@ -154,7 +157,7 @@ public:
 
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 private:
-	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods

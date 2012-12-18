@@ -1982,8 +1982,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
 
 		if ((*it)->getSegments().empty()) {
-			std::cout <<"ERROR_2907" <<std::endl;
-			continue;
+			//std::cout <<"ERROR_2907" <<std::endl;
+			//continue;
 		}
 
 		roadSegmentsAt[start].insert((*it)->getSegments().front());

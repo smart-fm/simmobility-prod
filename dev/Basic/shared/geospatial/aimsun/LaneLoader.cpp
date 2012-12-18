@@ -661,11 +661,11 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& 
 
 	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-		try {
+		//try {
 			LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
-		} catch (std::exception& ex) {
-			std::cout <<"ERROR_2904" <<std::endl;
-		}
+		//} catch (std::exception& ex) {
+		//	std::cout <<"ERROR_2904" <<std::endl;
+		//}
 	}
 }
 
@@ -798,8 +798,8 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 		//Avoid looping forever
 		if (maxLoops-- == 0) {
-			std::cout <<"ERROR_2903" <<std::endl; break;
-			//throw std::runtime_error("Error: Network contains RoadSegment loop.");
+			//std::cout <<"ERROR_2903" <<std::endl; break;
+			throw std::runtime_error("Error: Network contains RoadSegment loop.");
 		}
 	}
 }

@@ -337,8 +337,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 
 		//Ensure we have both
 		if (!fromVertex.second || !toVertex.second) {
-			std::cout <<"ERROR_2906" <<std::endl; continue;
-			//throw std::runtime_error("Lane connector has no associated vertex.");
+			//std::cout <<"ERROR_2906" <<std::endl; continue;
+			throw std::runtime_error("Lane connector has no associated vertex.");
 		}
 
 		//Create an edge.

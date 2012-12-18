@@ -103,7 +103,7 @@ private:
 	/* updates lane params for all lanes within the conflux */
 	void updateSupplyStats(timeslice frameNumber);
 
-	void killAgent(sim_mob::Agent* ag);
+	void killAgent(sim_mob::Agent* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
 
 public:
 	//constructors and destructor
@@ -150,7 +150,7 @@ public:
 
 	// get agent counts in a segment
 	// lanewise
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
 	// moving and queuing counts
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);

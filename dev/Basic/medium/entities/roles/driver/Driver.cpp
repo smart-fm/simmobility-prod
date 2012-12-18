@@ -94,13 +94,19 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 {
 	//Save the path from orign to next activity location in allRoadSegments
-	Vehicle* newVeh = initializePath(true);
-	if (newVeh) {
-		safe_delete_item(vehicle);
-		//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
-		vehicle = newVeh;
-		currResource = newVeh;
+	if (!currResource) {
+		Vehicle* veh = initializePath(true);
+		if (veh) {
+			safe_delete_item(vehicle);
+			//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
+			vehicle = veh;
+			currResource = veh;
+		}
 	}
+	else {
+		initializePath(false);
+	}
+
 }
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p) {
@@ -149,7 +155,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	}
 	else
 	{
-		std::cout<<"cangoto failed!"<<std::endl;
+		std::cout<<"cangoto failed"<<std::endl;
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "Driver cannot be started in new segment, will remain in lane infinity!\n";
@@ -177,13 +183,24 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 
 void sim_mob::medium::Driver::setParentData() {
 	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP){
-	//	parentP->isQueuing = vehicle->isQueuing;
-		parentP->distanceToEndOfSegment = vehicle->getPositionInSegment();
-		parentP->movingVelocity = vehicle->getVelocity();
+	if(!vehicle->isDone()) {
+		if (parentP){
+		//	parentP->isQueuing = vehicle->isQueuing;
+			parentP->distanceToEndOfSegment = vehicle->getPositionInSegment();
+			parentP->movingVelocity = vehicle->getVelocity();
+		}
+		parent->setCurrLane(currLane);
+		parent->setCurrSegment(vehicle->getCurrSegment());
 	}
-	parent->setCurrLane(currLane);
-	parent->setCurrSegment(vehicle->getCurrSegment());
+	else {
+		if (parentP){
+			//	parentP->isQueuing = vehicle->isQueuing;
+			parentP->distanceToEndOfSegment = 0.0;
+			parentP->movingVelocity = 0.0;
+		}
+		parent->setCurrLane(nullptr);
+		parent->setCurrSegment(nullptr);
+	}
 }
 
 void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
@@ -233,6 +250,15 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 		}
+
+		ss << "\nPath: ";
+		for(int i = 1; i!=path.size(); i++) {
+			if(path[i].type_ == WayPoint::ROAD_SEGMENT) {
+				path.at(i).roadSegment_->getEnd()->getID();
+			}
+		}
+		std::cout << ss.str();
+		ss.str("");
 		//TODO: Start in lane 0?
 		int startlaneID = 0;
 
@@ -347,8 +373,7 @@ bool sim_mob::medium::Driver::canGoToNextRdSeg(DriverUpdateParams& p, double t)
 	unsigned int total = nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 			+ nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
 
-	return total < nextRdSeg->getLanes().size()
-			* vehicle->getNextSegmentLength()/vehicle->length;
+	return total < nextRdSeg->getLanes().size() * nextRdSeg->computeLaneZeroLength()/vehicle->length;
 }
 
 void sim_mob::medium::Driver::moveInQueue()
@@ -470,10 +495,11 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->
 			getSegmentAgents()[vehicle->getCurrSegment()]->laneInfinity;
 
-	if (vehicle and vehicle->hasPath()) {
+	if (vehicle && vehicle->hasPath()) {
 		//at start vehicle will be in lane infinity. set origin will move it to the correct lane
-		if (parent->getCurrLane() == laneInfinity) //for now
+		if (parent->getCurrLane() == laneInfinity){ //for now
 			setOrigin(params);
+		}
 	} else {
 		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
 	}
@@ -488,10 +514,10 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	//if vehicle is still in lane infinity, it shouldn't be advanced
 	if (parent->getCurrLane() != laneInfinity)
 	{
-		if (advance(p2, p.now.ms())) {
-				//Update parent data. Only works if we're not "done" for a bad reason.
-				setParentData();
-		}
+		advance(p2, p.now.ms());
+		//Update parent data. Only works if we're not "done" for a bad reason.
+		setParentData();
+
 	}
 	else{
 		std::cout << "lane or vehicle is not set for driver " <<parent->getId() << std::endl;

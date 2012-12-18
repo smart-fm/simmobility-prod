@@ -9,7 +9,7 @@ using std::string;
 namespace sim_mob {
 
 	SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
-		: roadSegment(rdSeg), segDensity(0.0), lastAcceptTime(0.0)
+		: roadSegment(rdSeg), segDensity(0.0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
 	{
 		segVehicleSpeed = getRoadSegment()->maxSpeed/3.6 *100; //converting from kmph to m/s
 		segPedSpeed = 0.0;
@@ -49,13 +49,30 @@ namespace sim_mob {
 	{
 		if(roadSegment == segStats->getRoadSegment())
 		{
-			for(std::vector<sim_mob::Lane*>::const_iterator i = roadSegment->getLanes().begin();
-					i != roadSegment->getLanes().end(); i++ ){
-				laneStatsMap[*i]->addAgents(segStats->getAgents(*i), segStats->getLaneAgentCounts(*i).first);
+			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin();
+					i != laneStatsMap.end(); i++ ){
+				if(i->first == laneInfinity) { // Lane infinities are created individually for each segment stats
+					std::vector<sim_mob::Agent*> agentsOnLnInfinity = segStats->getAgents(segStats->laneInfinity);
+					std::vector<sim_mob::Agent*>::iterator agIt = agentsOnLnInfinity.begin();
+					while (agIt != agentsOnLnInfinity.end()) {
+						(*agIt)->setCurrLane(i->first);
+						i->second->addAgent(*agIt);
+						agIt++;
+					}
+				}
+				else {
+					i->second->addAgents(segStats->getAgents(i->first), segStats->getLaneAgentCounts(i->first).first);
+				}
 			}
 		}
 		else {
 			throw std::runtime_error("SegmentStats::absorbAgents(segStats) called with invalid segStats.");
+		}
+
+		if(segStats->getRoadSegment()->getStart()->getID() == 75822) {
+			debugMsgs << "sourceSegStats: " << segStats->hasAgents() << "|targetSegStats: " << hasAgents() << std::endl;
+			std::cout << debugMsgs.str();
+			debugMsgs.str("");
 		}
 	}
 
@@ -66,13 +83,13 @@ namespace sim_mob {
 				);
 	}
 
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getAgentCountsOnLanes() {
-		std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
-		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
-		while(laneIt != roadSegment->getLanes().end())
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getAgentCountsOnLanes() {
+		std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
+		std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator laneStatsIt = laneStatsMap.begin();
+		while(laneStatsIt != laneStatsMap.end())
 		{
-			agentCountsOnLanes.insert(std::make_pair(*laneIt, getLaneAgentCounts(*laneIt)));
-			laneIt++;
+			agentCountsOnLanes.insert(std::make_pair(laneStatsIt->first, getLaneAgentCounts(laneStatsIt->first)));
+			laneStatsIt++;
 		}
 		return agentCountsOnLanes;
 	}
@@ -191,14 +208,14 @@ namespace sim_mob {
 		}
 	}
 
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getPrevTickLaneCountsFromOriginal() const {
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getPrevTickLaneCountsFromOriginal() const {
 		if(isDownstreamCopy()) {
 			return prevTickLaneCountsFromOriginal;
 		}
-		return std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> >();
+		return std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> >();
 	}
 
-	void SegmentStats::setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginalCopy) {
+	void SegmentStats::setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginalCopy) {
 		if(isDownstreamCopy()) {
 			prevTickLaneCountsFromOriginal = prevTickLaneCountsFromOriginalCopy;
 		}
@@ -429,10 +446,10 @@ namespace sim_mob {
 	}
 
 	bool SegmentStats::hasAgents() {
-		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
-		while(laneIt != roadSegment->getLanes().end())
+		std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator laneIt = laneStatsMap.begin();
+		while(laneIt != laneStatsMap.end())
 		{
-			if(laneStatsMap[*laneIt]->laneAgents.size() > 0){
+			if(laneIt->second->laneAgents.size() > 0){
 				return true;
 			}
 			laneIt++;
@@ -448,12 +465,13 @@ namespace sim_mob {
 		// Only agents in the downstream copy of SegmentStats are meant to cleared with this function.
 		if(isDownstreamCopy())
 		{
-			for(std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
-					laneIt != roadSegment->getLanes().end(); laneIt++)
+			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin();
+					i != laneStatsMap.end(); i++)
 			{
-				laneStatsMap[*laneIt]->clear();
+				i->second->clear();
 			}
 		}
+
 	}
 }// end of namespace sim_mob
 

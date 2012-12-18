@@ -482,6 +482,32 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
 	firstFrameTick = true;
+	setNextPathPlanned(false);
+
+	std::string role = rf.GetTripChainMode(currTripChainItem);
+	vector<WayPoint> path;
+	const sim_mob::RoadSegment* rdSeg = nullptr;
+	if (role == "driver") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(currTripChainItem)->getSubTrips().front();
+		path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+	}
+	else if (role == "pedestrian") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(currTripChainItem)->getSubTrips().front();
+		path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+	}
+	else if (role == "busdriver") {
+		throw std::runtime_error("Bus trips are not implemented in the medium term yet");
+	}
+	else if (role == "activityRole") {
+		throw std::runtime_error("Activity role does not work in the medium term yet");
+	}
+
+	// The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+	// you will get into.
+	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+		rdSeg = path.at(1).roadSegment_;
+	}
+	setCurrSegment(rdSeg);
 
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();

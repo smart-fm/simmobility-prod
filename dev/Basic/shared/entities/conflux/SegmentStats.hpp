@@ -99,7 +99,7 @@ private:
 	sim_mob::Agent* agentClosestToStopLine();
 
 	bool downstreamCopy;
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
 
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
@@ -117,7 +117,7 @@ public:
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
 	std::vector<Agent*> getAgents(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
 
@@ -130,8 +130,8 @@ public:
 
 	bool hasAgents();
 
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
-	void setPrevTickLaneCountsFromOriginal(std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
+	void setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
 
 	unsigned int numMovingInSegment(bool hasVehicle);
 	unsigned int numQueueingInSegment(bool hasVehicle);
@@ -156,6 +156,10 @@ public:
 	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
 	const sim_mob::Lane* laneInfinity;
+
+
+	//TODO: To be removed after debugging.
+	std::stringstream debugMsgs;
 };
 
 }

@@ -54,28 +54,46 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
 
 	UpdateStatus res = ag->update(currFrameNumber);
-
-	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
-	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
-
-	if((segBeforeUpdate != segAfterUpdate) ||
-			(laneBeforeUpdate == segmentAgents[segBeforeUpdate]->laneInfinity && laneBeforeUpdate != laneAfterUpdate)) {
-		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
-		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
-			segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
-		}
-		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
-			segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
-		}
-	}
-
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This agent is done. Remove from simulation. TODO: Check if this is valid for trip chaining. ~ Harish
-		killAgent(ag);
+		killAgent(ag, segBeforeUpdate, laneBeforeUpdate);
+		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
 	} else {
 		throw std::runtime_error("Unknown/unexpected update() return status.");
+	}
+
+	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
+	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
+
+	if((segBeforeUpdate != segAfterUpdate) || (laneBeforeUpdate == segmentAgents[segBeforeUpdate]->laneInfinity && laneBeforeUpdate != laneAfterUpdate))
+	{
+		segmentAgents[segBeforeUpdate]->dequeue(laneBeforeUpdate);
+
+		if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
+			if(laneAfterUpdate) {
+				segmentAgents[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
+			}
+			else {
+				// If we don't know which lane the agent has to go to, we add him to lane infinity.
+				// NOTE: One possible scenario for this is an agent who is starting on a new trip chain item.
+				addAgent(ag);
+			}
+		}
+		else if (segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
+			if(laneAfterUpdate) {
+				segmentAgentsDownstream[segAfterUpdate]->addAgent(laneAfterUpdate, ag);
+			}
+			else {
+				// If we don't know which lane the agent has to go to, we add him to lane infinity.
+				// NOTE: One possible scenario for this is an agent who is starting on a new trip chain item.
+				sim_mob::SegmentStats* downStreamSegStats = segmentAgentsDownstream[segAfterUpdate];
+				ag->setCurrLane(downStreamSegStats->laneInfinity);
+				ag->distanceToEndOfSegment = ag->getCurrSegment()->computeLaneZeroLength();
+				downStreamSegStats->addAgent(downStreamSegStats->laneInfinity, ag);
+			}
+		}
 	}
 }
 
@@ -119,7 +137,7 @@ void sim_mob::Conflux::initCandidateAgents() {
 	}
 }
 
-std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > sim_mob::Conflux::getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg) {
+std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > sim_mob::Conflux::getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg) {
 	return segmentAgents[rdSeg]->getAgentCountsOnLanes();
 }
 
@@ -205,10 +223,13 @@ int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
 }
 
 void sim_mob::Conflux::absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats) {
-	segmentAgents[sourceSegStats->getRoadSegment()]->absorbAgents(sourceSegStats);
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > laneCounts = segmentAgents[sourceSegStats->getRoadSegment()]->getAgentCountsOnLanes();
-	sourceSegStats->setPrevTickLaneCountsFromOriginal(laneCounts);
-	sourceSegStats->clear();
+	if(segmentAgents.find(sourceSegStats->getRoadSegment()) != segmentAgents.end()
+			&& sourceSegStats->hasAgents()) {
+		segmentAgents[sourceSegStats->getRoadSegment()]->absorbAgents(sourceSegStats);
+		std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > laneCounts = segmentAgents[sourceSegStats->getRoadSegment()]->getAgentCountsOnLanes();
+		sourceSegStats->setPrevTickLaneCountsFromOriginal(laneCounts);
+		sourceSegStats->clear();
+	}
 }
 
 double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
@@ -241,8 +262,8 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 	return segmentAgents[lane->getRoadSegment()]->getInitialQueueCount(lane);
 }
 
-void sim_mob::Conflux::killAgent(sim_mob::Agent* ag) {
-	segmentAgents[ag->getCurrSegment()]->removeAgent(ag->getCurrLane(), ag);
+void sim_mob::Conflux::killAgent(sim_mob::Agent* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane) {
+	segmentAgents[prevRdSeg]->removeAgent(prevLane, ag);
 }
 
 void sim_mob::Conflux::handoverDownstreamAgents() {

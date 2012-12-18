@@ -1063,7 +1063,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
 		}
-		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
+		if (it->second.generatedSegment->originalDB_ID.getLogItem().empty()) { //A bit hackish...
+			it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
+		}
 	}
 	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
@@ -1723,6 +1725,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 		//Retrieve the generated segment
 		sim_mob::RoadSegment* rs = currSec->generatedSegment;
+		rs->originalDB_ID.setProps("aimsun-id", currSec->id);
 
 		//Start/end need to be added properly
 		rs->start = currSec->fromNode->generatedNode;
@@ -1977,6 +1980,11 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		sim_mob::MultiNode* start = dynamic_cast<sim_mob::MultiNode*>((*it)->getStart());
 		sim_mob::MultiNode* end = dynamic_cast<sim_mob::MultiNode*>((*it)->getEnd());
 		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
+
+		if ((*it)->getSegments().empty()) {
+			std::cout <<"ERROR_2907" <<std::endl;
+			continue;
+		}
 
 		roadSegmentsAt[start].insert((*it)->getSegments().front());
 		roadSegmentsAt[end].insert((*it)->getSegments().back());

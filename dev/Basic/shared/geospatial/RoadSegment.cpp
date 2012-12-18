@@ -293,7 +293,12 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 
 	//Rebuild if needed
 	if (laneEdgePolylines_cached.empty() || syncNeeded) {
-		syncLanePolylines();
+		try {
+			syncLanePolylines();
+		} catch (std::exception& ex) {
+			std::cout <<"ERROR_2905" <<std::endl;
+			laneEdgePolylines_cached.push_back(std::vector<Point2D>());
+		}
 	}
 	return laneEdgePolylines_cached[laneID];
 }

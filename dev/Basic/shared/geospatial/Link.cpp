@@ -95,7 +95,11 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	//Double-check that everything's been read at least once.
 	if (usedSegments.size() < newSegs.size()) {
 		std::stringstream msg;
-		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size();
+		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size()
+			<<"  segments are: ";
+		for (std::set<sim_mob::RoadSegment*>::const_iterator it=newSegs.begin(); it!=newSegs.end(); it++) {
+			msg <<(*it)->originalDB_ID.getLogItem() <<"  ";
+		}
 		throw std::runtime_error(msg.str().c_str());
 	}
 

@@ -428,6 +428,9 @@ public class RoadNetwork {
 	    	}else{
 	    		
 	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
+	    		if (pos.isEmpty()) {
+	    			System.out.println("ERROR_100: Empty line array for lane: " + parentKey);
+	    		}
 	    		
 	    		//NOTE: We need Nodes here *at least once* because Nodes flip the Y-axis.
 	    		Node startNode = new Node(pos.get(0), pos.get(1), false, null);

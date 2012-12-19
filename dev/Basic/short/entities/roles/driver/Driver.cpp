@@ -721,6 +721,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 						// current lane connect to next link
 						currentLaneConnectToNextLink = true;
+						p.nextLaneIndex = p.currLaneIndex;
+						break;
 					}
 					//find target lane with same index, use this lane
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
@@ -731,10 +733,13 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
 				{
 					//check target lane first
-					if(targetLaneIndex == -1) // no target lane?
-					{
-//						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
-					}
+//					if(targetLaneIndex == -1) // no target lane?
+//					{
+//						p.nextLaneIndex = p.currLaneIndex;
+////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+//					}
+//					else
+
 					p.nextLaneIndex = targetLaneIndex;
 					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
@@ -773,8 +778,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
-	if (params.now.ms()/1000.0 >  123.9
-				 && parent->getId() == 328)
+	if (params.now.ms()/1000.0 >  94.0
+				 && parent->getId() == 402)
 		{
 				std::cout<<"find 666 " <<parent->getId()<<std::endl;
 		}
@@ -791,13 +796,13 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		}
 	}
 
-	if (params.now.ms()/1000.0 > 123.9 && vehicle->getCurrSegment()->getEnd()->nodeId == 93730
-			&& vehicle->getCurrSegment()->getStart()->nodeId == 61688
+	if (params.now.ms()/1000.0 > 93.7 && vehicle->getCurrSegment()->getEnd()->nodeId == 73844
+			&& vehicle->getCurrSegment()->getStart()->nodeId == 111308
 			&& vehicle->getVelocity()>1
 		)
 	{
 		if (vehicle->getNextSegment(false))
-			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 66508)
+			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 61682)
 				std::cout<<"find  " <<parent->getId()<<std::endl;
 	}
 
@@ -1389,19 +1394,28 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
-	if (params.now.ms()/1000.0 >  123.9
-			 && parent->getId() == 404)
-							{
-									std::cout<<"find 65298 " <<other_driver->parent->getId()<<std::endl;
-							}
 	//Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
 	if (!other_lane) {
-		return;
+			return;
+		}
+	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
+
+	if (params.now.ms()/1000.0 >  93.7
+	 && parent->getId() == 402)
+	{
+			std::cout<<"find 332288222 " <<other_driver->parent->getId()<<std::endl;
+			if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
+					if (!vehicle->isInIntersection() && vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
+						std::cout<<"find 3322882asdfa22 " <<other_driver->parent->getId()<<std::endl;
+					}
+			}
 	}
+
+
 	if(vehicle->isInIntersection() || other_driver->vehicle->isInIntersection())
 		return;
-	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
+
 //	int other_offset = other_driver->currLaneOffset_.get();
 	int other_offset = other_driver->vehicle->getDistanceMovedInSegment();
 
@@ -1575,21 +1589,28 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 			}
 		}
 	}
-	else if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
+
+	if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
 		if (!vehicle->isInIntersection() && vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
 			// 1. host vh's target lane is == other_driver's lane
 			//
+			if (params.now.ms()/1000.0 >  93.7
+					 && parent->getId() == 402)
+			{
+					std::cout<<"find 332288 " <<other_driver->parent->getId()<<std::endl;
+			}
 			size_t targetLaneIndex = params.nextLaneIndex;
 			size_t otherVhLaneIndex = getLaneIndex(other_lane);
 			if (targetLaneIndex == otherVhLaneIndex)
 			{
-				if (params.now.ms()/1000.0 >  123.9
-						 && parent->getId() == 404)
-						{
-								std::cout<<"find 5166 " <<other_driver->parent->getId()<<std::endl;
-						}
+
+				if (params.now.ms()/1000.0 == 92.8)
+				{
+					int a=1;
+				}
 				if (params.nvFwd.driver==NULL)
 				{
+					std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
 					double currSL = vehicle->getCurrentSegmentLength();
 					double disMIS = vehicle->getDistanceMovedInSegment();
@@ -1644,8 +1665,9 @@ void sim_mob::Driver::updateNearbyPedestrian(DriverUpdateParams& params, const P
 void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	//Retrieve a list of nearby agents
 
+	double dis = 10000.0;
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(
-			Point2D(vehicle->getX(), vehicle->getY()), *params.currLane, distanceInFront, distanceBehind);
+			Point2D(vehicle->getX(), vehicle->getY()), *params.currLane, dis, distanceBehind);
 
 	//Update each nearby Pedestrian/Driver
 
@@ -1654,6 +1676,12 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	params.nvFwdNextLink.distance = 50000;
 	params.nvFwd.driver=NULL;
 	params.nvFwd.distance = 50000;
+
+	if (params.now.ms()/1000.0 >  93.7
+			 && parent->getId() == 402)
+		{
+			std::cout<<"asdf"<<std::endl;
+		}
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -1718,15 +1746,19 @@ NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 	double leftDis = 5000;
 	double rightDis = 5000;
 	double currentDis = 5000;
+	p.isBeforIntersecton = false;
 	if(p.nvLeftFwd.exists())
 	  leftDis = p.nvLeftFwd.distance;
 	if(p.nvRightFwd.exists())
 	  rightDis = p.nvRightFwd.distance;
 	if(p.nvFwd.exists())
+	{
 	  currentDis = p.nvFwd.distance;
+	}
 	else if(p.nvFwdNextLink.exists())
 	{
 		currentDis = p.nvFwdNextLink.distance;
+		p.isBeforIntersecton = true;
 		if (currentDis<200 && params.now.ms()/1000.0 > 100.0 )
 		{
 			std::cout<<"find one"<<std::endl;

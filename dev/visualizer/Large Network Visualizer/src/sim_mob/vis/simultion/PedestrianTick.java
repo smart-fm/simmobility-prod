@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -196,6 +197,24 @@ public class PedestrianTick extends AgentTick {
 
 		}else{*/
 			g.drawImage(toDraw, 0, 0, null);
+			
+			//Draw a circle with its id
+				Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
+				final int Size = 20;
+				
+				//Background
+				g.setColor(Color.green);
+				g.fillOval(center.x-Size/2, center.y-Size/2, Size, Size);
+				g.setColor(Color.CYAN);
+				g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
+				
+				//Text
+				g.setColor(Color.WHITE);
+				g.setFont(DriverTick.idFont);
+				int strW = g.getFontMetrics().stringWidth(""+ id);
+				g.drawString(""+ id, center.x-strW/2+1, center.y+4);
+
+			
 			//g.drawImage(toDraw, r.nextInt(20)-10, r.nextInt(20)-10, null);
 		//}
 

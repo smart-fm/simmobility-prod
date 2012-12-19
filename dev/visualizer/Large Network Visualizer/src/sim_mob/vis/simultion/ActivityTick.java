@@ -54,7 +54,7 @@ public class ActivityTick extends AgentTick {
 //		System.out.println("Drawing the activity circle");
 		
 		AffineTransform oldAT = g.getTransform();
-		//Draw a circle with its personId
+		//Draw a Square with its personId
 		 {
 			Point center = new Point((int)this.pos.getX(), (int)this.pos.getY());
 			final int Size = 20;

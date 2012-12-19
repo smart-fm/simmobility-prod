@@ -1872,7 +1872,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 
 			//Set to the far edge of the other lane, minus any extra amount.
 			halfLaneWidth = p.currLane->getWidth() / 2.0;
-			vehicle->resetLateralMovement();
+//			vehicle->resetLateralMovement();
 			vehicle->moveLat((halfLaneWidth - remainder) * (actual == LCS_LEFT ? -1 : 1));
 		}
 	} else {

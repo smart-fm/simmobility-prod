@@ -100,6 +100,10 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+	std::cout << "ConfigParams::GetInstance().simStartTime = " << ConfigParams::GetInstance().simStartTime.toString() << std::endl;
+	std::cout << "Set Start time for person " << this << " to " << getStartTime() << "  [" << (*currTripChainItem)->startTime.toString() << "]"<< std::endl;
+//	getchar();
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();
@@ -116,6 +120,8 @@ void sim_mob::Person::initTripChain(){
 	setNextPathPlanned(false);
 	first_update_tick = true;
 	tripchainInitialized = true;
+	//since this agent works based on tripchain, we set its start time
+	//using the first trip/activity's start time
 }
 sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
@@ -232,64 +238,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			continue;
 		}*/
 }
-
-
-
-//SubTrip* sim_mob::Person::getNextSubTripInTrip(){
-//	if((!(*currTripChainItem)) || ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)){
-//		return *currSubTrip;
-//	}
-//
-//	if((*(this->currTripChainItem))->itemType != sim_mob::TripChainItem::IT_TRIP){
-////		throw std::runtime_error("Invalid trip chain item type!");
-//		return nullptr;//extra
-//	}
-//
-//	Trip* currTrip = dynamic_cast<Trip*>(*(this->currTripChainItem));
-//	vector<SubTrip>& currSubTripsList = currTrip->getSubTripsRW();
-//	if (!(*currSubTrip)) {
-//		//Return the first sub trip if the current sub trip which is passed in is null
-//		*currSubTrip = &currSubTripsList.front();
-//		return *currSubTrip;
-//	}
-//		// else return the next sub trip if available; return nullptr otherwise.
-//	vector<SubTrip>::iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (**currSubTrip));
-//	*currSubTrip = nullptr;
-//	if (subTripIterator != currSubTripsList.end()) {
-//		//Set it equal to the next item, assuming we are not at the end of the list.
-//		if (++subTripIterator != currSubTripsList.end()) {
-//			*currSubTrip = &(*subTripIterator);
-//		}
-//	}
-//}
-//
-//TripChainItem* sim_mob::Person::findNextItemInTripChain() {
-//	if((!*(this->currTripChainItem)) /*|| (std::find(tripChain.begin(), tripChain.end(), *(this->currTripChainItem)) == this->tripChain.end())*/) {
-//		if(tripChain.begin() == tripChain.end())
-//		std::cout << "tripChain empty and taking currTripChainItem from front\n";
-//		else
-//		{
-//			std::cout << "tripChain.size() = " << tripChain.size() << std::endl;
-//		}
-//		*(this->currTripChainItem) = this->tripChain.front();
-//	}
-//	else {
-//		// else set the next item if available; return nullptr otherwise.
-//		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), (*currTripChainItem));
-//		(*currTripChainItem) = nullptr;
-//		if (itemIterator!=tripChain.end()) {
-//			//Set it equal to the next item, assuming we are not at the end of the list.
-//			if (++itemIterator != tripChain.end()) {
-//				*(this->currTripChainItem) = *itemIterator;
-//			}
-//		}
-//	}
-//
-//	//comment and call explicitly/separately to get be more clear
-////	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
-//	return *(this->currTripChainItem);
-//}
-
 
 void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 {
@@ -421,8 +369,10 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
+		std::cout << "Person start time is " << getStartTime() << "  and now is " << now.ms() << std::endl;
 		//Update functionality
 		update_time(now, retVal);
+
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
@@ -523,8 +473,8 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		if(!(advanceCurrentTripChainItem()))
 			return UpdateStatus::Done;
 
-	int i = std::distance(currTripChainItem,tripChain.begin());
-	std::cout << "\ndistance = " << i+1 << "/" << tripChain.size() << std::endl;
+//	int i = std::distance(currTripChainItem,tripChain.begin());
+//	std::cout << "\ndistance = " << i+1 << "/" << tripChain.size() << std::endl;
 	first_update_tick = false;
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
 	setNextPathPlanned(false);

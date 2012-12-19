@@ -178,9 +178,9 @@ void sim_mob::Worker::barrier_mgmt()
 		//Add Agents as required.
 		addPendingEntities();
 //		out << "Worker["  << this  <<"]::barrier_mgmt->Iteration  " << i << " Aftre calling addPendingEntities() ,  has " << getAgentSize() << " agents\n";
-		std::cout << out.str();
-//		out << "\nCalling Worker(" << this << ")::barrier_mgmt::perform_main at frame " << currTick << std::endl;
 
+//		out << "\nCalling Worker(" << this << ")::barrier_mgmt::perform_main at  " << timeslice(currTick, currTick*msPerFrame).ms() << std::endl;
+//		std::cout << out.str();
 		//Perform all our Agent updates, etc.
 		perform_main(timeslice(currTick, currTick*msPerFrame));
 

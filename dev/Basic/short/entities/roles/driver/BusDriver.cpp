@@ -37,6 +37,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	dwellTime_record = 0;
 	passengerCountOld_display_flag = false;
 	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
+	demo_passenger_increase = false;
 }
 
 
@@ -193,11 +194,22 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
+	int pc = (dynamic_cast<sim_mob::Bus*>(vehicle))->getPassengerCount();
+	if((p.now.frame() < 2420 && p.now.frame() > 2065 &&  (/*pc == 10 || pc == 15 || */pc == 20)) ||(me == this))
+	{
+		me = this;
+		std::cout << p.now.frame() << ":Bus Driver  " << this << " PC: " << pc << "    diststop = " << p.dis2stop << "  distanceToNextBusStop = " << distanceToNextBusStop() << std::endl;
+	}
 
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+	{
+		std::cout << "1-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
+	}
 	//when vehicle stops, don't do lane changing
 	if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
 	}
+
 	p.turningDirection = vehicle->getTurningDirection();
 
 	//hard code , need solution
@@ -230,6 +242,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	double newFwdAcc = 0;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 	vehicle->setAcceleration(newFwdAcc * 100);
+
 	//}
 
 //	//Retrieve a new acceleration value.
@@ -252,11 +265,18 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
 	}
 
+
 	vehicle->setTurningDirection(lcs);
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+
+
 	vehicle->setLatVelocity(newLatVel * 10);
 
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+	{
+		std::cout << "2-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << "  Approaching = " << (isBusApproachingBusStop()?"TRUE":"FALSE") << std::endl;
+	}
 	if (isBusApproachingBusStop()) {
 		double acc = busAccelerating(p)*100;
 
@@ -266,8 +286,13 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		vehicle->setTurningDirection(lcs);
 		double newLatVel;
 		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+
 		vehicle->setLatVelocity(newLatVel*5);
 
+		if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+		{
+			std::cout << "3-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
+		}
 		// reduce speed
 		if (vehicle->getVelocity() / 100.0 > 2.0)
 		{
@@ -280,20 +305,20 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 		waitAtStopMS = 0;
 	}
-
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me) && isBusArriveBusStop())
+		std::cout << "isBusArriveBusStop() = " << (isBusArriveBusStop()?"TRUE":"FALSE") << std::endl;
 	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
-
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 				dwellTime_record = passengerGeneration(bus);
+
 				DwellTime_ijk.set(dwellTime_record);
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
@@ -327,6 +352,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 			}
+
 //			if(DwellTime_ijk.get() - waitAtStopMS > p.elapsedSeconds * 1.0) {
 //				passengerCountOld_display_flag = true;
 //			}
@@ -336,28 +362,48 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				passengerCountOld_display_flag = true;
 			}
 		}
+		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+		if( demo_passenger_increase && bus->getPassengerCount() == 19 && bus->getVelocity() < 400 /*waitAtStopMS >= (BUS_STOP_WAIT_PASSENGER_TIME_SEC -2)*/)
+		{
+			std::cout << p.now.frame() << " Setting bus passenger to 20-  curr velocity : " << bus->getVelocity() << "  accel: " << bus->getAcceleration() << std::endl;
+				bus->setPassengerCount(20);
+		}
 	}
 //	else if (isBusArriveBusStop()) {
 //		vehicle->setAcceleration(3000);
 //	}
-
+//it can be proved that this is called even long before bus has arrived at bus stop
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
+		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 		//passengerCountOld_display_flag = false;
-
 		vehicle->setAcceleration(busAccelerating(p)*100);
+		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+//		if(demo_passenger_increase && bus->getPassengerCount() == 19)
+//			bus->setPassengerCount(20);
+
 	}
 
+	if(isBusFarawayBusStop())
+	{
+		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+		if(bus->getPassengerCount() == 19) demo_passenger_increase = true;
+
+	}
 	//Update our distance
 	lastTickDistanceToBusStop = distanceToNextBusStop();
-
 	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
 			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
-	return updatePositionOnLink(p);
+	double temp = updatePositionOnLink(p);
+
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+	{
+		std::cout << "4-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
+	}
+	return temp;
 }
 
 double sim_mob::BusDriver::getPositionX() const
@@ -414,7 +460,7 @@ bool sim_mob::BusDriver::isBusApproachingBusStop()
 bool sim_mob::BusDriver::isBusArriveBusStop()
 {
 	double distance = distanceToNextBusStop();
-	return  (distance>0 && distance <10);
+	return  (distance>0 && distance <4);
 }
 
 bool sim_mob::BusDriver::isBusLeavingBusStop()
@@ -503,8 +549,15 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//if last busstop,only alighting
 		if(last_busstop==true)
 		{
+//			if(bus->getPassengerCount() == 19 )
+//						{
+//							bus->setPassengerCount(20);
+//							getchar();
+//						}
 			//no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
-			no_passengers_alighting=no_passengers_bus;// last bus stop, all alighting
+			no_passengers_alighting=no_passengers_bus;/*// last bus stop, all alighting
+			if(bus->getPassengerCount() == 19) no_passengers_boarding= 1;
+			else*/
 			no_passengers_boarding=0;// reset boarding passengers to be zero at the last bus stop(for dwell time)
 			passengers_Alight(bus);//alight the bus
 			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
@@ -514,6 +567,12 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//if first busstop,only boarding
 		else if(first_busstop ==true)
 		{
+
+//			if(bus->getPassengerCount() == 19 )
+//			{
+//				bus->setPassengerCount(20);
+//				getchar();
+//			}
 			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
 			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
 				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
@@ -525,17 +584,27 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//normal busstop,both boarding and alighting
 		else
 		{
-			no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
-			passengers_Alight(bus);//alight the bus
-			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			no_passengers_boarding=(config.percent_boarding * 0.01)*no_passengers_busstop;
-			if(no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
-				no_passengers_boarding=bus->getBusCapacity() - no_passengers_bus;
-			passengers_Board(bus);//board the bus
-			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
+//			if(bus->getPassengerCount() == 19 )
+//			{
+//				bus->setPassengerCount(20);
+//				getchar();
+//			}
+			{
+				no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+				passengers_Alight(bus);//alight the bus
+				no_passengers_bus=no_passengers_bus - no_passengers_alighting;
+				bus->setPassengerCount(no_passengers_bus);
+				no_passengers_boarding=(config.percent_boarding * 0.01)*no_passengers_busstop;
+				if(no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
+					no_passengers_boarding=bus->getBusCapacity() - no_passengers_bus;
+				passengers_Board(bus);//board the bus
+				bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
+
+			}
 		}
 		DTijk = dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
+
+
 		return DTijk;
 	} else {
 		throw std::runtime_error("Passenger distributions have not been initialized yet.");
@@ -580,7 +649,6 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 		RoadItem* ri = const_cast<RoadItem*>(o_it->second);
 		BusStop *bs = dynamic_cast<BusStop *>(ri);
 		int stopPoint = o_it->first;
-
 		if (bs) {
 			// check bs
 			int i = 0;

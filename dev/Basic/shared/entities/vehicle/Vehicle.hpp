@@ -39,7 +39,9 @@ public:
 	void incrementElapsedParkingTime(double time) { elapsedParkingTime += time;}
 	void setElapsedParkingTime(double time) { elapsedParkingTime = time;}
 	double getElapsedParkingTime() { return elapsedParkingTime;}
-	bool isparkingTimeOver() const { return elapsedParkingTime >= parkingTime; }
+	bool isparkingTimeOver() const {
+//		std::cout << "isparkingTimeOver()::elapsedParkingTime =" << elapsedParkingTime << "   parkingTime = " << parkingTime << std::endl;
+		return elapsedParkingTime >= parkingTime; }
 };
 
 class Vehicle {

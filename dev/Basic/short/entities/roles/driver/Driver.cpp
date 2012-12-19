@@ -304,11 +304,11 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	}
 	else if(vehicle)
 	{
-		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
+//		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
 		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p2.elapsedSeconds);
-		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-		std::cout << "\n\n\n";
+//		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+//		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+//		std::cout << "\n\n\n";
 	}
 
 
@@ -799,9 +799,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
     			vehicle->setAcceleration(-5000);
     		std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
     		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
-    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-    		std::cout << "\n\n\n";
+//    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+//    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+//    		std::cout << "\n\n\n";
     		}
 //    	}
 //    	getchar();

@@ -50,7 +50,7 @@ void sim_mob::ActivityPerformer::frame_tick(UpdateParams& p) {
 	}
 	else
 	{
-		std::cout << " This activity still has " << this->remainingTimeToComplete << " to complete\n";
+//		std::cout << " This activity still has " << this->remainingTimeToComplete << " to complete\n";
 	}
 }
 

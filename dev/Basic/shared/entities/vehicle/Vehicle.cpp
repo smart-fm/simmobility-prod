@@ -334,8 +334,8 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
 	bool done = (fwdMovement.isDoneWithEntireRoute() && park.isparkingTimeOver());
-	std::cout << (park.isparkingTimeOver()? "Vehicle::isDone=> parkingTimeOver" : "Vehicle::isDone=> parking NOT TimeOver");
-	std::cout << "\n\n\n";
+//	std::cout << (park.isparkingTimeOver()? "Vehicle::isDone=> parkingTimeOver" : "Vehicle::isDone=> parking NOT TimeOver");
+//	std::cout << "\n\n\n";
 	return done;
 }
 

@@ -499,7 +499,28 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 		throw std::runtime_error("Bus trips are not implemented in the medium term yet");
 	}
 	else if (role == "activityRole") {
-		throw std::runtime_error("Activity role does not work in the medium term yet");
+		Trip* tripAfterCurrentActivity = nullptr;
+		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
+		if(++itemIterator != tripChain.end()) {
+			if((*itemIterator)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+				tripAfterCurrentActivity = dynamic_cast<sim_mob::Trip*>(*itemIterator);
+				std::string nextRole = rf.GetTripChainMode(tripAfterCurrentActivity);
+				if (nextRole == "driver") {
+					const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(tripAfterCurrentActivity)->getSubTrips().front();
+					path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+				}
+				else if (nextRole == "pedestrian") {
+					const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(tripAfterCurrentActivity)->getSubTrips().front();
+					path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+				}
+				else if (nextRole == "busdriver") {
+					throw std::runtime_error("Bus trips are not implemented in the medium term yet");
+				}
+			}
+			else {
+				throw std::runtime_error("Back to back activities in trip chain. Please merge the activities.");
+			}
+		}
 	}
 
 	// The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment

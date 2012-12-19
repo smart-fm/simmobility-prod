@@ -78,7 +78,7 @@ public:
 	double lastTickDistanceToBusStop;
 	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
-	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
+	Shared<double> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<double> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop

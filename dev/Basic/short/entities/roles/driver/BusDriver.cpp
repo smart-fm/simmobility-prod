@@ -37,6 +37,20 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	dwellTime_record = 0;
 	passengerCountOld_display_flag = false;
 	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
+
+	if(parent) {
+		if(parent->getAgentSrc() == "BusController") {
+			BusTrip* bustrip = dynamic_cast<BusTrip*>(parent->currTripChainItem);
+			if(bustrip && parent->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
+				std::vector<const BusStop*> busStops_temp = bustrip->getBusRouteInfo().getBusStops();
+				std::cout << "busStops_temp.size() " << busStops_temp.size() << std::endl;
+				for(int i = 0; i < busStops_temp.size(); i++) {
+					Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
+					busStopRealTimes_vec_bus.push_back(pBusStopRealTimes);
+				}
+			}
+		}
+	}
 }
 
 
@@ -281,7 +295,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
-				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
+				real_ArrivalTime.set((double)(p.now.ms()));// BusDriver set RealArrival Time, set once(the first time comes in)
 				dwellTime_record = passengerGeneration(bus);
 				DwellTime_ijk.set(dwellTime_record);
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
@@ -301,10 +315,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 							if(busline) {
 								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
 									double waitTime = 0;
-									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),getBusStop_RealTimes(),lastVisited_BusStop.get(),0);
 									setWaitTime_BusStop(waitTime);
-								} else {
+								} else { // other bus stops store the real time values
 									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
+									BusController::TEMP_Get_Bc_1()->storeRealTimes_eachBusStop(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),lastVisited_BusStop.get(),getBusStop_RealTimes());
 								}
 							} else {
 								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
@@ -718,6 +733,12 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	res.push_back(&(DwellTime_ijk));
 	res.push_back(&(busstop_sequence_no));
 	res.push_back(curr_busStopRealTimes);
+
+	//std::cout << "busStopRealTimes_vec_bus.size() " << busStopRealTimes_vec_bus.size() << std::endl;
+	for(int j = 0; j < busStopRealTimes_vec_bus.size(); j++) {
+		res.push_back(busStopRealTimes_vec_bus[j]);
+	}
+
 	return res;
 }
 

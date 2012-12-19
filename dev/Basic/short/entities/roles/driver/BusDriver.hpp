@@ -71,16 +71,21 @@ public:
 	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
 		return curr_busStopRealTimes;
 	}
+	std::vector<Shared<BusStop_RealTimes>* >& getBusStop_RealTimes() {
+		return busStopRealTimes_vec_bus;
+	}
 
 	double lastTickDistanceToBusStop;
 	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
-	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
+	Shared<double> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
 	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
+
+	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 
 	bool first_busstop;
 	bool last_busstop;

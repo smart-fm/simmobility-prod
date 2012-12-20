@@ -114,6 +114,9 @@ public:
 	//Locking strategy
 	sim_mob::MutexStrategy mutexStategy;
 
+	//Busline_Control_Type
+	std::string busline_control_type;
+
 //TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
 //      be modified once set.
 //private:

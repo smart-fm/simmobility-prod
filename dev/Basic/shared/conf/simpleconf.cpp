@@ -1716,6 +1716,22 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+	//Busline Control strategy (optional)
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("busline_control_type").ToElement();
+	if(node) {
+		const char* valStr_controlType = node->Attribute("strategy");
+		std::string busline_control_type(valStr_controlType);
+		if(busline_control_type == "schedule_based" || busline_control_type == "headway_based"
+				|| busline_control_type == "evenheadway_based" || busline_control_type == "hybrid_based") {
+			ConfigParams::GetInstance().busline_control_type = busline_control_type;
+		} else {
+			ConfigParams::GetInstance().busline_control_type = "no_control";// default: no control
+		}
+	} else {
+		return "Couldn't load busline_control_type, missing busline_control_type in XML file!!!";
+	}
+
 
 
 

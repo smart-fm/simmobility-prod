@@ -211,8 +211,8 @@ public class PedestrianTick extends AgentTick {
 				//Text
 				g.setColor(Color.WHITE);
 				g.setFont(DriverTick.idFont);
-				int strW = g.getFontMetrics().stringWidth(""+ id);
-				g.drawString(""+ id, center.x-strW/2+1, center.y+4);
+				int strW = g.getFontMetrics().stringWidth(""+ (id-1));
+				g.drawString(""+ (id - 1), center.x-strW/2+1, center.y+4);
 
 			
 			//g.drawImage(toDraw, r.nextInt(20)-10, r.nextInt(20)-10, null);

@@ -114,6 +114,7 @@ public class BusStop implements DrawableItem {
         
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
 		g.fillPolygon(poly);
+//		g.rotate(45);
 		
 		
 //		Rectangle poly = new Rectangle((int)nearOne.getX(),(int)nearOne.getY() ,(int)nearTwo.getY() - (int)nearOne.getY(), (int)farTwo.getX() - (int)nearOne.getX() );		

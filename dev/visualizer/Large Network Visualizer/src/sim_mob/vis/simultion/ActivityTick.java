@@ -71,7 +71,9 @@ public class ActivityTick extends AgentTick {
 			g.setColor(Color.WHITE);
 			g.setFont(idFont);
 			int strW = g.getFontMetrics().stringWidth("" + myPersonId);
-			g.drawString(""+myPersonId, center.x-strW/2+1, center.y+4);
+//			g.drawString(""+myPersonId, center.x-strW/2+1, center.y+4);
+			//demo
+			g.drawString(""+(myPersonId -1), center.x-strW/2+1, center.y+4);
 		}
 		
 		//Restore old transformation matrix

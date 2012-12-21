@@ -345,7 +345,9 @@ public class SimulationResults {
 		    }
 		  
 		    //Create temp driver
-		    DriverTick tempDriver = new DriverTick(pRes.objID, xPos, yPos, angle, msgLoc);
+//		    DriverTick tempDriver = new DriverTick(pRes.objID, xPos, yPos, angle, msgLoc);
+		    //demo
+		    DriverTick tempDriver = new DriverTick(pRes.objID, xPos, yPos, angle, msgLoc,pRes.frame);
 		    
 		    //Check if the driver is fake
 		    if(pRes.properties.containsKey("fake")){

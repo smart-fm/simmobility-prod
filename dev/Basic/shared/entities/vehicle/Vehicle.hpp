@@ -46,10 +46,10 @@ public:
 
 class Vehicle {
 public:
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, Park park_=Park(3,1));
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width, Park park_=Park(3,1)); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, Park park_=Park(3,1)); //Test
-	Vehicle(Park park_=Park(20,1));  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, Park park_=Park(150,1));
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width, Park park_=Park(150,1)); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, Park park_=Park(150,1)); //Test
+	Vehicle(Park park_=Park(150,1));  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism

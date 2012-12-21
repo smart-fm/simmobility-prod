@@ -90,7 +90,8 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr)
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
+	isQueuing(false), distanceToEndOfSegment(0.0)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -135,7 +136,7 @@ void sim_mob::Agent::clearToBeRemoved() {
 }
 
 const sim_mob::Link* sim_mob::Agent::getCurrLink() const{
-	return currLink;
+	return currSegment->getLink();
 }
 void sim_mob::Agent::setCurrLink(const sim_mob::Link* link){
 	currLink = link;
@@ -146,7 +147,19 @@ const sim_mob::Lane* sim_mob::Agent::getCurrLane() const{
 void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane){
 	currLane = lane;
 }
+const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const{
+	return currSegment;
+}
+void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
+	currSegment = rdSeg;
+}
 
+void sim_mob::Agent::setTravelStats(const Link* link, unsigned int linkExitTime,
+		unsigned int linkTravelTime, bool hasVehicle)
+{
+	const travelStats tStats(link, linkExitTime, linkExitTime - linkEntryTime, hasVehicle);
+	travelStatsMap.insert(std::make_pair(linkExitTime, tStats));
+}
 
 #ifndef SIMMOB_DISABLE_MPI
 //void sim_mob::Agent::pack(PackageUtils& packageUtil) {

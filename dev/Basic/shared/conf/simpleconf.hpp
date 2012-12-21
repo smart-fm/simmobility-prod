@@ -125,7 +125,7 @@ public:
 
 public:
 
-	int signalAlgorithm;
+	int signalTimingMode;
 
 	//When the simulation begins
 	DailyTime simStartTime;
@@ -162,13 +162,19 @@ public:
 	}
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool Output_Disabled() const {
+	bool OutputDisabled() const {
 #ifdef SIMMOB_DISABLE_OUTPUT
 		return true;
 #else
 		return false;
 #endif
 	}
+
+	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
+	bool OutputEnabled() const {
+		return !OutputDisabled();
+	}
+
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const {
@@ -251,11 +257,13 @@ public:
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
 	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
 
+	std::set<sim_mob::Conflux*>& getConfluxes() { return confluxes; }
+
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
+		dynamicDispatchDisabled(false), signalTimingMode(0), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
 	{}
 
@@ -277,6 +285,9 @@ private:
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
 	std::map<std::string, std::vector<const sim_mob::BusStop*> > routeID_busStops; // map<routeID, vector<BusStop*>>
 	bool sealedNetwork;
+
+	//Confluxes in this network
+	std::set<sim_mob::Conflux*> confluxes;
 };
 
 }

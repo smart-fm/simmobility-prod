@@ -43,5 +43,8 @@ typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossing
 
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
+
+
+
 }
 

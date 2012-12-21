@@ -117,7 +117,7 @@ public:
 	virtual void roadName (const ::std::string&);
 	virtual void StartingNode (unsigned int);
 	virtual void EndingNode (unsigned int);
-	virtual void Segments (const std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >&);
+	virtual void Segments (std::vector<sim_mob::RoadSegment*>);
 
 private:
 	sim_mob::Link model;
@@ -145,6 +145,8 @@ protected:
 
 class UniNode_t_pimpl: public virtual UniNode_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
+	UniNode_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::UniNode* post_UniNode_t ();
 
@@ -161,12 +163,16 @@ private:
 	//Due to a load cycle, we have to save these as integers.
 	std::set<std::pair<unsigned long,unsigned long> > connectors;
 	std::pair<SegmentPair, SegmentPair> segmentPairs;
+
+	helper::Bookkeeping& book;
 };
 
 
 
 class intersection_t_pimpl: public virtual intersection_t_pskel, public ::sim_mob::xml::Node_t_pimpl {
 public:
+	intersection_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual sim_mob::MultiNode* post_intersection_t ();
 
@@ -187,6 +193,8 @@ private:
 	sim_mob::Intersection model;
 	LaneConnectSet connectors;
 	std::set<unsigned long> segmentsAt;
+
+	helper::Bookkeeping& book;
 };
 
 
@@ -363,7 +371,7 @@ public:
 	virtual sim_mob::SplitPlan post_SplitPlan_t ();
 
 	virtual void splitplanID (unsigned int);
-	virtual void signalAlgorithm ();
+	virtual void signalTimingMode ();
 	virtual void cycleLength (unsigned char);
 	virtual void offset (unsigned char);
 	virtual void ChoiceSet ();
@@ -378,7 +386,7 @@ public:
 
 	virtual void signalID (unsigned char);
 	virtual void nodeID (unsigned int);
-	virtual void signalAlgorithm ();
+	virtual void signalTimingMode ();
 	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
 	virtual void SplitPlan (sim_mob::SplitPlan);
 };

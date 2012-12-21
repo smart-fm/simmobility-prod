@@ -37,6 +37,10 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
+namespace geo
+{
+class Signal_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -63,41 +67,68 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
+enum signalType
+{
+	SIG_BASIC = 3,
+	SIG_SCATS = 4,
+	SIG_BACKPRESSURE = 5
+};
 class Signal  : public sim_mob::Agent
 {
 public:
-	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
+	typedef std::vector<sim_mob::Phase> phases;
+	friend class geo::Signal_t_pimpl;
+	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC)
 	  : Agent(mtxStrat, id), node_(node){};
-   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const { throw std::runtime_error("Not implemented"); };
-   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const{ throw std::runtime_error("Not implemented"); };
-   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("Not implemented"); } ;
-   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const { throw std::runtime_error("Not implemented"); };
-   virtual std::string toString() const{ throw std::runtime_error("Not implemented"); };
+   signalType getSignalType() const { return signalType_;}
+   void setSignalType(signalType sigType) { signalType_ = sigType;}
+   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const { throw std::runtime_error("getLinkAndCrossingsByLink Not implemented"); };
+   virtual LinkAndCrossingByLink  & getLinkAndCrossingsByLink()  { throw std::runtime_error("getLinkAndCrossingsByLink Not implemented"); };
+   virtual LinkAndCrossingByCrossing  & getLinkAndCrossingsByCrossing() const{ throw std::runtime_error("getLinkAndCrossingsByCrossing Not implemented"); };
+   void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) { LinkAndCrossings_ =LinkAndCrossings; }
+   LinkAndCrossingC const& getLinkAndCrossing()const { return LinkAndCrossings_;}
+   LinkAndCrossingC & getLinkAndCrossing() { return LinkAndCrossings_;}
+   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("getDriverLight Not implemented"); } ;
+   virtual TrafficColor getPedestrianLight (Crossing const & crossing)const { throw std::runtime_error("getPedestrianLight Not implemented"); };
+   virtual std::string toString() const{ throw std::runtime_error("toString Not implemented"); };
    Node  const & getNode() const { return node_; }
+
    virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
+
+   virtual unsigned int getSignalId(){}
+   
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
+   virtual Entity::UpdateStatus update(timeslice now){}
+   virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
+   virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
+   void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
 
-   static std::vector<Signal *> all_signals_;
    typedef std::vector<Signal *> All_Signals;
+   static All_Signals all_signals_;
    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 
 private:
    /*The node associated with this traffic Signal */
    sim_mob::Node const & node_;
+   sim_mob::signalType signalType_;
+   LinkAndCrossingC LinkAndCrossings_;
+   sim_mob::Signal::phases phases_;
 };
 
 
 class Signal_SCATS  : public sim_mob::Signal {
-
+	friend class geo::Signal_t_pimpl;
+friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal);
 public:
+	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
-	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
+	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1, signalType = SIG_SCATS);
     static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew=nullptr);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
 
 	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
@@ -108,8 +139,9 @@ public:
 //    void findIncomingLanes();
 //    void findSignalLinks();
     void findSignalLinksAndCrossings();
-    LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
-    LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
+    LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return getLinkAndCrossing().get<2>();}
+    LinkAndCrossingByLink & getLinkAndCrossingsByLink()  {return getLinkAndCrossing().get<2>();}
+    LinkAndCrossingByCrossing  & getLinkAndCrossingsByCrossing()  {return getLinkAndCrossing().get<4>();}
     LoopDetectorEntity const & loopDetector() const { return *loopDetector_; }
 
 
@@ -134,7 +166,12 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 
 	/*--------Miscellaneous----------*/
+
 	void frame_output(timeslice now);
+
+	int getSignalTimingMode() { return signalTimingMode;}
+	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
+	
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
 	std::string toString() const;
@@ -148,15 +185,38 @@ public:
 	virtual void setCurrLink(const sim_mob::Link*){}
 	virtual const sim_mob::Lane* getCurrLane() const{return nullptr; }
 	virtual void setCurrLane(const sim_mob::Lane* lane){}
+//	virtual const sim_mob::Signal::phases getPhases(){ return phases_;}
 
 	/*--------The cause of this Module----------*/
-    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
-	TrafficColor getPedestrianLight(Crossing const & crossing) const;
+    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+	TrafficColor getPedestrianLight  (Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 
-
-    void updateIndicators();
     void outputTrafficLights(timeslice now,std::string newLine)const;
+
+
+    /* phase
+     *
+     */
+    std::size_t getNOF_Phases() const{
+    	return getPhases().size();
+//    return getNOF_Phases();
+    }
+    std::size_t & getCurrPhaseID() { return currPhaseID; }
+    std::size_t computeCurrPhase(double currCycleTimer);
+    const sim_mob::Phase & getCurrPhase() const {
+    	return getPhases()[currPhaseID]; }
+
+    void initializePhases();
+    void printColors(double currCycleTimer);
+
+/* From workers (may not need)
+    void updateIndicators();
+    void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
+    void updateLaneState(int phaseId);//for mid-term use
+*/
+    std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
+
 
 private:
     bool isIntersection_;//generated
@@ -165,7 +225,7 @@ private:
     unsigned int signalID;//currently is equal to nodeId
 
     /* Fixed time or adaptive control */
-    int signalAlgorithm;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
+    int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/
@@ -180,7 +240,7 @@ private:
 //    std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
     //used (probabely in createloopdetectors()
 
-    LinkAndCrossingC LinkAndCrossings_;
+
 //    std::vector<sim_mob::Link const *>  SignalLinks;//The data for this vector is generated
 
     /*-------------------------------------------------------------------------
@@ -193,7 +253,12 @@ private:
      * 2-decides/outputs/selects the next split plan(choiceSet combination) based on the the inputted DS
      */
     sim_mob::SplitPlan plan_;
+    /*--------------Amendments: going to separatre phase from split plan-------*/
 
+    std::size_t NOF_Phases; //getNOF_Phases() = number of phases = phases_.size()
+    std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
+
+    /*-------------------------------------------------------------------------*/
 //	std::vector<double> currSplitPlan;//a chunk in "choiceSet" container,Don't think I will need it anymore coz job is distributed to a different class
 //	int currSplitPlanID;//Don't think I will need it anymore
 //	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
@@ -212,11 +277,6 @@ private:
     /*-------------------------------------------------------------------------
      * -------------------Cycle Length Indicators------------------------------
      * ------------------------------------------------------------------------*/
-
-	//previous,current and next cycle length
-//	double currCL;//don't think it is needed here any more. cycle shifted to another class
-	int currPhaseID;//the current phase of the current plan
-	sim_mob::Phase currPhase;//temporary plcae holder
 
 	bool isNewCycle; //indicates whether operations pertaining to a new cycle should be performed
 

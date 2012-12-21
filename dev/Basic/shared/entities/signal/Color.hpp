@@ -8,6 +8,17 @@ namespace sim_mob
 //Forward declarations
 class Phase;
 
+enum TrafficColor
+{
+	InvalidTrafficColor = -1,
+    Red =1,    			///< Stop, do not go beyond the stop line.
+    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
+    Green = 3,   		///< Proceed either in the forward, left, or right direction.
+    FlashingRed = 4,	///future use
+    FlashingAmber = 5,	///future use
+    FlashingGreen = 6	///future use
+};
+
 //depricated
 struct VehicleTrafficColors
 {
@@ -26,7 +37,8 @@ struct VehicleTrafficColors
 enum TrafficLightType
 {
 	Driver_Light,
-	Pedestrian_Light
+	Pedestrian_Light,
+	InvalidTrafficLightType
 };
 
 class ColorSequence
@@ -37,7 +49,7 @@ public:
 //		ColorDuration.push_back(std::make_pair(Amber,3));//a portion of the total time of the phase length is taken by amber
 //		ColorDuration.push_back(std::make_pair(Green,0));//Green is phase at green and should be calculated using the corresponding phase length
 //		ColorDuration.push_back(std::make_pair(Red,1));//All red moment ususally takes 1 second
-//		type = TrafficColorType;
+		type = TrafficColorType;
 	}
 
 	ColorSequence(std::vector< std::pair<TrafficColor,std::size_t> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
@@ -45,7 +57,7 @@ public:
 		type(TrafficColorType){}
 
 	std::vector< std::pair<TrafficColor,std::size_t> > & getColorDuration();
-	TrafficLightType getTrafficLightType();
+	const TrafficLightType getTrafficLightType() const;
 
 	void addColorPair(std::pair<TrafficColor,std::size_t> p);
 	void addColorDuration(TrafficColor,std::size_t);
@@ -56,9 +68,18 @@ public:
 	//computes the supposed color of the sequence after a give time lapse
 	TrafficColor computeColor(double Duration);
 	void setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> >);
+	void setTrafficLightType(TrafficLightType);
 private:
 	std::vector< std::pair<TrafficColor,std::size_t> > ColorDuration;
 	TrafficLightType type;
+//public:
+//	void operator= (const  ColorSequence & c)
+//	{
+//		type = c.type;
+//		ColorDuration = c.ColorDuration;
+////		return this;
+//	}
+
 
 	friend class sim_mob::Phase;
 };

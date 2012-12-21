@@ -70,7 +70,9 @@ public:
 		const Lane* right;
 	};
 
-	explicit UniNode(int x=0, int y=0) : Node(x, y), firstPair(nullptr, nullptr), secondPair(nullptr, nullptr) {}
+	explicit UniNode(int x=0, int y=0) : Node(x, y),
+		firstPair(nullptr, nullptr), secondPair(nullptr, nullptr)
+	{}
 
 	///Retrieve possible movement from a given Lane at this Node (left, right, or center)
 	UniLaneConnector getForwardLanes(const sim_mob::Lane& from) const;
@@ -81,6 +83,7 @@ public:
 
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
+	std::vector<sim_mob::Lane*> getOutgoingLanes(Lane& from);
 	const std::map<const sim_mob::Lane*, sim_mob::Lane* > & getConnectors() const {return connectors;}
 
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one

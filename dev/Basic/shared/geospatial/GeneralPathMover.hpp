@@ -56,7 +56,6 @@ public:
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
 	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
-
 	///Are we completely done?
 	bool isDoneWithEntireRoute() const;
 
@@ -72,6 +71,7 @@ public:
 	//Retrieve properties of your current position in the path.
 	const sim_mob::RoadSegment* getCurrSegment() const;
 	const sim_mob::RoadSegment* getNextSegment(bool sameLink) const;
+	const RoadSegment* getNextToNextSegment() const;
 	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;
@@ -116,6 +116,13 @@ public:
 	static void unpack(UnPackageUtils& unpackage, GeneralPathMover* one_motor);
 #endif
 
+	/* needed by mid-term */
+	double getPositionInSegment();
+	void setPositionInSegment(double newDist2end);
+	void setStartPositionInSegment();
+	double getNextSegmentLength();
+	void advance_med(double fwdDistance);
+	void actualMoveToNextSegmentAndUpdateDir_med();
 //temp
 //private:
 public:
@@ -135,6 +142,7 @@ public:
 
 	//Movement along a single line
 	double distAlongPolyline;
+	double distAlongSegment; //for mid-term use
 	double currPolylineLength() const {
 		//TEMP: Just making sure.
 		if (isInIntersection()) {
@@ -159,10 +167,15 @@ public:
 	//length of rest road segments in current link, include current segment
 	double distOfRestSegments;
 
+	//distance to the end of the current segment. needed by mid-term
+	double distToEndSegment;
+
 	//Intersection driving is different.
 	bool inIntersection;
 
 	//We might be moving backwards on a Link.
+	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.
+	//       Note that we need to merge this code with GeneralPathMover2.
 	bool isMovingForwardsInLink;
 
 	//For tracking lane IDs

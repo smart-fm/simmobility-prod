@@ -132,12 +132,22 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
+	if ( p.space < 2.0 && p.isAlreadyStart )
+		return maxDeceleration;
+	if(p.space<3.0 && p.isAlreadyStart && p.isBeforIntersecton)
+	{
+		return maxDeceleration*4.0;
+	}
 	if(p.space > 0) {
 		if(!nv.exists()) {
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 		}
+		// when nv is left/right vh , can not use perceivedxxx!
 		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
 		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
+
+//		p.v_lead = nv.driver->fwdVelocity/100;
+//		p.a_lead = nv.driver->fwdAccel/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
@@ -145,8 +155,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
-			double emergSpace = nv.distance/100;
-			double emergHeadway = CalcHeadway(emergHeadway, speed, p.elapsedSeconds, maxAcceleration);
+			double emergSpace = p.perceivedDistToFwdCar/100;
+			double emergHeadway = CalcHeadway(emergSpace, speed, p.elapsedSeconds, maxAcceleration);
 			if (emergHeadway < hBufferLower) {
 				//We need to brake. Override.
 				p.space = emergSpace;
@@ -184,7 +194,8 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
     double distanceToTrafficSignal;
     distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
     color = p.perceivedTrafficColor;
-	if(distanceToTrafficSignal < 5000)
+    double dis = p.perceivedDistToFwdCar/100;
+	if(distanceToTrafficSignal < dis)
 	{
 	double dis = distanceToTrafficSignal/100;
 #ifdef NEW_SIGNAL

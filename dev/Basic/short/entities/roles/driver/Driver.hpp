@@ -81,7 +81,6 @@ public:
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_med(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 
@@ -126,6 +125,9 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
+	double startTime;
+	bool isAleadyStarted;
+
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
@@ -155,7 +157,8 @@ public:
 
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 private:
-	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
 	bool update_sensors(DriverUpdateParams& params, timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.

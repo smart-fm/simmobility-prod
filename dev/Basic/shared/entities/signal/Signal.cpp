@@ -14,10 +14,12 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -35,6 +37,7 @@
 using std::map;
 using std::vector;
 using std::string;
+using std::set;
 
 using namespace boost::multi_index;
 using boost::multi_index::get;
@@ -75,41 +78,66 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 			output << "\"frame\": " << -1 << "," << newLine; //this is added to indicate that
 			output << "\"simmob_id\":\"" <<  signalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
-			output << plan_.createStringRepresentation(newLine);
+//			output << plan_.createStringRepresentation(newLine); 2nd time
+			output << "\"phases\":" << newLine << "[";
+			for(int i = 0; i < getPhases().size(); i++)
+			{
+				output << ( getPhases()[i]).createStringRepresentation(newLine);
+				if((i + 1) < getPhases().size()) output << ",";
+			}
+//				while(it !=getPhases().end())
+//				{
+//				}
+				output << newLine << "]";
 			output  << newLine << "}"  << newLine << "}";
 			strRepr = output.str();//all the aim of the unrelated part
 }
 
+void
+Signal_SCATS::printColors(double currCycleTimer)
+{
+	phases_iterator it = getPhases().begin();
+	while(it !=getPhases().end())
+	{
+		(*it).printPhaseColors(currCycleTimer);
+		it++;
+	}
+}
+
 /*Signal Constructor*/
-Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id)
-  : /*Agent(mtxStrat, id)
-	,*/ loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
+Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
+  :  loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
 	,Signal(node,mtxStrat,id)
 	/*, node_(node)*/
 {
+	setSignalType(type_);
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
 	else isIntersection_ = true;
 	//some inits
-//	currSplitPlanID = 0;
-//	phaseCounter = 0;
 	currCycleTimer = 0;
-//	DS_all = 0;
-//	currCL = 0;
 	currPhaseID = 0;
 	isNewCycle = false;
 	currOffset = 0;
 	//the best id for a signal is the node id itself
 	signalID = node.getID();
 
-	findSignalLinksAndCrossings();
+//	findSignalLinksAndCrossings(); todo:eoved temporarily
+
 	//for future use when user needs to switch between fixed and adaptive control
-	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
+	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 //	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
 //    setupIndexMaps();  I guess this function is Not needed any more
+#ifndef SIMMOB_XML_WRITER
+#ifndef SIMMOB_XML_READER
+	findSignalLinksAndCrossings();
+#endif
+#else
+	findSignalLinksAndCrossings();
+#endif
 }
 
 // Return the Crossing object, if any, in the specified road segment.  If there are more
@@ -120,32 +148,41 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 	//double offset = std::numeric_limits<double>::max();
 	int currOffset = 0;
 	int minus = 1;
-	int i;
+	bool isFwd;
+	//find the crossings which belong to this signal not the signal located at the other end of the segment(if any)
+	int searchLength = road->length / 2;
 	if(road->getStart() == &(this->getNode()))
 	{
 		currOffset = 0;
 		minus = 1;//increment offset
+		isFwd = true;
 	}
 	else
 	{
 		currOffset = road->length;
-//		minus = -1;//decrement offset
+		isFwd = false;
+		minus = -1;//decrement offset
 	}
-	for (i =0;;i++) {
+	for (;;) {
 		//Get the next item, if any.
-		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
+		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, isFwd);
+		//break if you didn't find anything
 		if (!res.item) {
-			std::cout << "breaking after " << i <<" iterations " << std::endl;
 			break;
 		}
+		//discard the findings beyond the half length of the segment:
+
+		//break if you started from BEGINNING of the segment and you are half way through the segment length without finding anything
+		if(isFwd == true)//starting from the beginning of the segment
+			if(currOffset > searchLength)
+				break;
+		//break if you started from END of the segment and you are half way through the segment length without finding anything
+		if(isFwd == false)//starting from end of the segment
+			if(currOffset < searchLength)
+				break;
 
 		//Check if it's a Crossing.
 		if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item)) {
-			if(getNode().getID()== 115436)
-			{
-				std::cout << "Crossing for node 115436 found at offset " << currOffset << "minus is : " << minus << std::endl;
-//				//getchar();
-			}
 			//Success
 			return crossing;
 		}
@@ -153,7 +190,6 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 		//Increment OR Decrement
 		currOffset += (minus) * (res.offset);
 	}
-		std::cout << "No Crossing for this segment of node 115436 found after " << i <<" iterations minus was : " << minus << std::endl;
 
 	//Failure.
 	return nullptr;
@@ -204,7 +240,7 @@ struct AngleCalculator {
  */
 void Signal_SCATS::findSignalLinksAndCrossings() {
 	std::pair<LinkAndCrossingByLink::iterator, bool> p;
-	LinkAndCrossingByLink & inserter = get<2>(LinkAndCrossings_); //2 means that duplicate links will not be allowed
+	LinkAndCrossingByLink & inserter = get<2>(getLinkAndCrossing()); //2 means that duplicate links will not be allowed
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if (!mNode)
 		return;
@@ -251,7 +287,7 @@ int Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
 //LinkFrom(s) are the links from which vehicles enter the intersection during the corresponding phase
 double Signal_SCATS::computePhaseDS(int phaseId) {
 	double lane_DS = 0, maxPhaseDS = 0, maxDS = 0;
-	sim_mob::Phase p_it = plan_.phases_[phaseId];
+	sim_mob::Phase p_it = getPhases()[phaseId];
 
 	double total_g = p_it.computeTotalG(); //todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
 	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
@@ -338,13 +374,77 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine) const{
+void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
 	output << "\"frame\": " << now.frame() << "," << newLine;
-	output << plan_.outputTrafficLights(newLine);
+	//phase.......
+//	output << plan_.outputTrafficLights(newLine);
+	if(getNOF_Phases() == 0)
+		{
+			LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
+			return;
+		}
+//	std::ostringstream output;
+	output << "\"currPhase\": \"" << getPhases()[currPhaseID].getName() << "\"," << newLine;
+//	std::cout << "currPhase " << getPhases()[currPhaseID].getName();
+	output << "\"phases\":" << newLine << "[";
+
+	//////////////////////////////////////////////////
+	for(int i =0; i < getPhases().size(); i++)
+	{
+		output << getPhases()[i].outputPhaseTrafficLight(newLine);
+		if((i + 1) < getPhases().size()) output << ",";
+	}
+	output << newLine << "]";
+//	getchar();
+//	/////////////////////////////////////////////////////
+//
+//	while(it !=getPhases().end())
+//	{
+//		std::cout << "getting the out put rep of phase " << (*it).getName();
+//		getchar();
+//		output << (*it).outputPhaseTrafficLight(newLine);
+//		it++;
+//		if(it !=getPhases().end())
+//			output << ",";
+//	}
+//	output << newLine << "]";
+//	return output.str();
+	//........
+//	std::cout << "Outputting " << output.str() << std::endl;
+//	getchar();
 	LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
+}
+std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
+{
+	std::vector< double > currSplitPlan = plan_.CurrSplitPlan();
+
+	double sum = 0;
+	int i;
+	for(i = 0; i < getNOF_Phases(); i++)
+	{
+		//expanded the single line loop, for better understanding of future readers
+		sum += plan_.getCycleLength() * currSplitPlan[i] / 100; //in each iteration sum will represent the time (with respect to cycle length) each phase would end
+		if(sum > currCycleTimer)
+			{
+//				std::cout << "Sum(" <<  sum << ") > currCycleTimer(" << currCycleTimer << "), time to change phase to " << getPhases()[i].getPhaseName() << " (" << i << ")" << std::endl;
+//				getchar();
+				break;
+			}
+	}
+//	  std::cout << "Signal " << sim_mob::Signal::all_signals_.front()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.front()->getPhases().size() << " phases\n"; getchar();
+
+	if(i >= getNOF_Phases())
+		{
+			std::stringstream str;
+			str << "Signal " << this->getId() << " CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << plan_.getCycleLength() << ") getNOF_Phases()(" <<  getNOF_Phases() << ") , sum of cycleLength chunks(" << sum << ")";
+//			 +currCycleTimer+") getNOF_Phases()("+ getNOF_Phases() +"sum of cycleLength chunks(" + sum+")"
+			throw std::runtime_error(str.str());
+		}
+	currPhaseID = (std::size_t)(i);
+	return currPhaseID;
 }
 /*
  * 1- update current cycle timer
@@ -367,35 +467,31 @@ UpdateStatus Signal_SCATS::update(timeslice now) {
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
 	//	3-Update Current Phase
-	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
+	int temp_PhaseId = computeCurrPhase(currCycleTimer);
 
 //	2- update current phase color
-	if(temp_PhaseId < plan_.phases_.size())
+	if(temp_PhaseId < getNOF_Phases())
 		{
-			plan_.phases_[temp_PhaseId].update(currCycleTimer);
-//			plan_.printColors(currCycleTimer);
+			getPhases()[temp_PhaseId].update(currCycleTimer);
 		}
 	else
 		throw std::runtime_error("currPhaseID out of range");
 
-	if((currPhaseID != temp_PhaseId) && signalAlgorithm)//separated coz we may need to transfer computeDS here
+	if((currPhaseID != temp_PhaseId) && signalTimingMode)//separated coz we may need to transfer computeDS here
 		{
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
+//			updateLaneState(currPhaseID);
 		}
-	if(isNewCycle && signalAlgorithm)
-		newCycleUpdate();//major update!
+	if(isNewCycle && signalTimingMode)
+	{
+		newCycleUpdate();
+		initializePhases();
+	}
 
 //	outputToVisualizer(frameNumber);
 //Not mine, don't know much about what benefit it has to the outside world
 	return UpdateStatus::Continue;
-}
-
-//obsolete
-void Signal_SCATS::updateIndicators()
-{
-	currPhaseID = plan_.CurrPhaseID();
-	currOffset = offset_.getcurrOffset();
 }
 
 /*I will try to change only the Data structure, not the algorithm-vahid
@@ -404,14 +500,14 @@ void Signal_SCATS::updateIndicators()
  * He will get three colors for three options of heading directions(left, forward,right)
  */
 
-TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane)const  {
+TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
 	RoadSegment const * fromRoad = fromLane.getRoadSegment();
 	Link * const fromLink = fromRoad->getLink();
 
 	RoadSegment const * toRoad = toLane.getRoadSegment();
 	Link const * toLink = toRoad->getLink();
 
-	const sim_mob::Phase &currPhase = plan_.CurrPhase();
+	const sim_mob::Phase &currPhase = getCurrPhase();
 	sim_mob::Phase::links_map_equal_range range = currPhase.getLinkTos(fromLink);
 	sim_mob::Phase::links_map_const_iterator iter;
 	for(iter = range.first; iter != range.second ; iter++ )
@@ -431,9 +527,9 @@ TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & to
 /*checks current phase for the current color of the crossing(if the crossing found),
  * other cases and phases, just return red.
  */
-TrafficColor Signal_SCATS::getPedestrianLight(Crossing const & crossing) const
+TrafficColor Signal_SCATS::getPedestrianLight (Crossing const & crossing) const
 {
-	const sim_mob::Phase & phase = plan_.CurrPhase();
+	const sim_mob::Phase & phase = getCurrPhase();
 	const sim_mob::Phase::crossings_map_const_iterator it = phase.getCrossingMaps().find((const_cast<Crossing *>(&crossing)));
 	if(it != phase.getCrossingMaps().end())
 	{
@@ -454,13 +550,46 @@ void Signal_SCATS::setSplitPlan(sim_mob::SplitPlan plan)
 {
 	plan_ = plan;
 }
+void Signal_SCATS::initializePhases() {
+
+	 /* you have each phase percentage from the choice set,
+		so you may set the phase percntage and phase offset of each phase,
+		then initialize phases(calculate its phase length, green time ...)*/
+	std::vector<double> choice = plan_.CurrSplitPlan();
+	if(choice.size() != getNOF_Phases())
+		throw std::runtime_error("Mismatch on number of phases");
+	int i = 0 ; double percentage_sum =0;
+	//setting percentage and phaseoffset for each phase
+//	std::cout << "Analyzing phase .for signal "<< this->getId() << std::endl;
+//	std::cout << "nof phases = " << getPhases().size() << std::endl;
+//	getchar();
+	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
+	{
+		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
+//		std::cout << "Analyzing phase " << (getPhases()[ph_it]).getName()  << std::endl;
+		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(getPhases()[ph_it]);
+//		std::cout << " ....  done with casting phase " << target_phase.getName() << std::endl;
+		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
+		(target_phase).setPercentage(choice[i]);
+		(target_phase).setPhaseOffset(percentage_sum * plan_.getCycleLength() / 100);
+//		std::cout << "Signal " << this->getId() << "  Set phaseoffset for " << (target_phase).getPhaseName() << " to " << (target_phase).getPhaseOffset() << std::endl;
+	}
+	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
+	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
+		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize(plan_);//phaselength,and green time..
+	//.......................
+}
 
 /*Signal Initialization */
 //might not be very necessary(not in use)
 void Signal_SCATS::initialize() {
 	createStringRepresentation("");
-	plan_.initialize();
-	Phase_Density.resize(plan_.find_NOF_Phases(), 0);
+
+	//initialize phases......
+//	plan_.initialize();
+	NOF_Phases = getNOF_Phases();//remove this error prone line later
+	initializePhases();
+	Phase_Density.resize(getNOF_Phases(), 0);
 
 }
 
@@ -471,6 +600,84 @@ sim_mob::SplitPlan & Signal_SCATS::getPlan()
 	return plan_;
 }
 
-}//namespace
+/**
+ * computes and returns the signal phases in the next t seconds if the signal algorithm is Fixed.
+ * returns a vector of pairs of <phase, time in the phase>
+ */
+std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(double t)
+{
+	throw std::runtime_error("Signal_SCATS::predictSignal() is based on an old Signal.hpp; you'll have to change it.");
+/*	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
+	if(signalTimingMode == 0  && t > 0){
+		int phaseId = currPhaseID;
+		sim_mob::Phase p = plan_.phases[phaseId];
+		// add the remaining time in the current phase
+		double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
+		phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
+		t = t - remainingTimeInCurrPhase;
+
+		// add the subsequent phases which fit into this time window
+		while(t > 0) {
+			phaseId = (phaseId + 1) % plan_.NOF_Plans;
+			sim_mob::Phase p = plan_.phases[phaseId];
+			if (p.phaseLength <= t) {
+				phaseTimes.push_back(std::make_pair(p, p.phaseLength));
+				t = t - p.phaseLength;
+			}
+			else {
+				phaseTimes.push_back(std::make_pair(p, t));
+				t = 0;
+			}
+		}
+	}
+	return phaseTimes;*/
+}
+
+/*void Signal_SCATS::updateLaneState(int phaseId) {
+
+	sim_mob::Phase p_it = plan_.phases[phaseId];
+
+	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
+	for (; link_it != (p_it).LinkFrom_end();
+			link_it = (p_it).links_map_.upper_bound((*link_it).first)) { //Loop2===>link
+
+		const std::vector<sim_mob::RoadSegment*> segments = (*link_it).first->getFwdSegments();
+
+		std::vector<sim_mob::RoadSegment*>::const_iterator seg_it = segments.begin();
+		for (; seg_it != segments.end(); seg_it++) { //Loop3===>road segment
+			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection either)
+			//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+			if ((*seg_it)->getEnd() != &getNode())
+				continue;
+			const MultiNode* endNode = dynamic_cast<const MultiNode*>(&getNode());
+			const set<LaneConnector*>& lcs = endNode->getOutgoingLanes(*(*seg_it));
+			for (set<LaneConnector*>::const_iterator it_lcs = lcs.begin(); it_lcs != lcs.end(); it_lcs++) {
+				sim_mob::Phase::links_map_equal_range range = p_it.getLinkTos((*link_it).first);
+				sim_mob::Phase::links_map_const_iterator iter;
+				for(iter = range.first; iter != range.second ; iter++ )
+				{
+					if( (*iter).second.LinkTo == (*it_lcs)->getLaneTo()->getRoadSegment()->getLink()) {
+						const Lane* lane = (*it_lcs)->getLaneFrom();
+						if (lane->is_pedestrian_lane())
+							continue;
+						if ((*iter).second.currColor == sim_mob::Red)
+						{
+							//update lane supply stats - output flow rate = 0
+							lane->getRoadSegment()->getParentConflux()->updateSupplyStats(lane, 0.001);
+						}
+						else if ((*iter).second.currColor == sim_mob::Green ||
+								(*iter).second.currColor == sim_mob::Amber)
+						{
+							//update lane supply stats - set output flow rate to origOutputFlowRate
+							lane->getRoadSegment()->getParentConflux()->restoreSupplyStats(lane);
+						}
+					}
+
+				}
+			}
+		}
+	}
+}*/
+} //namespace
 
 #endif

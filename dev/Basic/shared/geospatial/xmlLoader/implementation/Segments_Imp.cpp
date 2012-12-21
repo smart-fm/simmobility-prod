@@ -2,7 +2,7 @@
 
 using namespace sim_mob::xml;
 
-
+/*
 void sim_mob::xml::Segments_pimpl::pre ()
 {
 	fwd.clear();
@@ -29,6 +29,6 @@ std::pair<Segments_pimpl::SegmentList,Segments_pimpl::SegmentList> sim_mob::xml:
 		book.addSegment(*it);
 	}
 
-
 	return std::make_pair(fwd,rev);
 }
+*/

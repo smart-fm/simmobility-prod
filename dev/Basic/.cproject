@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -27,25 +25,15 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1746382223" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.532698040" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.631957919" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.paths.139121330" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.255927679" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.502445713" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1657845314" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.337379445" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.803191543" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.73842680" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.886138052" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.429840734" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
-								<option id="gnu.cpp.link.option.libs.1219444140" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="boost_thread"/>
-									<listOptionValue builtIn="false" value="boost_mpi"/>
-									<listOptionValue builtIn="false" value="boost_serialization"/>
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="soci_core-gcc-3_0"/>
-									<listOptionValue builtIn="false" value="soci_postgresql-gcc-3_0"/>
-								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.109733626" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -57,57 +45,17 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="buffering/unit-tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="long|medium|short|shared|Debug|Release|cmake*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="long"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="medium"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="shared"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="short"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-				<buildTargets>
-					<target name="CMake [D.1] Short" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.2] Medium" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.3] Long" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.4] Tests" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=ON</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [Rel] All" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Release" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=ON</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-				</buildTargets>
-			</storageModule>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -175,57 +123,18 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-				<buildTargets>
-					<target name="CMake [D.1] Short" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.2] Medium" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.3] Long" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [D.4] Tests" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=ON</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="CMake [Rel] All" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir "${ProjDirPath}/Release" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=ON</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-				</buildTargets>
-			</storageModule>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="Basic.cdt.managedbuild.target.gnu.exe.2058647091" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/Basic"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/Basic"/>
+		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/Basic"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
@@ -248,4 +157,52 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="CMake [D.1] Short" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="CMake [D.2] Medium" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="CMake [D.3] Long" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=OFF</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="CMake [D.4] Tests" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=ON</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="CMake [Rel] All" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Release" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=ON</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="Install [Debug]" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>sudo</buildCommand>
+				<buildArguments>make -C "${ProjDirPath}/Debug" install</buildArguments>
+				<buildTarget>install</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+		</buildTargets>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>

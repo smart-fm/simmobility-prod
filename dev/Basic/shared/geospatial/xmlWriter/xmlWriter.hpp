@@ -2,33 +2,33 @@
 #include <vector>
 #include <string>
 #include <ctime>
-#include "buffering/Shared.hpp"
-#include "util/DailyTime.hpp"
-#include "util/LangHelpers.hpp"
-#include "geospatial/RoadItem.hpp"
-#include "geospatial/Roundabout.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/Intersection.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Pavement.hpp"
-#include "geospatial/Traversable.hpp"
-#include "geospatial/UniNode.hpp"
 
 #include "conf/simpleconf.hpp"
-
+#include "geospatial/Pavement.hpp"
+#include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "entities/roles/RoleFactory.hpp"
-#include "util/ReactionTimeDistributions.hpp"
+#include "entities/signal/defaults.hpp"
+#include "entities/signal/Phase.hpp"
+#include "entities/signal/SplitPlan.hpp"
+
 namespace sim_mob
 {
+//Forward Declaration
+
+class Crossing;
+class UniNode;
+class Node;
+class Link;
+class RoadSegment;
+class MultiNode;
+class Roundabout;
+class Intersection;
+class RoadNetwork;
+class Trip;
+class Activity;
+class Signal;
+class Signal_SCATS;
+
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y);
 void WriteXMLInput_laneEdgePolylines_cached(std::vector<std::vector<sim_mob::Point2D> >& polylines,TiXmlElement * laneEdgePolylines_cached);
@@ -36,7 +36,7 @@ void WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D>& polylines,TiXml
 void WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes);
 void WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle);
 void WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiXmlElement *Obstacle);
-void WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle);
+bool WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle);
 void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments);
 void WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link);
 void WriteXMLInput_Links(const std::vector<sim_mob::Link*>& link,TiXmlElement * RoadNetwork);
@@ -58,5 +58,13 @@ std::string locationType_toString(TripChainItem::LocationType type);
 void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip);
 void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activity & activity);
 void WriteXMLInput_TripChains(TiXmlElement * SimMobility);
+void WriteXMLInput_TrafficSignal_LinkAndCrossings(TiXmlElement * linkAndCrossings,const sim_mob::LinkAndCrossingByLink & LAC);
+void WriteXMLInput_TrafficSignal_ColorSequence(TiXmlElement * parent, sim_mob::ColorSequence &colorSequence);
+void WriteXMLInput_TrafficSignal_Phases(TiXmlElement * phases,  std::vector<sim_mob::Phase> &phases_);
+void WriteXMLInput_TrafficSignal_common(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignal_SCATS_SplitPlan(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal_);
+void WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal *signal);
+void WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility);
 void WriteXMLInput(const std::string& XML_OutPutFileName);
 }

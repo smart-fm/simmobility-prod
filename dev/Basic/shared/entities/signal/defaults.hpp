@@ -9,6 +9,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 
 
+
 namespace sim_mob {
 
 //Forward declarations
@@ -16,15 +17,15 @@ class Crossing;
 class Link;
 
 
-enum TrafficColor
-{
-    Red =1,    			///< Stop, do not go beyond the stop line.
-    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
-    Green = 3,   		///< Proceed either in the forward, left, or right direction.
-    FlashingRed = 4,	///future use
-    FlashingAmber = 5,	///future use
-    FlashingGreen = 6	///future use
-};
+//enum TrafficColor
+//{
+//    Red =1,    			///< Stop, do not go beyond the stop line.
+//    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
+//    Green = 3,   		///< Proceed either in the forward, left, or right direction.
+//    FlashingRed = 4,	///future use
+//    FlashingAmber = 5,	///future use
+//    FlashingGreen = 6	///future use
+//};
 
 //Link and crossing of an intersection/traffic signal
 struct LinkAndCrossing

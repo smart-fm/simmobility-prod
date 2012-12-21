@@ -370,45 +370,32 @@ void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
     Node const & node = signal.getNode();
-//    std::map<Link const *, size_t> const & links_map = signal.links_map();
-//
-//    std::map<Link const *, size_t>::const_iterator iter;
 	LinkAndCrossingByLink const &LAC = signal.getLinkAndCrossingsByLink();
+
 	LinkAndCrossingByLink::iterator iter = LAC.begin();
-	if(iter == LAC.end())
-	{
+	if(iter == LAC.end()) {
 //		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
 	}
-    for (; iter != LAC.end(); ++iter)
-    {
-        Link const * link  = (*iter).link;
-        if (link->getEnd() == &node)
-        {
+
+	//TODO: This code will need some re-writing, once merged with Vahid's branch.
+    for (; iter != LAC.end(); ++iter) {
+    	const Link* link  = iter->link;
+        if (link->getEnd() == &node) {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath(true);
-            if (! roads.empty())
-            {
+            std::vector<RoadSegment *> const & roads = link->getPath();
+            if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
-            }
-            else
-            {
+            } else {
             	std::cout << "Missed the first chance to create loop detector\n";
             }
-
-
-        }
-        else
-        {
+        } else {
             // <link> is receding away from <node>.  The loop-detectors should be at the end
             // of the last segment in the non-forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath(false);
-            if (! roads.empty())
-            {
+            std::vector<RoadSegment *> const & roads = link->getPath();
+            if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
-            }
-            else
-            {
+            } else {
             	std::cout << "Missed the second chance to create loop detector\n";
             }
         }
@@ -513,14 +500,9 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     {
     	std::ostringstream str;
     	str << " could not create any loop detector in road segment " << road->getId()
-        		<< " this will create problem for you later if you dont watch out !\n"
+        		<< " this will create problem for you later if you don't watch out !\n"
         		"for instance, while calculating laneDS";
     	throw std::runtime_error(str.str());
-    }
-    else
-    {
-
-//    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
     }
 }
 
@@ -591,7 +573,7 @@ LoopDetectorEntity::Impl::reset(Lane const & lane)
     }
     std::ostringstream stream;
     stream << "LoopDetectorEntity::Impl::reset() was called on invalid lane";
-    throw stream.str();
+    throw std::runtime_error(stream.str().c_str());
 }
 
 /** \endcond ignoreLoopDetectorInnards -- End of block to be ignored by doxygen.  */
@@ -623,6 +605,7 @@ LoopDetectorEntity::~LoopDetectorEntity()
 void
 LoopDetectorEntity::init(Signal const & signal)
 {
+
     pimpl_ = new Impl(signal, *this);
 }
 

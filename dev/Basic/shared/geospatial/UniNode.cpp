@@ -5,6 +5,7 @@
 #include <boost/thread.hpp>
 #include "Lane.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "util/OutputUtil.hpp"
 
 using namespace sim_mob;
 
@@ -22,7 +23,20 @@ const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 	}
 	return nullptr;
 }
-
+std::vector<sim_mob::Lane*> sim_mob::UniNode::getOutgoingLanes(Lane& from)
+{
+	std::vector<sim_mob::Lane*> res;
+	std::map<const sim_mob::Lane*, sim_mob::Lane* >::iterator it;
+	for (it = connectors.begin();it!=connectors.end();++it)
+	{
+		const sim_mob::Lane * l = it->first;
+		if(l->getLaneID() == from.getLaneID())
+		{
+			res.push_back(it->second);
+		}
+	}
+	return res;
+}
 
 const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& sim_mob::UniNode::getRoadSegmentPair(bool first) const
 {
@@ -46,6 +60,10 @@ const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 		if (secondPair.second) {
 			cachedSegmentsList.push_back(secondPair.second);
 		}
+	}
+
+	if (cachedSegmentsList.empty()) {
+		LogOut("Warning: UniNode segment list still empty after call to \"set\"" <<std::endl);
 	}
 
 	return cachedSegmentsList;

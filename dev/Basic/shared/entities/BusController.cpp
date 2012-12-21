@@ -487,7 +487,6 @@ void sim_mob::BusController::frame_tick_output(timeslice now)
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"BusController\""
 			<<","<<now.frame()
 			<<","<<getId()
@@ -496,7 +495,6 @@ void sim_mob::BusController::frame_tick_output(timeslice now)
 			<<"\",\"Bus_xPos\":\""<<static_cast<int>(posBus.x)
 			<<"\",\"Bus_yPos\":\""<<static_cast<int>(posBus.y)
 			<<"\"})"<<std::endl);
-#endif
 }
 
 

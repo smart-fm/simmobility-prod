@@ -50,11 +50,6 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 	} else {
 		RL0 = CLmed + (DS - DSmed) * (CLmax - CLmed) / (DSmax - DSmed);
 	}
-//	if(node.location.getX()==37250760 && node.location.getY()==14355120) {
-//#ifndef SIMMOB_DISABLE_OUTPUT
-//		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-//#endif
-//	}
 
 	int sign;
 	double diff_CL;
@@ -81,22 +76,12 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 	//RL is partly determined by its previous values
 	double RL = w1 * RL1 + w2 * prevRL1 + w3 * prevRL2;
 
-//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
-//#ifndef SIMMOB_DISABLE_OUTPUT
-//		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-//		std::cout<<"RL "<<RL<<std::endl;
-//#endif
-//	}
+
 	//update previous RL
 	prevRL2 = prevRL1;
 	prevRL1 = RL1;
 
 	sign = (RL >= currCL) ? 1 : -1; //This is equivalent.
-	/*if(RL >= currCL) {
-	 sign = 1;
-	 } else {
-	 sign = -1;
-	 }*/
 
 	//set the maximum change as 6s
 	if (std::abs(RL - currCL) <= 6) {

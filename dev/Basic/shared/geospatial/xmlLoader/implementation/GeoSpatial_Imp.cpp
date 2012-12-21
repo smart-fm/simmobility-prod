@@ -19,6 +19,24 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 	}
 }
 
+//Helper: Create segment pairs entries for a single UniNode
+void ProcessUniNodeSegPairs(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::SegPair segPair) {
+	node->firstPair = std::make_pair(book.getSegment(segPair.first.first), book.getSegment(segPair.first.second));
+
+	//Second pair may not exist
+	if (segPair.second.first!=0 && segPair.second.second!=0) {
+		node->secondPair = std::make_pair(book.getSegment(segPair.second.first), book.getSegment(segPair.second.second));
+	}
+}
+
+//Helper: Save segment pairs from UniNodes
+void ProcessUniNodeSegPairs(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
+	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
+		ProcessUniNodeSegPairs(book, *it, book.getUniNodeSegmentPairCache(*it));
+	}
+}
+
+
 
 //Helper: Create LaneConnector entries for a single MultiNode
 void ProcessMultiNodeConnectors(const helper::Bookkeeping& book,sim_mob::MultiNode* node, helper::Bookkeeping::MNConnect connectors) {
@@ -66,8 +84,8 @@ void CacheRoadSegmentsAtMultiNodes(std::vector<sim_mob::RoadSegment*>& roadway) 
 //Helper: Handle "RoadSegmentsAt" for MultiNodes (Link->Segment)
 void CacheRoadSegmentsAtMultiNodes(std::vector<sim_mob::Link*>& links) {
 	for (std::vector<sim_mob::Link*>::iterator it=links.begin(); it!=links.end(); it++) {
-		CacheRoadSegmentsAtMultiNodes((*it)->getPath(true));
-		CacheRoadSegmentsAtMultiNodes((*it)->getPath(false));
+		CacheRoadSegmentsAtMultiNodes((*it)->getPath());
+	//	CacheRoadSegmentsAtMultiNodes((*it)->getPath(false));
 	}
 }
 
@@ -93,6 +111,9 @@ void sim_mob::xml::GeoSpatial_t_pimpl::post_GeoSpatial_t ()
 
 void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 {
+	//This needs to be done first
+	ProcessUniNodeSegPairs(book, rn.getUniNodes());
+
 	//Parse and save "RoadSegmentsAt"
 	CacheRoadSegmentsAtUniNodes(rn.getUniNodes());
 	CacheRoadSegmentsAtMultiNodes(rn.getLinks());
@@ -100,5 +121,20 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
+
+	//Ugh; this shouldn't be needed.... (see Loader.cpp)
+	//TODO: Remove this; Lanes should never have to be "generated" at runtime (or if so, the conditions should be fully controlled).
+	{
+	std::map<std::pair<sim_mob::Node*, sim_mob::Node*>, sim_mob::Link*> startEndLinkMap;
+	//Scan first.
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		startEndLinkMap[std::make_pair((*linkIt)->getStart(), (*linkIt)->getEnd())] = *linkIt;
+	}
+	//Now tag
+	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
+		bool hasOpp = startEndLinkMap.count(std::make_pair((*linkIt)->getEnd(), (*linkIt)->getStart()))>0;
+		(*linkIt)->hasOpposingLink = hasOpp ? 1 : 0;
+	}
+	}
 }
 

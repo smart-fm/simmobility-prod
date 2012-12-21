@@ -77,6 +77,8 @@ private:
 
 class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel {
 public:
+	fwdBckSegments_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual std::vector<sim_mob::RoadSegment*> post_fwdBckSegments_t ();
 
@@ -84,7 +86,7 @@ public:
 
 private:
   std::vector<sim_mob::RoadSegment*> model;
-
+	helper::Bookkeeping& book;
 };
 
 
@@ -252,7 +254,7 @@ private:
 	helper::Bookkeeping& book;
 };
 
-
+/*
 class Segments_pimpl: public virtual Segments_pskel {
 public:
 	Segments_pimpl(helper::Bookkeeping& book) : book(book) {}
@@ -271,7 +273,7 @@ private:
 
 	helper::Bookkeeping& book;
 };
-
+*/
 
 class Nodes_pimpl: public virtual Nodes_pskel {
 public:
@@ -372,10 +374,10 @@ public:
 };
 
 
-class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel, public ::xml_schema::string_pimpl {
+class signalTimingMode_t_pimpl: public virtual signalTimingMode_t_pskel, public ::xml_schema::string_pimpl {
 public:
 	virtual void pre ();
-	virtual void post_signalAlgorithm_t ();
+	virtual void post_signalTimingMode_t ();
 };
 
 class Plans_t_pimpl: public virtual Plans_t_pskel {

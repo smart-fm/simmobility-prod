@@ -100,8 +100,8 @@ void Lane::insertNewPolylinePoint(Point2D p, bool isPre)
 		polyline_.insert(polyline_.begin(), p);
 }
 
+
 #ifndef SIMMOB_DISABLE_MPI
 
 #endif
-
 }

@@ -2116,20 +2116,20 @@ namespace geo
   //
 
   void Plans_t_pskel::
-  Plan_parser (::geo::Plan_t_pskel& p)
+  plan_parser (::geo::Plan_t_pskel& p)
   {
-    this->Plan_parser_ = &p;
+    this->plan_parser_ = &p;
   }
 
   void Plans_t_pskel::
-  parsers (::geo::Plan_t_pskel& Plan)
+  parsers (::geo::Plan_t_pskel& plan)
   {
-    this->Plan_parser_ = &Plan;
+    this->plan_parser_ = &plan;
   }
 
   Plans_t_pskel::
   Plans_t_pskel ()
-  : Plan_parser_ (0)
+  : plan_parser_ (0)
   {
   }
 
@@ -2271,6 +2271,66 @@ namespace geo
   {
   }
 
+  // crossings_maps_t_pskel
+  //
+
+  void crossings_maps_t_pskel::
+  crossings_map_parser (::geo::crossings_map_t_pskel& p)
+  {
+    this->crossings_map_parser_ = &p;
+  }
+
+  void crossings_maps_t_pskel::
+  parsers (::geo::crossings_map_t_pskel& crossings_map)
+  {
+    this->crossings_map_parser_ = &crossings_map;
+  }
+
+  crossings_maps_t_pskel::
+  crossings_maps_t_pskel ()
+  : crossings_map_parser_ (0)
+  {
+  }
+
+  // crossings_map_t_pskel
+  //
+
+  void crossings_map_t_pskel::
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkID_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  crossingID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->crossingID_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  ColorSequence_parser (::geo::ColorSequence_t_pskel& p)
+  {
+    this->ColorSequence_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& linkID,
+           ::xml_schema::unsigned_int_pskel& crossingID,
+           ::geo::ColorSequence_t_pskel& ColorSequence)
+  {
+    this->linkID_parser_ = &linkID;
+    this->crossingID_parser_ = &crossingID;
+    this->ColorSequence_parser_ = &ColorSequence;
+  }
+
+  crossings_map_t_pskel::
+  crossings_map_t_pskel ()
+  : linkID_parser_ (0),
+    crossingID_parser_ (0),
+    ColorSequence_parser_ (0)
+  {
+  }
+
   // Phase_t_pskel
   //
 
@@ -2287,26 +2347,35 @@ namespace geo
   }
 
   void Phase_t_pskel::
-  links_map_parser (::geo::links_maps_t_pskel& p)
+  links_maps_parser (::geo::links_maps_t_pskel& p)
   {
-    this->links_map_parser_ = &p;
+    this->links_maps_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  crossings_maps_parser (::geo::crossings_maps_t_pskel& p)
+  {
+    this->crossings_maps_parser_ = &p;
   }
 
   void Phase_t_pskel::
   parsers (::xml_schema::unsigned_byte_pskel& phaseID,
            ::xml_schema::string_pskel& name,
-           ::geo::links_maps_t_pskel& links_map)
+           ::geo::links_maps_t_pskel& links_maps,
+           ::geo::crossings_maps_t_pskel& crossings_maps)
   {
     this->phaseID_parser_ = &phaseID;
     this->name_parser_ = &name;
-    this->links_map_parser_ = &links_map;
+    this->links_maps_parser_ = &links_maps;
+    this->crossings_maps_parser_ = &crossings_maps;
   }
 
   Phase_t_pskel::
   Phase_t_pskel ()
   : phaseID_parser_ (0),
     name_parser_ (0),
-    links_map_parser_ (0)
+    links_maps_parser_ (0),
+    crossings_maps_parser_ (0)
   {
   }
 
@@ -2314,20 +2383,20 @@ namespace geo
   //
 
   void Phases_t_pskel::
-  Phase_parser (::geo::Phase_t_pskel& p)
+  phase_parser (::geo::Phase_t_pskel& p)
   {
-    this->Phase_parser_ = &p;
+    this->phase_parser_ = &p;
   }
 
   void Phases_t_pskel::
-  parsers (::geo::Phase_t_pskel& Phase)
+  parsers (::geo::Phase_t_pskel& phase)
   {
-    this->Phase_parser_ = &Phase;
+    this->phase_parser_ = &phase;
   }
 
   Phases_t_pskel::
   Phases_t_pskel ()
-  : Phase_parser_ (0)
+  : phase_parser_ (0)
   {
   }
 
@@ -2338,12 +2407,6 @@ namespace geo
   splitplanID_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->splitplanID_parser_ = &p;
-  }
-
-  void SplitPlan_t_pskel::
-  signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel& p)
-  {
-    this->signalAlgorithm_parser_ = &p;
   }
 
   void SplitPlan_t_pskel::
@@ -2365,35 +2428,53 @@ namespace geo
   }
 
   void SplitPlan_t_pskel::
-  Phases_parser (::geo::Phases_t_pskel& p)
-  {
-    this->Phases_parser_ = &p;
-  }
-
-  void SplitPlan_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& splitplanID,
-           ::geo::signalAlgorithm_t_pskel& signalAlgorithm,
            ::xml_schema::unsigned_byte_pskel& cycleLength,
            ::xml_schema::unsigned_byte_pskel& offset,
-           ::geo::Plans_t_pskel& ChoiceSet,
-           ::geo::Phases_t_pskel& Phases)
+           ::geo::Plans_t_pskel& ChoiceSet)
   {
     this->splitplanID_parser_ = &splitplanID;
-    this->signalAlgorithm_parser_ = &signalAlgorithm;
     this->cycleLength_parser_ = &cycleLength;
     this->offset_parser_ = &offset;
     this->ChoiceSet_parser_ = &ChoiceSet;
-    this->Phases_parser_ = &Phases;
   }
 
   SplitPlan_t_pskel::
   SplitPlan_t_pskel ()
   : splitplanID_parser_ (0),
-    signalAlgorithm_parser_ (0),
     cycleLength_parser_ (0),
     offset_parser_ (0),
-    ChoiceSet_parser_ (0),
-    Phases_parser_ (0)
+    ChoiceSet_parser_ (0)
+  {
+  }
+
+  // SCATS_t_pskel
+  //
+
+  void SCATS_t_pskel::
+  signalTimingMode_parser (::geo::signalTimingMode_t_pskel& p)
+  {
+    this->signalTimingMode_parser_ = &p;
+  }
+
+  void SCATS_t_pskel::
+  SplitPlan_parser (::geo::SplitPlan_t_pskel& p)
+  {
+    this->SplitPlan_parser_ = &p;
+  }
+
+  void SCATS_t_pskel::
+  parsers (::geo::signalTimingMode_t_pskel& signalTimingMode,
+           ::geo::SplitPlan_t_pskel& SplitPlan)
+  {
+    this->signalTimingMode_parser_ = &signalTimingMode;
+    this->SplitPlan_parser_ = &SplitPlan;
+  }
+
+  SCATS_t_pskel::
+  SCATS_t_pskel ()
+  : signalTimingMode_parser_ (0),
+    SplitPlan_parser_ (0)
   {
   }
 
@@ -2401,7 +2482,7 @@ namespace geo
   //
 
   void Signal_t_pskel::
-  signalID_parser (::xml_schema::unsigned_byte_pskel& p)
+  signalID_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->signalID_parser_ = &p;
   }
@@ -2413,44 +2494,44 @@ namespace geo
   }
 
   void Signal_t_pskel::
-  signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel& p)
-  {
-    this->signalAlgorithm_parser_ = &p;
-  }
-
-  void Signal_t_pskel::
   linkAndCrossings_parser (::geo::linkAndCrossings_t_pskel& p)
   {
     this->linkAndCrossings_parser_ = &p;
   }
 
   void Signal_t_pskel::
-  SplitPlan_parser (::geo::SplitPlan_t_pskel& p)
+  phases_parser (::geo::Phases_t_pskel& p)
   {
-    this->SplitPlan_parser_ = &p;
+    this->phases_parser_ = &p;
   }
 
   void Signal_t_pskel::
-  parsers (::xml_schema::unsigned_byte_pskel& signalID,
+  SCATS_parser (::geo::SCATS_t_pskel& p)
+  {
+    this->SCATS_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& signalID,
            ::xml_schema::unsigned_int_pskel& nodeID,
-           ::geo::signalAlgorithm_t_pskel& signalAlgorithm,
            ::geo::linkAndCrossings_t_pskel& linkAndCrossings,
-           ::geo::SplitPlan_t_pskel& SplitPlan)
+           ::geo::Phases_t_pskel& phases,
+           ::geo::SCATS_t_pskel& SCATS)
   {
     this->signalID_parser_ = &signalID;
     this->nodeID_parser_ = &nodeID;
-    this->signalAlgorithm_parser_ = &signalAlgorithm;
     this->linkAndCrossings_parser_ = &linkAndCrossings;
-    this->SplitPlan_parser_ = &SplitPlan;
+    this->phases_parser_ = &phases;
+    this->SCATS_parser_ = &SCATS;
   }
 
   Signal_t_pskel::
   Signal_t_pskel ()
   : signalID_parser_ (0),
     nodeID_parser_ (0),
-    signalAlgorithm_parser_ (0),
     linkAndCrossings_parser_ (0),
-    SplitPlan_parser_ (0)
+    phases_parser_ (0),
+    SCATS_parser_ (0)
   {
   }
 
@@ -2458,20 +2539,20 @@ namespace geo
   //
 
   void Signals_t_pskel::
-  signal_parser (::geo::Signal_t_pskel& p)
+  Signal_parser (::geo::Signal_t_pskel& p)
   {
-    this->signal_parser_ = &p;
+    this->Signal_parser_ = &p;
   }
 
   void Signals_t_pskel::
-  parsers (::geo::Signal_t_pskel& signal)
+  parsers (::geo::Signal_t_pskel& Signal)
   {
-    this->signal_parser_ = &signal;
+    this->Signal_parser_ = &Signal;
   }
 
   Signals_t_pskel::
   Signals_t_pskel ()
-  : signal_parser_ (0)
+  : Signal_parser_ (0)
   {
   }
 
@@ -3883,7 +3964,7 @@ namespace geo
   }
 
   void segment_t_pskel::
-  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>)
+  Obstacles (std::map<centimeter_t, RoadItem*>)
   {
   }
 
@@ -7605,14 +7686,6 @@ namespace geo
     return false;
   }
 
-  // signalAlgorithm_t_pskel
-  //
-
-  void signalAlgorithm_t_pskel::
-  post_signalAlgorithm_t ()
-  {
-  }
-
   // Plan_t_pskel
   //
 
@@ -7623,11 +7696,6 @@ namespace geo
 
   void Plan_t_pskel::
   PhasePercentage (double)
-  {
-  }
-
-  void Plan_t_pskel::
-  post_Plan_t ()
   {
   }
 
@@ -7694,12 +7762,7 @@ namespace geo
   //
 
   void Plans_t_pskel::
-  Plan ()
-  {
-  }
-
-  void Plans_t_pskel::
-  post_Plans_t ()
+  plan (std::pair<short,std::vector<double> >)
   {
   }
 
@@ -7713,12 +7776,12 @@ namespace geo
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "Plan" && ns.empty ())
+    if (n == "plan" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->Plan_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->plan_parser_;
 
-      if (this->Plan_parser_)
-        this->Plan_parser_->pre ();
+      if (this->plan_parser_)
+        this->plan_parser_->pre ();
 
       return true;
     }
@@ -7733,13 +7796,10 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "Plan" && ns.empty ())
+    if (n == "plan" && ns.empty ())
     {
-      if (this->Plan_parser_)
-      {
-        this->Plan_parser_->post_Plan_t ();
-        this->Plan ();
-      }
+      if (this->plan_parser_)
+        this->plan (this->plan_parser_->post_Plan_t ());
 
       return true;
     }
@@ -7747,19 +7807,11 @@ namespace geo
     return false;
   }
 
-  // TrafficColor_t_pskel
-  //
-
-  void TrafficColor_t_pskel::
-  post_TrafficColor_t ()
-  {
-  }
-
   // ColorDuration_t_pskel
   //
 
   void ColorDuration_t_pskel::
-  TrafficColor ()
+  TrafficColor (sim_mob::TrafficColor)
   {
   }
 
@@ -7811,10 +7863,7 @@ namespace geo
     if (n == "TrafficColor" && ns.empty ())
     {
       if (this->TrafficColor_parser_)
-      {
-        this->TrafficColor_parser_->post_TrafficColor_t ();
-        this->TrafficColor ();
-      }
+        this->TrafficColor (this->TrafficColor_parser_->post_TrafficColor_t ());
 
       return true;
     }
@@ -7975,7 +8024,7 @@ namespace geo
   }
 
   void links_map_t_pskel::
-  ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >)
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >)
   {
   }
 
@@ -8092,6 +8141,150 @@ namespace geo
     return false;
   }
 
+  // crossings_maps_t_pskel
+  //
+
+  void crossings_maps_t_pskel::
+  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>)
+  {
+  }
+
+  bool crossings_maps_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "crossings_map" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_map_parser_;
+
+      if (this->crossings_map_parser_)
+        this->crossings_map_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool crossings_maps_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "crossings_map" && ns.empty ())
+    {
+      if (this->crossings_map_parser_)
+        this->crossings_map (this->crossings_map_parser_->post_crossings_map_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // crossings_map_t_pskel
+  //
+
+  void crossings_map_t_pskel::
+  linkID (unsigned int)
+  {
+  }
+
+  void crossings_map_t_pskel::
+  crossingID (unsigned int)
+  {
+  }
+
+  void crossings_map_t_pskel::
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >)
+  {
+  }
+
+  bool crossings_map_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "linkID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+
+      if (this->linkID_parser_)
+        this->linkID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "crossingID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
+
+      if (this->crossingID_parser_)
+        this->crossingID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ColorSequence" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
+
+      if (this->ColorSequence_parser_)
+        this->ColorSequence_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool crossings_map_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "linkID" && ns.empty ())
+    {
+      if (this->linkID_parser_)
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "crossingID" && ns.empty ())
+    {
+      if (this->crossingID_parser_)
+        this->crossingID (this->crossingID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "ColorSequence" && ns.empty ())
+    {
+      if (this->ColorSequence_parser_)
+        this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
   // Phase_t_pskel
   //
 
@@ -8106,12 +8299,12 @@ namespace geo
   }
 
   void Phase_t_pskel::
-  links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
+  links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
   {
   }
 
   void Phase_t_pskel::
-  post_Phase_t ()
+  crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>)
   {
   }
 
@@ -8145,12 +8338,22 @@ namespace geo
       return true;
     }
 
-    if (n == "links_map" && ns.empty ())
+    if (n == "links_maps" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_maps_parser_;
 
-      if (this->links_map_parser_)
-        this->links_map_parser_->pre ();
+      if (this->links_maps_parser_)
+        this->links_maps_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "crossings_maps" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_maps_parser_;
+
+      if (this->crossings_maps_parser_)
+        this->crossings_maps_parser_->pre ();
 
       return true;
     }
@@ -8181,10 +8384,18 @@ namespace geo
       return true;
     }
 
-    if (n == "links_map" && ns.empty ())
+    if (n == "links_maps" && ns.empty ())
     {
-      if (this->links_map_parser_)
-        this->links_map (this->links_map_parser_->post_links_maps_t ());
+      if (this->links_maps_parser_)
+        this->links_maps (this->links_maps_parser_->post_links_maps_t ());
+
+      return true;
+    }
+
+    if (n == "crossings_maps" && ns.empty ())
+    {
+      if (this->crossings_maps_parser_)
+        this->crossings_maps (this->crossings_maps_parser_->post_crossings_maps_t ());
 
       return true;
     }
@@ -8196,12 +8407,7 @@ namespace geo
   //
 
   void Phases_t_pskel::
-  Phase ()
-  {
-  }
-
-  void Phases_t_pskel::
-  post_Phases_t ()
+  phase (sim_mob::Phase)
   {
   }
 
@@ -8215,12 +8421,12 @@ namespace geo
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "Phase" && ns.empty ())
+    if (n == "phase" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->Phase_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phase_parser_;
 
-      if (this->Phase_parser_)
-        this->Phase_parser_->pre ();
+      if (this->phase_parser_)
+        this->phase_parser_->pre ();
 
       return true;
     }
@@ -8235,13 +8441,10 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "Phase" && ns.empty ())
+    if (n == "phase" && ns.empty ())
     {
-      if (this->Phase_parser_)
-      {
-        this->Phase_parser_->post_Phase_t ();
-        this->Phase ();
-      }
+      if (this->phase_parser_)
+        this->phase (this->phase_parser_->post_Phase_t ());
 
       return true;
     }
@@ -8258,11 +8461,6 @@ namespace geo
   }
 
   void SplitPlan_t_pskel::
-  signalAlgorithm ()
-  {
-  }
-
-  void SplitPlan_t_pskel::
   cycleLength (unsigned char)
   {
   }
@@ -8273,12 +8471,7 @@ namespace geo
   }
 
   void SplitPlan_t_pskel::
-  ChoiceSet ()
-  {
-  }
-
-  void SplitPlan_t_pskel::
-  Phases ()
+  ChoiceSet (std::vector<std::vector<double> >)
   {
   }
 
@@ -8298,16 +8491,6 @@ namespace geo
 
       if (this->splitplanID_parser_)
         this->splitplanID_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "signalAlgorithm" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
-
-      if (this->signalAlgorithm_parser_)
-        this->signalAlgorithm_parser_->pre ();
 
       return true;
     }
@@ -8342,16 +8525,6 @@ namespace geo
       return true;
     }
 
-    if (n == "Phases" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->Phases_parser_;
-
-      if (this->Phases_parser_)
-        this->Phases_parser_->pre ();
-
-      return true;
-    }
-
     return false;
   }
 
@@ -8366,17 +8539,6 @@ namespace geo
     {
       if (this->splitplanID_parser_)
         this->splitplanID (this->splitplanID_parser_->post_unsigned_int ());
-
-      return true;
-    }
-
-    if (n == "signalAlgorithm" && ns.empty ())
-    {
-      if (this->signalAlgorithm_parser_)
-      {
-        this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-        this->signalAlgorithm ();
-      }
 
       return true;
     }
@@ -8400,21 +8562,84 @@ namespace geo
     if (n == "ChoiceSet" && ns.empty ())
     {
       if (this->ChoiceSet_parser_)
-      {
-        this->ChoiceSet_parser_->post_Plans_t ();
-        this->ChoiceSet ();
-      }
+        this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
 
       return true;
     }
 
-    if (n == "Phases" && ns.empty ())
+    return false;
+  }
+
+  // SCATS_t_pskel
+  //
+
+  void SCATS_t_pskel::
+  signalTimingMode (int)
+  {
+  }
+
+  void SCATS_t_pskel::
+  SplitPlan (sim_mob::SplitPlan)
+  {
+  }
+
+  void SCATS_t_pskel::
+  post_SCATS_t ()
+  {
+  }
+
+  bool SCATS_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "signalTimingMode" && ns.empty ())
     {
-      if (this->Phases_parser_)
-      {
-        this->Phases_parser_->post_Phases_t ();
-        this->Phases ();
-      }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
+
+      if (this->signalTimingMode_parser_)
+        this->signalTimingMode_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SplitPlan" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
+
+      if (this->SplitPlan_parser_)
+        this->SplitPlan_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SCATS_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "signalTimingMode" && ns.empty ())
+    {
+      if (this->signalTimingMode_parser_)
+        this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
+
+      return true;
+    }
+
+    if (n == "SplitPlan" && ns.empty ())
+    {
+      if (this->SplitPlan_parser_)
+        this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
 
       return true;
     }
@@ -8426,7 +8651,7 @@ namespace geo
   //
 
   void Signal_t_pskel::
-  signalID (unsigned char)
+  signalID (unsigned int)
   {
   }
 
@@ -8436,17 +8661,17 @@ namespace geo
   }
 
   void Signal_t_pskel::
-  signalAlgorithm ()
-  {
-  }
-
-  void Signal_t_pskel::
   linkAndCrossings (sim_mob::LinkAndCrossingC)
   {
   }
 
   void Signal_t_pskel::
-  SplitPlan (sim_mob::SplitPlan)
+  phases (sim_mob::Signal::phases)
+  {
+  }
+
+  void Signal_t_pskel::
+  SCATS ()
   {
   }
 
@@ -8480,16 +8705,6 @@ namespace geo
       return true;
     }
 
-    if (n == "signalAlgorithm" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
-
-      if (this->signalAlgorithm_parser_)
-        this->signalAlgorithm_parser_->pre ();
-
-      return true;
-    }
-
     if (n == "linkAndCrossings" && ns.empty ())
     {
       this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossings_parser_;
@@ -8500,12 +8715,22 @@ namespace geo
       return true;
     }
 
-    if (n == "SplitPlan" && ns.empty ())
+    if (n == "phases" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phases_parser_;
 
-      if (this->SplitPlan_parser_)
-        this->SplitPlan_parser_->pre ();
+      if (this->phases_parser_)
+        this->phases_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SCATS" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SCATS_parser_;
+
+      if (this->SCATS_parser_)
+        this->SCATS_parser_->pre ();
 
       return true;
     }
@@ -8523,7 +8748,7 @@ namespace geo
     if (n == "signalID" && ns.empty ())
     {
       if (this->signalID_parser_)
-        this->signalID (this->signalID_parser_->post_unsigned_byte ());
+        this->signalID (this->signalID_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -8536,17 +8761,6 @@ namespace geo
       return true;
     }
 
-    if (n == "signalAlgorithm" && ns.empty ())
-    {
-      if (this->signalAlgorithm_parser_)
-      {
-        this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
-        this->signalAlgorithm ();
-      }
-
-      return true;
-    }
-
     if (n == "linkAndCrossings" && ns.empty ())
     {
       if (this->linkAndCrossings_parser_)
@@ -8555,10 +8769,21 @@ namespace geo
       return true;
     }
 
-    if (n == "SplitPlan" && ns.empty ())
+    if (n == "phases" && ns.empty ())
     {
-      if (this->SplitPlan_parser_)
-        this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
+      if (this->phases_parser_)
+        this->phases (this->phases_parser_->post_Phases_t ());
+
+      return true;
+    }
+
+    if (n == "SCATS" && ns.empty ())
+    {
+      if (this->SCATS_parser_)
+      {
+        this->SCATS_parser_->post_SCATS_t ();
+        this->SCATS ();
+      }
 
       return true;
     }
@@ -8570,12 +8795,7 @@ namespace geo
   //
 
   void Signals_t_pskel::
-  signal (sim_mob::Signal*)
-  {
-  }
-
-  void Signals_t_pskel::
-  post_Signals_t ()
+  Signal (sim_mob::Signal*)
   {
   }
 
@@ -8589,12 +8809,12 @@ namespace geo
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "signal" && ns.empty ())
+    if (n == "Signal" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->signal_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Signal_parser_;
 
-      if (this->signal_parser_)
-        this->signal_parser_->pre ();
+      if (this->Signal_parser_)
+        this->Signal_parser_->pre ();
 
       return true;
     }
@@ -8609,10 +8829,10 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "signal" && ns.empty ())
+    if (n == "Signal" && ns.empty ())
     {
-      if (this->signal_parser_)
-        this->signal (this->signal_parser_->post_Signal_t ());
+      if (this->Signal_parser_)
+        this->Signal (this->Signal_parser_->post_Signal_t ());
 
       return true;
     }
@@ -8691,7 +8911,7 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
-  Signals ()
+  Signals (sim_mob::Signal::All_Signals)
   {
   }
 
@@ -8775,10 +8995,7 @@ namespace geo
     if (n == "Signals" && ns.empty ())
     {
       if (this->Signals_parser_)
-      {
-        this->Signals_parser_->post_Signals_t ();
-        this->Signals ();
-      }
+        this->Signals (this->Signals_parser_->post_Signals_t ());
 
       return true;
     }

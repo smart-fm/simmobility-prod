@@ -771,9 +771,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	else
 		vehicle->setTurningDirection(LCS_SAME);
 	//when vehicle stops, don't do lane changing
-	if (vehicle->getVelocity() <= 0) {
-		vehicle->setLatVelocity(0);
-	}
+//	if (vehicle->getVelocity() <= 0) {
+//		vehicle->setLatVelocity(0);
+//	}
 	p.turningDirection = vehicle->getTurningDirection();
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
@@ -796,13 +796,14 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		}
 	}
 
-	if (params.now.ms()/1000.0 > 93.7 && vehicle->getCurrSegment()->getEnd()->nodeId == 73844
-			&& vehicle->getCurrSegment()->getStart()->nodeId == 111308
+	if (params.now.ms()/1000.0 > 116.6
+			&& vehicle->getCurrSegment()->getStart()->nodeId == 61682
+			&& vehicle->getCurrSegment()->getEnd()->nodeId == 61688
 			&& vehicle->getVelocity()>1
 		)
 	{
 		if (vehicle->getNextSegment(false))
-			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 61682)
+			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 93730)
 				std::cout<<"find  " <<parent->getId()<<std::endl;
 	}
 

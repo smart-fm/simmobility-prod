@@ -132,9 +132,9 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
-	if ( p.space < 2.0 && p.isAlreadyStart )
-		return maxDeceleration;
-	if(p.space<3.0 && p.isAlreadyStart && p.isBeforIntersecton)
+//	if ( p.space < 2.0 && p.isAlreadyStart )
+//		return maxDeceleration;
+	if(p.space<5.0 && p.isAlreadyStart && p.isBeforIntersecton && p.perceivedFwdVelocityOfFwdCar/100 < 1.0)
 	{
 		return maxDeceleration*4.0;
 	}
@@ -176,6 +176,11 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		if(headway <= hBufferUpper && headway >= hBufferLower) {
 			res = accOfCarFollowing(p);
 		}
+
+		if(p.isWaiting && res>0)
+		{
+			res=res*0.5;
+		}
 	}
 	return res;
 }
@@ -194,7 +199,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
     double distanceToTrafficSignal;
     distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
     color = p.perceivedTrafficColor;
-    double dis = p.perceivedDistToFwdCar/100;
+    double dis = p.perceivedDistToFwdCar;
 	if(distanceToTrafficSignal < dis)
 	{
 	double dis = distanceToTrafficSignal/100;

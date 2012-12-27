@@ -123,7 +123,8 @@ sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime en
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
-	control_TimePointNum = 1;// the number 2 in( 0->1->2->3 )
+	control_TimePointNum0 = 2;// the number 2 in( 0->1->2->3 )
+	control_TimePointNum1 = 4;
 }
 
 sim_mob::Busline::~Busline()

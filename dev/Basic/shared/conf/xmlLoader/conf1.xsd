@@ -5,23 +5,24 @@
   targetNamespace="http://www.smart.mit.edu/conf">
 
   <!-- IDs follow c-style naming conventions -->
-  <xs:attribute name="id">
+  <!-- TODO: These are kinda buggy for now. -->
+  <!--<xs:attribute name="id">
     <xs:simpleType>
       <xs:restriction base="xs:string">
         <xs:pattern value="[a-z][a-z0-9_-]+"/>
       </xs:restriction>
     </xs:simpleType>
-  </xs:attribute>
+  </xs:attribute>-->
 
   <!-- A model -->
   <xs:complexType name="model">
-    <xs:attribute ref="conf:id"/>
+    <xs:attribute name="id" type="xs:string"/>
     <xs:attribute name="library" type="xs:string"/>
   </xs:complexType>
 
   <!-- A workgroup -->
   <xs:complexType name="workgroup">
-    <xs:attribute name="id" type="xs:int"/>
+    <xs:attribute name="value" type="xs:int"/>
   </xs:complexType>
 
   <!-- A reaction time -->
@@ -34,9 +35,9 @@
   <!-- A database connection -->
   <xs:complexType name="db_connection">
     <xs:sequence>
-      <xs:element name="param" type="conf:db_param"/>
+      <xs:element name="param" type="conf:db_param" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute ref="conf:id"/>
+    <xs:attribute name="id" type="xs:string"/>
     <xs:attribute name="dbtype" type="xs:string"/>
   </xs:complexType>
 
@@ -55,9 +56,10 @@
   <!-- A stored procedure mapping -->
   <xs:complexType name="proc_map">
     <xs:sequence>
-      <xs:element name="mapping" type="conf:db_proc_mapping"/>
+      <xs:element name="mapping" type="conf:db_proc_mapping" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute ref="conf:id"/>
+    <xs:attribute name="id" type="xs:string"/>
+    <xs:attribute name="format" type="xs:string"/>
   </xs:complexType>
 
 
@@ -84,7 +86,7 @@
     </xs:complexType>
     </xs:element>
 
-    <xs:element name="reaction_times">
+    <xs:element name="react_times">
     <xs:complexType>
     <xs:sequence>
       <xs:element name="dist1" type="conf:reaction_time"/>
@@ -96,7 +98,7 @@
     <xs:element name="db_connections">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="connection" type="conf:db_connection"/>
+        <xs:element name="connection" type="conf:db_connection" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
     </xs:element>
@@ -104,7 +106,7 @@
     <xs:element name="db_proc_groups">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="proc_map" type="conf:proc_map"/>
+        <xs:element name="proc_map" type="conf:proc_map" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
     </xs:element>

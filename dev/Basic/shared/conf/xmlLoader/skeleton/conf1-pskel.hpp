@@ -64,10 +64,9 @@ namespace sim_mob
     class proc_map_pskel;
     class constructs_pskel;
     class SimMobility_pskel;
-    class id_pskel;
     class models_pskel;
     class workgroup_sizes_pskel;
-    class reaction_times_pskel;
+    class react_times_pskel;
     class db_connections_pskel;
     class db_proc_groups_pskel;
   }
@@ -298,7 +297,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
 
       virtual void
       library (const ::std::string&);
@@ -309,13 +308,13 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      id_parser (::sim_mob::conf::id_pskel&);
+      id_parser (::xml_schema::string_pskel&);
 
       void
       library_parser (::xml_schema::string_pskel&);
 
       void
-      parsers (::sim_mob::conf::id_pskel& /* id */,
+      parsers (::xml_schema::string_pskel& /* id */,
                ::xml_schema::string_pskel& /* library */);
 
       // Constructor.
@@ -331,7 +330,7 @@ namespace sim_mob
                        const ::xml_schema::ro_string&);
 
       protected:
-      ::sim_mob::conf::id_pskel* id_parser_;
+      ::xml_schema::string_pskel* id_parser_;
       ::xml_schema::string_pskel* library_parser_;
     };
 
@@ -344,7 +343,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      id (int);
+      value (int);
 
       virtual void
       post_workgroup ();
@@ -352,10 +351,10 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      id_parser (::xml_schema::int_pskel&);
+      value_parser (::xml_schema::int_pskel&);
 
       void
-      parsers (::xml_schema::int_pskel& /* id */);
+      parsers (::xml_schema::int_pskel& /* value */);
 
       // Constructor.
       //
@@ -370,7 +369,7 @@ namespace sim_mob
                        const ::xml_schema::ro_string&);
 
       protected:
-      ::xml_schema::int_pskel* id_parser_;
+      ::xml_schema::int_pskel* value_parser_;
     };
 
     class reaction_time_pskel: public ::xml_schema::complex_content
@@ -439,7 +438,7 @@ namespace sim_mob
       param ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
 
       virtual void
       dbtype (const ::std::string&);
@@ -453,14 +452,14 @@ namespace sim_mob
       param_parser (::sim_mob::conf::db_param_pskel&);
 
       void
-      id_parser (::sim_mob::conf::id_pskel&);
+      id_parser (::xml_schema::string_pskel&);
 
       void
       dbtype_parser (::xml_schema::string_pskel&);
 
       void
       parsers (::sim_mob::conf::db_param_pskel& /* param */,
-               ::sim_mob::conf::id_pskel& /* id */,
+               ::xml_schema::string_pskel& /* id */,
                ::xml_schema::string_pskel& /* dbtype */);
 
       // Constructor.
@@ -486,7 +485,7 @@ namespace sim_mob
 
       protected:
       ::sim_mob::conf::db_param_pskel* param_parser_;
-      ::sim_mob::conf::id_pskel* id_parser_;
+      ::xml_schema::string_pskel* id_parser_;
       ::xml_schema::string_pskel* dbtype_parser_;
     };
 
@@ -594,7 +593,10 @@ namespace sim_mob
       mapping ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
+
+      virtual void
+      format (const ::std::string&);
 
       virtual void
       post_proc_map ();
@@ -605,11 +607,15 @@ namespace sim_mob
       mapping_parser (::sim_mob::conf::db_proc_mapping_pskel&);
 
       void
-      id_parser (::sim_mob::conf::id_pskel&);
+      id_parser (::xml_schema::string_pskel&);
+
+      void
+      format_parser (::xml_schema::string_pskel&);
 
       void
       parsers (::sim_mob::conf::db_proc_mapping_pskel& /* mapping */,
-               ::sim_mob::conf::id_pskel& /* id */);
+               ::xml_schema::string_pskel& /* id */,
+               ::xml_schema::string_pskel& /* format */);
 
       // Constructor.
       //
@@ -634,7 +640,8 @@ namespace sim_mob
 
       protected:
       ::sim_mob::conf::db_proc_mapping_pskel* mapping_parser_;
-      ::sim_mob::conf::id_pskel* id_parser_;
+      ::xml_schema::string_pskel* id_parser_;
+      ::xml_schema::string_pskel* format_parser_;
     };
 
     class constructs_pskel: public ::xml_schema::complex_content
@@ -652,7 +659,7 @@ namespace sim_mob
       workgroup_sizes ();
 
       virtual void
-      reaction_times ();
+      react_times ();
 
       virtual void
       db_connections ();
@@ -672,7 +679,7 @@ namespace sim_mob
       workgroup_sizes_parser (::sim_mob::conf::workgroup_sizes_pskel&);
 
       void
-      reaction_times_parser (::sim_mob::conf::reaction_times_pskel&);
+      react_times_parser (::sim_mob::conf::react_times_pskel&);
 
       void
       db_connections_parser (::sim_mob::conf::db_connections_pskel&);
@@ -683,7 +690,7 @@ namespace sim_mob
       void
       parsers (::sim_mob::conf::models_pskel& /* models */,
                ::sim_mob::conf::workgroup_sizes_pskel& /* workgroup_sizes */,
-               ::sim_mob::conf::reaction_times_pskel& /* reaction_times */,
+               ::sim_mob::conf::react_times_pskel& /* react_times */,
                ::sim_mob::conf::db_connections_pskel& /* db_connections */,
                ::sim_mob::conf::db_proc_groups_pskel& /* db_proc_groups */);
 
@@ -706,7 +713,7 @@ namespace sim_mob
       protected:
       ::sim_mob::conf::models_pskel* models_parser_;
       ::sim_mob::conf::workgroup_sizes_pskel* workgroup_sizes_parser_;
-      ::sim_mob::conf::reaction_times_pskel* reaction_times_parser_;
+      ::sim_mob::conf::react_times_pskel* react_times_parser_;
       ::sim_mob::conf::db_connections_pskel* db_connections_parser_;
       ::sim_mob::conf::db_proc_groups_pskel* db_proc_groups_parser_;
     };
@@ -751,18 +758,6 @@ namespace sim_mob
 
       protected:
       ::sim_mob::conf::constructs_pskel* constructs_parser_;
-    };
-
-    class id_pskel: public virtual ::xml_schema::string_pskel
-    {
-      public:
-      // Parser callbacks. Override them in your implementation.
-      //
-      // virtual void
-      // pre ();
-
-      virtual void
-      post_id ();
     };
 
     class models_pskel: public ::xml_schema::complex_content
@@ -881,7 +876,7 @@ namespace sim_mob
       ::sim_mob::conf::workgroup_pskel* signal_parser_;
     };
 
-    class reaction_times_pskel: public ::xml_schema::complex_content
+    class react_times_pskel: public ::xml_schema::complex_content
     {
       public:
       // Parser callbacks. Override them in your implementation.
@@ -896,7 +891,7 @@ namespace sim_mob
       dist2 ();
 
       virtual void
-      post_reaction_times ();
+      post_react_times ();
 
       // Parser construction API.
       //
@@ -912,7 +907,7 @@ namespace sim_mob
 
       // Constructor.
       //
-      reaction_times_pskel ();
+      react_times_pskel ();
 
       // Implementation.
       //

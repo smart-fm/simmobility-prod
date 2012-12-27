@@ -48,7 +48,7 @@ namespace sim_mob
     //
 
     void model_pskel::
-    id_parser (::sim_mob::conf::id_pskel& p)
+    id_parser (::xml_schema::string_pskel& p)
     {
       this->id_parser_ = &p;
     }
@@ -60,7 +60,7 @@ namespace sim_mob
     }
 
     void model_pskel::
-    parsers (::sim_mob::conf::id_pskel& id,
+    parsers (::xml_schema::string_pskel& id,
              ::xml_schema::string_pskel& library)
     {
       this->id_parser_ = &id;
@@ -78,20 +78,20 @@ namespace sim_mob
     //
 
     void workgroup_pskel::
-    id_parser (::xml_schema::int_pskel& p)
+    value_parser (::xml_schema::int_pskel& p)
     {
-      this->id_parser_ = &p;
+      this->value_parser_ = &p;
     }
 
     void workgroup_pskel::
-    parsers (::xml_schema::int_pskel& id)
+    parsers (::xml_schema::int_pskel& value)
     {
-      this->id_parser_ = &id;
+      this->value_parser_ = &value;
     }
 
     workgroup_pskel::
     workgroup_pskel ()
-    : id_parser_ (0)
+    : value_parser_ (0)
     {
     }
 
@@ -144,7 +144,7 @@ namespace sim_mob
     }
 
     void db_connection_pskel::
-    id_parser (::sim_mob::conf::id_pskel& p)
+    id_parser (::xml_schema::string_pskel& p)
     {
       this->id_parser_ = &p;
     }
@@ -157,7 +157,7 @@ namespace sim_mob
 
     void db_connection_pskel::
     parsers (::sim_mob::conf::db_param_pskel& param,
-             ::sim_mob::conf::id_pskel& id,
+             ::xml_schema::string_pskel& id,
              ::xml_schema::string_pskel& dbtype)
     {
       this->param_parser_ = &param;
@@ -243,23 +243,32 @@ namespace sim_mob
     }
 
     void proc_map_pskel::
-    id_parser (::sim_mob::conf::id_pskel& p)
+    id_parser (::xml_schema::string_pskel& p)
     {
       this->id_parser_ = &p;
     }
 
     void proc_map_pskel::
+    format_parser (::xml_schema::string_pskel& p)
+    {
+      this->format_parser_ = &p;
+    }
+
+    void proc_map_pskel::
     parsers (::sim_mob::conf::db_proc_mapping_pskel& mapping,
-             ::sim_mob::conf::id_pskel& id)
+             ::xml_schema::string_pskel& id,
+             ::xml_schema::string_pskel& format)
     {
       this->mapping_parser_ = &mapping;
       this->id_parser_ = &id;
+      this->format_parser_ = &format;
     }
 
     proc_map_pskel::
     proc_map_pskel ()
     : mapping_parser_ (0),
-      id_parser_ (0)
+      id_parser_ (0),
+      format_parser_ (0)
     {
     }
 
@@ -279,9 +288,9 @@ namespace sim_mob
     }
 
     void constructs_pskel::
-    reaction_times_parser (::sim_mob::conf::reaction_times_pskel& p)
+    react_times_parser (::sim_mob::conf::react_times_pskel& p)
     {
-      this->reaction_times_parser_ = &p;
+      this->react_times_parser_ = &p;
     }
 
     void constructs_pskel::
@@ -299,13 +308,13 @@ namespace sim_mob
     void constructs_pskel::
     parsers (::sim_mob::conf::models_pskel& models,
              ::sim_mob::conf::workgroup_sizes_pskel& workgroup_sizes,
-             ::sim_mob::conf::reaction_times_pskel& reaction_times,
+             ::sim_mob::conf::react_times_pskel& react_times,
              ::sim_mob::conf::db_connections_pskel& db_connections,
              ::sim_mob::conf::db_proc_groups_pskel& db_proc_groups)
     {
       this->models_parser_ = &models;
       this->workgroup_sizes_parser_ = &workgroup_sizes;
-      this->reaction_times_parser_ = &reaction_times;
+      this->react_times_parser_ = &react_times;
       this->db_connections_parser_ = &db_connections;
       this->db_proc_groups_parser_ = &db_proc_groups;
     }
@@ -314,7 +323,7 @@ namespace sim_mob
     constructs_pskel ()
     : models_parser_ (0),
       workgroup_sizes_parser_ (0),
-      reaction_times_parser_ (0),
+      react_times_parser_ (0),
       db_connections_parser_ (0),
       db_proc_groups_parser_ (0)
     {
@@ -419,22 +428,22 @@ namespace sim_mob
     {
     }
 
-    // reaction_times_pskel
+    // react_times_pskel
     //
 
-    void reaction_times_pskel::
+    void react_times_pskel::
     dist1_parser (::sim_mob::conf::reaction_time_pskel& p)
     {
       this->dist1_parser_ = &p;
     }
 
-    void reaction_times_pskel::
+    void react_times_pskel::
     dist2_parser (::sim_mob::conf::reaction_time_pskel& p)
     {
       this->dist2_parser_ = &p;
     }
 
-    void reaction_times_pskel::
+    void react_times_pskel::
     parsers (::sim_mob::conf::reaction_time_pskel& dist1,
              ::sim_mob::conf::reaction_time_pskel& dist2)
     {
@@ -442,8 +451,8 @@ namespace sim_mob
       this->dist2_parser_ = &dist2;
     }
 
-    reaction_times_pskel::
-    reaction_times_pskel ()
+    react_times_pskel::
+    react_times_pskel ()
     : dist1_parser_ (0),
       dist2_parser_ (0)
     {
@@ -501,7 +510,7 @@ namespace sim_mob
     //
 
     void model_pskel::
-    id ()
+    id (const ::std::string&)
     {
     }
 
@@ -523,7 +532,7 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
 
-      if (n == "id" && ns == "http://www.smart.mit.edu/conf")
+      if (n == "id" && ns.empty ())
       {
         if (this->id_parser_)
         {
@@ -531,8 +540,7 @@ namespace sim_mob
           this->id_parser_->_pre_impl ();
           this->id_parser_->_characters (v);
           this->id_parser_->_post_impl ();
-          this->id_parser_->post_id ();
-          this->id ();
+          this->id (this->id_parser_->post_string ());
         }
 
         return true;
@@ -559,7 +567,7 @@ namespace sim_mob
     //
 
     void workgroup_pskel::
-    id (int)
+    value (int)
     {
     }
 
@@ -576,15 +584,15 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
 
-      if (n == "id" && ns.empty ())
+      if (n == "value" && ns.empty ())
       {
-        if (this->id_parser_)
+        if (this->value_parser_)
         {
-          this->id_parser_->pre ();
-          this->id_parser_->_pre_impl ();
-          this->id_parser_->_characters (v);
-          this->id_parser_->_post_impl ();
-          this->id (this->id_parser_->post_int ());
+          this->value_parser_->pre ();
+          this->value_parser_->_pre_impl ();
+          this->value_parser_->_characters (v);
+          this->value_parser_->_post_impl ();
+          this->value (this->value_parser_->post_int ());
         }
 
         return true;
@@ -678,7 +686,7 @@ namespace sim_mob
     }
 
     void db_connection_pskel::
-    id ()
+    id (const ::std::string&)
     {
     }
 
@@ -744,7 +752,7 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
 
-      if (n == "id" && ns == "http://www.smart.mit.edu/conf")
+      if (n == "id" && ns.empty ())
       {
         if (this->id_parser_)
         {
@@ -752,8 +760,7 @@ namespace sim_mob
           this->id_parser_->_pre_impl ();
           this->id_parser_->_characters (v);
           this->id_parser_->_post_impl ();
-          this->id_parser_->post_id ();
-          this->id ();
+          this->id (this->id_parser_->post_string ());
         }
 
         return true;
@@ -899,7 +906,12 @@ namespace sim_mob
     }
 
     void proc_map_pskel::
-    id ()
+    id (const ::std::string&)
+    {
+    }
+
+    void proc_map_pskel::
+    format (const ::std::string&)
     {
     }
 
@@ -960,7 +972,7 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
 
-      if (n == "id" && ns == "http://www.smart.mit.edu/conf")
+      if (n == "id" && ns.empty ())
       {
         if (this->id_parser_)
         {
@@ -968,8 +980,21 @@ namespace sim_mob
           this->id_parser_->_pre_impl ();
           this->id_parser_->_characters (v);
           this->id_parser_->_post_impl ();
-          this->id_parser_->post_id ();
-          this->id ();
+          this->id (this->id_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "format" && ns.empty ())
+      {
+        if (this->format_parser_)
+        {
+          this->format_parser_->pre ();
+          this->format_parser_->_pre_impl ();
+          this->format_parser_->_characters (v);
+          this->format_parser_->_post_impl ();
+          this->format (this->format_parser_->post_string ());
         }
 
         return true;
@@ -992,7 +1017,7 @@ namespace sim_mob
     }
 
     void constructs_pskel::
-    reaction_times ()
+    react_times ()
     {
     }
 
@@ -1041,12 +1066,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "reaction_times" && ns.empty ())
+      if (n == "react_times" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->reaction_times_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->react_times_parser_;
 
-        if (this->reaction_times_parser_)
-          this->reaction_times_parser_->pre ();
+        if (this->react_times_parser_)
+          this->react_times_parser_->pre ();
 
         return true;
       }
@@ -1103,12 +1128,12 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "reaction_times" && ns.empty ())
+      if (n == "react_times" && ns.empty ())
       {
-        if (this->reaction_times_parser_)
+        if (this->react_times_parser_)
         {
-          this->reaction_times_parser_->post_reaction_times ();
-          this->reaction_times ();
+          this->react_times_parser_->post_react_times ();
+          this->react_times ();
         }
 
         return true;
@@ -1194,14 +1219,6 @@ namespace sim_mob
       }
 
       return false;
-    }
-
-    // id_pskel
-    //
-
-    void id_pskel::
-    post_id ()
-    {
     }
 
     // models_pskel
@@ -1422,25 +1439,25 @@ namespace sim_mob
       return false;
     }
 
-    // reaction_times_pskel
+    // react_times_pskel
     //
 
-    void reaction_times_pskel::
+    void react_times_pskel::
     dist1 ()
     {
     }
 
-    void reaction_times_pskel::
+    void react_times_pskel::
     dist2 ()
     {
     }
 
-    void reaction_times_pskel::
-    post_reaction_times ()
+    void react_times_pskel::
+    post_react_times ()
     {
     }
 
-    bool reaction_times_pskel::
+    bool react_times_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
                          const ::xml_schema::ro_string* t)
@@ -1473,7 +1490,7 @@ namespace sim_mob
       return false;
     }
 
-    bool reaction_times_pskel::
+    bool react_times_pskel::
     _end_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n)
     {

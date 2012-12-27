@@ -21,7 +21,7 @@ namespace sim_mob
       pre ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
 
       virtual void
       library (const ::std::string&);
@@ -37,7 +37,7 @@ namespace sim_mob
       pre ();
 
       virtual void
-      id (int);
+      value (int);
 
       virtual void
       post_workgroup ();
@@ -72,7 +72,7 @@ namespace sim_mob
       param ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
 
       virtual void
       dbtype (const ::std::string&);
@@ -123,7 +123,10 @@ namespace sim_mob
       mapping ();
 
       virtual void
-      id ();
+      id (const ::std::string&);
+
+      virtual void
+      format (const ::std::string&);
 
       virtual void
       post_proc_map ();
@@ -142,7 +145,7 @@ namespace sim_mob
       workgroup_sizes ();
 
       virtual void
-      reaction_times ();
+      react_times ();
 
       virtual void
       db_connections ();
@@ -165,17 +168,6 @@ namespace sim_mob
 
       virtual void
       post_SimMobility ();
-    };
-
-    class id_pimpl: public virtual id_pskel,
-      public ::xml_schema::string_pimpl
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      post_id ();
     };
 
     class models_pimpl: public virtual models_pskel
@@ -216,7 +208,7 @@ namespace sim_mob
       post_workgroup_sizes ();
     };
 
-    class reaction_times_pimpl: public virtual reaction_times_pskel
+    class react_times_pimpl: public virtual react_times_pskel
     {
       public:
       virtual void
@@ -229,7 +221,7 @@ namespace sim_mob
       dist2 ();
 
       virtual void
-      post_reaction_times ();
+      post_react_times ();
     };
 
     class db_connections_pimpl: public virtual db_connections_pskel

@@ -22,8 +22,9 @@ namespace sim_mob
     }
 
     void model_pimpl::
-    id ()
+    id (const ::std::string& id)
     {
+      std::cout << "id: " << id << std::endl;
     }
 
     void model_pimpl::
@@ -46,9 +47,9 @@ namespace sim_mob
     }
 
     void workgroup_pimpl::
-    id (int id)
+    value (int value)
     {
-      std::cout << "id: " << id << std::endl;
+      std::cout << "value: " << value << std::endl;
     }
 
     void workgroup_pimpl::
@@ -101,8 +102,9 @@ namespace sim_mob
     }
 
     void db_connection_pimpl::
-    id ()
+    id (const ::std::string& id)
     {
+      std::cout << "id: " << id << std::endl;
     }
 
     void db_connection_pimpl::
@@ -180,8 +182,15 @@ namespace sim_mob
     }
 
     void proc_map_pimpl::
-    id ()
+    id (const ::std::string& id)
     {
+      std::cout << "id: " << id << std::endl;
+    }
+
+    void proc_map_pimpl::
+    format (const ::std::string& format)
+    {
+      std::cout << "format: " << format << std::endl;
     }
 
     void proc_map_pimpl::
@@ -208,7 +217,7 @@ namespace sim_mob
     }
 
     void constructs_pimpl::
-    reaction_times ()
+    react_times ()
     {
     }
 
@@ -243,22 +252,6 @@ namespace sim_mob
     void SimMobility_pimpl::
     post_SimMobility ()
     {
-    }
-
-    // id_pimpl
-    //
-
-    void id_pimpl::
-    pre ()
-    {
-    }
-
-    void id_pimpl::
-    post_id ()
-    {
-      const ::std::string& v (post_string ());
-
-      std::cout << "id: " << v << std::endl;
     }
 
     // models_pimpl
@@ -317,26 +310,26 @@ namespace sim_mob
     {
     }
 
-    // reaction_times_pimpl
+    // react_times_pimpl
     //
 
-    void reaction_times_pimpl::
+    void react_times_pimpl::
     pre ()
     {
     }
 
-    void reaction_times_pimpl::
+    void react_times_pimpl::
     dist1 ()
     {
     }
 
-    void reaction_times_pimpl::
+    void react_times_pimpl::
     dist2 ()
     {
     }
 
-    void reaction_times_pimpl::
-    post_reaction_times ()
+    void react_times_pimpl::
+    post_react_times ()
     {
     }
 

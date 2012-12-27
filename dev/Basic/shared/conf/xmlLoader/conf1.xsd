@@ -4,8 +4,119 @@
   xmlns:conf="http://www.smart.mit.edu/conf"
   targetNamespace="http://www.smart.mit.edu/conf">
 
-  <xs:complexType name="constructs">
+  <!-- IDs follow c-style naming conventions -->
+  <xs:attribute name="id">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="[a-z][a-z0-9_-]+"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+
+  <!-- A model -->
+  <xs:complexType name="model">
+    <xs:attribute ref="conf:id"/>
+    <xs:attribute name="library" type="xs:string"/>
   </xs:complexType>
+
+  <!-- A workgroup -->
+  <xs:complexType name="workgroup">
+    <xs:attribute name="id" type="xs:int"/>
+  </xs:complexType>
+
+  <!-- A reaction time -->
+  <xs:complexType name="reaction_time">
+    <xs:attribute name="type" type="xs:string"/>
+    <xs:attribute name="mean" type="xs:int"/>
+    <xs:attribute name="stdev" type="xs:int"/>
+  </xs:complexType>
+
+  <!-- A database connection -->
+  <xs:complexType name="db_connection">
+    <xs:sequence>
+      <xs:element name="param" type="conf:db_param"/>
+    </xs:sequence>
+    <xs:attribute ref="conf:id"/>
+    <xs:attribute name="dbtype" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- A database parameter -->
+  <xs:complexType name="db_param">
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- A mapping within the stored procedure. -->
+  <xs:complexType name="db_proc_mapping">
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="procedure" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- A stored procedure mapping -->
+  <xs:complexType name="proc_map">
+    <xs:sequence>
+      <xs:element name="mapping" type="conf:db_proc_mapping"/>
+    </xs:sequence>
+    <xs:attribute ref="conf:id"/>
+  </xs:complexType>
+
+
+  <!-- The "Constructs" section -->
+  <xs:complexType name="constructs">
+  <xs:sequence>
+    <xs:element name="models">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="lane_changing" type="conf:model"/>
+      <xs:element name="car_following" type="conf:model"/>
+      <xs:element name="intersection_driving" type="conf:model"/>
+      <xs:element name="sidewalk_movement" type="conf:model"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="workgroup_sizes">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="agent" type="conf:workgroup"/>
+      <xs:element name="signal" type="conf:workgroup"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="reaction_times">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="dist1" type="conf:reaction_time"/>
+      <xs:element name="dist2" type="conf:reaction_time"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="db_connections">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="connection" type="conf:db_connection"/>
+      </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="db_proc_groups">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="proc_map" type="conf:proc_map"/>
+      </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+  </xs:sequence>
+  </xs:complexType>
+
+
+
+  <!-- Our root element -->
+  <xs:element name="constructs" type="conf:constructs"/>
+
 
 
 </xs:schema>

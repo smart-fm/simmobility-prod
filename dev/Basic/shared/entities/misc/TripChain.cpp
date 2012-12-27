@@ -51,7 +51,9 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 	} else if (locType == "stop") {
 		return TripChainItem::LT_PUBLIC_TRANSIT_STOP;
 	} else {
-		throw std::runtime_error("Unexpected location type.");
+		std::stringstream msg;
+		msg <<"Unexpected location type: \"" <<locType <<"\"";
+		throw std::runtime_error(msg.str().c_str());
 	}
 }
 //sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::getLocationType()

@@ -1992,6 +1992,10 @@ ConfigParams sim_mob::ConfigParams::instance;
 
 bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+	//Load a (test) configuration in parallel
+	Config cfg;
+
+
 	//Load our config file into an XML document object.
 	//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
 	TiXmlDocument* doc = new TiXmlDocument(configPath);

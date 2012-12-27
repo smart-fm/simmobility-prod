@@ -320,6 +320,27 @@ namespace sim_mob
     {
     }
 
+    // SimMobility_pskel
+    //
+
+    void SimMobility_pskel::
+    constructs_parser (::sim_mob::conf::constructs_pskel& p)
+    {
+      this->constructs_parser_ = &p;
+    }
+
+    void SimMobility_pskel::
+    parsers (::sim_mob::conf::constructs_pskel& constructs)
+    {
+      this->constructs_parser_ = &constructs;
+    }
+
+    SimMobility_pskel::
+    SimMobility_pskel ()
+    : constructs_parser_ (0)
+    {
+    }
+
     // models_pskel
     //
 
@@ -1110,6 +1131,63 @@ namespace sim_mob
         {
           this->db_proc_groups_parser_->post_db_proc_groups ();
           this->db_proc_groups ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // SimMobility_pskel
+    //
+
+    void SimMobility_pskel::
+    constructs ()
+    {
+    }
+
+    void SimMobility_pskel::
+    post_SimMobility ()
+    {
+    }
+
+    bool SimMobility_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "constructs" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->constructs_parser_;
+
+        if (this->constructs_parser_)
+          this->constructs_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool SimMobility_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "constructs" && ns.empty ())
+      {
+        if (this->constructs_parser_)
+        {
+          this->constructs_parser_->post_constructs ();
+          this->constructs ();
         }
 
         return true;

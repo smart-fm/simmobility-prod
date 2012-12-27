@@ -227,6 +227,24 @@ namespace sim_mob
     {
     }
 
+    // SimMobility_pimpl
+    //
+
+    void SimMobility_pimpl::
+    pre ()
+    {
+    }
+
+    void SimMobility_pimpl::
+    constructs ()
+    {
+    }
+
+    void SimMobility_pimpl::
+    post_SimMobility ()
+    {
+    }
+
     // id_pimpl
     //
 

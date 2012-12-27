@@ -3,6 +3,7 @@
 #include "simpleconf.hpp"
 
 //Make sure our "test" (new) Config variant compiles.
+#include "conf/xmlLoader/implementation/conf1-driver.hpp"
 #include "Config.hpp"
 
 #include <tinyxml.h>
@@ -1994,6 +1995,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 {
 	//Load a (test) configuration in parallel
 	Config cfg;
+	sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg);
 
 
 	//Load our config file into an XML document object.

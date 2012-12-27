@@ -63,6 +63,7 @@ namespace sim_mob
     class db_proc_mapping_pskel;
     class proc_map_pskel;
     class constructs_pskel;
+    class SimMobility_pskel;
     class id_pskel;
     class models_pskel;
     class workgroup_sizes_pskel;
@@ -708,6 +709,48 @@ namespace sim_mob
       ::sim_mob::conf::reaction_times_pskel* reaction_times_parser_;
       ::sim_mob::conf::db_connections_pskel* db_connections_parser_;
       ::sim_mob::conf::db_proc_groups_pskel* db_proc_groups_parser_;
+    };
+
+    class SimMobility_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      constructs ();
+
+      virtual void
+      post_SimMobility ();
+
+      // Parser construction API.
+      //
+      void
+      constructs_parser (::sim_mob::conf::constructs_pskel&);
+
+      void
+      parsers (::sim_mob::conf::constructs_pskel& /* constructs */);
+
+      // Constructor.
+      //
+      SimMobility_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::constructs_pskel* constructs_parser_;
     };
 
     class id_pskel: public virtual ::xml_schema::string_pskel

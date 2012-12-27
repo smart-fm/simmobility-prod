@@ -8,7 +8,6 @@
 #ifndef CONF1_PIMPL_HPP
 #define CONF1_PIMPL_HPP
 
-//NOTE: This is a rare example of when relative path lookup is acceptable. ~Seth
 #include "../skeleton/conf1-pskel.hpp"
 
 namespace sim_mob
@@ -153,6 +152,19 @@ namespace sim_mob
 
       virtual void
       post_constructs ();
+    };
+
+    class SimMobility_pimpl: public virtual SimMobility_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      constructs ();
+
+      virtual void
+      post_SimMobility ();
     };
 
     class id_pimpl: public virtual id_pskel,

@@ -114,9 +114,15 @@
 
 
 
-  <!-- Our root element -->
-  <xs:element name="constructs" type="conf:constructs"/>
+  <!-- The type of the root element -->
+  <xs:complexType name="SimMobility">
+    <xs:sequence>
+      <xs:element name="constructs" type="conf:constructs" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
 
+  <!-- Our root element -->
+  <xs:element name="SimMobility" type="conf:SimMobility"/>
 
 
 </xs:schema>

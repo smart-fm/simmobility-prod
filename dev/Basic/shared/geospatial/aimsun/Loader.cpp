@@ -1878,6 +1878,24 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
+			//just a check to avoid connecting pedestrian and non pedestrian lanes
+			int i = 0;
+			if(lc->laneFrom->is_pedestrian_lane()) i++;
+			if(lc->laneTo->is_pedestrian_lane()) i++;
+
+			if(i == 1) // it should be 0 or 2. i = 1 means only one of them is pedestrian lane
+			{
+				std::cout << "from Segment " << src.fromSection->generatedSegment->originalDB_ID.getLogItem();
+				std::cout << ":lane " << 	fromLaneID ;
+				std::cout << "  to Segment " << src.fromSection->generatedSegment->originalDB_ID.getLogItem();
+				std::cout << ":lane " << 	toLaneID ;
+				std::cout << "   has problem\n";
+				getchar();
+				delete lc;
+				continue;
+			}
+			//check done ...
+
 			//Expanded a bit...
 			RoadSegment* key = src.fromSection->generatedSegment;
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;

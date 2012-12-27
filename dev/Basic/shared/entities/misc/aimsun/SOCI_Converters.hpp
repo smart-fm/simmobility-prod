@@ -27,6 +27,7 @@ template<> struct type_conversion<TripChainItem>
     	res.personID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
+    	std::cout << "trip_chain_item_type : " << vals.get<std::string>("trip_chain_item_type","") << std::endl;
     	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<int>("trip_id", 0);
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);
@@ -46,10 +47,12 @@ template<> struct type_conversion<TripChainItem>
     	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
     		res.tmp_activityID = vals.get<int>("activity_id", 0);
     		res.description = vals.get<std::string>("activity_description", "");
+    		std::cout << "Activity description: " << res.description << std::endl;
     		res.isPrimary = vals.get<int>("primary_activity", 0);
     		res.isFlexible = vals.get<int>("flexible_activity", 0);
     		res.isMandatory = vals.get<int>("mandatory_activity", 0);
     		res.tmp_locationID = vals.get<int>("location_id", 0);
+    		std::cout << "Activity location_type: " << vals.get<std::string>("location_type", "") << std::endl;
     		res.locationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("location_type", ""));
     		res.tmp_startTime = vals.get<std::string>("activity_start_time", "");
     		res.tmp_endTime = vals.get<std::string>("activity_end_time", "");

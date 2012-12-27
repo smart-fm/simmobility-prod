@@ -95,7 +95,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 //	currSubTrip(nullptr);
 	tripchainInitialized = false;
 	initTripChain();
-
 }
 
 void sim_mob::Person::initTripChain(){
@@ -185,6 +184,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
 		this->setTripChain(trip_chain);
+		this->initTripChain();
 	}
 
 	//One more check: If they have a special string, save it now

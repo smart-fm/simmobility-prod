@@ -65,6 +65,24 @@
   </xs:complexType>
 
 
+  <!-- A default_model mapping -->
+  <xs:complexType name="default_model">
+    <xs:attribute name="type" type="xs:string"/>
+    <xs:attribute name="default" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- A workgroup_mapping mapping -->
+  <xs:complexType name="workgroup_mapping">
+    <xs:attribute name="workgroup" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- A generic property -->
+  <xs:complexType name="gen_prop">
+    <xs:attribute name="key" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+
   <!-- The "Constructs" section -->
   <xs:complexType name="constructs">
   <xs:sequence>
@@ -115,11 +133,45 @@
   </xs:complexType>
 
 
+  <!-- The "System" section -->
+  <xs:complexType name="system">
+  <xs:sequence>
+    <xs:element name="default_models">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="model" type="conf:default_model" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="workgroup_mappings">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="agents" type="conf:workgroup_mapping"/>
+      <xs:element name="signals" type="conf:workgroup_mapping"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="generic_props">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="property" type="conf:gen_prop" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+  </xs:sequence>
+  </xs:complexType>
+
 
   <!-- The type of the root element -->
   <xs:complexType name="SimMobility">
     <xs:sequence>
       <xs:element name="constructs" type="conf:constructs" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="single_threaded" type="xs:bool"/>
+      <xs:element name="system" type="conf:system" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="simulation" type="conf:simulation" minOccurs="1" maxOccurs="1">
     </xs:sequence>
   </xs:complexType>
 

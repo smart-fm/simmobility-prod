@@ -21,11 +21,11 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::models_pimpl models_p;
 	    ::sim_mob::conf::model_pimpl model_p;
 	    ::xml_schema::string_pimpl string_p;
-	    ::sim_mob::conf::workgroup_sizes_pimpl workgroup_sizes_p;
+	    ::sim_mob::conf::workgroups_pimpl workgroups_p;
 	    ::sim_mob::conf::workgroup_pimpl workgroup_p;
 	    ::xml_schema::int_pimpl int_p;
-	    ::sim_mob::conf::react_times_pimpl react_times_p;
-	    ::sim_mob::conf::reaction_time_pimpl reaction_time_p;
+	    ::sim_mob::conf::distributions_pimpl distributions_p;
+	    ::sim_mob::conf::distribution_pimpl distribution_p;
 	    ::sim_mob::conf::db_connections_pimpl db_connections_p;
 	    ::sim_mob::conf::db_connection_pimpl db_connection_p;
 	    ::sim_mob::conf::db_param_pimpl db_param_p;
@@ -38,8 +38,8 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    SimMobility_p.parsers (constructs_p);
 
 	    constructs_p.parsers (models_p,
-	                          workgroup_sizes_p,
-	                          react_times_p,
+	                          workgroups_p,
+	                          distributions_p,
 	                          db_connections_p,
 	                          db_proc_groups_p);
 
@@ -51,17 +51,17 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    model_p.parsers (string_p,
 	                     string_p);
 
-	    workgroup_sizes_p.parsers (workgroup_p,
-	                               workgroup_p);
+	    workgroups_p.parsers (workgroup_p);
 
-	    workgroup_p.parsers (int_p);
+	    workgroup_p.parsers (string_p,
+	                         int_p);
 
-	    react_times_p.parsers (reaction_time_p,
-	                           reaction_time_p);
+	    distributions_p.parsers (distribution_p);
 
-	    reaction_time_p.parsers (string_p,
-	                             int_p,
-	                             int_p);
+	    distribution_p.parsers (string_p,
+	                            string_p,
+	                            int_p,
+	                            int_p);
 
 	    db_connections_p.parsers (db_connection_p);
 

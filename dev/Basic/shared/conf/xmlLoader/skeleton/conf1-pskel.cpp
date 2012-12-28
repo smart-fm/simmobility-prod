@@ -78,57 +78,75 @@ namespace sim_mob
     //
 
     void workgroup_pskel::
-    value_parser (::xml_schema::int_pskel& p)
+    id_parser (::xml_schema::string_pskel& p)
     {
-      this->value_parser_ = &p;
+      this->id_parser_ = &p;
     }
 
     void workgroup_pskel::
-    parsers (::xml_schema::int_pskel& value)
+    workers_parser (::xml_schema::int_pskel& p)
     {
-      this->value_parser_ = &value;
+      this->workers_parser_ = &p;
+    }
+
+    void workgroup_pskel::
+    parsers (::xml_schema::string_pskel& id,
+             ::xml_schema::int_pskel& workers)
+    {
+      this->id_parser_ = &id;
+      this->workers_parser_ = &workers;
     }
 
     workgroup_pskel::
     workgroup_pskel ()
-    : value_parser_ (0)
+    : id_parser_ (0),
+      workers_parser_ (0)
     {
     }
 
-    // reaction_time_pskel
+    // distribution_pskel
     //
 
-    void reaction_time_pskel::
+    void distribution_pskel::
+    id_parser (::xml_schema::string_pskel& p)
+    {
+      this->id_parser_ = &p;
+    }
+
+    void distribution_pskel::
     type_parser (::xml_schema::string_pskel& p)
     {
       this->type_parser_ = &p;
     }
 
-    void reaction_time_pskel::
+    void distribution_pskel::
     mean_parser (::xml_schema::int_pskel& p)
     {
       this->mean_parser_ = &p;
     }
 
-    void reaction_time_pskel::
+    void distribution_pskel::
     stdev_parser (::xml_schema::int_pskel& p)
     {
       this->stdev_parser_ = &p;
     }
 
-    void reaction_time_pskel::
-    parsers (::xml_schema::string_pskel& type,
+    void distribution_pskel::
+    parsers (::xml_schema::string_pskel& id,
+             ::xml_schema::string_pskel& type,
              ::xml_schema::int_pskel& mean,
              ::xml_schema::int_pskel& stdev)
     {
+      this->id_parser_ = &id;
       this->type_parser_ = &type;
       this->mean_parser_ = &mean;
       this->stdev_parser_ = &stdev;
     }
 
-    reaction_time_pskel::
-    reaction_time_pskel ()
-    : type_parser_ (0),
+    distribution_pskel::
+    distribution_pskel ()
+    : id_parser_ (0),
+      type_parser_ (0),
       mean_parser_ (0),
       stdev_parser_ (0)
     {
@@ -282,15 +300,15 @@ namespace sim_mob
     }
 
     void constructs_pskel::
-    workgroup_sizes_parser (::sim_mob::conf::workgroup_sizes_pskel& p)
+    workgroups_parser (::sim_mob::conf::workgroups_pskel& p)
     {
-      this->workgroup_sizes_parser_ = &p;
+      this->workgroups_parser_ = &p;
     }
 
     void constructs_pskel::
-    react_times_parser (::sim_mob::conf::react_times_pskel& p)
+    distributions_parser (::sim_mob::conf::distributions_pskel& p)
     {
-      this->react_times_parser_ = &p;
+      this->distributions_parser_ = &p;
     }
 
     void constructs_pskel::
@@ -307,14 +325,14 @@ namespace sim_mob
 
     void constructs_pskel::
     parsers (::sim_mob::conf::models_pskel& models,
-             ::sim_mob::conf::workgroup_sizes_pskel& workgroup_sizes,
-             ::sim_mob::conf::react_times_pskel& react_times,
+             ::sim_mob::conf::workgroups_pskel& workgroups,
+             ::sim_mob::conf::distributions_pskel& distributions,
              ::sim_mob::conf::db_connections_pskel& db_connections,
              ::sim_mob::conf::db_proc_groups_pskel& db_proc_groups)
     {
       this->models_parser_ = &models;
-      this->workgroup_sizes_parser_ = &workgroup_sizes;
-      this->react_times_parser_ = &react_times;
+      this->workgroups_parser_ = &workgroups;
+      this->distributions_parser_ = &distributions;
       this->db_connections_parser_ = &db_connections;
       this->db_proc_groups_parser_ = &db_proc_groups;
     }
@@ -322,8 +340,8 @@ namespace sim_mob
     constructs_pskel::
     constructs_pskel ()
     : models_parser_ (0),
-      workgroup_sizes_parser_ (0),
-      react_times_parser_ (0),
+      workgroups_parser_ (0),
+      distributions_parser_ (0),
       db_connections_parser_ (0),
       db_proc_groups_parser_ (0)
     {
@@ -398,63 +416,45 @@ namespace sim_mob
     {
     }
 
-    // workgroup_sizes_pskel
+    // workgroups_pskel
     //
 
-    void workgroup_sizes_pskel::
-    agent_parser (::sim_mob::conf::workgroup_pskel& p)
+    void workgroups_pskel::
+    workgroup_parser (::sim_mob::conf::workgroup_pskel& p)
     {
-      this->agent_parser_ = &p;
+      this->workgroup_parser_ = &p;
     }
 
-    void workgroup_sizes_pskel::
-    signal_parser (::sim_mob::conf::workgroup_pskel& p)
+    void workgroups_pskel::
+    parsers (::sim_mob::conf::workgroup_pskel& workgroup)
     {
-      this->signal_parser_ = &p;
+      this->workgroup_parser_ = &workgroup;
     }
 
-    void workgroup_sizes_pskel::
-    parsers (::sim_mob::conf::workgroup_pskel& agent,
-             ::sim_mob::conf::workgroup_pskel& signal)
-    {
-      this->agent_parser_ = &agent;
-      this->signal_parser_ = &signal;
-    }
-
-    workgroup_sizes_pskel::
-    workgroup_sizes_pskel ()
-    : agent_parser_ (0),
-      signal_parser_ (0)
+    workgroups_pskel::
+    workgroups_pskel ()
+    : workgroup_parser_ (0)
     {
     }
 
-    // react_times_pskel
+    // distributions_pskel
     //
 
-    void react_times_pskel::
-    dist1_parser (::sim_mob::conf::reaction_time_pskel& p)
+    void distributions_pskel::
+    dist_parser (::sim_mob::conf::distribution_pskel& p)
     {
-      this->dist1_parser_ = &p;
+      this->dist_parser_ = &p;
     }
 
-    void react_times_pskel::
-    dist2_parser (::sim_mob::conf::reaction_time_pskel& p)
+    void distributions_pskel::
+    parsers (::sim_mob::conf::distribution_pskel& dist)
     {
-      this->dist2_parser_ = &p;
+      this->dist_parser_ = &dist;
     }
 
-    void react_times_pskel::
-    parsers (::sim_mob::conf::reaction_time_pskel& dist1,
-             ::sim_mob::conf::reaction_time_pskel& dist2)
-    {
-      this->dist1_parser_ = &dist1;
-      this->dist2_parser_ = &dist2;
-    }
-
-    react_times_pskel::
-    react_times_pskel ()
-    : dist1_parser_ (0),
-      dist2_parser_ (0)
+    distributions_pskel::
+    distributions_pskel ()
+    : dist_parser_ (0)
     {
     }
 
@@ -567,7 +567,12 @@ namespace sim_mob
     //
 
     void workgroup_pskel::
-    value (int)
+    id (const ::std::string&)
+    {
+    }
+
+    void workgroup_pskel::
+    workers (int)
     {
     }
 
@@ -584,15 +589,29 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
 
-      if (n == "value" && ns.empty ())
+      if (n == "id" && ns.empty ())
       {
-        if (this->value_parser_)
+        if (this->id_parser_)
         {
-          this->value_parser_->pre ();
-          this->value_parser_->_pre_impl ();
-          this->value_parser_->_characters (v);
-          this->value_parser_->_post_impl ();
-          this->value (this->value_parser_->post_int ());
+          this->id_parser_->pre ();
+          this->id_parser_->_pre_impl ();
+          this->id_parser_->_characters (v);
+          this->id_parser_->_post_impl ();
+          this->id (this->id_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "workers" && ns.empty ())
+      {
+        if (this->workers_parser_)
+        {
+          this->workers_parser_->pre ();
+          this->workers_parser_->_pre_impl ();
+          this->workers_parser_->_characters (v);
+          this->workers_parser_->_post_impl ();
+          this->workers (this->workers_parser_->post_int ());
         }
 
         return true;
@@ -601,36 +620,55 @@ namespace sim_mob
       return false;
     }
 
-    // reaction_time_pskel
+    // distribution_pskel
     //
 
-    void reaction_time_pskel::
+    void distribution_pskel::
+    id (const ::std::string&)
+    {
+    }
+
+    void distribution_pskel::
     type (const ::std::string&)
     {
     }
 
-    void reaction_time_pskel::
+    void distribution_pskel::
     mean (int)
     {
     }
 
-    void reaction_time_pskel::
+    void distribution_pskel::
     stdev (int)
     {
     }
 
-    void reaction_time_pskel::
-    post_reaction_time ()
+    void distribution_pskel::
+    post_distribution ()
     {
     }
 
-    bool reaction_time_pskel::
+    bool distribution_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
                      const ::xml_schema::ro_string& v)
     {
       if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
         return true;
+
+      if (n == "id" && ns.empty ())
+      {
+        if (this->id_parser_)
+        {
+          this->id_parser_->pre ();
+          this->id_parser_->_pre_impl ();
+          this->id_parser_->_characters (v);
+          this->id_parser_->_post_impl ();
+          this->id (this->id_parser_->post_string ());
+        }
+
+        return true;
+      }
 
       if (n == "type" && ns.empty ())
       {
@@ -1012,12 +1050,12 @@ namespace sim_mob
     }
 
     void constructs_pskel::
-    workgroup_sizes ()
+    workgroups ()
     {
     }
 
     void constructs_pskel::
-    react_times ()
+    distributions ()
     {
     }
 
@@ -1056,22 +1094,22 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "workgroup_sizes" && ns.empty ())
+      if (n == "workgroups" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->workgroup_sizes_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->workgroups_parser_;
 
-        if (this->workgroup_sizes_parser_)
-          this->workgroup_sizes_parser_->pre ();
+        if (this->workgroups_parser_)
+          this->workgroups_parser_->pre ();
 
         return true;
       }
 
-      if (n == "react_times" && ns.empty ())
+      if (n == "distributions" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->react_times_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->distributions_parser_;
 
-        if (this->react_times_parser_)
-          this->react_times_parser_->pre ();
+        if (this->distributions_parser_)
+          this->distributions_parser_->pre ();
 
         return true;
       }
@@ -1117,23 +1155,23 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "workgroup_sizes" && ns.empty ())
+      if (n == "workgroups" && ns.empty ())
       {
-        if (this->workgroup_sizes_parser_)
+        if (this->workgroups_parser_)
         {
-          this->workgroup_sizes_parser_->post_workgroup_sizes ();
-          this->workgroup_sizes ();
+          this->workgroups_parser_->post_workgroups ();
+          this->workgroups ();
         }
 
         return true;
       }
 
-      if (n == "react_times" && ns.empty ())
+      if (n == "distributions" && ns.empty ())
       {
-        if (this->react_times_parser_)
+        if (this->distributions_parser_)
         {
-          this->react_times_parser_->post_react_times ();
-          this->react_times ();
+          this->distributions_parser_->post_distributions ();
+          this->distributions ();
         }
 
         return true;
@@ -1356,25 +1394,20 @@ namespace sim_mob
       return false;
     }
 
-    // workgroup_sizes_pskel
+    // workgroups_pskel
     //
 
-    void workgroup_sizes_pskel::
-    agent ()
+    void workgroups_pskel::
+    workgroup ()
     {
     }
 
-    void workgroup_sizes_pskel::
-    signal ()
+    void workgroups_pskel::
+    post_workgroups ()
     {
     }
 
-    void workgroup_sizes_pskel::
-    post_workgroup_sizes ()
-    {
-    }
-
-    bool workgroup_sizes_pskel::
+    bool workgroups_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
                          const ::xml_schema::ro_string* t)
@@ -1384,22 +1417,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "agent" && ns.empty ())
+      if (n == "workgroup" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->agent_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->workgroup_parser_;
 
-        if (this->agent_parser_)
-          this->agent_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "signal" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signal_parser_;
-
-        if (this->signal_parser_)
-          this->signal_parser_->pre ();
+        if (this->workgroup_parser_)
+          this->workgroup_parser_->pre ();
 
         return true;
       }
@@ -1407,30 +1430,19 @@ namespace sim_mob
       return false;
     }
 
-    bool workgroup_sizes_pskel::
+    bool workgroups_pskel::
     _end_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n)
     {
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "agent" && ns.empty ())
+      if (n == "workgroup" && ns.empty ())
       {
-        if (this->agent_parser_)
+        if (this->workgroup_parser_)
         {
-          this->agent_parser_->post_workgroup ();
-          this->agent ();
-        }
-
-        return true;
-      }
-
-      if (n == "signal" && ns.empty ())
-      {
-        if (this->signal_parser_)
-        {
-          this->signal_parser_->post_workgroup ();
-          this->signal ();
+          this->workgroup_parser_->post_workgroup ();
+          this->workgroup ();
         }
 
         return true;
@@ -1439,25 +1451,20 @@ namespace sim_mob
       return false;
     }
 
-    // react_times_pskel
+    // distributions_pskel
     //
 
-    void react_times_pskel::
-    dist1 ()
+    void distributions_pskel::
+    dist ()
     {
     }
 
-    void react_times_pskel::
-    dist2 ()
+    void distributions_pskel::
+    post_distributions ()
     {
     }
 
-    void react_times_pskel::
-    post_react_times ()
-    {
-    }
-
-    bool react_times_pskel::
+    bool distributions_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
                          const ::xml_schema::ro_string* t)
@@ -1467,22 +1474,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "dist1" && ns.empty ())
+      if (n == "dist" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->dist1_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->dist_parser_;
 
-        if (this->dist1_parser_)
-          this->dist1_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "dist2" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->dist2_parser_;
-
-        if (this->dist2_parser_)
-          this->dist2_parser_->pre ();
+        if (this->dist_parser_)
+          this->dist_parser_->pre ();
 
         return true;
       }
@@ -1490,30 +1487,19 @@ namespace sim_mob
       return false;
     }
 
-    bool react_times_pskel::
+    bool distributions_pskel::
     _end_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n)
     {
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "dist1" && ns.empty ())
+      if (n == "dist" && ns.empty ())
       {
-        if (this->dist1_parser_)
+        if (this->dist_parser_)
         {
-          this->dist1_parser_->post_reaction_time ();
-          this->dist1 ();
-        }
-
-        return true;
-      }
-
-      if (n == "dist2" && ns.empty ())
-      {
-        if (this->dist2_parser_)
-        {
-          this->dist2_parser_->post_reaction_time ();
-          this->dist2 ();
+          this->dist_parser_->post_distribution ();
+          this->dist ();
         }
 
         return true;

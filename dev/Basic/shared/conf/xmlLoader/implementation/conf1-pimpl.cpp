@@ -47,9 +47,15 @@ namespace sim_mob
     }
 
     void workgroup_pimpl::
-    value (int value)
+    id (const ::std::string& id)
     {
-      std::cout << "value: " << value << std::endl;
+      std::cout << "id: " << id << std::endl;
+    }
+
+    void workgroup_pimpl::
+    workers (int workers)
+    {
+      std::cout << "workers: " << workers << std::endl;
     }
 
     void workgroup_pimpl::
@@ -57,34 +63,40 @@ namespace sim_mob
     {
     }
 
-    // reaction_time_pimpl
+    // distribution_pimpl
     //
 
-    void reaction_time_pimpl::
+    void distribution_pimpl::
     pre ()
     {
     }
 
-    void reaction_time_pimpl::
+    void distribution_pimpl::
+    id (const ::std::string& id)
+    {
+      std::cout << "id: " << id << std::endl;
+    }
+
+    void distribution_pimpl::
     type (const ::std::string& type)
     {
       std::cout << "type: " << type << std::endl;
     }
 
-    void reaction_time_pimpl::
+    void distribution_pimpl::
     mean (int mean)
     {
       std::cout << "mean: " << mean << std::endl;
     }
 
-    void reaction_time_pimpl::
+    void distribution_pimpl::
     stdev (int stdev)
     {
       std::cout << "stdev: " << stdev << std::endl;
     }
 
-    void reaction_time_pimpl::
-    post_reaction_time ()
+    void distribution_pimpl::
+    post_distribution ()
     {
     }
 
@@ -212,12 +224,12 @@ namespace sim_mob
     }
 
     void constructs_pimpl::
-    workgroup_sizes ()
+    workgroups ()
     {
     }
 
     void constructs_pimpl::
-    react_times ()
+    distributions ()
     {
     }
 
@@ -287,49 +299,39 @@ namespace sim_mob
     {
     }
 
-    // workgroup_sizes_pimpl
+    // workgroups_pimpl
     //
 
-    void workgroup_sizes_pimpl::
+    void workgroups_pimpl::
     pre ()
     {
     }
 
-    void workgroup_sizes_pimpl::
-    agent ()
+    void workgroups_pimpl::
+    workgroup ()
     {
     }
 
-    void workgroup_sizes_pimpl::
-    signal ()
+    void workgroups_pimpl::
+    post_workgroups ()
     {
     }
 
-    void workgroup_sizes_pimpl::
-    post_workgroup_sizes ()
-    {
-    }
-
-    // react_times_pimpl
+    // distributions_pimpl
     //
 
-    void react_times_pimpl::
+    void distributions_pimpl::
     pre ()
     {
     }
 
-    void react_times_pimpl::
-    dist1 ()
+    void distributions_pimpl::
+    dist ()
     {
     }
 
-    void react_times_pimpl::
-    dist2 ()
-    {
-    }
-
-    void react_times_pimpl::
-    post_react_times ()
+    void distributions_pimpl::
+    post_distributions ()
     {
     }
 

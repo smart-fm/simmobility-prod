@@ -37,17 +37,23 @@ namespace sim_mob
       pre ();
 
       virtual void
-      value (int);
+      id (const ::std::string&);
+
+      virtual void
+      workers (int);
 
       virtual void
       post_workgroup ();
     };
 
-    class reaction_time_pimpl: public virtual reaction_time_pskel
+    class distribution_pimpl: public virtual distribution_pskel
     {
       public:
       virtual void
       pre ();
+
+      virtual void
+      id (const ::std::string&);
 
       virtual void
       type (const ::std::string&);
@@ -59,7 +65,7 @@ namespace sim_mob
       stdev (int);
 
       virtual void
-      post_reaction_time ();
+      post_distribution ();
     };
 
     class db_connection_pimpl: public virtual db_connection_pskel
@@ -142,10 +148,10 @@ namespace sim_mob
       models ();
 
       virtual void
-      workgroup_sizes ();
+      workgroups ();
 
       virtual void
-      react_times ();
+      distributions ();
 
       virtual void
       db_connections ();
@@ -192,36 +198,30 @@ namespace sim_mob
       post_models ();
     };
 
-    class workgroup_sizes_pimpl: public virtual workgroup_sizes_pskel
+    class workgroups_pimpl: public virtual workgroups_pskel
     {
       public:
       virtual void
       pre ();
 
       virtual void
-      agent ();
+      workgroup ();
 
       virtual void
-      signal ();
-
-      virtual void
-      post_workgroup_sizes ();
+      post_workgroups ();
     };
 
-    class react_times_pimpl: public virtual react_times_pskel
+    class distributions_pimpl: public virtual distributions_pskel
     {
       public:
       virtual void
       pre ();
 
       virtual void
-      dist1 ();
+      dist ();
 
       virtual void
-      dist2 ();
-
-      virtual void
-      post_react_times ();
+      post_distributions ();
     };
 
     class db_connections_pimpl: public virtual db_connections_pskel

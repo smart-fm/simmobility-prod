@@ -22,11 +22,13 @@
 
   <!-- A workgroup -->
   <xs:complexType name="workgroup">
-    <xs:attribute name="value" type="xs:int"/>
+    <xs:attribute name="id" type="xs:string"/>
+    <xs:attribute name="workers" type="xs:int"/>
   </xs:complexType>
 
-  <!-- A reaction time -->
-  <xs:complexType name="reaction_time">
+  <!-- A distribution -->
+  <xs:complexType name="distribution">
+    <xs:attribute name="id" type="xs:string"/>
     <xs:attribute name="type" type="xs:string"/>
     <xs:attribute name="mean" type="xs:int"/>
     <xs:attribute name="stdev" type="xs:int"/>
@@ -77,20 +79,18 @@
     </xs:complexType>
     </xs:element>
 
-    <xs:element name="workgroup_sizes">
+    <xs:element name="workgroups">
     <xs:complexType>
     <xs:sequence>
-      <xs:element name="agent" type="conf:workgroup"/>
-      <xs:element name="signal" type="conf:workgroup"/>
+      <xs:element name="workgroup" type="conf:workgroup" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     </xs:complexType>
     </xs:element>
 
-    <xs:element name="react_times">
+    <xs:element name="distributions">
     <xs:complexType>
     <xs:sequence>
-      <xs:element name="dist1" type="conf:reaction_time"/>
-      <xs:element name="dist2" type="conf:reaction_time"/>
+      <xs:element name="dist" type="conf:distribution" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     </xs:complexType>
     </xs:element>

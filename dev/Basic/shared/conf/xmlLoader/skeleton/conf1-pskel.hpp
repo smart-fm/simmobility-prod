@@ -62,13 +62,26 @@ namespace sim_mob
     class db_param_pskel;
     class db_proc_mapping_pskel;
     class proc_map_pskel;
+    class default_model_pskel;
+    class workgroup_mapping_pskel;
+    class gen_prop_pskel;
+    class val_units_pskel;
+    class dist_mapping_pskel;
     class constructs_pskel;
+    class system_pskel;
+    class simulation_pskel;
     class SimMobility_pskel;
     class models_pskel;
     class workgroups_pskel;
     class distributions_pskel;
     class db_connections_pskel;
     class db_proc_groups_pskel;
+    class default_models_pskel;
+    class workgroup_mappings_pskel;
+    class generic_props_pskel;
+    class start_time_pskel;
+    class granularities_pskel;
+    class react_times_pskel;
   }
 }
 
@@ -660,6 +673,220 @@ namespace sim_mob
       ::xml_schema::string_pskel* format_parser_;
     };
 
+    class default_model_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      type (const ::std::string&);
+
+      virtual void
+      default_ (const ::std::string&);
+
+      virtual void
+      post_default_model ();
+
+      // Parser construction API.
+      //
+      void
+      type_parser (::xml_schema::string_pskel&);
+
+      void
+      default_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* type */,
+               ::xml_schema::string_pskel& /* default */);
+
+      // Constructor.
+      //
+      default_model_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* type_parser_;
+      ::xml_schema::string_pskel* default__parser_;
+    };
+
+    class workgroup_mapping_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      workgroup (const ::std::string&);
+
+      virtual void
+      post_workgroup_mapping ();
+
+      // Parser construction API.
+      //
+      void
+      workgroup_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* workgroup */);
+
+      // Constructor.
+      //
+      workgroup_mapping_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* workgroup_parser_;
+    };
+
+    class gen_prop_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      key (const ::std::string&);
+
+      virtual void
+      value (const ::std::string&);
+
+      virtual void
+      post_gen_prop ();
+
+      // Parser construction API.
+      //
+      void
+      key_parser (::xml_schema::string_pskel&);
+
+      void
+      value_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* key */,
+               ::xml_schema::string_pskel& /* value */);
+
+      // Constructor.
+      //
+      gen_prop_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* key_parser_;
+      ::xml_schema::string_pskel* value_parser_;
+    };
+
+    class val_units_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      value (int);
+
+      virtual void
+      units (const ::std::string&);
+
+      virtual void
+      post_val_units ();
+
+      // Parser construction API.
+      //
+      void
+      value_parser (::xml_schema::int_pskel&);
+
+      void
+      units_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::int_pskel& /* value */,
+               ::xml_schema::string_pskel& /* units */);
+
+      // Constructor.
+      //
+      val_units_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::int_pskel* value_parser_;
+      ::xml_schema::string_pskel* units_parser_;
+    };
+
+    class dist_mapping_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      dist (const ::std::string&);
+
+      virtual void
+      post_dist_mapping ();
+
+      // Parser construction API.
+      //
+      void
+      dist_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* dist */);
+
+      // Constructor.
+      //
+      dist_mapping_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* dist_parser_;
+    };
+
     class constructs_pskel: public ::xml_schema::complex_content
     {
       public:
@@ -734,6 +961,146 @@ namespace sim_mob
       ::sim_mob::conf::db_proc_groups_pskel* db_proc_groups_parser_;
     };
 
+    class system_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      default_models ();
+
+      virtual void
+      workgroup_mappings ();
+
+      virtual void
+      generic_props ();
+
+      virtual void
+      post_system ();
+
+      // Parser construction API.
+      //
+      void
+      default_models_parser (::sim_mob::conf::default_models_pskel&);
+
+      void
+      workgroup_mappings_parser (::sim_mob::conf::workgroup_mappings_pskel&);
+
+      void
+      generic_props_parser (::sim_mob::conf::generic_props_pskel&);
+
+      void
+      parsers (::sim_mob::conf::default_models_pskel& /* default_models */,
+               ::sim_mob::conf::workgroup_mappings_pskel& /* workgroup_mappings */,
+               ::sim_mob::conf::generic_props_pskel& /* generic_props */);
+
+      // Constructor.
+      //
+      system_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::default_models_pskel* default_models_parser_;
+      ::sim_mob::conf::workgroup_mappings_pskel* workgroup_mappings_parser_;
+      ::sim_mob::conf::generic_props_pskel* generic_props_parser_;
+    };
+
+    class simulation_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      base_granularity ();
+
+      virtual void
+      total_runtime ();
+
+      virtual void
+      total_warmup ();
+
+      virtual void
+      start_time ();
+
+      virtual void
+      granularities ();
+
+      virtual void
+      react_times ();
+
+      virtual void
+      post_simulation ();
+
+      // Parser construction API.
+      //
+      void
+      base_granularity_parser (::sim_mob::conf::val_units_pskel&);
+
+      void
+      total_runtime_parser (::sim_mob::conf::val_units_pskel&);
+
+      void
+      total_warmup_parser (::sim_mob::conf::val_units_pskel&);
+
+      void
+      start_time_parser (::sim_mob::conf::start_time_pskel&);
+
+      void
+      granularities_parser (::sim_mob::conf::granularities_pskel&);
+
+      void
+      react_times_parser (::sim_mob::conf::react_times_pskel&);
+
+      void
+      parsers (::sim_mob::conf::val_units_pskel& /* base_granularity */,
+               ::sim_mob::conf::val_units_pskel& /* total_runtime */,
+               ::sim_mob::conf::val_units_pskel& /* total_warmup */,
+               ::sim_mob::conf::start_time_pskel& /* start_time */,
+               ::sim_mob::conf::granularities_pskel& /* granularities */,
+               ::sim_mob::conf::react_times_pskel& /* react_times */);
+
+      // Constructor.
+      //
+      simulation_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::val_units_pskel* base_granularity_parser_;
+      ::sim_mob::conf::val_units_pskel* total_runtime_parser_;
+      ::sim_mob::conf::val_units_pskel* total_warmup_parser_;
+      ::sim_mob::conf::start_time_pskel* start_time_parser_;
+      ::sim_mob::conf::granularities_pskel* granularities_parser_;
+      ::sim_mob::conf::react_times_pskel* react_times_parser_;
+    };
+
     class SimMobility_pskel: public ::xml_schema::complex_content
     {
       public:
@@ -746,6 +1113,15 @@ namespace sim_mob
       constructs ();
 
       virtual void
+      single_threaded (bool);
+
+      virtual void
+      system ();
+
+      virtual void
+      simulation ();
+
+      virtual void
       post_SimMobility ();
 
       // Parser construction API.
@@ -754,7 +1130,19 @@ namespace sim_mob
       constructs_parser (::sim_mob::conf::constructs_pskel&);
 
       void
-      parsers (::sim_mob::conf::constructs_pskel& /* constructs */);
+      single_threaded_parser (::xml_schema::boolean_pskel&);
+
+      void
+      system_parser (::sim_mob::conf::system_pskel&);
+
+      void
+      simulation_parser (::sim_mob::conf::simulation_pskel&);
+
+      void
+      parsers (::sim_mob::conf::constructs_pskel& /* constructs */,
+               ::xml_schema::boolean_pskel& /* single_threaded */,
+               ::sim_mob::conf::system_pskel& /* system */,
+               ::sim_mob::conf::simulation_pskel& /* simulation */);
 
       // Constructor.
       //
@@ -774,6 +1162,9 @@ namespace sim_mob
 
       protected:
       ::sim_mob::conf::constructs_pskel* constructs_parser_;
+      ::xml_schema::boolean_pskel* single_threaded_parser_;
+      ::sim_mob::conf::system_pskel* system_parser_;
+      ::sim_mob::conf::simulation_pskel* simulation_parser_;
     };
 
     class models_pskel: public ::xml_schema::complex_content
@@ -1008,6 +1399,286 @@ namespace sim_mob
 
       protected:
       ::sim_mob::conf::proc_map_pskel* proc_map_parser_;
+    };
+
+    class default_models_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      model ();
+
+      virtual void
+      post_default_models ();
+
+      // Parser construction API.
+      //
+      void
+      model_parser (::sim_mob::conf::default_model_pskel&);
+
+      void
+      parsers (::sim_mob::conf::default_model_pskel& /* model */);
+
+      // Constructor.
+      //
+      default_models_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::default_model_pskel* model_parser_;
+    };
+
+    class workgroup_mappings_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      agents ();
+
+      virtual void
+      signals ();
+
+      virtual void
+      post_workgroup_mappings ();
+
+      // Parser construction API.
+      //
+      void
+      agents_parser (::sim_mob::conf::workgroup_mapping_pskel&);
+
+      void
+      signals_parser (::sim_mob::conf::workgroup_mapping_pskel&);
+
+      void
+      parsers (::sim_mob::conf::workgroup_mapping_pskel& /* agents */,
+               ::sim_mob::conf::workgroup_mapping_pskel& /* signals */);
+
+      // Constructor.
+      //
+      workgroup_mappings_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::workgroup_mapping_pskel* agents_parser_;
+      ::sim_mob::conf::workgroup_mapping_pskel* signals_parser_;
+    };
+
+    class generic_props_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      property ();
+
+      virtual void
+      post_generic_props ();
+
+      // Parser construction API.
+      //
+      void
+      property_parser (::sim_mob::conf::gen_prop_pskel&);
+
+      void
+      parsers (::sim_mob::conf::gen_prop_pskel& /* property */);
+
+      // Constructor.
+      //
+      generic_props_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::gen_prop_pskel* property_parser_;
+    };
+
+    class start_time_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      value (const ::std::string&);
+
+      virtual void
+      post_start_time ();
+
+      // Parser construction API.
+      //
+      void
+      value_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* value */);
+
+      // Constructor.
+      //
+      start_time_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* value_parser_;
+    };
+
+    class granularities_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      agent ();
+
+      virtual void
+      signal ();
+
+      virtual void
+      post_granularities ();
+
+      // Parser construction API.
+      //
+      void
+      agent_parser (::sim_mob::conf::val_units_pskel&);
+
+      void
+      signal_parser (::sim_mob::conf::val_units_pskel&);
+
+      void
+      parsers (::sim_mob::conf::val_units_pskel& /* agent */,
+               ::sim_mob::conf::val_units_pskel& /* signal */);
+
+      // Constructor.
+      //
+      granularities_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::val_units_pskel* agent_parser_;
+      ::sim_mob::conf::val_units_pskel* signal_parser_;
+    };
+
+    class react_times_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      leading_vehicle ();
+
+      virtual void
+      subject_vehicle ();
+
+      virtual void
+      vehicle_gap ();
+
+      virtual void
+      post_react_times ();
+
+      // Parser construction API.
+      //
+      void
+      leading_vehicle_parser (::sim_mob::conf::dist_mapping_pskel&);
+
+      void
+      subject_vehicle_parser (::sim_mob::conf::dist_mapping_pskel&);
+
+      void
+      vehicle_gap_parser (::sim_mob::conf::dist_mapping_pskel&);
+
+      void
+      parsers (::sim_mob::conf::dist_mapping_pskel& /* leading_vehicle */,
+               ::sim_mob::conf::dist_mapping_pskel& /* subject_vehicle */,
+               ::sim_mob::conf::dist_mapping_pskel& /* vehicle_gap */);
+
+      // Constructor.
+      //
+      react_times_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::dist_mapping_pskel* leading_vehicle_parser_;
+      ::sim_mob::conf::dist_mapping_pskel* subject_vehicle_parser_;
+      ::sim_mob::conf::dist_mapping_pskel* vehicle_gap_parser_;
     };
   }
 }

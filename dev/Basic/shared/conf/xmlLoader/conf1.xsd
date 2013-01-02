@@ -82,6 +82,16 @@
     <xs:attribute name="value" type="xs:string"/>
   </xs:complexType>
 
+  <!-- A vaule+units pair -->
+  <xs:complexType name="val_units">
+    <xs:attribute name="value" type="xs:int"/>
+    <xs:attribute name="units" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- Map a distribution to some usage of that distribution -->
+  <xs:complexType name="dist_mapping">
+    <xs:attribute name="dist" type="xs:string"/>
+  </xs:complexType>
 
   <!-- The "Constructs" section -->
   <xs:complexType name="constructs">
@@ -165,13 +175,50 @@
   </xs:complexType>
 
 
+  <!-- The "Simulation" section -->
+  <xs:complexType name="simulation">
+  <xs:sequence>
+    <xs:element name="base_granularity" type="conf:val_units"/>
+    <xs:element name="total_runtime" type="conf:val_units"/>
+    <xs:element name="total_warmup" type="conf:val_units"/>
+    <xs:element name="start_time">
+      <xs:complexType>
+        <xs:attribute name="value" type="xs:string"/>
+      </xs:complexType>
+    </xs:element>
+
+    <xs:element name="granularities">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="agent" type="conf:val_units"/>
+      <xs:element name="signal" type="conf:val_units"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="react_times">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="leading_vehicle" type="conf:dist_mapping"/>
+      <xs:element name="subject_vehicle" type="conf:dist_mapping"/>
+      <xs:element name="vehicle_gap" type="conf:dist_mapping"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    
+
+  </xs:sequence>
+  </xs:complexType>
+
+
   <!-- The type of the root element -->
   <xs:complexType name="SimMobility">
     <xs:sequence>
       <xs:element name="constructs" type="conf:constructs" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="single_threaded" type="xs:bool"/>
+      <xs:element name="single_threaded" type="xs:boolean"/>
       <xs:element name="system" type="conf:system" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="simulation" type="conf:simulation" minOccurs="1" maxOccurs="1">
+      <xs:element name="simulation" type="conf:simulation" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 

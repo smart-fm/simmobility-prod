@@ -290,6 +290,138 @@ namespace sim_mob
     {
     }
 
+    // default_model_pskel
+    //
+
+    void default_model_pskel::
+    type_parser (::xml_schema::string_pskel& p)
+    {
+      this->type_parser_ = &p;
+    }
+
+    void default_model_pskel::
+    default_parser (::xml_schema::string_pskel& p)
+    {
+      this->default__parser_ = &p;
+    }
+
+    void default_model_pskel::
+    parsers (::xml_schema::string_pskel& type,
+             ::xml_schema::string_pskel& default_)
+    {
+      this->type_parser_ = &type;
+      this->default__parser_ = &default_;
+    }
+
+    default_model_pskel::
+    default_model_pskel ()
+    : type_parser_ (0),
+      default__parser_ (0)
+    {
+    }
+
+    // workgroup_mapping_pskel
+    //
+
+    void workgroup_mapping_pskel::
+    workgroup_parser (::xml_schema::string_pskel& p)
+    {
+      this->workgroup_parser_ = &p;
+    }
+
+    void workgroup_mapping_pskel::
+    parsers (::xml_schema::string_pskel& workgroup)
+    {
+      this->workgroup_parser_ = &workgroup;
+    }
+
+    workgroup_mapping_pskel::
+    workgroup_mapping_pskel ()
+    : workgroup_parser_ (0)
+    {
+    }
+
+    // gen_prop_pskel
+    //
+
+    void gen_prop_pskel::
+    key_parser (::xml_schema::string_pskel& p)
+    {
+      this->key_parser_ = &p;
+    }
+
+    void gen_prop_pskel::
+    value_parser (::xml_schema::string_pskel& p)
+    {
+      this->value_parser_ = &p;
+    }
+
+    void gen_prop_pskel::
+    parsers (::xml_schema::string_pskel& key,
+             ::xml_schema::string_pskel& value)
+    {
+      this->key_parser_ = &key;
+      this->value_parser_ = &value;
+    }
+
+    gen_prop_pskel::
+    gen_prop_pskel ()
+    : key_parser_ (0),
+      value_parser_ (0)
+    {
+    }
+
+    // val_units_pskel
+    //
+
+    void val_units_pskel::
+    value_parser (::xml_schema::int_pskel& p)
+    {
+      this->value_parser_ = &p;
+    }
+
+    void val_units_pskel::
+    units_parser (::xml_schema::string_pskel& p)
+    {
+      this->units_parser_ = &p;
+    }
+
+    void val_units_pskel::
+    parsers (::xml_schema::int_pskel& value,
+             ::xml_schema::string_pskel& units)
+    {
+      this->value_parser_ = &value;
+      this->units_parser_ = &units;
+    }
+
+    val_units_pskel::
+    val_units_pskel ()
+    : value_parser_ (0),
+      units_parser_ (0)
+    {
+    }
+
+    // dist_mapping_pskel
+    //
+
+    void dist_mapping_pskel::
+    dist_parser (::xml_schema::string_pskel& p)
+    {
+      this->dist_parser_ = &p;
+    }
+
+    void dist_mapping_pskel::
+    parsers (::xml_schema::string_pskel& dist)
+    {
+      this->dist_parser_ = &dist;
+    }
+
+    dist_mapping_pskel::
+    dist_mapping_pskel ()
+    : dist_parser_ (0)
+    {
+    }
+
     // constructs_pskel
     //
 
@@ -347,6 +479,111 @@ namespace sim_mob
     {
     }
 
+    // system_pskel
+    //
+
+    void system_pskel::
+    default_models_parser (::sim_mob::conf::default_models_pskel& p)
+    {
+      this->default_models_parser_ = &p;
+    }
+
+    void system_pskel::
+    workgroup_mappings_parser (::sim_mob::conf::workgroup_mappings_pskel& p)
+    {
+      this->workgroup_mappings_parser_ = &p;
+    }
+
+    void system_pskel::
+    generic_props_parser (::sim_mob::conf::generic_props_pskel& p)
+    {
+      this->generic_props_parser_ = &p;
+    }
+
+    void system_pskel::
+    parsers (::sim_mob::conf::default_models_pskel& default_models,
+             ::sim_mob::conf::workgroup_mappings_pskel& workgroup_mappings,
+             ::sim_mob::conf::generic_props_pskel& generic_props)
+    {
+      this->default_models_parser_ = &default_models;
+      this->workgroup_mappings_parser_ = &workgroup_mappings;
+      this->generic_props_parser_ = &generic_props;
+    }
+
+    system_pskel::
+    system_pskel ()
+    : default_models_parser_ (0),
+      workgroup_mappings_parser_ (0),
+      generic_props_parser_ (0)
+    {
+    }
+
+    // simulation_pskel
+    //
+
+    void simulation_pskel::
+    base_granularity_parser (::sim_mob::conf::val_units_pskel& p)
+    {
+      this->base_granularity_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    total_runtime_parser (::sim_mob::conf::val_units_pskel& p)
+    {
+      this->total_runtime_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    total_warmup_parser (::sim_mob::conf::val_units_pskel& p)
+    {
+      this->total_warmup_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    start_time_parser (::sim_mob::conf::start_time_pskel& p)
+    {
+      this->start_time_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    granularities_parser (::sim_mob::conf::granularities_pskel& p)
+    {
+      this->granularities_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    react_times_parser (::sim_mob::conf::react_times_pskel& p)
+    {
+      this->react_times_parser_ = &p;
+    }
+
+    void simulation_pskel::
+    parsers (::sim_mob::conf::val_units_pskel& base_granularity,
+             ::sim_mob::conf::val_units_pskel& total_runtime,
+             ::sim_mob::conf::val_units_pskel& total_warmup,
+             ::sim_mob::conf::start_time_pskel& start_time,
+             ::sim_mob::conf::granularities_pskel& granularities,
+             ::sim_mob::conf::react_times_pskel& react_times)
+    {
+      this->base_granularity_parser_ = &base_granularity;
+      this->total_runtime_parser_ = &total_runtime;
+      this->total_warmup_parser_ = &total_warmup;
+      this->start_time_parser_ = &start_time;
+      this->granularities_parser_ = &granularities;
+      this->react_times_parser_ = &react_times;
+    }
+
+    simulation_pskel::
+    simulation_pskel ()
+    : base_granularity_parser_ (0),
+      total_runtime_parser_ (0),
+      total_warmup_parser_ (0),
+      start_time_parser_ (0),
+      granularities_parser_ (0),
+      react_times_parser_ (0)
+    {
+    }
+
     // SimMobility_pskel
     //
 
@@ -357,14 +594,41 @@ namespace sim_mob
     }
 
     void SimMobility_pskel::
-    parsers (::sim_mob::conf::constructs_pskel& constructs)
+    single_threaded_parser (::xml_schema::boolean_pskel& p)
+    {
+      this->single_threaded_parser_ = &p;
+    }
+
+    void SimMobility_pskel::
+    system_parser (::sim_mob::conf::system_pskel& p)
+    {
+      this->system_parser_ = &p;
+    }
+
+    void SimMobility_pskel::
+    simulation_parser (::sim_mob::conf::simulation_pskel& p)
+    {
+      this->simulation_parser_ = &p;
+    }
+
+    void SimMobility_pskel::
+    parsers (::sim_mob::conf::constructs_pskel& constructs,
+             ::xml_schema::boolean_pskel& single_threaded,
+             ::sim_mob::conf::system_pskel& system,
+             ::sim_mob::conf::simulation_pskel& simulation)
     {
       this->constructs_parser_ = &constructs;
+      this->single_threaded_parser_ = &single_threaded;
+      this->system_parser_ = &system;
+      this->simulation_parser_ = &simulation;
     }
 
     SimMobility_pskel::
     SimMobility_pskel ()
-    : constructs_parser_ (0)
+    : constructs_parser_ (0),
+      single_threaded_parser_ (0),
+      system_parser_ (0),
+      simulation_parser_ (0)
     {
     }
 
@@ -497,6 +761,168 @@ namespace sim_mob
     db_proc_groups_pskel::
     db_proc_groups_pskel ()
     : proc_map_parser_ (0)
+    {
+    }
+
+    // default_models_pskel
+    //
+
+    void default_models_pskel::
+    model_parser (::sim_mob::conf::default_model_pskel& p)
+    {
+      this->model_parser_ = &p;
+    }
+
+    void default_models_pskel::
+    parsers (::sim_mob::conf::default_model_pskel& model)
+    {
+      this->model_parser_ = &model;
+    }
+
+    default_models_pskel::
+    default_models_pskel ()
+    : model_parser_ (0)
+    {
+    }
+
+    // workgroup_mappings_pskel
+    //
+
+    void workgroup_mappings_pskel::
+    agents_parser (::sim_mob::conf::workgroup_mapping_pskel& p)
+    {
+      this->agents_parser_ = &p;
+    }
+
+    void workgroup_mappings_pskel::
+    signals_parser (::sim_mob::conf::workgroup_mapping_pskel& p)
+    {
+      this->signals_parser_ = &p;
+    }
+
+    void workgroup_mappings_pskel::
+    parsers (::sim_mob::conf::workgroup_mapping_pskel& agents,
+             ::sim_mob::conf::workgroup_mapping_pskel& signals)
+    {
+      this->agents_parser_ = &agents;
+      this->signals_parser_ = &signals;
+    }
+
+    workgroup_mappings_pskel::
+    workgroup_mappings_pskel ()
+    : agents_parser_ (0),
+      signals_parser_ (0)
+    {
+    }
+
+    // generic_props_pskel
+    //
+
+    void generic_props_pskel::
+    property_parser (::sim_mob::conf::gen_prop_pskel& p)
+    {
+      this->property_parser_ = &p;
+    }
+
+    void generic_props_pskel::
+    parsers (::sim_mob::conf::gen_prop_pskel& property)
+    {
+      this->property_parser_ = &property;
+    }
+
+    generic_props_pskel::
+    generic_props_pskel ()
+    : property_parser_ (0)
+    {
+    }
+
+    // start_time_pskel
+    //
+
+    void start_time_pskel::
+    value_parser (::xml_schema::string_pskel& p)
+    {
+      this->value_parser_ = &p;
+    }
+
+    void start_time_pskel::
+    parsers (::xml_schema::string_pskel& value)
+    {
+      this->value_parser_ = &value;
+    }
+
+    start_time_pskel::
+    start_time_pskel ()
+    : value_parser_ (0)
+    {
+    }
+
+    // granularities_pskel
+    //
+
+    void granularities_pskel::
+    agent_parser (::sim_mob::conf::val_units_pskel& p)
+    {
+      this->agent_parser_ = &p;
+    }
+
+    void granularities_pskel::
+    signal_parser (::sim_mob::conf::val_units_pskel& p)
+    {
+      this->signal_parser_ = &p;
+    }
+
+    void granularities_pskel::
+    parsers (::sim_mob::conf::val_units_pskel& agent,
+             ::sim_mob::conf::val_units_pskel& signal)
+    {
+      this->agent_parser_ = &agent;
+      this->signal_parser_ = &signal;
+    }
+
+    granularities_pskel::
+    granularities_pskel ()
+    : agent_parser_ (0),
+      signal_parser_ (0)
+    {
+    }
+
+    // react_times_pskel
+    //
+
+    void react_times_pskel::
+    leading_vehicle_parser (::sim_mob::conf::dist_mapping_pskel& p)
+    {
+      this->leading_vehicle_parser_ = &p;
+    }
+
+    void react_times_pskel::
+    subject_vehicle_parser (::sim_mob::conf::dist_mapping_pskel& p)
+    {
+      this->subject_vehicle_parser_ = &p;
+    }
+
+    void react_times_pskel::
+    vehicle_gap_parser (::sim_mob::conf::dist_mapping_pskel& p)
+    {
+      this->vehicle_gap_parser_ = &p;
+    }
+
+    void react_times_pskel::
+    parsers (::sim_mob::conf::dist_mapping_pskel& leading_vehicle,
+             ::sim_mob::conf::dist_mapping_pskel& subject_vehicle,
+             ::sim_mob::conf::dist_mapping_pskel& vehicle_gap)
+    {
+      this->leading_vehicle_parser_ = &leading_vehicle;
+      this->subject_vehicle_parser_ = &subject_vehicle;
+      this->vehicle_gap_parser_ = &vehicle_gap;
+    }
+
+    react_times_pskel::
+    react_times_pskel ()
+    : leading_vehicle_parser_ (0),
+      subject_vehicle_parser_ (0),
+      vehicle_gap_parser_ (0)
     {
     }
   }
@@ -1041,6 +1467,253 @@ namespace sim_mob
       return false;
     }
 
+    // default_model_pskel
+    //
+
+    void default_model_pskel::
+    type (const ::std::string&)
+    {
+    }
+
+    void default_model_pskel::
+    default_ (const ::std::string&)
+    {
+    }
+
+    void default_model_pskel::
+    post_default_model ()
+    {
+    }
+
+    bool default_model_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "type" && ns.empty ())
+      {
+        if (this->type_parser_)
+        {
+          this->type_parser_->pre ();
+          this->type_parser_->_pre_impl ();
+          this->type_parser_->_characters (v);
+          this->type_parser_->_post_impl ();
+          this->type (this->type_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "default" && ns.empty ())
+      {
+        if (this->default__parser_)
+        {
+          this->default__parser_->pre ();
+          this->default__parser_->_pre_impl ();
+          this->default__parser_->_characters (v);
+          this->default__parser_->_post_impl ();
+          this->default_ (this->default__parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // workgroup_mapping_pskel
+    //
+
+    void workgroup_mapping_pskel::
+    workgroup (const ::std::string&)
+    {
+    }
+
+    void workgroup_mapping_pskel::
+    post_workgroup_mapping ()
+    {
+    }
+
+    bool workgroup_mapping_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "workgroup" && ns.empty ())
+      {
+        if (this->workgroup_parser_)
+        {
+          this->workgroup_parser_->pre ();
+          this->workgroup_parser_->_pre_impl ();
+          this->workgroup_parser_->_characters (v);
+          this->workgroup_parser_->_post_impl ();
+          this->workgroup (this->workgroup_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // gen_prop_pskel
+    //
+
+    void gen_prop_pskel::
+    key (const ::std::string&)
+    {
+    }
+
+    void gen_prop_pskel::
+    value (const ::std::string&)
+    {
+    }
+
+    void gen_prop_pskel::
+    post_gen_prop ()
+    {
+    }
+
+    bool gen_prop_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "key" && ns.empty ())
+      {
+        if (this->key_parser_)
+        {
+          this->key_parser_->pre ();
+          this->key_parser_->_pre_impl ();
+          this->key_parser_->_characters (v);
+          this->key_parser_->_post_impl ();
+          this->key (this->key_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "value" && ns.empty ())
+      {
+        if (this->value_parser_)
+        {
+          this->value_parser_->pre ();
+          this->value_parser_->_pre_impl ();
+          this->value_parser_->_characters (v);
+          this->value_parser_->_post_impl ();
+          this->value (this->value_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // val_units_pskel
+    //
+
+    void val_units_pskel::
+    value (int)
+    {
+    }
+
+    void val_units_pskel::
+    units (const ::std::string&)
+    {
+    }
+
+    void val_units_pskel::
+    post_val_units ()
+    {
+    }
+
+    bool val_units_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "value" && ns.empty ())
+      {
+        if (this->value_parser_)
+        {
+          this->value_parser_->pre ();
+          this->value_parser_->_pre_impl ();
+          this->value_parser_->_characters (v);
+          this->value_parser_->_post_impl ();
+          this->value (this->value_parser_->post_int ());
+        }
+
+        return true;
+      }
+
+      if (n == "units" && ns.empty ())
+      {
+        if (this->units_parser_)
+        {
+          this->units_parser_->pre ();
+          this->units_parser_->_pre_impl ();
+          this->units_parser_->_characters (v);
+          this->units_parser_->_post_impl ();
+          this->units (this->units_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // dist_mapping_pskel
+    //
+
+    void dist_mapping_pskel::
+    dist (const ::std::string&)
+    {
+    }
+
+    void dist_mapping_pskel::
+    post_dist_mapping ()
+    {
+    }
+
+    bool dist_mapping_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "dist" && ns.empty ())
+      {
+        if (this->dist_parser_)
+        {
+          this->dist_parser_->pre ();
+          this->dist_parser_->_pre_impl ();
+          this->dist_parser_->_characters (v);
+          this->dist_parser_->_post_impl ();
+          this->dist (this->dist_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
     // constructs_pskel
     //
 
@@ -1202,11 +1875,322 @@ namespace sim_mob
       return false;
     }
 
+    // system_pskel
+    //
+
+    void system_pskel::
+    default_models ()
+    {
+    }
+
+    void system_pskel::
+    workgroup_mappings ()
+    {
+    }
+
+    void system_pskel::
+    generic_props ()
+    {
+    }
+
+    void system_pskel::
+    post_system ()
+    {
+    }
+
+    bool system_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "default_models" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->default_models_parser_;
+
+        if (this->default_models_parser_)
+          this->default_models_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "workgroup_mappings" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->workgroup_mappings_parser_;
+
+        if (this->workgroup_mappings_parser_)
+          this->workgroup_mappings_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "generic_props" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->generic_props_parser_;
+
+        if (this->generic_props_parser_)
+          this->generic_props_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool system_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "default_models" && ns.empty ())
+      {
+        if (this->default_models_parser_)
+        {
+          this->default_models_parser_->post_default_models ();
+          this->default_models ();
+        }
+
+        return true;
+      }
+
+      if (n == "workgroup_mappings" && ns.empty ())
+      {
+        if (this->workgroup_mappings_parser_)
+        {
+          this->workgroup_mappings_parser_->post_workgroup_mappings ();
+          this->workgroup_mappings ();
+        }
+
+        return true;
+      }
+
+      if (n == "generic_props" && ns.empty ())
+      {
+        if (this->generic_props_parser_)
+        {
+          this->generic_props_parser_->post_generic_props ();
+          this->generic_props ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // simulation_pskel
+    //
+
+    void simulation_pskel::
+    base_granularity ()
+    {
+    }
+
+    void simulation_pskel::
+    total_runtime ()
+    {
+    }
+
+    void simulation_pskel::
+    total_warmup ()
+    {
+    }
+
+    void simulation_pskel::
+    start_time ()
+    {
+    }
+
+    void simulation_pskel::
+    granularities ()
+    {
+    }
+
+    void simulation_pskel::
+    react_times ()
+    {
+    }
+
+    void simulation_pskel::
+    post_simulation ()
+    {
+    }
+
+    bool simulation_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "base_granularity" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->base_granularity_parser_;
+
+        if (this->base_granularity_parser_)
+          this->base_granularity_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "total_runtime" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->total_runtime_parser_;
+
+        if (this->total_runtime_parser_)
+          this->total_runtime_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "total_warmup" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->total_warmup_parser_;
+
+        if (this->total_warmup_parser_)
+          this->total_warmup_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "start_time" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->start_time_parser_;
+
+        if (this->start_time_parser_)
+          this->start_time_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "granularities" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->granularities_parser_;
+
+        if (this->granularities_parser_)
+          this->granularities_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "react_times" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->react_times_parser_;
+
+        if (this->react_times_parser_)
+          this->react_times_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool simulation_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "base_granularity" && ns.empty ())
+      {
+        if (this->base_granularity_parser_)
+        {
+          this->base_granularity_parser_->post_val_units ();
+          this->base_granularity ();
+        }
+
+        return true;
+      }
+
+      if (n == "total_runtime" && ns.empty ())
+      {
+        if (this->total_runtime_parser_)
+        {
+          this->total_runtime_parser_->post_val_units ();
+          this->total_runtime ();
+        }
+
+        return true;
+      }
+
+      if (n == "total_warmup" && ns.empty ())
+      {
+        if (this->total_warmup_parser_)
+        {
+          this->total_warmup_parser_->post_val_units ();
+          this->total_warmup ();
+        }
+
+        return true;
+      }
+
+      if (n == "start_time" && ns.empty ())
+      {
+        if (this->start_time_parser_)
+        {
+          this->start_time_parser_->post_start_time ();
+          this->start_time ();
+        }
+
+        return true;
+      }
+
+      if (n == "granularities" && ns.empty ())
+      {
+        if (this->granularities_parser_)
+        {
+          this->granularities_parser_->post_granularities ();
+          this->granularities ();
+        }
+
+        return true;
+      }
+
+      if (n == "react_times" && ns.empty ())
+      {
+        if (this->react_times_parser_)
+        {
+          this->react_times_parser_->post_react_times ();
+          this->react_times ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
     // SimMobility_pskel
     //
 
     void SimMobility_pskel::
     constructs ()
+    {
+    }
+
+    void SimMobility_pskel::
+    single_threaded (bool)
+    {
+    }
+
+    void SimMobility_pskel::
+    system ()
+    {
+    }
+
+    void SimMobility_pskel::
+    simulation ()
     {
     }
 
@@ -1235,6 +2219,36 @@ namespace sim_mob
         return true;
       }
 
+      if (n == "single_threaded" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->single_threaded_parser_;
+
+        if (this->single_threaded_parser_)
+          this->single_threaded_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "system" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->system_parser_;
+
+        if (this->system_parser_)
+          this->system_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "simulation" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->simulation_parser_;
+
+        if (this->simulation_parser_)
+          this->simulation_parser_->pre ();
+
+        return true;
+      }
+
       return false;
     }
 
@@ -1251,6 +2265,36 @@ namespace sim_mob
         {
           this->constructs_parser_->post_constructs ();
           this->constructs ();
+        }
+
+        return true;
+      }
+
+      if (n == "single_threaded" && ns.empty ())
+      {
+        if (this->single_threaded_parser_)
+          this->single_threaded (this->single_threaded_parser_->post_boolean ());
+
+        return true;
+      }
+
+      if (n == "system" && ns.empty ())
+      {
+        if (this->system_parser_)
+        {
+          this->system_parser_->post_system ();
+          this->system ();
+        }
+
+        return true;
+      }
+
+      if (n == "simulation" && ns.empty ())
+      {
+        if (this->simulation_parser_)
+        {
+          this->simulation_parser_->post_simulation ();
+          this->simulation ();
         }
 
         return true;
@@ -1614,6 +2658,433 @@ namespace sim_mob
         {
           this->proc_map_parser_->post_proc_map ();
           this->proc_map ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // default_models_pskel
+    //
+
+    void default_models_pskel::
+    model ()
+    {
+    }
+
+    void default_models_pskel::
+    post_default_models ()
+    {
+    }
+
+    bool default_models_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "model" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->model_parser_;
+
+        if (this->model_parser_)
+          this->model_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool default_models_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "model" && ns.empty ())
+      {
+        if (this->model_parser_)
+        {
+          this->model_parser_->post_default_model ();
+          this->model ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // workgroup_mappings_pskel
+    //
+
+    void workgroup_mappings_pskel::
+    agents ()
+    {
+    }
+
+    void workgroup_mappings_pskel::
+    signals ()
+    {
+    }
+
+    void workgroup_mappings_pskel::
+    post_workgroup_mappings ()
+    {
+    }
+
+    bool workgroup_mappings_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "agents" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->agents_parser_;
+
+        if (this->agents_parser_)
+          this->agents_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "signals" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signals_parser_;
+
+        if (this->signals_parser_)
+          this->signals_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool workgroup_mappings_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "agents" && ns.empty ())
+      {
+        if (this->agents_parser_)
+        {
+          this->agents_parser_->post_workgroup_mapping ();
+          this->agents ();
+        }
+
+        return true;
+      }
+
+      if (n == "signals" && ns.empty ())
+      {
+        if (this->signals_parser_)
+        {
+          this->signals_parser_->post_workgroup_mapping ();
+          this->signals ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // generic_props_pskel
+    //
+
+    void generic_props_pskel::
+    property ()
+    {
+    }
+
+    void generic_props_pskel::
+    post_generic_props ()
+    {
+    }
+
+    bool generic_props_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->property_parser_;
+
+        if (this->property_parser_)
+          this->property_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool generic_props_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        if (this->property_parser_)
+        {
+          this->property_parser_->post_gen_prop ();
+          this->property ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // start_time_pskel
+    //
+
+    void start_time_pskel::
+    value (const ::std::string&)
+    {
+    }
+
+    void start_time_pskel::
+    post_start_time ()
+    {
+    }
+
+    bool start_time_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "value" && ns.empty ())
+      {
+        if (this->value_parser_)
+        {
+          this->value_parser_->pre ();
+          this->value_parser_->_pre_impl ();
+          this->value_parser_->_characters (v);
+          this->value_parser_->_post_impl ();
+          this->value (this->value_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // granularities_pskel
+    //
+
+    void granularities_pskel::
+    agent ()
+    {
+    }
+
+    void granularities_pskel::
+    signal ()
+    {
+    }
+
+    void granularities_pskel::
+    post_granularities ()
+    {
+    }
+
+    bool granularities_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "agent" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->agent_parser_;
+
+        if (this->agent_parser_)
+          this->agent_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "signal" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signal_parser_;
+
+        if (this->signal_parser_)
+          this->signal_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool granularities_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "agent" && ns.empty ())
+      {
+        if (this->agent_parser_)
+        {
+          this->agent_parser_->post_val_units ();
+          this->agent ();
+        }
+
+        return true;
+      }
+
+      if (n == "signal" && ns.empty ())
+      {
+        if (this->signal_parser_)
+        {
+          this->signal_parser_->post_val_units ();
+          this->signal ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // react_times_pskel
+    //
+
+    void react_times_pskel::
+    leading_vehicle ()
+    {
+    }
+
+    void react_times_pskel::
+    subject_vehicle ()
+    {
+    }
+
+    void react_times_pskel::
+    vehicle_gap ()
+    {
+    }
+
+    void react_times_pskel::
+    post_react_times ()
+    {
+    }
+
+    bool react_times_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "leading_vehicle" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->leading_vehicle_parser_;
+
+        if (this->leading_vehicle_parser_)
+          this->leading_vehicle_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "subject_vehicle" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->subject_vehicle_parser_;
+
+        if (this->subject_vehicle_parser_)
+          this->subject_vehicle_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "vehicle_gap" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->vehicle_gap_parser_;
+
+        if (this->vehicle_gap_parser_)
+          this->vehicle_gap_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool react_times_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "leading_vehicle" && ns.empty ())
+      {
+        if (this->leading_vehicle_parser_)
+        {
+          this->leading_vehicle_parser_->post_dist_mapping ();
+          this->leading_vehicle ();
+        }
+
+        return true;
+      }
+
+      if (n == "subject_vehicle" && ns.empty ())
+      {
+        if (this->subject_vehicle_parser_)
+        {
+          this->subject_vehicle_parser_->post_dist_mapping ();
+          this->subject_vehicle ();
+        }
+
+        return true;
+      }
+
+      if (n == "vehicle_gap" && ns.empty ())
+      {
+        if (this->vehicle_gap_parser_)
+        {
+          this->vehicle_gap_parser_->post_dist_mapping ();
+          this->vehicle_gap ();
         }
 
         return true;

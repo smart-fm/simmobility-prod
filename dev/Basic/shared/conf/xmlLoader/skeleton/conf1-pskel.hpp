@@ -67,6 +67,9 @@ namespace sim_mob
     class gen_prop_pskel;
     class val_units_pskel;
     class dist_mapping_pskel;
+    class database_loader_pskel;
+    class xml_loader_pskel;
+    class road_network_pskel;
     class constructs_pskel;
     class system_pskel;
     class simulation_pskel;
@@ -82,6 +85,7 @@ namespace sim_mob
     class start_time_pskel;
     class granularities_pskel;
     class react_times_pskel;
+    class geospatial_pskel;
   }
 }
 
@@ -887,6 +891,148 @@ namespace sim_mob
       ::xml_schema::string_pskel* dist_parser_;
     };
 
+    class database_loader_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      connection (const ::std::string&);
+
+      virtual void
+      mappings (const ::std::string&);
+
+      virtual void
+      post_database_loader ();
+
+      // Parser construction API.
+      //
+      void
+      connection_parser (::xml_schema::string_pskel&);
+
+      void
+      mappings_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* connection */,
+               ::xml_schema::string_pskel& /* mappings */);
+
+      // Constructor.
+      //
+      database_loader_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* connection_parser_;
+      ::xml_schema::string_pskel* mappings_parser_;
+    };
+
+    class xml_loader_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      file (const ::std::string&);
+
+      virtual void
+      root_element (const ::std::string&);
+
+      virtual void
+      post_xml_loader ();
+
+      // Parser construction API.
+      //
+      void
+      file_parser (::xml_schema::string_pskel&);
+
+      void
+      root_element_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* file */,
+               ::xml_schema::string_pskel& /* root_element */);
+
+      // Constructor.
+      //
+      xml_loader_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _attribute_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* file_parser_;
+      ::xml_schema::string_pskel* root_element_parser_;
+    };
+
+    class road_network_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      post_road_network ();
+
+      // Parser construction API.
+      //
+      void
+      database_loader_parser (::sim_mob::conf::database_loader_pskel&);
+
+      void
+      xml_loader_parser (::sim_mob::conf::xml_loader_pskel&);
+
+      void
+      parsers (::sim_mob::conf::database_loader_pskel& /* database_loader */,
+               ::sim_mob::conf::xml_loader_pskel& /* xml_loader */);
+
+      // Constructor.
+      //
+      road_network_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::database_loader_pskel* database_loader_parser_;
+      ::sim_mob::conf::xml_loader_pskel* xml_loader_parser_;
+    };
+
     class constructs_pskel: public ::xml_schema::complex_content
     {
       public:
@@ -1046,6 +1192,9 @@ namespace sim_mob
       react_times ();
 
       virtual void
+      geospatial ();
+
+      virtual void
       post_simulation ();
 
       // Parser construction API.
@@ -1069,12 +1218,16 @@ namespace sim_mob
       react_times_parser (::sim_mob::conf::react_times_pskel&);
 
       void
+      geospatial_parser (::sim_mob::conf::geospatial_pskel&);
+
+      void
       parsers (::sim_mob::conf::val_units_pskel& /* base_granularity */,
                ::sim_mob::conf::val_units_pskel& /* total_runtime */,
                ::sim_mob::conf::val_units_pskel& /* total_warmup */,
                ::sim_mob::conf::start_time_pskel& /* start_time */,
                ::sim_mob::conf::granularities_pskel& /* granularities */,
-               ::sim_mob::conf::react_times_pskel& /* react_times */);
+               ::sim_mob::conf::react_times_pskel& /* react_times */,
+               ::sim_mob::conf::geospatial_pskel& /* geospatial */);
 
       // Constructor.
       //
@@ -1099,6 +1252,7 @@ namespace sim_mob
       ::sim_mob::conf::start_time_pskel* start_time_parser_;
       ::sim_mob::conf::granularities_pskel* granularities_parser_;
       ::sim_mob::conf::react_times_pskel* react_times_parser_;
+      ::sim_mob::conf::geospatial_pskel* geospatial_parser_;
     };
 
     class SimMobility_pskel: public ::xml_schema::complex_content
@@ -1679,6 +1833,48 @@ namespace sim_mob
       ::sim_mob::conf::dist_mapping_pskel* leading_vehicle_parser_;
       ::sim_mob::conf::dist_mapping_pskel* subject_vehicle_parser_;
       ::sim_mob::conf::dist_mapping_pskel* vehicle_gap_parser_;
+    };
+
+    class geospatial_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      road_network ();
+
+      virtual void
+      post_geospatial ();
+
+      // Parser construction API.
+      //
+      void
+      road_network_parser (::sim_mob::conf::road_network_pskel&);
+
+      void
+      parsers (::sim_mob::conf::road_network_pskel& /* road_network */);
+
+      // Constructor.
+      //
+      geospatial_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::conf::road_network_pskel* road_network_parser_;
     };
   }
 }

@@ -93,6 +93,26 @@
     <xs:attribute name="dist" type="xs:string"/>
   </xs:complexType>
 
+  <!-- Load something from the database -->
+  <xs:complexType name="database_loader">
+    <xs:attribute name="connection" type="xs:string" use="required"/>
+    <xs:attribute name="mappings" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <!-- Load something from XML -->
+  <xs:complexType name="xml_loader">
+    <xs:attribute name="file" type="xs:string" use="required"/>
+    <xs:attribute name="root_element" type="xs:string"/>
+  </xs:complexType>
+
+  <!-- The structure of the RoadNetwork -->
+  <xs:complexType name="road_network">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
   <!-- The "Constructs" section -->
   <xs:complexType name="constructs">
   <xs:sequence>
@@ -206,7 +226,13 @@
     </xs:complexType>
     </xs:element>
 
-    
+    <xs:element name="geospatial">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="road_network" type="conf:road_network"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
 
   </xs:sequence>
   </xs:complexType>

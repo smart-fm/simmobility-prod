@@ -422,6 +422,96 @@ namespace sim_mob
     {
     }
 
+    // database_loader_pskel
+    //
+
+    void database_loader_pskel::
+    connection_parser (::xml_schema::string_pskel& p)
+    {
+      this->connection_parser_ = &p;
+    }
+
+    void database_loader_pskel::
+    mappings_parser (::xml_schema::string_pskel& p)
+    {
+      this->mappings_parser_ = &p;
+    }
+
+    void database_loader_pskel::
+    parsers (::xml_schema::string_pskel& connection,
+             ::xml_schema::string_pskel& mappings)
+    {
+      this->connection_parser_ = &connection;
+      this->mappings_parser_ = &mappings;
+    }
+
+    database_loader_pskel::
+    database_loader_pskel ()
+    : connection_parser_ (0),
+      mappings_parser_ (0)
+    {
+    }
+
+    // xml_loader_pskel
+    //
+
+    void xml_loader_pskel::
+    file_parser (::xml_schema::string_pskel& p)
+    {
+      this->file_parser_ = &p;
+    }
+
+    void xml_loader_pskel::
+    root_element_parser (::xml_schema::string_pskel& p)
+    {
+      this->root_element_parser_ = &p;
+    }
+
+    void xml_loader_pskel::
+    parsers (::xml_schema::string_pskel& file,
+             ::xml_schema::string_pskel& root_element)
+    {
+      this->file_parser_ = &file;
+      this->root_element_parser_ = &root_element;
+    }
+
+    xml_loader_pskel::
+    xml_loader_pskel ()
+    : file_parser_ (0),
+      root_element_parser_ (0)
+    {
+    }
+
+    // road_network_pskel
+    //
+
+    void road_network_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void road_network_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void road_network_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+    }
+
+    road_network_pskel::
+    road_network_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0)
+    {
+    }
+
     // constructs_pskel
     //
 
@@ -558,12 +648,19 @@ namespace sim_mob
     }
 
     void simulation_pskel::
+    geospatial_parser (::sim_mob::conf::geospatial_pskel& p)
+    {
+      this->geospatial_parser_ = &p;
+    }
+
+    void simulation_pskel::
     parsers (::sim_mob::conf::val_units_pskel& base_granularity,
              ::sim_mob::conf::val_units_pskel& total_runtime,
              ::sim_mob::conf::val_units_pskel& total_warmup,
              ::sim_mob::conf::start_time_pskel& start_time,
              ::sim_mob::conf::granularities_pskel& granularities,
-             ::sim_mob::conf::react_times_pskel& react_times)
+             ::sim_mob::conf::react_times_pskel& react_times,
+             ::sim_mob::conf::geospatial_pskel& geospatial)
     {
       this->base_granularity_parser_ = &base_granularity;
       this->total_runtime_parser_ = &total_runtime;
@@ -571,6 +668,7 @@ namespace sim_mob
       this->start_time_parser_ = &start_time;
       this->granularities_parser_ = &granularities;
       this->react_times_parser_ = &react_times;
+      this->geospatial_parser_ = &geospatial;
     }
 
     simulation_pskel::
@@ -580,7 +678,8 @@ namespace sim_mob
       total_warmup_parser_ (0),
       start_time_parser_ (0),
       granularities_parser_ (0),
-      react_times_parser_ (0)
+      react_times_parser_ (0),
+      geospatial_parser_ (0)
     {
     }
 
@@ -923,6 +1022,27 @@ namespace sim_mob
     : leading_vehicle_parser_ (0),
       subject_vehicle_parser_ (0),
       vehicle_gap_parser_ (0)
+    {
+    }
+
+    // geospatial_pskel
+    //
+
+    void geospatial_pskel::
+    road_network_parser (::sim_mob::conf::road_network_pskel& p)
+    {
+      this->road_network_parser_ = &p;
+    }
+
+    void geospatial_pskel::
+    parsers (::sim_mob::conf::road_network_pskel& road_network)
+    {
+      this->road_network_parser_ = &road_network;
+    }
+
+    geospatial_pskel::
+    geospatial_pskel ()
+    : road_network_parser_ (0)
     {
     }
   }
@@ -1714,6 +1834,203 @@ namespace sim_mob
       return false;
     }
 
+    // database_loader_pskel
+    //
+
+    void database_loader_pskel::
+    connection (const ::std::string&)
+    {
+    }
+
+    void database_loader_pskel::
+    mappings (const ::std::string&)
+    {
+    }
+
+    void database_loader_pskel::
+    post_database_loader ()
+    {
+    }
+
+    bool database_loader_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "connection" && ns.empty ())
+      {
+        if (this->connection_parser_)
+        {
+          this->connection_parser_->pre ();
+          this->connection_parser_->_pre_impl ();
+          this->connection_parser_->_characters (v);
+          this->connection_parser_->_post_impl ();
+          this->connection (this->connection_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "mappings" && ns.empty ())
+      {
+        if (this->mappings_parser_)
+        {
+          this->mappings_parser_->pre ();
+          this->mappings_parser_->_pre_impl ();
+          this->mappings_parser_->_characters (v);
+          this->mappings_parser_->_post_impl ();
+          this->mappings (this->mappings_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // xml_loader_pskel
+    //
+
+    void xml_loader_pskel::
+    file (const ::std::string&)
+    {
+    }
+
+    void xml_loader_pskel::
+    root_element (const ::std::string&)
+    {
+    }
+
+    void xml_loader_pskel::
+    post_xml_loader ()
+    {
+    }
+
+    bool xml_loader_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "file" && ns.empty ())
+      {
+        if (this->file_parser_)
+        {
+          this->file_parser_->pre ();
+          this->file_parser_->_pre_impl ();
+          this->file_parser_->_characters (v);
+          this->file_parser_->_post_impl ();
+          this->file (this->file_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "root_element" && ns.empty ())
+      {
+        if (this->root_element_parser_)
+        {
+          this->root_element_parser_->pre ();
+          this->root_element_parser_->_pre_impl ();
+          this->root_element_parser_->_characters (v);
+          this->root_element_parser_->_post_impl ();
+          this->root_element (this->root_element_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // road_network_pskel
+    //
+
+    void road_network_pskel::
+    database_loader ()
+    {
+    }
+
+    void road_network_pskel::
+    xml_loader ()
+    {
+    }
+
+    void road_network_pskel::
+    post_road_network ()
+    {
+    }
+
+    bool road_network_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool road_network_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
     // constructs_pskel
     //
 
@@ -2018,6 +2335,11 @@ namespace sim_mob
     }
 
     void simulation_pskel::
+    geospatial ()
+    {
+    }
+
+    void simulation_pskel::
     post_simulation ()
     {
     }
@@ -2088,6 +2410,16 @@ namespace sim_mob
 
         if (this->react_times_parser_)
           this->react_times_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "geospatial" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->geospatial_parser_;
+
+        if (this->geospatial_parser_)
+          this->geospatial_parser_->pre ();
 
         return true;
       }
@@ -2163,6 +2495,17 @@ namespace sim_mob
         {
           this->react_times_parser_->post_react_times ();
           this->react_times ();
+        }
+
+        return true;
+      }
+
+      if (n == "geospatial" && ns.empty ())
+      {
+        if (this->geospatial_parser_)
+        {
+          this->geospatial_parser_->post_geospatial ();
+          this->geospatial ();
         }
 
         return true;
@@ -3085,6 +3428,63 @@ namespace sim_mob
         {
           this->vehicle_gap_parser_->post_dist_mapping ();
           this->vehicle_gap ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // geospatial_pskel
+    //
+
+    void geospatial_pskel::
+    road_network ()
+    {
+    }
+
+    void geospatial_pskel::
+    post_geospatial ()
+    {
+    }
+
+    bool geospatial_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "road_network" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->road_network_parser_;
+
+        if (this->road_network_parser_)
+          this->road_network_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool geospatial_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "road_network" && ns.empty ())
+      {
+        if (this->road_network_parser_)
+        {
+          this->road_network_parser_->post_road_network ();
+          this->road_network ();
         }
 
         return true;

@@ -113,6 +113,73 @@
     </xs:sequence>
   </xs:complexType>
 
+  <!-- The TripChains section -->
+  <xs:complexType name="trip_chains">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- The Signals section -->
+  <xs:complexType name="signals">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <!-- TODO: Explicit signal loading? -->
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- An explicitly specified Driver mapping -->
+  <xs:complexType name="driver_explicit">
+    <xs:sequence>
+      <xs:element name="property" type="conf:gen_prop" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="originPos" type="xs:string"/>
+    <xs:attribute name="destPos" type="xs:string"/>
+    <xs:attribute name="startTime" type="xs:string"/>
+    <xs:attribute name="startFrame" type="xs:int"/>
+  </xs:complexType>
+
+  <!-- The Drivers section -->
+  <xs:complexType name="drivers">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="driver" type="conf:driver_explicit" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- An explicitly specified Pedestrian mapping -->
+  <xs:complexType name="pedestrian_explicit">
+    <xs:sequence>
+      <xs:element name="property" type="conf:gen_prop" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="originPos" type="xs:string"/>
+    <xs:attribute name="destPos" type="xs:string"/>
+    <xs:attribute name="startTime" type="xs:string"/>
+    <xs:attribute name="startFrame" type="xs:int"/>
+  </xs:complexType>
+
+  <!-- The Pedestrians section -->
+  <xs:complexType name="pedestrians">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="pedestrian" type="conf:pedestrian_explicit" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- The BusDrivers section -->
+  <xs:complexType name="busdrivers">
+    <xs:sequence>
+      <xs:element name="database_loader" type="conf:database_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="xml_loader" type="conf:xml_loader" minOccurs="0" maxOccurs="unbounded"/>
+      <!-- TODO: Explicit Bus Driver loading? -->
+    </xs:sequence>
+  </xs:complexType>
+
+
   <!-- The "Constructs" section -->
   <xs:complexType name="constructs">
   <xs:sequence>
@@ -230,6 +297,18 @@
     <xs:complexType>
     <xs:sequence>
       <xs:element name="road_network" type="conf:road_network"/>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <xs:element name="agents">
+    <xs:complexType>
+    <xs:sequence>
+      <xs:element name="trip_chains" type="conf:trip_chains" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="signals" type="conf:signals" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="drivers" type="conf:drivers" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="pedestrians" type="conf:pedestrians" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="busdrivers" type="conf:busdrivers" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     </xs:complexType>
     </xs:element>

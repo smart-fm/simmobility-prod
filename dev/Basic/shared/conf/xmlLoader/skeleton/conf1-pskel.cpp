@@ -512,6 +512,288 @@ namespace sim_mob
     {
     }
 
+    // trip_chains_pskel
+    //
+
+    void trip_chains_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void trip_chains_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void trip_chains_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+    }
+
+    trip_chains_pskel::
+    trip_chains_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0)
+    {
+    }
+
+    // signals_pskel
+    //
+
+    void signals_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void signals_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void signals_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+    }
+
+    signals_pskel::
+    signals_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0)
+    {
+    }
+
+    // driver_explicit_pskel
+    //
+
+    void driver_explicit_pskel::
+    property_parser (::sim_mob::conf::gen_prop_pskel& p)
+    {
+      this->property_parser_ = &p;
+    }
+
+    void driver_explicit_pskel::
+    originPos_parser (::xml_schema::string_pskel& p)
+    {
+      this->originPos_parser_ = &p;
+    }
+
+    void driver_explicit_pskel::
+    destPos_parser (::xml_schema::string_pskel& p)
+    {
+      this->destPos_parser_ = &p;
+    }
+
+    void driver_explicit_pskel::
+    startTime_parser (::xml_schema::string_pskel& p)
+    {
+      this->startTime_parser_ = &p;
+    }
+
+    void driver_explicit_pskel::
+    startFrame_parser (::xml_schema::int_pskel& p)
+    {
+      this->startFrame_parser_ = &p;
+    }
+
+    void driver_explicit_pskel::
+    parsers (::sim_mob::conf::gen_prop_pskel& property,
+             ::xml_schema::string_pskel& originPos,
+             ::xml_schema::string_pskel& destPos,
+             ::xml_schema::string_pskel& startTime,
+             ::xml_schema::int_pskel& startFrame)
+    {
+      this->property_parser_ = &property;
+      this->originPos_parser_ = &originPos;
+      this->destPos_parser_ = &destPos;
+      this->startTime_parser_ = &startTime;
+      this->startFrame_parser_ = &startFrame;
+    }
+
+    driver_explicit_pskel::
+    driver_explicit_pskel ()
+    : property_parser_ (0),
+      originPos_parser_ (0),
+      destPos_parser_ (0),
+      startTime_parser_ (0),
+      startFrame_parser_ (0)
+    {
+    }
+
+    // drivers_pskel
+    //
+
+    void drivers_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void drivers_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void drivers_pskel::
+    driver_parser (::sim_mob::conf::driver_explicit_pskel& p)
+    {
+      this->driver_parser_ = &p;
+    }
+
+    void drivers_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader,
+             ::sim_mob::conf::driver_explicit_pskel& driver)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+      this->driver_parser_ = &driver;
+    }
+
+    drivers_pskel::
+    drivers_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0),
+      driver_parser_ (0)
+    {
+    }
+
+    // pedestrian_explicit_pskel
+    //
+
+    void pedestrian_explicit_pskel::
+    property_parser (::sim_mob::conf::gen_prop_pskel& p)
+    {
+      this->property_parser_ = &p;
+    }
+
+    void pedestrian_explicit_pskel::
+    originPos_parser (::xml_schema::string_pskel& p)
+    {
+      this->originPos_parser_ = &p;
+    }
+
+    void pedestrian_explicit_pskel::
+    destPos_parser (::xml_schema::string_pskel& p)
+    {
+      this->destPos_parser_ = &p;
+    }
+
+    void pedestrian_explicit_pskel::
+    startTime_parser (::xml_schema::string_pskel& p)
+    {
+      this->startTime_parser_ = &p;
+    }
+
+    void pedestrian_explicit_pskel::
+    startFrame_parser (::xml_schema::int_pskel& p)
+    {
+      this->startFrame_parser_ = &p;
+    }
+
+    void pedestrian_explicit_pskel::
+    parsers (::sim_mob::conf::gen_prop_pskel& property,
+             ::xml_schema::string_pskel& originPos,
+             ::xml_schema::string_pskel& destPos,
+             ::xml_schema::string_pskel& startTime,
+             ::xml_schema::int_pskel& startFrame)
+    {
+      this->property_parser_ = &property;
+      this->originPos_parser_ = &originPos;
+      this->destPos_parser_ = &destPos;
+      this->startTime_parser_ = &startTime;
+      this->startFrame_parser_ = &startFrame;
+    }
+
+    pedestrian_explicit_pskel::
+    pedestrian_explicit_pskel ()
+    : property_parser_ (0),
+      originPos_parser_ (0),
+      destPos_parser_ (0),
+      startTime_parser_ (0),
+      startFrame_parser_ (0)
+    {
+    }
+
+    // pedestrians_pskel
+    //
+
+    void pedestrians_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void pedestrians_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void pedestrians_pskel::
+    pedestrian_parser (::sim_mob::conf::pedestrian_explicit_pskel& p)
+    {
+      this->pedestrian_parser_ = &p;
+    }
+
+    void pedestrians_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader,
+             ::sim_mob::conf::pedestrian_explicit_pskel& pedestrian)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+      this->pedestrian_parser_ = &pedestrian;
+    }
+
+    pedestrians_pskel::
+    pedestrians_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0),
+      pedestrian_parser_ (0)
+    {
+    }
+
+    // busdrivers_pskel
+    //
+
+    void busdrivers_pskel::
+    database_loader_parser (::sim_mob::conf::database_loader_pskel& p)
+    {
+      this->database_loader_parser_ = &p;
+    }
+
+    void busdrivers_pskel::
+    xml_loader_parser (::sim_mob::conf::xml_loader_pskel& p)
+    {
+      this->xml_loader_parser_ = &p;
+    }
+
+    void busdrivers_pskel::
+    parsers (::sim_mob::conf::database_loader_pskel& database_loader,
+             ::sim_mob::conf::xml_loader_pskel& xml_loader)
+    {
+      this->database_loader_parser_ = &database_loader;
+      this->xml_loader_parser_ = &xml_loader;
+    }
+
+    busdrivers_pskel::
+    busdrivers_pskel ()
+    : database_loader_parser_ (0),
+      xml_loader_parser_ (0)
+    {
+    }
+
     // constructs_pskel
     //
 
@@ -654,13 +936,20 @@ namespace sim_mob
     }
 
     void simulation_pskel::
+    agents_parser (::sim_mob::conf::agents_pskel& p)
+    {
+      this->agents_parser_ = &p;
+    }
+
+    void simulation_pskel::
     parsers (::sim_mob::conf::val_units_pskel& base_granularity,
              ::sim_mob::conf::val_units_pskel& total_runtime,
              ::sim_mob::conf::val_units_pskel& total_warmup,
              ::sim_mob::conf::start_time_pskel& start_time,
              ::sim_mob::conf::granularities_pskel& granularities,
              ::sim_mob::conf::react_times_pskel& react_times,
-             ::sim_mob::conf::geospatial_pskel& geospatial)
+             ::sim_mob::conf::geospatial_pskel& geospatial,
+             ::sim_mob::conf::agents_pskel& agents)
     {
       this->base_granularity_parser_ = &base_granularity;
       this->total_runtime_parser_ = &total_runtime;
@@ -669,6 +958,7 @@ namespace sim_mob
       this->granularities_parser_ = &granularities;
       this->react_times_parser_ = &react_times;
       this->geospatial_parser_ = &geospatial;
+      this->agents_parser_ = &agents;
     }
 
     simulation_pskel::
@@ -679,7 +969,8 @@ namespace sim_mob
       start_time_parser_ (0),
       granularities_parser_ (0),
       react_times_parser_ (0),
-      geospatial_parser_ (0)
+      geospatial_parser_ (0),
+      agents_parser_ (0)
     {
     }
 
@@ -1043,6 +1334,63 @@ namespace sim_mob
     geospatial_pskel::
     geospatial_pskel ()
     : road_network_parser_ (0)
+    {
+    }
+
+    // agents_pskel
+    //
+
+    void agents_pskel::
+    trip_chains_parser (::sim_mob::conf::trip_chains_pskel& p)
+    {
+      this->trip_chains_parser_ = &p;
+    }
+
+    void agents_pskel::
+    signals_parser (::sim_mob::conf::signals_pskel& p)
+    {
+      this->signals_parser_ = &p;
+    }
+
+    void agents_pskel::
+    drivers_parser (::sim_mob::conf::drivers_pskel& p)
+    {
+      this->drivers_parser_ = &p;
+    }
+
+    void agents_pskel::
+    pedestrians_parser (::sim_mob::conf::pedestrians_pskel& p)
+    {
+      this->pedestrians_parser_ = &p;
+    }
+
+    void agents_pskel::
+    busdrivers_parser (::sim_mob::conf::busdrivers_pskel& p)
+    {
+      this->busdrivers_parser_ = &p;
+    }
+
+    void agents_pskel::
+    parsers (::sim_mob::conf::trip_chains_pskel& trip_chains,
+             ::sim_mob::conf::signals_pskel& signals,
+             ::sim_mob::conf::drivers_pskel& drivers,
+             ::sim_mob::conf::pedestrians_pskel& pedestrians,
+             ::sim_mob::conf::busdrivers_pskel& busdrivers)
+    {
+      this->trip_chains_parser_ = &trip_chains;
+      this->signals_parser_ = &signals;
+      this->drivers_parser_ = &drivers;
+      this->pedestrians_parser_ = &pedestrians;
+      this->busdrivers_parser_ = &busdrivers;
+    }
+
+    agents_pskel::
+    agents_pskel ()
+    : trip_chains_parser_ (0),
+      signals_parser_ (0),
+      drivers_parser_ (0),
+      pedestrians_parser_ (0),
+      busdrivers_parser_ (0)
     {
     }
   }
@@ -2031,6 +2379,761 @@ namespace sim_mob
       return false;
     }
 
+    // trip_chains_pskel
+    //
+
+    void trip_chains_pskel::
+    database_loader ()
+    {
+    }
+
+    void trip_chains_pskel::
+    xml_loader ()
+    {
+    }
+
+    void trip_chains_pskel::
+    post_trip_chains ()
+    {
+    }
+
+    bool trip_chains_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool trip_chains_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // signals_pskel
+    //
+
+    void signals_pskel::
+    database_loader ()
+    {
+    }
+
+    void signals_pskel::
+    xml_loader ()
+    {
+    }
+
+    void signals_pskel::
+    post_signals ()
+    {
+    }
+
+    bool signals_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool signals_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // driver_explicit_pskel
+    //
+
+    void driver_explicit_pskel::
+    property ()
+    {
+    }
+
+    void driver_explicit_pskel::
+    originPos (const ::std::string&)
+    {
+    }
+
+    void driver_explicit_pskel::
+    destPos (const ::std::string&)
+    {
+    }
+
+    void driver_explicit_pskel::
+    startTime (const ::std::string&)
+    {
+    }
+
+    void driver_explicit_pskel::
+    startFrame (int)
+    {
+    }
+
+    void driver_explicit_pskel::
+    post_driver_explicit ()
+    {
+    }
+
+    bool driver_explicit_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->property_parser_;
+
+        if (this->property_parser_)
+          this->property_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool driver_explicit_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        if (this->property_parser_)
+        {
+          this->property_parser_->post_gen_prop ();
+          this->property ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool driver_explicit_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "originPos" && ns.empty ())
+      {
+        if (this->originPos_parser_)
+        {
+          this->originPos_parser_->pre ();
+          this->originPos_parser_->_pre_impl ();
+          this->originPos_parser_->_characters (v);
+          this->originPos_parser_->_post_impl ();
+          this->originPos (this->originPos_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "destPos" && ns.empty ())
+      {
+        if (this->destPos_parser_)
+        {
+          this->destPos_parser_->pre ();
+          this->destPos_parser_->_pre_impl ();
+          this->destPos_parser_->_characters (v);
+          this->destPos_parser_->_post_impl ();
+          this->destPos (this->destPos_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "startTime" && ns.empty ())
+      {
+        if (this->startTime_parser_)
+        {
+          this->startTime_parser_->pre ();
+          this->startTime_parser_->_pre_impl ();
+          this->startTime_parser_->_characters (v);
+          this->startTime_parser_->_post_impl ();
+          this->startTime (this->startTime_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "startFrame" && ns.empty ())
+      {
+        if (this->startFrame_parser_)
+        {
+          this->startFrame_parser_->pre ();
+          this->startFrame_parser_->_pre_impl ();
+          this->startFrame_parser_->_characters (v);
+          this->startFrame_parser_->_post_impl ();
+          this->startFrame (this->startFrame_parser_->post_int ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // drivers_pskel
+    //
+
+    void drivers_pskel::
+    database_loader ()
+    {
+    }
+
+    void drivers_pskel::
+    xml_loader ()
+    {
+    }
+
+    void drivers_pskel::
+    driver ()
+    {
+    }
+
+    void drivers_pskel::
+    post_drivers ()
+    {
+    }
+
+    bool drivers_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "driver" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->driver_parser_;
+
+        if (this->driver_parser_)
+          this->driver_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool drivers_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "driver" && ns.empty ())
+      {
+        if (this->driver_parser_)
+        {
+          this->driver_parser_->post_driver_explicit ();
+          this->driver ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // pedestrian_explicit_pskel
+    //
+
+    void pedestrian_explicit_pskel::
+    property ()
+    {
+    }
+
+    void pedestrian_explicit_pskel::
+    originPos (const ::std::string&)
+    {
+    }
+
+    void pedestrian_explicit_pskel::
+    destPos (const ::std::string&)
+    {
+    }
+
+    void pedestrian_explicit_pskel::
+    startTime (const ::std::string&)
+    {
+    }
+
+    void pedestrian_explicit_pskel::
+    startFrame (int)
+    {
+    }
+
+    void pedestrian_explicit_pskel::
+    post_pedestrian_explicit ()
+    {
+    }
+
+    bool pedestrian_explicit_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->property_parser_;
+
+        if (this->property_parser_)
+          this->property_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool pedestrian_explicit_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "property" && ns.empty ())
+      {
+        if (this->property_parser_)
+        {
+          this->property_parser_->post_gen_prop ();
+          this->property ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool pedestrian_explicit_pskel::
+    _attribute_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string& v)
+    {
+      if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
+        return true;
+
+      if (n == "originPos" && ns.empty ())
+      {
+        if (this->originPos_parser_)
+        {
+          this->originPos_parser_->pre ();
+          this->originPos_parser_->_pre_impl ();
+          this->originPos_parser_->_characters (v);
+          this->originPos_parser_->_post_impl ();
+          this->originPos (this->originPos_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "destPos" && ns.empty ())
+      {
+        if (this->destPos_parser_)
+        {
+          this->destPos_parser_->pre ();
+          this->destPos_parser_->_pre_impl ();
+          this->destPos_parser_->_characters (v);
+          this->destPos_parser_->_post_impl ();
+          this->destPos (this->destPos_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "startTime" && ns.empty ())
+      {
+        if (this->startTime_parser_)
+        {
+          this->startTime_parser_->pre ();
+          this->startTime_parser_->_pre_impl ();
+          this->startTime_parser_->_characters (v);
+          this->startTime_parser_->_post_impl ();
+          this->startTime (this->startTime_parser_->post_string ());
+        }
+
+        return true;
+      }
+
+      if (n == "startFrame" && ns.empty ())
+      {
+        if (this->startFrame_parser_)
+        {
+          this->startFrame_parser_->pre ();
+          this->startFrame_parser_->_pre_impl ();
+          this->startFrame_parser_->_characters (v);
+          this->startFrame_parser_->_post_impl ();
+          this->startFrame (this->startFrame_parser_->post_int ());
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // pedestrians_pskel
+    //
+
+    void pedestrians_pskel::
+    database_loader ()
+    {
+    }
+
+    void pedestrians_pskel::
+    xml_loader ()
+    {
+    }
+
+    void pedestrians_pskel::
+    pedestrian ()
+    {
+    }
+
+    void pedestrians_pskel::
+    post_pedestrians ()
+    {
+    }
+
+    bool pedestrians_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "pedestrian" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->pedestrian_parser_;
+
+        if (this->pedestrian_parser_)
+          this->pedestrian_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool pedestrians_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "pedestrian" && ns.empty ())
+      {
+        if (this->pedestrian_parser_)
+        {
+          this->pedestrian_parser_->post_pedestrian_explicit ();
+          this->pedestrian ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // busdrivers_pskel
+    //
+
+    void busdrivers_pskel::
+    database_loader ()
+    {
+    }
+
+    void busdrivers_pskel::
+    xml_loader ()
+    {
+    }
+
+    void busdrivers_pskel::
+    post_busdrivers ()
+    {
+    }
+
+    bool busdrivers_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->database_loader_parser_;
+
+        if (this->database_loader_parser_)
+          this->database_loader_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xml_loader_parser_;
+
+        if (this->xml_loader_parser_)
+          this->xml_loader_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool busdrivers_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "database_loader" && ns.empty ())
+      {
+        if (this->database_loader_parser_)
+        {
+          this->database_loader_parser_->post_database_loader ();
+          this->database_loader ();
+        }
+
+        return true;
+      }
+
+      if (n == "xml_loader" && ns.empty ())
+      {
+        if (this->xml_loader_parser_)
+        {
+          this->xml_loader_parser_->post_xml_loader ();
+          this->xml_loader ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
     // constructs_pskel
     //
 
@@ -2340,6 +3443,11 @@ namespace sim_mob
     }
 
     void simulation_pskel::
+    agents ()
+    {
+    }
+
+    void simulation_pskel::
     post_simulation ()
     {
     }
@@ -2420,6 +3528,16 @@ namespace sim_mob
 
         if (this->geospatial_parser_)
           this->geospatial_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "agents" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->agents_parser_;
+
+        if (this->agents_parser_)
+          this->agents_parser_->pre ();
 
         return true;
       }
@@ -2506,6 +3624,17 @@ namespace sim_mob
         {
           this->geospatial_parser_->post_geospatial ();
           this->geospatial ();
+        }
+
+        return true;
+      }
+
+      if (n == "agents" && ns.empty ())
+      {
+        if (this->agents_parser_)
+        {
+          this->agents_parser_->post_agents ();
+          this->agents ();
         }
 
         return true;
@@ -3485,6 +4614,167 @@ namespace sim_mob
         {
           this->road_network_parser_->post_road_network ();
           this->road_network ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // agents_pskel
+    //
+
+    void agents_pskel::
+    trip_chains ()
+    {
+    }
+
+    void agents_pskel::
+    signals ()
+    {
+    }
+
+    void agents_pskel::
+    drivers ()
+    {
+    }
+
+    void agents_pskel::
+    pedestrians ()
+    {
+    }
+
+    void agents_pskel::
+    busdrivers ()
+    {
+    }
+
+    void agents_pskel::
+    post_agents ()
+    {
+    }
+
+    bool agents_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "trip_chains" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->trip_chains_parser_;
+
+        if (this->trip_chains_parser_)
+          this->trip_chains_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "signals" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signals_parser_;
+
+        if (this->signals_parser_)
+          this->signals_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "drivers" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->drivers_parser_;
+
+        if (this->drivers_parser_)
+          this->drivers_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "pedestrians" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->pedestrians_parser_;
+
+        if (this->pedestrians_parser_)
+          this->pedestrians_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "busdrivers" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->busdrivers_parser_;
+
+        if (this->busdrivers_parser_)
+          this->busdrivers_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool agents_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "trip_chains" && ns.empty ())
+      {
+        if (this->trip_chains_parser_)
+        {
+          this->trip_chains_parser_->post_trip_chains ();
+          this->trip_chains ();
+        }
+
+        return true;
+      }
+
+      if (n == "signals" && ns.empty ())
+      {
+        if (this->signals_parser_)
+        {
+          this->signals_parser_->post_signals ();
+          this->signals ();
+        }
+
+        return true;
+      }
+
+      if (n == "drivers" && ns.empty ())
+      {
+        if (this->drivers_parser_)
+        {
+          this->drivers_parser_->post_drivers ();
+          this->drivers ();
+        }
+
+        return true;
+      }
+
+      if (n == "pedestrians" && ns.empty ())
+      {
+        if (this->pedestrians_parser_)
+        {
+          this->pedestrians_parser_->post_pedestrians ();
+          this->pedestrians ();
+        }
+
+        return true;
+      }
+
+      if (n == "busdrivers" && ns.empty ())
+      {
+        if (this->busdrivers_parser_)
+        {
+          this->busdrivers_parser_->post_busdrivers ();
+          this->busdrivers ();
         }
 
         return true;

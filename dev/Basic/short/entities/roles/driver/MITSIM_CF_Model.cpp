@@ -115,6 +115,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aE = calcBackwardRate(p);
 	double aF = calcForwardRate(p);
 	double aG = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
+	double aN = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwdNextLink);
 	if(acc > aA) acc = aA;
 	if(acc > aB) acc = aB;
 	if(acc > aC) acc = aC;
@@ -122,19 +123,21 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if(acc > aE) acc = aE;
 	if(acc > aF) acc = aF;
 	if(acc > aG) acc = aG;
+	if(acc > aN) acc = aN;
 
 	return acc;
 }
 
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
-	p.space = p.perceivedDistToFwdCar/100;
+//	p.space = p.perceivedDistToFwdCar/100;
+	p.space = nv.distance/100;
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
 //	if ( p.space < 2.0 && p.isAlreadyStart )
 //		return maxDeceleration;
-	if(p.space<5.0 && p.isAlreadyStart && p.isBeforIntersecton && p.perceivedFwdVelocityOfFwdCar/100 < 1.0)
+	if(p.space<2.0 && p.isAlreadyStart && p.isBeforIntersecton && p.perceivedFwdVelocityOfFwdCar/100 < 1.0)
 	{
 		return maxDeceleration*4.0;
 	}
@@ -143,11 +146,11 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 		}
 		// when nv is left/right vh , can not use perceivedxxx!
-		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
-		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
+//		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
+//		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
 
-//		p.v_lead = nv.driver->fwdVelocity/100;
-//		p.a_lead = nv.driver->fwdAccel/100;
+		p.v_lead = nv.driver->fwdVelocity/100;
+		p.a_lead = nv.driver->fwdAccel/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
@@ -155,7 +158,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
-			double emergSpace = p.perceivedDistToFwdCar/100;
+//			double emergSpace = p.perceivedDistToFwdCar/100;
+			double emergSpace = nv.distance/100;
 			double emergHeadway = CalcHeadway(emergSpace, speed, p.elapsedSeconds, maxAcceleration);
 			if (emergHeadway < hBufferLower) {
 				//We need to brake. Override.
@@ -177,10 +181,14 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 			res = accOfCarFollowing(p);
 		}
 
-		if(p.isWaiting && res>0)
-		{
-			res=res*0.5;
-		}
+//		if(p.isWaiting && p.dis2stop<5000 && res > 0)
+//		{
+//			res=res*(5000.0-p.dis2stop)/5000.0;
+//			if(p.dis2stop<2000)
+//			{
+//				res=0;
+//			}
+//		}
 	}
 	return res;
 }
@@ -200,7 +208,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
     distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
     color = p.perceivedTrafficColor;
     double dis = p.perceivedDistToFwdCar;
-	if(distanceToTrafficSignal < dis)
+	if(distanceToTrafficSignal < dis && distanceToTrafficSignal<500)
 	{
 	double dis = distanceToTrafficSignal/100;
 #ifdef NEW_SIGNAL
@@ -434,9 +442,9 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double 
 {
 	double vn =	speed;
 	if (vn < targetSpeed) {
-		return (vn<maxLaneSpeed) ? maxAcceleration : normalDeceleration;
+		return (vn<maxLaneSpeed) ? maxAcceleration : 0;
 	} else if (vn > targetSpeed) {
-		return normalDeceleration;
+		return 0;
 	}
 
 	//If equal:

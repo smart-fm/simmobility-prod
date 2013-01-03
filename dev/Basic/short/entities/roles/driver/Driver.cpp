@@ -778,11 +778,11 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
-	if (params.now.ms()/1000.0 >  94.0
-				 && parent->getId() == 402)
-		{
-				std::cout<<"find 666 " <<parent->getId()<<std::endl;
-		}
+//	if (params.now.ms()/1000.0 >  94.0
+//				 && parent->getId() == 402)
+//		{
+//				std::cout<<"find 666 " <<parent->getId()<<std::endl;
+//		}
 	NearestVehicle & nv = nearestVehicle(p);
 
 	if ( isAleadyStarted == false )
@@ -796,16 +796,22 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		}
 	}
 
-	if (params.now.ms()/1000.0 > 116.6
-			&& vehicle->getCurrSegment()->getStart()->nodeId == 61682
-			&& vehicle->getCurrSegment()->getEnd()->nodeId == 61688
-			&& vehicle->getVelocity()>1
-		)
-	{
-		if (vehicle->getNextSegment(false))
-			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 93730)
-				std::cout<<"find  " <<parent->getId()<<std::endl;
-	}
+//	if (params.now.ms()/1000.0 > 0
+//			&& vehicle->getCurrSegment()->getStart()->nodeId == 61688
+//			&& vehicle->getCurrSegment()->getEnd()->nodeId == 93730
+////			&& vehicle->getVelocity()>1
+//		)
+//	{
+//		if (vehicle->getNextSegment(false))
+//			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 66508)
+//				std::cout<<"find  " <<parent->getId()<<std::endl;
+//		std::cout<<"id 61688 " <<vehicle->getCurrSegment()->getStart()->nodeId<<" "<<
+//				vehicle->getCurrSegment()->getStart()->location.getX()<<" "<<vehicle->getCurrSegment()->getStart()->location.getY()<<std::endl;
+//		std::cout<<"id 93730 " <<vehicle->getCurrSegment()->getEnd()->nodeId<<" "<<
+//						vehicle->getCurrSegment()->getEnd()->location.getX()<<" "<<vehicle->getCurrSegment()->getEnd()->location.getY()<<std::endl;
+//		std::cout<<"id 66508 " <<vehicle->getNextSegment(false)->getEnd()->nodeId<<" "<<
+//								vehicle->getNextSegment(false)->getEnd()->location.getX()<<" "<<vehicle->getNextSegment(false)->getEnd()->location.getY()<<std::endl;
+//	}
 
 	perceivedDataProcess(nv, p);
 
@@ -820,7 +826,10 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 
-
+	if(abs(vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && vehicle->getVelocity() / 100>10)
+	{
+		newFwdAcc = 0;
+	}
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
 //	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
@@ -1290,7 +1299,6 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		fwdDistance = 0;
 	}
 
-
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
@@ -1343,7 +1351,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 
 
 	//Lateral movement
-	if (!vehicle->isInIntersection() && latDistance != 0) {
+	if (!vehicle->isInIntersection() ) {
 		vehicle->moveLat(latDistance);
 		updatePositionDuringLaneChange(p, relative);
 	}
@@ -1402,16 +1410,16 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		}
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 
-	if (params.now.ms()/1000.0 >  93.7
-	 && parent->getId() == 402)
-	{
-			std::cout<<"find 332288222 " <<other_driver->parent->getId()<<std::endl;
-			if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
-					if (!vehicle->isInIntersection() && vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
-						std::cout<<"find 3322882asdfa22 " <<other_driver->parent->getId()<<std::endl;
-					}
-			}
-	}
+//	if (params.now.ms()/1000.0 >  93.7
+//	 && parent->getId() == 402)
+//	{
+//			std::cout<<"find 332288222 " <<other_driver->parent->getId()<<std::endl;
+//			if (otherRoadSegment->getLink() != vehicle->getCurrLink()) { //We are in the different link.
+//					if (!vehicle->isInIntersection() && vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
+//						std::cout<<"find 3322882asdfa22 " <<other_driver->parent->getId()<<std::endl;
+//					}
+//			}
+//	}
 
 
 	if(vehicle->isInIntersection() || other_driver->vehicle->isInIntersection())
@@ -1431,11 +1439,11 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) {//the vehicle is on the current lane
-			if (params.now.ms()/1000.0 >  123.9
-					 && parent->getId() == 404)
-			{
-					std::cout<<"find  " <<other_driver->parent->getId()<<std::endl;
-			}
+//			if (params.now.ms()/1000.0 >  123.9
+//					 && parent->getId() == 404)
+//			{
+//					std::cout<<"find  " <<other_driver->parent->getId()<<std::endl;
+//			}
 			check_and_set_min_car_dist((fwd ? params.nvFwd : params.nvBack), distance, vehicle, other_driver);
 		} else if (other_lane == params.leftLane) { //the vehicle is on the left lane
 			check_and_set_min_car_dist((fwd ? params.nvLeftFwd : params.nvLeftBack), distance, vehicle, other_driver);
@@ -1453,11 +1461,11 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 			const Node* nextNode = vehicle->getCurrSegment()->getEnd();
 			const UniNode* uNode = dynamic_cast<const UniNode*> (nextNode);
 			UniNode* myuode = const_cast<sim_mob::UniNode*> (uNode);
-			if (params.now.ms()/1000.0 >  123.9
-					 && parent->getId() == 404)
-			{
-					std::cout<<"find 65298 " <<parent->getId()<<std::endl;
-			}
+//			if (params.now.ms()/1000.0 >  123.9
+//					 && parent->getId() == 404)
+//			{
+//					std::cout<<"find 65298 " <<parent->getId()<<std::endl;
+//			}
 			//Initialize some lane pointers
 			const Lane* nextLane = nullptr;
 			const Lane* nextLeftLane = nullptr;
@@ -1523,11 +1531,11 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 
 			//Set different variables depending on where the car is.
 			if (other_lane == nextLane) { //The vehicle is on the current lane
-				if (params.now.ms()/1000.0 >  123.9
-						 && parent->getId() == 404)
-				{
-						std::cout<<"find 65298 " <<other_driver->parent->getId()<<std::endl;
-				}
+//				if (params.now.ms()/1000.0 >  123.9
+//						 && parent->getId() == 404)
+//				{
+//						std::cout<<"find 65298 " <<other_driver->parent->getId()<<std::endl;
+//				}
 				check_and_set_min_car_dist(params.nvFwd, distance, vehicle, other_driver);
 			} else if (other_lane == nextLeftLane) { //the vehicle is on the left lane
 				check_and_set_min_car_dist(params.nvLeftFwd, distance, vehicle, other_driver);
@@ -1595,11 +1603,11 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		if (!vehicle->isInIntersection() && vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
 			// 1. host vh's target lane is == other_driver's lane
 			//
-			if (params.now.ms()/1000.0 >  93.7
-					 && parent->getId() == 402)
-			{
-					std::cout<<"find 332288 " <<other_driver->parent->getId()<<std::endl;
-			}
+//			if (params.now.ms()/1000.0 >  93.7
+//					 && parent->getId() == 402)
+//			{
+//					std::cout<<"find 332288 " <<other_driver->parent->getId()<<std::endl;
+//			}
 			size_t targetLaneIndex = params.nextLaneIndex;
 			size_t otherVhLaneIndex = getLaneIndex(other_lane);
 			if (targetLaneIndex == otherVhLaneIndex)
@@ -1611,7 +1619,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 				}
 				if (params.nvFwd.driver==NULL)
 				{
-					std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
+//					std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
 					double currSL = vehicle->getCurrentSegmentLength();
 					double disMIS = vehicle->getDistanceMovedInSegment();
@@ -1678,11 +1686,11 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	params.nvFwd.driver=NULL;
 	params.nvFwd.distance = 50000;
 
-	if (params.now.ms()/1000.0 >  93.7
-			 && parent->getId() == 402)
-		{
-			std::cout<<"asdf"<<std::endl;
-		}
+//	if (params.now.ms()/1000.0 >  93.7
+//			 && parent->getId() == 402)
+//		{
+//			std::cout<<"asdf"<<std::endl;
+//		}
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -1756,38 +1764,38 @@ NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 	{
 	  currentDis = p.nvFwd.distance;
 	}
-	else if(p.nvFwdNextLink.exists())
+	else if(p.nvFwdNextLink.exists() && p.turningDirection == LCS_SAME)
 	{
 		currentDis = p.nvFwdNextLink.distance;
 		p.isBeforIntersecton = true;
-		if (currentDis<200 && params.now.ms()/1000.0 > 100.0 )
-		{
-			std::cout<<"find one"<<std::endl;
-		}
+//		if (currentDis<200 && params.now.ms()/1000.0 > 100.0 )
+//		{
+//			std::cout<<"find one"<<std::endl;
+//		}
 		/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
 					std::cout<<"find vh"<<std::endl;*/
 		return p.nvFwdNextLink;
 	}
-//	if(leftDis<currentDis)
-//	{
-//		//the vehicle in the left lane is turning to right
-//		//or subject vehicle is turning to left
-//		if(p.nvLeftFwd.driver->turningDirection.get()==LCS_RIGHT &&
-//				vehicle->getTurningDirection()==LCS_LEFT && p.nvLeftFwd.driver->getVehicle()->getVelocity()>500)
-//		{
-////			std::cout<<"nearestVehicle: left forward"<<std::endl;
-//			return p.nvLeftFwd;
-//		}
-//	}
-//	else if(rightDis<currentDis)
-//	{
-//		if(p.nvRightFwd.driver->turningDirection.get()==LCS_LEFT &&
-//				vehicle->getTurningDirection()==LCS_RIGHT && p.nvRightFwd.driver->getVehicle()->getVelocity()>500)
-//		{
-////			std::cout<<"nearestVehicle: right forward: rightDis,currentDis: "<<rightDis<<" "<<currentDis<<std::endl;
-//			return p.nvRightFwd;
-//		}
-//	}
+	if(leftDis<currentDis)
+	{
+		//the vehicle in the left lane is turning to right
+		//or subject vehicle is turning to left
+		if(p.nvLeftFwd.driver->turningDirection.get()==LCS_RIGHT &&
+				vehicle->getTurningDirection()==LCS_LEFT && p.nvLeftFwd.driver->getVehicle()->getVelocity()>500)
+		{
+//			std::cout<<"nearestVehicle: left forward"<<std::endl;
+			return p.nvLeftFwd;
+		}
+	}
+	else if(rightDis<currentDis)
+	{
+		if(p.nvRightFwd.driver->turningDirection.get()==LCS_LEFT &&
+				vehicle->getTurningDirection()==LCS_RIGHT && p.nvRightFwd.driver->getVehicle()->getVelocity()>500)
+		{
+//			std::cout<<"nearestVehicle: right forward: rightDis,currentDis: "<<rightDis<<" "<<currentDis<<std::endl;
+			return p.nvRightFwd;
+		}
+	}
 //	if (p.nvFwd.exists())
 //		std::cout<<"nearestVehicle: forward"<<std::endl;
 	return p.nvFwd;
@@ -1840,7 +1848,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 	//The direction we are attempting to change lanes in
 	LANE_CHANGE_SIDE actual = vehicle->getTurningDirection();
 	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
-	if (actual == LCS_SAME) {
+	if (actual == LCS_SAME && relative == LCS_SAME) {
 		if (Debug::Drivers) {
 			DebugStream << "  Lane change: " << "ERROR: Called with \"same\"" << endl;
 		}
@@ -1905,33 +1913,38 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 
 			//Set to the far edge of the other lane, minus any extra amount.
 			halfLaneWidth = p.currLane->getWidth() / 2.0;
-//			vehicle->resetLateralMovement();
+			vehicle->resetLateralMovement();
 			vehicle->moveLat((halfLaneWidth - remainder) * (actual == LCS_LEFT ? -1 : 1));
 		}
 	} else {
 		//Moving "in".
-
-//		if(parent->getId() == 8)
-//		LogOut("8,44\n");
-
-		bool pastZero = (actual == LCS_LEFT) ? (vehicle->getLateralMovement() >= 0)
-				: (vehicle->getLateralMovement() <= 0);
-
-		if (Debug::Drivers) {
-			DebugStream << "    Moving in on lane " << p.currLaneIndex << ": " << vehicle->getLateralMovement() << endl;
-		}
-
-		if (pastZero) {
-
-			//Reset all
+		if (fabs(vehicle->getLateralMovement()) < 30)
+		{
 			vehicle->resetLateralMovement();
-			vehicle->setLatVelocity(0);
-			vehicle->setTurningDirection(LCS_SAME);
-
-			if (Debug::Drivers) {
-				DebugStream << "    New lane shift complete." << endl;
-			}
+			return;
 		}
+		if (relative == LCS_LEFT)
+			vehicle->moveLat(-15);
+		else
+			vehicle->moveLat(15);
+//		bool pastZero = (relative == LCS_LEFT) ? (vehicle->getLateralMovement() >= 0)
+//				: (vehicle->getLateralMovement() <= 0);
+//
+//		if (Debug::Drivers) {
+//			DebugStream << "    Moving in on lane " << p.currLaneIndex << ": " << vehicle->getLateralMovement() << endl;
+//		}
+//
+//		if (pastZero) {
+//
+//			//Reset all
+//			vehicle->resetLateralMovement();
+//			vehicle->setLatVelocity(0);
+//			vehicle->setTurningDirection(LCS_SAME);
+//
+//			if (Debug::Drivers) {
+//				DebugStream << "    New lane shift complete." << endl;
+//			}
+//		}
 
 	}
 }

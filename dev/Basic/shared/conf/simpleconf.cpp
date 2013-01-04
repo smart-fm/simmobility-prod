@@ -2002,7 +2002,6 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		std::cout<<"New config XML loader FAILED.\n  (You can ignore any errors on failure; this is still experimental.)\n";
 	}
 
-
 	//Load our config file into an XML document object.
 	//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
 	TiXmlDocument* doc = new TiXmlDocument(configPath);

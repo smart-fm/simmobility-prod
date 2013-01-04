@@ -5,699 +5,418 @@
 // programs without any restrictions.
 //
 
-#ifndef CONF1_PIMPL_HPP
-#define CONF1_PIMPL_HPP
+#pragma once
 
 #include "../skeleton/conf1-pskel.hpp"
 
-namespace sim_mob
-{
-  namespace conf
-  {
-    class model_pimpl: public virtual model_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      id (const ::std::string&);
-
-      virtual void
-      library (const ::std::string&);
-
-      virtual void
-      post_model ();
-    };
-
-    class workgroup_pimpl: public virtual workgroup_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      id (const ::std::string&);
+namespace sim_mob {
+namespace conf {
 
-      virtual void
-      workers (int);
-
-      virtual void
-      post_workgroup ();
-    };
-
-    class distribution_pimpl: public virtual distribution_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      id (const ::std::string&);
+class model_pimpl: public virtual model_pskel {
+public:
+	virtual void pre ();
+	virtual void post_model ();
 
-      virtual void
-      type (const ::std::string&);
-
-      virtual void
-      mean (int);
-
-      virtual void
-      stdev (int);
-
-      virtual void
-      post_distribution ();
-    };
-
-    class db_connection_pimpl: public virtual db_connection_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      param ();
-
-      virtual void
-      id (const ::std::string&);
-
-      virtual void
-      dbtype (const ::std::string&);
-
-      virtual void
-      post_db_connection ();
-    };
-
-    class db_param_pimpl: public virtual db_param_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      name (const ::std::string&);
-
-      virtual void
-      value (const ::std::string&);
-
-      virtual void
-      post_db_param ();
-    };
-
-    class db_proc_mapping_pimpl: public virtual db_proc_mapping_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      name (const ::std::string&);
-
-      virtual void
-      procedure (const ::std::string&);
+	virtual void id (const ::std::string&);
+	virtual void library (const ::std::string&);
+};
 
-      virtual void
-      post_db_proc_mapping ();
-    };
+class workgroup_pimpl: public virtual workgroup_pskel {
+public:
+	virtual void pre ();
+	virtual void post_workgroup ();
 
-    class proc_map_pimpl: public virtual proc_map_pskel
-    {
-      public:
-      virtual void
-      pre ();
+	virtual void id (const ::std::string&);
+	virtual void workers (int);
+};
 
-      virtual void
-      mapping ();
-
-      virtual void
-      id (const ::std::string&);
+class distribution_pimpl: public virtual distribution_pskel {
+public:
+	virtual void pre ();
+	virtual void post_distribution ();
 
-      virtual void
-      format (const ::std::string&);
-
-      virtual void
-      post_proc_map ();
-    };
+	virtual void id (const ::std::string&);
+	virtual void type (const ::std::string&);
+	virtual void mean (int);
+	virtual void stdev (int);
+};
 
-    class default_model_pimpl: public virtual default_model_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      type (const ::std::string&);
+class db_connection_pimpl: public virtual db_connection_pskel {
+public:
+	virtual void pre ();
+	virtual void post_db_connection ();
 
-      virtual void
-      default_ (const ::std::string&);
-
-      virtual void
-      post_default_model ();
-    };
+	virtual void param ();
+	virtual void id (const ::std::string&);
+	virtual void dbtype (const ::std::string&);
+};
 
-    class workgroup_mapping_pimpl: public virtual workgroup_mapping_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      workgroup (const ::std::string&);
+class db_param_pimpl: public virtual db_param_pskel {
+public:
+	virtual void pre ();
+	virtual void post_db_param ();
 
-      virtual void
-      post_workgroup_mapping ();
-    };
+	virtual void name (const ::std::string&);
+    virtual void value (const ::std::string&);
+};
 
-    class gen_prop_pimpl: public virtual gen_prop_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      key (const ::std::string&);
-
-      virtual void
-      value (const ::std::string&);
+class db_proc_mapping_pimpl: public virtual db_proc_mapping_pskel {
+public:
+	virtual void pre ();
+	virtual void post_db_proc_mapping ();
 
-      virtual void
-      post_gen_prop ();
-    };
+	virtual void name (const ::std::string&);
+	virtual void procedure (const ::std::string&);
+};
 
-    class val_units_pimpl: public virtual val_units_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      value (int);
-
-      virtual void
-      units (const ::std::string&);
+class proc_map_pimpl: public virtual proc_map_pskel {
+public:
+	virtual void pre ();
+	virtual void post_proc_map ();
 
-      virtual void
-      post_val_units ();
-    };
+	virtual void mapping ();
+	virtual void id (const ::std::string&);
+	virtual void format (const ::std::string&);
+};
 
-    class dist_mapping_pimpl: public virtual dist_mapping_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      dist (const ::std::string&);
+class default_model_pimpl: public virtual default_model_pskel{
+public:
+	virtual void pre ();
+	virtual void post_default_model ();
 
-      virtual void
-      post_dist_mapping ();
-    };
+	virtual void type (const ::std::string&);
+	virtual void default_ (const ::std::string&);
+};
 
-    class database_loader_pimpl: public virtual database_loader_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      connection (const ::std::string&);
+class workgroup_mapping_pimpl: public virtual workgroup_mapping_pskel {
+public:
+	virtual void pre ();
+	virtual void post_workgroup_mapping ();
 
-      virtual void
-      mappings (const ::std::string&);
+	virtual void workgroup (const ::std::string&);
+};
 
-      virtual void
-      post_database_loader ();
-    };
 
-    class xml_loader_pimpl: public virtual xml_loader_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class gen_prop_pimpl: public virtual gen_prop_pskel {
+public:
+	virtual void pre ();
+	virtual void post_gen_prop ();
 
-      virtual void
-      file (const ::std::string&);
+	virtual void key (const ::std::string&);
+	virtual void value (const ::std::string&);
+};
 
-      virtual void
-      root_element (const ::std::string&);
 
-      virtual void
-      post_xml_loader ();
-    };
+class val_units_pimpl: public virtual val_units_pskel {
+public:
+	virtual void pre ();
+	virtual void post_val_units ();
 
-    class road_network_pimpl: public virtual road_network_pskel
-    {
-      public:
-      virtual void
-      pre ();
+	virtual void value (int);
+	virtual void units (const ::std::string&);
+};
 
-      virtual void
-      database_loader ();
 
-      virtual void
-      xml_loader ();
+class dist_mapping_pimpl: public virtual dist_mapping_pskel {
+public:
+	virtual void pre ();
+	virtual void post_dist_mapping ();
 
-      virtual void
-      post_road_network ();
-    };
+	virtual void dist (const ::std::string&);
+};
 
-    class trip_chains_pimpl: public virtual trip_chains_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      database_loader ();
+class database_loader_pimpl: public virtual database_loader_pskel {
+public:
+	virtual void pre ();
+	virtual void post_database_loader ();
 
-      virtual void
-      xml_loader ();
+	virtual void connection (const ::std::string&);
+	virtual void mappings (const ::std::string&);
+};
 
-      virtual void
-      post_trip_chains ();
-    };
 
-    class signals_pimpl: public virtual signals_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class xml_loader_pimpl: public virtual xml_loader_pskel {
+public:
+	virtual void pre ();
+	virtual void post_xml_loader ();
 
-      virtual void
-      database_loader ();
+	virtual void file (const ::std::string&);
+	virtual void root_element (const ::std::string&);
+};
 
-      virtual void
-      xml_loader ();
 
-      virtual void
-      post_signals ();
-    };
+class road_network_pimpl: public virtual road_network_pskel {
+public:
+	virtual void pre ();
+	virtual void post_road_network ();
 
-    class driver_explicit_pimpl: public virtual driver_explicit_pskel
-    {
-      public:
-      virtual void
-      pre ();
+	virtual void database_loader ();
+	virtual void xml_loader ();
+};
 
-      virtual void
-      property ();
 
-      virtual void
-      originPos (const ::std::string&);
+class trip_chains_pimpl: public virtual trip_chains_pskel {
+public:
+	virtual void pre ();
+	virtual void post_trip_chains ();
 
-      virtual void
-      destPos (const ::std::string&);
+	virtual void database_loader ();
+	virtual void xml_loader ();
+};
 
-      virtual void
-      startTime (const ::std::string&);
 
-      virtual void
-      startFrame (int);
+class signals_pimpl: public virtual signals_pskel {
+public:
+	virtual void pre ();
+	virtual void post_signals ();
 
-      virtual void
-      post_driver_explicit ();
-    };
+	virtual void database_loader ();
+	virtual void xml_loader ();
+};
 
-    class drivers_pimpl: public virtual drivers_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      database_loader ();
+class driver_explicit_pimpl: public virtual driver_explicit_pskel {
+public:
+	virtual void pre ();
+	virtual void post_driver_explicit ();
 
-      virtual void
-      xml_loader ();
+	virtual void property ();
+	virtual void originPos (const ::std::string&);
+	virtual void destPos (const ::std::string&);
+	virtual void startTime (const ::std::string&);
+	virtual void startFrame (int);
+};
 
-      virtual void
-      driver ();
 
-      virtual void
-      post_drivers ();
-    };
+class drivers_pimpl: public virtual drivers_pskel {
+public:
+	virtual void pre ();
+	virtual void post_drivers ();
 
-    class pedestrian_explicit_pimpl: public virtual pedestrian_explicit_pskel
-    {
-      public:
-      virtual void
-      pre ();
+	virtual void database_loader ();
+	virtual void xml_loader ();
+	virtual void driver ();
+};
 
-      virtual void
-      property ();
 
-      virtual void
-      originPos (const ::std::string&);
+class pedestrian_explicit_pimpl: public virtual pedestrian_explicit_pskel {
+public:
+	virtual void pre ();
+	virtual void post_pedestrian_explicit ();
 
-      virtual void
-      destPos (const ::std::string&);
+	virtual void property ();
+	virtual void originPos (const ::std::string&);
+	virtual void destPos (const ::std::string&);
+	virtual void startTime (const ::std::string&);
+	virtual void startFrame (int);
+};
 
-      virtual void
-      startTime (const ::std::string&);
 
-      virtual void
-      startFrame (int);
+class pedestrians_pimpl: public virtual pedestrians_pskel {
+public:
+	virtual void pre ();
+	virtual void post_pedestrians ();
 
-      virtual void
-      post_pedestrian_explicit ();
-    };
+	virtual void database_loader ();
+	virtual void xml_loader ();
+	virtual void pedestrian ();
+};
 
-    class pedestrians_pimpl: public virtual pedestrians_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      database_loader ();
+class busdrivers_pimpl: public virtual busdrivers_pskel {
+public:
+	virtual void pre ();
+	virtual void post_busdrivers ();
 
-      virtual void
-      xml_loader ();
+	virtual void database_loader ();
+	virtual void xml_loader ();
+};
 
-      virtual void
-      pedestrian ();
 
-      virtual void
-      post_pedestrians ();
-    };
+class constructs_pimpl: public virtual constructs_pskel {
+public:
+	virtual void pre ();
+	virtual void post_constructs ();
 
-    class busdrivers_pimpl: public virtual busdrivers_pskel
-    {
-      public:
-      virtual void
-      pre ();
+	virtual void models ();
+	virtual void workgroups ();
+	virtual void distributions ();
+	virtual void db_connections ();
+	virtual void db_proc_groups ();
+};
 
-      virtual void
-      database_loader ();
 
-      virtual void
-      xml_loader ();
+class system_pimpl: public virtual system_pskel {
+public:
+	virtual void pre ();
+	virtual void post_system ();
 
-      virtual void
-      post_busdrivers ();
-    };
+	virtual void default_models ();
+	virtual void workgroup_mappings ();
+	virtual void generic_props ();
+};
 
-    class constructs_pimpl: public virtual constructs_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      models ();
+class simulation_pimpl: public virtual simulation_pskel {
+public:
+	virtual void pre ();
+	virtual void post_simulation ();
 
-      virtual void
-      workgroups ();
+	virtual void base_granularity ();
+	virtual void total_runtime ();
+	virtual void total_warmup ();
+	virtual void start_time ();
+	virtual void granularities ();
+	virtual void react_times ();
+	virtual void geospatial ();
+	virtual void agents ();
+};
 
-      virtual void
-      distributions ();
 
-      virtual void
-      db_connections ();
+class SimMobility_pimpl: public virtual SimMobility_pskel {
+public:
+	virtual void pre ();
+	virtual void post_SimMobility ();
 
-      virtual void
-      db_proc_groups ();
+	virtual void constructs ();
+	virtual void single_threaded (bool);
+	virtual void system ();
+	virtual void simulation ();
+};
 
-      virtual void
-      post_constructs ();
-    };
 
-    class system_pimpl: public virtual system_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class models_pimpl: public virtual models_pskel {
+public:
+	virtual void pre ();
+	virtual void post_models ();
 
-      virtual void
-      default_models ();
+	virtual void lane_changing ();
+	virtual void car_following ();
+	virtual void intersection_driving ();
+	virtual void sidewalk_movement ();
+};
 
-      virtual void
-      workgroup_mappings ();
 
-      virtual void
-      generic_props ();
+class workgroups_pimpl: public virtual workgroups_pskel {
+public:
+	virtual void pre ();
+	virtual void post_workgroups ();
 
-      virtual void
-      post_system ();
-    };
+	virtual void workgroup ();
+};
 
-    class simulation_pimpl: public virtual simulation_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      base_granularity ();
+class distributions_pimpl: public virtual distributions_pskel {
+public:
+	virtual void pre ();
+	virtual void post_distributions ();
 
-      virtual void
-      total_runtime ();
+	virtual void dist ();
+};
 
-      virtual void
-      total_warmup ();
 
-      virtual void
-      start_time ();
+class db_connections_pimpl: public virtual db_connections_pskel {
+public:
+	virtual void pre ();
+	virtual void post_db_connections ();
 
-      virtual void
-      granularities ();
+	virtual void connection ();
+};
 
-      virtual void
-      react_times ();
 
-      virtual void
-      geospatial ();
+class db_proc_groups_pimpl: public virtual db_proc_groups_pskel {
+public:
+	virtual void pre ();
+	virtual void post_db_proc_groups ();
 
-      virtual void
-      agents ();
+	virtual void proc_map ();
+};
 
-      virtual void
-      post_simulation ();
-    };
 
-    class SimMobility_pimpl: public virtual SimMobility_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class default_models_pimpl: public virtual default_models_pskel {
+public:
+	virtual void pre ();
+	virtual void post_default_models ();
 
-      virtual void
-      constructs ();
+	virtual void model ();
+};
 
-      virtual void
-      single_threaded (bool);
 
-      virtual void
-      system ();
+class workgroup_mappings_pimpl: public virtual workgroup_mappings_pskel {
+public:
+	virtual void pre ();
+	virtual void post_workgroup_mappings ();
 
-      virtual void
-      simulation ();
+	virtual void agents ();
+	virtual void signals ();
+};
 
-      virtual void
-      post_SimMobility ();
-    };
 
-    class models_pimpl: public virtual models_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class generic_props_pimpl: public virtual generic_props_pskel {
+public:
+	virtual void pre ();
+	virtual void post_generic_props ();
 
-      virtual void
-      lane_changing ();
+	virtual void property ();
+};
 
-      virtual void
-      car_following ();
 
-      virtual void
-      intersection_driving ();
+class start_time_pimpl: public virtual start_time_pskel {
+public:
+	virtual void pre ();
+	virtual void post_start_time ();
 
-      virtual void
-      sidewalk_movement ();
+	virtual void value (const ::std::string&);
+};
 
-      virtual void
-      post_models ();
-    };
 
-    class workgroups_pimpl: public virtual workgroups_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class granularities_pimpl: public virtual granularities_pskel {
+public:
+	virtual void pre ();
+	virtual void post_granularities ();
 
-      virtual void
-      workgroup ();
+	virtual void agent ();
+	virtual void signal ();
+};
 
-      virtual void
-      post_workgroups ();
-    };
 
-    class distributions_pimpl: public virtual distributions_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class react_times_pimpl: public virtual react_times_pskel {
+public:
+	virtual void pre ();
+	virtual void post_react_times ();
 
-      virtual void
-      dist ();
+	virtual void leading_vehicle ();
+	virtual void subject_vehicle ();
+	virtual void vehicle_gap ();
+};
 
-      virtual void
-      post_distributions ();
-    };
 
-    class db_connections_pimpl: public virtual db_connections_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class geospatial_pimpl: public virtual geospatial_pskel {
+public:
+	virtual void pre ();
+	virtual void post_geospatial ();
 
-      virtual void
-      connection ();
+	virtual void road_network ();
+};
 
-      virtual void
-      post_db_connections ();
-    };
 
-    class db_proc_groups_pimpl: public virtual db_proc_groups_pskel
-    {
-      public:
-      virtual void
-      pre ();
+class agents_pimpl: public virtual agents_pskel {
+public:
+	virtual void pre ();
+	virtual void post_agents ();
 
-      virtual void
-      proc_map ();
+	virtual void trip_chains ();
+	virtual void signals ();
+	virtual void drivers ();
+	virtual void pedestrians ();
+	virtual void busdrivers ();
+};
 
-      virtual void
-      post_db_proc_groups ();
-    };
+}} //End namespace sim_mob::conf
 
-    class default_models_pimpl: public virtual default_models_pskel
-    {
-      public:
-      virtual void
-      pre ();
 
-      virtual void
-      model ();
-
-      virtual void
-      post_default_models ();
-    };
-
-    class workgroup_mappings_pimpl: public virtual workgroup_mappings_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      agents ();
-
-      virtual void
-      signals ();
-
-      virtual void
-      post_workgroup_mappings ();
-    };
-
-    class generic_props_pimpl: public virtual generic_props_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      property ();
-
-      virtual void
-      post_generic_props ();
-    };
-
-    class start_time_pimpl: public virtual start_time_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      value (const ::std::string&);
-
-      virtual void
-      post_start_time ();
-    };
-
-    class granularities_pimpl: public virtual granularities_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      agent ();
-
-      virtual void
-      signal ();
-
-      virtual void
-      post_granularities ();
-    };
-
-    class react_times_pimpl: public virtual react_times_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      leading_vehicle ();
-
-      virtual void
-      subject_vehicle ();
-
-      virtual void
-      vehicle_gap ();
-
-      virtual void
-      post_react_times ();
-    };
-
-    class geospatial_pimpl: public virtual geospatial_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      road_network ();
-
-      virtual void
-      post_geospatial ();
-    };
-
-    class agents_pimpl: public virtual agents_pskel
-    {
-      public:
-      virtual void
-      pre ();
-
-      virtual void
-      trip_chains ();
-
-      virtual void
-      signals ();
-
-      virtual void
-      drivers ();
-
-      virtual void
-      pedestrians ();
-
-      virtual void
-      busdrivers ();
-
-      virtual void
-      post_agents ();
-    };
-  }
-}
-
-#endif // CONF1_PIMPL_HPP

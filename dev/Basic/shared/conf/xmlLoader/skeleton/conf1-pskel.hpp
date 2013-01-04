@@ -116,6 +116,8 @@ namespace sim_mob
 #include <xsd/cxx/parser/non-validating/xml-schema-pimpl.hxx>
 #include <xsd/cxx/parser/xerces/elements.hxx>
 
+#include "conf/Config.hpp"
+
 namespace xml_schema
 {
   // Built-in XML Schema types mapping.
@@ -327,8 +329,8 @@ namespace sim_mob
       virtual void
       library (const ::std::string&);
 
-      virtual void
-      post_model ();
+      virtual std::pair<std::string, std::string>
+      post_model () = 0;
 
       // Parser construction API.
       //
@@ -1770,16 +1772,16 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      lane_changing ();
+      lane_changing (const std::pair<std::string, std::string>&);
 
       virtual void
-      car_following ();
+      car_following (const std::pair<std::string, std::string>&);
 
       virtual void
-      intersection_driving ();
+      intersection_driving (const std::pair<std::string, std::string>&);
 
       virtual void
-      sidewalk_movement ();
+      sidewalk_movement (const std::pair<std::string, std::string>&);
 
       virtual void
       post_models ();

@@ -9,17 +9,23 @@
 
 #include "../skeleton/conf1-pskel.hpp"
 
+#include <string>
+
 namespace sim_mob {
 namespace conf {
 
 class model_pimpl: public virtual model_pskel {
 public:
 	virtual void pre ();
-	virtual void post_model ();
+	virtual std::pair<std::string, std::string> post_model ();
 
 	virtual void id (const ::std::string&);
 	virtual void library (const ::std::string&);
+
+private:
+	std::pair<std::string, std::string> model;
 };
+
 
 class workgroup_pimpl: public virtual workgroup_pskel {
 public:
@@ -295,10 +301,10 @@ public:
 	virtual void pre ();
 	virtual void post_models ();
 
-	virtual void lane_changing ();
-	virtual void car_following ();
-	virtual void intersection_driving ();
-	virtual void sidewalk_movement ();
+	virtual void lane_changing (const std::pair<std::string, std::string>&);
+	virtual void car_following (const std::pair<std::string, std::string>&);
+	virtual void intersection_driving (const std::pair<std::string, std::string>&);
+	virtual void sidewalk_movement (const std::pair<std::string, std::string>&);
 };
 
 

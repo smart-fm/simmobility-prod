@@ -9,34 +9,16 @@
 
 #include <iostream>
 
+using std::string;
+using std::pair;
+
+
 namespace sim_mob
 {
   namespace conf
   {
     // model_pimpl
     //
-
-    void model_pimpl::
-    pre ()
-    {
-    }
-
-    void model_pimpl::
-    id (const ::std::string& id)
-    {
-      std::cout << "id: " << id << std::endl;
-    }
-
-    void model_pimpl::
-    library (const ::std::string& library)
-    {
-      std::cout << "library: " << library << std::endl;
-    }
-
-    void model_pimpl::
-    post_model ()
-    {
-    }
 
     // workgroup_pimpl
     //
@@ -767,22 +749,22 @@ namespace sim_mob
     }
 
     void models_pimpl::
-    lane_changing ()
+    lane_changing (const pair<string, string>&)
     {
     }
 
     void models_pimpl::
-    car_following ()
+    car_following (const pair<string, string>&)
     {
     }
 
     void models_pimpl::
-    intersection_driving ()
+    intersection_driving (const pair<string, string>&)
     {
     }
 
     void models_pimpl::
-    sidewalk_movement ()
+    sidewalk_movement (const pair<string, string>&)
     {
     }
 

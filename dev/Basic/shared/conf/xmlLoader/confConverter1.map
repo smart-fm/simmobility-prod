@@ -2,7 +2,7 @@ namespace http://www.smart.mit.edu/conf  {
 	include "conf/Config.hpp";
 
 
-#TODO: As needed
+model      "std::pair<std::string, std::string>";
 
 
 

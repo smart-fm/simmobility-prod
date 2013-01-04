@@ -1413,11 +1413,6 @@ namespace sim_mob
     {
     }
 
-    void model_pskel::
-    post_model ()
-    {
-    }
-
     bool model_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -3779,22 +3774,22 @@ namespace sim_mob
     //
 
     void models_pskel::
-    lane_changing ()
+    lane_changing (const std::pair<std::string, std::string>&)
     {
     }
 
     void models_pskel::
-    car_following ()
+    car_following (const std::pair<std::string, std::string>&)
     {
     }
 
     void models_pskel::
-    intersection_driving ()
+    intersection_driving (const std::pair<std::string, std::string>&)
     {
     }
 
     void models_pskel::
-    sidewalk_movement ()
+    sidewalk_movement (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -3866,10 +3861,7 @@ namespace sim_mob
       if (n == "lane_changing" && ns.empty ())
       {
         if (this->lane_changing_parser_)
-        {
-          this->lane_changing_parser_->post_model ();
-          this->lane_changing ();
-        }
+          this->lane_changing (this->lane_changing_parser_->post_model ());
 
         return true;
       }
@@ -3877,10 +3869,7 @@ namespace sim_mob
       if (n == "car_following" && ns.empty ())
       {
         if (this->car_following_parser_)
-        {
-          this->car_following_parser_->post_model ();
-          this->car_following ();
-        }
+          this->car_following (this->car_following_parser_->post_model ());
 
         return true;
       }
@@ -3888,10 +3877,7 @@ namespace sim_mob
       if (n == "intersection_driving" && ns.empty ())
       {
         if (this->intersection_driving_parser_)
-        {
-          this->intersection_driving_parser_->post_model ();
-          this->intersection_driving ();
-        }
+          this->intersection_driving (this->intersection_driving_parser_->post_model ());
 
         return true;
       }
@@ -3899,10 +3885,7 @@ namespace sim_mob
       if (n == "sidewalk_movement" && ns.empty ())
       {
         if (this->sidewalk_movement_parser_)
-        {
-          this->sidewalk_movement_parser_->post_model ();
-          this->sidewalk_movement ();
-        }
+          this->sidewalk_movement (this->sidewalk_movement_parser_->post_model ());
 
         return true;
       }

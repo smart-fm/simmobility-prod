@@ -210,6 +210,401 @@ namespace sim_mob
     {
     }
 
+    // default_model_pimpl
+    //
+
+    void default_model_pimpl::
+    pre ()
+    {
+    }
+
+    void default_model_pimpl::
+    type (const ::std::string& type)
+    {
+      std::cout << "type: " << type << std::endl;
+    }
+
+    void default_model_pimpl::
+    default_ (const ::std::string& default_)
+    {
+      std::cout << "default: " << default_ << std::endl;
+    }
+
+    void default_model_pimpl::
+    post_default_model ()
+    {
+    }
+
+    // workgroup_mapping_pimpl
+    //
+
+    void workgroup_mapping_pimpl::
+    pre ()
+    {
+    }
+
+    void workgroup_mapping_pimpl::
+    workgroup (const ::std::string& workgroup)
+    {
+      std::cout << "workgroup: " << workgroup << std::endl;
+    }
+
+    void workgroup_mapping_pimpl::
+    post_workgroup_mapping ()
+    {
+    }
+
+    // gen_prop_pimpl
+    //
+
+    void gen_prop_pimpl::
+    pre ()
+    {
+    }
+
+    void gen_prop_pimpl::
+    key (const ::std::string& key)
+    {
+      std::cout << "key: " << key << std::endl;
+    }
+
+    void gen_prop_pimpl::
+    value (const ::std::string& value)
+    {
+      std::cout << "value: " << value << std::endl;
+    }
+
+    void gen_prop_pimpl::
+    post_gen_prop ()
+    {
+    }
+
+    // val_units_pimpl
+    //
+
+    void val_units_pimpl::
+    pre ()
+    {
+    }
+
+    void val_units_pimpl::
+    value (int value)
+    {
+      std::cout << "value: " << value << std::endl;
+    }
+
+    void val_units_pimpl::
+    units (const ::std::string& units)
+    {
+      std::cout << "units: " << units << std::endl;
+    }
+
+    void val_units_pimpl::
+    post_val_units ()
+    {
+    }
+
+    // dist_mapping_pimpl
+    //
+
+    void dist_mapping_pimpl::
+    pre ()
+    {
+    }
+
+    void dist_mapping_pimpl::
+    dist (const ::std::string& dist)
+    {
+      std::cout << "dist: " << dist << std::endl;
+    }
+
+    void dist_mapping_pimpl::
+    post_dist_mapping ()
+    {
+    }
+
+    // database_loader_pimpl
+    //
+
+    void database_loader_pimpl::
+    pre ()
+    {
+    }
+
+    void database_loader_pimpl::
+    connection (const ::std::string& connection)
+    {
+      std::cout << "connection: " << connection << std::endl;
+    }
+
+    void database_loader_pimpl::
+    mappings (const ::std::string& mappings)
+    {
+      std::cout << "mappings: " << mappings << std::endl;
+    }
+
+    void database_loader_pimpl::
+    post_database_loader ()
+    {
+    }
+
+    // xml_loader_pimpl
+    //
+
+    void xml_loader_pimpl::
+    pre ()
+    {
+    }
+
+    void xml_loader_pimpl::
+    file (const ::std::string& file)
+    {
+      std::cout << "file: " << file << std::endl;
+    }
+
+    void xml_loader_pimpl::
+    root_element (const ::std::string& root_element)
+    {
+      std::cout << "root_element: " << root_element << std::endl;
+    }
+
+    void xml_loader_pimpl::
+    post_xml_loader ()
+    {
+    }
+
+    // road_network_pimpl
+    //
+
+    void road_network_pimpl::
+    pre ()
+    {
+    }
+
+    void road_network_pimpl::
+    database_loader ()
+    {
+    }
+
+    void road_network_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void road_network_pimpl::
+    post_road_network ()
+    {
+    }
+
+    // trip_chains_pimpl
+    //
+
+    void trip_chains_pimpl::
+    pre ()
+    {
+    }
+
+    void trip_chains_pimpl::
+    database_loader ()
+    {
+    }
+
+    void trip_chains_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void trip_chains_pimpl::
+    post_trip_chains ()
+    {
+    }
+
+    // signals_pimpl
+    //
+
+    void signals_pimpl::
+    pre ()
+    {
+    }
+
+    void signals_pimpl::
+    database_loader ()
+    {
+    }
+
+    void signals_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void signals_pimpl::
+    post_signals ()
+    {
+    }
+
+    // driver_explicit_pimpl
+    //
+
+    void driver_explicit_pimpl::
+    pre ()
+    {
+    }
+
+    void driver_explicit_pimpl::
+    property ()
+    {
+    }
+
+    void driver_explicit_pimpl::
+    originPos (const ::std::string& originPos)
+    {
+      std::cout << "originPos: " << originPos << std::endl;
+    }
+
+    void driver_explicit_pimpl::
+    destPos (const ::std::string& destPos)
+    {
+      std::cout << "destPos: " << destPos << std::endl;
+    }
+
+    void driver_explicit_pimpl::
+    startTime (const ::std::string& startTime)
+    {
+      std::cout << "startTime: " << startTime << std::endl;
+    }
+
+    void driver_explicit_pimpl::
+    startFrame (int startFrame)
+    {
+      std::cout << "startFrame: " << startFrame << std::endl;
+    }
+
+    void driver_explicit_pimpl::
+    post_driver_explicit ()
+    {
+    }
+
+    // drivers_pimpl
+    //
+
+    void drivers_pimpl::
+    pre ()
+    {
+    }
+
+    void drivers_pimpl::
+    database_loader ()
+    {
+    }
+
+    void drivers_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void drivers_pimpl::
+    driver ()
+    {
+    }
+
+    void drivers_pimpl::
+    post_drivers ()
+    {
+    }
+
+    // pedestrian_explicit_pimpl
+    //
+
+    void pedestrian_explicit_pimpl::
+    pre ()
+    {
+    }
+
+    void pedestrian_explicit_pimpl::
+    property ()
+    {
+    }
+
+    void pedestrian_explicit_pimpl::
+    originPos (const ::std::string& originPos)
+    {
+      std::cout << "originPos: " << originPos << std::endl;
+    }
+
+    void pedestrian_explicit_pimpl::
+    destPos (const ::std::string& destPos)
+    {
+      std::cout << "destPos: " << destPos << std::endl;
+    }
+
+    void pedestrian_explicit_pimpl::
+    startTime (const ::std::string& startTime)
+    {
+      std::cout << "startTime: " << startTime << std::endl;
+    }
+
+    void pedestrian_explicit_pimpl::
+    startFrame (int startFrame)
+    {
+      std::cout << "startFrame: " << startFrame << std::endl;
+    }
+
+    void pedestrian_explicit_pimpl::
+    post_pedestrian_explicit ()
+    {
+    }
+
+    // pedestrians_pimpl
+    //
+
+    void pedestrians_pimpl::
+    pre ()
+    {
+    }
+
+    void pedestrians_pimpl::
+    database_loader ()
+    {
+    }
+
+    void pedestrians_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void pedestrians_pimpl::
+    pedestrian ()
+    {
+    }
+
+    void pedestrians_pimpl::
+    post_pedestrians ()
+    {
+    }
+
+    // busdrivers_pimpl
+    //
+
+    void busdrivers_pimpl::
+    pre ()
+    {
+    }
+
+    void busdrivers_pimpl::
+    database_loader ()
+    {
+    }
+
+    void busdrivers_pimpl::
+    xml_loader ()
+    {
+    }
+
+    void busdrivers_pimpl::
+    post_busdrivers ()
+    {
+    }
+
     // constructs_pimpl
     //
 
@@ -248,6 +643,87 @@ namespace sim_mob
     {
     }
 
+    // system_pimpl
+    //
+
+    void system_pimpl::
+    pre ()
+    {
+    }
+
+    void system_pimpl::
+    default_models ()
+    {
+    }
+
+    void system_pimpl::
+    workgroup_mappings ()
+    {
+    }
+
+    void system_pimpl::
+    generic_props ()
+    {
+    }
+
+    void system_pimpl::
+    post_system ()
+    {
+    }
+
+    // simulation_pimpl
+    //
+
+    void simulation_pimpl::
+    pre ()
+    {
+    }
+
+    void simulation_pimpl::
+    base_granularity ()
+    {
+    }
+
+    void simulation_pimpl::
+    total_runtime ()
+    {
+    }
+
+    void simulation_pimpl::
+    total_warmup ()
+    {
+    }
+
+    void simulation_pimpl::
+    start_time ()
+    {
+    }
+
+    void simulation_pimpl::
+    granularities ()
+    {
+    }
+
+    void simulation_pimpl::
+    react_times ()
+    {
+    }
+
+    void simulation_pimpl::
+    geospatial ()
+    {
+    }
+
+    void simulation_pimpl::
+    agents ()
+    {
+    }
+
+    void simulation_pimpl::
+    post_simulation ()
+    {
+    }
+
     // SimMobility_pimpl
     //
 
@@ -258,6 +734,22 @@ namespace sim_mob
 
     void SimMobility_pimpl::
     constructs ()
+    {
+    }
+
+    void SimMobility_pimpl::
+    single_threaded (bool single_threaded)
+    {
+      std::cout << "single_threaded: " << single_threaded << std::endl;
+    }
+
+    void SimMobility_pimpl::
+    system ()
+    {
+    }
+
+    void SimMobility_pimpl::
+    simulation ()
     {
     }
 
@@ -368,6 +860,191 @@ namespace sim_mob
 
     void db_proc_groups_pimpl::
     post_db_proc_groups ()
+    {
+    }
+
+    // default_models_pimpl
+    //
+
+    void default_models_pimpl::
+    pre ()
+    {
+    }
+
+    void default_models_pimpl::
+    model ()
+    {
+    }
+
+    void default_models_pimpl::
+    post_default_models ()
+    {
+    }
+
+    // workgroup_mappings_pimpl
+    //
+
+    void workgroup_mappings_pimpl::
+    pre ()
+    {
+    }
+
+    void workgroup_mappings_pimpl::
+    agents ()
+    {
+    }
+
+    void workgroup_mappings_pimpl::
+    signals ()
+    {
+    }
+
+    void workgroup_mappings_pimpl::
+    post_workgroup_mappings ()
+    {
+    }
+
+    // generic_props_pimpl
+    //
+
+    void generic_props_pimpl::
+    pre ()
+    {
+    }
+
+    void generic_props_pimpl::
+    property ()
+    {
+    }
+
+    void generic_props_pimpl::
+    post_generic_props ()
+    {
+    }
+
+    // start_time_pimpl
+    //
+
+    void start_time_pimpl::
+    pre ()
+    {
+    }
+
+    void start_time_pimpl::
+    value (const ::std::string& value)
+    {
+      std::cout << "value: " << value << std::endl;
+    }
+
+    void start_time_pimpl::
+    post_start_time ()
+    {
+    }
+
+    // granularities_pimpl
+    //
+
+    void granularities_pimpl::
+    pre ()
+    {
+    }
+
+    void granularities_pimpl::
+    agent ()
+    {
+    }
+
+    void granularities_pimpl::
+    signal ()
+    {
+    }
+
+    void granularities_pimpl::
+    post_granularities ()
+    {
+    }
+
+    // react_times_pimpl
+    //
+
+    void react_times_pimpl::
+    pre ()
+    {
+    }
+
+    void react_times_pimpl::
+    leading_vehicle ()
+    {
+    }
+
+    void react_times_pimpl::
+    subject_vehicle ()
+    {
+    }
+
+    void react_times_pimpl::
+    vehicle_gap ()
+    {
+    }
+
+    void react_times_pimpl::
+    post_react_times ()
+    {
+    }
+
+    // geospatial_pimpl
+    //
+
+    void geospatial_pimpl::
+    pre ()
+    {
+    }
+
+    void geospatial_pimpl::
+    road_network ()
+    {
+    }
+
+    void geospatial_pimpl::
+    post_geospatial ()
+    {
+    }
+
+    // agents_pimpl
+    //
+
+    void agents_pimpl::
+    pre ()
+    {
+    }
+
+    void agents_pimpl::
+    trip_chains ()
+    {
+    }
+
+    void agents_pimpl::
+    signals ()
+    {
+    }
+
+    void agents_pimpl::
+    drivers ()
+    {
+    }
+
+    void agents_pimpl::
+    pedestrians ()
+    {
+    }
+
+    void agents_pimpl::
+    busdrivers ()
+    {
+    }
+
+    void agents_pimpl::
+    post_agents ()
     {
     }
   }

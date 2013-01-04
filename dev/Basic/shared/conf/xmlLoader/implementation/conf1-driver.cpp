@@ -32,10 +32,39 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::db_proc_groups_pimpl db_proc_groups_p;
 	    ::sim_mob::conf::proc_map_pimpl proc_map_p;
 	    ::sim_mob::conf::db_proc_mapping_pimpl db_proc_mapping_p;
+	    ::xml_schema::boolean_pimpl boolean_p;
+	    ::sim_mob::conf::system_pimpl system_p;
+	    ::sim_mob::conf::default_models_pimpl default_models_p;
+	    ::sim_mob::conf::default_model_pimpl default_model_p;
+	    ::sim_mob::conf::workgroup_mappings_pimpl workgroup_mappings_p;
+	    ::sim_mob::conf::workgroup_mapping_pimpl workgroup_mapping_p;
+	    ::sim_mob::conf::generic_props_pimpl generic_props_p;
+	    ::sim_mob::conf::gen_prop_pimpl gen_prop_p;
+	    ::sim_mob::conf::simulation_pimpl simulation_p;
+	    ::sim_mob::conf::val_units_pimpl val_units_p;
+	    ::sim_mob::conf::start_time_pimpl start_time_p;
+	    ::sim_mob::conf::granularities_pimpl granularities_p;
+	    ::sim_mob::conf::react_times_pimpl react_times_p;
+	    ::sim_mob::conf::dist_mapping_pimpl dist_mapping_p;
+	    ::sim_mob::conf::geospatial_pimpl geospatial_p;
+	    ::sim_mob::conf::road_network_pimpl road_network_p;
+	    ::sim_mob::conf::database_loader_pimpl database_loader_p;
+	    ::sim_mob::conf::xml_loader_pimpl xml_loader_p;
+	    ::sim_mob::conf::agents_pimpl agents_p;
+	    ::sim_mob::conf::trip_chains_pimpl trip_chains_p;
+	    ::sim_mob::conf::signals_pimpl signals_p;
+	    ::sim_mob::conf::drivers_pimpl drivers_p;
+	    ::sim_mob::conf::driver_explicit_pimpl driver_explicit_p;
+	    ::sim_mob::conf::pedestrians_pimpl pedestrians_p;
+	    ::sim_mob::conf::pedestrian_explicit_pimpl pedestrian_explicit_p;
+	    ::sim_mob::conf::busdrivers_pimpl busdrivers_p;
 
 	    // Connect the parsers together.
 	    //
-	    SimMobility_p.parsers (constructs_p);
+	    SimMobility_p.parsers (constructs_p,
+	                           boolean_p,
+	                           system_p,
+	                           simulation_p);
 
 	    constructs_p.parsers (models_p,
 	                          workgroups_p,
@@ -80,6 +109,94 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 
 	    db_proc_mapping_p.parsers (string_p,
 	                               string_p);
+
+	    system_p.parsers (default_models_p,
+	                      workgroup_mappings_p,
+	                      generic_props_p);
+
+	    default_models_p.parsers (default_model_p);
+
+	    default_model_p.parsers (string_p,
+	                             string_p);
+
+	    workgroup_mappings_p.parsers (workgroup_mapping_p,
+	                                  workgroup_mapping_p);
+
+	    workgroup_mapping_p.parsers (string_p);
+
+	    generic_props_p.parsers (gen_prop_p);
+
+	    gen_prop_p.parsers (string_p,
+	                        string_p);
+
+	    simulation_p.parsers (val_units_p,
+	                          val_units_p,
+	                          val_units_p,
+	                          start_time_p,
+	                          granularities_p,
+	                          react_times_p,
+	                          geospatial_p,
+	                          agents_p);
+
+	    val_units_p.parsers (int_p,
+	                         string_p);
+
+	    start_time_p.parsers (string_p);
+
+	    granularities_p.parsers (val_units_p,
+	                             val_units_p);
+
+	    react_times_p.parsers (dist_mapping_p,
+	                           dist_mapping_p,
+	                           dist_mapping_p);
+
+	    dist_mapping_p.parsers (string_p);
+
+	    geospatial_p.parsers (road_network_p);
+
+	    road_network_p.parsers (database_loader_p,
+	                            xml_loader_p);
+
+	    database_loader_p.parsers (string_p,
+	                               string_p);
+
+	    xml_loader_p.parsers (string_p,
+	                          string_p);
+
+	    agents_p.parsers (trip_chains_p,
+	                      signals_p,
+	                      drivers_p,
+	                      pedestrians_p,
+	                      busdrivers_p);
+
+	    trip_chains_p.parsers (database_loader_p,
+	                           xml_loader_p);
+
+	    signals_p.parsers (database_loader_p,
+	                       xml_loader_p);
+
+	    drivers_p.parsers (database_loader_p,
+	                       xml_loader_p,
+	                       driver_explicit_p);
+
+	    driver_explicit_p.parsers (gen_prop_p,
+	                               string_p,
+	                               string_p,
+	                               string_p,
+	                               int_p);
+
+	    pedestrians_p.parsers (database_loader_p,
+	                           xml_loader_p,
+	                           pedestrian_explicit_p);
+
+	    pedestrian_explicit_p.parsers (gen_prop_p,
+	                                   string_p,
+	                                   string_p,
+	                                   string_p,
+	                                   int_p);
+
+	    busdrivers_p.parsers (database_loader_p,
+	                          xml_loader_p);
 
 	    // Parse the XML document.
 	    //

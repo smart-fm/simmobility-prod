@@ -138,6 +138,264 @@ namespace sim_mob
       post_proc_map ();
     };
 
+    class default_model_pimpl: public virtual default_model_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      type (const ::std::string&);
+
+      virtual void
+      default_ (const ::std::string&);
+
+      virtual void
+      post_default_model ();
+    };
+
+    class workgroup_mapping_pimpl: public virtual workgroup_mapping_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      workgroup (const ::std::string&);
+
+      virtual void
+      post_workgroup_mapping ();
+    };
+
+    class gen_prop_pimpl: public virtual gen_prop_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      key (const ::std::string&);
+
+      virtual void
+      value (const ::std::string&);
+
+      virtual void
+      post_gen_prop ();
+    };
+
+    class val_units_pimpl: public virtual val_units_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      value (int);
+
+      virtual void
+      units (const ::std::string&);
+
+      virtual void
+      post_val_units ();
+    };
+
+    class dist_mapping_pimpl: public virtual dist_mapping_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      dist (const ::std::string&);
+
+      virtual void
+      post_dist_mapping ();
+    };
+
+    class database_loader_pimpl: public virtual database_loader_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      connection (const ::std::string&);
+
+      virtual void
+      mappings (const ::std::string&);
+
+      virtual void
+      post_database_loader ();
+    };
+
+    class xml_loader_pimpl: public virtual xml_loader_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      file (const ::std::string&);
+
+      virtual void
+      root_element (const ::std::string&);
+
+      virtual void
+      post_xml_loader ();
+    };
+
+    class road_network_pimpl: public virtual road_network_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      post_road_network ();
+    };
+
+    class trip_chains_pimpl: public virtual trip_chains_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      post_trip_chains ();
+    };
+
+    class signals_pimpl: public virtual signals_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      post_signals ();
+    };
+
+    class driver_explicit_pimpl: public virtual driver_explicit_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      property ();
+
+      virtual void
+      originPos (const ::std::string&);
+
+      virtual void
+      destPos (const ::std::string&);
+
+      virtual void
+      startTime (const ::std::string&);
+
+      virtual void
+      startFrame (int);
+
+      virtual void
+      post_driver_explicit ();
+    };
+
+    class drivers_pimpl: public virtual drivers_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      driver ();
+
+      virtual void
+      post_drivers ();
+    };
+
+    class pedestrian_explicit_pimpl: public virtual pedestrian_explicit_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      property ();
+
+      virtual void
+      originPos (const ::std::string&);
+
+      virtual void
+      destPos (const ::std::string&);
+
+      virtual void
+      startTime (const ::std::string&);
+
+      virtual void
+      startFrame (int);
+
+      virtual void
+      post_pedestrian_explicit ();
+    };
+
+    class pedestrians_pimpl: public virtual pedestrians_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      pedestrian ();
+
+      virtual void
+      post_pedestrians ();
+    };
+
+    class busdrivers_pimpl: public virtual busdrivers_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      database_loader ();
+
+      virtual void
+      xml_loader ();
+
+      virtual void
+      post_busdrivers ();
+    };
+
     class constructs_pimpl: public virtual constructs_pskel
     {
       public:
@@ -163,6 +421,59 @@ namespace sim_mob
       post_constructs ();
     };
 
+    class system_pimpl: public virtual system_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      default_models ();
+
+      virtual void
+      workgroup_mappings ();
+
+      virtual void
+      generic_props ();
+
+      virtual void
+      post_system ();
+    };
+
+    class simulation_pimpl: public virtual simulation_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      base_granularity ();
+
+      virtual void
+      total_runtime ();
+
+      virtual void
+      total_warmup ();
+
+      virtual void
+      start_time ();
+
+      virtual void
+      granularities ();
+
+      virtual void
+      react_times ();
+
+      virtual void
+      geospatial ();
+
+      virtual void
+      agents ();
+
+      virtual void
+      post_simulation ();
+    };
+
     class SimMobility_pimpl: public virtual SimMobility_pskel
     {
       public:
@@ -171,6 +482,15 @@ namespace sim_mob
 
       virtual void
       constructs ();
+
+      virtual void
+      single_threaded (bool);
+
+      virtual void
+      system ();
+
+      virtual void
+      simulation ();
 
       virtual void
       post_SimMobility ();
@@ -248,6 +568,134 @@ namespace sim_mob
 
       virtual void
       post_db_proc_groups ();
+    };
+
+    class default_models_pimpl: public virtual default_models_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      model ();
+
+      virtual void
+      post_default_models ();
+    };
+
+    class workgroup_mappings_pimpl: public virtual workgroup_mappings_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      agents ();
+
+      virtual void
+      signals ();
+
+      virtual void
+      post_workgroup_mappings ();
+    };
+
+    class generic_props_pimpl: public virtual generic_props_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      property ();
+
+      virtual void
+      post_generic_props ();
+    };
+
+    class start_time_pimpl: public virtual start_time_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      value (const ::std::string&);
+
+      virtual void
+      post_start_time ();
+    };
+
+    class granularities_pimpl: public virtual granularities_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      agent ();
+
+      virtual void
+      signal ();
+
+      virtual void
+      post_granularities ();
+    };
+
+    class react_times_pimpl: public virtual react_times_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      leading_vehicle ();
+
+      virtual void
+      subject_vehicle ();
+
+      virtual void
+      vehicle_gap ();
+
+      virtual void
+      post_react_times ();
+    };
+
+    class geospatial_pimpl: public virtual geospatial_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      road_network ();
+
+      virtual void
+      post_geospatial ();
+    };
+
+    class agents_pimpl: public virtual agents_pskel
+    {
+      public:
+      virtual void
+      pre ();
+
+      virtual void
+      trip_chains ();
+
+      virtual void
+      signals ();
+
+      virtual void
+      drivers ();
+
+      virtual void
+      pedestrians ();
+
+      virtual void
+      busdrivers ();
+
+      virtual void
+      post_agents ();
     };
   }
 }

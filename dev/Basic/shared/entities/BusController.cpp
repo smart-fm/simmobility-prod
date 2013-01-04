@@ -143,7 +143,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
-			Person* currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
+			Person* currAg = new Person("DB_TripChain", config.mutexStategy);
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
 
@@ -187,7 +187,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		DailyTime advance(curr->headway_sec*50);
 		for(DailyTime startTime = curr->start_time; startTime.isBefore(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
-			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, curr->route_id, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
+			BusTrip bustrip("", "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, curr->route_id, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
 			vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
 			vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
 			if(bustrip.setBusRouteInfo(segments, stops)) {

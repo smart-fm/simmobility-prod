@@ -108,6 +108,8 @@ private:
     friend class PartitionManager;
     friend class BoundaryProcessor;
 
+    std::string databaseID;
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);

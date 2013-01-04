@@ -48,7 +48,7 @@ public:
 	/// 3) Discard the AIMSUN classes; return the Sim Mobility classes.
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
-	static std::string LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
+	static std::string LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);

@@ -198,16 +198,15 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 {
 	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
-	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
 	//The current agent we are working on.
 	Person* currAg = nullptr;
 	std::string trip_mode;
 	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
+	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
 		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;

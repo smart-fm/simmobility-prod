@@ -42,7 +42,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
 	res->endTime = res->startTime; //No estimated end time.
-	res->tripID = 0;
+	res->tripID = "";
 	res->fromLocation = ag.originNode;
 	res->fromLocationType = TripChainItem::getLocationType("node");
 	res->toLocation = ag.destNode;
@@ -62,7 +62,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	subTrip.fromLocationType = res->fromLocationType;
 	subTrip.toLocation = res->toLocation;
 	subTrip.toLocationType = res->toLocationType;
-	subTrip.tripID = 0;
+	subTrip.tripID = "";
 	subTrip.mode = mode;
 	subTrip.isPrimaryMode = true;
 	subTrip.ptLineId = "";
@@ -77,14 +77,14 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), currTripChainItem(nullptr),
-	currSubTrip(nullptr), firstFrameTick(true)
+	currSubTrip(nullptr), firstFrameTick(true), databaseID("")
 
 {
 	//throw 1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs) :
-	Agent(mtxStrat, tcs.front()->personID), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr)
+	Agent(mtxStrat), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr), databaseID(tcs.front()->personID)
 {
 	std::string trip_mode;
 	TripChainItem* tc = tcs.front();

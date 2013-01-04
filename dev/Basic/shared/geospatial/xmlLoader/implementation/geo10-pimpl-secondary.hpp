@@ -481,7 +481,7 @@ public:
 	virtual void pre ();
 	virtual void post_TripChains_t ();
 
-	virtual void TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+	virtual void TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >);
 
 private:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > model;

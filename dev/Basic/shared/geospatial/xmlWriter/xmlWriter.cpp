@@ -938,14 +938,14 @@ void sim_mob::WriteXMLInput_TripChains(TiXmlElement * SimMobility)
 	std::ostringstream out;
 	ConfigParams& config = ConfigParams::GetInstance();
 
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
 	if(TripChainsObj.size() < 1) return;
 
 	TiXmlElement * TripChains;
 	TripChains = new TiXmlElement( "TripChains" );
 	SimMobility->LinkEndChild( TripChains );
 
-	for(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >::iterator it_map = TripChainsObj.begin(), it_end(TripChainsObj.end()); it_map != it_end ; it_map ++)
+	for(std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it_map = TripChainsObj.begin(), it_end(TripChainsObj.end()); it_map != it_end ; it_map ++)
 	{
 		//tripchain
 		TiXmlElement * TripChain;

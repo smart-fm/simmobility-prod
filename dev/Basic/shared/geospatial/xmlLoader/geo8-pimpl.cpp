@@ -1853,7 +1853,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void SubTrip_t_pimpl::
   pre ()
   {
-	  subTrip.tripID = 0;
+	  subTrip.tripID = "";
 	  subTrip.fromLocation = 0;
 	  subTrip.toLocation = 0;
 	  subTrip.mode = "";
@@ -2041,7 +2041,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   }
 
   void TripChains_t_pimpl::
-  TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain)
+  TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> > TripChain)
   {
 	  std::cout << "In TripChains_t_pimpl::TripChain ()...\n";
 	  sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first] = (TripChain.second);

@@ -104,7 +104,7 @@ public:
 
 	void DecorateAndTranslateObjects();
 	void PostProcessNetwork();
-	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
+	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
 	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
@@ -406,9 +406,11 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			//check nodes
 			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
+				std::cout << "it->tmp_fromLocationNodeID " << it->tmp_fromLocationNodeID << std::endl;
 				throw std::runtime_error("Invalid trip chain fromNode reference.");
 			}
 			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
+				std::cout << "it->tmp_toLocationNodeID " << it->tmp_toLocationNodeID << std::endl;
 				throw std::runtime_error("Invalid trip chain toNode reference.");
 			}
 
@@ -1044,7 +1046,7 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 }
 
 
-void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
@@ -1147,7 +1149,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			if (tripToSave) {
 				bool done = true;
 				vector<TripChainItem>::const_iterator next = it+1;
-				if (next!=tripchains_.end() && next->itemType==sim_mob::TripChainItem::IT_TRIP && next->tripID==tripToSave->tripID) {
+				if (next!=tripchains_.end()
+						&& next->itemType==sim_mob::TripChainItem::IT_TRIP
+						&& next->tripID.compare(tripToSave->tripID) == 0) {
 					done = false;
 				}
 
@@ -1889,7 +1893,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database...." << std::endl;
 

@@ -233,7 +233,7 @@ public:
 
 	///Retrieve a reference to the list of trip chains.
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
@@ -258,7 +258,7 @@ private:
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

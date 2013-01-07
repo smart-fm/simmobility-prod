@@ -117,6 +117,9 @@ public:
 	//Busline_Control_Type
 	std::string busline_control_type;
 
+	// temporary maps
+	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
+
 //TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
 //      be modified once set.
 //private:

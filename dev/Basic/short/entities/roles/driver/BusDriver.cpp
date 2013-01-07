@@ -309,18 +309,19 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					//BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
 					Person* person = dynamic_cast<Person*>(parent);
 					if(person) {
-						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(person->currTripChainItem);
+						BusTrip* bustrip = dynamic_cast<BusTrip*>(person->currTripChainItem);
 						if(bustrip && person->currTripChainItem->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
 								if(busline->getControl_TimePointNum0() == busstop_sequence_no.get() || busline->getControl_TimePointNum1() == busstop_sequence_no.get()) { // only use holding control at selected time points
 									double waitTime = 0;
-									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),getBusStop_RealTimes(),lastVisited_BusStop.get(),0);
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),getBusStop_RealTimes(),lastVisited_BusStop.get());
 									setWaitTime_BusStop(waitTime);
 								} else { // other bus stops store the real time values
 									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
 									BusController::TEMP_Get_Bc_1()->storeRealTimes_eachBusStop(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),lastVisited_BusStop.get(),getBusStop_RealTimes());
 								}
+								bustrip->lastVisitedStop_SequenceNumber = busstop_sequence_no.get();
 							} else {
 								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
 								setWaitTime_BusStop(DwellTime_ijk.get());

@@ -123,6 +123,7 @@ public:
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
+	int lastVisitedStop_SequenceNumber;
 
 private:
 	int busTripRun_sequenceNum;

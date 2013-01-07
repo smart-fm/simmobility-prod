@@ -1758,6 +1758,22 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     }
 
+	//load scheduledTImes if any
+	handle = TiXmlHandle(&document);
+	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
+	if(busScheduleTimes){
+		int stop = 0;
+		for (;busScheduleTimes; busScheduleTimes=busScheduleTimes->NextSiblingElement()) {
+			int AT = atoi(busScheduleTimes->Attribute("offsetAT"));
+			int DT = atoi(busScheduleTimes->Attribute("offsetDT"));
+			vector<int> times;
+			times.push_back(AT);
+			times.push_back(DT);
+			std::pair<int, vector<int> > nextLink(stop, times);
+			ConfigParams::GetInstance().scheduledTimes.insert(nextLink);
+			++stop;
+		}
+	}
 
     //Check the type of geometry
     handle = TiXmlHandle(&document);

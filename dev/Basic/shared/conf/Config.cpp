@@ -4,6 +4,9 @@
 
 #include "GenConfig.h"
 
+using std::string;
+using std::map;
+
 using namespace sim_mob;
 
 
@@ -18,6 +21,11 @@ const Config& sim_mob::Config::GetInstance()
 Config& sim_mob::Config::GetInstanceRW()
 {
 	return instance_;
+}
+
+void sim_mob::Config::InitBuiltInModels(const BuiltInModels& models)
+{
+	built_in_models = models;
 }
 
 

@@ -312,7 +312,7 @@ private:
 
 class models_pimpl: public virtual models_pskel {
 public:
-	models_pimpl(Config& config) : constructs(&config.constructs()) {}
+	models_pimpl(Config& config) : config(&config) {}
 
 	virtual void pre ();
 	virtual void post_models ();
@@ -323,7 +323,7 @@ public:
 	virtual void sidewalk_movement (const std::pair<std::string, std::string>&);
 
 private:
-	Constructs* constructs;
+	Config* config;
 };
 
 

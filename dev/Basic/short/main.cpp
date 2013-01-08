@@ -900,8 +900,18 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
+	//Prepare our built-in models
+	//NOTE: These can leak memory for now, but don't delete them because:
+	//      A) If a built-in Construct is used then it will need these models.
+	//      B) We'll likely replace these with Factory classes later (static, etc.), so
+	//         memory management will cease to be an issue.
+	Config::BuiltInModels builtIn;
+	builtIn.carFollowModels["mitsim"] = new MITSIM_CF_Model();
+	builtIn.laneChangeModels["mitsim"] = new MITSIM_LC_Model();
+	builtIn.intDrivingModels["linear"] = new SimpleLaneChangeModel();
+
 	//Load our user config file
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {
 		return false;
 	}
 

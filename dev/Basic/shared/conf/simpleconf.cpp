@@ -4,7 +4,6 @@
 
 //Make sure our "test" (new) Config variant compiles.
 #include "conf/xmlLoader/implementation/conf1-driver.hpp"
-#include "Config.hpp"
 
 #include <tinyxml.h>
 #include <boost/tuple/tuple.hpp>
@@ -1991,10 +1990,11 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
 {
 	//Load a (test) configuration in parallel
 	Config cfg;
+	cfg.InitBuiltInModels(builtInModels);
 	std::cout <<"Testing new XML config loader..." <<std::endl;
 	if (sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
 		std::cout<<"New config XML loader succeeded.\n";

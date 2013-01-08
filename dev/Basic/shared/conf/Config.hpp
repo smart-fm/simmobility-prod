@@ -15,6 +15,8 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
+#include <map>
+#include <string>
 
 //NOTE: Try to include only a minimum subset of files here, since Config.hpp is linked to from many places.
 #include "Constructs.hpp"
@@ -56,6 +58,15 @@ public:
  */
 class Config : public CMakeConfig {
 public:
+	///Helper struct: Which built-in models are available in each category
+	struct BuiltInModels {
+		std::map<std::string, sim_mob::CarFollowModel*> carFollowModels;
+		std::map<std::string, sim_mob::LaneChangeModel*> laneChangeModels;
+		std::map<std::string, sim_mob::IntersectionDrivingModel*> intDrivingModels;
+	};
+
+	///Informs the Config object which models are available of the "built-in" type.
+	void InitBuiltInModels(const BuiltInModels& models);
 
 
 	//@{
@@ -73,9 +84,15 @@ public:
 	///@
 
 private:
+	//Constructor
+	Config() : single_threaded(false) {}
+
+	//Data
 	sim_mob::Constructs constructs_;
 	bool single_threaded;
 
+	//Default built-in models
+	BuiltInModels built_in_models;
 
 public:
 	///Retrieve an instance of the singleton Config object.

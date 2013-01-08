@@ -10,7 +10,12 @@ using namespace sim_mob;
 Config sim_mob::Config::instance_;
 
 
-Config& sim_mob::Config::GetInstance()
+const Config& sim_mob::Config::GetInstance()
+{
+	return instance_;
+}
+
+Config& sim_mob::Config::GetInstanceRW()
 {
 	return instance_;
 }

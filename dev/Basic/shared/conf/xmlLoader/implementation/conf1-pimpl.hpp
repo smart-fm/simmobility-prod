@@ -12,6 +12,9 @@
 #include <string>
 
 namespace sim_mob {
+
+class Config;
+
 namespace conf {
 
 class model_pimpl: public virtual model_pskel {
@@ -246,14 +249,19 @@ public:
 
 class constructs_pimpl: public virtual constructs_pskel {
 public:
+	constructs_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_constructs ();
 
-	virtual void models ();
+	/*virtual void models ();
 	virtual void workgroups ();
 	virtual void distributions ();
 	virtual void db_connections ();
-	virtual void db_proc_groups ();
+	virtual void db_proc_groups ();*/
+
+private:
+	Config* config;
 };
 
 
@@ -286,18 +294,26 @@ public:
 
 class SimMobility_pimpl: public virtual SimMobility_pskel {
 public:
+	SimMobility_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_SimMobility ();
 
-	virtual void constructs ();
 	virtual void single_threaded (bool);
+
+	/*virtual void constructs ();
 	virtual void system ();
-	virtual void simulation ();
+	virtual void simulation ();*/
+
+private:
+	Config* config;
 };
 
 
 class models_pimpl: public virtual models_pskel {
 public:
+	models_pimpl(Config& config) : constructs(&config.constructs()) {}
+
 	virtual void pre ();
 	virtual void post_models ();
 
@@ -305,6 +321,9 @@ public:
 	virtual void car_following (const std::pair<std::string, std::string>&);
 	virtual void intersection_driving (const std::pair<std::string, std::string>&);
 	virtual void sidewalk_movement (const std::pair<std::string, std::string>&);
+
+private:
+	Constructs* constructs;
 };
 
 

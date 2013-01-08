@@ -58,13 +58,32 @@ class Config : public CMakeConfig {
 public:
 
 
+	//@{
+	///Accessor for the singleThreaded property.
+	///If true, attempt to run all Workers on the same thread.
+	bool& singleThreaded() { return single_threaded; }
+	const bool& singleThreaded() const { return single_threaded; }
+	///@}
+
+	//@{
+	///Accessor for the constructs array.
+	///A construct is anything that can be created (dynamically) from the XML config file.
+	sim_mob::Constructs& constructs() { return constructs_; }
+	const sim_mob::Constructs& constructs() const { return constructs_; }
+	///@
+
 private:
-	sim_mob::Constructs constructs;
+	sim_mob::Constructs constructs_;
+	bool single_threaded;
 
 
 public:
 	///Retrieve an instance of the singleton Config object.
-	static Config& GetInstance();
+	static const Config& GetInstance();
+
+	///Retrieve a mutable instance of the singleton Config object.
+	///Don't use this function unless you know that it's ok to modify the Config object.
+	static Config& GetInstanceRW();
 
 private:
 	static Config instance_;

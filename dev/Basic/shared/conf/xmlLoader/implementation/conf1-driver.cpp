@@ -14,11 +14,13 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 {
 	  try
 	  {
-	    // Instantiate individual parsers.
-	    //
-	    ::sim_mob::conf::SimMobility_pimpl SimMobility_p;
-	    ::sim_mob::conf::constructs_pimpl constructs_p;
-	    ::sim_mob::conf::models_pimpl models_p;
+	    //We try to build the config file from the top down; thus, many of our parsers
+		// hold a reference to the resulting Config object.
+	    ::sim_mob::conf::SimMobility_pimpl SimMobility_p(resultConfig);
+	    ::sim_mob::conf::constructs_pimpl constructs_p(resultConfig);
+	    ::sim_mob::conf::models_pimpl models_p(resultConfig);
+
+	    //Trivially-constructed parsers.
 	    ::sim_mob::conf::model_pimpl model_p;
 	    ::xml_schema::string_pimpl string_p;
 	    ::sim_mob::conf::workgroups_pimpl workgroups_p;

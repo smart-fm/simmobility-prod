@@ -3,6 +3,7 @@
 using namespace sim_mob::conf;
 
 #include <stdexcept>
+#include <iostream>
 
 using std::string;
 using std::pair;

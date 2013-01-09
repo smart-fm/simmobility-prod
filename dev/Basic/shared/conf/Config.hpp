@@ -58,6 +58,13 @@ public:
  */
 class Config : public CMakeConfig {
 public:
+	///Construct a new Config file.
+	///
+	///\note
+	///Config is typically used as a Singleton class, so you should rarely have to
+	///call its constructor.
+	Config() : single_threaded(false) {}
+
 	///Helper struct: Which built-in models are available in each category
 	struct BuiltInModels {
 		std::map<std::string, sim_mob::CarFollowModel*> carFollowModels;
@@ -83,10 +90,15 @@ public:
 	const sim_mob::Constructs& constructs() const { return constructs_; }
 	///@
 
-private:
-	//Constructor
-	Config() : single_threaded(false) {}
+	//@{
+	///Accessor for the build in models struct..
+	///These models represent features of Sim Mobility which are tightly bound to the
+	///infrastructure and cannot exist (for now) as plugins.
+	sim_mob::Config::BuiltInModels& builtInModels() { return built_in_models; }
+	const sim_mob::Config::BuiltInModels& builtInModels() const { return built_in_models; }
+	///@
 
+private:
 	//Data
 	sim_mob::Constructs constructs_;
 	bool single_threaded;

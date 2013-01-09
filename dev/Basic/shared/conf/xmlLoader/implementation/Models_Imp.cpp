@@ -30,8 +30,8 @@ void sim_mob::conf::models_pimpl::lane_changing (const pair<string, string>& val
 		throw std::runtime_error("Only built-in models supported.");
 	}
 
-	map<string, sim_mob::LaneChangeModel*>::iterator it = config->built_in_models.laneChangeModels.find(value.first);
-	if (it!=config->built_in_models.laneChangeModels.end()) {
+	map<string, sim_mob::LaneChangeModel*>::iterator it = config->builtInModels().laneChangeModels.find(value.first);
+	if (it!=config->builtInModels().laneChangeModels.end()) {
 		//TODO: For now we copy the pointer; we'll need to either use "clone()" or use a Factory class later.
 		config->constructs().laneChangeModels[value.first] = it->second;
 	} else {
@@ -47,8 +47,8 @@ void sim_mob::conf::models_pimpl::car_following (const pair<string, string>& val
 		throw std::runtime_error("Only built-in models supported.");
 	}
 
-	map<string, sim_mob::CarFollowModel*>::iterator it = config->built_in_models.carFollowModels.find(value.first);
-	if (it!=config->built_in_models.carFollowModels.end()) {
+	map<string, sim_mob::CarFollowModel*>::iterator it = config->builtInModels().carFollowModels.find(value.first);
+	if (it!=config->builtInModels().carFollowModels.end()) {
 		//TODO: For now we copy the pointer; we'll need to either use "clone()" or use a Factory class later.
 		config->constructs().carFollowModels[value.first] = it->second;
 	} else {
@@ -64,8 +64,8 @@ void sim_mob::conf::models_pimpl::intersection_driving (const pair<string, strin
 		throw std::runtime_error("Only built-in models supported.");
 	}
 
-	map<string, sim_mob::IntersectionDrivingModel*>::iterator it = config->built_in_models.intDrivingModels.find(value.first);
-	if (it!=config->built_in_models.intDrivingModels.end()) {
+	map<string, sim_mob::IntersectionDrivingModel*>::iterator it = config->builtInModels().intDrivingModels.find(value.first);
+	if (it!=config->builtInModels().intDrivingModels.end()) {
 		//TODO: For now we copy the pointer; we'll need to either use "clone()" or use a Factory class later.
 		config->constructs().intDriveModels[value.first] = it->second;
 	} else {

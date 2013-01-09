@@ -103,8 +103,11 @@ bool performMainMed(const std::string& configFileName) {
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 
+	//No built-in models available to the medium term (yet).
+	Config::BuiltInModels builtIn;
+
 	//Load our user config file
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {
 		return false;
 	}
 

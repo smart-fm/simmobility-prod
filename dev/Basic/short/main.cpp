@@ -908,7 +908,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	Config::BuiltInModels builtIn;
 	builtIn.carFollowModels["mitsim"] = new MITSIM_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new MITSIM_LC_Model();
-	builtIn.intDrivingModels["linear"] = new SimpleLaneChangeModel();
+	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {

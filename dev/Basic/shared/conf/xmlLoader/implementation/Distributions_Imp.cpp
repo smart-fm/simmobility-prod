@@ -16,8 +16,9 @@ void sim_mob::conf::distributions_pimpl::post_distributions ()
 {
 }
 
-void sim_mob::conf::distributions_pimpl::dist ()
+void sim_mob::conf::distributions_pimpl::dist (const std::pair<std::string, sim_mob::ReactionTimeDist*>& value)
 {
+	config->constructs().distributions[value.first] = value.second;
 }
 
 

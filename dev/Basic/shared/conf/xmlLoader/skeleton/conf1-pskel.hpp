@@ -427,8 +427,8 @@ namespace sim_mob
       virtual void
       stdev (int);
 
-      virtual void
-      post_distribution ();
+      virtual std::pair<std::string, sim_mob::ReactionTimeDist*>
+      post_distribution () = 0;
 
       // Parser construction API.
       //
@@ -1880,7 +1880,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      dist ();
+      dist (const std::pair<std::string, sim_mob::ReactionTimeDist*>&);
 
       virtual void
       post_distributions ();

@@ -2,8 +2,8 @@ namespace http://www.smart.mit.edu/conf  {
 	include "conf/Config.hpp";
 
 
-model          "std::pair<std::string, std::string>";
-workgroup      "std::pair<std::string, sim_mob::WorkGroupFactory>";
-
+model            "std::pair<std::string, std::string>";
+workgroup        "std::pair<std::string, sim_mob::WorkGroupFactory>";
+distribution     "std::pair<std::string, sim_mob::ReactionTimeDist*>";
 
 }

@@ -1527,11 +1527,6 @@ namespace sim_mob
     {
     }
 
-    void distribution_pskel::
-    post_distribution ()
-    {
-    }
-
     bool distribution_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -3946,7 +3941,7 @@ namespace sim_mob
     //
 
     void distributions_pskel::
-    dist ()
+    dist (const std::pair<std::string, sim_mob::ReactionTimeDist*>&)
     {
     }
 
@@ -3988,10 +3983,7 @@ namespace sim_mob
       if (n == "dist" && ns.empty ())
       {
         if (this->dist_parser_)
-        {
-          this->dist_parser_->post_distribution ();
-          this->dist ();
-        }
+          this->dist (this->dist_parser_->post_distribution ());
 
         return true;
       }

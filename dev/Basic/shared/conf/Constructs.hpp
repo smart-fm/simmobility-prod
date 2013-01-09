@@ -15,6 +15,7 @@ class CarFollowModel;
 class LaneChangeModel;
 class IntersectionDrivingModel;
 class WorkGroup;
+class ReactionTimeDist;
 
 
 /**
@@ -97,6 +98,7 @@ struct Constructs {
 	std::map<std::string, WorkGroupFactory> workGroups;
 
 	//Distributions
+	std::map<std::string, sim_mob::ReactionTimeDist*> distributions;
 
 	//Database Connections
 	std::map<std::string, DatabaseConnection*> dbConnections;

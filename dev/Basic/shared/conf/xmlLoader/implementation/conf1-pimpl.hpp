@@ -46,12 +46,18 @@ private:
 class distribution_pimpl: public virtual distribution_pskel {
 public:
 	virtual void pre ();
-	virtual void post_distribution ();
+	virtual std::pair<std::string, sim_mob::ReactionTimeDist*> post_distribution ();
 
 	virtual void id (const ::std::string&);
 	virtual void type (const ::std::string&);
 	virtual void mean (int);
 	virtual void stdev (int);
+
+private:
+	std::string distID;
+	std::string distType;
+	int distMean;
+	int distStdev;
 };
 
 class db_connection_pimpl: public virtual db_connection_pskel {
@@ -347,10 +353,15 @@ private:
 
 class distributions_pimpl: public virtual distributions_pskel {
 public:
+	distributions_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_distributions ();
 
-	virtual void dist ();
+	virtual void dist (const std::pair<std::string, sim_mob::ReactionTimeDist*>&);
+
+private:
+	Config* config;
 };
 
 

@@ -101,6 +101,9 @@ public:
 	Shared<double> fwdAccel;
 	Shared<LANE_CHANGE_SIDE> turningDirection;
 
+public:
+	double startTime;
+	bool isAleadyStarted;
 //Basic data
 protected:
 	//unsigned int currTimeMS;
@@ -125,8 +128,7 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
-	double startTime;
-	bool isAleadyStarted;
+
 
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;

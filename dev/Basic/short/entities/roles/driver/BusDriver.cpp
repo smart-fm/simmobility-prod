@@ -12,6 +12,7 @@
 #include "geospatial/BusStop.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/DebugFlags.hpp"
@@ -23,7 +24,20 @@ using std::string;
 
 namespace {
 const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+//TODO:I think lane index should be a data member in the lane class
+size_t getLaneIndex(const Lane* l) {
+	if (l) {
+		const RoadSegment* r = l->getRoadSegment();
+		for (size_t i = 0; i < r->getLanes().size(); i++) {
+			if (r->getLanes().at(i) == l) {
+				return i;
+			}
+		}
+	}
+	return -1; //NOTE: This might not do what you expect! ~Seth
+}
 } //End anonymous namespace
+
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) : Driver(parent, mtxStrat),
 	nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1), lastVisited_BusStop(mtxStrat,nullptr),
@@ -135,6 +149,12 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 }
 double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
+	if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
+	{
+		isAleadyStarted = true;
+	}
+	p.isAlreadyStart = isAleadyStarted;
+
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
 				   - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
@@ -150,11 +170,64 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
-	//when vehicle stops, don't do lane changing
-	if (vehicle->getVelocity() <= 0) {
-		vehicle->setLatVelocity(0);
+	// check current lane has connector to next link
+	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	{
+////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
+		const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
+		if(currEndNode)
+		{
+			// get lane connector
+			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
+
+			if (lcs.size()>0)
+			{
+				//
+				if(p.currLane->is_pedestrian_lane())
+					std::cout<<"drive on pedestrian lane"<<std::endl;
+				bool currentLaneConnectToNextLink = false;
+				size_t targetLaneIndex=p.currLaneIndex;
+				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
+						// current lane connect to next link
+						currentLaneConnectToNextLink = true;
+						p.nextLaneIndex = p.currLaneIndex;
+						break;
+					}
+					//find target lane with same index, use this lane
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
+					}
+				}
+				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
+				{
+					//check target lane first
+//					if(targetLaneIndex == -1) // no target lane?
+//					{
+//						p.nextLaneIndex = p.currLaneIndex;
+////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+//					}
+//					else
+
+					p.nextLaneIndex = targetLaneIndex;
+					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
+					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+					if (mitsim_lc_model) {
+						LANE_CHANGE_SIDE lcs = LCS_SAME;
+//						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						vehicle->setTurningDirection(lcs);
+					} else {
+						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+					}
+				}
+			} // end of if (!lcs)
+		}
 	}
-	p.turningDirection = vehicle->getTurningDirection();
+
+
 
 	//hard code , need solution
 
@@ -207,6 +280,14 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel * 10);
+	if(vehicle->getLatVelocity()>0)
+		vehicle->setTurningDirection(LCS_LEFT);
+	else if(vehicle->getLatVelocity()<0)
+		vehicle->setTurningDirection(LCS_RIGHT);
+	else
+		vehicle->setTurningDirection(LCS_SAME);
+
+	p.turningDirection = vehicle->getTurningDirection();
 
 	if (isBusApproachingBusStop()) {
 		double acc = busAccelerating(p)*100;
@@ -452,4 +533,5 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 		LogOut(logout.str());
 	}
 }
+
 

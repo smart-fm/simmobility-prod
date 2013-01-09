@@ -63,20 +63,28 @@ private:
 class db_connection_pimpl: public virtual db_connection_pskel {
 public:
 	virtual void pre ();
-	virtual void post_db_connection ();
+	virtual std::pair<std::string, sim_mob::DatabaseConnection> post_db_connection ();
 
-	virtual void param ();
+	virtual void param (const std::pair<std::string, std::string>&);
 	virtual void id (const ::std::string&);
 	virtual void dbtype (const ::std::string&);
+
+private:
+	std::string dbcID;
+	std::string dbcType;
+	std::map<std::string, std::string> dbcParams;
 };
 
 class db_param_pimpl: public virtual db_param_pskel {
 public:
 	virtual void pre ();
-	virtual void post_db_param ();
+	virtual std::pair<std::string, std::string> post_db_param ();
 
 	virtual void name (const ::std::string&);
     virtual void value (const ::std::string&);
+
+private:
+    std::pair<std::string, std::string> model;
 };
 
 
@@ -367,10 +375,15 @@ private:
 
 class db_connections_pimpl: public virtual db_connections_pskel {
 public:
+	db_connections_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_db_connections ();
 
-	virtual void connection ();
+	virtual void connection (const std::pair<std::string, sim_mob::DatabaseConnection>&);
+
+private:
+	Config* config;
 };
 
 

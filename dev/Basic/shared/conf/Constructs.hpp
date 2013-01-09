@@ -52,7 +52,7 @@ private:
 };
 class DatabaseConnection : public Identifiable {
 public:
-	DatabaseConnection(const std::string& id) : Identifiable(id) {}
+	DatabaseConnection(const std::string& id="") : Identifiable(id) {}
 
 	std::string host;
 	std::string port;
@@ -101,7 +101,7 @@ struct Constructs {
 	std::map<std::string, sim_mob::ReactionTimeDist*> distributions;
 
 	//Database Connections
-	std::map<std::string, DatabaseConnection*> dbConnections;
+	std::map<std::string, DatabaseConnection> dbConnections;
 	std::map<std::string, StoredProcedureMap*> storedProcedureMaps;
 };
 

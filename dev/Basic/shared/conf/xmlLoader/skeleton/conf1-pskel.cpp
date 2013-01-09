@@ -1598,7 +1598,7 @@ namespace sim_mob
     //
 
     void db_connection_pskel::
-    param ()
+    param (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -1609,11 +1609,6 @@ namespace sim_mob
 
     void db_connection_pskel::
     dbtype (const ::std::string&)
-    {
-    }
-
-    void db_connection_pskel::
-    post_db_connection ()
     {
     }
 
@@ -1650,10 +1645,7 @@ namespace sim_mob
       if (n == "param" && ns.empty ())
       {
         if (this->param_parser_)
-        {
-          this->param_parser_->post_db_param ();
-          this->param ();
-        }
+          this->param (this->param_parser_->post_db_param ());
 
         return true;
       }
@@ -1710,11 +1702,6 @@ namespace sim_mob
 
     void db_param_pskel::
     value (const ::std::string&)
-    {
-    }
-
-    void db_param_pskel::
-    post_db_param ()
     {
     }
 
@@ -3995,7 +3982,7 @@ namespace sim_mob
     //
 
     void db_connections_pskel::
-    connection ()
+    connection (const std::pair<std::string, sim_mob::DatabaseConnection>&)
     {
     }
 
@@ -4037,10 +4024,7 @@ namespace sim_mob
       if (n == "connection" && ns.empty ())
       {
         if (this->connection_parser_)
-        {
-          this->connection_parser_->post_db_connection ();
-          this->connection ();
-        }
+          this->connection (this->connection_parser_->post_db_connection ());
 
         return true;
       }

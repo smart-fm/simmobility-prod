@@ -5,5 +5,8 @@ namespace http://www.smart.mit.edu/conf  {
 model            "std::pair<std::string, std::string>";
 workgroup        "std::pair<std::string, sim_mob::WorkGroupFactory>";
 distribution     "std::pair<std::string, sim_mob::ReactionTimeDist*>";
+db_connection    "std::pair<std::string, sim_mob::DatabaseConnection>";
+db_param         "std::pair<std::string, std::string>";
+
 
 }

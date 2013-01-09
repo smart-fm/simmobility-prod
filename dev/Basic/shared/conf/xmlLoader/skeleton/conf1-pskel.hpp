@@ -478,7 +478,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      param ();
+      param (const std::pair<std::string, std::string>&);
 
       virtual void
       id (const ::std::string&);
@@ -486,8 +486,8 @@ namespace sim_mob
       virtual void
       dbtype (const ::std::string&);
 
-      virtual void
-      post_db_connection ();
+      virtual std::pair<std::string, sim_mob::DatabaseConnection>
+      post_db_connection () = 0;
 
       // Parser construction API.
       //
@@ -546,8 +546,8 @@ namespace sim_mob
       virtual void
       value (const ::std::string&);
 
-      virtual void
-      post_db_param ();
+      virtual std::pair<std::string, std::string>
+      post_db_param () = 0;
 
       // Parser construction API.
       //
@@ -1922,7 +1922,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      connection ();
+      connection (const std::pair<std::string, sim_mob::DatabaseConnection>&);
 
       virtual void
       post_db_connections ();

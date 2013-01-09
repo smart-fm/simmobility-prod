@@ -15,6 +15,9 @@
 #include "entities/AuraManager.hpp"
 #include "entities/Signal.hpp"
 #include "entities/Agent.hpp"
+#include "entities/models/CarFollowModel.hpp"
+#include "entities/models/LaneChangeModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -55,6 +58,39 @@ namespace {
 int diff_ms(timeval t1, timeval t2) {
     return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
 }
+
+/**
+ * For now, the medium-term expects the following models to be available. We have to fake these,
+ * otherwise the config file will fail to parse. Later, we will have separate config file
+ * "model" sections for the short/medium term (most likely via a plugin architecture).
+ */
+class Fake_CF_Model : public CarFollowModel {
+public:
+	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) {
+		throw std::runtime_error("Fake CF_model used for medium term.");
+	}
+};
+class Fake_LC_Model : public LaneChangeModel {
+public:
+	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) {
+		throw std::runtime_error("Fake LC_model used for medium term.");
+	}
+};
+class Fake_IntDriving_Model : public IntersectionDrivingModel {
+public:
+	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) { throwIt(); }
+	virtual DPoint continueDriving(double amount) { throwIt(); return DPoint(); }
+	virtual bool isDone() { throwIt(); return false; }
+	virtual double getCurrentAngle() { throwIt(); return 0; }
+private:
+	void throwIt() { throw std::runtime_error("Fake LC_model used for medium term."); }
+};
+void fakeModels(Config::BuiltInModels& builtIn) {
+	builtIn.carFollowModels["mitsim"] = new Fake_CF_Model();
+	builtIn.laneChangeModels["mitsim"] = new Fake_LC_Model();
+	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
+}
+
 } //End anon namespace
 
 //Current software version.
@@ -105,6 +141,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//No built-in models available to the medium term (yet).
 	Config::BuiltInModels builtIn;
+	fakeModels(builtIn);
 
 	//Load our user config file
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {

@@ -1995,11 +1995,10 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//Load a (test) configuration in parallel
 	Config cfg;
 	cfg.InitBuiltInModels(builtInModels);
-	std::cout <<"Testing new XML config loader..." <<std::endl;
 	if (sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
 		std::cout<<"New config XML loader succeeded.\n";
 	} else {
-		std::cout<<"New config XML loader FAILED.\n  (You can ignore any errors on failure; this is still experimental.)\n";
+		throw std::runtime_error("New config XML loader failed.");
 	}
 
 	//Load our config file into an XML document object.

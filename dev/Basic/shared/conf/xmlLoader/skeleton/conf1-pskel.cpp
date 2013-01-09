@@ -1465,11 +1465,6 @@ namespace sim_mob
     {
     }
 
-    void workgroup_pskel::
-    post_workgroup ()
-    {
-    }
-
     bool workgroup_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -3897,7 +3892,7 @@ namespace sim_mob
     //
 
     void workgroups_pskel::
-    workgroup ()
+    workgroup (const std::pair<std::string, sim_mob::WorkGroupFactory>&)
     {
     }
 
@@ -3939,10 +3934,7 @@ namespace sim_mob
       if (n == "workgroup" && ns.empty ())
       {
         if (this->workgroup_parser_)
-        {
-          this->workgroup_parser_->post_workgroup ();
-          this->workgroup ();
-        }
+          this->workgroup (this->workgroup_parser_->post_workgroup ());
 
         return true;
       }

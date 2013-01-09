@@ -33,10 +33,14 @@ private:
 class workgroup_pimpl: public virtual workgroup_pskel {
 public:
 	virtual void pre ();
-	virtual void post_workgroup ();
+	virtual std::pair<std::string, sim_mob::WorkGroupFactory> post_workgroup ();
 
 	virtual void id (const ::std::string&);
 	virtual void workers (int);
+
+private:
+	std::string wgID;
+	int numWorkers;
 };
 
 class distribution_pimpl: public virtual distribution_pskel {
@@ -329,10 +333,15 @@ private:
 
 class workgroups_pimpl: public virtual workgroups_pskel {
 public:
+	workgroups_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_workgroups ();
 
-	virtual void workgroup ();
+	virtual void workgroup (const std::pair<std::string, sim_mob::WorkGroupFactory>&);
+
+private:
+	Config* config;
 };
 
 

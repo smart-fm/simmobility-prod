@@ -4,6 +4,9 @@
 
 #include <map>
 #include <string>
+#include <stdexcept>
+
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob {
 
@@ -11,6 +14,7 @@ namespace sim_mob {
 class CarFollowModel;
 class LaneChangeModel;
 class IntersectionDrivingModel;
+class WorkGroup;
 
 
 /**
@@ -64,6 +68,22 @@ class StoredProcedureMap : public Identifiable {
 
 
 /**
+ * WorkGroups require lazy initialization for multiple reasons.
+ */
+class WorkGroupFactory {
+public:
+	WorkGroupFactory(int numWorkers=0, bool agentWG=false, bool signalWG=false) : item(nullptr), numWorkers(numWorkers), agentWG(agentWG), signalWG(signalWG) {}
+
+	sim_mob::WorkGroup* getItem();
+private:
+	sim_mob::WorkGroup* item;
+	int numWorkers;
+	bool agentWG;
+	bool signalWG;
+};
+
+
+/**
  * Collection of various items "construct"ed from the config file.
  */
 struct Constructs {
@@ -74,6 +94,7 @@ struct Constructs {
 	//std::map<std::string, SidewalkMovementModel*> sidewalkMoveModels; //Later.
 
 	//WorkGroups
+	std::map<std::string, WorkGroupFactory> workGroups;
 
 	//Distributions
 

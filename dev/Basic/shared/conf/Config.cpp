@@ -4,6 +4,10 @@
 
 #include "GenConfig.h"
 
+#include "workers/WorkGroup.hpp"
+#include "partitions/PartitionManager.hpp"
+#include "entities/AuraManager.hpp"
+
 using std::string;
 using std::map;
 
@@ -11,6 +15,27 @@ using namespace sim_mob;
 
 
 Config sim_mob::Config::instance_;
+
+sim_mob::WorkGroup* WorkGroupFactory::getItem()
+{
+	if (!item) {
+		//Sanity check.
+		if (agentWG==signalWG) { throw std::runtime_error("agentWG and signalWG should be mutually exclusive."); }
+
+		//Create it. For now, this is bound to the old "ConfigParams" structure; we can change this later once both files build in parallel.
+		const ConfigParams& cf = ConfigParams::GetInstance();
+		PartitionManager* partMgr = nullptr;
+		if (!cf.MPI_Disabled() && cf.is_run_on_many_computers) {
+			partMgr = &PartitionManager::instance();
+		}
+		if (agentWG) {
+			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granAgentsTicks, &AuraManager::instance(), partMgr);
+		} else {
+			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granSignalsTicks);
+		}
+	}
+	return item;
+}
 
 
 const Config& sim_mob::Config::GetInstance()

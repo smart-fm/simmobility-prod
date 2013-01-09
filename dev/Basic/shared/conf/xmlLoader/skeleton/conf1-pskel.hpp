@@ -375,8 +375,8 @@ namespace sim_mob
       virtual void
       workers (int);
 
-      virtual void
-      post_workgroup ();
+      virtual std::pair<std::string, sim_mob::WorkGroupFactory>
+      post_workgroup () = 0;
 
       // Parser construction API.
       //
@@ -1838,7 +1838,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      workgroup ();
+      workgroup (const std::pair<std::string, sim_mob::WorkGroupFactory>&);
 
       virtual void
       post_workgroups ();

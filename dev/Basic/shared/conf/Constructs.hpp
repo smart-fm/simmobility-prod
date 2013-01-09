@@ -61,7 +61,8 @@ public:
 	Password password;
 };
 class StoredProcedureMap : public Identifiable {
-	StoredProcedureMap(const std::string& id) : Identifiable(id) {}
+public:
+	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}
 
 	std::string dbFormat; //Usually "aimsun"
 	std::map<std::string, std::string> procedureMappings; //key=>value
@@ -102,7 +103,7 @@ struct Constructs {
 
 	//Database Connections
 	std::map<std::string, DatabaseConnection> dbConnections;
-	std::map<std::string, StoredProcedureMap*> storedProcedureMaps;
+	std::map<std::string, StoredProcedureMap> storedProcedureMaps;
 };
 
 }

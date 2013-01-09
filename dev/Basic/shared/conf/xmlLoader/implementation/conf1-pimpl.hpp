@@ -91,21 +91,29 @@ private:
 class db_proc_mapping_pimpl: public virtual db_proc_mapping_pskel {
 public:
 	virtual void pre ();
-	virtual void post_db_proc_mapping ();
+	virtual std::pair<std::string, std::string> post_db_proc_mapping ();
 
 	virtual void name (const ::std::string&);
 	virtual void procedure (const ::std::string&);
+
+private:
+	std::pair<std::string, std::string> model;
 };
 
 
 class proc_map_pimpl: public virtual proc_map_pskel {
 public:
 	virtual void pre ();
-	virtual void post_proc_map ();
+	virtual std::pair<std::string, sim_mob::StoredProcedureMap> post_proc_map ();
 
-	virtual void mapping ();
+	virtual void mapping (const std::pair<std::string, std::string>&);
 	virtual void id (const ::std::string&);
 	virtual void format (const ::std::string&);
+
+private:
+	std::string pmID;
+	std::string pmFormat;
+	std::map<std::string, std::string> pmParams;
 };
 
 
@@ -389,10 +397,15 @@ private:
 
 class db_proc_groups_pimpl: public virtual db_proc_groups_pskel {
 public:
+	db_proc_groups_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_db_proc_groups ();
 
-	virtual void proc_map ();
+	virtual void proc_map (const std::pair<std::string, sim_mob::StoredProcedureMap>&);
+
+private:
+	Config* config;
 };
 
 

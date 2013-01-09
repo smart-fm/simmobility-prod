@@ -6,22 +6,25 @@ using namespace sim_mob::conf;
 #include <iostream>
 
 using std::string;
+using std::pair;
 
 void sim_mob::conf::db_proc_mapping_pimpl::pre ()
 {
+	model = std::make_pair("", "");
 }
 
-void sim_mob::conf::db_proc_mapping_pimpl::post_db_proc_mapping ()
+pair<string, string> sim_mob::conf::db_proc_mapping_pimpl::post_db_proc_mapping ()
 {
+	return model;
 }
 
-void sim_mob::conf::db_proc_mapping_pimpl::name (const ::std::string& name)
+void sim_mob::conf::db_proc_mapping_pimpl::name (const ::std::string& value)
 {
-  std::cout << "name: " << name << std::endl;
+	model.first = value;
 }
 
-void sim_mob::conf::db_proc_mapping_pimpl::procedure (const ::std::string& procedure)
+void sim_mob::conf::db_proc_mapping_pimpl::procedure (const ::std::string& value)
 {
-  std::cout << "procedure: " << procedure << std::endl;
+	model.second = value;
 }
 

@@ -592,8 +592,8 @@ namespace sim_mob
       virtual void
       procedure (const ::std::string&);
 
-      virtual void
-      post_db_proc_mapping ();
+      virtual std::pair<std::string, std::string>
+      post_db_proc_mapping () = 0;
 
       // Parser construction API.
       //
@@ -633,7 +633,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      mapping ();
+      mapping (const std::pair<std::string, std::string>&);
 
       virtual void
       id (const ::std::string&);
@@ -641,8 +641,8 @@ namespace sim_mob
       virtual void
       format (const ::std::string&);
 
-      virtual void
-      post_proc_map ();
+      virtual std::pair<std::string, sim_mob::StoredProcedureMap>
+      post_proc_map () = 0;
 
       // Parser construction API.
       //
@@ -1964,7 +1964,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      proc_map ();
+      proc_map (const std::pair<std::string, sim_mob::StoredProcedureMap>&);
 
       virtual void
       post_db_proc_groups ();

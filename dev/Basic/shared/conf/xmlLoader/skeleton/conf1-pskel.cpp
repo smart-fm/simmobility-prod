@@ -1757,11 +1757,6 @@ namespace sim_mob
     {
     }
 
-    void db_proc_mapping_pskel::
-    post_db_proc_mapping ()
-    {
-    }
-
     bool db_proc_mapping_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -1805,7 +1800,7 @@ namespace sim_mob
     //
 
     void proc_map_pskel::
-    mapping ()
+    mapping (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -1816,11 +1811,6 @@ namespace sim_mob
 
     void proc_map_pskel::
     format (const ::std::string&)
-    {
-    }
-
-    void proc_map_pskel::
-    post_proc_map ()
     {
     }
 
@@ -1857,10 +1847,7 @@ namespace sim_mob
       if (n == "mapping" && ns.empty ())
       {
         if (this->mapping_parser_)
-        {
-          this->mapping_parser_->post_db_proc_mapping ();
-          this->mapping ();
-        }
+          this->mapping (this->mapping_parser_->post_db_proc_mapping ());
 
         return true;
       }
@@ -4036,7 +4023,7 @@ namespace sim_mob
     //
 
     void db_proc_groups_pskel::
-    proc_map ()
+    proc_map (const std::pair<std::string, sim_mob::StoredProcedureMap>&)
     {
     }
 
@@ -4078,10 +4065,7 @@ namespace sim_mob
       if (n == "proc_map" && ns.empty ())
       {
         if (this->proc_map_parser_)
-        {
-          this->proc_map_parser_->post_proc_map ();
-          this->proc_map ();
-        }
+          this->proc_map (this->proc_map_parser_->post_proc_map ());
 
         return true;
       }

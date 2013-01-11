@@ -198,12 +198,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	if((p.now.frame() < 2420 && p.now.frame() > 2065 &&  (/*pc == 10 || pc == 15 || */pc == 20)) ||(me == this))
 	{
 		me = this;
-		std::cout << p.now.frame() << ":Bus Driver  " << this << " PC: " << pc << "    diststop = " << p.dis2stop << "  distanceToNextBusStop = " << distanceToNextBusStop() << std::endl;
+//		std::cout << p.now.frame() << ":Bus Driver  " << this << " PC: " << pc << "    diststop = " << p.dis2stop << "  distanceToNextBusStop = " << distanceToNextBusStop() << std::endl;
 	}
 
 	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
 	{
-		std::cout << "1-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
+//		std::cout << "1-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
 	}
 	//when vehicle stops, don't do lane changing
 	if (vehicle->getVelocity() <= 0) {
@@ -374,7 +374,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //	}
 //it can be proved that this is called even long before bus has arrived at bus stop
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
+//		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 		//passengerCountOld_display_flag = false;

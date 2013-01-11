@@ -144,7 +144,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
 			Person* currAg = new Person("BusController", config.mutexStategy, busTrip_vec[i].personID);
-			std::cout << "BusController::assignBusTripChainWithPerson->Creating Person " << busTrip_vec[i].personID << std::endl;
+//			std::cout << "BusController::assignBusTripChainWithPerson->Creating Person " << busTrip_vec[i].personID << std::endl;
 			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 			currAgTripChain.clear();
 

@@ -100,8 +100,8 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-	std::cout << "ConfigParams::GetInstance().simStartTime = " << ConfigParams::GetInstance().simStartTime.toString() << std::endl;
-	std::cout << "Set Start time for person " << this << " to " << getStartTime() << "  [" << (*currTripChainItem)->startTime.toString() << "]"<< std::endl;
+//	std::cout << "ConfigParams::GetInstance().simStartTime = " << ConfigParams::GetInstance().simStartTime.toString() << std::endl;
+//	std::cout << "Set Start time for person " << this << " to " << getStartTime() << "  [" << (*currTripChainItem)->startTime.toString() << "]"<< std::endl;
 //	getchar();
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
@@ -303,9 +303,33 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		}
 		 
 		//Now that the Role has been fully constructed, initialize it.
-		std::cout << "Calling update_time.frame_init at frame " << now.frame() << std::endl;
+		if((*currTripChainItem))
+		{
+			std::cout << "person " << (*currTripChainItem)->personID ;
+			if((*currTripChainItem)->personID == 3)
+			{
+				int i = 0;
+				i++;
+			}
+		}
+		std::cout << "  Calling update_time.frame_init at frame " << now.frame() << std::endl;
+
 		currRole->frame_init(params);
 
+		if((*currTripChainItem))
+		{
+			std::cout << "person " << (*currTripChainItem)->personID ;
+		}
+		std::cout << "  Calling update_time.frame_init --Done " << std::endl;
+
+		if((*currTripChainItem))
+		{
+			if((*currTripChainItem)->personID == 3)
+			{
+				int i =0;
+			}
+			std::cout << "(person id = " << (*currTripChainItem)->personID << ")--currRole->frame_init Done\n";
+		}
 		//Done
 		call_frame_init = false;
 	}
@@ -369,7 +393,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-		std::cout << "Person start time is " << getStartTime() << "  and now is " << now.ms() << std::endl;
+//		std::cout << "Person " << (*currTripChainItem)->personID << "  start time is " <<  getStartTime() << "  and now is " << now.ms() << std::endl;
 		//Update functionality
 		update_time(now, retVal);
 
@@ -380,7 +404,8 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentException(*this, frameNumber, ex);
 #endif
-
+		std::cout << "Person " << (*currTripChainItem)->personID << " is in trouble \n";
+//		getchar();
 		//Add a line to the output file.
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
@@ -456,14 +481,19 @@ bool sim_mob::Person::updatePersonRole()
 		prevRole = currRole;
 		const sim_mob::SubTrip *temp = ((*(this->currTripChainItem))->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
 		sim_mob::Role* newRole = rf.createRole(*(this->currTripChainItem),temp, this);
+		std::cout << "Person " << (*currTripChainItem)->personID << " Changing the role to " << newRole->getRoleName() << std::endl;
 		changeRole(newRole);
-		std::cout << "role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << std::endl;
+		std::cout << "Person " << (*currTripChainItem)->personID << " role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << " - "<<currRole->getRoleName() << std::endl;
 //		getchar();
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	std::cout << "checking the tripchain for person " << this ;
 	std::cout << "[currTripChainItem: " << (*currTripChainItem) ;
+	if((*currTripChainItem))
+	{
+		std::cout << "(person id = " << (*currTripChainItem)->personID << ")";
+	}
 
 	//some normal checks
 	if(tripChain.size() < 1)

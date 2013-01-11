@@ -110,7 +110,7 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
-	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
+//	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;
 }
 

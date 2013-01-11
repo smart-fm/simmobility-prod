@@ -112,7 +112,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		{
 			msg << "  " << (*it)->getStart()->originalDB_ID.getLogItem() << " => " << (*it)->getEnd()->originalDB_ID.getLogItem() << "\n";
 		}
-
+		LogOut(msg.str() <<std::endl);
 		throw std::runtime_error(msg.str().c_str());
 	}
 

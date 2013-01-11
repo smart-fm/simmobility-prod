@@ -677,15 +677,7 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
-//	if(!tempNode )
-//		{
-//			tempNode = const_cast<Node*>(vehicle->getNodeMovingTowards());
-//			std::cout <<"Driver " << this <<  " getNodeMovingTowards Node  : " << tempNode->getID() << std::endl;
-//			getchar();
-//        }
-
 	std::cout << "in Driver::linkDriving\n";
-//	getchar();
 
 	if (!vehicle->hasNextSegment(true)) // has seg in current link
 	{
@@ -711,9 +703,6 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 		std::cout << "B. 1st change to p.dis2stop = " << p.dis2stop << std::endl;
 	}
-//
-//	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
-//		p.nextLaneIndex = p.currLaneIndex;
 
 
 	//vahid begins
@@ -721,28 +710,37 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
 	std::vector<TripChainItem*>& tripchain = person->getTripChain();
 	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
-    Trip* trip_1; // pointer to current item in trip chain
+    Trip* lastTrip; // pointer to current item in trip chain
+    std::cout << "\n************PARKING FOR PERSON " << (*(tripchain.begin()))->personID << "  *************************\n";
+   //find the last trip from a mix of trip/activities in the tripchain
     while(tripChainItem_it != tripchain.end())
     {
     	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
     	{
-    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
+    		lastTrip = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
     	}
     	tripChainItem_it++;
     }
 //    Node *lastSubTripEndingNode = 0;
-    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
+    std::vector<sim_mob::SubTrip>::const_iterator nextSubTrip_it = lastTrip->getSubTrips().begin();
     Node * lastSubTripEndingNode = 0;
-    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
-    {
-    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
-    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
-    	nextNonTrip_it ++;
-    }
+    lastSubTripEndingNode = const_cast<Node *>(lastTrip->getSubTrips().back().toLocation);
+//    //it reads: while the end of the next trip is not the end of the last subtrip in the current trip...
+//    //this will find the trip which matches the destination of the last subtrip in the current trip
+//    while((*nextSubTrip_it).toLocation != lastTrip->getSubTrips().back().toLocation)
+//    {
+//    	lastSubTripEndingNode = const_cast<Node *>((*nextSubTrip_it).toLocation);
+//    	nextSubTrip_it ++;
+//    }
     //now find the last sub trip within that trip
 //    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
     if(lastSubTripEndingNode)
     	std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
+    else
+    	if((*(tripchain.begin()))->personID == 3)
+    	{
+    		std::cout << " there is no lastSubTripEndingNode\n";
+    	}
     if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
 	{
     	std::cout << "1-  We are in business\n";
@@ -807,6 +805,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //    	getchar();
 //    	getchar();
 	}
+
+	std::cout << "************End of PARKING FOR PERSON " << lastTrip->personID << "  *************************\n\n";
     //....end of vahid
 
 
@@ -1241,6 +1241,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			int x = 0;
+			x = path.size();
 			std::cout << "Driver path has " << path.size() << "  elements\n";
 		} else {
 //			std::cout << "Driver Has no path\n";

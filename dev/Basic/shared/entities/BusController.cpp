@@ -143,15 +143,17 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
 		for(int i = 0; i < busTrip_vec.size(); i++) {
-			Person* currAg = new Person("BusController", config.mutexStategy, busTrip_vec[i].personID);
-			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-			currAgTripChain.clear();
+			if(busTrip_vec[i].startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
+				Person* currAg = new Person("BusController", config.mutexStategy, busTrip_vec[i].personID);
+				currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+				currAgTripChain.clear();
 
-			currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
-			currAg->setTripChain(currAgTripChain);
+				currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
+				currAg->setTripChain(currAgTripChain);
 
-			// scheduled for dispatch
-			addOrStashBuses(currAg, active_agents);
+				// scheduled for dispatch
+				addOrStashBuses(currAg, active_agents);
+			}
 		}
 	}
 }

@@ -187,6 +187,13 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 			return crossing;
 		}
 
+		else
+		{
+			if(res.offset == 0)
+			{
+				res.offset = 1;
+			}
+		}
 		//Increment OR Decrement
 		currOffset += (minus) * (res.offset);
 	}

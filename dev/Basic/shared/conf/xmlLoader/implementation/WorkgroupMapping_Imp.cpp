@@ -11,13 +11,14 @@ void sim_mob::conf::workgroup_mapping_pimpl::pre ()
 {
 }
 
-void sim_mob::conf::workgroup_mapping_pimpl::post_workgroup_mapping ()
+std::string sim_mob::conf::workgroup_mapping_pimpl::post_workgroup_mapping ()
 {
+	return model;
 }
 
-void sim_mob::conf::workgroup_mapping_pimpl::workgroup (const ::std::string& workgroup)
+void sim_mob::conf::workgroup_mapping_pimpl::workgroup (const ::std::string& value)
 {
-  std::cout << "workgroup: " << workgroup << std::endl;
+	model = value;
 }
 
 

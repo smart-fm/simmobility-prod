@@ -16,12 +16,14 @@ void sim_mob::conf::workgroup_mappings_pimpl::post_workgroup_mappings ()
 {
 }
 
-void sim_mob::conf::workgroup_mappings_pimpl::agents ()
+void sim_mob::conf::workgroup_mappings_pimpl::agents (const std::string& value)
 {
+	config->system().defaultWorkGroups.agentWG.name = value;
 }
 
-void sim_mob::conf::workgroup_mappings_pimpl::signals ()
+void sim_mob::conf::workgroup_mappings_pimpl::signals (const std::string& value)
 {
+	config->system().defaultWorkGroups.signalWG.name = value;
 }
 
 

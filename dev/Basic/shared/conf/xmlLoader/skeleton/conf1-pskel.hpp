@@ -744,8 +744,8 @@ namespace sim_mob
       virtual void
       workgroup (const ::std::string&);
 
-      virtual void
-      post_workgroup_mapping ();
+      virtual std::string
+      post_workgroup_mapping () = 0;
 
       // Parser construction API.
       //
@@ -785,8 +785,8 @@ namespace sim_mob
       virtual void
       value (const ::std::string&);
 
-      virtual void
-      post_gen_prop ();
+      virtual std::pair<std::string, std::string>
+      post_gen_prop () = 0;
 
       // Parser construction API.
       //
@@ -1152,7 +1152,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      property ();
+      property (const std::pair<std::string, std::string>&);
 
       virtual void
       originPos (const ::std::string&);
@@ -1289,7 +1289,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      property ();
+      property (const std::pair<std::string, std::string>&);
 
       virtual void
       originPos (const ::std::string&);
@@ -2048,10 +2048,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      agents ();
+      agents (const std::string&);
 
       virtual void
-      signals ();
+      signals (const std::string&);
 
       virtual void
       post_workgroup_mappings ();
@@ -2098,7 +2098,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      property ();
+      property (const std::pair<std::string, std::string>&);
 
       virtual void
       post_generic_props ();

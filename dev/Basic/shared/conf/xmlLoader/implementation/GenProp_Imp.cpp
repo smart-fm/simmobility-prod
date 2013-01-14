@@ -9,20 +9,22 @@ using std::string;
 
 void sim_mob::conf::gen_prop_pimpl::pre ()
 {
+	model = std::make_pair("", "");
 }
 
-void sim_mob::conf::gen_prop_pimpl::post_gen_prop ()
+std::pair<std::string, std::string> sim_mob::conf::gen_prop_pimpl::post_gen_prop ()
 {
+	return model;
 }
 
-void sim_mob::conf::gen_prop_pimpl::key (const ::std::string& key)
+void sim_mob::conf::gen_prop_pimpl::key (const ::std::string& value)
 {
-  std::cout << "key: " << key << std::endl;
+	model.first = value;
 }
 
 void sim_mob::conf::gen_prop_pimpl::value (const ::std::string& value)
 {
-  std::cout << "value: " << value << std::endl;
+	model.second = value;
 }
 
 

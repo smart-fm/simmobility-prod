@@ -16,8 +16,9 @@ void sim_mob::conf::generic_props_pimpl::post_generic_props ()
 {
 }
 
-void sim_mob::conf::generic_props_pimpl::property ()
+void sim_mob::conf::generic_props_pimpl::property (const std::pair<std::string, std::string>& value)
 {
+	config->system().genericProps[value.first] = value.second;
 }
 
 

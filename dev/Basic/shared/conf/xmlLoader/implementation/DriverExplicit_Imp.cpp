@@ -16,7 +16,7 @@ void sim_mob::conf::driver_explicit_pimpl::post_driver_explicit ()
 {
 }
 
-void sim_mob::conf::driver_explicit_pimpl::property ()
+void sim_mob::conf::driver_explicit_pimpl::property (const std::pair<std::string, std::string>&)
 {
 }
 

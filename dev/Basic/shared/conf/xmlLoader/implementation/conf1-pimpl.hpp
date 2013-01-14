@@ -133,19 +133,25 @@ private:
 class workgroup_mapping_pimpl: public virtual workgroup_mapping_pskel {
 public:
 	virtual void pre ();
-	virtual void post_workgroup_mapping ();
+	virtual std::string post_workgroup_mapping ();
 
 	virtual void workgroup (const ::std::string&);
+
+private:
+	std::string model;
 };
 
 
 class gen_prop_pimpl: public virtual gen_prop_pskel {
 public:
 	virtual void pre ();
-	virtual void post_gen_prop ();
+	virtual std::pair<std::string, std::string> post_gen_prop ();
 
 	virtual void key (const ::std::string&);
 	virtual void value (const ::std::string&);
+
+private:
+	std::pair<std::string, std::string> model;
 };
 
 
@@ -223,7 +229,7 @@ public:
 	virtual void pre ();
 	virtual void post_driver_explicit ();
 
-	virtual void property ();
+	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
 	virtual void destPos (const ::std::string&);
 	virtual void startTime (const ::std::string&);
@@ -247,7 +253,7 @@ public:
 	virtual void pre ();
 	virtual void post_pedestrian_explicit ();
 
-	virtual void property ();
+	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
 	virtual void destPos (const ::std::string&);
 	virtual void startTime (const ::std::string&);
@@ -428,20 +434,30 @@ private:
 
 class workgroup_mappings_pimpl: public virtual workgroup_mappings_pskel {
 public:
+	workgroup_mappings_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_workgroup_mappings ();
 
-	virtual void agents ();
-	virtual void signals ();
+	virtual void agents (const std::string&);
+	virtual void signals (const std::string&);
+
+private:
+	Config* config;
 };
 
 
 class generic_props_pimpl: public virtual generic_props_pskel {
 public:
+	generic_props_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_generic_props ();
 
-	virtual void property ();
+	virtual void property (const std::pair<std::string, std::string>&);
+
+private:
+	Config* config;
 };
 
 

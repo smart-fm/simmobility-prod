@@ -1954,11 +1954,6 @@ namespace sim_mob
     {
     }
 
-    void workgroup_mapping_pskel::
-    post_workgroup_mapping ()
-    {
-    }
-
     bool workgroup_mapping_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -1994,11 +1989,6 @@ namespace sim_mob
 
     void gen_prop_pskel::
     value (const ::std::string&)
-    {
-    }
-
-    void gen_prop_pskel::
-    post_gen_prop ()
     {
     }
 
@@ -2503,7 +2493,7 @@ namespace sim_mob
     //
 
     void driver_explicit_pskel::
-    property ()
+    property (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2565,10 +2555,7 @@ namespace sim_mob
       if (n == "property" && ns.empty ())
       {
         if (this->property_parser_)
-        {
-          this->property_parser_->post_gen_prop ();
-          this->property ();
-        }
+          this->property (this->property_parser_->post_gen_prop ());
 
         return true;
       }
@@ -2756,7 +2743,7 @@ namespace sim_mob
     //
 
     void pedestrian_explicit_pskel::
-    property ()
+    property (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2818,10 +2805,7 @@ namespace sim_mob
       if (n == "property" && ns.empty ())
       {
         if (this->property_parser_)
-        {
-          this->property_parser_->post_gen_prop ();
-          this->property ();
-        }
+          this->property (this->property_parser_->post_gen_prop ());
 
         return true;
       }
@@ -4126,12 +4110,12 @@ namespace sim_mob
     //
 
     void workgroup_mappings_pskel::
-    agents ()
+    agents (const std::string&)
     {
     }
 
     void workgroup_mappings_pskel::
-    signals ()
+    signals (const std::string&)
     {
     }
 
@@ -4183,10 +4167,7 @@ namespace sim_mob
       if (n == "agents" && ns.empty ())
       {
         if (this->agents_parser_)
-        {
-          this->agents_parser_->post_workgroup_mapping ();
-          this->agents ();
-        }
+          this->agents (this->agents_parser_->post_workgroup_mapping ());
 
         return true;
       }
@@ -4194,10 +4175,7 @@ namespace sim_mob
       if (n == "signals" && ns.empty ())
       {
         if (this->signals_parser_)
-        {
-          this->signals_parser_->post_workgroup_mapping ();
-          this->signals ();
-        }
+          this->signals (this->signals_parser_->post_workgroup_mapping ());
 
         return true;
       }
@@ -4209,7 +4187,7 @@ namespace sim_mob
     //
 
     void generic_props_pskel::
-    property ()
+    property (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -4251,10 +4229,7 @@ namespace sim_mob
       if (n == "property" && ns.empty ())
       {
         if (this->property_parser_)
-        {
-          this->property_parser_->post_gen_prop ();
-          this->property ();
-        }
+          this->property (this->property_parser_->post_gen_prop ());
 
         return true;
       }

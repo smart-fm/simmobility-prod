@@ -10,6 +10,7 @@ db_param           "std::pair<std::string, std::string>";
 db_proc_mapping    "std::pair<std::string, std::string>";
 proc_map           "std::pair<std::string, sim_mob::StoredProcedureMap>";
 default_model      "std::pair<std::string, std::string>";
-
+workgroup_mapping  "std::string";
+gen_prop           "std::pair<std::string, std::string>";
 
 }

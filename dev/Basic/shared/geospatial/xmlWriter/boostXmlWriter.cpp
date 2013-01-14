@@ -12,19 +12,15 @@
 
 using std::ios;
 
+
 void sim_mob::BoostSaveXML(const std::string& outFileName, const sim_mob::RoadNetwork& network)
 {
     std::ofstream outFile(outFileName.c_str());
-    boost::archive::xml_oarchive xml(outFile);
-    xml << boost::serialization::make_nvp("SimMobility", network);
+    //boost::archive::xml_oarchive xml(outFile);
+    //xml << boost::serialization::make_nvp("SimMobility", network);
+    sim_mob::xml::xml_writer xml(outFile);
+    xml.header(); //version, encoding
 
-    //TODO: need to add "geo" namespace back to "SimMobility" tag, above.
+    xml.prop("geo:SimMobility", network);
 
-    //TODO: Need to set the following top-level options:
-    //"1.0", "utf-8"
-
-    //TODO: Need to set the following attributes:
-	//SetAttribute("xmlns:geo" , "http://www.smart.mit.edu/geo");
-	//SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-	//SetAttribute("xsi:schemaLocation", "http://www.smart.mit.edu/geo file:/home/vahid/Desktop/geo8/geo10.xsd");
 }

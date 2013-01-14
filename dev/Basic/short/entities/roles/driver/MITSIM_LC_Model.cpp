@@ -178,14 +178,19 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 		for(int j=0;j<2;j++){	//j for lead / lag
 			if (j==0) {
 				double v      = p.perceivedFwdVelocity/100.0;
-				double dv     = (otherSpeed[i].lead - v)/100.0;
+				double dv     = (otherSpeed[i].lead/100.0 - v);
 				double dis = otherDistance[i].lead/100.0;
 				double cri_gap = lcCriticalGap(p, j+type,p.dis2stop,v,dv);
 				flags[i].lead = (dis > cri_gap);
+				if(cri_gap<0)
+					std::cout<<"find gap < 1"<<std::endl;
 			} else {
-				double v 	 = otherSpeed[i].lag;
-				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
-				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
+				double v 	 = otherSpeed[i].lag/100.0;
+				double dv 	 = p.perceivedFwdVelocity/100.0 - otherSpeed[i].lag/100.0;
+				double cri_gap = lcCriticalGap(p, j+type,p.dis2stop,v,dv);
+				flags[i].lag = (otherDistance[i].lag/100.0 > cri_gap);
+				if(cri_gap<0)
+						std::cout<<"find gap < 1."<<std::endl;
 			}
 		}
 	}
@@ -339,7 +344,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 	else
 	{
 		//1.If too close to node, don't do lane changing, distance should be larger than 3m
-		if(p.nvFwd.distance <= 2000) {
+		if(p.dis2stop <= 3) {
 			return 0.0;
 		}
 
@@ -349,12 +354,12 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
 
-		if(randNum<mandCheck){
+//		if(randNum<mandCheck){
 			changeMode = MLC;
-		} else {
-			changeMode = DLC;
-			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
-		}
+//		} else {
+//			changeMode = DLC;
+//			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
+//		}
 
 		//3.make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;

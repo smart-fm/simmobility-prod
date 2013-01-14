@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 
+#include "geospatial/xmlWriter/boostXmlWriter.hpp"
+
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEvent.hpp"
 #include "entities/Agent.hpp"
@@ -1749,26 +1751,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Database loading error: " + dbErrorMsg;
     		}
 
-//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
-//    		{
-//    			if((*it)->getLinkId() != 1000010) continue;
-//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//    			{
-//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
-//    				{
-//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//    					{
-//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//    						if((cr))
-//    						{
-//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
-//    						}
-//    					}
-//    				}
-//    			}
-//    		}
-//    		getchar();
-
 #else
        		/**************************************************
        		 *
@@ -1802,6 +1784,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
     }
+
+    //TEMP: Test network output via boost.
+    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
 
 
     //Seal the network; no more changes can be made after this.

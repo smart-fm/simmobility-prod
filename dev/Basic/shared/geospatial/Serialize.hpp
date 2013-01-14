@@ -40,11 +40,6 @@ namespace xml {
 
 //TODO: Serialization functions go here.
 void write_xml(xml_writer& write, const sim_mob::RoadNetwork& rn) {
-	//TODO: These go into lightweight containers later.
-	//TODO: Or, we can do something like "prop_start", "prop_end" that allows us to fake simple containers.
-	write.attr("xmlns:geo", "http://www.smart.mit.edu/geo");
-	write.attr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-	write.attr("xsi:schemaLocation", "http://www.smart.mit.edu/geo  ../shared/geospatial/xmlLoader/geo10.xsd");
 	write.prop("my_prop", 2);
 	write.prop("my_side", rn.drivingSide);
 }

@@ -37,14 +37,16 @@ public:
 	///Write an attribute on the current property.
 	void attr(const std::string& key, const std::string& val);
 
-	/*void prop(const std::string& key) {
-		seal_attrs();
-		(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<"/>" <<std::endl;
-	}*/
-
 	///Write a property (key-value pair).
 	template <class T>
 	void prop(const std::string& key, const T& val);
+
+	///Begin writing a property. This is used instead of prop() for classes which don't exist
+	/// (i.e., containers within the XML file itself).
+	void prop_begin(const std::string& key);
+
+	///Pair with prop_begin()
+	void prop_end(const std::string& key);
 
 private:
 	///Helper class: scope-lock used for remembering the current state of the xml_writer.
@@ -61,11 +63,6 @@ private:
 		std::pair<int, bool> state;
 	};*/
 
-	//Make an XML writer with a different tab count. (TODO: this is sloppy)
-	/*xml_writer(std::ostream& outFile, int tabCount) :
-		outFile(&outFile), tabCount(tabCount), sealedAttr(false)
-	{}*/
-
 	///Write this file's header. This will be called first, as it prints the "<?xml..." tag.
 	void header();
 
@@ -81,7 +78,6 @@ private:
 	std::ostream* outFile;
 	int tabCount;     //For indentation
 	bool sealedAttr;  //Are we done with writing attributes?
-	//int propsWritten; //How many properties have we written with this xml_writer?
 };
 
 }}  //End namespace sim_mob::xml
@@ -132,27 +128,30 @@ void sim_mob::xml::xml_writer::write_simple_prop(const std::string& key, const T
 template <class T>
 void sim_mob::xml::xml_writer::prop(const std::string& key, const T& val)
 {
+	//Recurse
+	prop_begin(key);
+	write_xml(*this, val);
+	prop_end(key);
+}
+
+
+void sim_mob::xml::xml_writer::prop_begin(const std::string& key)
+{
 	seal_attrs();
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key;
 
-	//Track if we wrote at least one property.
-	bool wroteProp = false;
-
-	//Lock the state
-	std::pair<int, bool> state = std::make_pair(tabCount, sealedAttr);
+	//Next indentation/sealed level.
 	tabCount++;
 	sealedAttr = false;
+}
 
-	//Recurse
-	write_xml(*this, val);
-	wroteProp = sealedAttr;
-
-	//Restore state
-	tabCount = state.first;
-	sealedAttr = state.second;
+void sim_mob::xml::xml_writer::prop_end(const std::string& key)
+{
+	//Restore indentation
+	tabCount--;
 
 	//Close tab.
-	if (wroteProp) {
+	if (sealedAttr) { //Did we write at least one property?
 		(*outFile) <<std::string(tabCount*TabSize, ' ') <<"</" <<key <<">" <<std::endl;
 	} else {
 		(*outFile) <<"/>" <<std::endl;
@@ -161,6 +160,7 @@ void sim_mob::xml::xml_writer::prop(const std::string& key, const T& val)
 	//Closing will "seal" this property, even if we haven't called seal_attrs();
 	sealedAttr = true;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////

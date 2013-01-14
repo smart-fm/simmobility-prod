@@ -21,6 +21,7 @@
 //NOTE: Try to include only a minimum subset of files here, since Config.hpp is linked to from many places.
 #include "Constructs.hpp"
 #include "System.hpp"
+#include "Simulation.hpp"
 
 
 namespace sim_mob {

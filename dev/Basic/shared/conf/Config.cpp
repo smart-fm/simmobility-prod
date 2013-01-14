@@ -16,6 +16,22 @@ using namespace sim_mob;
 
 Config sim_mob::Config::instance_;
 
+
+sim_mob::Granularity::Granularity(int amount, const string& units)
+{
+	if (units=="hours") {
+		ms_ = amount * 3600000;
+	} else if (units=="minutes" || units=="min") {
+		ms_ = amount * 60000;
+	} else if (units=="seconds" || units=="s") {
+		ms_ = amount * 1000;
+	} else if (units=="ms") {
+		ms_ = amount;
+	} else {
+		throw std::runtime_error("Unknown units for Granularity.");
+	}
+}
+
 sim_mob::WorkGroup* WorkGroupFactory::getItem()
 {
 	if (!item) {

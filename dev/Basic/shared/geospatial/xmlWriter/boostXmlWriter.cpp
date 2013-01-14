@@ -19,8 +19,5 @@ void sim_mob::BoostSaveXML(const std::string& outFileName, const sim_mob::RoadNe
     //boost::archive::xml_oarchive xml(outFile);
     //xml << boost::serialization::make_nvp("SimMobility", network);
     sim_mob::xml::xml_writer xml(outFile);
-    xml.header(); //version, encoding
-
     xml.prop("geo:SimMobility", network);
-
 }

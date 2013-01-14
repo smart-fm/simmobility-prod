@@ -9,6 +9,7 @@ db_connection      "std::pair<std::string, sim_mob::DatabaseConnection>";
 db_param           "std::pair<std::string, std::string>";
 db_proc_mapping    "std::pair<std::string, std::string>";
 proc_map           "std::pair<std::string, sim_mob::StoredProcedureMap>";
+default_model      "std::pair<std::string, std::string>";
 
 
 }

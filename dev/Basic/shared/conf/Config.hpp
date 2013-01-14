@@ -20,6 +20,7 @@
 
 //NOTE: Try to include only a minimum subset of files here, since Config.hpp is linked to from many places.
 #include "Constructs.hpp"
+#include "System.hpp"
 
 
 namespace sim_mob {
@@ -91,6 +92,13 @@ public:
 	///@
 
 	//@{
+	///Accessor for the system struct.
+	///A construct is anything that can be created (dynamically) from the XML config file.
+	sim_mob::System& system() { return system_; }
+	const sim_mob::System& system() const { return system_; }
+	///@
+
+	//@{
 	///Accessor for the build in models struct..
 	///These models represent features of Sim Mobility which are tightly bound to the
 	///infrastructure and cannot exist (for now) as plugins.
@@ -102,6 +110,7 @@ private:
 	//Data
 	sim_mob::Constructs constructs_;
 	bool single_threaded;
+	sim_mob::System system_;
 
 	//Default built-in models
 	BuiltInModels built_in_models;

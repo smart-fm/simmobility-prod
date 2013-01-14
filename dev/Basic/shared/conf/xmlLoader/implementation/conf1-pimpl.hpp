@@ -120,10 +120,13 @@ private:
 class default_model_pimpl: public virtual default_model_pskel{
 public:
 	virtual void pre ();
-	virtual void post_default_model ();
+	virtual std::pair<std::string, std::string> post_default_model ();
 
 	virtual void type (const ::std::string&);
 	virtual void default_ (const ::std::string&);
+
+private:
+	std::pair<std::string, std::string> model;
 };
 
 
@@ -411,10 +414,15 @@ private:
 
 class default_models_pimpl: public virtual default_models_pskel {
 public:
+	default_models_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_default_models ();
 
-	virtual void model ();
+	virtual void model (const std::pair<std::string, std::string>&);
+
+private:
+	Config* config;
 };
 
 

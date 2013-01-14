@@ -1907,11 +1907,6 @@ namespace sim_mob
     {
     }
 
-    void default_model_pskel::
-    post_default_model ()
-    {
-    }
-
     bool default_model_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -4077,7 +4072,7 @@ namespace sim_mob
     //
 
     void default_models_pskel::
-    model ()
+    model (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -4119,10 +4114,7 @@ namespace sim_mob
       if (n == "model" && ns.empty ())
       {
         if (this->model_parser_)
-        {
-          this->model_parser_->post_default_model ();
-          this->model ();
-        }
+          this->model (this->model_parser_->post_default_model ());
 
         return true;
       }

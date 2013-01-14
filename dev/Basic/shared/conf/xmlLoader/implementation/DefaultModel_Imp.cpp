@@ -9,19 +9,21 @@ using std::string;
 
 void sim_mob::conf::default_model_pimpl::pre ()
 {
+	model = std::make_pair("", "");
 }
 
-void sim_mob::conf::default_model_pimpl::post_default_model ()
+std::pair<std::string, std::string> sim_mob::conf::default_model_pimpl::post_default_model ()
 {
+	return model;
 }
 
-void sim_mob::conf::default_model_pimpl::type (const ::std::string& type)
+void sim_mob::conf::default_model_pimpl::type (const ::std::string& value)
 {
-  std::cout << "type: " << type << std::endl;
+	model.first = value;
 }
 
-void sim_mob::conf::default_model_pimpl::default_ (const ::std::string& default_)
+void sim_mob::conf::default_model_pimpl::default_ (const ::std::string& value)
 {
-  std::cout << "default: " << default_ << std::endl;
+	model.second = value;
 }
 

@@ -701,8 +701,8 @@ namespace sim_mob
       virtual void
       default_ (const ::std::string&);
 
-      virtual void
-      post_default_model ();
+      virtual std::pair<std::string, std::string>
+      post_default_model () = 0;
 
       // Parser construction API.
       //
@@ -2006,7 +2006,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      model ();
+      model (const std::pair<std::string, std::string>&);
 
       virtual void
       post_default_models ();

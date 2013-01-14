@@ -23,6 +23,7 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::distributions_pimpl distributions_p(resultConfig);
 	    ::sim_mob::conf::db_connections_pimpl db_connections_p(resultConfig);
 	    ::sim_mob::conf::db_proc_groups_pimpl db_proc_groups_p(resultConfig);
+	    ::sim_mob::conf::default_models_pimpl default_models_p(resultConfig);
 
 	    //Trivially-constructed parsers.
 	    ::sim_mob::conf::model_pimpl model_p;
@@ -36,7 +37,6 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::db_proc_mapping_pimpl db_proc_mapping_p;
 	    ::xml_schema::boolean_pimpl boolean_p;
 	    ::sim_mob::conf::system_pimpl system_p;
-	    ::sim_mob::conf::default_models_pimpl default_models_p;
 	    ::sim_mob::conf::default_model_pimpl default_model_p;
 	    ::sim_mob::conf::workgroup_mappings_pimpl workgroup_mappings_p;
 	    ::sim_mob::conf::workgroup_mapping_pimpl workgroup_mapping_p;

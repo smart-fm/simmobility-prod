@@ -9,6 +9,9 @@
 #include "RoadSegment.hpp"
 #include <tinyxml.h>
 
+//For forward declarations (for friend functions)
+#include "geospatial/xmlWriter/xmlWriter.hpp"
+
 //using namespace geo;
 namespace geo {
 class lane_t_pimpl;

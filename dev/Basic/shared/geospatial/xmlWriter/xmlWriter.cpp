@@ -20,12 +20,16 @@
 //#include "geospatial/Pavement.hpp"
 #include "geospatial/Traversable.hpp"
 #include "geospatial/UniNode.hpp"
+#include "geospatial/BusStop.hpp"
 #include "conf/simpleconf.hpp"
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/signal/Color.hpp"
+#include "entities/signal/defaults.hpp"
+#include "entities/signal/SplitPlan.hpp"
+
 
 #include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>

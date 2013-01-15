@@ -29,6 +29,9 @@
 #include "Offset.hpp"
 #include "defaults.hpp"
 
+//For forward declarations (for friend functions)
+#include "geospatial/xmlWriter/xmlWriter.hpp"
+
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -95,12 +98,12 @@ public:
 
    virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
 
-   virtual unsigned int getSignalId(){}
+   virtual unsigned int getSignalId(){ return -1;}
    
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
-   virtual Entity::UpdateStatus update(timeslice now){}
+   virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
@@ -121,7 +124,7 @@ private:
 
 class Signal_SCATS  : public sim_mob::Signal {
 	friend class geo::Signal_t_pimpl;
-friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal);
+friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 

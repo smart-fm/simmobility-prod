@@ -30,7 +30,9 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+
 #include <boost/noncopyable.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "util/XmlWriter.hpp"
 
@@ -44,55 +46,76 @@
 namespace sim_mob {
 namespace xml {
 
+/////////////////////////////////////////////////////////////////////
+// get_id()
+/////////////////////////////////////////////////////////////////////
 
+template <>
+std::string get_id(const sim_mob::RoadSegment& rs)
+{
+	return boost::lexical_cast<std::string>(rs.getSegmentID());
+}
+
+/////////////////////////////////////////////////////////////////////
+// write_xml()
+/////////////////////////////////////////////////////////////////////
+
+template <>
 void write_xml(XmlWriter& write, const sim_mob::Link& lnk)
 {
 	//TEMP
     write.prop("TODO", 2);
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
 {
 	//TEMP
     write.prop("TODO", 2);
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 {
 	//TEMP
     write.prop("TODO", 2);
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
 {
 	//TEMP
     write.prop("TODO", 2);
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
 {
 	//TEMP
     write.prop("TODO", 2);
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
 {
 	write.prop("xPos", pt.getX());
 	write.prop("yPos", pt.getY());
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 {
 	write.prop("nodeID", und.nodeId);
 	write.prop("location", und.location);
 	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
-	write.prop("firstPair", und.firstPair);
+	write.ident("firstPair", *und.firstPair.first, *und.firstPair.second);
 	if (und.secondPair.first && und.secondPair.second) {
 		write.prop("secondPair", und.secondPair);
 	}
 	write.list("Connectors", "Connector", flatten_map(und.getConnectors()));
 }
 
+template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 {
     write.prop_begin("RoadNetwork");

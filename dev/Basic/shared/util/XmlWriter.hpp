@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 #include <map>
 
 namespace sim_mob {
@@ -57,6 +58,15 @@ public:
 	template <class T>
 	void list(const std::string& plural, const std::string& singular, const T& val);
 
+	///Write a property as using identifiers instead of values. This requires
+	/// the required base type to have a corresponding get_id() override.
+	template <class T>
+	void ident(const std::string& key, const T& val);
+
+	///Write an identifier that consists of a pair of values.
+	template <class T, class U>
+	void ident(const std::string& key, const T& first, const U& second);
+
 	///Begin writing a property. This is used instead of prop() for classes which don't exist
 	/// (i.e., containers within the XML file itself).
 	void prop_begin(const std::string& key);
@@ -85,6 +95,14 @@ private:
 	std::vector<std::string> propStack;  //The property that we are currently writing is at the back of the vector.
 	bool sealedAttr;       //Are we done with writing attributes?
 };
+
+
+//Function prototypes
+template <class T>
+void write_xml(XmlWriter&, const T&);
+template <class T>
+std::string get_id(const T&);
+
 
 }}  //End namespace sim_mob::xml
 
@@ -132,12 +150,31 @@ void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
 {
 	write_pointer_array(write, vec.begin(), vec.end());
 }
+
+//Helper: Escape illegal symbols inside XML elements/attributes
+std::string escape_xml(const std::string& src) {
+	//Shortcut: no characters to replace?
+	if (src.find_first_of("\"'<>&")==std::string::npos) { return src; }
+
+	std::stringstream res;
+	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {
+		     if (*it=='"')  { res <<"&quot;"; }
+		else if (*it=='\'') { res <<"&apos;"; }
+		else if (*it=='<')  { res <<"&lt;"; }
+		else if (*it=='>')  { res <<"&gt;"; }
+		else if (*it=='&')  { res <<"&amp;"; }
+		else                { res <<*it; }
+	}
+	return res.str();
+}
 } //End anon namespace
 
 
 ///////////////////////////////////////////////////////////////////
 // Template implementation
 ///////////////////////////////////////////////////////////////////
+
+
 
 
 namespace { //TODO: Move this into its own implementation file, later.
@@ -147,7 +184,7 @@ const int TabSize = 4;
 void sim_mob::xml::XmlWriter::attr(const std::string& key, const std::string& val)
 {
 	if (sealedAttr) { throw std::runtime_error("Can't write attribute; a property has already been written"); }
-	(*outFile) <<" " <<key <<"=\"" <<val <<"\"";
+	(*outFile) <<" " <<key <<"=\"" <<escape_xml(val) <<"\"";
 }
 
 
@@ -198,6 +235,30 @@ void sim_mob::xml::XmlWriter::list(const std::string& plural, const std::string&
 }
 
 
+//Write an identifier
+template <class T>
+void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& val)
+{
+	//Identifiers have no attributes or child properties, so they are relatively easy to serialize.
+	seal_attrs();
+	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<">";
+	(*outFile) <<get_id(val) <<"</" <<key <<">" <<std::endl;
+}
+
+//Write a pair of identifiers
+template <class T, class U>
+void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, const U& second)
+{
+	//Pairs of identifiers are relatively simple, but we are kind of breaking things down a bit.
+	seal_attrs();
+
+	//Pairs of identifiers require a little more scaffolding, but are not otherwise that complex.
+	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<"/>" <<std::endl;
+	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<first>" <<get_id(first) <<"</first>" <<std::endl;
+	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<second>" <<get_id(second) <<"</second>" <<std::endl;
+	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"</" <<key <<"/>" <<std::endl;
+}
+
 void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)
 {
 	seal_attrs();
@@ -239,8 +300,6 @@ void sim_mob::xml::XmlWriter::prop_end()
 
 namespace sim_mob { //Function specializations require an explicit namespace wrapping.
 namespace xml {
-
-
 
 ///Attempts to write a pair of "items" as "first", "second"
 template <class T>
@@ -297,7 +356,7 @@ std::vector< std::pair<T, U> > flatten_map(const std::map<T, U>& map)
 template <>
 void XmlWriter::prop(const std::string& key, const std::string& val)
 {
-	write_simple_prop(key, val);
+	write_simple_prop(key, escape_xml(val));
 }
 
 template <>

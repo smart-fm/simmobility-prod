@@ -53,6 +53,7 @@ public:
 	bool isBusApproachingBusStop();
 	bool isBusArriveBusStop();
 	bool isBusLeavingBusStop();
+	bool isBusGngtoBreakDown();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
 	//void passengers_distribution(Bus* bus);
@@ -82,12 +83,13 @@ public:
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
 	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
-
+	std::vector<Shared<BusStop_RealTimes>*> busStopRealTimes_vec;
 	bool first_busstop;
 	bool last_busstop;
 	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
+	static bool firstBusWait;
 
 protected:
 	//Override the following behavior
@@ -98,10 +100,13 @@ private:
 	BusDriver * me;
 	//BusRoute route;
 	const DemoBusStop* nextStop;
+	int tick;
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
 	std::vector<const BusStop*> busStops;
+	bool wait;
+	bool firstBus;
 
 	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 

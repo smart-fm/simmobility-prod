@@ -19,7 +19,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "entities/misc/TripChain.hpp"
 #endif
-
+//
 using std::map;
 using std::string;
 using std::vector;
@@ -82,12 +82,14 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 {
 	tripchainInitialized = false;
 	//throw 1;
+	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs):Agent(mtxStrat, tcs.front()->personID)
 {
 	prevRole = 0;
 	currRole = 0;
+	laneID = -1;
 	agentSrc = src;
 	call_frame_init = true;
 	tripChain = tcs;
@@ -144,6 +146,24 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
 	}
+
+
+	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
+	if(lanepointer != configProps.end())
+	{
+		/*if(atoi(lanepointer->second.c_str()))
+		{
+			laneID = atoi(lanepointer->second.c_str());
+		}*/
+
+		try {
+		    int x = boost::lexical_cast<int>( lanepointer->second );
+		    laneID = x;
+		} catch( boost::bad_lexical_cast const& ) {
+		    std::cout << "Error: input string was not valid" << std::endl;
+		}
+	}
+
 
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
 	map<string, string>::const_iterator origIt = configProps.find("originPos");

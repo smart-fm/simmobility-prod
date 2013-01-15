@@ -123,13 +123,14 @@ public:
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
-
+	int lastVisitedStop_SequenceNumber;
 private:
 	int busTripRun_sequenceNum;
 	int vehicle_id;
 	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
+	//each bustrip holds last sequence number.default -1 no busstop visited yet
 	std::vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };

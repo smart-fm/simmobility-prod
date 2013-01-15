@@ -1187,6 +1187,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
+
+		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
+		if(findPtr == sections_.end())
+		{
+			continue;
+		}
+
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
@@ -1810,7 +1817,7 @@ struct MyLaneConectorSorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-//		  getchar();
+		  getchar();
 		  return false;
 	  }
 
@@ -1837,7 +1844,7 @@ struct MyLaneConectorSorter {
 	  if(!(a && b))
 	  {
 		  std::cout << "A lane from is null\n";
-//		  getchar();
+		  getchar();
 		  return false;
 	  }
 	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
@@ -2101,6 +2108,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
 				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
-//	std::cout << debugMsgs.str();
+	std::cout << debugMsgs.str();
 }
 

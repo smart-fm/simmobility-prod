@@ -48,6 +48,9 @@ public:
 	///This is a hack for now; any function that uses this is doing something that I'm not 100% clear on. ~Seth
 	static BusController* TEMP_Get_Bc_1();
 
+	static bool busBreak;
+	static const char* buslineID;
+
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
 	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
@@ -63,7 +66,7 @@ public:
 	virtual Entity::UpdateStatus update(timeslice now);
 
 	void receiveBusInformation(const std::string& busline_i, int trip_k = 0, int busstopSequence_j = 0, unsigned int ATijk = 0);
-	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_BusStop, int lastVisited_BusStopSeqNum);// return Departure MS from Aijk, DWijk etc
+	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_BusStop, bool strategy);// return Departure MS from Aijk, DWijk etc
 	unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
@@ -100,7 +103,7 @@ private:
 
 	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop);// scheduled-based control
 	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop); // headway-based control
-	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop, int lastVisited_BusStopSeqNum); // evenheadway-based control
+	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop); // evenheadway-based control
 	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, double DTijk, Shared<BusStop_RealTimes>* curr_busStopRealTimes, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
 	double dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j); // dwell time calculation module
 

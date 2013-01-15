@@ -27,6 +27,8 @@ namespace {
 //const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 } //End anonymous namespace
 
+bool BusDriver::firstBusWait = false;
+
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
 , lastVisited_BusStop(mtxStrat,nullptr), lastVisited_BusStopSequenceNum(mtxStrat,0), real_DepartureTime(mtxStrat,0)
@@ -38,6 +40,9 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	passengerCountOld_display_flag = false;
 	curr_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
 	demo_passenger_increase = false;
+	wait = false;
+	firstBus = false;
+	tick = 0;
 }
 
 
@@ -129,7 +134,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	if (newVeh) {
 		//Use this sample vehicle to build our Bus, then delete the old vehicle.
 		BusRoute nullRoute; //Buses don't use the route at the moment.
-		vehicle = new Bus(nullRoute, newVeh);
+		BusTrip* bustrip_change = dynamic_cast<BusTrip*>(*(person->currTripChainItem));
+		vehicle = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
 		delete newVeh;
 
 		//This code is used by Driver to set a few properties of the Vehicle/Bus.
@@ -191,11 +197,10 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 {
 	if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
-		{
-			isAleadyStarted = true;
-		}
-		p.isAlreadyStart = isAleadyStarted;
-
+	{
+		isAleadyStarted = true;
+	}
+	p.isAlreadyStart = isAleadyStarted;
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
 				   - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
@@ -222,10 +227,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //		std::cout << "1-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
 	}
 	//when vehicle stops, don't do lane changing
-	if (vehicle->getVelocity() <= 0) {
+	/*if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
-	}
-	p.turningDirection = vehicle->getTurningDirection();
+	}*/
+	//p.turningDirection = vehicle->getTurningDirection();
 
 	//hard code , need solution
 
@@ -265,12 +270,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	p.currSpeed = vehicle->getVelocity() / 100;
 	double newFwdAcc = 0;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	
 	if(abs(vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && vehicle->getVelocity() / 100>10)
 	{
 		newFwdAcc = 0;
 	}
 	vehicle->setAcceleration(newFwdAcc * 100);
-
 	//}
 
 //	//Retrieve a new acceleration value.
@@ -335,24 +340,50 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				vehicle->setAcceleration(-500);
 		}
 
+		if(BusController::busBreak)
+		{
+			wait = true;
+			BusController::busBreak = false;
+		}
+
 		waitAtStopMS = 0;
 	}
 	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me) && isBusArriveBusStop())
 		std::cout << "isBusArriveBusStop() = " << (isBusArriveBusStop()?"TRUE":"FALSE") << std::endl;
-	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+	if(wait && isBusGngtoBreakDown())
+	{
+		vehicle->setVelocity(0);
+		vehicle->setAcceleration(0);
+		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < 190)
+		{
+			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;//tick++;
+		}
+		else if(waitAtStopMS >= 190)
+		{
+			wait = false;tick = 0;
+			waitAtStopMS = 0;
+			//vehicle->setVelocity(60);
+			//vehicle->setAcceleration(10);
+		}
+
+		std::cout<<"tick "<<tick<<" velocity "<<vehicle->getVelocity()<<" "<<vehicle->getAcceleration()<<std::endl;
+
+
+	}
+	
+	if (!wait && isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
-
+		std::cout<<"velocity "<<vehicle->getVelocity()<<" "<<vehicle->getAcceleration()<<std::endl;
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 				dwellTime_record = passengerGeneration(bus);
-
 				DwellTime_ijk.set(dwellTime_record);
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
@@ -369,13 +400,21 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
-								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
+								std::cout<<bustrip->startTime.getRepr_()<<std::endl;
+								std::cout<<bustrip->startTime.getValue() - ConfigParams::GetInstance().simStartTime.getValue()<<std::endl;
+								//all stops control pt stops
+								if(busstop_sequence_no.get() == 2 ){//busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
 									double waitTime = 0;
 									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
 									setWaitTime_BusStop(waitTime);
-								} else {
-									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
+								} else {//if bus doesnot come to time point stop need to update the realtime
+									double waitTime = 0;
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),busStopRealTimes_vec.at(busstop_sequence_no.get()),lastVisited_BusStop.get(),false);
+									setWaitTime_BusStop(waitTime);// ignore the other BusStops, just use DwellTime
 								}
+								BusTrip* bustrip_change = dynamic_cast<BusTrip*>(*(person->currTripChainItem));
+								bustrip_change->lastVisitedStop_SequenceNumber = busstop_sequence_no.get();
+
 							} else {
 								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
 								setWaitTime_BusStop(DwellTime_ijk.get());
@@ -386,7 +425,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 			}
-
 //			if(DwellTime_ijk.get() - waitAtStopMS > p.elapsedSeconds * 1.0) {
 //				passengerCountOld_display_flag = true;
 //			}
@@ -412,8 +450,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 		//passengerCountOld_display_flag = false;
-		vehicle->setAcceleration(busAccelerating(p)*100);
-		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+		//vehicle->setAcceleration(busAccelerating(p)*100);
+		//sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
 //		if(demo_passenger_increase && bus->getPassengerCount() == 19)
 //			bus->setPassengerCount(20);
 
@@ -496,7 +534,13 @@ bool sim_mob::BusDriver::isBusApproachingBusStop()
 bool sim_mob::BusDriver::isBusArriveBusStop()
 {
 	double distance = distanceToNextBusStop();
-	return  (distance>0 && distance <4);
+	return  (distance>0 && distance <10);
+}
+
+bool sim_mob::BusDriver::isBusGngtoBreakDown()
+{
+	double distance = distanceToNextBusStop();
+	return  (distance>10 && distance <14);
 }
 
 bool sim_mob::BusDriver::isBusLeavingBusStop()
@@ -585,11 +629,6 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//if last busstop,only alighting
 		if(last_busstop==true)
 		{
-//			if(bus->getPassengerCount() == 19 )
-//						{
-//							bus->setPassengerCount(20);
-//							getchar();
-//						}
 			//no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
 			no_passengers_alighting=no_passengers_bus;/*// last bus stop, all alighting
 			if(bus->getPassengerCount() == 19) no_passengers_boarding= 1;
@@ -601,14 +640,20 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 			last_busstop = false;
 		}
 		//if first busstop,only boarding
-		else if(first_busstop ==true)
+		else if(first_busstop ==true && BusDriver::firstBusWait)
 		{
-
-//			if(bus->getPassengerCount() == 19 )
-//			{
-//				bus->setPassengerCount(20);
-//				getchar();
-//			}
+			BusDriver::firstBusWait = false;
+			firstBus = true;
+			no_passengers_boarding = 120;
+			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
+							no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
+			passengers_Board(bus);//board the bus
+			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
+			first_busstop= false;
+		}
+		else if(first_busstop ==true && !BusDriver::firstBusWait)
+		{
+			firstBus = false;
 			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
 			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
 				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
@@ -620,27 +665,19 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//normal busstop,both boarding and alighting
 		else
 		{
-//			if(bus->getPassengerCount() == 19 )
-//			{
-//				bus->setPassengerCount(20);
-//				getchar();
-//			}
-			{
-				no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+			no_passengers_alighting = 0;
+			if(true){no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
 				passengers_Alight(bus);//alight the bus
-				no_passengers_bus=no_passengers_bus - no_passengers_alighting;
-				bus->setPassengerCount(no_passengers_bus);
-				no_passengers_boarding=(config.percent_boarding * 0.01)*no_passengers_busstop;
-				if(no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
-					no_passengers_boarding=bus->getBusCapacity() - no_passengers_bus;
-				passengers_Board(bus);//board the bus
-				bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
-
 			}
+			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
+			bus->setPassengerCount(no_passengers_bus);
+			no_passengers_boarding=(config.percent_boarding * 0.01)*no_passengers_busstop;
+			if(no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
+				no_passengers_boarding=bus->getBusCapacity() - no_passengers_bus;
+			passengers_Board(bus);//board the bus
+			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
 		}
 		DTijk = dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
-
-
 		return DTijk;
 	} else {
 		throw std::runtime_error("Passenger distributions have not been initialized yet.");
@@ -722,10 +759,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 					DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
 				}
-			} else {
-				DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
-			}
+			} // end of if isFound
 		}
 	}
 
@@ -763,6 +797,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
 				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
 				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 				<<"\"})"<<std::endl);
 	} else {
 		LogOut("(\"BusDriver\""
@@ -777,11 +812,11 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0)
 				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
 				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 				<<"\"})"<<std::endl);
 	}
 
 #endif
-
 }
 
 void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
@@ -834,7 +869,6 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	vector<BufferedBase*> res;
 	res = Driver::getSubscriptionParams();
-
 	// BusDriver's features
 	res.push_back(&(lastVisited_BusStop));
 	res.push_back(&(real_DepartureTime));
@@ -842,6 +876,32 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	res.push_back(&(DwellTime_ijk));
 	res.push_back(&(busstop_sequence_no));
 	res.push_back(curr_busStopRealTimes);
+
+	Person* person = dynamic_cast<Person*>(parent);
+	ConfigParams& config = ConfigParams::GetInstance();
+	if(person)
+	{
+		if(person->getAgentSrc() == "BusController") {
+			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+			if(bustrip && (*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) {
+				std::vector<const BusStop*> busStops_temp = bustrip->getBusRouteInfo().getBusStops();
+				std::cout << "busStops_temp.size(): " << busStops_temp.size() << std::endl;
+
+				int size = busStops_temp.size();
+
+				for(int i=0;i<size;i++)
+						busStopRealTimes_vec.push_back(new Shared<BusStop_RealTimes>(ConfigParams::GetInstance().mutexStategy,BusStop_RealTimes()));
+
+
+				for(int i=0;i<size;i++)
+					res.push_back(busStopRealTimes_vec.at(i));
+
+			}
+		}
+	}
+
+
+
 	return res;
 }
 

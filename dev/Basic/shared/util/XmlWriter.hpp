@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 namespace sim_mob {
 namespace xml {
@@ -52,6 +53,10 @@ public:
 	template <class T>
 	void prop(const std::string& key, const T& val);
 
+	///Write a list (key-list-of-values)
+	template <class T>
+	void list(const std::string& plural, const std::string& singular, const T& val);
+
 	///Begin writing a property. This is used instead of prop() for classes which don't exist
 	/// (i.e., containers within the XML file itself).
 	void prop_begin(const std::string& key);
@@ -84,6 +89,50 @@ private:
 }}  //End namespace sim_mob::xml
 
 
+//Helper namespace for writing lists.
+namespace {
+///Write a generic list/map/whatever via iterators
+template <class IterType>
+void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
+{
+	std::string singular = write.curr_prop();
+	for (; begin!=end; begin++) {
+		write.prop(singular, *begin);
+	}
+}
+template <class IterType>
+void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
+{
+	std::string singular = write.curr_prop();
+	for (; begin!=end; begin++) {
+		write.prop(singular, **begin);
+	}
+}
+
+///Attempts to write a vector of "items" as "item", "item", ... etc.
+template <class T>
+void write_xml_list(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
+{
+	write_value_array(write, vec.begin(), vec.end());
+}
+template <class T>
+void write_xml_list(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
+{
+	write_pointer_array(write, vec.begin(), vec.end());
+}
+
+///Attempts to write a set of "items" as "item", "item", ... etc.
+template <class T>
+void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
+{
+	write_value_array(write, vec.begin(), vec.end());
+}
+template <class T>
+void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
+{
+	write_pointer_array(write, vec.begin(), vec.end());
+}
+} //End anon namespace
 
 
 ///////////////////////////////////////////////////////////////////
@@ -104,7 +153,7 @@ void sim_mob::xml::XmlWriter::attr(const std::string& key, const std::string& va
 
 void sim_mob::xml::XmlWriter::header()
 {
-	(*outFile) <<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" <<std::endl;
+	(*outFile) <<"<?xml version=\"1.0\" encoding=\"utf-8\"?>" <<std::endl;
 	(*outFile) <<std::endl;
 }
 
@@ -132,6 +181,19 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val)
 	//Recurse
 	prop_begin(key);
 	write_xml(*this, val);
+	prop_end();
+}
+
+
+//Lists require a tiny bit of hacking
+template <class T>
+void sim_mob::xml::XmlWriter::list(const std::string& plural, const std::string& singular, const T& val)
+{
+	//Recurse
+	prop_begin(plural);
+	propStack.push_back(singular);
+	write_xml_list(*this, val);
+	propStack.pop_back();
 	prop_end();
 }
 
@@ -173,69 +235,64 @@ void sim_mob::xml::XmlWriter::prop_end()
 // have an output operator if you prefer).
 ////////////////////////////////////////////////////////////////////
 
-namespace {
-//Helper: Attempt to convert a noun to its singular form.
-//TODO: This is quite heuristical; can we rely on a shared library?
-std::string SingularNoun(const std::string& noun) {
-	//Too small to matter?
-	if (noun.size()<3) { return noun; }
 
-	//Already singular?
-	if (noun[noun.size()-1]!='s') { return noun; }
-
-	//"es" plural noun?
-	if (noun[noun.size()-2]=='e') {
-		return noun.substr(0, noun.size()-2);
-	} else {
-		return noun.substr(0, noun.size()-1);
-	}
-}
-
-///Write a generic list/map/whatever via iterators
-template <class IterType>
-void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
-{
-	std::string singular = SingularNoun(write.curr_prop());
-	for (; begin!=end; begin++) {
-		write.prop(singular, *begin);
-	}
-}
-template <class IterType>
-void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
-{
-	std::string singular = SingularNoun(write.curr_prop());
-	for (; begin!=end; begin++) {
-		write.prop(singular, **begin);
-	}
-}
-} //End anon namespace
 
 namespace sim_mob { //Function specializations require an explicit namespace wrapping.
 namespace xml {
 
-///Attempts to write a vector of "items" as "item", "item", ... etc.
+
+
+///Attempts to write a pair of "items" as "first", "second"
 template <class T>
-void write_xml(XmlWriter& write, const std::vector<T>& vec)
+void write_xml(XmlWriter& write, const std::pair<T, T>& pr)
 {
-	write_value_array(write, vec.begin(), vec.end());
+	write.prop("first", pr.first);
+	write.prop("second", pr.second);
 }
 template <class T>
-void write_xml(XmlWriter& write, const std::vector<T*>& vec)
+void write_xml(XmlWriter& write, const std::pair<T*, T*>& pr)
 {
-	write_pointer_array(write, vec.begin(), vec.end());
+	write.prop("first", *pr.first);
+	write.prop("second", *pr.second);
+}
+template <class T>
+void write_xml(XmlWriter& write, const std::pair<const T*, const T*>& pr)
+{
+	write.prop("first", *pr.first);
+	write.prop("second", *pr.second);
+}
+template <class T>
+void write_xml(XmlWriter& write, const std::pair<T*, const T*>& pr)
+{
+	write.prop("first", *pr.first);
+	write.prop("second", *pr.second);
+}
+template <class T>
+void write_xml(XmlWriter& write, const std::pair<const T*, T*>& pr)
+{
+	write.prop("first", *pr.first);
+	write.prop("second", *pr.second);
 }
 
-///Attempts to write a set of "items" as "item", "item", ... etc.
-template <class T>
-void write_xml(XmlWriter& write, const std::set<T>& vec)
+///Flatten a map into a vector of "item" pairs.
+///TODO: This is somewhat inefficient; we can probably create a "write_xml" function for
+//       std::maps too. Unfortunately, we need to handle the four combinations of <T, U>,
+//       <T*, U>, <T, U*>, <T*, U*>, which gets messy.
+//       We can get around this by declaring a "write_xml" function for T* that attempts to just
+//       pass through to "write_xml" for T, but this will only work if we *definitely* do not
+//       need to do any magic with pointers. We'll know if this is possible once we generate a
+//       successful XML output file, so fo rnow flatten_map will work.
+template <class T, class U>
+std::vector< std::pair<T, U> > flatten_map(const std::map<T, U>& map)
 {
-	write_value_array(write, vec.begin(), vec.end());
+	std::vector< std::pair<T, U> > res;
+	for (typename std::map<T, U>::const_iterator it=map.begin(); it!=map.end(); it++) {
+		res.push_back(std::make_pair(it->first, it->second));
+	}
+	return res;
 }
-template <class T>
-void write_xml(XmlWriter& write, const std::set<T*>& vec)
-{
-	write_pointer_array(write, vec.begin(), vec.end());
-}
+
+//Generic stuff.
 
 template <>
 void XmlWriter::prop(const std::string& key, const std::string& val)

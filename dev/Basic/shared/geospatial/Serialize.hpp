@@ -35,7 +35,10 @@
 #include "util/XmlWriter.hpp"
 
 #include "geospatial/RoadNetwork.hpp"
-#include "boost/serialization/vector.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/Point2D.hpp"
 
 
 namespace sim_mob {
@@ -45,19 +48,49 @@ namespace xml {
 void write_xml(XmlWriter& write, const sim_mob::Link& lnk)
 {
 	//TEMP
-    write.prop("hi", 2);
+    write.prop("TODO", 2);
 }
 
 void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
 {
 	//TEMP
-    write.prop("hi", 2);
+    write.prop("TODO", 2);
+}
+
+void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
+{
+	//TEMP
+    write.prop("TODO", 2);
+}
+
+void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
+{
+	//TEMP
+    write.prop("TODO", 2);
+}
+
+void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
+{
+	//TEMP
+    write.prop("TODO", 2);
+}
+
+void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
+{
+	write.prop("xPos", pt.getX());
+	write.prop("yPos", pt.getY());
 }
 
 void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 {
-	//TEMP
-    write.prop("hi", 2);
+	write.prop("nodeID", und.nodeId);
+	write.prop("location", und.location);
+	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
+	write.prop("firstPair", und.firstPair);
+	if (und.secondPair.first && und.secondPair.second) {
+		write.prop("secondPair", und.secondPair);
+	}
+	write.list("Connectors", "Connector", flatten_map(und.getConnectors()));
 }
 
 void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
@@ -66,11 +99,11 @@ void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 
     //Nodes are also wrapped
     write.prop_begin("Nodes");
-    write.prop("UniNodes", rn.getUniNodes());
-    write.prop("Intersections", rn.getNodes());
+    write.list("UniNodes", "UniNode", rn.getUniNodes());
+    write.list("Intersections", "Intersection", rn.getNodes());
     write.prop_end(); //Nodes
 
-    write.prop("Links", rn.getLinks());
+    write.list("Links", "Link", rn.getLinks());
 	write.prop_end(); //RoadNetwork
 }
 

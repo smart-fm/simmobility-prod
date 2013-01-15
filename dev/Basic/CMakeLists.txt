@@ -265,12 +265,12 @@ add_library(SimMob_Shared OBJECT ${SharedCode_CPP})
 
 #Build an *actual* shared object for the geospatial code & XML loader.
 #TODO: For now we just include everything in the shared lib. Later we can slim it down.
-IF (CMAKE_BUILD_TYPE MATCHES "Debug") 
-  #The debug code already uses PIC
-  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
-ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
+IF (CMAKE_BUILD_TYPE MATCHES "Release") 
   #We need to re-build Release mode, since PIC is (likely) off.
   add_library(simmob_geoxml SHARED  ${SharedCode_CPP})
+ELSE()
+  #The debug (or other) code already uses PIC
+  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
 ENDIF()
 
 #Install targets for our shared library (header files)

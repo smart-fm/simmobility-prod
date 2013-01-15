@@ -13,6 +13,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
+
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else
@@ -713,28 +714,24 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
 	std::vector<TripChainItem*>& tripchain = person->getTripChain();
 	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
-    Trip* lastTrip; // pointer to current item in trip chain
-    std::cout << "\n************PARKING FOR PERSON " << (*(tripchain.begin()))->personID << "  *************************\n";
-   //find the last trip from a mix of trip/activities in the tripchain
+    Trip* trip_1; // pointer to current item in trip chain
     while(tripChainItem_it != tripchain.end())
     {
     	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
     	{
-    		lastTrip = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
+    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
     	}
     	tripChainItem_it++;
     }
 //    Node *lastSubTripEndingNode = 0;
-    std::vector<sim_mob::SubTrip>::const_iterator nextSubTrip_it = lastTrip->getSubTrips().begin();
+    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
     Node * lastSubTripEndingNode = 0;
-    lastSubTripEndingNode = const_cast<Node *>(lastTrip->getSubTrips().back().toLocation);
-//    //it reads: while the end of the next trip is not the end of the last subtrip in the current trip...
-//    //this will find the trip which matches the destination of the last subtrip in the current trip
-//    while((*nextSubTrip_it).toLocation != lastTrip->getSubTrips().back().toLocation)
-//    {
-//    	lastSubTripEndingNode = const_cast<Node *>((*nextSubTrip_it).toLocation);
-//    	nextSubTrip_it ++;
-//    }
+    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
+    {
+    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
+    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
+    	nextNonTrip_it ++;
+    }
     //now find the last sub trip within that trip
 //    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
     if(lastSubTripEndingNode)
@@ -809,7 +806,6 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 //    	getchar();
 	}
 
-	std::cout << "************End of PARKING FOR PERSON " << lastTrip->personID << "  *************************\n\n";
     //....end of vahid
 
 

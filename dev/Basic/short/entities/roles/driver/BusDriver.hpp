@@ -5,6 +5,7 @@
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include <vector>
 
 namespace sim_mob {
@@ -56,10 +57,18 @@ public:
 	bool isBusGngtoBreakDown();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
-	//void passengers_distribution(Bus* bus);
+
+//functions for boarding and alighting passengers with trip chaining
+	void BoardingPassengers(Bus* bus);
+  //  void boardBus(Bus* bus, Person* passenger);
+    void AlightingPassengers(Bus* bus);
+    //void EstimateBoardingAlightingPassengers();
+
+//functions for passenger generation with distribution
 	void passengers_Board(Bus* bus);
 	void passengers_Alight(Bus* bus);
 	double passengerGeneration(Bus* bus);
+
 	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
@@ -75,6 +84,7 @@ public:
 
 	double lastTickDistanceToBusStop;
 	bool demo_passenger_increase;
+	std::vector<const BusStop*> GetBusstops();
 	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
@@ -90,6 +100,9 @@ public:
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
 	static bool firstBusWait;
+	double xpos_approachingbusstop,ypos_approachingbusstop;
+	//std::vector<const Passenger*> passengers_at_currentbusstop;
+	//std::vector<const Passenger*> passengers_inside_bus;
 
 protected:
 	//Override the following behavior

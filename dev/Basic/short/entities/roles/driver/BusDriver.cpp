@@ -2,7 +2,8 @@
 
 #include "BusDriver.hpp"
 #include <vector>
-
+#include <iostream>
+#include <cmath>
 #include "DriverUpdateParams.hpp"
 
 #include "entities/Person.hpp"
@@ -15,14 +16,15 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/DebugFlags.hpp"
-
+#include "entities/AuraManager.hpp"
 #include "util/PassengerDistribution.hpp"
 
 using namespace sim_mob;
 using std::vector;
 using std::map;
 using std::string;
-
+using std::cout;
+//extern int estimated_boarding_passengers_no;
 namespace {
 //const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 } //End anonymous namespace
@@ -43,6 +45,8 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	wait = false;
 	firstBus = false;
 	tick = 0;
+	xpos_approachingbusstop=-1;
+	ypos_approachingbusstop=-1;
 }
 
 
@@ -377,14 +381,30 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
-		std::cout<<"velocity "<<vehicle->getVelocity()<<" "<<vehicle->getAcceleration()<<std::endl;
+
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
-				dwellTime_record = passengerGeneration(bus);
-				DwellTime_ijk.set(dwellTime_record);
+
+				//look for passengers at the bus stop
+
+			//	dwellTime_record = passengerGeneration(bus);
+			no_passengers_alighting=0;
+			no_passengers_boarding=0;
+			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
+			AlightingPassengers(bus);//first alight passengers inside the bus
+			BoardingPassengers(bus);//then board passengers waiting at the bus stop
+			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
+		//	estimated_boarding_passengers_no=0;
+			std::cout<<"alighting no"<<no_passengers_alighting<<std::endl;
+			std::cout<<"no_passengers_boarding"<<no_passengers_boarding<<std::endl;
+			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
+		//	std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+		//	std::cout<<"ypos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+			DwellTime_ijk.set(dwellTime_record);
+
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
 			}
@@ -400,10 +420,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
-								std::cout<<bustrip->startTime.getRepr_()<<std::endl;
-								std::cout<<bustrip->startTime.getValue() - ConfigParams::GetInstance().simStartTime.getValue()<<std::endl;
-								//all stops control pt stops
-								if(busstop_sequence_no.get() == 2 ){//busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
+								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
 									double waitTime = 0;
 									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
 									setWaitTime_BusStop(waitTime);
@@ -630,9 +647,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		if(last_busstop==true)
 		{
 			//no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
-			no_passengers_alighting=no_passengers_bus;/*// last bus stop, all alighting
-			if(bus->getPassengerCount() == 19) no_passengers_boarding= 1;
-			else*/
+			no_passengers_alighting=no_passengers_bus;// last bus stop, all alighting
 			no_passengers_boarding=0;// reset boarding passengers to be zero at the last bus stop(for dwell time)
 			passengers_Alight(bus);//alight the bus
 			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
@@ -640,18 +655,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 			last_busstop = false;
 		}
 		//if first busstop,only boarding
-		else if(first_busstop ==true && BusDriver::firstBusWait)
-		{
-			BusDriver::firstBusWait = false;
-			firstBus = true;
-			no_passengers_boarding = 120;
-			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
-							no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
-			passengers_Board(bus);//board the bus
-			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
-			first_busstop= false;
-		}
-		else if(first_busstop ==true && !BusDriver::firstBusWait)
+		else if(first_busstop ==true)
 		{
 			firstBus = false;
 			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
@@ -665,10 +669,8 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 		//normal busstop,both boarding and alighting
 		else
 		{
-			no_passengers_alighting = 0;
-			if(true){no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
-				passengers_Alight(bus);//alight the bus
-			}
+			no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
+			passengers_Alight(bus);//alight the bus
 			no_passengers_bus=no_passengers_bus - no_passengers_alighting;
 			bus->setPassengerCount(no_passengers_bus);
 			no_passengers_boarding=(config.percent_boarding * 0.01)*no_passengers_busstop;
@@ -687,18 +689,23 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 
 double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers)
 {
-	double alpha1 = 0.5;
-	double alpha2 = 0.5;
-	double alpha3 = 0.5;
-	double alpha4 = 0.5;
-
-	double beta1 = 0.5;
-	double beta2 = 0.5;
-	double beta3 = 0.5;
+	//assume single channel passenger movement
+	double alpha1 = 3.5;//boarding passenger service time,assuming payment by smart card
+	double alpha2 = 2.1;//alighting passenger service time,assuming alighting through rear door
+	double alpha3 = 3.5;//door opening and closing times
+	double alpha4 = 0.0;
+	int no_of_seats=40;
+   if(no_of_passengers>no_of_seats)//standees are present
+   {
+	   alpha1+=0.5;//boarding time increase if standees are present
+   }
+	double beta1 = 0.7;//fixed parameters
+	double beta2 = 0.7;
+	double beta3 = 5;
 	double DTijk = 0.0;
 	//int Pfront = 1;
 	bool bus_crowdness_factor;
-	if(no_of_passengers>50)
+	if(no_of_passengers>no_of_seats)
 		bus_crowdness_factor=1;
 	else
 		bus_crowdness_factor=0;
@@ -723,11 +730,13 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 		BusStop *bs = dynamic_cast<BusStop *>(ri);
 		int stopPoint = o_it->first;
 
+
 		if (bs) {
 			// check bs
 			int i = 0;
 			//int busstop_sequence_no = 0;
 			bool isFound=false;
+
 			for(i=0;i < busStops.size();++i)
 			{
 				if (bs->getBusstopno_() == busStops[i]->getBusstopno_())
@@ -740,6 +749,11 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 			}
 			if(isFound)
 			{
+
+				xpos_approachingbusstop=bs->xPos;
+		        ypos_approachingbusstop=bs->yPos;
+		        std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+		        std::cout<<"ypos_approachingbusstop"<<ypos_approachingbusstop<<std::endl;
 				if (busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
 				{
 					last_busstop = true;
@@ -754,10 +768,15 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 						DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(), rs->getStart()->location.getX(),rs->getStart()->location.getY());
 						distance = stopPoint - vehicle->getDistanceMovedInSegment();
 						break;
+
 					}
+
+
 				} else {
 					DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
+
+
 				}
 			} // end of if isFound
 		}
@@ -817,6 +836,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 	}
 
 #endif
+
 }
 
 void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
@@ -869,6 +889,7 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	vector<BufferedBase*> res;
 	res = Driver::getSubscriptionParams();
+
 	// BusDriver's features
 	res.push_back(&(lastVisited_BusStop));
 	res.push_back(&(real_DepartureTime));
@@ -905,3 +926,142 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	return res;
 }
 
+void sim_mob::BusDriver::AlightingPassengers(Bus* bus)//for alighting passengers
+{
+
+   if(bus->getPassengerCount()>0)
+	  {
+	   int i=0;
+	   vector<Person*>::iterator itr=bus->passengers_inside_bus.begin();
+	   while (itr != bus->passengers_inside_bus.end())
+		  {
+		   //Retrieve only Passenger agents inside the bus
+			Person* p = bus->passengers_inside_bus[i];
+			Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+			if (!passenger) {
+					continue;
+				}
+
+			if(passenger->isBusBoarded()==true)//alighting is only for a passenger who has boarded the bus
+			{
+            	if(passenger->PassengerAlightBus(bus,xpos_approachingbusstop, ypos_approachingbusstop,this)==true)//check if passenger wants to alight the bus
+					{
+					   itr=(bus->passengers_inside_bus).erase(bus->passengers_inside_bus.begin()+i);
+					   no_passengers_alighting++;
+
+					}
+            	 else
+            	   {
+            		 itr++;
+            		 i++;
+            	   }
+				/*	if ((abs((xpos_approachingbusstop/1000)-(passenger->getDestPosition().getX()/1000))<=2)  and (abs((ypos_approachingbusstop/1000)-(passenger->getDestPosition().getY()/1000))<=2))
+					{
+                          //alight
+						  no_passengers_alighting++;
+						  //delete passenger agent from list
+						  itr=(bus->passengers_inside_bus).erase(bus->passengers_inside_bus.begin()+i);
+						  //bus->passengers_inside_bus.erase(p);
+						  bus->setPassengerCount(bus->getPassengerCount()-1);
+						 // passenger->passenger_inside_bus.set(false);
+						  passenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
+						  passenger->alightedBus.set(true);
+						  passenger->boardedBus.set(false);
+
+						  //pr->updateParentCoordinates(pr->getDestX(),pr->getDestY());
+
+						  passenger->updateParentCoordinates(xpos_approachingbusstop,ypos_approachingbusstop);
+
+					}
+					else
+					{
+					   itr++;
+					   i++;
+					}*/
+
+
+                 }
+					/*	vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestDrivingPath(*parent->destNode,*vehicle->getNodeMovingFrom());
+
+						  for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++)
+						  	 {
+						  		 if (it->type_ == WayPoint::BUS_STOP)
+						  		 {
+						  			 pr->updateParentCoordinates(it->busStop_->xPos,it->busStop_->yPos);
+
+						  		 }
+						  		 if (it->type_ == WayPoint::SIDE_WALK)
+						  		 {
+						  			pr->updateParentCoordinates(it->lane_->polyline_[0].getX(),it->lane_->polyline_[0].getY());
+						  		 }
+						  	 }
+						  	 */
+				//	}
+
+
+	         }
+
+	}
+}
+
+void sim_mob::BusDriver::BoardingPassengers(Bus* bus)//boarding passengers
+{
+
+	int j=0,k=0;
+	bool ApproachingBusStop=false;
+	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(), vehicle->getY()), *params.currLane,3500,3500);
+	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
+//	for (size_t i = 0; i < Agent::all_agents.size(); i++)//loop through all the agents to find passenger agents who are waiting at the approaching bus stop
+     {
+		//Retrieve only Passenger agents.
+		const Person* person = dynamic_cast<const Person *> (*it);
+		Person* p = const_cast< Person *> (person);
+		Passenger* passenger = p ? dynamic_cast< Passenger*>(p->getRole()) : nullptr;
+		if (!passenger)
+            {
+				continue;
+			}
+
+		if((  abs((passenger->getXYPosition().getX()/1000)-(xpos_approachingbusstop/1000)) <=2) and ( abs((passenger->getXYPosition().getY()/1000)-(ypos_approachingbusstop/1000))<=2) )
+			{
+
+                if(passenger->isAtBusStop()==true) //if passenger agent is waiting at the approaching bus stop
+				  {
+					 for( k=0;k < busStops.size();k=k+1)//bus should stop at the approaching bus stop,ie,stop is in the bus route
+					  {
+						 if(busStops[k]->xPos==xpos_approachingbusstop)
+						  {
+							 std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+							ApproachingBusStop=true;
+							k=k+1;
+							break;
+						   }
+
+					   }
+					  if(ApproachingBusStop==false)
+						return;
+					  if(ApproachingBusStop==true and k==busStops.size())//last bus stop,no boarding allowed
+					   {
+						  return;
+					   }
+					if(passenger->PassengerBoardBus(bus,this,p,busStops,k)==true)//check if passenger wants to board the bus
+					{
+						no_passengers_boarding++;//set the number of boarding passengers
+						//bus->setPassengerCount( bus->getPassengerCount()+no_passengers_boarding);
+					}
+				}
+
+		}
+   }
+
+}
+vector<const BusStop*> sim_mob::BusDriver::GetBusstops()
+{
+	return busStops;
+}
+/*void sim_mob::BusDriver::boardBus(Bus* bus,Person* passenger)//for boarding passenger agents waiting at the bus stop
+{
+
+	bus->passengers_inside_bus.push_back(passenger);
+
+}*/

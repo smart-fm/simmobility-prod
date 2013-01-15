@@ -197,7 +197,6 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
@@ -337,6 +336,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 		if (agentType == "busdriver")
 			props["#mode"] = "Bus";
+		if (agentType == "passenger")
+					props["#mode"] = "travel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -1106,8 +1107,7 @@ void PrintDB_Network_ptrBased()
 		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
 		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
 
-//		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
-//		unsigned int toLane =(*it)->getLaneTo()->getLaneID();
+		//Output
 		LogOutNotSync("(\"lane-connector\", 0, " <<*it <<", {");
 		LogOutNotSync("\"from-segment\":\"" <<fromSeg <<"\",");
 		LogOutNotSync("\"from-lane\":\"" <<fromLane <<"\",");
@@ -1926,7 +1926,14 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
-    	} else {
+    	}
+    	else if ((*it) == "passengers") {
+    	    		if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
+    	    			return "Couldn't load passengers";
+    	    		}
+    	    		cout <<"Loaded Passenger Agents (from config file)." <<endl;
+    	    	}
+    	else {
     		return string("Unknown item in load_agents: ") + (*it);
     	}
     }

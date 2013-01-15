@@ -43,6 +43,7 @@ public:
 		return busline;
 	}
 
+	std::vector<sim_mob::Person*> passengers_inside_bus;//added by Meenu
 private:
 	int passengerCount;
 	int passengerCount_Old;// record for dwell time

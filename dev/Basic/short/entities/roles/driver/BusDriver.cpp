@@ -178,6 +178,11 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 }
 double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 {
+	if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
+		{
+			isAleadyStarted = true;
+		}
+		p.isAlreadyStart = isAleadyStarted;
 
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
@@ -484,7 +489,9 @@ double sim_mob::BusDriver::distanceToNextBusStop()
 //	}
 
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
+	double distanceToNextSegmentBusStop = -1;
+	if (vehicle->hasNextSegment(true))
+		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);

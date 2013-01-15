@@ -131,7 +131,7 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
-
+	int lastIndex;
 
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;

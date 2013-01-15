@@ -56,6 +56,7 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		vector<const RoadSegment*> path;
 		Person* person = dynamic_cast<Person*>(parent);
 		int vehicle_id = 0;
+		int laneID = -1;
 		if(person) {
 			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 			if(!bustrip)	std::cout << "bustrip is null\n";
@@ -63,6 +64,10 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 				path = bustrip->getBusRouteInfo().getRoadSegments();
 				std::cout << "BusTrip path size = " << path.size() << std::endl;
 				vehicle_id = bustrip->getVehicleID();
+				if(path.size() > 0)
+				{
+					laneID = path.at(0)->getLanes().size()-2;
+				}
 			}
 			else
 			{
@@ -75,7 +80,14 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 0;
+		int startlaneID = 1;
+		
+		BusDriver* v = dynamic_cast<BusDriver*>(this);
+		if(v && laneID!=-1)
+		{
+			startlaneID = laneID;//need to check if lane valid
+			//parentP->laneID = -1;
+		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer
 		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
@@ -231,7 +243,17 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //			nv = NearestVehicle();
 //		}
 //	}
+    if ( isAleadyStarted == false )
+	{
+		if(nv.distance<=0)
+		{
+			if(getDriverParent(nv.driver)->getId() > this->parent->getId())
+			{
+				nv = NearestVehicle();
+			}
 
+		}
+	}
 	//this function make the issue Ticket #86
 	perceivedDataProcess(nv, p);
 
@@ -243,6 +265,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	p.currSpeed = vehicle->getVelocity() / 100;
 	double newFwdAcc = 0;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	if(abs(vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && vehicle->getVelocity() / 100>10)
+	{
+		newFwdAcc = 0;
+	}
 	vehicle->setAcceleration(newFwdAcc * 100);
 
 	//}
@@ -271,6 +297,14 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel * 10);
+	if(vehicle->getLatVelocity()>0)
+		vehicle->setTurningDirection(LCS_LEFT);
+	else if(vehicle->getLatVelocity()<0)
+		vehicle->setTurningDirection(LCS_RIGHT);
+	else
+		vehicle->setTurningDirection(LCS_SAME);
+
+	p.turningDirection = vehicle->getTurningDirection();
 
 	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
 	{

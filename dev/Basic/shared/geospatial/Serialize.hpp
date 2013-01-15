@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include <set>
+#include <vector>
 #include <iostream>
 #include <stdexcept>
 #include <boost/noncopyable.hpp>
@@ -33,19 +35,45 @@
 #include "util/XmlWriter.hpp"
 
 #include "geospatial/RoadNetwork.hpp"
+#include "boost/serialization/vector.hpp"
+
 
 namespace sim_mob {
 namespace xml {
 
 
-//TODO: Serialization functions go here.
-void write_xml(xml_writer& write, const sim_mob::RoadNetwork& rn) {
-	write.prop("my_prop", 2);
-	write.prop("my_side", rn.drivingSide);
+void write_xml(XmlWriter& write, const sim_mob::Link& lnk)
+{
+	//TEMP
+    write.prop("hi", 2);
 }
 
-void write_xml(xml_writer& write, const sim_mob::DRIVING_SIDE& temp) {
-	write.attr("internal_attr", "2");
+void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
+{
+	//TEMP
+    write.prop("hi", 2);
 }
+
+void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
+{
+	//TEMP
+    write.prop("hi", 2);
+}
+
+void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
+{
+    write.prop_begin("RoadNetwork");
+
+    //Nodes are also wrapped
+    write.prop_begin("Nodes");
+    write.prop("UniNodes", rn.getUniNodes());
+    write.prop("Intersections", rn.getNodes());
+    write.prop_end(); //Nodes
+
+    write.prop("Links", rn.getLinks());
+	write.prop_end(); //RoadNetwork
+}
+
+
 
 }}

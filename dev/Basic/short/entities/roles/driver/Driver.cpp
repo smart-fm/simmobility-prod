@@ -613,7 +613,7 @@ bool sim_mob::Driver::update_post_movement(DriverUpdateParams& params, timeslice
 	}
 
 	//Has the segment changed?
-	if (!vehicle->isInIntersection() && params.justChangedToNewSegment) {
+	if (!vehicle->isInIntersection()) {
 		//Make pre-intersection decisions?
 		if (!vehicle->hasNextSegment(true))
 		{

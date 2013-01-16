@@ -394,6 +394,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			no_passengers_alighting=0;
 			no_passengers_boarding=0;
 			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
+			bus->setPassengerCountOld(bus->getPassengerCount());
 			AlightingPassengers(bus);//first alight passengers inside the bus
 			BoardingPassengers(bus);//then board passengers waiting at the bus stop
 			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
@@ -420,7 +421,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
-								if(busline->getControl_TimePointNum() == busstop_sequence_no.get()) { // only use holding control at selected time points
+								if(busstop_sequence_no.get() == 2) { // only use holding control at selected time points
 									double waitTime = 0;
 									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
 									setWaitTime_BusStop(waitTime);

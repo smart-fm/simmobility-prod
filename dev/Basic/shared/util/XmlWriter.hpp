@@ -17,6 +17,24 @@ namespace sim_mob {
 namespace xml {
 
 /**
+ * Template class used for specifying the name that elements in an STL container can take.
+ * This class serves to address a particular problem: we provide helper write_xml() wrappers
+ * for vectors, sets, etc., but what happens if the user has two different sets, and wants
+ * to name the elements in each set differently? What if we also want to provide a sensible default,
+ * such as "item" for vectors?
+ *
+ * To accomplish this, you can pass in a "naming", using syntax such as "naming<"item">"
+ * or "naming<"roadSegment">". These should be chain-able (e.g., a naming for vectors of pairs)
+ * ---indeed, that's the whole point.
+ */
+struct naming {
+	naming(const std::string& name) : name(name) {}
+	std::string name;
+};
+
+
+
+/**
  * Class which allows for simple recursive writing of an XML file.
  * The recursive descent through external methods is based somewhat on boost::serialization,
  * but is far more narrow in focus (writing XML only).
@@ -50,9 +68,13 @@ public:
 	///Write an attribute on the current property.
 	void attr(const std::string& key, const std::string& val);
 
-	///Write a property (key-value pair).
+	///Write a simple property (key-value pair).
 	template <class T>
 	void prop(const std::string& key, const T& val);
+
+	///Write a slightly more complex property.
+	template <class T>
+	void prop(const std::string& key, const T& val, naming name);
 
 	///Write a list (key-list-of-values)
 	template <class T>
@@ -106,12 +128,17 @@ private:
 };
 
 
-//Function prototypes
+//Function prototypes: generally you should override these, and not the ones with the
+// "naming" parameter.
 template <class T>
 void write_xml(XmlWriter&, const T&);
 template <class T>
 std::string get_id(const T&);
 
+//The function write_xml with a naming parameter can be used to override naming
+// on vectors, sets, etc.
+template <class T>
+void write_xml(XmlWriter&, const T&, naming name);
 
 }}  //End namespace sim_mob::xml
 
@@ -128,9 +155,9 @@ void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType 
 	}
 }
 template <class IterType>
-void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
+void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::naming name=sim_mob::xml::naming(""))
 {
-	std::string singular = write.curr_prop();
+	std::string singular = name.name.empty() ? write.curr_prop() : name.name;
 	for (; begin!=end; begin++) {
 		write.prop(singular, **begin);
 	}
@@ -153,6 +180,7 @@ void write_pointer_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, I
 		write.ident(singular, **begin);
 	}
 }
+
 
 ///Attempts to write a vector of "items" as "item", "item", ... etc.
 template <class T>
@@ -282,13 +310,21 @@ void sim_mob::xml::XmlWriter::write_simple_prop(const std::string& key, const T&
 }
 
 
-//This function does all the heavy lifting; dispatching as appropriate.
+//These functions do all the heavy lifting; dispatching as appropriate.
 template <class T>
 void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val)
 {
 	//Recurse
 	prop_begin(key);
 	write_xml(*this, val);
+	prop_end();
+}
+template <class T>
+void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, naming name)
+{
+	//Recurse
+	prop_begin(key);
+	write_xml(*this, val, name);
 	prop_end();
 }
 
@@ -386,6 +422,23 @@ void sim_mob::xml::XmlWriter::prop_end()
 
 namespace sim_mob { //Function specializations require an explicit namespace wrapping.
 namespace xml {
+
+//////////////////////////////////////////////////////////////////////
+//Test function. Functions of this kind will replace the write_xml_list functions listed earlier.
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, naming name)
+{
+	write_pointer_array(write, vec.begin(), vec.end(), name);
+}
+//Two-parameter functions (for containers) pass *up*
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
+{
+	write_pointer_array(write, vec.begin(), vec.end(), naming("item"));
+}
+//////////////////////////////////////////////////////////////////////
+
+
 
 ///Attempts to write a pair of "items" as "first", "second"
 template <class T>

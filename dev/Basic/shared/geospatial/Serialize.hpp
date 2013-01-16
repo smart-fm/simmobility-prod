@@ -174,7 +174,7 @@ void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 
     //Nodes are also wrapped
     write.prop_begin("Nodes");
-    write.list("UniNodes", "UniNode", rn.getUniNodes());
+    write.prop("UniNodes", rn.getUniNodes(), naming("UniNode"));
 
     //TODO: This will fail unless getNodes() returns ONLY intersections.
     write.list("Intersections", "Intersection", rn.getNodes());

@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 #include <map>
 
 namespace sim_mob {
@@ -26,12 +27,59 @@ namespace xml {
  * To accomplish this, you can pass in a "naming", using syntax such as "naming<"item">"
  * or "naming<"roadSegment">". These should be chain-able (e.g., a naming for vectors of pairs)
  * ---indeed, that's the whole point.
+ *
+ * \note
+ * I'm in the process of changing a "naming" to a "namer", which has three benefits:
+ *    1) It can be nested (so pairs, vectors of maps, etc. are ok).
+ *    2) It can specify "value" or "id" expansion.
+ *    3) One can construct them with a series of static functions that can be nested.
+ * I almost called it "expander", but then I figured that no-one would ever use it.
+ * Better to call it "namer", since that's what most people will use it for.
  */
-struct naming {
-	explicit naming(const std::string& name) : name(name) {}
-	std::string name;
-};
+class namer {
+public:
+	//How shall we expand properties? By printing their ids, or by printing them by value.
+	enum ExpandPolicy { Exp_Value, Exp_ID };
 
+	//What are we expanding? Each frame lists a custom name to use, and a policy for expanding the current item.
+	struct ExpandFrame {
+		ExpandFrame(const std::string& name, ExpandPolicy exp) : name(name), exp(exp) {}
+		std::string  name;
+		ExpandPolicy exp;
+	};
+
+	///Retrieve the next item to parse, popping it from the stack at the same time.
+	ExpandFrame next() {
+		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
+		ExpandFrame res = frames.front();
+		frames.erase(frames.begin());
+		return res;
+	}
+
+	///Construct a namer for an array.
+	static namer array(const std::string& name="item", ExpandPolicy type=Exp_Value) {
+		//Simple construction for now (recurse later)
+		std::vector<ExpandFrame> items;
+		items.push_back(ExpandFrame(name, type));
+		return namer(items);
+	}
+
+	///Construct a namer for a pair of items.
+	static namer pair(const std::string& firstName="first", const std::string& secondName="second", ExpandPolicy firstType=Exp_Value, ExpandPolicy secondType=Exp_Value) {
+		//Simple construction for now (recurse later)
+		std::vector<ExpandFrame> items;
+		items.push_back(ExpandFrame(firstName, firstType));
+		items.push_back(ExpandFrame(secondName, secondType));
+		return namer(items);
+	}
+
+private:
+	//Direct construction is discouraged; copy-construction is ok.
+	namer(const std::vector<ExpandFrame>& items) : frames(items) {}
+
+	//Our list of frames (policy expansions). The front() is the next one to use.
+	std::vector<ExpandFrame> frames;
+};
 
 
 /**
@@ -74,7 +122,7 @@ public:
 
 	///Write a slightly more complex property.
 	template <class T>
-	void prop(const std::string& key, const T& val, naming name);
+	void prop(const std::string& key, const T& val, namer name);
 
 	///Write a list (key-list-of-values)
 	/*template <class T>
@@ -138,7 +186,7 @@ std::string get_id(const T&);
 //The function write_xml with a naming parameter can be used to override naming
 // on vectors, sets, etc.
 template <class T>
-void write_xml(XmlWriter&, const T&, naming name);
+void write_xml(XmlWriter&, const T&, namer name);
 
 }}  //End namespace sim_mob::xml
 
@@ -147,17 +195,19 @@ void write_xml(XmlWriter&, const T&, naming name);
 namespace {
 ///Write a generic list/map/whatever via iterators
 template <class IterType>
-void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::naming name=sim_mob::xml::naming(""))
+void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
+	sim_mob::xml::namer::ExpandFrame frame = name.next();
 	for (; begin!=end; begin++) {
-		write.prop(name.name, *begin);
+		write.prop(frame.name, *begin);
 	}
 }
 template <class IterType>
-void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::naming name=sim_mob::xml::naming(""))
+void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
+	sim_mob::xml::namer::ExpandFrame frame = name.next();
 	for (; begin!=end; begin++) {
-		write.prop(name.name, **begin);
+		write.prop(frame.name, **begin);
 	}
 }
 
@@ -179,30 +229,6 @@ void write_pointer_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, I
 	}
 }
 
-
-///Attempts to write a vector of "items" as "item", "item", ... etc.
-/*template <class T>
-void write_xml_list(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
-{
-	write_value_array(write, vec.begin(), vec.end());
-}
-template <class T>
-void write_xml_list(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
-{
-	write_pointer_array(write, vec.begin(), vec.end());
-}
-
-///Attempts to write a set of "items" as "item", "item", ... etc.
-template <class T>
-void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
-{
-	write_value_array(write, vec.begin(), vec.end());
-}
-template <class T>
-void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
-{
-	write_pointer_array(write, vec.begin(), vec.end());
-}*/
 
 ///Write a list of identifiers.
 template <class T>
@@ -318,7 +344,7 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val)
 	prop_end();
 }
 template <class T>
-void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, naming name)
+void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer name)
 {
 	//Recurse
 	prop_begin(key);
@@ -326,18 +352,6 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, naming 
 	prop_end();
 }
 
-
-/*//Lists require a tiny bit of hacking
-template <class T>
-void sim_mob::xml::XmlWriter::list(const std::string& plural, const std::string& singular, const T& val)
-{
-	//Recurse
-	prop_begin(plural);
-	propStack.push_back(singular);
-	write_xml_list(*this, val);
-	propStack.pop_back();
-	prop_end();
-}*/
 
 
 //Write an identifier
@@ -427,7 +441,7 @@ namespace xml {
 //////////////////////////////////////////////////////////////////////
 //Test function. Functions of this kind will replace the write_xml_list functions listed earlier.
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, namer name)
 {
 	write_pointer_array(write, vec.begin(), vec.end(), name);
 }
@@ -435,12 +449,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, naming n
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), naming("item"));
+	write_pointer_array(write, vec.begin(), vec.end(), namer::array());
 }
 
 //Test function. Functions of this kind will replace the write_xml_list functions listed earlier.
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec, namer name)
 {
 	write_pointer_array(write, vec.begin(), vec.end(), name);
 }
@@ -448,47 +462,49 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec, namin
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), naming("item"));
+	write_pointer_array(write, vec.begin(), vec.end(), namer::array());
 }
 
 
 //TEMP: Write value array. (Can we remove the need for value arrays later?)
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name)
 {
 	write_value_array(write, vec.begin(), vec.end(), name);
 }
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 {
-	write_value_array(write, vec.begin(), vec.end(), "item");
+	write_value_array(write, vec.begin(), vec.end(), namer::array());
 }
 
 
 
 //Test function for pairs
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, namer name)
 {
-	write.prop(name.name, *pr.first);
-	write.prop(name.name, *pr.second);
+	sim_mob::xml::namer::ExpandFrame frame = name.next();
+	write.prop(frame.name, *pr.first);
+	frame = name.next();
+	write.prop(frame.name, *pr.second);
 }
 //Delegate up
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr)
 {
-	write_xml(write, pr, naming("FIRST"));
+	write_xml(write, pr, namer::pair());
 }
 
 
 //Pairs: Delegate const variability up
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, U*>& pr, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, U*>& pr, namer name)
 {
 	write_xml(write, std::pair<const T*, const U*>(pr), name);
 }
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T*, const U*>& pr, naming name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T*, const U*>& pr, namer name)
 {
 	write_xml(write, std::pair<const T*, const U*>(pr), name);
 }
@@ -506,38 +522,6 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T*, const U*>& pr
 //////////////////////////////////////////////////////////////////////
 
 
-
-///Attempts to write a pair of "items" as "first", "second"
-/*template <class T>
-void write_xml(XmlWriter& write, const std::pair<T, T>& pr)
-{
-	write.prop("first", pr.first);
-	write.prop("second", pr.second);
-}
-template <class T>
-void write_xml(XmlWriter& write, const std::pair<T*, T*>& pr)
-{
-	write.prop("first", *pr.first);
-	write.prop("second", *pr.second);
-}
-template <class T>
-void write_xml(XmlWriter& write, const std::pair<const T*, const T*>& pr)
-{
-	write.prop("first", *pr.first);
-	write.prop("second", *pr.second);
-}
-template <class T>
-void write_xml(XmlWriter& write, const std::pair<T*, const T*>& pr)
-{
-	write.prop("first", *pr.first);
-	write.prop("second", *pr.second);
-}*/
-/*template <class T>
-void write_xml(XmlWriter& write, const std::pair<const T*, T*>& pr)
-{
-	write.prop("first", *pr.first);
-	write.prop("second", *pr.second);
-}*/
 
 ///Flatten a map into a vector of "item" pairs.
 ///TODO: This is somewhat inefficient; we can probably create a "write_xml" function for

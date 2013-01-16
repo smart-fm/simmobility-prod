@@ -66,6 +66,7 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
+	   lastVisitedStop_SequenceNumber = -1;
 }
 
 void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
@@ -110,7 +111,16 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
-//	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
+
+	std::map<int,std::vector<int> > schedTimes =  ConfigParams::GetInstance().scheduledTImes;
+	for(std::map<int,std::vector<int> >::iterator temp=schedTimes.begin();temp != schedTimes.end();temp++)
+	{
+		BusStop_ScheduledTimes busStop_RealTimes(startTime + DailyTime(temp->second.at(0)),startTime + DailyTime(temp->second.at(1)));
+		busStop_RealTimes.Scheduled_busStop = NULL;
+		busStopScheduledTimes_vec.push_back(busStop_RealTimes);
+		std::cout<<startTime.getValue()<<" "<<temp->second.at(0)<<" "<<busStop_RealTimes.scheduled_ArrivalTime.getValue()<<" "<<busStop_RealTimes.scheduled_ArrivalTime.getValue() - ConfigParams::GetInstance().simStartTime.getValue()<<std::endl;
+	}
+	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;
 }
 

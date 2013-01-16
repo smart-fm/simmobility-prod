@@ -121,8 +121,8 @@ public:
 	bool dynamicDispatchDisabled;
 
 public:
-
 	int signalTimingMode;
+	int signalAlgorithm;
 
 	//When the simulation begins
 	DailyTime simStartTime;
@@ -160,6 +160,14 @@ public:
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputDisabled() const {
+#ifdef SIMMOB_DISABLE_OUTPUT
+		return true;
+#else
+		return false;
+#endif
+	}
+	
+	bool Output_Disabled() const {
 #ifdef SIMMOB_DISABLE_OUTPUT
 		return true;
 #else
@@ -249,6 +257,9 @@ public:
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
 	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
 	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops() { return pt_bus_stops; }
+
+	//Temporary: Santhosh
+	std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }

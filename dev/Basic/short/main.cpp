@@ -893,7 +893,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-	rf.registerRole("BusPassenger",new sim_mob::Passenger(nullptr));
+	//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
+
+	rf.registerRole("passenger",new sim_mob::Passenger(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
@@ -1053,6 +1055,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
+		size_t numPassenger = 0;
 		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
 				!= Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
@@ -1064,12 +1067,15 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
 					numPedestrian++;
 				}
+				if (p->getRole() && dynamic_cast<Passenger*> (p->getRole())) {
+					numPassenger++;
+								}
 			}
 		}
 		cout << "Remaining Agents: " << numPerson << " (Person)   "
 				<< (Agent::all_agents.size() - numPerson) << " (Other)" << endl;
 		cout << "   Person Agents: " << numDriver << " (Driver)   "
-				<< numPedestrian << " (Pedestrian)   " << (numPerson
+				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 

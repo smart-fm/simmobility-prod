@@ -67,6 +67,10 @@ public:
 	template <class T, class U>
 	void ident(const std::string& key, const T& first, const U& second);
 
+	///Write a list of identifiers
+	template <class T>
+	void ident_list(const std::string& plural, const std::string& singular, const T& val);
+
 	///Begin writing a property. This is used instead of prop() for classes which don't exist
 	/// (i.e., containers within the XML file itself).
 	void prop_begin(const std::string& key);
@@ -132,6 +136,24 @@ void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterTyp
 	}
 }
 
+///Same, but for identifiers.
+template <class IterType>
+void write_value_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
+{
+	std::string singular = write.curr_prop();
+	for (; begin!=end; begin++) {
+		write.ident(singular, *begin);
+	}
+}
+template <class IterType>
+void write_pointer_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
+{
+	std::string singular = write.curr_prop();
+	for (; begin!=end; begin++) {
+		write.ident(singular, **begin);
+	}
+}
+
 ///Attempts to write a vector of "items" as "item", "item", ... etc.
 template <class T>
 void write_xml_list(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
@@ -154,6 +176,30 @@ template <class T>
 void write_xml_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
 {
 	write_pointer_array(write, vec.begin(), vec.end());
+}
+
+///Write a list of identifiers.
+template <class T>
+void write_ident_list(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
+{
+	write_value_ident_array(write, vec.begin(), vec.end());
+}
+template <class T>
+void write_ident_list(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
+{
+	write_pointer_ident_array(write, vec.begin(), vec.end());
+}
+
+///Same, but witha  set.
+template <class T>
+void write_ident_list(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
+{
+	write_value_ident_array(write, vec.begin(), vec.end());
+}
+template <class T>
+void write_ident_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
+{
+	write_pointer_ident_array(write, vec.begin(), vec.end());
 }
 
 //Helper: Escape illegal symbols inside XML elements/attributes
@@ -284,6 +330,18 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, cons
 	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<first>" <<get_id(first) <<"</first>" <<std::endl;
 	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<second>" <<get_id(second) <<"</second>" <<std::endl;
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"</" <<key <<"/>" <<std::endl;
+}
+
+//Write a list of identifiers
+template <class T>
+void sim_mob::xml::XmlWriter::ident_list(const std::string& plural, const std::string& singular, const T& val)
+{
+	//Same as a regular ident(), but in list format.
+	prop_begin(plural);
+	propStack.push_back(singular);
+	write_ident_list(*this, val);
+	propStack.pop_back();
+	prop_end();
 }
 
 void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)

@@ -38,9 +38,10 @@
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/Intersection.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
 
 
@@ -74,12 +75,6 @@ void write_xml(XmlWriter& write, const sim_mob::Link& lnk)
     write.prop("TODO", 2);
 }
 
-template <>
-void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
-{
-	//TEMP
-    write.prop("TODO", 2);
-}
 
 template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
@@ -110,11 +105,52 @@ void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, sim_mob::
 	write.ident("laneTo", *connectors.second);
 }
 
+//This one's a bit too complex to handle automatically.
+template <>
+void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & connectors)
+{
+	for (std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
+		//Turn our set of lane connectors into a vector of Lane pairs.
+		std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> > temp_list;
+		for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt=it->second.begin(); lcIt!=it->second.end(); lcIt++) {
+			temp_list.push_back(std::make_pair((*lcIt)->getLaneFrom(), const_cast<sim_mob::Lane*>((*lcIt)->getLaneTo())));
+		}
+
+		//Print
+		write.ident("RoadSegment", *it->first);
+		write.list("Connectors", "Connector", temp_list);
+	}
+}
+
+
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
 {
 	write.prop("xPos", pt.getX());
 	write.prop("yPos", pt.getY());
+}
+
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::Intersection& in)
+{
+	write.prop("nodeID", in.nodeId);
+	write.prop("location", in.location);
+	write.prop("originalDB_ID", in.originalDB_ID.getLogItem());
+	write.ident_list("roadSegmentsAt", "segmentID", in.getRoadSegments());
+
+	write.prop_begin("Connectors");
+	write.prop("MultiConnectors", in.getConnectors());
+	write.prop_end();
+
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
+{
+	//Try to dispatch to intersection.
+	//TODO: This will fail when our list of Nodes also contains roundabouts.
+	write_xml(write, dynamic_cast<const sim_mob::Intersection&>(mnd));
 }
 
 template <>
@@ -133,11 +169,14 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 {
+	//Start writing
     write.prop_begin("RoadNetwork");
 
     //Nodes are also wrapped
     write.prop_begin("Nodes");
     write.list("UniNodes", "UniNode", rn.getUniNodes());
+
+    //TODO: This will fail unless getNodes() returns ONLY intersections.
     write.list("Intersections", "Intersection", rn.getNodes());
     write.prop_end(); //Nodes
 

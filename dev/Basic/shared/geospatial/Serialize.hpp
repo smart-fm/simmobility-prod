@@ -118,7 +118,7 @@ void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std
 
 		//Print
 		write.ident("RoadSegment", *it->first);
-		write.list("Connectors", "Connector", temp_list);
+		write.prop("Connectors", temp_list, naming("Connector"));
 	}
 }
 
@@ -159,11 +159,11 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	write.prop("nodeID", und.nodeId);
 	write.prop("location", und.location);
 	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
-	write.ident("firstPair", *und.firstPair.first, *und.firstPair.second);
+	write.prop("firstPair", und.firstPair);
 	if (und.secondPair.first && und.secondPair.second) {
 		write.ident("secondPair", *und.secondPair.first, *und.secondPair.second);
 	}
-	write.list("Connectors", "Connector", flatten_map(und.getConnectors()));
+	write.prop("Connectors", flatten_map(und.getConnectors()), naming("Connector"));
 }
 
 template <>
@@ -177,10 +177,10 @@ void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
     write.prop("UniNodes", rn.getUniNodes(), naming("UniNode"));
 
     //TODO: This will fail unless getNodes() returns ONLY intersections.
-    write.list("Intersections", "Intersection", rn.getNodes());
+    write.prop("Intersections", rn.getNodes(), naming("Intersection"));
     write.prop_end(); //Nodes
 
-    write.list("Links", "Link", rn.getLinks());
+    write.prop("Links", rn.getLinks(), naming("Link"));
 	write.prop_end(); //RoadNetwork
 }
 

@@ -328,7 +328,7 @@ public class DriverTick extends AgentTick {
 		//Draw the car
 		g.drawImage(toDraw, 0, 0, null);
 		
-		if(frame < 1267)
+		if(false && frame < 1267)
 		{
 		//Draw a circle with its id
 			Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);

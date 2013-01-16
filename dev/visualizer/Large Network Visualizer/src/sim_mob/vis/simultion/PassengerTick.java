@@ -200,6 +200,8 @@ public class PassengerTick extends AgentTick {
 		
 			g.drawImage(toDraw, 0, 0, null);
 			   //Draw a circle with its id
+			if(false)
+			{
 				Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
 				final int Size = 20;
 				
@@ -214,6 +216,7 @@ public class PassengerTick extends AgentTick {
 				g.setFont(DriverTick.idFont);
 				int strW = g.getFontMetrics().stringWidth(""+ (id-1));
 				g.drawString(""+ (id - 1), center.x-strW/2+1, center.y+4);
+			}
 
 			
 				

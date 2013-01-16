@@ -740,8 +740,8 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 
 				xpos_approachingbusstop=bs->xPos;
 		        ypos_approachingbusstop=bs->yPos;
-		        std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
-		        std::cout<<"ypos_approachingbusstop"<<ypos_approachingbusstop<<std::endl;
+		        //std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+		        //std::cout<<"ypos_approachingbusstop"<<ypos_approachingbusstop<<std::endl;
 				if (busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
 				{
 					last_busstop = true;
@@ -1019,7 +1019,7 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus)//boarding passengers
 					  {
 						 if(busStops[k]->xPos==xpos_approachingbusstop)
 						  {
-							 std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
+							 //std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
 							ApproachingBusStop=true;
 							k=k+1;
 							break;

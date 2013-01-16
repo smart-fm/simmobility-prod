@@ -48,12 +48,22 @@ public:
 		ExpandPolicy exp;
 	};
 
-	///Retrieve the next item to parse, popping it from the stack at the same time.
-	ExpandFrame next() {
+	///Remove the curr frame.
+	void pop() {
 		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
-		ExpandFrame res = frames.front();
 		frames.erase(frames.begin());
-		return res;
+	}
+
+	///Peek at the current key; don't remove it from the stack.
+	std::string currKey() {
+		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
+		return frames.front().name;
+	}
+
+	///Peek at the current expand type; don't remove it from the stack.
+	ExpandPolicy currPolicy() {
+		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
+		return frames.front().exp;
 	}
 
 	///Construct a namer for an array.
@@ -71,6 +81,9 @@ public:
 		items.push_back(ExpandFrame(firstName, firstType));
 		items.push_back(ExpandFrame(secondName, secondType));
 		return namer(items);
+	}
+	static namer pair(ExpandPolicy firstType, ExpandPolicy secondType=Exp_Value, const std::string& firstName="first", const std::string& secondName="second") {
+		return namer::pair(firstName, secondName, firstType, secondType);
 	}
 
 private:
@@ -134,8 +147,8 @@ public:
 	void ident(const std::string& key, const T& val);
 
 	///Write an identifier that consists of a pair of values.
-	template <class T, class U>
-	void ident(const std::string& key, const T& first, const U& second);
+	/*template <class T, class U>
+	void ident(const std::string& key, const T& first, const U& second);*/
 
 	///Write a list of identifiers
 	template <class T>
@@ -197,18 +210,18 @@ namespace {
 template <class IterType>
 void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
-	sim_mob::xml::namer::ExpandFrame frame = name.next();
 	for (; begin!=end; begin++) {
-		write.prop(frame.name, *begin);
+		write.prop(name.currKey(), *begin, name);
 	}
+	name.pop();
 }
 template <class IterType>
 void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
-	sim_mob::xml::namer::ExpandFrame frame = name.next();
 	for (; begin!=end; begin++) {
-		write.prop(frame.name, **begin);
+		write.prop(name.currKey(), **begin, name);
 	}
+	name.pop();
 }
 
 ///Same, but for identifiers.
@@ -346,9 +359,23 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val)
 template <class T>
 void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer name)
 {
-	//Recurse
+	//Begin.
+	//TODO: If Exp_ID, then a full "prop_begin()" and "prop_end()" are wasteful
+	//      (since we have no reason to save state information). We can fix this by
+	//      delegating the entire function to prop() (listed directly above) if Exp_Value,
+	//      and putting ident()'s code in the "else" block, but right now it doesn't matter
+	//      as long as it works.
 	prop_begin(key);
-	write_xml(*this, val, name);
+
+	//Recurse
+	if (name.currPolicy()==namer::Exp_Value) {
+		write_xml(*this, val);  //You can discard "name" at this point.
+	} else if (name.currPolicy()==namer::Exp_ID) {
+		seal_attrs(); //Adds the ">"
+		(*outFile) <<get_id(val);
+	} else { throw std::runtime_error("Unknown expand policy."); }
+
+	//End
 	prop_end();
 }
 
@@ -366,7 +393,7 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& val)
 }
 
 //Write a pair of identifiers
-template <class T, class U>
+/*template <class T, class U>
 void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, const U& second)
 {
 	//Pairs of identifiers are relatively simple, but we are kind of breaking things down a bit.
@@ -378,7 +405,7 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, cons
 	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<first>" <<get_id(first) <<"</first>" <<std::endl;
 	(*outFile) <<std::string((tabCount+1)*TabSize, ' ') <<"<second>" <<get_id(second) <<"</second>" <<std::endl;
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"</" <<key <<"/>" <<std::endl;
-}
+}*/
 
 //Write a list of identifiers
 template <class T>
@@ -484,10 +511,10 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, namer name)
 {
-	sim_mob::xml::namer::ExpandFrame frame = name.next();
-	write.prop(frame.name, *pr.first);
-	frame = name.next();
-	write.prop(frame.name, *pr.second);
+	write.prop(name.currKey(), *pr.first, name);
+	name.pop();
+	write.prop(name.currKey(), *pr.second, name);
+	name.pop();
 }
 //Delegate up
 template <class T, class U>

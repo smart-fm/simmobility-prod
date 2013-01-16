@@ -50,6 +50,10 @@ namespace xml {
 
 /////////////////////////////////////////////////////////////////////
 // get_id()
+// TODO: Unfortunately, you currently need *both* get_id() and write_xml()
+//       since we use an if() statement inside a template class. There should
+//       be a way to avoid this using templates, but for now I can't think of it.
+//       (perhaps add a bool template parameter to prop() and specialize on that?)
 /////////////////////////////////////////////////////////////////////
 
 template <>
@@ -63,6 +67,63 @@ std::string get_id(const sim_mob::Lane& ln)
 {
 	return boost::lexical_cast<std::string>(ln.getLaneID());
 }
+
+//WORKAROUND: get_id() for pointer types returns the address of that pointer.
+//            TODO: Remove this once we address the issue mentioned above (requiring both get_id() and write_xml())
+template <class T>
+std::string get_id(T* ptr)
+{
+	return boost::lexical_cast<std::string>(ptr);
+}
+
+//TODO: The following get_id() declarations are technically unneeded, but might be useful to keep around.
+//      At the moment, we need them to deal with the bug mentioned above.
+template <>
+std::string get_id(const sim_mob::Link& lnk)
+{
+	return boost::lexical_cast<std::string>(lnk.getLinkId());
+}
+template <>
+std::string get_id(const sim_mob::MultiNode& mnd)
+{
+	return boost::lexical_cast<std::string>(mnd.getID());
+}
+template <>
+std::string get_id(const sim_mob::UniNode& und)
+{
+	return boost::lexical_cast<std::string>(und.getID());
+}
+template <>
+std::string get_id(const std::set<sim_mob::UniNode*>& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+template <>
+std::string get_id(const std::pair<const sim_mob::Lane*, sim_mob::Lane*>& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+template <>
+std::string get_id(const std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> >& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+template <>
+std::string get_id(const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+template <>
+std::string get_id(const std::vector<sim_mob::MultiNode*>& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+template <>
+std::string get_id(const std::vector<sim_mob::Link*>& temp)
+{
+	throw std::runtime_error("Unsupported in Serialize.hpp");
+}
+
 
 /////////////////////////////////////////////////////////////////////
 // write_xml()
@@ -159,9 +220,9 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	write.prop("nodeID", und.nodeId);
 	write.prop("location", und.location);
 	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
-	write.prop("firstPair", und.firstPair);
+	write.prop("firstPair", und.firstPair, namer::pair(namer::Exp_ID, namer::Exp_ID));
 	if (und.secondPair.first && und.secondPair.second) {
-		write.ident("secondPair", *und.secondPair.first, *und.secondPair.second);
+		write.prop("secondPair", und.secondPair, namer::pair(namer::Exp_ID, namer::Exp_ID));
 	}
 	write.prop("Connectors", flatten_map(und.getConnectors()), namer::array("Connector"));
 }

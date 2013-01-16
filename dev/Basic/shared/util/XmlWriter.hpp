@@ -34,18 +34,18 @@ class XmlWriter : private boost::noncopyable {
 public:
 	///Create a new XmlWriter which will send output to "outFile". Writes the header.
 	XmlWriter(std::ostream& outFile) :
-		outFile(&outFile), tabCount(0), sealedAttr(false)
+		outFile(&outFile), tabCount(0), newlines(0), attPrefix(" "), sealedAttr(false)
 	{
 		header();
 	}
 
-private:
-	///More detailed constructor, for use internally. Does NOT write a header.
-	/*XmlWriter(std::ostream& outFile, int tabCount, bool sealedAttr, const std::string& currProp) :
-		outFile(&outFile), tabCount(tabCount), sealedAttr(sealedAttr), currProp(currProp)
-	{}*/
-
 public:
+	///Inform the serializer to write an extra newline before the next property or identifier.
+	///Only affects the very next item.
+	void endl();
+
+	///Specify a string that will appear before all attributes in this property.
+	void attr_prefix(const std::string& pre);
 
 	///Write an attribute on the current property.
 	void attr(const std::string& key, const std::string& val);
@@ -81,6 +81,9 @@ private:
 	///Write this file's header. This will be called first, as it prints the "<?xml..." tag.
 	void header();
 
+	//Write all pending newlines
+	void write_newlines();
+
 	//Seal attributes; this appends a ">" to the current property and sets the sealed flag.
 	//Has no effect on the very first element (due to the <?xml... closing itself).
 	void seal_attrs();
@@ -92,6 +95,8 @@ private:
 private:
 	std::ostream* const outFile;
 	int tabCount;          //For indentation
+	int newlines;          //How many newlines to write next.
+	std::string attPrefix; //The current prefix for all attributes of this property.
 	std::vector<std::string> propStack;  //The property that we are currently writing is at the back of the vector.
 	bool sealedAttr;       //Are we done with writing attributes?
 };
@@ -184,14 +189,30 @@ const int TabSize = 4;
 void sim_mob::xml::XmlWriter::attr(const std::string& key, const std::string& val)
 {
 	if (sealedAttr) { throw std::runtime_error("Can't write attribute; a property has already been written"); }
-	(*outFile) <<" " <<key <<"=\"" <<escape_xml(val) <<"\"";
+	(*outFile) <<attPrefix <<key <<"=\"" <<escape_xml(val) <<"\"";
 }
 
+void sim_mob::xml::XmlWriter::endl()
+{
+	newlines++;
+}
+
+void sim_mob::xml::XmlWriter::attr_prefix(const std::string& pre)
+{
+	attPrefix = pre;
+}
 
 void sim_mob::xml::XmlWriter::header()
 {
 	(*outFile) <<"<?xml version=\"1.0\" encoding=\"utf-8\"?>" <<std::endl;
-	(*outFile) <<std::endl;
+}
+
+void sim_mob::xml::XmlWriter::write_newlines()
+{
+	if (newlines>0) {
+		(*outFile) <<std::string(newlines, '\n');
+		newlines = 0;
+	}
 }
 
 void sim_mob::xml::XmlWriter::seal_attrs() {
@@ -200,6 +221,9 @@ void sim_mob::xml::XmlWriter::seal_attrs() {
 			(*outFile) <<">" <<std::endl;
 		}
 		sealedAttr = true;
+
+		//Attribute prefixes won't apply to the next property, and can't apply to this one any more (no more attributes).
+		attPrefix = " ";
 	}
 }
 
@@ -207,6 +231,7 @@ template <class T>
 void sim_mob::xml::XmlWriter::write_simple_prop(const std::string& key, const T& val)
 {
 	seal_attrs();
+	write_newlines();
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<">" <<val <<"</" <<key <<">" <<std::endl;
 }
 
@@ -241,6 +266,7 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& val)
 {
 	//Identifiers have no attributes or child properties, so they are relatively easy to serialize.
 	seal_attrs();
+	write_newlines();
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<">";
 	(*outFile) <<get_id(val) <<"</" <<key <<">" <<std::endl;
 }
@@ -251,6 +277,7 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, cons
 {
 	//Pairs of identifiers are relatively simple, but we are kind of breaking things down a bit.
 	seal_attrs();
+	write_newlines();
 
 	//Pairs of identifiers require a little more scaffolding, but are not otherwise that complex.
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<"/>" <<std::endl;
@@ -262,6 +289,7 @@ void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& first, cons
 void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)
 {
 	seal_attrs();
+	write_newlines();
 	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key;
 
 	//Next indentation/sealed level.

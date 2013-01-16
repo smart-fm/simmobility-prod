@@ -1433,7 +1433,7 @@ void printRoadNetwork_console()
 			std::sort(tmpLanes.begin(), tmpLanes.end(), sorter_);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+				std::cout << "		laneId: " << 	(*lane_it)->getLaneID()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}

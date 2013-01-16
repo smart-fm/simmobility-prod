@@ -30,7 +30,6 @@
 #include "entities/signal/defaults.hpp"
 #include "entities/signal/SplitPlan.hpp"
 
-
 #include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
@@ -97,7 +96,7 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	TiXmlElement * Lane = new TiXmlElement("Lane"); Lanes->LinkEndChild(Lane);
 	//ID
 	TiXmlElement * laneID = new TiXmlElement("laneID"); Lane->LinkEndChild(laneID);
-	Id << LaneObj->getLaneID_str();
+	Id << LaneObj->getLaneID();
 	laneID->LinkEndChild(new  TiXmlText(Id.str()));
 	//Width
 	TiXmlElement * width = new TiXmlElement("width"); Lane->LinkEndChild(width);
@@ -486,9 +485,9 @@ void sim_mob::WriteXMLInput_UniNode_Connectors(sim_mob::UniNode* uninode,TiXmlEl
 		Connector = new TiXmlElement("Connector"); Connectors->LinkEndChild(Connector);
 		laneFrom = new TiXmlElement("laneFrom"); Connector->LinkEndChild(laneFrom);
 		laneTo = new TiXmlElement("laneTo"); Connector->LinkEndChild(laneTo);
-		out.str(""); out << (*it).first->getLaneID_str();
+		out.str(""); out << (*it).first->getLaneID();
 		laneFrom->LinkEndChild( new TiXmlText(out.str()));
-		out.str(""); out << (*it).second->getLaneID_str();
+		out.str(""); out << (*it).second->getLaneID();
 		laneTo->LinkEndChild( new TiXmlText(out.str()));
 	}
 }
@@ -591,10 +590,10 @@ void sim_mob::WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlEle
 			TiXmlElement * Connector = new TiXmlElement("Connector"); Connectors->LinkEndChild(Connector);
 			TiXmlElement * laneFrom = new TiXmlElement("laneFrom"); Connector->LinkEndChild(laneFrom);
 			TiXmlElement * laneTo = new TiXmlElement("laneTo"); Connector->LinkEndChild(laneTo);
-			out.str(""); out << (*l_conn_it)->getLaneFrom()->getLaneID_str();
+			out.str(""); out << (*l_conn_it)->getLaneFrom()->getLaneID();
 			laneFrom->LinkEndChild( new TiXmlText(out.str()));
 
-			out.str(""); out << (*l_conn_it)->getLaneTo()->getLaneID_str();
+			out.str(""); out << (*l_conn_it)->getLaneTo()->getLaneID();
 			laneTo->LinkEndChild( new TiXmlText(out.str()));
 		}
 	}

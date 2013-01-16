@@ -194,7 +194,7 @@ namespace sim_mob {
 			frontalAgents.insert(std::make_pair((*i).first, agent));
 			if(agent)
 				std::cout << "frontalAgents[" << (*i).first->getRoadSegment()->getStart()->getID()
-					<< "|" << (*i).first->getLaneID_str() << "] = " <<  agent->getId() << std::endl;
+					<< "|" << (*i).first->getLaneID() << "] = " <<  agent->getId() << std::endl;
 		}
 	}
 

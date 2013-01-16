@@ -17,11 +17,12 @@ void sim_mob::BoostSaveXML(const std::string& outFileName, const sim_mob::RoadNe
 {
     std::ofstream outFile(outFileName.c_str());
     sim_mob::xml::XmlWriter write(outFile);
-
     write.prop_begin("geo:SimMobility");
+    write.attr_prefix("\n    ");  //Kind of a hack, but we want to format attributes just right.
 	write.attr("xmlns:geo", "http://www.smart.mit.edu/geo");
 	write.attr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	write.attr("xsi:schemaLocation", "http://www.smart.mit.edu/geo  ../shared/geospatial/xmlLoader/geo10.xsd");
+	write.endl();
 	write.prop("GeoSpatial", network);
 	write.prop_end();
 

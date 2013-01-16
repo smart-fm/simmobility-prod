@@ -40,6 +40,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
 
 
@@ -54,6 +55,12 @@ template <>
 std::string get_id(const sim_mob::RoadSegment& rs)
 {
 	return boost::lexical_cast<std::string>(rs.getSegmentID());
+}
+
+template <>
+std::string get_id(const sim_mob::Lane& ln)
+{
+	return boost::lexical_cast<std::string>(ln.getLaneID());
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -95,6 +102,14 @@ void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
     write.prop("TODO", 2);
 }
 
+//Force pairs of Lanes (connectors) to have a specific format (laneFrom/ID, etc.)
+template <>
+void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, sim_mob::Lane* >& connectors)
+{
+	write.ident("laneFrom", *connectors.first);
+	write.ident("laneTo", *connectors.second);
+}
+
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
 {
@@ -110,7 +125,7 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
 	write.ident("firstPair", *und.firstPair.first, *und.firstPair.second);
 	if (und.secondPair.first && und.secondPair.second) {
-		write.prop("secondPair", und.secondPair);
+		write.ident("secondPair", *und.secondPair.first, *und.secondPair.second);
 	}
 	write.list("Connectors", "Connector", flatten_map(und.getConnectors()));
 }

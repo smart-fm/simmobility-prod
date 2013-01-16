@@ -330,10 +330,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 		vehicle->setLatVelocity(newLatVel*5);
 
-		if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
-		{
-			std::cout << "3-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
-		}
 		// reduce speed
 		if (vehicle->getVelocity() / 100.0 > 2.0)
 		{
@@ -352,8 +348,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 		waitAtStopMS = 0;
 	}
-	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me) && isBusArriveBusStop())
-		std::cout << "isBusArriveBusStop() = " << (isBusArriveBusStop()?"TRUE":"FALSE") << std::endl;
+
 	if(wait && isBusGngtoBreakDown())
 	{
 		vehicle->setVelocity(0);
@@ -370,7 +365,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			//vehicle->setAcceleration(10);
 		}
 
-		std::cout<<"tick "<<tick<<" velocity "<<vehicle->getVelocity()<<" "<<vehicle->getAcceleration()<<std::endl;
+		std::cout<<"tick "<<waitAtStopMS<<" velocity "<<vehicle->getVelocity()<<" "<<vehicle->getAcceleration()<<std::endl;
 
 
 	}
@@ -456,9 +451,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //	else if (isBusArriveBusStop()) {
 //		vehicle->setAcceleration(3000);
 //	}
-//it can be proved that this is called even long before bus has arrived at bus stop
-	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-//		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
+
+	if (isBusLeavingBusStop() || (waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC && !wait)) {
+		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 		//passengerCountOld_display_flag = false;
@@ -679,15 +674,15 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers)
 {
 	//assume single channel passenger movement
-	double alpha1 = 3.5;//boarding passenger service time,assuming payment by smart card
-	double alpha2 = 2.1;//alighting passenger service time,assuming alighting through rear door
-	double alpha3 = 3.5;//door opening and closing times
-	double alpha4 = 0.0;
+	double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+    double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
+    double alpha3 = 3.5;//door opening and closing times
+    double alpha4 = 1.0;//?
 	int no_of_seats=40;
-   if(no_of_passengers>no_of_seats)//standees are present
-   {
-	   alpha1+=0.5;//boarding time increase if standees are present
-   }
+	if(no_of_passengers>no_of_seats)//standees are present
+    {
+		alpha1+=0.5;//boarding time increase if standees are present
+	}
 	double beta1 = 0.7;//fixed parameters
 	double beta2 = 0.7;
 	double beta3 = 5;

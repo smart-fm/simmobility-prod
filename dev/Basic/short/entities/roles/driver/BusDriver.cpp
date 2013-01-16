@@ -451,12 +451,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				passengerCountOld_display_flag = true;
 			}
 		}
-		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
-		if( demo_passenger_increase && bus->getPassengerCount() == 19 && bus->getVelocity() < 400 /*waitAtStopMS >= (BUS_STOP_WAIT_PASSENGER_TIME_SEC -2)*/)
-		{
-			std::cout << p.now.frame() << " Setting bus passenger to 20-  curr velocity : " << bus->getVelocity() << "  accel: " << bus->getAcceleration() << std::endl;
-				bus->setPassengerCount(20);
-		}
 	}
 //	else if (isBusArriveBusStop()) {
 //		vehicle->setAcceleration(3000);
@@ -488,13 +482,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
-	double temp = updatePositionOnLink(p);
-
-	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
-	{
-		std::cout << "4-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
-	}
-	return temp;
+	return updatePositionOnLink(p);
 }
 
 double sim_mob::BusDriver::getPositionX() const

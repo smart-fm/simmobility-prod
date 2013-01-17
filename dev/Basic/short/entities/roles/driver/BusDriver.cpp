@@ -299,6 +299,14 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel * 10);
 
+	if(vehicle->getLatVelocity()>0)
+		vehicle->setTurningDirection(LCS_LEFT);
+	else if(vehicle->getLatVelocity()<0)
+		vehicle->setTurningDirection(LCS_RIGHT);
+	else
+		vehicle->setTurningDirection(LCS_SAME);
+
+	p.turningDirection = vehicle->getTurningDirection();
 	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
 	{
 		std::cout << "2-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << "  Approaching = " << (isBusApproachingBusStop()?"TRUE":"FALSE") << std::endl;
@@ -580,18 +588,20 @@ double sim_mob::BusDriver::passengerGenerationNew(Bus* bus)// new function to ge
 	size_t no_passengers_bus = 0;
 	size_t no_passengers_busstop = 0;
 
-	//     no_passengers_alighting=0;
-	//     no_passengers_boarding=0;
+	no_passengers_alighting=0;
+	no_passengers_boarding=0;
 	std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
 	if(bus) {
+		no_passengers_bus = bus->getPassengerCount();
+		bus->setPassengerCountOld(no_passengers_bus);// record the old passenger number
 		AlightingPassengers(bus);//first alight passengers inside the bus
 		BoardingPassengers(bus);//then board passengers waiting at the bus stop
-		DTijk = dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
+		DTijk = dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 		std::cout<<"alighting no"<<no_passengers_alighting<<std::endl;
 		std::cout<<"no_passengers_boarding"<<no_passengers_boarding<<std::endl;
 		std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
 		no_passengers_bus = bus->getPassengerCount();
-		bus->setPassengerCountOld(no_passengers_bus);// record the old passenger number
+
 		return DTijk;
 	} else {
 		throw std::runtime_error("Passenger distributions have not been initialized yet.");

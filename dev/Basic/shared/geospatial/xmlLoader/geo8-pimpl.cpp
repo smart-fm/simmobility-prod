@@ -1835,7 +1835,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 		trip->personID = v->personID;
 		trip->itemType = v->itemType;
 		trip->sequenceNumber = v->sequenceNumber;
-		trip->startTime = v->startTime;
+		trip->startTime = sim_mob::DailyTime(v->startTime);
 		trip->endTime = v->endTime;
 		delete v;
 	}

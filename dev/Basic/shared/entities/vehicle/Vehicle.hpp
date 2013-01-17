@@ -163,7 +163,6 @@ public:
 	void setPositionInSegment(double newDist2end);
 	//unit cm, this is based on lane zero's polypoints
 	 double getNextSegmentLength();
-
 private:
 
 

@@ -2,7 +2,6 @@
 
 #pragma once
 
-
 #include <vector>
 #include <string>
 #include <set>
@@ -21,6 +20,7 @@ class DynamicVector;
 class Link;
 class ProfileBuilder;
 class Conflux;
+
 
 namespace aimsun
 {

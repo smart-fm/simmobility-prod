@@ -43,6 +43,9 @@ class UnPackageUtils;
 #endif
 
 
+
+
+
 /**
  * \author Wang Xinyuan
  * \author Li Zhemin
@@ -110,7 +113,6 @@ protected:
 	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
-
 	//This should be done through the Role class itself; for now, I'm just forcing
 	//  it so that we can get the mid-term working. ~Seth
 	virtual Vehicle* getResource() { return vehicle; }
@@ -129,8 +131,7 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
-
-
+	int lastIndex;
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;

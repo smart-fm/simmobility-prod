@@ -164,6 +164,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 			parent->setToBeRemoved();
 		}
 	}
+
 		pedMovement.advance(vel);
 
 		parent->xPos.set(pedMovement.getPosition().x);

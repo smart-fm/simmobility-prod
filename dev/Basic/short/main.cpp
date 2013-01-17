@@ -1002,11 +1002,12 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		//Output
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			cout << "Approximate Tick Boundary: " << currTick << ", ";
-			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone) {
-				cout << "  Warmup; output ignored." << endl;
-			}
+			//todo uncomment these lines
+//			cout << "Approximate Tick Boundary: " << currTick << ", ";
+//			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+//			if (!warmupDone) {
+//				cout << "  Warmup; output ignored." << endl;
+//			}
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)

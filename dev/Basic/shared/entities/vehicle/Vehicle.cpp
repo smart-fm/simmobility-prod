@@ -44,8 +44,7 @@ sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(copyFrom.turningDirection), isQueuing(copyFrom.isQueuing),park(copyFrom.park) {
-
+					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing),park(copyFrom.park) {
 }
 
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID) {

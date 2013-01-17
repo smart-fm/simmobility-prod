@@ -1,7 +1,6 @@
 package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -28,7 +27,7 @@ import sim_mob.vis.util.Utility;
  * \author Seth N. Hetu
  * \author Zhang Shuai
  */
-public class PedestrianTick extends AgentTick {
+public class PassengerTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
 	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
@@ -63,7 +62,7 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(long id, double posX, double posY) {
+	public PassengerTick(long id, double posX, double posY) {
 		super(id);
 		
 		this.pos = new FlippedScaledPoint(posX, posY);
@@ -85,9 +84,9 @@ public class PedestrianTick extends AgentTick {
 		final double NODE_CM = 1*100; //1m square 
 		double x = (pos.getUnscaledX()-NODE_CM/2);
 		double y = pos.getUnscaledY()-NODE_CM/2;
-//		System.out.println("pedestrian.Rectangle2D.Double(" + x +","+ y +","+NODE_CM+","+ NODE_CM +")");
-//		System.out.println("pedestrian.pos.getUnscaledX() = " + pos.getUnscaledX());
-//		System.out.println("pedestrian.pos.getUnscaledY() = " + pos.getUnscaledY());
+//		System.out.println("passenger.Rectangle2D.Double(" + x +","+ y +","+NODE_CM+","+ NODE_CM +")");
+//		System.out.println("passenger.pos.getUnscaledX() = " + pos.getUnscaledX());
+//		System.out.println("passenger.pos.getUnscaledY() = " + pos.getUnscaledY());
 		return new Rectangle2D.Double(
 			pos.getUnscaledX()-NODE_CM/2,
 			pos.getUnscaledY()-NODE_CM/2,
@@ -96,7 +95,7 @@ public class PedestrianTick extends AgentTick {
 	
 	
 	public int getZOrder() {
-		return DrawableItem.Z_ORDER_PEDESTIRAN;
+		return DrawableItem.Z_ORDER_PASSENGER;
 	}
 	
 	
@@ -109,7 +108,7 @@ public class PedestrianTick extends AgentTick {
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian", PedBkgdColorIDs, PedLineColorIDs);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("passenger", PedBkgdColorIDs, PedLineColorIDs);
 		PersonImg.buildColorIndex(overrides);
 	}
 	
@@ -122,7 +121,7 @@ public class PedestrianTick extends AgentTick {
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian-fake", PedBkgdColorIDs, PedLineColorIDs);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("passenger-fake", PedBkgdColorIDs, PedLineColorIDs);
 		FakePersonImg.buildColorIndex(overrides);
 		FakePersonImg.phaseColors(0xFF/2);
 	}
@@ -136,7 +135,7 @@ public class PedestrianTick extends AgentTick {
 		}
 		
 		// Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian-debug", PedBkgdColorIDs, PedLineColorIDs);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("passenger-debug", PedBkgdColorIDs, PedLineColorIDs);
 		DebugPersonImg.buildColorIndex(overrides);
 	}
 	
@@ -196,25 +195,30 @@ public class PedestrianTick extends AgentTick {
 			}
 
 		}else{*/
+		
+		
+		
 			g.drawImage(toDraw, 0, 0, null);
-			
-			//Draw a circle with its id
+			   //Draw a circle with its id
 				Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
 				final int Size = 20;
 				
 				//Background
 				g.setColor(Color.green);
 				g.fillOval(center.x-Size/2, center.y-Size/2, Size, Size);
-				g.setColor(Color.CYAN);
-				g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
+		     	g.setColor(Color.CYAN);
+			    g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
 				
 				//Text
-				g.setColor(Color.WHITE);
+		   		g.setColor(Color.WHITE);
 				g.setFont(DriverTick.idFont);
 				int strW = g.getFontMetrics().stringWidth(""+ (id-1));
 				g.drawString(""+ (id - 1), center.x-strW/2+1, center.y+4);
 
 			
+				
+				
+				
 			//g.drawImage(toDraw, r.nextInt(20)-10, r.nextInt(20)-10, null);
 		//}
 

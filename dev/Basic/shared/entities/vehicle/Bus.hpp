@@ -24,8 +24,8 @@ class UnPackageUtils;
  */
 class Bus : public sim_mob::Vehicle {
 public:
-	Bus(const BusRoute& route, const Vehicle* clone)
-	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0), route(route), ptCheck(0,0), DistThreshold(2000), busCapacity(60)
+	Bus(const BusRoute& route, const Vehicle* clone, std::string busLine_)
+	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine_), route(route), ptCheck(0,0), DistThreshold(2000), busCapacity(60)
 	{}
 
 //	BusRoute& getRoute() { return route; }
@@ -38,6 +38,10 @@ public:
 	void setPassengerCountOld(int val) { passengerCount_Old = val; }
 	//bool isSendToBusController(BusController &busctrller);
 	std::vector<const sim_mob::Agent*> passengers;//added by Meenu
+	std::string getBusLineID()
+	{
+		return busline;
+	}
 
 	std::vector<sim_mob::Person*> passengers_inside_bus;//added by Meenu
 private:
@@ -47,6 +51,7 @@ private:
 	BusRoute route;
 	DPoint ptCheck;// Later connect to Stops, calculate the position to some stops
 	double DistThreshold;
+	std::string busline;
 
 	int busNumber;
 

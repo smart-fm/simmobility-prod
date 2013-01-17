@@ -82,12 +82,14 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 {
 	tripchainInitialized = false;
 	//throw 1;
+	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs):Agent(mtxStrat, tcs.front()->personID)
 {
 	prevRole = 0;
 	currRole = 0;
+	laneID = -1;
 	agentSrc = src;
 	call_frame_init = true;
 	tripChain = tcs;
@@ -95,15 +97,11 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 //	currSubTrip(nullptr);
 	tripchainInitialized = false;
 	initTripChain();
-
 }
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-	std::cout << "ConfigParams::GetInstance().simStartTime = " << ConfigParams::GetInstance().simStartTime.toString() << std::endl;
-	std::cout << "Set Start time for person " << this << " to " << getStartTime() << "  [" << (*currTripChainItem)->startTime.toString() << "]"<< std::endl;
-//	getchar();
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();
@@ -112,7 +110,6 @@ void sim_mob::Person::initTripChain(){
 				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 		}
 	}
-//	std::cout << "Person::preson " << this->id << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP)
 	{
@@ -146,6 +143,24 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
 	}
+
+
+	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
+	if(lanepointer != configProps.end())
+	{
+		/*if(atoi(lanepointer->second.c_str()))
+		{
+			laneID = atoi(lanepointer->second.c_str());
+		}*/
+
+		try {
+		    int x = boost::lexical_cast<int>( lanepointer->second );
+		    laneID = x;
+		} catch( boost::bad_lexical_cast const& ) {
+		    std::cout << "Error: input string was not valid" << std::endl;
+		}
+	}
+
 
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
 	map<string, string>::const_iterator origIt = configProps.find("originPos");
@@ -186,6 +201,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
 		this->setTripChain(trip_chain);
+		this->initTripChain();
 	}
 
 	//One more check: If they have a special string, save it now
@@ -304,8 +320,33 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		}
 		 
 		//Now that the Role has been fully constructed, initialize it.
+		if((*currTripChainItem))
+		{
+			std::cout << "person " << (*currTripChainItem)->personID ;
+			if((*currTripChainItem)->personID == 3)
+			{
+				int i = 0;
+				i++;
+			}
+		}
+		std::cout << "  Calling update_time.frame_init at frame " << now.frame() << std::endl;
+
 		currRole->frame_init(params);
 
+		if((*currTripChainItem))
+		{
+			std::cout << "person " << (*currTripChainItem)->personID ;
+		}
+		std::cout << "  Calling update_time.frame_init --Done " << std::endl;
+
+		if((*currTripChainItem))
+		{
+			if((*currTripChainItem)->personID == 3)
+			{
+				int i =0;
+			}
+			std::cout << "(person id = " << (*currTripChainItem)->personID << ")--currRole->frame_init Done\n";
+		}
 		//Done
 		call_frame_init = false;
 	}
@@ -369,8 +410,10 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
+//		std::cout << "Person " << (*currTripChainItem)->personID << "  start time is " <<  getStartTime() << "  and now is " << now.ms() << std::endl;
 		//Update functionality
 		update_time(now, retVal);
+
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
@@ -378,7 +421,8 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentException(*this, frameNumber, ex);
 #endif
-
+		std::cout << "Person " << (*currTripChainItem)->personID << " is in trouble \n";
+//		getchar();
 		//Add a line to the output file.
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
@@ -519,23 +563,6 @@ std::vector<sim_mob::SubTrip>::const_iterator sim_mob::Person::resetCurrSubTrip(
 		if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
 	return trip->getSubTrips().begin();
 }
-
-////advance to the next subtrip inside the current TripChainItem assuming that the current TripChainItem is a Trip
-////the function also resets the currSubtrip if necessary
-//bool sim_mob::Person::advanceCurrentTripChainItem_Trip()
-//{
-//	if(currTripChainItem == tripChain.end()) return false;
-//
-//	currTripChainItem ++;
-//
-//	if(currTripChainItem == tripChain.end()) return false;
-//
-//	//everything seems ok, so set the currSubTrip also
-//	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-//		currSubTrip = resetCurrSubTrip(*(*currTripChainItem));
-//
-//	return true;
-//}
 
 //advance to the next subtrip inside the current TripChainItem
 bool sim_mob::Person::advanceCurrentSubTrip()

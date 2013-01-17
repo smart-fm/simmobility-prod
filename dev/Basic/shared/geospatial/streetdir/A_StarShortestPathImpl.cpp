@@ -1240,7 +1240,7 @@ void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>&
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
     {
         Link const * link = *iter;
-        process(link->getPath(true), true);
+        process(link->getPath(), true);
         process(link->getPath(false), false);
     }
 }

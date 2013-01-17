@@ -209,6 +209,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
 		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << " with size " << it_map->second.size() << " tripchain items\n" << std::endl;
 //		getchar();
@@ -372,6 +373,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
+        	std::cout << "catch the loop error try!" << std::endl;
             std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
@@ -1041,6 +1043,15 @@ void PrintDB_Network_ptrBased()
 
 			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
 				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				//debug
+				if(laneID != 0 && laneID <(*it)->getLanes().size())
+				{
+					int i = 0;
+					i++;
+//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
+//					getchar();
+				}
+				//debug ends
 			}
 
 		}
@@ -1117,7 +1128,7 @@ void PrintDB_Network_ptrBased()
 //obsolete
 void PrintDB_Network_idBased()
 {
-	if (ConfigParams::GetInstance().OutputDisabled()) {
+	if (ConfigParams::GetInstance().Output_Disabled()) {
 		return;
 	}
 
@@ -1513,6 +1524,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	//handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
 	//handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
 
+
 	handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passenger_percent_alighting);
 	handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
 	handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
@@ -1719,6 +1731,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     }
 
+
 	//load scheduledTImes if any
 	handle = TiXmlHandle(&document);
 	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
@@ -1810,6 +1823,25 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }
 
+    //debug: detect sidewalks which are in the middle of road
+    {
+    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
+    	{
+    		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+    		{
+    			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*seg_it)->getLanes().begin(), it_end((*seg_it)->getLanes().end()); lane_it != it_end ; lane_it++)
+    			{
+    				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
+    				{
+    					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
+//    					getchar();
+    				}
+    			}
+    		}
+    	}
+    }
+    //debug.. end
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
@@ -1862,6 +1894,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if (((*it) == "database")||((*it) == "xml-tripchains")) {
     	    	 //Create an agent for each Trip Chain in the database.
+//    		std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+//    		std::cout << "-we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+//    		std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << " with size " << tcs.begin()->second.size() << std::endl;
     	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
     	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	    	} else if ((*it) == "drivers") {

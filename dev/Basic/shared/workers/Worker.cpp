@@ -57,6 +57,10 @@ void sim_mob::Worker::addEntity(Entity* entity)
 {
 	//Save this entity in the data vector.
 	managedEntities.push_back(entity);
+	std::ostringstream out ;
+	out <<  "worker [" << this << "] addentity[" << entity << ":" << entity->getId() << "] Done\n"<< std::endl;
+//	std::cout << out.str();
+
 }
 
 
@@ -78,6 +82,9 @@ std::vector<Entity*>& sim_mob::Worker::getEntities() {
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		std::ostringstream out ;
+		out << "worker::scheduleForAddition[" << this << "] calling migrateIn()\n ";
+		std::cout << out.str();
 		//Add it now.
 		migrateIn(*entity);
 	} else {
@@ -124,8 +131,12 @@ void sim_mob::Worker::addPendingEntities()
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
 	}
-
+	int i = 0;
+	std::ostringstream out ;
+	out.str("");
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
+//		out << "Worker[" << this << "]::addPendingEntities->iteration " << i++ << " calling migrateIn\n";
+		std::cout << out.str();
 		//Migrate its Buffered properties.
 		migrateIn(**it);
 	}
@@ -161,10 +172,15 @@ void sim_mob::Worker::barrier_mgmt()
 	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
 
 	uint32_t currTick = 0;
+	int i = 0;
+	std::ostringstream out;
 	for (bool active=true; active;) {
 		//Add Agents as required.
 		addPendingEntities();
+//		out << "Worker["  << this  <<"]::barrier_mgmt->Iteration  " << i << " Aftre calling addPendingEntities() ,  has " << getAgentSize() << " agents\n";
 
+//		out << "\nCalling Worker(" << this << ")::barrier_mgmt::perform_main at  " << timeslice(currTick, currTick*msPerFrame).ms() << std::endl;
+//		std::cout << out.str();
 		//Perform all our Agent updates, etc.
 		perform_main(timeslice(currTick, currTick*msPerFrame));
 
@@ -251,7 +267,9 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 		msg <<"Error: Entity is already being managed: " <<ag.currWorker <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());
 	}
-
+	std::stringstream out;
+	out << "worker [" << this << "]::migrateIn calling addEntity for agent[" << &ag<< ":" << ag.getId() << "]" << std::endl;
+//	std::cout << out.str();
 	//Simple migration
 	addEntity(&ag);
 
@@ -276,6 +294,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 #ifndef SIMMOB_USE_CONFLUXES
 	 //All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+//		std::cout<< "calling a worker(" << this <<")::perform_main at frame " << currTime.frame() << std::endl;
 		UpdateStatus res = (*it)->update(currTime);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.

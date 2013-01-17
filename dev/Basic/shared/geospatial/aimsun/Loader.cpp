@@ -397,7 +397,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	//Retrieve a rowset for this set of trip chains.
 	tripchains_.clear();
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-
+//	std::cout << " Found "
 	//Execute as a rowset to avoid repeatedly building the query.
 	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//The following are set regardless.
@@ -503,15 +503,15 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
+//		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
 		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
-			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getSegmentID() ;
-			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
+//			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getSegmentID() ;
+//			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
 		}
 	}
-	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
+//	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
@@ -527,15 +527,15 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	{
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
-		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
+//		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
 		sim_mob::BusStop* bs = (config.getBusStopNo_BusStops())[pt_bus_stopsTemp.busstop_no];
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
-			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
-			std::cout << "current routeID_busStops[iter->route_id].size(): " << routeID_busStops[iter->route_id].size() << "" << std::endl;
+//			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
+//			std::cout << "current routeID_busStops[iter->route_id].size(): " << routeID_busStops[iter->route_id].size() << "" << std::endl;
 		}
 	}
-	std::cout << "routeID_busStops.size(): " << routeID_busStops.size() << "" << std::endl;
+//	std::cout << "routeID_busStops.size(): " << routeID_busStops.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
@@ -1882,6 +1882,24 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
+
+			//just a check to avoid connecting pedestrian and non pedestrian lanes
+			int i = 0;
+			if(lc->laneFrom->is_pedestrian_lane()) i++;
+			if(lc->laneTo->is_pedestrian_lane()) i++;
+
+			if(i == 1) // it should be 0 or 2. i = 1 means only one of them is pedestrian lane
+			{
+				std::cout << "from Segment " << src.fromSection->generatedSegment->originalDB_ID.getLogItem();
+				std::cout << ":lane " << 	fromLaneID ;
+				std::cout << "  to Segment " << src.fromSection->generatedSegment->originalDB_ID.getLogItem();
+				std::cout << ":lane " << 	toLaneID ;
+				std::cout << "   has problem\n";
+				getchar();
+				delete lc;
+				continue;
+			}
+			//check done ...
 
 			//Expanded a bit...
 			RoadSegment* key = src.fromSection->generatedSegment;

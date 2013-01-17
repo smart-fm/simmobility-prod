@@ -13,6 +13,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
+
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else
@@ -189,7 +190,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string role
 	}
 	trafficSignal = nullptr;
 	vehicle = nullptr;
-
+	lastIndex = -1;
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {
@@ -225,7 +226,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string role
 	//Some one-time flags and other related defaults.
 	nextLaneInNextLink = nullptr;
 	disToFwdVehicleLastFrame = maxVisibleDis;
-
 	// record start time
 	startTime = params.now.ms()/1000.0;
 	isAleadyStarted = false;
@@ -262,7 +262,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
-//	std::cout << "Driver Ticking\n";
+	std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 //	getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
@@ -655,6 +655,11 @@ void sim_mob::Driver::intersectionDriving(DriverUpdateParams& p) {
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if (intModel->isDone()) {
 		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
+		if(lastIndex != -1)
+		{
+			p.currLane = vehicle->getCurrSegment()->getLane(lastIndex);
+			lastIndex = -1;
+		}
 		justLeftIntersection(p);
 	}
 }
@@ -679,16 +684,15 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
-	if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
+if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
 	{
 		isAleadyStarted = true;
 	}
 	p.isAlreadyStart = isAleadyStarted;
-
+	
 	if (!vehicle->hasNextSegment(true)) // has seg in current link
 	{
-		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
-				/ 2 - 300;
+		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
@@ -705,9 +709,107 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-//
-//	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
-//		p.nextLaneIndex = p.currLaneIndex;
+
+
+	//vahid begins
+//	find out the last trip that this driver has to finally take
+	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
+	std::vector<TripChainItem*>& tripchain = person->getTripChain();
+	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
+    Trip* trip_1; // pointer to current item in trip chain
+    while(tripChainItem_it != tripchain.end())
+    {
+    	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
+    	{
+    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
+    	}
+    	tripChainItem_it++;
+    }
+//    Node *lastSubTripEndingNode = 0;
+    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
+    Node * lastSubTripEndingNode = 0;
+    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
+    {
+    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
+    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
+    	nextNonTrip_it ++;
+    }
+    //now find the last sub trip within that trip
+//    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
+    if(lastSubTripEndingNode)
+    	std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
+    else
+    	if((*(tripchain.begin()))->personID == 3)
+    	{
+    		std::cout << " there is no lastSubTripEndingNode\n";
+    	}
+    if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
+	{
+    	std::cout << "1-  We are in business\n";
+    	if (p.dis2stop >=0 &&  p.dis2stop <= 100) {//is approaching the park point?
+        	std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
+    		//Retrieve a new acceleration value.
+    		double acc = 0;
+    		//Convert back to m/s
+    		//TODO: Is this always m/s? We should rename the variable then...
+    		p.currSpeed = vehicle->getVelocity() / 100;
+    		std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
+    		//Call our model
+    		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
+    		//move to most left lane
+//    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
+//    		std::vector<sim_mob::Lane*>::iterator it = vehicle->getCurrSegment()->getLanes().begin();
+////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
+//    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
+    		std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
+
+			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+    		LANE_CHANGE_SIDE lcs = LCS_LEFT;//mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+    		std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
+    		vehicle->setTurningDirection(lcs);
+    		std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
+    		double newLatVel;
+    		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+    		vehicle->setLatVelocity(newLatVel*20);
+
+//    		// reduce speed
+    		if (vehicle->getVelocity() / 100.0 > 2.0)
+    		{
+    			std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
+    			if (acc<-5000.0)
+    			{
+    				vehicle->setAcceleration(acc);
+    			} else
+    				vehicle->setAcceleration(-5000);
+    			std::cout << "  to " << vehicle->getAcceleration() << "\n";
+    		}
+
+//    		vehicle->getParkState().setElapsedParkingTime(0);
+    	}
+
+    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!vehicle->getParkState().isparkingTimeOver())) {
+        	std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
+        	std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
+        	std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
+        	std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
+        	std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
+
+    		if (vehicle->getVelocity() > 0)
+    			vehicle->setAcceleration(-5000);
+    		std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
+    		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
+//    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+//    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+//    		std::cout << "\n\n\n";
+    		}
+//    	}
+//    	getchar();
+//    	getchar();
+	}
+
+    //....end of vahid
+
 
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
@@ -726,18 +828,64 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				if(p.currLane->is_pedestrian_lane())
 					std::cout<<"drive on pedestrian lane"<<std::endl;
 				bool currentLaneConnectToNextLink = false;
-				size_t targetLaneIndex=p.currLaneIndex;
+				bool iscurrentLaneConnected = false;
+				int targetLaneIndex=p.currLaneIndex;
+				std::map<int,vector<int> > indexes;
+				std::set<int> noData;		
+				
 				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 						// current lane connect to next link
-						currentLaneConnectToNextLink = true;
-						p.nextLaneIndex = p.currLaneIndex;
-						break;
+						//currentLaneConnectToNextLink = true;
+						//p.nextLaneIndex = p.currLaneIndex;
+						//break;
+					    iscurrentLaneConnected = true;
+						
 					}
 					//find target lane with same index, use this lane
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 					{
 						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
+						vector<int> dis;
+						int currentIndex = p.currLaneIndex;
+						if((targetLaneIndex<=(currentIndex+2)) && (targetLaneIndex > p.currLaneIndex))
+						{
+							if(targetLaneIndex == (p.currLaneIndex+1))
+							{
+								dis.push_back(p.nvLeftFwd.distance);
+								dis.push_back(p.nvLeftBack.distance);
+							}
+							else
+							{
+								dis.push_back(p.nvLeftFwd2.distance);
+								dis.push_back(p.nvLeftBack2.distance);
+							}
+						}
+						else if((targetLaneIndex >= (currentIndex-2)) && (targetLaneIndex < p.currLaneIndex))
+						{
+							if(targetLaneIndex == (p.currLaneIndex-1))
+							{
+								dis.push_back(p.nvRightFwd.distance);
+								dis.push_back(p.nvRightBack.distance);
+							}
+							else
+							{
+								dis.push_back(p.nvRightFwd2.distance);
+								dis.push_back(p.nvRightBack2.distance);
+							}
+						}
+						else if(targetLaneIndex == p.currLaneIndex)
+						{
+							dis.push_back(p.nvFwd.distance);
+							dis.push_back(p.nvBack.distance);
+						}
+
+						if(dis.size() >=1)
+						{
+							std::pair<int,vector<int> > Pair(targetLaneIndex,dis);
+							indexes.insert(Pair);
+						}
+						else noData.insert(targetLaneIndex);
 					}
 				}
 				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
@@ -749,8 +897,68 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 ////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
 //					}
 //					else
+					if(indexes.size() > 0)
+					{
+						int index = -1;
+						int distf = 0; //= p.dis2stop;
+						int distb = vehicle->length + 20;
 
-					p.nextLaneIndex = targetLaneIndex;
+						if(iscurrentLaneConnected)
+						{
+							distf = p.nvFwd.distance + vehicle->length + 30;
+						}
+						else
+						{
+							index = indexes.begin()->first;
+							distf = indexes.begin()->second.at(0);
+						}
+
+						for(std::map<int,vector<int> >::iterator i=indexes.begin();i!=indexes.end();i++)
+						{
+							int temp = i->first;
+							if(i->second.at(0) > distf)
+							{
+								index = i->first;
+								distf = i->second.at(0);
+								distb = i->second.at(1);
+							}
+						}
+
+						if(index == -1 && iscurrentLaneConnected)
+						{
+							p.nextLaneIndex = p.currLaneIndex;
+						}
+						else if(index != -1)
+						{
+							p.nextLaneIndex = index;
+						}
+
+						/*if(true && iscurrentLaneConnected && (p.currLaneIndex != p.nextLaneIndex))
+						{
+
+							if(p.trafficColor == sim_mob::Green)
+							{
+								p.nextLaneIndex = p.currLaneIndex;
+							}
+
+							if(p.nvFwd.driver != nullptr)
+							{
+								if(!(p.nvFwd.driver->vehicle->getVelocity() < 1) && distf != 50000)
+								{
+									p.nextLaneIndex = p.currLaneIndex;
+								}
+							}
+
+						}*/
+
+
+					}
+					else if(noData.size() > 0)
+					{
+						p.nextLaneIndex = *(noData.begin());
+
+					}
+					//p.nextLaneIndex = targetLaneIndex;
 					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
 					if (mitsim_lc_model) {
@@ -764,16 +972,139 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				}
 			} // end of if (!lcs)
 		}
+	}
+	
+	bool checkBus = false;
+
+	if(true)
+	{
+		const BusDriver* driver1 = dynamic_cast<const BusDriver*> (p.nvFwd.driver);
+		const BusDriver* driver2 = dynamic_cast<const BusDriver*> (this);
+		if(driver1 && !driver2)
+		{
+			if(driver1->vehicle->getVelocity() < 0.1)
+			{
+
+
+				std::vector<sim_mob::Lane*> Lanes1 = vehicle->getCurrSegment()->getLanes();
+				int size = Lanes1.size();
+				std::vector<sim_mob::Lane*> Lanes;
+
+				for(int i=0;i<size;i++)
+				{
+					if(Lanes1.at(i)->is_pedestrian_lane())
+					{
+						//std::cout<<"index "<<i<<std::endl;
+					}
+					else Lanes.push_back(Lanes1.at(i));
+				}
+
+				size = Lanes.size();
+
+				if(size > 0)
+				{
+
+					if(p.currLaneIndex == getLaneIndex(Lanes.at(0)))
+					{
+						if(p.nvLeftFwd.distance > (p.nvFwd.distance+vehicle->length+30))
+						{
+							p.nextLaneIndex = p.currLaneIndex+1;
+							//vehicle->setTurningDirection(LCS_RIGHT);
+							//vehicle->setLatVelocity(-150);
+						}
+
+					}
+					else if(p.currLaneIndex == getLaneIndex(Lanes.at(size-1)))
+					{
+						if(p.nvRightFwd.distance > (p.nvFwd.distance+vehicle->length+30))
+						{
+							p.nextLaneIndex = p.currLaneIndex-1;
+							//vehicle->setTurningDirection(LCS_LEFT);
+							//vehicle->setLatVelocity(+150);
+						}
+
+					}
+					else
+					{
+						if(p.nvRightFwd.distance >= p.nvLeftFwd.distance)
+						{
+							if(p.nvRightFwd.distance > (p.nvFwd.distance+vehicle->length+30))
+							{
+								p.nextLaneIndex = p.currLaneIndex-1;
+								//vehicle->setTurningDirection(LCS_LEFT);
+								//vehicle->setLatVelocity(+150);
+							}
+						}
+						else
+						{
+							if(p.nvLeftFwd.distance > (p.nvFwd.distance+vehicle->length+30))
+							{
+								p.nextLaneIndex = p.currLaneIndex+1;
+								//vehicle->setTurningDirection(LCS_RIGHT);
+								//vehicle->setLatVelocity(-150);
+							}
+						}
+
+
+					}
+
+					if(p.nextLaneIndex == (p.currLaneIndex+1) || p.nextLaneIndex == (p.currLaneIndex-1))
+					{
+						const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+						const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
+						if(currEndNode)
+						{
+							const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
+							if (lcs.size()>0)
+							{
+
+								bool iscurrentLaneConnected = false;
+
+								for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+								{
+									if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == Lanes1.at(p.nextLaneIndex))
+									{
+										iscurrentLaneConnected = true;
+										break;
+									}
+								}
+
+								if(!iscurrentLaneConnected)
+								{
+									p.nextLaneIndex = p.currLaneIndex;
+								}
+							}
+						}
+
+
+
+					}
+
+					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+					if (mitsim_lc_model) {
+						LANE_CHANGE_SIDE lcs = LCS_SAME;
+	//						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						vehicle->setTurningDirection(lcs);
+					} else {
+						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+					}
+
+					if(vehicle->getTurningDirection() != LCS_SAME)checkBus = true;
+				}
+
+			}
 
 		}
 
+	}
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
 		std::cout<<"find vh"<<std::endl;*/
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
-//	newLatVel  = newLatVel*10;
+	
 	vehicle->setLatVelocity(newLatVel);
 	if(vehicle->getLatVelocity()>0)
 		vehicle->setTurningDirection(LCS_LEFT);
@@ -785,15 +1116,17 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //	if (vehicle->getVelocity() <= 0) {
 //		vehicle->setLatVelocity(0);
 //	}
+	if(true && (vehicle->getTurningDirection() == LCS_SAME && p.currLaneIndex != p.nextLaneIndex))
+	{
+		if((vehicle->getVelocity()/100) > 4.8)
+			vehicle->setVelocity((4.8*100));
+
+	}
+	
 	p.turningDirection = vehicle->getTurningDirection();
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
-//	if (params.now.ms()/1000.0 >  94.0
-//				 && parent->getId() == 402)
-//		{
-//				std::cout<<"find 666 " <<parent->getId()<<std::endl;
-//		}
 	NearestVehicle & nv = nearestVehicle(p);
 
 	if ( isAleadyStarted == false )
@@ -1069,8 +1402,81 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 	}
 
 	//Get the entry point.
+	int id = getLaneIndex(vehicle->getCurrLane());
+	int startOldLane = -1;
+
+	for(vector<Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin();it!=vehicle->getCurrSegment()->getLanes().end();it++)
+	{
+		if((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane())
+		{
+
+		}
+		else
+		{
+			startOldLane = getLaneIndex((*it));
+			break;
+		}
+	}
+
+
+	int total = nextLaneInNextLink->getRoadSegment()->getLanes().size()-1;
+	int offset = vehicle->getCurrSegment()->getLanes().size() -1 -id;
+	set<int> laneIDS;
+	bool first = true;
+	int StartnewLane = -1;
+	int last = 1;
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
 
+	for(vector<Lane*>::const_iterator it = nextLaneInNextLink->getRoadSegment()->getLanes().begin();it!=nextLaneInNextLink->getRoadSegment()->getLanes().end();it++)
+	{
+		if((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane())
+		{
+
+		}
+		else
+		{
+			if(first)
+			{
+				first = false;
+				StartnewLane = getLaneIndex((*it));
+			}
+			//std::cout<<getLaneIndex((*it))<<std::endl;
+			laneIDS.insert(getLaneIndex((*it)));
+			last = getLaneIndex((*it));
+		}
+	}
+
+	if((startOldLane !=-1) && StartnewLane != -1) id = id + (StartnewLane - startOldLane);
+
+
+	/*if(laneIDS.find(id) != laneIDS.end())
+	{
+		entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(0);//  getLaneEdgePolyline(findID).at(0);
+		lastIndex = id;
+	}
+	else*/
+	{
+		int findID = total - offset;
+		if(findID > 0)
+		{
+			if(laneIDS.find(findID) != laneIDS.end())
+			{
+				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(findID)->getPolyline().at(0);//  getLaneEdgePolyline(findID).at(0);
+				lastIndex = findID;
+			}
+			else
+			{
+				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(last)->getPolyline().at(0);//->getLaneEdgePolyline(last).at(0);
+				lastIndex = last;
+			}
+		}
+		else
+		{
+			lastIndex = *(laneIDS.begin());
+			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(*(laneIDS.begin()))->getPolyline().at(0);//>getLaneEdgePolyline(*(laneIDS.begin())).at(0);
+		}
+
+	}
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
@@ -1159,6 +1565,9 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			int x = 0;
+			x = path.size();
+			std::cout << "Driver path has " << path.size() << "  elements\n";
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1177,6 +1586,12 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 
 		//TODO: Start in lane 0?
 		int startlaneID = 1;
+		
+		if(parentP->laneID != -1)
+		{
+			startlaneID = parentP->laneID;//need to check if lane valid
+			parentP->laneID = -1;
+		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer
 		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
@@ -1294,6 +1709,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		fwdDistance = 0;
 	}
 
+
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
@@ -1398,6 +1814,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
+
 	//Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
 	if (!other_lane) {
@@ -1805,7 +2222,7 @@ void sim_mob::Driver::intersectionVelocityUpdate() {
 }
 
 void sim_mob::Driver::justLeftIntersection(DriverUpdateParams& p) {
-	p.currLane = nextLaneInNextLink;
+	//p.currLane = nextLaneInNextLink;
 	p.currLaneIndex = getLaneIndex(p.currLane);
 	vehicle->moveToNewLanePolyline(p.currLaneIndex);
 	syncCurrLaneCachedInfo(p);

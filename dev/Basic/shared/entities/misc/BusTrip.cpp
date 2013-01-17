@@ -66,7 +66,7 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
-	lastVisitedStop_SequenceNumber = -1;
+	   lastVisitedStop_SequenceNumber = -1;
 }
 
 void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
@@ -133,7 +133,6 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 	//	std::cout << "busStopScheduledTimes_vec[4] " << busStopScheduledTimes_vec[4].scheduled_ArrivalTime.getValue() << std::endl;
 		std::cout << "busStopScheduledTimes_vec.size(): " << busStopScheduledTimes_vec.size() << std::endl;
 	}
-
 
 	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;

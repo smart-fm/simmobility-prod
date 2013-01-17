@@ -29,6 +29,7 @@ namespace {
 //const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 } //End anonymous namespace
 
+
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
 , lastVisited_BusStop(mtxStrat,nullptr), lastVisited_BusStopSequenceNum(mtxStrat,0), real_DepartureTime(mtxStrat,0)
@@ -54,6 +55,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 			}
 		}
 	}
+	demo_passenger_increase = false;
 }
 
 
@@ -72,17 +74,38 @@ Vehicle* sim_mob::BusDriver::initializePath_bus(bool allocateVehicle)
 		vector<const RoadSegment*> path;
 		Person* person = dynamic_cast<Person*>(parent);
 		int vehicle_id = 0;
+		int laneID = -1;
 		if(person) {
 			const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 			if(!bustrip)	std::cout << "bustrip is null\n";
 			if(bustrip && (*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) {
 				path = bustrip->getBusRouteInfo().getRoadSegments();
+				std::cout << "BusTrip path size = " << path.size() << std::endl;
 				vehicle_id = bustrip->getVehicleID();
+				if(path.size() > 0)
+				{
+					laneID = path.at(0)->getLanes().size()-2;
+				}
 			}
+			else
+			{
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_TRIP) std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_ACTIVITY) std::cout << "IT_ACTIVITY\n";
+				if((*(person->currTripChainItem))->itemType==TripChainItem::IT_BUSTRIP) std::cout << "IT_BUSTRIP\n";
+				std::cout << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = " << (*(person->currTripChainItem))->itemType << std::endl;
+			}
+
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 0;
+		int startlaneID = 1;
+		
+		BusDriver* v = dynamic_cast<BusDriver*>(this);
+		if(v && laneID!=-1)
+		{
+			startlaneID = laneID;//need to check if lane valid
+			//parentP->laneID = -1;
+		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer
 		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
@@ -124,7 +147,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	if (newVeh) {
 		//Use this sample vehicle to build our Bus, then delete the old vehicle.
 		BusRoute nullRoute; //Buses don't use the route at the moment.
-		vehicle = new Bus(nullRoute, newVeh);
+		BusTrip* bustrip_change = dynamic_cast<BusTrip*>(*(person->currTripChainItem));
+		vehicle = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
 		delete newVeh;
 
 		//This code is used by Driver to set a few properties of the Vehicle/Bus.
@@ -137,7 +161,6 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 		if(person)
 		{
 			if(person->getAgentSrc() == "BusController") {
-				//std::cout<<"person->currTripChainItem"<<person->currTripChainItem->personID<<std::endl;
 				const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 				if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
@@ -186,7 +209,11 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 }
 double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 {
-
+	if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
+	{
+		isAleadyStarted = true;
+	}
+	p.isAlreadyStart = isAleadyStarted;
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
 				   - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
@@ -201,20 +228,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-
-	//when vehicle stops, don't do lane changing
-	if (vehicle->getVelocity() <= 0) {
-		vehicle->setLatVelocity(0);
-	}
-	p.turningDirection = vehicle->getTurningDirection();
-
 	//hard code , need solution
 
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
-
 //	if (p.nvFwd.exists())
 //		p.space = p.nvFwd.distance;
 //	else
@@ -225,7 +244,17 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //			nv = NearestVehicle();
 //		}
 //	}
+    if ( isAleadyStarted == false )
+	{
+		if(nv.distance<=0)
+		{
+			if(getDriverParent(nv.driver)->getId() > this->parent->getId())
+			{
+				nv = NearestVehicle();
+			}
 
+		}
+	}
 	//this function make the issue Ticket #86
 	perceivedDataProcess(nv, p);
 
@@ -237,6 +266,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	p.currSpeed = vehicle->getVelocity() / 100;
 	double newFwdAcc = 0;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	
+	if(abs(vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && vehicle->getVelocity() / 100>10)
+	{
+		newFwdAcc = 0;
+	}
 	vehicle->setAcceleration(newFwdAcc * 100);
 	//}
 
@@ -265,6 +299,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel * 10);
 
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+	{
+		std::cout << "2-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << "  Approaching = " << (isBusApproachingBusStop()?"TRUE":"FALSE") << std::endl;
+	}
 	if (isBusApproachingBusStop()) {
 		double acc = busAccelerating(p)*100;
 
@@ -276,6 +314,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 		vehicle->setLatVelocity(newLatVel*5);
 
+		if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
+		{
+			std::cout << "3-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
+		}
 		// reduce speed
 		if (vehicle->getVelocity() / 100.0 > 2.0)
 		{
@@ -288,7 +330,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 		waitAtStopMS = 0;
 	}
-
+	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me) && isBusArriveBusStop())
+		std::cout << "isBusArriveBusStop() = " << (isBusArriveBusStop()?"TRUE":"FALSE") << std::endl;
+	
 	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 
 		if (vehicle->getVelocity() > 0)
@@ -367,16 +411,26 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //	else if (isBusArriveBusStop()) {
 //		vehicle->setAcceleration(3000);
 //	}
-
+//it can be proved that this is called even long before bus has arrived at bus stop
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
+//		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
 		//passengerCountOld_display_flag = false;
+		//vehicle->setAcceleration(busAccelerating(p)*100);
+		//sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+//		if(demo_passenger_increase && bus->getPassengerCount() == 19)
+//			bus->setPassengerCount(20);
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
 
+	if(isBusFarawayBusStop())
+	{
+		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
+		if(bus->getPassengerCount() == 19) demo_passenger_increase = true;
+
+	}
 	//Update our distance
 	lastTickDistanceToBusStop = distanceToNextBusStop();
 
@@ -442,6 +496,12 @@ bool sim_mob::BusDriver::isBusArriveBusStop()
 {
 	double distance = distanceToNextBusStop();
 	return  (distance>0 && distance <10);
+}
+
+bool sim_mob::BusDriver::isBusGngtoBreakDown()
+{
+	double distance = distanceToNextBusStop();
+	return  (distance>10 && distance <14);
 }
 
 bool sim_mob::BusDriver::isBusLeavingBusStop()
@@ -638,11 +698,13 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 		BusStop *bs = dynamic_cast<BusStop *>(ri);
 		int stopPoint = o_it->first;
 
+
 		if (bs) {
 			// check bs
 			int i = 0;
 			//int busstop_sequence_no = 0;
 			bool isFound=false;
+
 			for(i=0;i < busStops.size();++i)
 			{
 				if (bs->getBusstopno_() == busStops[i]->getBusstopno_())
@@ -674,12 +736,15 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs)
 						DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(), rs->getStart()->location.getX(),rs->getStart()->location.getY());
 						distance = stopPoint - vehicle->getDistanceMovedInSegment();
 						break;
+
 					}
 
 
 				} else {
 					DynamicVector busToSegmentStartDistance(currentX, currentY,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
+
+
 				}
 			} // end of if isFound
 		}
@@ -719,6 +784,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
 				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
 				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 				<<"\"})"<<std::endl);
 	} else {
 		LogOut("(\"BusDriver\""
@@ -733,6 +799,7 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0)
 				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
 				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 				<<"\"})"<<std::endl);
 	}
 
@@ -767,7 +834,6 @@ void sim_mob::BusDriver::frame_tick_output_mpi(timeslice now)
 				<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
 				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0);
 	}
-
 
 	if (this->parent->isFake) {
 		logout << "\",\"fake\":\"" << "true";

@@ -48,14 +48,48 @@ public:
 		ExpandPolicy exp;
 	};
 
+	///Move down one layer in the hierarchy
+	void advance() {
+		if ((layer+1)>=frames.size()) { throw std::runtime_error("Can't advance; already at the bottom of the stack."); }
+		layer++;
+	}
+
+	///Move up one layer in the hierarchy.
+	void unadvance() {
+		if (layer==0) { throw std::runtime_error("Can't un-advance; already at the top of the stack."); }
+		layer--;
+	}
+
 	///Remove the curr frame.
-	void pop() {
+	/*void pop() {
 		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
 		frames.erase(frames.begin());
+	}*/
+
+	//On the bottom of the stack?
+	/*bool last_item() {
+		return frames.size()==1;
+	}*/
+
+	///Return the current item by reference.
+	const ExpandFrame& curr() {
+		return frames.at(layer);
+	}
+
+	///Return the next item by reference.
+	const ExpandFrame& next() {
+		if ((layer+1)>=frames.size()) { throw std::runtime_error("namer::next() failed; no frames left."); }
+		return frames.at(layer+1);
+	}
+
+	///Return the item after the next one by reference.
+	const ExpandFrame& nextnext() {
+		if ((layer+2)>=frames.size()) { throw std::runtime_error("namer::next() failed; no frames left."); }
+		return frames.at(layer+2);
 	}
 
 	///Peek at the current key; don't remove it from the stack.
-	std::string currKey() {
+	/*std::string currKey() {
 		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
 		return frames.front().name;
 	}
@@ -64,7 +98,7 @@ public:
 	ExpandPolicy currPolicy() {
 		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
 		return frames.front().exp;
-	}
+	}*/
 
 	///Construct a namer for an array.
 	static namer array(const std::string& name="item", ExpandPolicy type=Exp_Value) {
@@ -74,10 +108,23 @@ public:
 		return namer(items);
 	}
 
+	///Construct a namer for an array of other namer types.
+	///(For now, this requires you to give an explicit name to the array's items).
+	static namer array(const std::string& name, const namer& itemType) {
+		//First item is a value-type using the given name.
+		std::vector<ExpandFrame> items;
+		items.push_back(ExpandFrame(name, Exp_Value));
+
+		//Append the frames from the borrowed namer and return.
+		items.insert(items.end(), itemType.frames.begin(), itemType.frames.end());
+		return namer(items);
+	}
+
 	///Construct a namer for a pair of items.
 	static namer pair(const std::string& firstName="first", const std::string& secondName="second", ExpandPolicy firstType=Exp_Value, ExpandPolicy secondType=Exp_Value) {
 		//Simple construction for now (recurse later)
 		std::vector<ExpandFrame> items;
+		items.push_back(ExpandFrame("", Exp_Value)); //The outer layer of the pair is a value type.
 		items.push_back(ExpandFrame(firstName, firstType));
 		items.push_back(ExpandFrame(secondName, secondType));
 		return namer(items);
@@ -88,10 +135,13 @@ public:
 
 private:
 	//Direct construction is discouraged; copy-construction is ok.
-	namer(const std::vector<ExpandFrame>& items) : frames(items) {}
+	namer(const std::vector<ExpandFrame>& items) : frames(items), layer(0) {}
 
 	//Our list of frames (policy expansions). The front() is the next one to use.
 	std::vector<ExpandFrame> frames;
+
+	//How far deep into the array are we?
+	size_t layer;
 };
 
 
@@ -159,12 +209,15 @@ public:
 	void prop_begin(const std::string& key);
 
 	///Pair with prop_begin()
-	void prop_end();
+	void prop_end() { prop_end(false); } //Java-style dispatch.
 
 	///Returns the property that is currently being written.
 	std::string curr_prop() { return propStack.back(); }
 
 private:
+	//The actual prop_end function. (We don't allow public-function users to ignor tabs, since there's no legitimate reason to do so.)
+	void prop_end(bool ignoreTabs);
+
 	///Write this file's header. This will be called first, as it prints the "<?xml..." tag.
 	void header();
 
@@ -173,7 +226,7 @@ private:
 
 	//Seal attributes; this appends a ">" to the current property and sets the sealed flag.
 	//Has no effect on the very first element (due to the <?xml... closing itself).
-	void seal_attrs();
+	void seal_attrs(bool appendNewline=true);
 
 	//Write a simple property (e.g., a primitive). Relies on operator<< for printing.
 	template <class T>
@@ -199,7 +252,25 @@ std::string get_id(const T&);
 //The function write_xml with a naming parameter can be used to override naming
 // on vectors, sets, etc.
 template <class T>
-void write_xml(XmlWriter&, const T&, namer name);
+void write_xml(XmlWriter& wr, const T& it, namer name) {
+	//NOTE: This is very tricky; we *might* have a value type that does not represent the end of the
+	//      vector (e.g., as a key), but there's no easy way to check this. Re-writing to use a
+	//      tree structure makes a lot more sense. For now, just attempt to forward:
+	//name.advance();
+	write_xml(wr, it);
+	//name.unadvance();
+
+
+	//This is usually an error, but is actually ok if we are dealing with a very basic property
+	// (e.g., non-nested). In this case, name will only have one element.
+	/*if (name.last_item()) {
+		//Dispatch
+		write_xml(wr, it);
+	} else {
+		//If non-specialized, it's an error.
+		throw std::runtime_error("write_xml() should never be called with a basic type *and* a name.\n(This usually represents an internal error.)");
+	}*/
+}
 
 }}  //End namespace sim_mob::xml
 
@@ -210,18 +281,20 @@ namespace {
 template <class IterType>
 void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
+	//name.advance();
 	for (; begin!=end; begin++) {
-		write.prop(name.currKey(), *begin, name);
+		write.prop(name.curr().name, *begin, name);
 	}
-	name.pop();
+	//name.unadvance();
 }
 template <class IterType>
 void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
 {
+	//name.advance();
 	for (; begin!=end; begin++) {
-		write.prop(name.currKey(), **begin, name);
+		write.prop(name.curr().name, **begin, name);
 	}
-	name.pop();
+	//name.unadvance();
 }
 
 ///Same, but for identifiers.
@@ -326,10 +399,13 @@ void sim_mob::xml::XmlWriter::write_newlines()
 	}
 }
 
-void sim_mob::xml::XmlWriter::seal_attrs() {
+void sim_mob::xml::XmlWriter::seal_attrs(bool appendNewline) {
 	if (!sealedAttr) {
 		if (tabCount>0) {
-			(*outFile) <<">" <<std::endl;
+			(*outFile) <<">";
+			if (appendNewline) {
+				(*outFile) <<std::endl;
+			}
 		}
 		sealedAttr = true;
 
@@ -368,15 +444,17 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer n
 	prop_begin(key);
 
 	//Recurse
-	if (name.currPolicy()==namer::Exp_Value) {
-		write_xml(*this, val);  //You can discard "name" at this point.
-	} else if (name.currPolicy()==namer::Exp_ID) {
-		seal_attrs(); //Adds the ">"
+	bool ignoreTabs = false;
+	if (name.curr().exp==namer::Exp_Value) {
+		write_xml(*this, val, name); //Need to pass along name; we might have a nested structure here.
+	} else if (name.curr().exp==namer::Exp_ID) {
+		seal_attrs(false); //Adds the ">"
 		(*outFile) <<get_id(val);
+		ignoreTabs = true;
 	} else { throw std::runtime_error("Unknown expand policy."); }
 
 	//End
-	prop_end();
+	prop_end(ignoreTabs);
 }
 
 
@@ -431,7 +509,7 @@ void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)
 	propStack.push_back(key);
 }
 
-void sim_mob::xml::XmlWriter::prop_end()
+void sim_mob::xml::XmlWriter::prop_end(bool ignoreTabs)
 {
 	//Restore indentation
 	std::string key = propStack.back();
@@ -440,7 +518,10 @@ void sim_mob::xml::XmlWriter::prop_end()
 
 	//Close tab.
 	if (sealedAttr) { //Did we write at least one property?
-		(*outFile) <<std::string(tabCount*TabSize, ' ') <<"</" <<key <<">" <<std::endl;
+		if (!ignoreTabs) {
+			(*outFile) <<std::string(tabCount*TabSize, ' ');
+		}
+		(*outFile) <<"</" <<key <<">" <<std::endl;
 	} else {
 		(*outFile) <<"/>" <<std::endl;
 	}
@@ -461,7 +542,6 @@ void sim_mob::xml::XmlWriter::prop_end()
 
 namespace sim_mob { //Function specializations require an explicit namespace wrapping.
 namespace xml {
-
 
 
 //////////////////////////////////////////////////////////////////////
@@ -511,10 +591,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, namer name)
 {
-	write.prop(name.currKey(), *pr.first, name);
-	name.pop();
-	write.prop(name.currKey(), *pr.second, name);
-	name.pop();
+	name.advance(); //Already used for value-printing of the pair<> top-level element.
+	write.prop(name.curr().name, *pr.first, name);
+	name.advance();
+	write.prop(name.curr().name, *pr.second, name);
+	name.unadvance();
+	name.unadvance();
 }
 //Delegate up
 template <class T, class U>

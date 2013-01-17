@@ -179,7 +179,7 @@ void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std
 
 		//Print
 		write.ident("RoadSegment", *it->first);
-		write.prop("Connectors", temp_list, namer::array("Connector"));
+		write.prop("Connectors", temp_list, namer::array("Connector", namer::pair("laneFrom", "laneTo", namer::Exp_ID, namer::Exp_ID)));
 	}
 }
 
@@ -224,7 +224,7 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	if (und.secondPair.first && und.secondPair.second) {
 		write.prop("secondPair", und.secondPair, namer::pair(namer::Exp_ID, namer::Exp_ID));
 	}
-	write.prop("Connectors", flatten_map(und.getConnectors()), namer::array("Connector"));
+	write.prop("Connectors", flatten_map(und.getConnectors()), namer::array("Connector", namer::pair("laneFrom", "laneTo", namer::Exp_ID, namer::Exp_ID)));
 }
 
 template <>

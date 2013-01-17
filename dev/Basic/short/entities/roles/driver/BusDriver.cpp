@@ -219,17 +219,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-	int pc = (dynamic_cast<sim_mob::Bus*>(vehicle))->getPassengerCount();
-	if((p.now.frame() < 2420 && p.now.frame() > 2065 &&  (/*pc == 10 || pc == 15 || */pc == 20)) ||(me == this))
-	{
-		me = this;
-//		std::cout << p.now.frame() << ":Bus Driver  " << this << " PC: " << pc << "    diststop = " << p.dis2stop << "  distanceToNextBusStop = " << distanceToNextBusStop() << std::endl;
-	}
-
-	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
-	{
-//		std::cout << "1-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << std::endl;
-	}
+	
 	//when vehicle stops, don't do lane changing
 	/*if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
@@ -314,11 +304,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		vehicle->setTurningDirection(LCS_SAME);
 
 	p.turningDirection = vehicle->getTurningDirection();
+	
 
-	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
-	{
-		std::cout << "2-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << "  Approaching = " << (isBusApproachingBusStop()?"TRUE":"FALSE") << std::endl;
-	}
+	
 	if (isBusApproachingBusStop()) {
 		double acc = busAccelerating(p)*100;
 
@@ -392,7 +380,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			bus->setPassengerCountOld(bus->getPassengerCount());
 			AlightingPassengers(bus);//first alight passengers inside the bus
 			BoardingPassengers(bus);//then board passengers waiting at the bus stop
-			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
+			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 		//	estimated_boarding_passengers_no=0;
 			std::cout<<"alighting no"<<no_passengers_alighting<<std::endl;
 			std::cout<<"no_passengers_boarding"<<no_passengers_boarding<<std::endl;
@@ -418,7 +406,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 							if(busline) {
 								if(busstop_sequence_no.get() == 2) { // only use holding control at selected time points
 									double waitTime = 0;
-									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),0);
+									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),true);
 									setWaitTime_BusStop(waitTime);
 								} else {//if bus doesnot come to time point stop need to update the realtime
 									double waitTime = 0;
@@ -465,12 +453,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
 
-	if(isBusFarawayBusStop())
-	{
-		sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
-		if(bus->getPassengerCount() == 19) demo_passenger_increase = true;
-
-	}
 	//Update our distance
 	lastTickDistanceToBusStop = distanceToNextBusStop();
 
@@ -993,7 +975,7 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus)//boarding passengers
 
 	int j=0,k=0;
 	bool ApproachingBusStop=false;
-	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(), vehicle->getY()), *params.currLane,3500,3500);
+	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((lastVisited_BusStop.get()->xPos-3000), (lastVisited_BusStop.get()->yPos-3000)),Point2D((lastVisited_BusStop.get()->xPos+3000), (lastVisited_BusStop.get()->yPos+3000)));//  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
 //	for (size_t i = 0; i < Agent::all_agents.size(); i++)//loop through all the agents to find passenger agents who are waiting at the approaching bus stop
      {

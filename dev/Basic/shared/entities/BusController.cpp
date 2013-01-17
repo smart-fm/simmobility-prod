@@ -178,9 +178,9 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
 			//busline = new sim_mob::Busline(curr->route_id,"no_control");
-			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
+			busline = new sim_mob::Busline(curr->route_id,"headway_based");
 			//busline = new sim_mob::Busline(curr->route_id,"hybrid_based");
-			busline = new sim_mob::Busline(curr->route_id,"evenheadway_based");
+			//busline = new sim_mob::Busline(curr->route_id,"evenheadway_based");
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
 			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth

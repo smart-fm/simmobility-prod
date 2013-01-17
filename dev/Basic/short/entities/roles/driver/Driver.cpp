@@ -903,7 +903,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 
 						if(iscurrentLaneConnected)
 						{
-							distf = p.nvFwd.distance + vehicle->length + 30;
+							distf = p.nvFwd.distance + vehicle->length + 20;
 						}
 						else
 						{
@@ -914,7 +914,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 						for(std::map<int,vector<int> >::iterator i=indexes.begin();i!=indexes.end();i++)
 						{
 							int temp = i->first;
-							if(i->second.at(0) > distf)
+							if((i->second.at(0) > distf) && (i->second.at(0) > distb))
 							{
 								index = i->first;
 								distf = i->second.at(0);
@@ -1119,8 +1119,8 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 //	}
 	if(true && (vehicle->getTurningDirection() == LCS_SAME && p.currLaneIndex != p.nextLaneIndex))
 	{
-		if((vehicle->getVelocity()/100) > 4.8)
-			vehicle->setVelocity((4.8*100));
+		if((vehicle->getVelocity()/100) > 4.7)
+			vehicle->setVelocity((4.7*100));
 
 	}
 	

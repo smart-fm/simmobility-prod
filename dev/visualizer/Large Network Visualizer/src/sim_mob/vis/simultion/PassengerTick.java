@@ -200,7 +200,7 @@ public class PassengerTick extends AgentTick {
 		
 			g.drawImage(toDraw, 0, 0, null);
 			   //Draw a circle with its id
-			if(false)
+			if(true)
 			{
 				Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
 				final int Size = 20;

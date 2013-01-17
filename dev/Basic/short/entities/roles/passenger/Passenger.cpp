@@ -100,17 +100,7 @@ void sim_mob::Passenger::setParentBufferedData() {
 	  parent->xPos.set(this->busdriver.get()->getPositionX());//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
 	  parent->yPos.set(this->busdriver.get()->getPositionY());
 	}
-	else
-	{
-	   pthread_mutex_lock(&mu);
-	   srand(parent->getId()*parent->getId());
-	   int random_num1 = rand()%(250);
-       int random_num2 = rand()%(100);
-	   pthread_mutex_unlock(&mu);
-	   this->random_x.set(parent->xPos.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
-	   this->random_y.set(parent->yPos.get()+random_num2);
 
-	}
 
 
 }
@@ -120,7 +110,13 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 //passenger_inside_bus.set(false);
 	 busdriver.set(nullptr);
 	// bus stop no 4179,x-372228.099782,143319.818791
- if(parent->originNode->location.getX()==37236345)//103046
+	if(parent->originNode->getID() == 75780)
+	{
+		parent->xPos.set(37222809);
+		parent->yPos.set(14331981);
+
+	}
+	else if(parent->originNode->location.getX()==37236345)//103046
 	 {
 	 parent->xPos.set(37234200);
 	 parent->yPos.set(14337700);
@@ -279,9 +275,23 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
-	if((this->WaitingAtBusStop==true) ||(this->alightedBus==true))
+	if((this->WaitingAtBusStop==true) && (!(this->alightedBus)))
      // LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<this->random_x.get()<<"\"," <<"\"yPos\":\""<<this->random_y.get()<<"\",})"<<std::endl);
+		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<this->parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+
+	else if(this->alightedBus)
+	{
+	   pthread_mutex_lock(&mu);
+	   srand(parent->getId()*parent->getId());
+	   int random_num1 = rand()%(250);
+	   int random_num2 = rand()%(100);
+	   pthread_mutex_unlock(&mu);
+	   //this->random_x.set(random_x.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
+	   //this->random_y.set(random_y.get()+random_num2);
+	   LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(random_x.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(random_y.get()+random_num2)<<"\",})"<<std::endl);
+
+	}
+
 }
 
 void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)
@@ -375,6 +385,8 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 		//this->updateParentCoordinates(xpos_approachingbusstop,ypos_approachingbusstop);
 	 		this->parent->xPos.set(xpos_approachingbusstop);
 	 		this->parent->yPos.set(ypos_approachingbusstop);
+	 		this->random_x.set(xpos_approachingbusstop);
+	 		this->random_y.set(ypos_approachingbusstop);
             return true;
 	 	}
 	   return false;

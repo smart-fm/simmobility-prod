@@ -214,7 +214,7 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
-	std::vector<SubTrip> subTrips;
+	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.

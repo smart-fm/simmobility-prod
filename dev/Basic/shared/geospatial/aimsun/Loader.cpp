@@ -1815,7 +1815,7 @@ struct MyLaneConectorSorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 
@@ -1842,7 +1842,7 @@ struct MyLaneConectorSorter {
 	  if(!(a && b))
 	  {
 		  std::cout << "A lane from is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))

@@ -177,8 +177,8 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 
 //Initialize
-sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
-	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
+sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string roleName_) :
+	Role(parent,roleName_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
 	params(parent->getGenerator())
 {
@@ -234,7 +234,9 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 
 Role* sim_mob::Driver::clone(Person* parent) const
 {
-	return new Driver(parent, parent->getMutexStrategy());
+	Role* role = 0;
+	role = new Driver(parent, parent->getMutexStrategy());
+	return role;
 }
 
 
@@ -301,6 +303,14 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
 		}
+	}
+	else if(vehicle)
+	{
+//		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
+		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p2.elapsedSeconds);
+//		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
+//		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
+//		std::cout << "\n\n\n";
 	}
 
 
@@ -590,7 +600,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 
 
 	//Has the segment changed?
-	if (!vehicle->isDone()) {
+	if ((!vehicle->isDone()) && (!vehicle->hasPath()) ) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment() != prevSegment);
 	}
 	return true;
@@ -754,7 +764,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 				}
 			} // end of if (!lcs)
 		}
-	}
+
+		}
 
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
@@ -796,22 +807,6 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		}
 	}
 
-//	if (params.now.ms()/1000.0 > 0
-//			&& vehicle->getCurrSegment()->getStart()->nodeId == 61688
-//			&& vehicle->getCurrSegment()->getEnd()->nodeId == 93730
-////			&& vehicle->getVelocity()>1
-//		)
-//	{
-//		if (vehicle->getNextSegment(false))
-//			if (vehicle->getNextSegment(false)->getEnd()->nodeId == 66508)
-//				std::cout<<"find  " <<parent->getId()<<std::endl;
-//		std::cout<<"id 61688 " <<vehicle->getCurrSegment()->getStart()->nodeId<<" "<<
-//				vehicle->getCurrSegment()->getStart()->location.getX()<<" "<<vehicle->getCurrSegment()->getStart()->location.getY()<<std::endl;
-//		std::cout<<"id 93730 " <<vehicle->getCurrSegment()->getEnd()->nodeId<<" "<<
-//						vehicle->getCurrSegment()->getEnd()->location.getX()<<" "<<vehicle->getCurrSegment()->getEnd()->location.getY()<<std::endl;
-//		std::cout<<"id 66508 " <<vehicle->getNextSegment(false)->getEnd()->nodeId<<" "<<
-//								vehicle->getNextSegment(false)->getEnd()->location.getX()<<" "<<vehicle->getNextSegment(false)->getEnd()->location.getY()<<std::endl;
-//	}
 
 	perceivedDataProcess(nv, p);
 

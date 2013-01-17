@@ -197,63 +197,28 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
+	std::cout << "we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+	std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << std::endl;
+//	getchar();
 	//The current agent we are working on.
-	Person* currAg = nullptr;
+	Person* person = nullptr;
 	std::string trip_mode;
-	std::vector<const TripChainItem*> currAgTripChain;
-
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
-//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
-//		//getchar();
-//		const Trip* trip = dynamic_cast<const Trip*>(tc);
-//		const Activity* act = dynamic_cast<const Activity*>(tc);
-//
-//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
-//			//Origin and destination must be those of the first subtrip if current item is a trip
-//			currAg->originNode = firstSubTrip.fromLocation;
-//			currAg->destNode = firstSubTrip.toLocation;
-//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
-//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-//			currAg->originNode = currAg->destNode = act->location;
-//		} else { //Offer some protection
-//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-//		}
-//
-//		currAg->setTripChain(it_map->second);
-//		if (currAg->currSubTrip) {
-//			if (currAg->currSubTrip->mode == "Bus") {
-//				// currently only one
-//				if (!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
-//							active_agents);
-//				}
-//			}
-//		}
-//		else
-		{
-//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
-			addOrStashEntity(currAg, active_agents, pending_agents);
-		}
-
+		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << " with size " << it_map->second.size() << " tripchain items\n" << std::endl;
+//		getchar();
+		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent
-		currAg = nullptr;
-
-		
-	} //outer for loop(map)
+		person = nullptr;
+	}//outer for loop(map)
+//	getchar();
 }
-
-
-
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
@@ -370,6 +335,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 		if (agentType == "busdriver")
 			props["#mode"] = "Bus";
+		if (agentType == "passenger")
+					props["#mode"] = "travel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -431,7 +398,6 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
-		std::cout << "ooops! returning true!" << std::endl;
 		return true;
 	}
 
@@ -777,8 +743,6 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " Before...";
-//		getchar();
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
@@ -792,9 +756,6 @@ void PrintDB_Network()
 			}
 
 		}
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " After...";
-//		getchar();
-
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -884,7 +845,7 @@ struct Sorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
+//		  getchar();
 		  return false;
 	  }
 
@@ -1063,7 +1024,6 @@ void PrintDB_Network_ptrBased()
 			}
 		}
 
-
 		//Save Lane info for later
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
@@ -1154,6 +1114,7 @@ void PrintDB_Network_ptrBased()
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
+//obsolete
 void PrintDB_Network_idBased()
 {
 	if (ConfigParams::GetInstance().OutputDisabled()) {
@@ -1403,7 +1364,7 @@ void patchRoadNetworkwithLaneEdgePolyline() {
 		}
 	}
 }
-
+//obsolete
 void printRoadNetwork_console()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
@@ -1815,27 +1776,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-
-//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
-//    		{
-//    			if((*it)->getLinkId() != 1000010) continue;
-//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//    			{
-//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
-//    				{
-//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//    					{
-//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//    						if((cr))
-//    						{
-//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
-//    						}
-//    					}
-//    				}
-//    			}
-//    		}
-//    		getchar();
-
 #else
        		/**************************************************
        		 *
@@ -1938,7 +1878,14 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
-    	} else {
+    	}
+    	else if ((*it) == "passengers") {
+    	    		if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
+    	    			return "Couldn't load passengers";
+    	    		}
+    	    		cout <<"Loaded Passenger Agents (from config file)." <<endl;
+    	    	}
+    	else {
     		return string("Unknown item in load_agents: ") + (*it);
     	}
     }

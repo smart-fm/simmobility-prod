@@ -5,6 +5,7 @@
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include <vector>
 
 namespace sim_mob {
@@ -55,10 +56,19 @@ public:
 	bool isBusLeavingBusStop();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
-	//void passengers_distribution(Bus* bus);
+
+//functions for boarding and alighting passengers with trip chaining
+	void BoardingPassengers(Bus* bus);
+  //  void boardBus(Bus* bus, Person* passenger);
+    void AlightingPassengers(Bus* bus);
+    //void EstimateBoardingAlightingPassengers();
+
+//functions for passenger generation with distribution
 	void passengers_Board(Bus* bus);
 	void passengers_Alight(Bus* bus);
 	double passengerGeneration(Bus* bus);
+	double passengerGenerationNew(Bus* bus);
+
 	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
@@ -75,6 +85,7 @@ public:
 		return busStopRealTimes_vec_bus;
 	}
 
+	std::vector<const BusStop*> GetBusstops();
 	double lastTickDistanceToBusStop;
 	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
@@ -85,6 +96,7 @@ public:
 	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
 
+	double xpos_approachingbusstop,ypos_approachingbusstop;
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 
 	bool first_busstop;
@@ -92,6 +104,9 @@ public:
 	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
+	//std::vector<const Passenger*> passengers_at_currentbusstop;
+	//std::vector<const Passenger*> passengers_inside_bus;
+	std::vector<const BusStop*> busStops;
 
 protected:
 	//Override the following behavior
@@ -105,7 +120,6 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	std::vector<const BusStop*> busStops;
 
 	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 

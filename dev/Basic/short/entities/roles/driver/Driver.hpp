@@ -73,7 +73,7 @@ public:
 
 
 
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat , std::string roleName_ = "driver");
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -100,6 +100,7 @@ public:
 	Shared<double> latVelocity;
 	Shared<double> fwdAccel;
 	Shared<LANE_CHANGE_SIDE> turningDirection;
+	Vehicle* getVehicle() { return vehicle; }
 
 public:
 	double startTime;

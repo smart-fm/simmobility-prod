@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <map>
 
+#include "util/LangHelpers.hpp"
+
 namespace sim_mob {
 namespace xml {
 
@@ -36,113 +38,196 @@ namespace xml {
  * I almost called it "expander", but then I figured that no-one would ever use it.
  * Better to call it "namer", since that's what most people will use it for.
  */
-class namer {
-public:
-	//How shall we expand properties? By printing their ids, or by printing them by value.
-	enum ExpandPolicy { Exp_Value, Exp_ID };
 
-	//What are we expanding? Each frame lists a custom name to use, and a policy for expanding the current item.
-	struct ExpandFrame {
-		ExpandFrame(const std::string& name, ExpandPolicy exp) : name(name), exp(exp) {}
-		std::string  name;
-		ExpandPolicy exp;
+//class namer_iterator;
+//class XmlWriter;
+
+
+//"Result" of matches. Left/right indicate the same thing they did in the previous code; both are optional.
+struct res_set {
+	std::string left;
+	std::string right;
+};
+
+
+namespace {
+//Count occurrances of "letter" in "src"
+int letter_count(const std::string& src, char letter) {
+	int res=0;
+	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {
+		if (*it == letter) { res++; }
+	}
+	return res;
+}
+
+//Is this string complex? (Does it have <,> anywhere?)
+bool is_complex(const std::string& src) {
+	return (src.find('<')<src.size()) || (src.find(',')<src.size()) || (src.find('>')<src.size());
+}
+
+//Helper: Scan and break into left/right segments. Results are returned by reference into left and right.
+void scan_pair(const std::string& nameStr, std::string& left, std::string&right) {
+	std::stringstream newLeft;
+	int depth=0; // nested in brackets?
+	for (std::string::const_iterator it=nameStr.begin(); it!=nameStr.end(); it++) {
+		//Only three characters matter here.
+		if (*it==',') {
+			if (depth==0) {
+				//We found our comma; left will be set later, so set right to the remainder.
+				right = std::string(it+1, nameStr.end());
+				break;
+			}
+		} else if (*it=='<') {
+			depth++;
+		} else if (*it=='>') {
+			depth--;
+		}
+
+		//Either way, append it to left.
+		newLeft <<*it;
+	}
+
+	//Save left; right's already been saved.
+	left = newLeft.str();
+}
+} //End anon namespace
+
+
+
+///The base class of namer and expander, which provides shared functionality for both.
+class prop_parser  {
+protected:
+	//Only allow construction via subclasses.
+	explicit prop_parser(const std::string& str) {
+		//Perform some sanity checks, then parse.
+		sanity_check(str);
+		parse(str);
+	}
+
+	//Container for results
+	struct res_item {
+		res_item() : leaf(true) {}
+		std::string item;  //E.g., "item", or "<first,second>"
+		bool leaf;         //True if "item" or "", not "<first,second>"
 	};
 
-	///Move down one layer in the hierarchy
-	void advance() {
-		if ((layer+1)>=frames.size()) { throw std::runtime_error("Can't advance; already at the bottom of the stack."); }
-		layer++;
+
+public:
+	std::string leftStr() const {
+		return left.leaf ? left.item : "";
+	}
+	std::string rightStr() const {
+		return right.leaf ? right.item : "";
+	}
+	bool leftIsLeaf() const {
+		return left.leaf;
+	}
+	bool rightIsLeaf() const {
+		return right.leaf;
 	}
 
-	///Move up one layer in the hierarchy.
-	void unadvance() {
-		if (layer==0) { throw std::runtime_error("Can't un-advance; already at the top of the stack."); }
-		layer--;
-	}
-
-	///Remove the curr frame.
-	/*void pop() {
-		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
-		frames.erase(frames.begin());
-	}*/
-
-	//On the bottom of the stack?
-	/*bool last_item() {
-		return frames.size()==1;
-	}*/
-
-	///Return the current item by reference.
-	const ExpandFrame& curr() {
-		return frames.at(layer);
-	}
-
-	///Return the next item by reference.
-	const ExpandFrame& next() {
-		if ((layer+1)>=frames.size()) { throw std::runtime_error("namer::next() failed; no frames left."); }
-		return frames.at(layer+1);
-	}
-
-	///Return the item after the next one by reference.
-	const ExpandFrame& nextnext() {
-		if ((layer+2)>=frames.size()) { throw std::runtime_error("namer::next() failed; no frames left."); }
-		return frames.at(layer+2);
-	}
-
-	///Peek at the current key; don't remove it from the stack.
-	/*std::string currKey() {
-		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
-		return frames.front().name;
-	}
-
-	///Peek at the current expand type; don't remove it from the stack.
-	ExpandPolicy currPolicy() {
-		if (frames.empty()) { throw std::runtime_error("namer::next() failed; frame stack is empty."); }
-		return frames.front().exp;
-	}*/
-
-	///Construct a namer for an array.
-	static namer array(const std::string& name="item", ExpandPolicy type=Exp_Value) {
-		//Simple construction for now (recurse later)
-		std::vector<ExpandFrame> items;
-		items.push_back(ExpandFrame(name, type));
-		return namer(items);
-	}
-
-	///Construct a namer for an array of other namer types.
-	///(For now, this requires you to give an explicit name to the array's items).
-	static namer array(const std::string& name, const namer& itemType) {
-		//First item is a value-type using the given name.
-		std::vector<ExpandFrame> items;
-		items.push_back(ExpandFrame(name, Exp_Value));
-
-		//Append the frames from the borrowed namer and return.
-		items.insert(items.end(), itemType.frames.begin(), itemType.frames.end());
-		return namer(items);
-	}
-
-	///Construct a namer for a pair of items.
-	static namer pair(const std::string& firstName="first", const std::string& secondName="second", ExpandPolicy firstType=Exp_Value, ExpandPolicy secondType=Exp_Value) {
-		//Simple construction for now (recurse later)
-		std::vector<ExpandFrame> items;
-		items.push_back(ExpandFrame("", Exp_Value)); //The outer layer of the pair is a value type.
-		items.push_back(ExpandFrame(firstName, firstType));
-		items.push_back(ExpandFrame(secondName, secondType));
-		return namer(items);
-	}
-	static namer pair(ExpandPolicy firstType, ExpandPolicy secondType=Exp_Value, const std::string& firstName="first", const std::string& secondName="second") {
-		return namer::pair(firstName, secondName, firstType, secondType);
+	//An object is "empty" if it can be safely discarded; e.g., it contains no information (string) whatsoever.
+	bool isEmpty() const {
+		return left.item.empty() && right.item.empty();
 	}
 
 private:
-	//Direct construction is discouraged; copy-construction is ok.
-	namer(const std::vector<ExpandFrame>& items) : frames(items), layer(0) {}
+	void sanity_check(const std::string& str) {
+		//We can handle spaces later; it just messes up our definition of "empty". For now it's not worth it.
+		if (str.find(' ')<str.size()) { throw std::runtime_error("Bad namer/expander string: no spaces!"); }
 
-	//Our list of frames (policy expansions). The front() is the next one to use.
-	std::vector<ExpandFrame> frames;
+		//Very simple sanity check: do our left and right brackets match up (and outnumber commas)?
+		int countL = letter_count(str, '<');
+		int countR = letter_count(str, '>');
+		int countC = letter_count(str, ',');
+		if (countL==countR && countC<=countL) { return; }
+		throw std::runtime_error("Bad namer/expander string: brackets and commas don't match up.");
+	}
 
-	//How far deep into the array are we?
-	size_t layer;
+	//Parse the current string, removing the outer layer of brackets and retrieving the "left" and "right"
+	//  elements (including remaining components).
+	void parse(const std::string& str) {
+		//Nothing to parse?
+		if (str.empty()) { return; }
+
+		//Find the outermost brackets. These are balanced (see the constructor), and should be at the start/end of the string.
+		size_t cropL = str.find('<');
+		size_t cropR = str.rfind('>');
+		if (cropL!=0 || cropR!=str.size()-1) {
+			return;  //Silently fail.
+		}
+
+		//There are three cases to deal with, all of which generalize to the first case.
+		//The difficulty is that there can be nested brackets too.
+		//   <left,right>
+		//   <left>
+		//   <> (nothing)
+		scan_pair(str.substr(1,str.size()-2), left.item, right.item);
+
+		//Replace "*" with "" (optional padding, looks better)
+		if (left.item=="*") { left.item=""; }
+		if (right.item=="*") { right.item=""; }
+
+		//Set "leaf" property.
+		left.leaf = !is_complex(left.item);
+		right.leaf = !is_complex(right.item);
+	}
+
+protected:
+	//Our current results set.
+	res_item left;
+	res_item right;
 };
+
+
+
+//Try again, this time simply using strings.
+class namer : public prop_parser {
+public:
+	explicit namer(const std::string& nameStr="") : prop_parser(nameStr) {}
+
+	namer leftChild() {
+		return left.leaf ? namer() : namer(left.item);
+	}
+	namer rightChild() {
+		return right.leaf ? namer() : namer(right.item);
+	}
+};
+class expander : private prop_parser {
+public:
+	explicit expander(const std::string& nameStr="") : prop_parser(nameStr) {}
+
+	expander leftChild() const {
+		return left.leaf ? expander() : expander(left.item);
+	}
+	expander rightChild() const {
+		return right.leaf ? expadner() : expander(right.item);
+	}
+
+	bool leftIsValue() const {
+		return isValue(leftStr());
+	}
+
+	bool rightIsValue() const {
+		return isValue(rightStr());
+	}
+
+private:
+	bool isValue(const std::string& candidate) const {
+		//Default is "value", so check for "id"
+		//This is the only area where we're strict.
+		if (candidate=="value") {
+			return true;
+		} else if (candidate=="id") {
+			return false;
+		} else if (!candidate.empty()) {
+			throw std::runtime_error("expand-type must be either \"id\" or \"value\"");
+		}
+		return true;
+	}
+};
+
+
 
 
 /**
@@ -185,20 +270,16 @@ public:
 
 	///Write a slightly more complex property.
 	template <class T>
-	void prop(const std::string& key, const T& val, namer name);
+	void prop(const std::string& key, const T& val, namer name, expander expand=expander(""));
 
-	///Write a list (key-list-of-values)
-	/*template <class T>
-	void list(const std::string& plural, const std::string& singular, const T& val);*/
+	//Expander-only version.
+	template <class T>
+	void prop(const std::string& key, const T& val, expander expand) { prop(key, val, namer(""), expand); }
 
 	///Write a property as using identifiers instead of values. This requires
 	/// the required base type to have a corresponding get_id() override.
 	template <class T>
 	void ident(const std::string& key, const T& val);
-
-	///Write an identifier that consists of a pair of values.
-	/*template <class T, class U>
-	void ident(const std::string& key, const T& first, const U& second);*/
 
 	///Write a list of identifiers
 	template <class T>
@@ -250,26 +331,19 @@ template <class T>
 std::string get_id(const T&);
 
 //The function write_xml with a naming parameter can be used to override naming
-// on vectors, sets, etc.
+// on vectors, sets, etc. Users should not override this one unless they are implementing their own containers.
+//NOTE: The call to "prop()" will make sure you *always* get both name and expand. If either is empty,
+//      that is when it is appropriate it use customizable defaults (e.g., "item" for vectors).
 template <class T>
-void write_xml(XmlWriter& wr, const T& it, namer name) {
-	//NOTE: This is very tricky; we *might* have a value type that does not represent the end of the
-	//      vector (e.g., as a key), but there's no easy way to check this. Re-writing to use a
-	//      tree structure makes a lot more sense. For now, just attempt to forward:
-	//name.advance();
+void write_xml(XmlWriter& wr, const T& it, const namer& name, const expander& expand) {
+	//This provides a little protection against improperly formatted stings; since we're already using
+	//  extremely loose type checking (via strings), we can only prevent so much.
+	if (!(name.isEmpty() && expand.isEmpty())) {
+		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+	}
+
+	//A null namer is essentially *no* namer, so remove it.
 	write_xml(wr, it);
-	//name.unadvance();
-
-
-	//This is usually an error, but is actually ok if we are dealing with a very basic property
-	// (e.g., non-nested). In this case, name will only have one element.
-	/*if (name.last_item()) {
-		//Dispatch
-		write_xml(wr, it);
-	} else {
-		//If non-specialized, it's an error.
-		throw std::runtime_error("write_xml() should never be called with a basic type *and* a name.\n(This usually represents an internal error.)");
-	}*/
 }
 
 }}  //End namespace sim_mob::xml
@@ -279,20 +353,50 @@ void write_xml(XmlWriter& wr, const T& it, namer name) {
 namespace {
 ///Write a generic list/map/whatever via iterators
 template <class IterType>
-void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
+void write_value_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name, sim_mob::xml::expander expand)
 {
 	//name.advance();
 	for (; begin!=end; begin++) {
-		write.prop(name.curr().name, *begin, name);
+		write.prop(name.leftStr(), *begin, name, expand);
 	}
 	//name.unadvance();
 }
 template <class IterType>
-void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name=sim_mob::xml::namer::array())
+void write_pointer_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end, sim_mob::xml::namer name, sim_mob::xml::expander expand)
 {
+	//TODO: I'm missing something here:
+	//  1) We need to pass expand.leftStr(), so that we get "value" types instead of IDs (OR we can go back
+	//     to the old "ident()" function (no).
+	//  2) Actually, we might want to add a default function argument to prop; e.g., a default "expand()"
+	//     option, which is just empty. This actually makes the most sense.
+	//Then, we'd do something like this:
+	//     write.prop(name.leftStr(), **begin, name.rightChild(), expand.rightChild(), expand.leftStr());
+	//It's kind of messy, but it should work.
+	//We also need to be *very* careful to dispatch back UP to prop() without the name/expand args
+	//   if both name and expand are empty(). This should (in theory) allow our default arguments
+	//   for lists, maps, and pointers to work fine.
+	//The only problem would be something like "<item, <first, second>>" with "" as the expander.
+	//   In this case, we need can add a default value-type argument. But what about:
+	//   "" for the namer and "<value, <id, id>>" for the expander? We want to turn "" into "<item, <first,second>>"
+	//   for the namer.... so perhaps we'll need prop(name,expand), which checks (internally) and dispatches to either:
+	//   write_xml()
+	//   write_xml(namer)
+	//   write_xml(expander)
+	//   write_xml(namer, expander)
+	//This means we'd need all four functions for each type, but let's consider:
+	//   1) Basic types could have a catch-all template which passes up to write_xml(), unless the args
+	//      are non-empty (we already do this for the 4th function).
+	//   2) vector<>,map<> and other container types will want to control 1,2, and 3, dispatching to
+	//      4, regardless (with defaults). It's a tiny extra inconvenience, but they'll want the control,
+	//      so it's not a burden (and if they forget, (1) will catch the error at runtime.)
+	//   3) This strategy basically allows us to pass empty namers/expanders into prop() on a whim.
+	//      write_xml() requires strictly the right namers/expanders, but that is only called internally.
+	//      So, calling .prop("", "<value>") will work (even though the namer is empty).
+	//Ok, this will probably work.
+
 	//name.advance();
 	for (; begin!=end; begin++) {
-		write.prop(name.curr().name, **begin, name);
+		write.prop(name.leftStr(), **begin, name.rightChild(), expand.rightChild());
 	}
 	//name.unadvance();
 }
@@ -432,8 +536,10 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val)
 	write_xml(*this, val);
 	prop_end();
 }
+
+
 template <class T>
-void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer name)
+void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer name, expander expand)
 {
 	//Begin.
 	//TODO: If Exp_ID, then a full "prop_begin()" and "prop_end()" are wasteful
@@ -443,15 +549,19 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer n
 	//      as long as it works.
 	prop_begin(key);
 
+	//Advance the current namer one level deeper.
+	name.parse();
+	expand.parse();
+
 	//Recurse
 	bool ignoreTabs = false;
-	if (name.curr().exp==namer::Exp_Value) {
-		write_xml(*this, val, name); //Need to pass along name; we might have a nested structure here.
-	} else if (name.curr().exp==namer::Exp_ID) {
+	if (expand.currLeftIsValue()) {
+		write_xml(*this, val, name, expand); //Need to pass along name; we might have a nested structure here.
+	} else { //if (name.curr().exp()==expand::ID) {
 		seal_attrs(false); //Adds the ">"
 		(*outFile) <<get_id(val);
 		ignoreTabs = true;
-	} else { throw std::runtime_error("Unknown expand policy."); }
+	} //else { throw std::runtime_error("Unknown expand policy."); }
 
 	//End
 	prop_end(ignoreTabs);
@@ -548,74 +658,73 @@ namespace xml {
 //////////////////////////////////////////////////////////////////////
 //Test function. Functions of this kind will replace the write_xml_list functions listed earlier.
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec, namer name, expander expand)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), name);
+	write_pointer_array(write, vec.begin(), vec.end(), name, expand);
 }
 //Two-parameter functions (for containers) pass *up*
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), namer::array());
+	write_pointer_array(write, vec.begin(), vec.end(), namer("<item>"), expander("<value>"));
 }
 
 //Test function. Functions of this kind will replace the write_xml_list functions listed earlier.
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec, namer name, expander expand)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), name);
+	write_pointer_array(write, vec.begin(), vec.end(), name, expand);
 }
 //Two-parameter functions (for containers) pass *up*
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
 {
-	write_pointer_array(write, vec.begin(), vec.end(), namer::array());
+	write_pointer_array(write, vec.begin(), vec.end(), namer("<item>"), expander("<value>"));
 }
 
 
 //TEMP: Write value array. (Can we remove the need for value arrays later?)
+//TODO: These two are one level out of sync.
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name, expander expand)
 {
-	write_value_array(write, vec.begin(), vec.end(), name);
+	write_value_array(write, vec.begin(), vec.end(), name, expand);
 }
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 {
-	write_value_array(write, vec.begin(), vec.end(), namer::array());
+	write_value_array(write, vec.begin(), vec.end(), namer("<item>"), expander("<value>"));
 }
 
 
 
 //Test function for pairs
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr, namer name, expander expand)
 {
-	name.advance(); //Already used for value-printing of the pair<> top-level element.
-	write.prop(name.curr().name, *pr.first, name);
-	name.advance();
-	write.prop(name.curr().name, *pr.second, name);
-	name.unadvance();
-	name.unadvance();
+	//Propagate; use the left/right children for this.
+	//TODO: How to handle left/right?
+	write.prop(name.left(), *pr.first, name, expand);
+	write.prop(name.right(), *pr.second, name, expand);
 }
 //Delegate up
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, const U*>& pr)
 {
-	write_xml(write, pr, namer::pair());
+	write_xml(write, pr, namer("<first,second>"), expander("<value,value>"));
 }
 
 
 //Pairs: Delegate const variability up
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, U*>& pr, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, U*>& pr, namer name, expander expand)
 {
-	write_xml(write, std::pair<const T*, const U*>(pr), name);
+	write_xml(write, std::pair<const T*, const U*>(pr), name, expand);
 }
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T*, const U*>& pr, namer name)
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T*, const U*>& pr, namer name, expander expand)
 {
-	write_xml(write, std::pair<const T*, const U*>(pr), name);
+	write_xml(write, std::pair<const T*, const U*>(pr), name, expand);
 }
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<const T*, U*>& pr)
@@ -666,12 +775,6 @@ void XmlWriter::prop(const std::string& key, const int& val)
 
 template <>
 void XmlWriter::prop(const std::string& key, const unsigned int& val)
-{
-	write_simple_prop(key, val);
-}
-
-template <>
-void XmlWriter::prop(const std::string& key, const size_t& val)
 {
 	write_simple_prop(key, val);
 }

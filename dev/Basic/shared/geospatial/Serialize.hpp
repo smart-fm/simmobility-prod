@@ -179,7 +179,7 @@ void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std
 
 		//Print
 		write.ident("RoadSegment", *it->first);
-		write.prop("Connectors", temp_list, namer::array("Connector", namer::pair("laneFrom", "laneTo", namer::Exp_ID, namer::Exp_ID)));
+		write.prop("Connectors", temp_list, namer("<Connector,<laneFrom,laneTo>>"), expander("<<id,id>>"));
 	}
 }
 
@@ -220,11 +220,11 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	write.prop("nodeID", und.nodeId);
 	write.prop("location", und.location);
 	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
-	write.prop("firstPair", und.firstPair, namer::pair(namer::Exp_ID, namer::Exp_ID));
+	write.prop("firstPair", und.firstPair, expander("<id, id>"));
 	if (und.secondPair.first && und.secondPair.second) {
-		write.prop("secondPair", und.secondPair, namer::pair(namer::Exp_ID, namer::Exp_ID));
+		write.prop("secondPair", und.secondPair, expander("<id, id>"));
 	}
-	write.prop("Connectors", flatten_map(und.getConnectors()), namer::array("Connector", namer::pair("laneFrom", "laneTo", namer::Exp_ID, namer::Exp_ID)));
+	write.prop("Connectors", flatten_map(und.getConnectors()), namer("<Connector,<laneFrom,laneTo>>"), expander("<<id,id>>"));
 }
 
 template <>
@@ -235,13 +235,13 @@ void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 
     //Nodes are also wrapped
     write.prop_begin("Nodes");
-    write.prop("UniNodes", rn.getUniNodes(), namer::array("UniNode"));
+    write.prop("UniNodes", rn.getUniNodes(), namer("<UniNode>"));
 
     //TODO: This will fail unless getNodes() returns ONLY intersections.
-    write.prop("Intersections", rn.getNodes(), namer::array("Intersection"));
+    write.prop("Intersections", rn.getNodes(), namer("<Intersection>"));
     write.prop_end(); //Nodes
 
-    write.prop("Links", rn.getLinks(), namer::array("Link"));
+    write.prop("Links", rn.getLinks(), namer("<Link>"));
 	write.prop_end(); //RoadNetwork
 }
 

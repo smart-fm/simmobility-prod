@@ -86,8 +86,8 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 	cStart_busstop_Y=0.0;
 	cEnd_busstop_X=0.0;
 	cEnd_busstop_Y=0.0;*/
-	 time(&this->TimeofReachingBusStop);
-	 this->TimeofBoardingBus= 0;
+	 //this->TimeofBoardingBus = 0;
+	 this->TimeofReachingBusStop = 0;
 }
 
 sim_mob::Passenger::~Passenger() {
@@ -151,6 +151,11 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	      parent->yPos.set(14351303);
 
 	 }
+	 else if(parent->originNode->getID()==75822)
+	 {
+		 parent->xPos.set(37290000);//75822
+		 parent->yPos.set(14390200);
+	 }
 	 else
 	 {
 		 parent->xPos.set(parent->originNode->location.getX());
@@ -167,8 +172,8 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 boardedBus.set(false);
 	 alightedBus.set(false);
 	 DestReached.set(false);
-	 time(&this->TimeofReachingBusStop);
-	 this->TimeofBoardingBus= 0;
+	 this->TimeofReachingBusStop=this->parent->getStartTime();
+	 //this->TimeofBoardingBus= 0;
 	// StreetDirectory::LaneAndIndexPair ln=StreetDirectory::instance().getLane(parent->originNode->location);
 	/* vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
 	 for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++)
@@ -344,14 +349,15 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 		     {
 	 				 //if passenger is to be boarded,add to passenger vector inside the bus
 	 				  bus->passengers_inside_bus.push_back(p);
-	 				  time(&this->TimeofBoardingBus);
+	 				  //time(&this->TimeofBoardingBus);
 	 	              bus->setPassengerCount(bus->getPassengerCount()+1);
 	 				 // this->passenger_inside_bus.set(true);//to indicate whether passenger is waiting at the bus stop or is inside the bus
 	 	             this->WaitingAtBusStop.set(false);
 	 	             this->busdriver.set(busdriver);//passenger should store the bus driver
 	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
 	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
-	 				  return true;
+	 	             findWaitingTime(bus);
+	 				 return true;
 	 			}
 	 		}
 	 //	 else
@@ -400,9 +406,10 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 else
 		 return false;
  }
- double sim_mob::Passenger::findWaitingTime()
+ double sim_mob::Passenger::findWaitingTime(Bus* bus)
  {
-	 this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
+	 //this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
+	 this->WaitingTime=(bus->TimeOfBusreachingBusstop)-(this->TimeofReachingBusStop);
 	 return this->WaitingTime;
 	/* time_t rawtime;
 	 struct tm * timeinfo;

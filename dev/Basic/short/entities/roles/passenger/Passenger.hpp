@@ -78,7 +78,7 @@ public:
    bool PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k);
    bool PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver);
    bool isBusBoarded();
-   double findWaitingTime();
+   double findWaitingTime(Bus* bus);
    void EstimateBoardingAlightingPassengers(Bus* bus);
   //void updateParentCoordinates(int x,int y);
 
@@ -108,7 +108,7 @@ private:
         sim_mob::Shared<int> random_x;
         sim_mob::Shared<int> random_y;
         double WaitingTime;
-        time_t  TimeofReachingBusStop,TimeofBoardingBus;
+        double TimeofReachingBusStop;
 	//double cStart_busstop_X, cStart_busstop_Y, cEnd_busstop_X, cEnd_busstop_Y;
 	//Shared<PassengerStage> passengercurrentstage;
 	//sim_mob::Shared<bool> passenger_inside_bus;

@@ -280,17 +280,19 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
+	pthread_mutex_lock(&mu);
+	srand(parent->getId()*parent->getId());
+	int random_num1 = rand()%(250);
+	int random_num2 = rand()%(100);
+	pthread_mutex_unlock(&mu);
+
 	if((this->WaitingAtBusStop==true) && (!(this->alightedBus)))
      // LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<this->parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(this->parent->xPos.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(this->parent->yPos.get()+random_num2)<<"\",})"<<std::endl);
 
 	else if(this->alightedBus)
 	{
-	   pthread_mutex_lock(&mu);
-	   srand(parent->getId()*parent->getId());
-	   int random_num1 = rand()%(250);
-	   int random_num2 = rand()%(100);
-	   pthread_mutex_unlock(&mu);
+
 	   //this->random_x.set(random_x.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
 	   //this->random_y.set(random_y.get()+random_num2);
 	   LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(random_x.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(random_y.get()+random_num2)<<"\",})"<<std::endl);

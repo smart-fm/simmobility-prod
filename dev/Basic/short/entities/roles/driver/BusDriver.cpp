@@ -406,7 +406,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if(busline) {
-								if(busstop_sequence_no.get() == 2) { // only use holding control at selected time points
+								if((busstop_sequence_no.get() == 2) || (busstop_sequence_no.get() == 6) ) { // only use holding control at selected time points
 									double waitTime = 0;
 									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),curr_busStopRealTimes,lastVisited_BusStop.get(),true);
 									setWaitTime_BusStop(waitTime);

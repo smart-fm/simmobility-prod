@@ -80,7 +80,7 @@ public:
    bool PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k);
    bool PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver);
    bool isBusBoarded();
-   void findWaitingTime(Bus* bus);
+   double findWaitingTime(Bus* bus);
    void EstimateBoardingAlightingPassengers(Bus* bus);
   //void updateParentCoordinates(int x,int y);
 

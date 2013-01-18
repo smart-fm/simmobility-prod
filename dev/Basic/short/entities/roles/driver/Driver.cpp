@@ -980,7 +980,9 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 		const BusDriver* driver2 = dynamic_cast<const BusDriver*> (this);
 		if(driver1 && !driver2)
 		{
-			if(driver1->vehicle->getVelocity() < 0.1)
+			std::cout<<p.now.frame()<<std::endl;
+			double vel = vehicle->getVelocity()/100;
+			if(vel < 2)
 			{
 
 

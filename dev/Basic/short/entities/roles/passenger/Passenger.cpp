@@ -365,12 +365,12 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 	             this->busdriver.set(busdriver);//passenger should store the bus driver
 	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
 	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
-	 				 findWaitingTime(bus);
-	 				std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
+	 				std::cout<<"iamwaiting "<<findWaitingTime(bus)<<" id "<<this->parent->getId()<<" reached "<<this->TimeofReachingBusStop<<" boarded "<<bus->TimeOfBusreachingBusstop<<std::endl;
+	 				/*std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
 	 				std::cout<<"waiting time"<<this->WaitingTime<<std::endl;
 	 				std::cout<<"id "<<this->parent->getId()<<std::endl;
 	 				std::cout<<"node"<<this->parent->originNode->getID()<<std::endl;
-	 				std::cout<<"bus->TimeOfBusreachingBusstop"<<bus->TimeOfBusreachingBusstop<<std::endl;
+	 				std::cout<<"bus->TimeOfBusreachingBusstop"<<bus->TimeOfBusreachingBusstop<<std::endl;*/
 	 	             return true;
 	 			}
 	 		}
@@ -422,7 +422,7 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 else
 		 return false;
  }
- void sim_mob::Passenger::findWaitingTime(Bus* bus)
+ double sim_mob::Passenger::findWaitingTime(Bus* bus)
  {
 	 //this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
 	 this->WaitingTime=bus->TimeOfBusreachingBusstop-this->TimeofReachingBusStop;
@@ -433,6 +433,7 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 printf ( "Current local time and date: %s", asctime (timeinfo) );
 	 int seconds=timeinfo->tm_sec;
 	 int minutes=timeinfo->tm_min;*/
+	 return this->WaitingTime;
  }
 /* void sim_mob::Passenger::EstimateBoardingAlightingPassengers(Bus* bus)
  {

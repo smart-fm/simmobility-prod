@@ -116,6 +116,18 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 		parent->yPos.set(14331981);
 
 	}
+	else if(parent->originNode->getID() == 91144)
+	{
+		parent->xPos.set(37285920);
+		parent->yPos.set(14375941);
+
+	}
+	else if(parent->originNode->getID() == 106946)
+	{
+		parent->xPos.set(37267223);
+		parent->yPos.set(14352090);
+
+	}
 	else if(parent->originNode->location.getX()==37236345)//103046
 	 {
 	 parent->xPos.set(37234200);
@@ -149,8 +161,8 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 }
 	 else if(parent->originNode->getID()==75822)
 	 {
-		 parent->xPos.set(37290000);//75822
-		 parent->yPos.set(14390200);
+		 parent->xPos.set(37290070);//75822
+		 parent->yPos.set(14390218);
 	 }
 	 else
 	 {

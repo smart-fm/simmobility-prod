@@ -371,6 +371,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 
+		   bus->TimeOfBusreachingBusstop=p.now.ms();
 				//look for passengers at the bus stop
 
 			//	dwellTime_record = passengerGeneration(bus);
@@ -379,6 +380,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
 			bus->setPassengerCountOld(bus->getPassengerCount());
 			AlightingPassengers(bus);//first alight passengers inside the bus
+
 			BoardingPassengers(bus);//then board passengers waiting at the bus stop
 			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 		//	estimated_boarding_passengers_no=0;
@@ -975,7 +977,7 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus)//boarding passengers
 
 	int j=0,k=0;
 	bool ApproachingBusStop=false;
-	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((lastVisited_BusStop.get()->xPos-3000), (lastVisited_BusStop.get()->yPos-3000)),Point2D((lastVisited_BusStop.get()->xPos+3000), (lastVisited_BusStop.get()->yPos+3000)));//  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
+	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((lastVisited_BusStop.get()->xPos-3500), (lastVisited_BusStop.get()->yPos-3500)),Point2D((lastVisited_BusStop.get()->xPos+3500), (lastVisited_BusStop.get()->yPos+3500)));//  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
 //	for (size_t i = 0; i < Agent::all_agents.size(); i++)//loop through all the agents to find passenger agents who are waiting at the approaching bus stop
      {

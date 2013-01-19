@@ -111,6 +111,7 @@ private:
         sim_mob::Shared<int> random_y;
         double WaitingTime;
         double TimeofReachingBusStop;
+        Point2D destination;
 	//double cStart_busstop_X, cStart_busstop_Y, cEnd_busstop_X, cEnd_busstop_Y;
 	//Shared<PassengerStage> passengercurrentstage;
 	//sim_mob::Shared<bool> passenger_inside_bus;

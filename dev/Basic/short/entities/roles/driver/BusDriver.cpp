@@ -23,7 +23,6 @@ using namespace sim_mob;
 using std::vector;
 using std::map;
 using std::string;
-using std::cout;
 //extern int estimated_boarding_passengers_no;
 namespace {
 //const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
@@ -658,19 +657,33 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)
 double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers)
 {
 	//assume single channel passenger movement
-	double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+	/*double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
     double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
     double alpha3 = 3.5;//door opening and closing times
     double alpha4 = 1.0;//?
-	int no_of_seats=40;
-	if(no_of_passengers>no_of_seats)//standees are present
-    {
-		alpha1+=0.5;//boarding time increase if standees are present
-	}
+
 	double beta1 = 0.7;//fixed parameters
 	double beta2 = 0.7;
 	double beta3 = 5;
+	double DTijk = 0.0;*/
+	
+	double alpha1 = 0.5;
+	double alpha2 = 0.5;
+	double alpha3 = 0.5;
+	double alpha4 = 0.5;
+
+	double beta1 = 0.5;
+	double beta2 = 0.5;
+	double beta3 = 0.5;
 	double DTijk = 0.0;
+	
+	int no_of_seats=40;
+	if(no_of_passengers>no_of_seats)//standees are present
+	{
+		alpha1+=0.5;//boarding time increase if standees are present
+	}
+	
+	
 	//int Pfront = 1;
 	bool bus_crowdness_factor;
 	if(no_of_passengers>no_of_seats)
@@ -989,6 +1002,10 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus)//boarding passengers
             {
 				continue;
 			}
+		std::cout<<passenger->getParent()->getId()<<std::endl;
+		int size = nearby_agents.size();
+		int x = (passenger->getXYPosition().getX()/1000);
+		int y = (xpos_approachingbusstop/1000);
 
 		if((  abs((passenger->getXYPosition().getX()/1000)-(xpos_approachingbusstop/1000)) <=2) and ( abs((passenger->getXYPosition().getY()/1000)-(ypos_approachingbusstop/1000))<=2) )
 			{

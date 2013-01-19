@@ -240,6 +240,11 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
 
 		std::cout<<"abcdef busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<departure_time<<std::endl;
+		if(trip_k == 1) // for debugging
+		{
+			int stop = busstopSequence_j;
+			std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk)).getRepr_()<<std::endl;
+		}
 
 
 		return DTijk;//wht should be return at+dt?
@@ -270,6 +275,12 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
 		busStop_RealTimes.setReal_BusStop(lastvisited_busStop);
 		curr_busStopRealTimes->set(busStop_RealTimes);
+
+		if(trip_k == 1) // for debugging
+		{
+			int stop = busstopSequence_j;
+			std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk)).getRepr_()<<std::endl;
+		}
 
 		// here need test, need add fake RealTimes first
 		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step

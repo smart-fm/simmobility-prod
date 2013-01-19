@@ -1452,12 +1452,12 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 	if((startOldLane !=-1) && StartnewLane != -1) id = id + (StartnewLane - startOldLane);
 
 
-	/*if(laneIDS.find(id) != laneIDS.end())
+	if(laneIDS.find(id) != laneIDS.end())
 	{
 		entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(0);//  getLaneEdgePolyline(findID).at(0);
 		lastIndex = id;
 	}
-	else*/
+	else
 	{
 		int findID = total - offset;
 		if(findID > 0)

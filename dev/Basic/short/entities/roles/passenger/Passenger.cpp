@@ -53,32 +53,6 @@ using std::string;
 //int estimated_boarding_passengers_no=0;
 pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 
-/*std::pair<const BusStop*, double> calcNearestBusStop(const RoadSegment* rs, const DPoint& pos, double stoppingDist) {
-	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
-
-	std::pair<const BusStop*, double> res(nullptr, 0);
-	for(RoadObstIt o_it=rs->obstacles.begin(); o_it!=rs->obstacles.end(); o_it++) {
-		const BusStop* bs = dynamic_cast<const BusStop*>(o_it->second);
-		if(!bs) {
-			continue;
-		}
-
-		//Check if it's closer.
-		double newDist = sim_mob::dist(bs->xPos, bs->yPos, pos.x, pos.y);
-		if ((!res.first) || newDist<res.second) {
-			res.first = bs;
-			res.second = newDist;
-
-			//Stop early?
-			if (newDist < stoppingDist) {
-				break;
-			}
-		}
-	}
-
-	return res;
-}
-*/
 
 sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string roleName) : Role(parent,roleName),WaitingAtBusStop(mtxStrat,true),boardedBus(mtxStrat,false),alightedBus(mtxStrat,false),DestReached(mtxStrat,false),busdriver(mtxStrat,nullptr),random_x(mtxStrat,0),random_y(mtxStrat,0),WaitingTime(-1),params(parent->getGenerator())
 {
@@ -87,6 +61,7 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 	cEnd_busstop_X=0.0;
 	cEnd_busstop_Y=0.0;*/
 	this->TimeofReachingBusStop=0;
+	destination  = Point2D(0,0);
 
 }
 
@@ -110,6 +85,62 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 //passenger_inside_bus.set(false);
 	 busdriver.set(nullptr);
 	// bus stop no 4179,x-372228.099782,143319.818791
+	 destination.setX(parent->destNode->location.getX());
+	 destination.setY(parent->destNode->location.getY());
+
+	if(parent->destNode->getID() == 75780)
+	{
+		destination.setX(37222809);
+		destination.setY(14331981);
+	}
+	else if(parent->destNode->getID()==75822)
+	{
+		destination.setX(37290070);//75822
+		destination.setY(14390218);
+	}
+	else if(parent->destNode->getID() == 91144)
+	{
+		destination.setX(37285920);
+		destination.setY(14375941);
+
+	}
+	else if(parent->destNode->getID() == 106946)
+	{
+		destination.setX(37267223);
+		destination.setY(14352090);
+
+	}
+	else if(parent->destNode->getID() == 103046)
+	{
+		destination.setX(37234196);
+		destination.setY(14337740);
+
+	}
+	else if(parent->destNode->getID() == 95374)
+	{
+		destination.setX(37241994);
+		destination.setY(14347188);
+
+	}
+	else if(parent->destNode->getID() == 58950)
+	{
+		destination.setX(37263940);
+		destination.setY(14373280);
+
+	}
+	else if(parent->destNode->getID() == 75808)
+	{
+		destination.setX(37274363);
+		destination.setY(14385509);
+
+	}
+	else if(parent->destNode->getID() == 98852)
+	{
+		destination.setX(37254693);
+		destination.setY(14335301);
+
+	}
+
 	if(parent->originNode->getID() == 75780)
 	{
 		parent->xPos.set(37222809);
@@ -170,104 +201,13 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 		 parent->yPos.set(parent->originNode->location.getY());
 		 std::cout<<"origin-x"<<parent->originNode->location.getX()<<std::endl;
 	 }
-  //   std::cout<<"random_num1"<<random_num1<<std::endl;
-   //  std::cout<<"random_num2"<<random_num2<<std::endl;
-   //  std::cout<<"parent->originNode->location.getX()+random_num1"<<parent->originNode->location.getX()+random_num1<<std::endl;
-   //  std::cout<<"parent->originNode->location.getY()+random_num2"<<parent->originNode->location.getY()+random_num2<<std::endl;
-//	parent->xPos.set(parent->originNode->location.getX()+random_num1);
- //   parent->yPos.set(parent->originNode->location.getY()+random_num2);
+
 	 WaitingAtBusStop.set(true);
 	 boardedBus.set(false);
 	 alightedBus.set(false);
 	 DestReached.set(false);
 	 this->TimeofReachingBusStop=this->parent->getStartTime();
 
-	// StreetDirectory::LaneAndIndexPair ln=StreetDirectory::instance().getLane(parent->originNode->location);
-	/* vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
-	 for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++)
-	 {ge
-		 if (it->type_ == WayPoint::BUS_STOP)
-		 {
-			     parent->xPos.set(it->busStop_->xPos);
-			 	 parent->yPos.set(it->busStop_->yPos);
-		 }
-		 if (it->type_ == WayPoint::SIDE_WALK)
-		 {
-			 parent->xPos.set(it->lane_->polyline_[0].getX());
-			 parent->yPos.set(it->lane_->polyline_[0].getY());
-		 }
-	 }*
-	 /*cStart_busstop_X=parent->originNode->location.getX();
-	 cStart_busstop_Y=parent->originNode->location.getY();
-	 cEnd_busstop_X=parent->destNode->location.getX();
-	 cEnd_busstop_Y=parent->destNode->location.getY();*/
-	// const Lane* lane;
-
-	//lane=ln.lane_;
-	/*if(lane!=NULL)
-	{
-		 DPoint xy=DPoint(parent->originNode->location.getX(),parent->originNode->location.getY());
-		RoadSegment* rs=lane->getRoadSegment();
-	//	std::pair<const BusStop*, double> nearestBS = calcNearestBusStop(rs, xy, 1800);
-
-		if(rs->Pavement()!=NULL)
-		{
-		parent->xPos.set(rs->Pavement().polyline[0].getX());
-	    parent->yPos.set(rs->Pavement().polyline[0].getY());
-		}
-	}*/
-
-
-//	centimeter_t side = 1;
-//    const vector<RoadSegment*> rs;
-//    const RoadSegment* segm;
-   //int i=0;
-    //bool first=true;
-    //int prevx=0,prevy=0;
-    //double distance1,distance2;
-    //int size;
-//    int i=0;
-   // const Link* link= StreetDirectory::instance().getLinkLoc(parent->originNode);
-  /*  vector<WayPoint> wp_path= StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location,parent->originNode->location);
-    for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-
-    				if (it->type_ == WayPoint::SIDE_WALK) {
-    					//Save
-    				}
-    				RoadSegment* rs = it->lane_->getRoadSegment();
-    				int cx1=rs->polyline[0].getX();
-    				int cx2=rs->polyline[0].getY();
-    				parent->xPos.set(cx1);
-    				parent->xPos.set(cx2);
-    }*/
-
-  //  nk->g
-   // rs=link->getPath();
-   /* if(link!=NULL)
-    {
-    vector<RoadSegment*> segments = link->getPath();
-
-    	int totalLen = 0;
-    	for (vector<RoadSegment*>::iterator it=segments.begin(); it!=segments.end(); it++) {
-    		totalLen += (*it)->length;
-    		DPoint xy=DPoint(parent->originNode->location.getX(),parent->originNode->location.getY());
-    		std::pair<const BusStop*, double> nearestBS = calcNearestBusStop(segments[i], xy, 1800);
-    			   			 if(nearestBS.first!=NULL)
-    			   			 {
-
-    			   			  parent->xPos.set(nearestBS.first->xPos);
-    			   			  parent->yPos.set(nearestBS.first->yPos);
-    			   			 }
-    			   			 else
-    			   			 {
-
-    			   			 }
-    			   			 i++;
-    	}
-
- //rs=link->getPath();
-	//std::vector<StreetDirectory::RoadSegmentAndIndexPair> segments;
-    }*/
 }
 
 
@@ -360,14 +300,21 @@ Point2D sim_mob::Passenger::getXYPosition()
 }
 Point2D sim_mob::Passenger::getDestPosition()
 {
-	return Point2D(parent->destNode->location.getX(),parent->destNode->location.getY());
+	//return Point2D(parent->destNode->location.getX(),parent->destNode->location.getY());
+	return Point2D((destination.getX()),(destination.getY()));
 }
 
  bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k)
  {
 	 for(;k < busStops.size();k++)//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
 	 	{
-	 	  if ((abs(( busStops[k]->xPos - this->getDestPosition().getX())/1000)<= 3 )  and (abs((busStops[k]->yPos - this->getDestPosition().getY())/1000)<= 3))
+		  Point2D busStop_Pos(busStops[k]->xPos,busStops[k]->yPos);
+		  //std::cout<<busStops[k]->busstopno_<<" "<<this->getDestPosition().getX()<<std::endl;
+		  //std::cout<<busStops[k]->yPos<<" "<<this->getDestPosition().getY()<<std::endl;
+		  std::cout<<this->parent->originNode->getID()<<" "<<this->parent->destNode->getID()<<std::endl;
+		  std::cout<<abs(( busStop_Pos.getX() - this->getDestPosition().getX()))<<std::endl;
+		  std::cout<<abs(( busStop_Pos.getY() - this->getDestPosition().getY()))<<std::endl;
+	 	  if ((abs(( busStop_Pos.getX() - this->getDestPosition().getX())/100)<= 3 )  and (abs((busStop_Pos.getY() - this->getDestPosition().getY())/100)<= 3))
 	 		{
 	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
 	 		     {
@@ -379,7 +326,9 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 	             this->busdriver.set(busdriver);//passenger should store the bus driver
 	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
 	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
-	 				std::cout<<"iamwaiting "<<findWaitingTime(bus)<<" id "<<this->parent->getId()<<" reached "<<this->TimeofReachingBusStop<<" boarded "<<bus->TimeOfBusreachingBusstop<<std::endl;
+	 				double waiting_time = findWaitingTime(bus);
+	 				std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<std::endl;
+
 	 				/*std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
 	 				std::cout<<"waiting time"<<this->WaitingTime<<std::endl;
 	 				std::cout<<"id "<<this->parent->getId()<<std::endl;
@@ -395,8 +344,8 @@ Point2D sim_mob::Passenger::getDestPosition()
  }
  bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
   {
-
-     if ((abs((xpos_approachingbusstop/1000)-(this->getDestPosition().getX()/1000))<=2)  and (abs((ypos_approachingbusstop/1000)-(this->getDestPosition().getY()/1000))<=2))
+	 Point2D busStop_Pos(xpos_approachingbusstop,ypos_approachingbusstop);
+     if ((abs((busStop_Pos.getX()/100)-(this->getDestPosition().getX()/100))<=2)  and (abs((busStop_Pos.getY()/100)-(this->getDestPosition().getY()/100))<=2))
 	 	{
 	        //alight-delete passenger agent from list
     	    std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;

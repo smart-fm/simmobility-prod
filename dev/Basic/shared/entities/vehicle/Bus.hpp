@@ -25,7 +25,7 @@ class UnPackageUtils;
 class Bus : public sim_mob::Vehicle {
 public:
 	Bus(const BusRoute& route, const Vehicle* clone, std::string busLine)
-	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine), route(route), ptCheck(0,0), DistThreshold(2000), busCapacity(4),TimeOfBusreachingBusstop(0)
+	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine), route(route), ptCheck(0,0), DistThreshold(2000), busCapacity(22),TimeOfBusreachingBusstop(0)
 	{}
 
 //	BusRoute& getRoute() { return route; }

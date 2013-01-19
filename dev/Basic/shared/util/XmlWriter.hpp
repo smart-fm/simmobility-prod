@@ -229,6 +229,73 @@ private:
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Prototypes are required for template overrides (since XmlWriter needs to find them later).
+//////////////////////////////////////////////////////////////////////////////////////////////
+class XmlWriter;
+
+template <class T>
+std::string get_id(const T* ptr);
+template <class T>
+std::string get_id(T* ptr);
+
+template <class T>
+std::string get_id(const std::set<T>& temp);
+template <class T>
+std::string get_id(const std::vector<T>& temp);
+template <class T, class U>
+std::string get_id(const std::pair<T, U>& temp);
+template <class T, class U>
+std::string get_id(const std::map<T, U>& temp);
+
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr);
+
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr);
+
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name, expander expand);
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name);
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, expander expand);
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr);
+
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec);
+
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, expander expand);
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec);
+
+
+
+
 
 /**
  * Class which allows for simple recursive writing of an XML file.
@@ -616,6 +683,7 @@ void sim_mob::xml::XmlWriter::prop_end(bool ignoreTabs)
 
 ////////////////////////////////////////////////////////////////////
 // Template specializations for primitive output.
+// NOTE: Some of these are not specializations, but rather overrides! Grr.....
 // Add any basic types here (you can even add tpyes such as Point2D which
 // have an output operator if you prefer).
 ////////////////////////////////////////////////////////////////////

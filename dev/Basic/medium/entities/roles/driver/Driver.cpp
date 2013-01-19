@@ -554,7 +554,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	ss << "Driver: " << parent->getId()
 			<< "\tupNode: "<<vehicle->getCurrSegment()->getStart()->getID()
 			<<"\tcurrSegment: "<< vehicle->getCurrSegment()
-			<<"\tLane: "<< currLane->getLaneID_str()
+			<<"\tLane: "<< currLane->getLaneID()
 			<<"\tMovCount: "<<currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).second
 			<<"\tQCount: " << currLane->getRoadSegment()->getParentConflux()->getLaneAgentCounts(currLane).first
 			<<"\t time: " << t0

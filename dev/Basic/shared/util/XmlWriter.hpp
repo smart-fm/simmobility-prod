@@ -16,6 +16,7 @@
 
 #include "util/LangHelpers.hpp"
 
+
 namespace sim_mob {
 namespace xml {
 
@@ -227,71 +228,247 @@ private:
 	}
 };
 
+//Forward-declare our class.
+class XmlWriter;
+
+//Function prototypes: generally you should override these, and not the ones with the
+// "naming" parameter.
+template <class T>
+void write_xml(XmlWriter&, const T&);
+template <class T>
+std::string get_id(const T&);
+
+//The function write_xml with a naming parameter can be used to override naming
+// on vectors, sets, etc. Users should not override this one unless they are implementing their own containers.
+//NOTE: The call to "prop()" will make sure you *always* get both name and expand. If either is empty,
+//      that is when it is appropriate it use customizable defaults (e.g., "item" for vectors).
+template <class T>
+void write_xml(XmlWriter& wr, const T& it, const namer& name, const expander& expand) {
+	//This provides a little protection against improperly formatted stings; since we're already using
+	//  extremely loose type checking (via strings), we can only prevent so much.
+	if (!(name.isEmpty() && expand.isEmpty())) {
+		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+	}
+
+	//A null namer is essentially *no* namer, so remove it.
+	write_xml(wr, it);
+}
+
+//Similarly, dispatch up for primitives on other partial function signatures.
+template <class T>
+void write_xml(XmlWriter& wr, const T& it, const namer& name) {
+	//This provides a little protection against improperly formatted stings; since we're already using
+	//  extremely loose type checking (via strings), we can only prevent so much.
+	if (!(name.isEmpty())) {
+		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+	}
+
+	//A null namer is essentially *no* namer, so remove it.
+	write_xml(wr, it);
+}
+template <class T>
+void write_xml(XmlWriter& wr, const T& it, const expander& expand) {
+	//This provides a little protection against improperly formatted stings; since we're already using
+	//  extremely loose type checking (via strings), we can only prevent so much.
+	if (!(expand.isEmpty())) {
+		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+	}
+
+	//A null namer is essentially *no* namer, so remove it.
+	write_xml(wr, it);
+}
+}}  //End namespace sim_mob::xml
+
+
+//We need this hack to get around a cyclical dependency (the alternative is to prototype
+//  *all* our template overrides, and it seems likely that someone will forget to do this).
+namespace {
+template <class T>
+//This function calls write.prop(<other_args>);
+void dispatch_write_xml_request(sim_mob::xml::XmlWriter& write, const std::string& key, const T& val, sim_mob::xml::namer name, sim_mob::xml::expander expand, bool writeValue);
+} //End un-named namespace.
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Prototypes are required for template overrides (since XmlWriter needs to find them later).
 //////////////////////////////////////////////////////////////////////////////////////////////
-class XmlWriter;
 
-template <class T>
-std::string get_id(const T* ptr);
-template <class T>
-std::string get_id(T* ptr);
+namespace sim_mob {
+namespace xml {
 
+//////////////////////////////////////////////////////////////////////
+// get_id for const and non-const pointer types
+//////////////////////////////////////////////////////////////////////
 template <class T>
-std::string get_id(const std::set<T>& temp);
+std::string get_id(const T* ptr)
+{
+	return get_id(*ptr);
+}
 template <class T>
-std::string get_id(const std::vector<T>& temp);
+std::string get_id(T* ptr)
+{
+	return get_id(*ptr);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// get_id failure cases on container classes.
+//////////////////////////////////////////////////////////////////////
+template <class T>
+std::string get_id(const std::set<T>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
+template <class T>
+std::string get_id(const std::vector<T>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
 template <class T, class U>
-std::string get_id(const std::pair<T, U>& temp);
+std::string get_id(const std::pair<T, U>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
 template <class T, class U>
-std::string get_id(const std::map<T, U>& temp);
+std::string get_id(const std::map<T, U>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
 
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr);
 
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr);
 
+//////////////////////////////////////////////////////////////////////
+// Xml writers for const pointer types
+//////////////////////////////////////////////////////////////////////
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name, expander expand)
+{
+	write_xml(write, *ptr, name, expand);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name)
+{
+	write_xml(write, *ptr, name);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, expander expand)
+{
+	write_xml(write, *ptr, expand);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr)
+{
+	write_xml(write, *ptr);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Xml writers for non-const pointer types
+//////////////////////////////////////////////////////////////////////
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name, expander expand)
+{
+	write_xml(write, *ptr, name, expand);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name)
+{
+	write_xml(write, *ptr, name);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, expander expand)
+{
+	write_xml(write, *ptr, expand);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, T* ptr)
+{
+	write_xml(write, *ptr);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Xml writers for pair<T,U>
+//////////////////////////////////////////////////////////////////////
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name, expander expand);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name, expander expand)
+{
+	//Propagate; use the left/right children for this.
+	dispatch_write_xml_request(write, name.leftStr(), pr.first, name.leftChild(), expand.leftChild(), expand.leftIsValue());
+	dispatch_write_xml_request(write, name.rightStr(), pr.second, name.rightChild(), expand.rightChild(), expand.rightIsValue());
+}
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name)
+{
+	write_xml(write, pr, name, expander());
+}
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, expander expand);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, expander expand)
+{
+	write_xml(write, pr, namer("<first,second>"), expand);
+}
 template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr)
+{
+	write_xml(write, pr, namer("<first,second>"), expander());
+}
 
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, expander expand);
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec);
 
+//////////////////////////////////////////////////////////////////////
+// Xml writers for set<T,U>
+//////////////////////////////////////////////////////////////////////
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name, expander expand);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name, expander expand)
+{
+	//Print each item as a separate property.
+	for (typename std::set<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
+	}
+}
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name)
+{
+	write_xml(write, vec, name, expander());
+}
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, expander expand);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, expander expand)
+{
+	write_xml(write, vec, namer("<item>"), expand);
+}
 template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec);
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
+{
+	write_xml(write, vec, namer("<item>"), expander());
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Xml writers for vector<T,U>
+//////////////////////////////////////////////////////////////////////
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name, expander expand)
+{
+	//Print each item as a separate property.
+	for (typename std::vector<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
+	}
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name)
+{
+	write_xml(write, vec, name, expander());
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, expander expand)
+{
+	write_xml(write, vec, namer("<item>"), expand);
+}
+template <class T>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
+{
+	write_xml(write, vec, namer("<item>"), expander());
+}
 
 
 
@@ -391,52 +568,7 @@ private:
 };
 
 
-//Function prototypes: generally you should override these, and not the ones with the
-// "naming" parameter.
-template <class T>
-void write_xml(XmlWriter&, const T&);
-template <class T>
-std::string get_id(const T&);
 
-//The function write_xml with a naming parameter can be used to override naming
-// on vectors, sets, etc. Users should not override this one unless they are implementing their own containers.
-//NOTE: The call to "prop()" will make sure you *always* get both name and expand. If either is empty,
-//      that is when it is appropriate it use customizable defaults (e.g., "item" for vectors).
-template <class T>
-void write_xml(XmlWriter& wr, const T& it, const namer& name, const expander& expand) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(name.isEmpty() && expand.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
-
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
-}
-
-//Similarly, dispatch up for primitives on other partial function signatures.
-template <class T>
-void write_xml(XmlWriter& wr, const T& it, const namer& name) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(name.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
-
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
-}
-template <class T>
-void write_xml(XmlWriter& wr, const T& it, const expander& expand) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(expand.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
-
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
-}
 
 }}  //End namespace sim_mob::xml
 
@@ -689,185 +821,18 @@ void sim_mob::xml::XmlWriter::prop_end(bool ignoreTabs)
 ////////////////////////////////////////////////////////////////////
 
 
+//Actually define our hack function here.
+namespace {
+template <class T>
+void dispatch_write_xml_request(sim_mob::xml::XmlWriter& write, const std::string& key, const T& val, sim_mob::xml::namer name, sim_mob::xml::expander expand, bool writeValue)
+{
+	write.prop(key, val, name, expand, writeValue);
+}
+} //End un-named namespace
+
 
 namespace sim_mob { //Function specializations require an explicit namespace wrapping.
 namespace xml {
-
-//////////////////////////////////////////////////////////////////////
-// get_id for const and non-const pointer types
-//////////////////////////////////////////////////////////////////////
-template <class T>
-std::string get_id(const T* ptr)
-{
-	return get_id(*ptr);
-}
-template <class T>
-std::string get_id(T* ptr)
-{
-	return get_id(*ptr);
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// get_id failure cases on container classes.
-//////////////////////////////////////////////////////////////////////
-template <class T>
-std::string get_id(const std::set<T>& temp)
-{
-	throw std::runtime_error("Cannot call get_id() on STL containers.");
-}
-template <class T>
-std::string get_id(const std::vector<T>& temp)
-{
-	throw std::runtime_error("Cannot call get_id() on STL containers.");
-}
-template <class T, class U>
-std::string get_id(const std::pair<T, U>& temp)
-{
-	throw std::runtime_error("Cannot call get_id() on STL containers.");
-}
-template <class T, class U>
-std::string get_id(const std::map<T, U>& temp)
-{
-	throw std::runtime_error("Cannot call get_id() on STL containers.");
-}
-
-
-
-//////////////////////////////////////////////////////////////////////
-// Xml writers for const pointer types
-//////////////////////////////////////////////////////////////////////
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name, expander expand)
-{
-	write_xml(write, *ptr, name, expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, namer name)
-{
-	write_xml(write, *ptr, name);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr, expander expand)
-{
-	write_xml(write, *ptr, expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const T* ptr)
-{
-	write_xml(write, *ptr);
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Xml writers for non-const pointer types
-//////////////////////////////////////////////////////////////////////
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name, expander expand)
-{
-	write_xml(write, *ptr, name, expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, namer name)
-{
-	write_xml(write, *ptr, name);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr, expander expand)
-{
-	write_xml(write, *ptr, expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, T* ptr)
-{
-	write_xml(write, *ptr);
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Xml writers for pair<T,U>
-//////////////////////////////////////////////////////////////////////
-template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name, expander expand)
-{
-	//Propagate; use the left/right children for this.
-	write.prop(name.leftStr(), pr.first, name.leftChild(), expand.leftChild(), expand.leftIsValue());
-	write.prop(name.rightStr(), pr.second, name.rightChild(), expand.rightChild(), expand.rightIsValue());
-}
-template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, namer name)
-{
-	write_xml(write, pr, name, expander());
-}
-template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr, expander expand)
-{
-	write_xml(write, pr, namer("<first,second>"), expand);
-}
-template <class T, class U>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::pair<T, U>& pr)
-{
-	write_xml(write, pr, namer("<first,second>"), expander());
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Xml writers for set<T,U>
-//////////////////////////////////////////////////////////////////////
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name, expander expand)
-{
-	//Print each item as a separate property.
-	for (typename std::set<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
-		write.prop(name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
-	}
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer name)
-{
-	write_xml(write, vec, name, expander());
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, expander expand)
-{
-	write_xml(write, vec, namer("<item>"), expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
-{
-	write_xml(write, vec, namer("<item>"), expander());
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Xml writers for vector<T,U>
-//////////////////////////////////////////////////////////////////////
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name, expander expand)
-{
-	//Print each item as a separate property.
-	for (typename std::vector<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
-		write.prop(name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
-	}
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer name)
-{
-	write_xml(write, vec, name, expander());
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, expander expand)
-{
-	write_xml(write, vec, namer("<item>"), expand);
-}
-template <class T>
-void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
-{
-	write_xml(write, vec, namer("<item>"), expander());
-}
-
-
-
 
 
 

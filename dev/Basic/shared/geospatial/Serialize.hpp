@@ -68,13 +68,6 @@ std::string get_id(const sim_mob::Lane& ln)
 	return boost::lexical_cast<std::string>(ln.getLaneID());
 }
 
-//WORKAROUND: get_id() for pointer types returns the address of that pointer.
-//            TODO: Remove this once we address the issue mentioned above (requiring both get_id() and write_xml())
-template <class T>
-std::string get_id(T* ptr)
-{
-	return boost::lexical_cast<std::string>(ptr);
-}
 
 //TODO: The following get_id() declarations are technically unneeded, but might be useful to keep around.
 //      At the moment, we need them to deal with the bug mentioned above.
@@ -93,36 +86,7 @@ std::string get_id(const sim_mob::UniNode& und)
 {
 	return boost::lexical_cast<std::string>(und.getID());
 }
-template <>
-std::string get_id(const std::set<sim_mob::UniNode*>& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
-template <>
-std::string get_id(const std::pair<const sim_mob::Lane*, sim_mob::Lane*>& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
-template <>
-std::string get_id(const std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> >& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
-template <>
-std::string get_id(const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
-template <>
-std::string get_id(const std::vector<sim_mob::MultiNode*>& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
-template <>
-std::string get_id(const std::vector<sim_mob::Link*>& temp)
-{
-	throw std::runtime_error("Unsupported in Serialize.hpp");
-}
+
 
 
 /////////////////////////////////////////////////////////////////////

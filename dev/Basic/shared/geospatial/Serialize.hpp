@@ -86,6 +86,11 @@ std::string get_id(const sim_mob::UniNode& und)
 {
 	return boost::lexical_cast<std::string>(und.getID());
 }
+template <>
+std::string get_id(const sim_mob::LaneConnector& lc)
+{
+	return boost::lexical_cast<std::string>(lc.getLaneFrom()->getLaneID()) + ":" + boost::lexical_cast<std::string>(lc.getLaneTo()->getLaneID());
+}
 
 
 
@@ -131,7 +136,7 @@ void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, sim_mob::
 }
 
 //This one's a bit too complex to handle automatically.
-template <>
+/*template <>
 void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & connectors)
 {
 	for (std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
@@ -145,7 +150,7 @@ void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std
 		write.ident("RoadSegment", *it->first);
 		write.prop("Connectors", temp_list, namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
 	}
-}
+}*/
 
 
 template <>
@@ -156,6 +161,21 @@ void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
 }
 
 
+//Out mult-node connectors are not actuallrepresented in the format we'd expect.
+namespace {
+std::map<const sim_mob::RoadSegment*, std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> > > warp_multi_connectors(const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & connectors)
+{
+	std::map<const sim_mob::RoadSegment*, std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> > > res;
+	for (std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
+		for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt=it->second.begin(); lcIt!=it->second.end(); lcIt++) {
+			res[it->first].push_back(std::make_pair((*lcIt)->getLaneFrom(), const_cast<sim_mob::Lane*>((*lcIt)->getLaneTo())));
+		}
+	}
+	return res;
+}
+} //End un-named namespace
+
+
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Intersection& in)
 {
@@ -164,9 +184,10 @@ void write_xml(XmlWriter& write, const sim_mob::Intersection& in)
 	write.prop("originalDB_ID", in.originalDB_ID.getLogItem());
 	write.ident_list("roadSegmentsAt", "segmentID", in.getRoadSegments());
 
-	write.prop_begin("Connectors");
-	write.prop("MultiConnectors", in.getConnectors());
-	write.prop_end();
+	//write.prop_begin("Connectors");
+	//write.prop("MultiConnectors", in.getConnectors(), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
+	write.prop("Connectors", warp_multi_connectors(in.getConnectors()), namer("<MultiConnectors,<RoadSegment,Connectors>>"), expander("<*,<id,*>>"));
+	//write.prop_end();
 
 }
 
@@ -188,7 +209,10 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	if (und.secondPair.first && und.secondPair.second) {
 		write.prop("secondPair", und.secondPair, expander("<id,id>"));
 	}
-	write.prop("Connectors", flatten_map(und.getConnectors()), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
+
+	//Map test.
+	//write.prop("Connectors", flatten_map(und.getConnectors()), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
+	write.prop("Connectors", und.getConnectors(), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
 }
 
 template <>

@@ -471,6 +471,32 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 }
 
 
+//////////////////////////////////////////////////////////////////////
+// Xml writers for map<T,U>
+//////////////////////////////////////////////////////////////////////
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items, namer name, expander expand)
+{
+	//Print each item as a separate property.
+	for (typename std::map<T,U>::const_iterator it=items.begin(); it!=items.end(); it++) {
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.rightChild(), expand.rightChild(), expand.leftIsValue());
+	}
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items, namer name)
+{
+	write_xml(write, items, name, expander());
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items, expander expand)
+{
+	write_xml(write, items, namer("<item,<key,value>>"), expand);
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items)
+{
+	write_xml(write, items, namer("<item,<key,value>>"), expander());
+}
 
 
 
@@ -844,7 +870,7 @@ namespace xml {
 //       pass through to "write_xml" for T, but this will only work if we *definitely* do not
 //       need to do any magic with pointers. We'll know if this is possible once we generate a
 //       successful XML output file, so fo rnow flatten_map will work.
-template <class T, class U>
+/*template <class T, class U>
 std::vector< std::pair<T, U> > flatten_map(const std::map<T, U>& map)
 {
 	std::vector< std::pair<T, U> > res;
@@ -852,7 +878,7 @@ std::vector< std::pair<T, U> > flatten_map(const std::map<T, U>& map)
 		res.push_back(std::make_pair(it->first, it->second));
 	}
 	return res;
-}
+}*/
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers for certain primitives.

@@ -52,7 +52,7 @@ struct res_set {
 
 
 namespace {
-//Count occurrances of "letter" in "src"
+//Count occurrences of "letter" in "src"
 int letter_count(const std::string& src, char letter) {
 	int res=0;
 	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {

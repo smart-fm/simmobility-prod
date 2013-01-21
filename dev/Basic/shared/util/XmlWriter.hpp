@@ -877,7 +877,7 @@ void XmlWriter::prop(const std::string& key, const unsigned long& val)
 template <>
 void XmlWriter::prop(const std::string& key, const bool& val)
 {
-	write_simple_prop(key, val);
+	write_simple_prop(key, val?"true":"false");
 }
 
 

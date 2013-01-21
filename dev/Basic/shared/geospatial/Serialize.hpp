@@ -38,6 +38,7 @@
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
+#include "geospatial/RoadItem.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Lane.hpp"
@@ -83,9 +84,26 @@ std::string get_id(const sim_mob::UniNode& und)
 	return boost::lexical_cast<std::string>(und.getID());
 }
 template <>
+std::string get_id(const sim_mob::Node& nd)
+{
+	return boost::lexical_cast<std::string>(nd.getID());
+}
+template <>
 std::string get_id(const sim_mob::LaneConnector& lc)
 {
 	return boost::lexical_cast<std::string>(lc.getLaneFrom()->getLaneID()) + ":" + boost::lexical_cast<std::string>(lc.getLaneTo()->getLaneID());
+}
+template <>
+std::string get_id(const sim_mob::RoadItem& ri)
+{
+	return boost::lexical_cast<std::string>(ri.getRoadItemID());
+}
+
+//...and these are definitely errors.
+template <>
+std::string get_id(const sim_mob::Point2D& tmp)
+{
+	throw std::runtime_error("Invalid get_id template for Point2D class.");
 }
 
 
@@ -117,6 +135,23 @@ void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, sim_mob::Lane* 
 
 
 /////////////////////////////////////////////////////////////////////
+// write_xml() - Dispatch
+//               Treat vectors of Point2Ds as poylines.
+/////////////////////////////////////////////////////////////////////
+template <>
+void write_xml(XmlWriter& write, const std::vector<sim_mob::Point2D>& poly)
+{
+	int i=0;
+	for (std::vector<sim_mob::Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
+		write.prop_begin("PolyPoint");
+		write.prop("pointID", i++);
+		write.prop("location", *it);
+		write.prop_end();
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////
 // WORKAROUND: Currently, the new syntax can't handle certain STL combinations
 //             with enough detail, so we have to provide this fallback here.
 /////////////////////////////////////////////////////////////////////
@@ -134,16 +169,58 @@ void write_xml(XmlWriter& write, const std::vector< std::pair<const sim_mob::Lan
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Link& lnk)
 {
-	//TEMP
-    write.prop("TODO", 2);
+	write.prop("linkID", lnk.getLinkId());
+	write.prop("roadName", lnk.roadName);
+
+	//TODO: This is a workaround at the moment. In reality, "<id>" should do all the work, but since
+	//      we can't currently handle IDs of value types, the expander is actually ignored!
+	write.prop("StartingNode", lnk.getStart(), namer(), expander("<id>"), false);
+	write.prop("EndingNode", lnk.getEnd(), namer(), expander("<id>"), false);
+
+	write.prop("Segments", lnk.getSegments(), namer("<Segment>"));
 }
+
+
+//Another workaround needed for lane polylines.
+namespace {
+std::vector< std::pair<int, std::vector<Point2D> > > wrap_lanes(const std::vector< std::vector<Point2D> >& lanes)
+{
+	int i=0;
+	std::vector< std::pair<int, std::vector<Point2D> > > res;
+	for (std::vector< std::vector<Point2D> >::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
+		res.push_back(std::make_pair(i++, *it));
+	}
+	return res;
+}
+} //End anon namespace
 
 
 template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 {
-	//TEMP
-    write.prop("TODO", 2);
+	write.prop("segmentID", rs.getSegmentID());
+
+	//TODO: Similar workaround
+	write.prop("startingNode", rs.getStart(), namer(), expander("<id>"), false);
+	write.prop("endingNode", rs.getEnd(), namer(), expander("<id>"), false);
+
+	write.prop("maxSpeed", rs.maxSpeed);
+	write.prop("Length", rs.length);
+	write.prop("Width", rs.width);
+	write.prop("originalDB_ID", rs.originalDB_ID.getLogItem());
+
+	//NOTE: We don't pass a namer in here, since vectors<> of Point2Ds are a special case.
+	write.prop("polyline", rs.polyline);
+
+	std::vector< std::vector<Point2D> > laneLines;
+	for (size_t i=0; i<=rs.getLanes().size(); i++) {
+		laneLines.push_back(const_cast<sim_mob::RoadSegment&>(rs).getLaneEdgePolyline(i));
+	}
+    write.prop("laneEdgePolylines_cached", wrap_lanes(laneLines), namer("<laneEdgePolyline_cached,<laneNumber,polyline>>"));
+
+	write.prop("Lanes", rs.getLanes(), namer("<Lane>"));
+	write.prop("Obstacles", rs.getObstacles(), namer("<NAME_VARIES>"));
+
 }
 
 template <>
@@ -155,6 +232,20 @@ void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
 
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
+{
+	//TEMP
+    write.prop("TODO", 2);
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::Node& nd)
+{
+	//TEMP
+    write.prop("TODO", 2);
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::RoadItem& ri)
 {
 	//TEMP
     write.prop("TODO", 2);

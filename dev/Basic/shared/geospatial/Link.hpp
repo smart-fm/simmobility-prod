@@ -94,7 +94,7 @@ public:
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-	const std::vector<sim_mob::RoadSegment*> & getSegments() { return segs; }
+	const std::vector<sim_mob::RoadSegment*> & getSegments() const { return segs; }
 //	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);

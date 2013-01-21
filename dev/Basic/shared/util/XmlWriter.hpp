@@ -342,6 +342,46 @@ std::string get_id(const std::map<T, U>& temp)
 }
 
 
+//////////////////////////////////////////////////////////////////////
+// get_id() failure cases for primitive tpyes.
+//////////////////////////////////////////////////////////////////////
+template <>
+std::string get_id(const std::string& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
+std::string get_id(const int& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
+std::string get_id(const unsigned int& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
+std::string get_id(const long& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
+std::string get_id(const unsigned long& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
+std::string get_id(const bool& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers for const pointer types
@@ -552,15 +592,6 @@ public:
 	template <class T>
 	void prop(const std::string& key, const T& val, expander expand, bool writeValue=true) { prop(key, val, namer(""), expand, writeValue); }
 
-	///Write a property as using identifiers instead of values. This requires
-	/// the required base type to have a corresponding get_id() override.
-	//template <class T>
-	//void ident(const std::string& key, const T& val);
-
-	///Write a list of identifiers
-	//template <class T>
-	//void ident_list(const std::string& plural, const std::string& singular, const T& val);
-
 	///Begin writing a property. This is used instead of prop() for classes which don't exist
 	/// (i.e., containers within the XML file itself).
 	void prop_begin(const std::string& key);
@@ -607,50 +638,6 @@ private:
 //Helper namespace for writing lists.
 namespace {
 
-
-
-///Same, but for identifiers.
-/*template <class IterType>
-void write_value_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
-{
-	std::string singular = write.curr_prop();
-	for (; begin!=end; begin++) {
-		write.ident(singular, *begin);
-	}
-}
-template <class IterType>
-void write_pointer_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
-{
-	std::string singular = write.curr_prop();
-	for (; begin!=end; begin++) {
-		write.ident(singular, **begin);
-	}
-}
-
-
-///Write a list of identifiers.
-template <class T>
-void write_ident_list(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
-{
-	write_value_ident_array(write, vec.begin(), vec.end());
-}
-template <class T>
-void write_ident_list(sim_mob::xml::XmlWriter& write, const std::vector<T*>& vec)
-{
-	write_pointer_ident_array(write, vec.begin(), vec.end());
-}
-
-///Same, but witha  set.
-template <class T>
-void write_ident_list(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
-{
-	write_value_ident_array(write, vec.begin(), vec.end());
-}
-template <class T>
-void write_ident_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
-{
-	write_pointer_ident_array(write, vec.begin(), vec.end());
-}*/
 
 //Helper: Escape illegal symbols inside XML elements/attributes
 std::string escape_xml(const std::string& src) {
@@ -785,30 +772,6 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer n
 
 
 
-//Write an identifier
-/*template <class T>
-void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& val)
-{
-	//Identifiers have no attributes or child properties, so they are relatively easy to serialize.
-	seal_attrs();
-	write_newlines();
-	(*outFile) <<std::string(tabCount*TabSize, ' ') <<"<" <<key <<">";
-	(*outFile) <<get_id(val) <<"</" <<key <<">" <<std::endl;
-}
-
-
-//Write a list of identifiers
-template <class T>
-void sim_mob::xml::XmlWriter::ident_list(const std::string& plural, const std::string& singular, const T& val)
-{
-	//Same as a regular ident(), but in list format.
-	prop_begin(plural);
-	propStack.push_back(singular);
-	write_ident_list(*this, val);
-	propStack.pop_back();
-	prop_end();
-}*/
-
 void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)
 {
 	seal_attrs();
@@ -857,7 +820,17 @@ namespace {
 template <class T>
 void dispatch_write_xml_request(sim_mob::xml::XmlWriter& write, const std::string& key, const T& val, sim_mob::xml::namer name, sim_mob::xml::expander expand, bool writeValue)
 {
-	write.prop(key, val, name, expand, writeValue);
+	//Try to be a little careful of types here, or our simple_prop property may not work right.
+	//TODO: This should really be handled properly by write.prop()'s partial specialization...
+	if (writeValue && name.isEmpty() && expand.isEmpty()) {
+		write.prop(key, val);
+	} else if (writeValue && expand.isEmpty()) {
+		write.prop(key, val, name);
+	} else if (name.isEmpty()) {
+		write.prop(key, val, expand, writeValue);
+	} else {
+		write.prop(key, val, name, expand, writeValue);
+	}
 }
 } //End un-named namespace
 
@@ -866,24 +839,6 @@ namespace sim_mob { //Function specializations require an explicit namespace wra
 namespace xml {
 
 
-
-///Flatten a map into a vector of "item" pairs.
-///TODO: This is somewhat inefficient; we can probably create a "write_xml" function for
-//       std::maps too. Unfortunately, we need to handle the four combinations of <T, U>,
-//       <T*, U>, <T, U*>, <T*, U*>, which gets messy.
-//       We can get around this by declaring a "write_xml" function for T* that attempts to just
-//       pass through to "write_xml" for T, but this will only work if we *definitely* do not
-//       need to do any magic with pointers. We'll know if this is possible once we generate a
-//       successful XML output file, so fo rnow flatten_map will work.
-/*template <class T, class U>
-std::vector< std::pair<T, U> > flatten_map(const std::map<T, U>& map)
-{
-	std::vector< std::pair<T, U> > res;
-	for (typename std::map<T, U>::const_iterator it=map.begin(); it!=map.end(); it++) {
-		res.push_back(std::make_pair(it->first, it->second));
-	}
-	return res;
-}*/
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers for certain primitives.
@@ -908,9 +863,64 @@ void XmlWriter::prop(const std::string& key, const unsigned int& val)
 }
 
 template <>
+void XmlWriter::prop(const std::string& key, const long& val)
+{
+	write_simple_prop(key, val);
+}
+
+template <>
+void XmlWriter::prop(const std::string& key, const unsigned long& val)
+{
+	write_simple_prop(key, val);
+}
+
+template <>
 void XmlWriter::prop(const std::string& key, const bool& val)
 {
 	write_simple_prop(key, val);
 }
+
+
+//////////////////////////////////////////////////////////////////////
+// TODO: These are a problem (needed for compilation, but shouldn't ever be used).
+//       For now we just do this.
+//////////////////////////////////////////////////////////////////////
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::string& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const int& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const unsigned int& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const long& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const unsigned long& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const bool& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
 
 }}

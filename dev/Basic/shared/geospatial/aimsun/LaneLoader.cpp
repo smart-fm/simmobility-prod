@@ -794,7 +794,11 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 		//Avoid looping forever
 		if (maxLoops-- == 0) {
-			throw std::runtime_error("Error: Network contains RoadSegment loop.");
+			//throw std::runtime_error("Error: Network contains RoadSegment loop.");
+			std::cout << "Error: Network contains RoadSegment loop. " << std::endl;
+			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
+			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
+			break;
 		}
 	}
 }

@@ -183,7 +183,6 @@ void sim_mob::Worker::barrier_mgmt()
 		 //Now flip all remaining data.
 		perform_flip();
 
-		//TODO: Uncomment this when confluxes are made configurable again. ~ Harish
 		// handover agents which have crossed conflux boundaries
 		perform_handover();
 

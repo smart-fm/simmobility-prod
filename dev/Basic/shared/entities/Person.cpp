@@ -77,14 +77,14 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), currTripChainItem(nullptr),
-	currSubTrip(nullptr), firstFrameTick(true), databaseID("")
+	currSubTrip(nullptr), firstFrameTick(true), databaseID(""), debugMsgs(std::stringstream::out)
 
 {
 	//throw 1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs) :
-	Agent(mtxStrat), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr), databaseID(tcs.front()->personID)
+	Agent(mtxStrat), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	std::string trip_mode;
 	TripChainItem* tc = tcs.front();
@@ -476,7 +476,6 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 	if (currRole) {
 		currParams = currRole->getSubscriptionParams();
 	}
-	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
 	//Indicate that this is the firstFrameTick of the new Role.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
@@ -523,16 +522,30 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 		}
 	}
 
-	// The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-	// you will get into.
-	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-		rdSeg = path.at(1).roadSegment_;
-	}
-	setCurrSegment(rdSeg);
+	/*
+	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
+	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
+	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
+	 */
+	if(path.size() > 0) {
+		// The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+		// you will get into.
+		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+			rdSeg = path.at(1).roadSegment_;
+		}
+		setCurrSegment(rdSeg);
 
-	//Null out our trip chain, remove the "removed" flag, and return
-	clearToBeRemoved();
-	return res;
+		//Null out our trip chain, remove the "removed" flag, and return
+		clearToBeRemoved();
+		return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
+	}
+	else {
+		debugMsgs << "checkAndReactToTripChain: path could not be established for next trip of agent " << id
+				<< ". Agent will be removed from the Simulation" << std::endl;
+		std::cout << debugMsgs.str();
+		debugMsgs.str("");
+		return UpdateStatus(UpdateStatus::Done);
+	}
 }
 
 

@@ -429,7 +429,6 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
-		std::cout << "ooops! returning true!" << std::endl;
 		return true;
 	}
 

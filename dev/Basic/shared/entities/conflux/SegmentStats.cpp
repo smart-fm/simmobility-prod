@@ -68,12 +68,6 @@ namespace sim_mob {
 		else {
 			throw std::runtime_error("SegmentStats::absorbAgents(segStats) called with invalid segStats.");
 		}
-
-		if(segStats->getRoadSegment()->getStart()->getID() == 75822) {
-			debugMsgs << "sourceSegStats: " << segStats->hasAgents() << "|targetSegStats: " << hasAgents() << std::endl;
-			std::cout << debugMsgs.str();
-			debugMsgs.str("");
-		}
 	}
 
 	std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {

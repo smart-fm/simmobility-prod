@@ -82,11 +82,21 @@ public:
     void getNextSubTripInTrip();
     void findNextItemInTripChain();
 
+	const std::string& getDatabaseId() const {
+		return databaseID;
+	}
+
+	void setDatabaseId(const std::string& databaseId) {
+		databaseID = databaseId;
+	}
+
     TripChainItem* currTripChainItem; // pointer to current item in trip chain
     SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
+
+    std::stringstream debugMsgs;
 
 private:
     //Internal update functionality

@@ -53,9 +53,12 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
 
+	debugMsgs << "Updating Agent " << ag->getId() << std::endl;
+	std::cout << debugMsgs.str();
+	debugMsgs.str("");
 	UpdateStatus res = ag->update(currFrameNumber);
 	if (res.status == UpdateStatus::RS_DONE) {
-		//This agent is done. Remove from simulation. TODO: Check if this is valid for trip chaining. ~ Harish
+		//This agent is done. Remove from simulation.
 		killAgent(ag, segBeforeUpdate, laneBeforeUpdate);
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
@@ -66,6 +69,18 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 
 	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
+
+	sim_mob::SegmentStats* segStatsBfrUpdt = segmentAgents.find(segBeforeUpdate)->second;
+	if(!segStatsBfrUpdt) {
+		debugMsgs << "segBeforeUpdate[" << segBeforeUpdate->getStart()->getID() << ", " << segBeforeUpdate->getEnd()->getID() << "]";
+		debugMsgs << "\nConflux on Multinode: " << multiNode->getID() << " |segmentAgents: ";
+		for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i = segmentAgents.begin(); i!= segmentAgents.end(); i++) {
+			debugMsgs << "[" << i->first->getStart()->getID() << ", " << i->first->getEnd()->getID() << "] ";
+		}
+		std::cout << debugMsgs.str();
+		debugMsgs.str("");
+	}
+	const sim_mob::Lane* laneInf = segStatsBfrUpdt->laneInfinity;
 
 	if((segBeforeUpdate != segAfterUpdate) || (laneBeforeUpdate == segmentAgents[segBeforeUpdate]->laneInfinity && laneBeforeUpdate != laneAfterUpdate))
 	{

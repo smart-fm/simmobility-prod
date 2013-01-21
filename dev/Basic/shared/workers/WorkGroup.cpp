@@ -624,10 +624,15 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-		std::cout << "Agent ID: " << ag->getId() << std::endl;
+		std::cout << "\n Agent ID: " << ag->getId() << "| Agent DB_id:" << person->getDatabaseId();
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
-		ag->setCurrSegment(rdSeg);
-		rdSeg->getParentConflux()->addAgent(ag);
+		if(rdSeg) {
+			ag->setCurrSegment(rdSeg);
+			rdSeg->getParentConflux()->addAgent(ag);
+		}
+		else {
+			std::cout << " | Not added into the simulation";
+		}
 	}
 }
 
@@ -652,10 +657,17 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
 	}
 
-	 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-	 // you will get into.
-	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-		rdSeg = path.at(1).roadSegment_;
+	/*
+	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
+	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
+	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
+	 */
+	if(path.size() > 0) {
+		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+		 // you will get into.
+		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+			rdSeg = path.at(1).roadSegment_;
+		}
 	}
 
 	return rdSeg;

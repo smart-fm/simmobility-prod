@@ -376,6 +376,12 @@ std::string get_id(const unsigned long& temp)
 }
 
 template <>
+std::string get_id(const double& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on primitive types.");
+}
+
+template <>
 std::string get_id(const bool& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
@@ -875,6 +881,17 @@ void XmlWriter::prop(const std::string& key, const unsigned long& val)
 }
 
 template <>
+void XmlWriter::prop(const std::string& key, const double& val)
+{
+	std::streamsize prec = outFile->precision();
+	outFile->precision(4);
+	outFile->setf(std::ios::fixed);
+	write_simple_prop(key, val);
+	outFile->precision(prec);
+	outFile->unsetf(std::ios::fixed);
+}
+
+template <>
 void XmlWriter::prop(const std::string& key, const bool& val)
 {
 	write_simple_prop(key, val?"true":"false");
@@ -912,6 +929,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const long& temp)
 
 template <>
 void write_xml(sim_mob::xml::XmlWriter& write, const unsigned long& temp)
+{
+	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+}
+
+template <>
+void write_xml(sim_mob::xml::XmlWriter& write, const double& temp)
 {
 	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }

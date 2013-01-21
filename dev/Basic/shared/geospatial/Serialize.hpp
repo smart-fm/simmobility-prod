@@ -35,6 +35,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "util/XmlWriter.hpp"
+#include "metrics/Length.hpp"
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
@@ -44,6 +45,8 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/BusStop.hpp"
 
 
 namespace sim_mob {
@@ -219,7 +222,7 @@ void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
     write.prop("laneEdgePolylines_cached", wrap_lanes(laneLines), namer("<laneEdgePolyline_cached,<laneNumber,polyline>>"));
 
 	write.prop("Lanes", rs.getLanes(), namer("<Lane>"));
-	write.prop("Obstacles", rs.getObstacles(), namer("<NAME_VARIES>"));
+	write.prop("Obstacles", rs.getObstacles());
 
 }
 
@@ -258,9 +261,61 @@ void write_xml(XmlWriter& write, const sim_mob::Node& nd)
 template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadItem& ri)
 {
-	//TEMP
-    write.prop("TODO", 2);
+	throw std::runtime_error("RoadItems by themselves can't be serialized; try putting them in an Obstacle map.");
 }
+
+
+//NOTE: This is another workaround for dealing with heterogeneous types.
+//NOTE: It also deals with out-of-order properties.
+template <>
+void write_xml(XmlWriter& write, const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles, namer name, expander expand)
+{
+	for (std::map<centimeter_t, const RoadItem*>::const_iterator it=obstacles.begin(); it!=obstacles.end(); it++) {
+		if (dynamic_cast<const Crossing*>(it->second)) {
+			const Crossing* cr = dynamic_cast<const Crossing*>(it->second);
+			write.prop_begin("Crossing");
+			write.prop("id", cr->getRoadItemID());
+			write.prop("start", cr->getStart());
+			write.prop("end", cr->getEnd());
+			write.prop("nearLine", cr->nearLine);
+			write.prop("farLine", cr->farLine);
+			write.prop_end();
+		} else if (dynamic_cast<const BusStop*>(it->second)) {
+			const BusStop* bs = dynamic_cast<const BusStop*>(it->second);
+			write.prop_begin("BusStop");
+			write.prop("id", bs->getRoadItemID());
+			write.prop("Offset", it->first);
+			write.prop("start", bs->getStart());
+			write.prop("end", bs->getEnd());
+			write.prop("xPos", bs->xPos);
+			write.prop("yPos", bs->yPos);
+			write.prop("is_terminal", bs->is_terminal);
+			write.prop("is_bay", bs->is_bay);
+			write.prop("has_shelter", bs->has_shelter);
+			write.prop("busCapacityAsLength", bs->busCapacityAsLength);
+			write.prop("busstopno", bs->getBusstopno_());
+			write.prop_end();
+		} else {
+			throw std::runtime_error("Unidentified RoadItem subclass.");
+		}
+	}
+}
+template <>
+void write_xml(XmlWriter& write, const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles, namer name)
+{
+	write_xml(write, obstacles, name, expander());
+}
+template <>
+void write_xml(XmlWriter& write, const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles, expander expand)
+{
+	write_xml(write, obstacles, namer("<item,<key,value>>"), expand);
+}
+template <>
+void write_xml(XmlWriter& write, const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles)
+{
+	write_xml(write, obstacles, namer("<item,<key,value>>"), expander());
+}
+
 
 
 

@@ -1717,11 +1717,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	TiXmlElement* busBreak = handle.FirstChild("config").FirstChild("busBreak").ToElement();
 	if(busBreak){
 		const char* routeID = busBreak->Attribute("routeID");
+		const char* index =   busBreak->Attribute("index");
 		BusController::buslineID = routeID;
 		BusController::busBreak = true;
+		BusController::busstopindex = atoi(index);
 		std::cout<<"BuslineID: "<<BusController::buslineID<<" busBreak: "<<BusController::busBreak<<std::endl;
 	}
 
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(386000)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(396800)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(461100)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(506100)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(599200)).getRepr_()<<std::endl;
 	//load scheduledTImes if any
 	handle = TiXmlHandle(&document);
 	 busBreak = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();

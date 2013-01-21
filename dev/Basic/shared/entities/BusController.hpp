@@ -50,6 +50,7 @@ public:
 
 	static bool busBreak;
 	static const char* buslineID;
+	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
 	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);

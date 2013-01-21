@@ -117,6 +117,17 @@ void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, sim_mob::Lane* 
 
 
 /////////////////////////////////////////////////////////////////////
+// WORKAROUND: Currently, the new syntax can't handle certain STL combinations
+//             with enough detail, so we have to provide this fallback here.
+/////////////////////////////////////////////////////////////////////
+template <>
+void write_xml(XmlWriter& write, const std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane* > > & connectors)
+{
+	write_xml(write, connectors, namer("<Connector>"));
+}
+
+
+/////////////////////////////////////////////////////////////////////
 // write_xml()
 /////////////////////////////////////////////////////////////////////
 

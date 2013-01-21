@@ -242,7 +242,7 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
      // LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(this->parent->xPos.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(this->parent->yPos.get()+random_num2)<<"\",})"<<std::endl);
 
-	else if(this->alightedBus && false)
+	else if(this->alightedBus)
 	{
 
 	   //this->random_x.set(random_x.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus

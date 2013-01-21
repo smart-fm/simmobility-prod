@@ -178,9 +178,9 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		}
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			//busline = new sim_mob::Busline(curr->route_id,"no_control");
+			busline = new sim_mob::Busline(curr->route_id,"no_control");
 			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
-			busline = new sim_mob::Busline(curr->route_id,"hybrid_based");
+			//busline = new sim_mob::Busline(curr->route_id,"hybrid_based");
 			//busline = new sim_mob::Busline(curr->route_id,"evenheadway_based");
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
@@ -198,7 +198,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
-		DailyTime advance(4*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
+		DailyTime advance(3*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
 		long temp = advance.getValue();
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.

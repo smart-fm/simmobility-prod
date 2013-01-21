@@ -742,6 +742,7 @@ double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k,
 	double PT;
 	PT = std::max(PTijk_front, PTijk_rear);
 	DTijk = beta1 + PT + beta2 * delta_bay + beta3 * delta_full;
+	std::cout<<"Dwell__time "<<DTijk<<std::endl;
 	return DTijk;
 }
 

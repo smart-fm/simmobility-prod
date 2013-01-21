@@ -246,18 +246,13 @@ void write_xml(XmlWriter& write, const sim_mob::Lane& ln)
 	write.prop("is_u_turn_allowed", ln.is_u_turn_allowed());
 }
 
-template <>
-void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
-{
-	//TEMP
-    write.prop("TODO", 2);
-}
 
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Node& nd)
 {
-	//TEMP
-    write.prop("TODO", 2);
+	write.prop("nodeID", nd.nodeId);
+	write.prop("location", nd.location);
+	write.prop("originalDB_ID", nd.originalDB_ID.getLogItem());
 }
 
 template <>
@@ -295,9 +290,7 @@ std::map<const sim_mob::RoadSegment*, std::vector< std::pair<const sim_mob::Lane
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Intersection& in)
 {
-	write.prop("nodeID", in.nodeId);
-	write.prop("location", in.location);
-	write.prop("originalDB_ID", in.originalDB_ID.getLogItem());
+	write_xml(write, dynamic_cast<const sim_mob::Node&>(in));
 	write.prop("roadSegmentsAt", in.getRoadSegments(), namer("<segmentID>"), expander("<id>"));
 	write.prop("Connectors", warp_multi_connectors(in.getConnectors()), namer("<MultiConnectors,<RoadSegment,Connectors>>"), expander("<*,<id,*>>"));
 
@@ -314,9 +307,7 @@ void write_xml(XmlWriter& write, const sim_mob::MultiNode& mnd)
 template <>
 void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 {
-	write.prop("nodeID", und.nodeId);
-	write.prop("location", und.location);
-	write.prop("originalDB_ID", und.originalDB_ID.getLogItem());
+	write_xml(write, dynamic_cast<const sim_mob::Node&>(und));
 	write.prop("firstPair", und.firstPair, expander("<id,id>"));
 	if (und.secondPair.first && und.secondPair.second) {
 		write.prop("secondPair", und.secondPair, expander("<id,id>"));

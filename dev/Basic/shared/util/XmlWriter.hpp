@@ -38,10 +38,15 @@ namespace xml {
  *    3) One can construct them with a series of static functions that can be nested.
  * I almost called it "expander", but then I figured that no-one would ever use it.
  * Better to call it "namer", since that's what most people will use it for.
+ *
+ * \todo
+ * It's very easy to descent recursively into a value-type expansion loop. There are two solutions;
+ *    1) Make the defaults for vectors/sets be value types.
+ *    2) Have the pointer-dereference template functions track each pointer used and throw an
+ *       exception if the same pointer is being used as a value type more than once.
+ *  Two is preferable.
  */
 
-//class namer_iterator;
-//class XmlWriter;
 
 
 //"Result" of matches. Left/right indicate the same thing they did in the previous code; both are optional.
@@ -549,12 +554,12 @@ public:
 
 	///Write a property as using identifiers instead of values. This requires
 	/// the required base type to have a corresponding get_id() override.
-	template <class T>
-	void ident(const std::string& key, const T& val);
+	//template <class T>
+	//void ident(const std::string& key, const T& val);
 
 	///Write a list of identifiers
-	template <class T>
-	void ident_list(const std::string& plural, const std::string& singular, const T& val);
+	//template <class T>
+	//void ident_list(const std::string& plural, const std::string& singular, const T& val);
 
 	///Begin writing a property. This is used instead of prop() for classes which don't exist
 	/// (i.e., containers within the XML file itself).
@@ -605,7 +610,7 @@ namespace {
 
 
 ///Same, but for identifiers.
-template <class IterType>
+/*template <class IterType>
 void write_value_ident_array(sim_mob::xml::XmlWriter& write, IterType begin, IterType end)
 {
 	std::string singular = write.curr_prop();
@@ -645,7 +650,7 @@ template <class T>
 void write_ident_list(sim_mob::xml::XmlWriter& write, const std::set<T*>& vec)
 {
 	write_pointer_ident_array(write, vec.begin(), vec.end());
-}
+}*/
 
 //Helper: Escape illegal symbols inside XML elements/attributes
 std::string escape_xml(const std::string& src) {
@@ -781,7 +786,7 @@ void sim_mob::xml::XmlWriter::prop(const std::string& key, const T& val, namer n
 
 
 //Write an identifier
-template <class T>
+/*template <class T>
 void sim_mob::xml::XmlWriter::ident(const std::string& key, const T& val)
 {
 	//Identifiers have no attributes or child properties, so they are relatively easy to serialize.
@@ -802,7 +807,7 @@ void sim_mob::xml::XmlWriter::ident_list(const std::string& plural, const std::s
 	write_ident_list(*this, val);
 	propStack.pop_back();
 	prop_end();
-}
+}*/
 
 void sim_mob::xml::XmlWriter::prop_begin(const std::string& key)
 {

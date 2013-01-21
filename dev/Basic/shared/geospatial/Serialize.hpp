@@ -50,10 +50,6 @@ namespace xml {
 
 /////////////////////////////////////////////////////////////////////
 // get_id()
-// TODO: Unfortunately, you currently need *both* get_id() and write_xml()
-//       since we use an if() statement inside a template class. There should
-//       be a way to avoid this using templates, but for now I can't think of it.
-//       (perhaps add a bool template parameter to prop() and specialize on that?)
 /////////////////////////////////////////////////////////////////////
 
 template <>
@@ -69,8 +65,8 @@ std::string get_id(const sim_mob::Lane& ln)
 }
 
 
-//TODO: The following get_id() declarations are technically unneeded, but might be useful to keep around.
-//      At the moment, we need them to deal with the bug mentioned above.
+//TODO: These are not used, but need to be available to the template parser. They are harmless; it'll
+//      be obvious if "id" types are used instead of "value" types accidentally.
 template <>
 std::string get_id(const sim_mob::Link& lnk)
 {
@@ -92,6 +88,32 @@ std::string get_id(const sim_mob::LaneConnector& lc)
 	return boost::lexical_cast<std::string>(lc.getLaneFrom()->getLaneID()) + ":" + boost::lexical_cast<std::string>(lc.getLaneTo()->getLaneID());
 }
 
+
+
+/////////////////////////////////////////////////////////////////////
+// write_xml() - Dispatch
+//               Provide a sensible default for pairs of lane connectors (laneFrom/laneTo by ID)
+/////////////////////////////////////////////////////////////////////
+template <>
+void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, const sim_mob::Lane* >& connectors)
+{
+	write_xml(write, connectors, namer("<laneFrom,laneTo>"), expander("<id,id>"));
+}
+template <>
+void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, sim_mob::Lane* >& connectors)
+{
+	write_xml(write, std::pair<const sim_mob::Lane*, const sim_mob::Lane*>(connectors.first,connectors.second));
+}
+template <>
+void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, const sim_mob::Lane* >& connectors)
+{
+	write_xml(write, std::pair<const sim_mob::Lane*, const sim_mob::Lane*>(connectors.first,connectors.second));
+}
+template <>
+void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, sim_mob::Lane* >& connectors)
+{
+	write_xml(write, std::pair<const sim_mob::Lane*, const sim_mob::Lane*>(connectors.first,connectors.second));
+}
 
 
 /////////////////////////////////////////////////////////////////////
@@ -127,30 +149,6 @@ void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
     write.prop("TODO", 2);
 }
 
-//Force pairs of Lanes (connectors) to have a specific format (laneFrom/ID, etc.)
-template <>
-void write_xml(XmlWriter& write, const std::pair<const sim_mob::Lane*, sim_mob::Lane* >& connectors)
-{
-	write.ident("laneFrom", *connectors.first);
-	write.ident("laneTo", *connectors.second);
-}
-
-//This one's a bit too complex to handle automatically.
-/*template <>
-void write_xml(XmlWriter& write, const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & connectors)
-{
-	for (std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
-		//Turn our set of lane connectors into a vector of Lane pairs.
-		std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> > temp_list;
-		for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt=it->second.begin(); lcIt!=it->second.end(); lcIt++) {
-			temp_list.push_back(std::make_pair((*lcIt)->getLaneFrom(), const_cast<sim_mob::Lane*>((*lcIt)->getLaneTo())));
-		}
-
-		//Print
-		write.ident("RoadSegment", *it->first);
-		write.prop("Connectors", temp_list, namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
-	}
-}*/
 
 
 template <>
@@ -161,7 +159,8 @@ void write_xml(XmlWriter& write, const sim_mob::Point2D& pt)
 }
 
 
-//Out mult-node connectors are not actuallrepresented in the format we'd expect.
+//Workaround:
+//Out multi-node connectors are not actually represented in the format we'd expect.
 namespace {
 std::map<const sim_mob::RoadSegment*, std::vector< std::pair<const sim_mob::Lane*, sim_mob::Lane*> > > warp_multi_connectors(const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & connectors)
 {
@@ -175,19 +174,14 @@ std::map<const sim_mob::RoadSegment*, std::vector< std::pair<const sim_mob::Lane
 }
 } //End un-named namespace
 
-
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Intersection& in)
 {
 	write.prop("nodeID", in.nodeId);
 	write.prop("location", in.location);
 	write.prop("originalDB_ID", in.originalDB_ID.getLogItem());
-	write.ident_list("roadSegmentsAt", "segmentID", in.getRoadSegments());
-
-	//write.prop_begin("Connectors");
-	//write.prop("MultiConnectors", in.getConnectors(), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
+	write.prop("roadSegmentsAt", in.getRoadSegments(), namer("<segmentID>"), expander("<id>"));
 	write.prop("Connectors", warp_multi_connectors(in.getConnectors()), namer("<MultiConnectors,<RoadSegment,Connectors>>"), expander("<*,<id,*>>"));
-	//write.prop_end();
 
 }
 
@@ -209,9 +203,6 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 	if (und.secondPair.first && und.secondPair.second) {
 		write.prop("secondPair", und.secondPair, expander("<id,id>"));
 	}
-
-	//Map test.
-	//write.prop("Connectors", flatten_map(und.getConnectors()), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
 	write.prop("Connectors", und.getConnectors(), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
 }
 

@@ -252,10 +252,10 @@ public:
     unsigned int getWidth() const {
     	if (width_==0) {
     		unsigned int width = parentSegment_->width / parentSegment_->getLanes().size();
-//    		if(width <= 0)
-//    		{
-//    			throw std::runtime_error("Can't manage with a Lane with zero width.");
-//    		}
+    		if(width <= 0) {
+    			return 50; //0.5 m should be visible; better than throwing an error.
+    			//throw std::runtime_error("Can't manage with a Lane with zero width.");
+    		}
     		return width;
     	}
     	return width_;

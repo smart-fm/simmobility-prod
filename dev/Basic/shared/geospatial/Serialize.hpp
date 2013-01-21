@@ -224,14 +224,30 @@ void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 }
 
 template <>
-void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
+void write_xml(XmlWriter& write, const sim_mob::Lane& ln)
 {
-	//TEMP
-    write.prop("TODO", 2);
+	write.prop("laneID", ln.getLaneID());
+	write.prop("width", ln.getWidth());
+	write.prop("can_go_straight", ln.can_go_straight());
+	write.prop("can_turn_left", ln.can_turn_left());
+	write.prop("can_turn_right", ln.can_turn_right());
+	write.prop("can_turn_on_red_signal", ln.can_turn_on_red_signal());
+	write.prop("can_change_lane_left", ln.can_change_lane_left());
+	write.prop("can_change_lane_right", ln.can_change_lane_right());
+	write.prop("is_road_shoulder", ln.is_road_shoulder());
+	write.prop("is_bicycle_lane", ln.is_bicycle_lane());
+	write.prop("is_pedestrian_lane", ln.is_pedestrian_lane());
+	write.prop("is_vehicle_lane", ln.is_vehicle_lane());
+	write.prop("is_standard_bus_lane", ln.is_standard_bus_lane());
+	write.prop("is_whole_day_bus_lane", ln.is_whole_day_bus_lane());
+	write.prop("is_high_occupancy_vehicle_lane", ln.is_high_occupancy_vehicle_lane());
+	write.prop("can_freely_park_here", ln.can_freely_park_here());
+	write.prop("can_stop_here", ln.can_stop_here());
+	write.prop("is_u_turn_allowed", ln.is_u_turn_allowed());
 }
 
 template <>
-void write_xml(XmlWriter& write, const sim_mob::Lane& lc)
+void write_xml(XmlWriter& write, const sim_mob::LaneConnector& lc)
 {
 	//TEMP
     write.prop("TODO", 2);

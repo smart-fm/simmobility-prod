@@ -423,7 +423,7 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer nam
 {
 	//Print each item as a separate property.
 	for (typename std::set<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
-		dispatch_write_xml_request(write, name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.rightChild(), expand.rightChild(), expand.leftIsValue());
 	}
 }
 template <class T>
@@ -451,7 +451,7 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer 
 {
 	//Print each item as a separate property.
 	for (typename std::vector<T>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
-		dispatch_write_xml_request(write, name.leftStr(), *it, name.leftChild(), expand.leftChild(), !expand.leftIsValue());
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.rightChild(), expand.rightChild(), expand.leftIsValue());
 	}
 }
 template <class T>

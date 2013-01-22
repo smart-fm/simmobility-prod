@@ -1,6 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#pragma once
+//NOTE: Do *not* replace the following ifdef guard wtih a "pragma once" ---we use this defined file to
+//      ensure that users don't include items in the "internal" folder directly.
+#ifndef INCLUDE_UTIL_XML_WRITER_HPP
+#define INCLUDE_UTIL_XML_WRITER_HPP
 
 /**
  * \file XmlWriter.hpp
@@ -13,225 +16,17 @@
 #include <sstream>
 #include <stdexcept>
 #include <map>
+#include <set>
 
-#include "util/LangHelpers.hpp"
+#include <boost/noncopyable.hpp>
+
+//Internal includes
+#include "internal/namer.hpp"
 
 
 namespace sim_mob {
 namespace xml {
 
-/**
- * Template class used for specifying the name that elements in an STL container can take.
- * This class serves to address a particular problem: we provide helper write_xml() wrappers
- * for vectors, sets, etc., but what happens if the user has two different sets, and wants
- * to name the elements in each set differently? What if we also want to provide a sensible default,
- * such as "item" for vectors?
- *
- * To accomplish this, you can pass in a "naming", using syntax such as "naming<"item">"
- * or "naming<"roadSegment">". These should be chain-able (e.g., a naming for vectors of pairs)
- * ---indeed, that's the whole point.
- *
- * \note
- * I'm in the process of changing a "naming" to a "namer", which has three benefits:
- *    1) It can be nested (so pairs, vectors of maps, etc. are ok).
- *    2) It can specify "value" or "id" expansion.
- *    3) One can construct them with a series of static functions that can be nested.
- * I almost called it "expander", but then I figured that no-one would ever use it.
- * Better to call it "namer", since that's what most people will use it for.
- *
- * \todo
- * It's very easy to descent recursively into a value-type expansion loop. There are two solutions;
- *    1) Make the defaults for vectors/sets be value types.
- *    2) Have the pointer-dereference template functions track each pointer used and throw an
- *       exception if the same pointer is being used as a value type more than once.
- *  Two is preferable.
- */
-
-
-
-//"Result" of matches. Left/right indicate the same thing they did in the previous code; both are optional.
-struct res_set {
-	std::string left;
-	std::string right;
-};
-
-
-namespace {
-//Count occurrences of "letter" in "src"
-int letter_count(const std::string& src, char letter) {
-	int res=0;
-	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {
-		if (*it == letter) { res++; }
-	}
-	return res;
-}
-
-//Is this string complex? (Does it have <,> anywhere?)
-bool is_complex(const std::string& src) {
-	return (src.find('<')<src.size()) || (src.find(',')<src.size()) || (src.find('>')<src.size());
-}
-
-//Helper: Scan and break into left/right segments. Results are returned by reference into left and right.
-void scan_pair(const std::string& nameStr, std::string& left, std::string&right) {
-	std::stringstream newLeft;
-	int depth=0; // nested in brackets?
-	for (std::string::const_iterator it=nameStr.begin(); it!=nameStr.end(); it++) {
-		//Only three characters matter here.
-		if (*it==',') {
-			if (depth==0) {
-				//We found our comma; left will be set later, so set right to the remainder.
-				right = std::string(it+1, nameStr.end());
-				break;
-			}
-		} else if (*it=='<') {
-			depth++;
-		} else if (*it=='>') {
-			depth--;
-		}
-
-		//Either way, append it to left.
-		newLeft <<*it;
-	}
-
-	//Save left; right's already been saved.
-	left = newLeft.str();
-}
-} //End anon namespace
-
-
-
-///The base class of namer and expander, which provides shared functionality for both.
-class prop_parser  {
-protected:
-	//Only allow construction via subclasses.
-	explicit prop_parser(const std::string& str) {
-		//Perform some sanity checks, then parse.
-		sanity_check(str);
-		parse(str);
-	}
-
-	//Container for results
-	struct res_item {
-		res_item() : leaf(true) {}
-		std::string item;  //E.g., "item", or "<first,second>"
-		bool leaf;         //True if "item" or "", not "<first,second>"
-	};
-
-
-public:
-	std::string leftStr() const {
-		return left.leaf ? left.item : "";
-	}
-	std::string rightStr() const {
-		return right.leaf ? right.item : "";
-	}
-	bool leftIsLeaf() const {
-		return left.leaf;
-	}
-	bool rightIsLeaf() const {
-		return right.leaf;
-	}
-
-	//An object is "empty" if it can be safely discarded; e.g., it contains no information (string) whatsoever.
-	bool isEmpty() const {
-		return left.item.empty() && right.item.empty();
-	}
-
-private:
-	void sanity_check(const std::string& str) {
-		//We can handle spaces later; it just messes up our definition of "empty". For now it's not worth it.
-		if (str.find(' ')<str.size()) { throw std::runtime_error("Bad namer/expander string: no spaces!"); }
-
-		//Very simple sanity check: do our left and right brackets match up (and outnumber commas)?
-		int countL = letter_count(str, '<');
-		int countR = letter_count(str, '>');
-		int countC = letter_count(str, ',');
-		if (countL==countR && countC<=countL) { return; }
-		throw std::runtime_error("Bad namer/expander string: brackets and commas don't match up.");
-	}
-
-	//Parse the current string, removing the outer layer of brackets and retrieving the "left" and "right"
-	//  elements (including remaining components).
-	void parse(const std::string& str) {
-		//Nothing to parse?
-		if (str.empty()) { return; }
-
-		//Find the outermost brackets. These are balanced (see the constructor), and should be at the start/end of the string.
-		size_t cropL = str.find('<');
-		size_t cropR = str.rfind('>');
-		if (cropL!=0 || cropR!=str.size()-1) {
-			return;  //Silently fail.
-		}
-
-		//There are three cases to deal with, all of which generalize to the first case.
-		//The difficulty is that there can be nested brackets too.
-		//   <left,right>
-		//   <left>
-		//   <> (nothing)
-		scan_pair(str.substr(1,str.size()-2), left.item, right.item);
-
-		//Replace "*" with "" (optional padding, looks better)
-		if (left.item=="*") { left.item=""; }
-		if (right.item=="*") { right.item=""; }
-
-		//Set "leaf" property.
-		left.leaf = !is_complex(left.item);
-		right.leaf = !is_complex(right.item);
-	}
-
-protected:
-	//Our current results set.
-	res_item left;
-	res_item right;
-};
-
-
-
-//Try again, this time simply using strings.
-class namer : public prop_parser {
-public:
-	explicit namer(const std::string& nameStr="") : prop_parser(nameStr) {}
-
-	namer leftChild() {
-		return left.leaf ? namer() : namer(left.item);
-	}
-	namer rightChild() {
-		return right.leaf ? namer() : namer(right.item);
-	}
-};
-class expander : public prop_parser {
-public:
-	explicit expander(const std::string& nameStr="") : prop_parser(nameStr) {}
-
-	expander leftChild() const {
-		return left.leaf ? expander() : expander(left.item);
-	}
-	expander rightChild() const {
-		return right.leaf ? expander() : expander(right.item);
-	}
-
-	bool leftIsValue() const {
-		return isValue(leftStr());
-	}
-
-	bool rightIsValue() const {
-		return isValue(rightStr());
-	}
-
-private:
-	bool isValue(const std::string& candidate) const {
-		//Default is "value", so check for "id"
-		//This is the only area where we're strict.
-		if (candidate=="value") {
-			return true;
-		} else if (candidate=="id") {
-			return false;
-		} else if (!candidate.empty()) {
-			throw std::runtime_error("expand-type must be either \"id\" or \"value\"");
-		}
-		return true;
-	}
-};
 
 //Forward-declare our class.
 class XmlWriter;
@@ -548,6 +343,8 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items)
 {
 	write_xml(write, items, namer("<item,<key,value>>"), expander());
 }
+
+
 
 
 
@@ -947,3 +744,6 @@ void write_xml(sim_mob::xml::XmlWriter& write, const bool& temp)
 
 
 }}
+
+
+#endif //INCLUDE_UTIL_XML_WRITER_HPP

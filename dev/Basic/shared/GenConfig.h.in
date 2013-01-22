@@ -26,11 +26,13 @@
 #cmakedefine SIMMOB_DISABLE_MPI
 #cmakedefine SIMMOB_LATEST_STANDARD
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
-#cmakedefine SIMMOB_NEW_SIGNAL
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
 #cmakedefine SIMMOB_XML_READER
-#cmakedefine SIMMOB_PARTIAL_XML_READER
 #cmakedefine SIMMOB_USE_CONFLUXES
+
+//Deprecated flags:
+#define SIMMOB_NEW_SIGNAL
+
 
 

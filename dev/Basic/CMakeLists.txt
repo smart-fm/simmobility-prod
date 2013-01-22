@@ -62,16 +62,17 @@ IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
-option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
+#option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
 
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
 
-#Option: USE XML file as SimMobility input
+#Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
+#        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
 option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 
 #Option: Our new (new) XML classes. This option will disappear as soon as possible.
-option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
+#option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)

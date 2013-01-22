@@ -11,11 +11,6 @@
 #include "geo8-pimpl.hpp"
 
 using namespace geo;
-//#ifdef SIMMOB_PARTIAL_XML_READER
-//    		geo::InitAndLoadXML(XML_OutPutFileName)
-//#else
-//    		geo::InitAndLoadXML(XML_OutPutFileName)
-//#endif
 bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
 //geo::InitAndLoadXML(XML_OutPutFileName)
 {

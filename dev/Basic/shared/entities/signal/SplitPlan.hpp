@@ -113,7 +113,7 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
-	std::string createStringRepresentation(std::string newLine);
+	//std::string createStringRepresentation(std::string newLine);
 	void setParentSignal(sim_mob::Signal_SCATS * signal) { parentSignal = signal;}
 	sim_mob::Signal_SCATS * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);

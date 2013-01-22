@@ -893,24 +893,24 @@ struct Sorter {
 	  }
 
 	  const sim_mob::Lane* a = (c->getLaneFrom());
-	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  aaaa = a->getLaneID() ;
+	  const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  const unsigned int  aaaa = a->getLaneID() ;
 
 	  const sim_mob::Lane* b = (d->getLaneFrom());
-	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  bbbb = b->getLaneID() ;
+	  const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  const unsigned int  bbbb = b->getLaneID() ;
 	  ///////////////////////////////////////////////////////
 	  const sim_mob::Lane* a1 = (c->getLaneTo());
-	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
+	  const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  const unsigned int  aaaa1 = a1->getLaneID() ;
 
 	  const sim_mob::Lane* b1 = (d->getLaneTo());
-	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
+	  const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  const unsigned int  bbbb1 = b1->getLaneID() ;
 
 	  if(!(a && b))
 	  {

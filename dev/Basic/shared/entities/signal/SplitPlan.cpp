@@ -248,8 +248,8 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	currSplitPlanID = 0;
 }
 
-std::string SplitPlan::createStringRepresentation(std::string newLine)
-{
+//std::string SplitPlan::createStringRepresentation(std::string newLine)
+//{
 //	if(phases_.size() == 0)
 //		{
 //			return 0;
@@ -266,7 +266,7 @@ std::string SplitPlan::createStringRepresentation(std::string newLine)
 //	}
 //	output << newLine << "]";
 //	return output.str();
-}
+//}
 
 
 

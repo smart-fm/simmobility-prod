@@ -1162,6 +1162,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   post_roundabout_t ()
   {
     sim_mob::Node* v (post_Node_t ());
+    throw "THIS FUNCTION IS UNCLEAR (geo8-pimpl.cpp)";
   }
 
   // intersection_t_pimpl

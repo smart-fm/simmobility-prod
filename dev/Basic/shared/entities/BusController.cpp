@@ -346,10 +346,10 @@ unsigned int sim_mob::BusController::dwellTimeCalculation(const string& busline_
 	return DTijk;
 }
 
-unsigned int sim_mob::BusController::sendBusInformation()
+/*unsigned int sim_mob::BusController::sendBusInformation()
 {
-
-}
+throw 1;
+}*/
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
 {

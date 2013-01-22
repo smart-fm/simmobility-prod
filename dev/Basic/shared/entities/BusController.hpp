@@ -57,7 +57,7 @@ public:
 
 	void receiveBusInformation(const std::string& busline_i, int trip_k = 0, int busstopSequence_j = 0, unsigned int ATijk = 0);
 	unsigned int decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum);// return Departure MS from Aijk, DWijk etc
-	unsigned int sendBusInformation();// depend on the control strategy
+	//unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//NOTE: There's two problems here:

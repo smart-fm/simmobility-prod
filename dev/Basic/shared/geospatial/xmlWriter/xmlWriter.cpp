@@ -302,6 +302,7 @@ bool sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlEl
 			return false;
 		}
 	}
+	return true;
 }
 
 void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)

@@ -29,16 +29,19 @@
 ///Create a specialization of get_id() for a given "classname" that calls "function" and
 ///  uses boost::lexical_cast to return a string of that result.
 ///#defines are usually evil, but we can slim things down a bit by using them for get_id()
+#ifndef SPECIALIZE_GET_ID
 #define SPECIALIZE_GET_ID(classname, function)  template <> \
 	std::string get_id(const classname& item) { \
 		return boost::lexical_cast<std::string>(item.function()); }
+#endif
 
 ///Create a specialization of get_id() that throws an error at runtime. Used to effectively
 ///  "erase" an item from the "<id>" expander.
+#ifndef ERASE_GET_ID
 #define ERASE_GET_ID(classname)  template <> \
 	std::string get_id(const classname& item) { \
 		throw std::runtime_error("Invalid get_id template for class " #classname); }
-
+#endif
 
 
 namespace sim_mob {

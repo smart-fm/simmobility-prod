@@ -48,44 +48,45 @@ std::string get_id(const std::map<T, U>& temp)
 
 //////////////////////////////////////////////////////////////////////
 // get_id() failure cases for primitive tpyes.
+//          These are simple enough to inline
 //////////////////////////////////////////////////////////////////////
-template <>
+template <> inline
 std::string get_id(const std::string& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
-std::string get_id(const int& temp)
+template <> inline
+std::string get_id<int>(const int& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
+template <> inline
 std::string get_id(const unsigned int& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
+template <> inline
 std::string get_id(const long& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
+template <> inline
 std::string get_id(const unsigned long& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
+template <> inline
 std::string get_id(const double& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-template <>
+template <> inline
 std::string get_id(const bool& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on primitive types.");

@@ -369,7 +369,7 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
 	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
 	 	             findWaitingTime(bus);
-	 	             std::cout<<"iamwaiting "<<findWaitingTime(bus)<<" id "<<this->parent->getId()<<" reached "<<this->TimeofReachingBusStop<<" boarded "<<bus->TimeOfBusreachingBusstop<<std::endl;
+	 	             std::cout<<"iamwaiting "<<findWaitingTime(bus)<<"at the busstop_no "<<busdriver->busstop_sequence_no.get() << "----agent id "<<this->parent->getId()<<" reached "<<this->TimeofReachingBusStop<<" boarded "<<bus->TimeOfBusreachingBusstop<<std::endl;
 	 				 return true;
 	 			}
 	 		}

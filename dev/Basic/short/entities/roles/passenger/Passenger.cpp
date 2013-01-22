@@ -242,7 +242,7 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
      // LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(this->parent->xPos.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(this->parent->yPos.get()+random_num2)<<"\",})"<<std::endl);
 
-	else if(this->alightedBus)
+	else if(this->alightedBus && false)
 	{
 
 	   //this->random_x.set(random_x.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
@@ -327,7 +327,9 @@ Point2D sim_mob::Passenger::getDestPosition()
 	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
 	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
 	 				double waiting_time = findWaitingTime(bus);
-	 				std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<std::endl;
+	 				Person* person1 = dynamic_cast<Person*>(busdriver->getParent());
+					const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person1->currTripChainItem));
+	 				std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<" bustripid "<<bustrip->tripID<<std::endl;
 
 	 				/*std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
 	 				std::cout<<"waiting time"<<this->WaitingTime<<std::endl;

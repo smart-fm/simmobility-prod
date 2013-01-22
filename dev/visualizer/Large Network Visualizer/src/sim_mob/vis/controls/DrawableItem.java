@@ -30,6 +30,7 @@ public interface DrawableItem {
 	public static final int Z_ORDER_TRACKINGITEM  = 410;
 	public static final int Z_ORDER_TRAFFIC_SIGNAL_UPDATE = 420;
 	public static final int Z_ORDER_PASSENGER = 430;
+	
 	///Draw this item.
 	public void draw(Graphics2D g, DrawParams params);
 	

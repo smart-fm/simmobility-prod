@@ -15,7 +15,7 @@ using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
 vector<BusController*> BusController::all_busctrllers_;// Temporary saved all the buscontroller, eventually it will go to all agent stream
-static int default_headway = 60000;//85000; // 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+static int default_headway = 170000;//85000; // 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
 bool BusController::busBreak = false;
 const char* BusController::buslineID = NULL;
 int BusController::busstopindex = 1;
@@ -178,8 +178,8 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		}
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			busline = new sim_mob::Busline(curr->route_id,"no_control");
-			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
+			//busline = new sim_mob::Busline(curr->route_id,"no_control");
+			busline = new sim_mob::Busline(curr->route_id,"headway_based");
 			//busline = new sim_mob::Busline(curr->route_id,"hybrid_based");
 			//busline = new sim_mob::Busline(curr->route_id,"evenheadway_based");
 			pt_schedule.registerBusLine(curr->route_id, busline);
@@ -198,7 +198,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
-		DailyTime advance(3*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
+		DailyTime advance(5*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
 		long temp = advance.getValue();
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.

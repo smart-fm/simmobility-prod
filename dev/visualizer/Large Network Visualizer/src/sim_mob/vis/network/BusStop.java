@@ -4,8 +4,6 @@ package sim_mob.vis.network;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-import javax.swing.GroupLayout.ParallelGroup;
-
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -105,7 +103,7 @@ public class BusStop implements DrawableItem {
 
 		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)nearTwo.getX(), (int)nearTwo.getY()); 
 		g.drawLine((int)farOne.getX(), (int)farOne.getY(), (int)farTwo.getX(), (int)farTwo.getY()); 
-		
+
 		Polygon poly = new Polygon();		
 		poly.addPoint((int)nearOne.getX(), (int)nearOne.getY());
 		poly.addPoint((int)nearTwo.getX(), (int)nearTwo.getY());
@@ -114,15 +112,6 @@ public class BusStop implements DrawableItem {
         
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
 		g.fillPolygon(poly);
-//		g.rotate(45);
-		
-		
-//		Rectangle poly = new Rectangle((int)nearOne.getX(),(int)nearOne.getY() ,(int)nearTwo.getY() - (int)nearOne.getY(), (int)farTwo.getX() - (int)nearOne.getX() );		
-//		Rectangle poly = new Rectangle((int)nearOne.getX(),(int)nearOne.getY() ,20, 20  );
-//		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
-//		g.fillRect((int)nearOne.getX(),(int)nearOne.getY() ,20, 20);
-//		
-		
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1.0f));
 		
 	}

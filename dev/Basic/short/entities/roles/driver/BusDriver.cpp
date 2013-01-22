@@ -262,6 +262,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	}
 	//this function make the issue Ticket #86
 	perceivedDataProcess(nv, p);
+	Person* person = dynamic_cast<Person*>(parent);
+			const BusTrip* bustrip =
+								dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
@@ -337,8 +340,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			} else
 				vehicle->setAcceleration(-500);
 		}
+		Person* person = dynamic_cast<Person*>(parent);
+		const BusTrip* bustrip =
+							dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 
-		if (BusController::busBreak && (busstop_sequence_no == 1)) {
+
+		if (BusController::busBreak && (busstop_sequence_no == 0 ) && (bustrip->tripID == 2)) {
 			wait = true;
 			BusController::busBreak = false;
 		}
@@ -349,9 +356,9 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	if (wait && isBusGngtoBreakDown()) {
 		vehicle->setVelocity(0);
 		vehicle->setAcceleration(0);
-		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < 190) {//old 234
+		if ((vehicle->getVelocity() < 0.1) && (waitAtStopMS < 250)) {//old 234
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds; //tick++;
-		} else if (waitAtStopMS >= 190) {
+		} else if (waitAtStopMS >= 250) {
 			wait = false;
 			tick = 0;
 			waitAtStopMS = 0;
@@ -365,13 +372,17 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	}
 
-	if (!wait && isBusArriveBusStop() && waitAtStopMS >= 0
-			&& waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+	if (!wait && isBusArriveBusStop() && (waitAtStopMS >= 0)
+			&& (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
 
-		if (vehicle->getVelocity() > 0)
+//		if ((vehicle->getVelocity()/100) > 0)
 			vehicle->setAcceleration(-5000);
-		if (vehicle->getVelocity() < 0.1
-				&& waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+		if (vehicle->getVelocity()/100 < 1)
+		{
+			vehicle->setVelocity(0);
+		}
+		if ((vehicle->getVelocity()/100 < 0.1)
+				&& (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
 
 			//Pick up a semi-random number of passengers
@@ -484,14 +495,19 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //	else if (isBusArriveBusStop()) {
 //		vehicle->setAcceleration(3000);
 //	}
+	if(bustrip->tripID==3 && p.now.frame()>9180)
+			{
+				std::cout<<bustrip->tripID<<" "<<p.now.frame()<<std::endl;
 
+			}
 	if (isBusLeavingBusStop()
 			|| (waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC && !wait)) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 				<< std::endl;
 		waitAtStopMS = -1;
+
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2; // reset when leaving bus stop
-		std::cout<<p.now.frame()<<std::endl;
+	//std::cout<<p.now.frame()<<std::endl;
 		//passengerCountOld_display_flag = false;
 		//vehicle->setAcceleration(busAccelerating(p)*100);
 		//sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
@@ -704,9 +720,9 @@ double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k,
 		int busstopSequence_j, int A, int B, int delta_bay, int delta_full,
 		int Pfront, int no_of_passengers) {
 	//assume single channel passenger movement
-	/*double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
-	 double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
-	 double alpha3 = 3.5;//door opening and closing times
+	 /*double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+	 double alpha2 = 2.1;//boarding passenger service time,assuming alighting through rear door
+	 double alpha3 = 2.1;//door opening and closing times
 	 double alpha4 = 1.0;//?
 
 	 double beta1 = 0.7;//fixed parameters

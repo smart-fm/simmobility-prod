@@ -428,6 +428,9 @@ public class RoadNetwork {
 	    	}else{
 	    		
 	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
+	    		if (pos.isEmpty()) {
+	    			System.out.println("ERROR_100: Empty line array for lane: " + parentKey);
+	    		}
 	    		
 	    		//NOTE: We need Nodes here *at least once* because Nodes flip the Y-axis.
 	    		Node startNode = new Node(pos.get(0), pos.get(1), false, null);
@@ -726,11 +729,6 @@ public class RoadNetwork {
 			long toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
-			if((fromLane == null) || (toLane == null))
-			{
-				System.out.println("fromLane or toLane is null, cant collectSignalLineInfo");
-				return;
-			}
 			TrafficSignalLine tempSignalLine;
 			if(Main.NEW_SIGNAL)
 				tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 

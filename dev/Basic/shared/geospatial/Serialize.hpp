@@ -31,8 +31,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <boost/noncopyable.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "util/XmlWriter.hpp"
 #include "metrics/Length.hpp"
@@ -56,58 +54,25 @@ namespace xml {
 // get_id()
 /////////////////////////////////////////////////////////////////////
 
-template <>
-std::string get_id(const sim_mob::RoadSegment& rs)
-{
-	return boost::lexical_cast<std::string>(rs.getSegmentID());
-}
+//Disallow get_id for Point2D
+ERASE_GET_ID(sim_mob::Point2D);
 
-template <>
-std::string get_id(const sim_mob::Lane& ln)
-{
-	return boost::lexical_cast<std::string>(ln.getLaneID());
-}
+//Simple versions of get_id for most classes.
+SPECIALIZE_GET_ID(sim_mob::RoadSegment, getSegmentID);
+SPECIALIZE_GET_ID(sim_mob::Lane,        getLaneID);
+SPECIALIZE_GET_ID(sim_mob::Link,        getLinkId);
+SPECIALIZE_GET_ID(sim_mob::MultiNode,   getID);
+SPECIALIZE_GET_ID(sim_mob::UniNode,     getID);
+SPECIALIZE_GET_ID(sim_mob::Node,        getID);
+SPECIALIZE_GET_ID(sim_mob::RoadItem,    getRoadItemID);
 
-
-//TODO: These are not used, but need to be available to the template parser. They are harmless; it'll
-//      be obvious if "id" types are used instead of "value" types accidentally.
-template <>
-std::string get_id(const sim_mob::Link& lnk)
-{
-	return boost::lexical_cast<std::string>(lnk.getLinkId());
-}
-template <>
-std::string get_id(const sim_mob::MultiNode& mnd)
-{
-	return boost::lexical_cast<std::string>(mnd.getID());
-}
-template <>
-std::string get_id(const sim_mob::UniNode& und)
-{
-	return boost::lexical_cast<std::string>(und.getID());
-}
-template <>
-std::string get_id(const sim_mob::Node& nd)
-{
-	return boost::lexical_cast<std::string>(nd.getID());
-}
+//get_id for Lane Connectors is more complicated than our macro can handle.
 template <>
 std::string get_id(const sim_mob::LaneConnector& lc)
 {
 	return boost::lexical_cast<std::string>(lc.getLaneFrom()->getLaneID()) + ":" + boost::lexical_cast<std::string>(lc.getLaneTo()->getLaneID());
 }
-template <>
-std::string get_id(const sim_mob::RoadItem& ri)
-{
-	return boost::lexical_cast<std::string>(ri.getRoadItemID());
-}
 
-//...and these are definitely errors.
-template <>
-std::string get_id(const sim_mob::Point2D& tmp)
-{
-	throw std::runtime_error("Invalid get_id template for Point2D class.");
-}
 
 
 

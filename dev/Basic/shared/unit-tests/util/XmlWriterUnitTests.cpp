@@ -18,6 +18,9 @@ using std::vector;
 using std::map;
 using std::pair;
 
+using sim_mob::xml::namer;
+using sim_mob::xml::expander;
+
 namespace {
 
 //Replace all occurrences of "old" with "new" in a string.
@@ -242,29 +245,29 @@ void unit_tests::XmlWriterUnitTests::test_NamersXML()
 		"<Taxis>\n"
 		"    <#{TAXIS_ITEM}>\n"
 		"        <#{TAXIS_ITEM_FIRST} v_class=\"taxi\"/>\n"
-		"        <#{TAXIS_ITEM_SECOND}>Jurong</second>\n"
+		"        <#{TAXIS_ITEM_SECOND}>Jurong</#{TAXIS_ITEM_SECOND}>\n"
 		"    </#{TAXIS_ITEM}>\n"
 		"    <#{TAXIS_ITEM}>\n"
 		"        <#{TAXIS_ITEM_FIRST} v_class=\"taxi\"/>\n"
-		"        <#{TAXIS_ITEM_SECOND}>Orchard</second>\n"
+		"        <#{TAXIS_ITEM_SECOND}>Orchard</#{TAXIS_ITEM_SECOND}>\n"
 		"    </#{TAXIS_ITEM}>\n"
 		"    <#{TAXIS_ITEM}>\n"
 		"        <#{TAXIS_ITEM_FIRST} v_class=\"taxi\"/>\n"
-		"        <#{TAXIS_ITEM_SECOND}>Marina Bay</second>\n"
+		"        <#{TAXIS_ITEM_SECOND}>Marina Bay</#{TAXIS_ITEM_SECOND}>\n"
 		"    </#{TAXIS_ITEM}>\n"
 		"</Taxis>\n"
 		"<Lookup>\n"
 		"    <#{LOOKUP_ITEM}>\n"
-		"        <#{LOOKUP_ITEM_KEY}>1</key>\n"
-		"        <#{LOOKUP_ITEM_VALUE}>one</value>\n"
+		"        <#{LOOKUP_ITEM_KEY}>1</#{LOOKUP_ITEM_KEY}>\n"
+		"        <#{LOOKUP_ITEM_VALUE}>one</#{LOOKUP_ITEM_VALUE}>\n"
 		"    </#{LOOKUP_ITEM}>\n"
 		"    <#{LOOKUP_ITEM}>\n"
-		"        <#{LOOKUP_ITEM_KEY}>5</key>\n"
-		"        <#{LOOKUP_ITEM_VALUE}>five</value>\n"
+		"        <#{LOOKUP_ITEM_KEY}>5</#{LOOKUP_ITEM_KEY}>\n"
+		"        <#{LOOKUP_ITEM_VALUE}>five</#{LOOKUP_ITEM_VALUE}>\n"
 		"    </#{LOOKUP_ITEM}>\n"
 		"    <#{LOOKUP_ITEM}>\n"
-		"        <#{LOOKUP_ITEM_KEY}>33</key>\n"
-		"        <#{LOOKUP_ITEM_VALUE}>thirty-three</value>\n"
+		"        <#{LOOKUP_ITEM_KEY}>33</#{LOOKUP_ITEM_KEY}>\n"
+		"        <#{LOOKUP_ITEM_VALUE}>thirty-three</#{LOOKUP_ITEM_VALUE}>\n"
 		"    </#{LOOKUP_ITEM}>\n"
 		"</Lookup>\n"
 		"<Complex>\n"
@@ -326,6 +329,77 @@ void unit_tests::XmlWriterUnitTests::test_NamersXML()
 	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE_SECOND}", "second");
 
 	//Check
+	CPPUNIT_ASSERT(stream.str()==expected);
+	}
+
+
+	//Second test: Override everything.
+	{
+	//Write
+	std::ostringstream stream;
+	{
+	sim_mob::xml::XmlWriter write(stream);
+	write.prop("Cars", cars, namer("<car>"));
+	write.prop("Taxis", taxis, namer("<dispatch,<taxi,destination>>"));
+	write.prop("Lookup", lookup, namer("<mapper,<decimal,string>>"));
+	write.prop("Complex", complex, namer("<compound,<user,preference>>"));
+	}
+
+	//Substitute
+	string expected(templateStr);
+	str_replace_all(expected, "#{CARS_ITEM}", "car");
+	str_replace_all(expected, "#{TAXIS_ITEM}", "dispatch");
+	str_replace_all(expected, "#{TAXIS_ITEM_FIRST}", "taxi");
+	str_replace_all(expected, "#{TAXIS_ITEM_SECOND}", "destination");
+	str_replace_all(expected, "#{LOOKUP_ITEM}", "mapper");
+	str_replace_all(expected, "#{LOOKUP_ITEM_KEY}", "decimal");
+	str_replace_all(expected, "#{LOOKUP_ITEM_VALUE}", "string");
+	str_replace_all(expected, "#{COMPLEX_ITEM}", "compound");
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY}", "user");
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY_FIRST}", "first");      //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY_SECOND}", "second");    //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE}", "preference");
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE_FIRST}", "first");    //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE_SECOND}", "second");  //Can't customize yet!
+
+	//Check
+	CPPUNIT_ASSERT(stream.str()==expected);
+	}
+
+	//Third test: Rely on defaults for some thing (within the strings).
+	{
+	//Write
+	std::ostringstream stream;
+	{
+	sim_mob::xml::XmlWriter write(stream);
+	write.prop("Cars", cars, namer("<>"));
+	write.prop("Taxis", taxis, namer("<*,<*,destination>>"));
+	write.prop("Lookup", lookup, namer("<,<,string>>"));
+	write.prop("Complex", complex, namer("<compound,<user,>>"));
+	}
+
+	//Substitute
+	string expected(templateStr);
+	str_replace_all(expected, "#{CARS_ITEM}", "item");
+	str_replace_all(expected, "#{TAXIS_ITEM}", "item");
+	str_replace_all(expected, "#{TAXIS_ITEM_FIRST}", "first");
+	str_replace_all(expected, "#{TAXIS_ITEM_SECOND}", "destination");
+	str_replace_all(expected, "#{LOOKUP_ITEM}", "item");
+	str_replace_all(expected, "#{LOOKUP_ITEM_KEY}", "key");
+	str_replace_all(expected, "#{LOOKUP_ITEM_VALUE}", "string");
+	str_replace_all(expected, "#{COMPLEX_ITEM}", "compound");
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY}", "user");
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY_FIRST}", "first");      //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_KEY_SECOND}", "second");    //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE}", "value");
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE_FIRST}", "first");    //Can't customize yet!
+	str_replace_all(expected, "#{COMPLEX_ITEM_VALUE_SECOND}", "second");  //Can't customize yet!
+
+	//Check
+	//TODO: This test fails; taxis and lookups have "<>" tags all over the place. The reason is that
+	//      namer("<,<left,right>>" has a null "left" child, but a *non* null "right" child, so "isEmpty()"
+	//      returns false. We can't just check if left is null, since the right child contains crucial information
+	//      for later.
 	CPPUNIT_ASSERT(stream.str()==expected);
 	}
 }

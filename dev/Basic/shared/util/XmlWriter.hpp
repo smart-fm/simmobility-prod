@@ -11,6 +11,15 @@
  * Provides functionality for writing XML files in as simple a manner as possible.
  */
 
+//NOTE: There is a bug regarding default values; see XmlWriterUnitTests.cpp for details.
+//TODO: To fix this, we need to modify the library so that *all* items have namers and expanders, and
+//      the write_xml() function for vectors simply checks if "namer.currLeaf()" is empty.
+//      Users will be somewhat hidden from the complexities of this scheme, as all "namers() and "expanders()"
+//      passed in to value-types will be empty (properties have already been printed, and get_id() would have
+//      been dispatched if it was given)  ---and if they're writing container-type functions they will
+//      appreciate the simplicity of only having to override one write_xml function instead of four.
+
+
 #include <vector>
 #include <string>
 #include <sstream>

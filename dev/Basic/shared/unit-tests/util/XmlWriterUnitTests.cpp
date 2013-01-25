@@ -56,11 +56,7 @@ void write_xml(XmlWriter& write, const Person& per)
 	write.prop("Name", per.name);
 	write.prop("AGE", per.age);
 }
-template <>
-std::string get_id(const Person& pers)
-{
-	return pers.name + "%" + boost::lexical_cast<string>(pers.age);
-}
+ERASE_GET_ID(Person);
 }} //End namespace sim_mob::xml
 
 void unit_tests::XmlWriterUnitTests::test_NestedXML()
@@ -112,9 +108,87 @@ void unit_tests::XmlWriterUnitTests::test_NestedXML()
 		"    </Objects>\n"
 		"</root_node>\n";
 
-	std::cout <<stream.str() <<std::endl;
-	std::cout <<expected <<std::endl;
+
+	CPPUNIT_ASSERT(stream.str()==expected);
+}
+
+
+
+//Some more simple structs.
+struct Vehicle {
+	Vehicle(const string& vehClass, int length) : vehClass(vehClass), length(length) {}
+	string vehClass;
+	int length;
+};
+struct Vehicle2 {
+	Vehicle2(const string& vehClass) : vehClass(vehClass) {}
+	string vehClass;
+};
+
+//Write these structs with the "vehClass" as an attribute.
+namespace sim_mob {
+namespace xml {
+template <>
+void write_xml(XmlWriter& write, const Vehicle& veh)
+{
+	write.attr("v_class", veh.vehClass);
+	write.prop("length", veh.length);
+}
+template <>
+void write_xml(XmlWriter& write, const Vehicle2& veh)
+{
+	write.attr("v_class", veh.vehClass);
+}
+ERASE_GET_ID(Vehicle);
+ERASE_GET_ID(Vehicle2);
+}} //End namespace sim_mob::xml
+
+void unit_tests::XmlWriterUnitTests::test_AttributesXML()
+{
+	//Prepare our data
+	vector<Vehicle> first;
+	vector<Vehicle2> second;
+	first.push_back(Vehicle("car", 10));
+	first.push_back(Vehicle("taxi", 20));
+	first.push_back(Vehicle("car", 30));
+	second.push_back(Vehicle2("car"));
+	second.push_back(Vehicle2("boat"));
+	second.push_back(Vehicle2("jet"));
+
+	//Write our data
+	std::ostringstream stream;
+	{
+	sim_mob::xml::XmlWriter write(stream);
+	write.prop("Predefined", first);
+	write.prop("Runtime", second);
+	}
+
+	string expected =
+		"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		"<Predefined>\n"
+		"    <item v_class=\"car\">\n"
+		"        <length>10</length>\n"
+		"    </item>\n"
+		"    <item v_class=\"taxi\">\n"
+		"        <length>20</length>\n"
+		"    </item>\n"
+		"    <item v_class=\"car\">\n"
+		"        <length>30</length>\n"
+		"    </item>\n"
+		"</Predefined>\n"
+		"<Runtime>\n"
+		"    <item v_class=\"car\"/>\n"
+		"    <item v_class=\"boat\"/>\n"
+		"    <item v_class=\"jet\"/>\n"
+		"</Runtime>\n";
+
+
+//	std::cout <<stream.str() <<std::endl;
+//	std::cout <<expected <<std::endl;
 
 
 	CPPUNIT_ASSERT(stream.str()==expected);
 }
+
+
+

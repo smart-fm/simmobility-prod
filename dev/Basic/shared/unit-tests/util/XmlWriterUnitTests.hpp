@@ -21,11 +21,15 @@ public:
 	///Multiple, nested structures.
 	void test_NestedXML();
 
+	///Test attributes at different nesting levels.
+	void test_AttributesXML();
+
 
 private:
     CPPUNIT_TEST_SUITE(XmlWriterUnitTests);
         CPPUNIT_TEST(test_SimpleXML);
         CPPUNIT_TEST(test_NestedXML);
+        CPPUNIT_TEST(test_AttributesXML);
     CPPUNIT_TEST_SUITE_END();
 };
 

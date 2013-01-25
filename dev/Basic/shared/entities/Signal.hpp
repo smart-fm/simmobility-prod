@@ -7,13 +7,10 @@
  *      Author: xrm
  */
 
-#pragma once
 
+#if 0
 //See entities/signal/Signal.hpp; we're just cross-dispatching here.
 #include "GenConfig.h"
-#ifdef SIMMOB_NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include <map>
 #include <vector>
 #include "Agent.hpp"

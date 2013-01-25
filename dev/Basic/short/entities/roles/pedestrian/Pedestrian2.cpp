@@ -25,11 +25,7 @@
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 
 using std::vector;
 using namespace sim_mob;
@@ -83,9 +79,9 @@ sim_mob::Pedestrian2::Pedestrian2(Agent* parent) : Role(parent),
 	//Check non-null parent. Perhaps references may be of use here?
 
 	//Init
-#ifdef SIMMOB_NEW_SIGNAL
 	sigColor = sim_mob::Green; //Green by default
-#else
+
+#if 0
 	sigColor = Signal::Green; //Green by default
 #endif
 
@@ -141,9 +137,9 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 	double vel = 0;
 
 	int signalGreen = 3;
-#ifdef SIMMOB_NEW_SIGNAL
 	signalGreen = sim_mob::Green; //Green by default
-#else
+
+#if 0
 	signalGreen = Signal::Green; //Green by default
 #endif
 	if(pedMovement.isAtCrossing()){

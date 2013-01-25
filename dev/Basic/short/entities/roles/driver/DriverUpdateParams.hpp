@@ -8,11 +8,7 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
-	#include "entities/signal/Signal.hpp"
-#else
-	#include "entities/Signal.hpp"
-#endif
+#include "entities/signal/Signal.hpp"
 
 namespace sim_mob
 {
@@ -78,9 +74,9 @@ struct DriverUpdateParams : public UpdateParams {
 	double currLaneLength;
 	double trafficSignalStopDistance;
 	double elapsedSeconds;
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::TrafficColor trafficColor;
-#else
+
+#if 0
 	Signal::TrafficColor trafficColor;
 #endif
 
@@ -103,9 +99,9 @@ struct DriverUpdateParams : public UpdateParams {
 		return *this;
 	}
 
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::TrafficColor perceivedTrafficColor;
-#else
+
+#if 0
 	sim_mob::Signal::TrafficColor perceivedTrafficColor;
 #endif
 	LANE_CHANGE_SIDE turningDirection;

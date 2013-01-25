@@ -188,7 +188,7 @@ public:
 #ifdef SIMMOB_NEW_SIGNAL
 		return true;
 #else
-		return false;
+#error SIMMOB_NEW_SIGNAL must always be defined.
 #endif
 	}
 

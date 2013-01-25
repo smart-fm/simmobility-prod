@@ -5,11 +5,7 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/vehicle/Vehicle.hpp"
@@ -365,7 +361,6 @@ LoopDetectorEntity::Impl::~Impl()
     }
 }
 
-#ifdef SIMMOB_NEW_SIGNAL
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
@@ -401,7 +396,8 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         }
     }
 }
-#else
+
+#if 0
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {

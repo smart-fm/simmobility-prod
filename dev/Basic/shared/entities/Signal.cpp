@@ -7,9 +7,9 @@
  *      Author: xrm
  */
 
-#include "Signal.hpp"
+#if 0
 
-#ifndef SIMMOB_NEW_SIGNAL
+#include "Signal.hpp"
 
 #include <math.h>
 #include "geospatial/Lane.hpp"

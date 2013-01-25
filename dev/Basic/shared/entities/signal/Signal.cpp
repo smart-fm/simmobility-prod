@@ -8,7 +8,6 @@
  */
 
 #include "Signal.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 
 #include <math.h>
 #include "geospatial/Lane.hpp"
@@ -680,4 +679,3 @@ std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(doub
 }*/
 } //namespace
 
-#endif

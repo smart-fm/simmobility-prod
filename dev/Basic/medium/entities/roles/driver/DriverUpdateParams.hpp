@@ -8,9 +8,9 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
-	#include "entities/signal/Signal.hpp"
-#else
+#include "entities/signal/Signal.hpp"
+
+#if 0
 	#include "entities/Signal.hpp"
 #endif
 

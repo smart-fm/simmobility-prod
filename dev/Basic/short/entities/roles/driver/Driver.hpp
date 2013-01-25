@@ -20,15 +20,13 @@
 #include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
-//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
-#include "entities/signal_transitional.hpp"
 
 namespace sim_mob
 {
 
 //Forward declarations
 class Pedestrian;
-//class Signal;
+class Signal;
 class Link;
 class RoadSegment;
 class Lane;
@@ -131,11 +129,12 @@ private:
 	FixedDelayed<double> *perceivedVelOfFwdCar;
 	FixedDelayed<double> *perceivedAccOfFwdCar;
 	FixedDelayed<double> *perceivedDistToFwdCar;
-#ifdef SIMMOB_NEW_SIGNAL
 	FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
-#else
+
+#if 0
 	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
 #endif
+
 	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;

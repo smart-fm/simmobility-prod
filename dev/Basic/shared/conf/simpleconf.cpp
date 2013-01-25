@@ -19,11 +19,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -416,9 +412,9 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 	return true;
 }
 
-#ifdef SIMMOB_NEW_SIGNAL
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
-#else
+
+#if 0
 bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
 #endif
 
@@ -648,10 +644,10 @@ void PrintDB_Network()
 	LogOutNotSync("})" <<endl);
 
 
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-#else
+
+#if 0
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
 	//Print the Signal representation.
@@ -946,10 +942,10 @@ void PrintDB_Network_ptrBased()
 	LogOutNotSync("})" <<endl);
 
 
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-#else
+
+#if 0
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
 	//Print the Signal representation.
@@ -1861,7 +1857,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document,
-#ifndef SIMMOB_NEW_SIGNAL
+#if 0
     		Signal::all_signals_,
 #endif
     		"signal")) {
@@ -1932,9 +1928,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	BusController::DispatchAllControllers(active_agents);
     }
 
-#ifndef SIMMOB_NEW_SIGNAL
     std::vector<Signal*>& all_signals = Signal::all_signals_;
-#else
+
+#if 0
     sim_mob::Signal::All_Signals & all_signals = sim_mob::Signal::all_signals_;
 #endif
 
@@ -1942,13 +1938,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     {
     	Signal  * signal;
 //        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
-	#ifndef SIMMOB_NEW_SIGNAL
+#if 0
     	signal =  dynamic_cast<Signal  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
-	#else
+#else
     	signal =  dynamic_cast<Signal_SCATS  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
-	#endif
+#endif
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }

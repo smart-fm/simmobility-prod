@@ -905,7 +905,7 @@ string sim_mob::BoundaryProcessor::outputAllEntities(timeslice now)
 		return "";
 	}
 
-#ifndef SIMMOB_NEW_SIGNAL
+#if 0
 	std::vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{

@@ -65,11 +65,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/conflux/Conflux.hpp"
 
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -158,10 +154,8 @@ private:
 #endif
 
 	void createSignals();
-#ifdef SIMMOB_NEW_SIGNAL
     void createPlans(sim_mob::Signal_SCATS & signal);
     void createPhases(sim_mob::Signal_SCATS & signal);
-#endif
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
@@ -1192,7 +1186,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	 */
 	createSignals();
 }
-#ifdef SIMMOB_NEW_SIGNAL
+
 void
 DatabaseLoader::createSignals()
 {
@@ -1366,7 +1360,8 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 		}
 	}
 }
-#else
+
+#if 0
 void
 DatabaseLoader::createSignals()
 {

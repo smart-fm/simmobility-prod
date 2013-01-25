@@ -195,7 +195,7 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 /**
  * Serialization of Signal
  */
-#ifndef SIMMOB_NEW_SIGNAL
+#if 0
 void Signal::packProxy(PackageUtils& packageUtil) {
 
 	//Agent::packageProxy(packageUtil);

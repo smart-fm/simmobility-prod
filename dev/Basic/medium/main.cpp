@@ -344,11 +344,12 @@ bool performMainMed(const std::string& configFileName) {
 
 int main(int argc, char* argv[])
 {
-#ifdef SIMMOB_NEW_SIGNAL
 	std::cout << "Using New Signal Model" << std::endl;
-#else
+
+#if 0
 	std::cout << "Not Using New Signal Model" << std::endl;
 #endif
+
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
 

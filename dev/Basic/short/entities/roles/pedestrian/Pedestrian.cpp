@@ -23,11 +23,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -142,9 +138,9 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	//      The RoleManger in particular relies on this. ~Seth
 
 	//Init
-#ifdef SIMMOB_NEW_SIGNAL
 	sigColor = sim_mob::Green; //Green by default
-#else
+
+#if 0
 	sigColor = Signal::Green; //Green by default
 #endif
 
@@ -251,7 +247,6 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 		LogOut("noteForDebug updatePedestrianSignal run"<<std::endl);
 		updatePedestrianSignal(fwdMovement.pathWithDirection.areFwds.front());
 
-#ifdef SIMMOB_NEW_SIGNAL
 		if (!startToCross) {
 			if (sigColor == sim_mob::Green){ //Green phase
 				LogOut("noteForDebug Green signal 1"<<std::endl);
@@ -270,7 +265,8 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 				updateVelocity(2);
 			updatePosition();
 		}
-#else
+
+#if 0
 		if (!startToCross) {
 			if (sigColor == Signal::Green){ //Green phase
 				LogOut("noteForDebug Green signal 2"<<std::endl);

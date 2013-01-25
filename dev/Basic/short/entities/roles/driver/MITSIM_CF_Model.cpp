@@ -176,9 +176,10 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 	double minacc = maxAcceleration;
 	double yellowStopHeadway = 1; //1 second
 	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
-#ifdef SIMMOB_NEW_SIGNAL
+
 	sim_mob::TrafficColor color;
-#else
+
+#if 0
 	Signal::TrafficColor color;
 #endif
     double distanceToTrafficSignal;
@@ -187,7 +188,8 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 	if(distanceToTrafficSignal < 5000)
 	{
 	double dis = distanceToTrafficSignal/100;
-#ifdef NEW_SIGNAL
+
+#if 0
 		if(p.perceivedTrafficColor == sim_mob::Red)
 				{
 					double a = brakeToStop(p, dis);
@@ -209,21 +211,19 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 					minacc = maxAcceleration;
 				}
 #else
-	#ifdef SIMMOB_NEW_SIGNAL
 		if(color == sim_mob::Red)
-	#else
+#if 0
 		if(color == Signal::Red)
-	#endif
+#endif
 		{
 			double a = brakeToStop(p, dis);
 			if(a < minacc)
 				minacc = a;
 		}
-	#ifdef SIMMOB_NEW_SIGNAL
 			else if(color == sim_mob::Amber)
-	#else
-			else if(color == Signal::Amber)
-	#endif
+#if 0
+		else if(color == Signal::Amber)
+#endif
 		{
 			double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
 			if(dis/maxSpeed > yellowStopHeadway)
@@ -233,11 +233,10 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 					minacc = a;
 			}
 		}
-	#ifdef SIMMOB_NEW_SIGNAL
-			else if(color == sim_mob::Green)
-	#else
-			else if(color == Signal::Green)
-	#endif
+		else if(color == sim_mob::Green)
+#if 0
+		else if(color == Signal::Green)
+#endif
 		{
 			minacc = maxAcceleration;
 		}

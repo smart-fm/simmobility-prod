@@ -113,7 +113,7 @@ void sim_mob::Person::initTripChain(){
 
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP)
 	{
-		std::cout << "Pesron " << this << "  is going to ride a bus\n";
+		//std::cout << "Pesron " << this << "  is going to ride a bus\n";
 	}
 	setNextPathPlanned(false);
 	first_update_tick = true;
@@ -322,22 +322,22 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		//Now that the Role has been fully constructed, initialize it.
 		if((*currTripChainItem))
 		{
-			std::cout << "person " << (*currTripChainItem)->personID ;
+			//std::cout << "person " << (*currTripChainItem)->personID ;
 			if((*currTripChainItem)->personID == 3)
 			{
 				int i = 0;
 				i++;
 			}
 		}
-		std::cout << "  Calling update_time.frame_init at frame " << now.frame() << std::endl;
+		//std::cout << "  Calling update_time.frame_init at frame " << now.frame() << std::endl;
 
 		currRole->frame_init(params);
 
 		if((*currTripChainItem))
 		{
-			std::cout << "person " << (*currTripChainItem)->personID ;
+			//std::cout << "person " << (*currTripChainItem)->personID ;
 		}
-		std::cout << "  Calling update_time.frame_init --Done " << std::endl;
+		//std::cout << "  Calling update_time.frame_init --Done " << std::endl;
 
 		if((*currTripChainItem))
 		{
@@ -345,7 +345,7 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 			{
 				int i =0;
 			}
-			std::cout << "(person id = " << (*currTripChainItem)->personID << ")--currRole->frame_init Done\n";
+			//std::cout << "(person id = " << (*currTripChainItem)->personID << ")--currRole->frame_init Done\n";
 		}
 		//Done
 		call_frame_init = false;
@@ -377,13 +377,13 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
 		{
 			sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
-			std::cout << "intial Activity start time = " << (*currTripChainItem)->startTime.toString() << " to " << (*currTripChainItem)->endTime.toString() << std::endl;
-			std::cout << "intial Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
+			//std::cout << "intial Activity start time = " << (*currTripChainItem)->startTime.toString() << " to " << (*currTripChainItem)->endTime.toString() << std::endl;
+			//std::cout << "intial Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
 			ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
 			ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
-			std::cout << "later Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
+			//std::cout << "later Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
 			ap->initializeRemainingTime();
-			std::cout << "Activity remaining time initialized to " << ap->remainingTimeToComplete << std::endl;
+			//std::cout << "Activity remaining time initialized to " << ap->remainingTimeToComplete << std::endl;
 		}
 	}
 	 
@@ -420,7 +420,7 @@ UpdateStatus sim_mob::Person::update(timeslice now) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentException(*this, frameNumber, ex);
 #endif
-		std::cout << "Person " << (*currTripChainItem)->personID << " is in trouble \n";
+		//std::cout << "Person " << (*currTripChainItem)->personID << " is in trouble \n";
 		//Add a line to the output file.
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
@@ -468,12 +468,12 @@ bool sim_mob::Person::changeRoleRequired(sim_mob::TripChainItem &tripChinItem) c
 }
 bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
 {
-	std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
+	//std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
 	string roleName = RoleFactory::GetSubTripMode(*currSubTrip);
-	std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
+	//std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
+	//std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
 	if(targetRole->getRoleName() ==  currRole->getRoleName())
 		return false;
 	//the current role type and target(next) role type are not same. so we need to change the role!
@@ -497,12 +497,12 @@ bool sim_mob::Person::updatePersonRole()
 		const sim_mob::SubTrip *temp = ((*(this->currTripChainItem))->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
 		sim_mob::Role* newRole = rf.createRole(*(this->currTripChainItem),temp, this);
 		changeRole(newRole);
-		std::cout << "role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << std::endl;
+		//std::cout << "role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << std::endl;
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
-	std::cout << "checking the tripchain for person " << this ;
-	std::cout << "[currTripChainItem: " << (*currTripChainItem) ;
+	//std::cout << "checking the tripchain for person " << this ;
+	//std::cout << "[currTripChainItem: " << (*currTripChainItem) ;
 
 	//some normal checks
 	if(tripChain.size() < 1)
@@ -518,8 +518,9 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
 	setNextPathPlanned(false);
 	//Create a new Role based on the trip chain type
-	if(currRole)
-		std::cout << "calling updatePersonRole to Check if we can change the role from " << currRole->getRoleName();
+	if(currRole) {
+	//	std::cout << "calling updatePersonRole to Check if we can change the role from " << currRole->getRoleName();
+	}
 	updatePersonRole();
 	//currentTipchainItem or current subtrip are changed
 	//so OD will be changed too,
@@ -600,8 +601,9 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//no, it is not the subtrip we need to advance, it is the tripchain item
 	currTripChainItem ++;
 	if(currTripChainItem != tripChain.end())
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
-		std::cout << "processing Activity";
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+	//	std::cout << "processing Activity";
+	}
 	//but tripchainitems are also over, get out !
 	if(currTripChainItem == tripChain.end()) return false;
 

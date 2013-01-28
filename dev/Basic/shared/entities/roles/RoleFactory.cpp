@@ -38,7 +38,7 @@ const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 {
 	map<string, const Role*>::const_iterator it = prototypes.find(name);
 	if (it!=prototypes.end()) {
-		std::cout << name << " found in the prototypes\n";
+		//std::cout << name << " found in the prototypes\n";
 		const Role* role = it->second;
 		return role;
 	}
@@ -107,7 +107,7 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 		if (subTrip.mode=="Walk")   return "pedestrian";
 		if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="travel")    return "passenger";
-		std::cout << " throwing error\n";
+		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");
 }
 
@@ -115,8 +115,8 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const{
 	if(tripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) return "busdriver";
 	const std::string roleName = tripChainItem->getMode(subTrip);//(subTrip ? tripChainItem->getMode(subTrip) : "");
-	std::cout << "tripChainItem->personid " << (tripChainItem)->personID << std::endl;
-	std::cout << "rolename = " << roleName << std::endl;
+	//std::cout << "tripChainItem->personid " << (tripChainItem)->personID << std::endl;
+	//std::cout << "rolename = " << roleName << std::endl;
 //	std::cout << "subTrip->mode = " << subTrip->mode << std::endl;
 	if (roleName == "Car")
 		return "driver";

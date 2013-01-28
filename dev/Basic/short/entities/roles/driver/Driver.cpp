@@ -736,24 +736,25 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
     }
     //now find the last sub trip within that trip
 //    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
-    if(lastSubTripEndingNode)
-    	std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
-    else
+    if(lastSubTripEndingNode) {
+    	//std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
+	} else {
     	if((*(tripchain.begin()))->personID == 3)
     	{
     		std::cout << " there is no lastSubTripEndingNode\n";
     	}
+	}
     if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
 	{
-    	std::cout << "1-  We are in business\n";
+    	//std::cout << "1-  We are in business\n";
     	if (p.dis2stop >=0 &&  p.dis2stop <= 100) {//is approaching the park point?
-        	std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
+        	//std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
     		//Retrieve a new acceleration value.
     		double acc = 0;
     		//Convert back to m/s
     		//TODO: Is this always m/s? We should rename the variable then...
     		p.currSpeed = vehicle->getVelocity() / 100;
-    		std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
+    		//std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
     		//Call our model
     		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
     		//move to most left lane
@@ -762,13 +763,13 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 ////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
 //    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
     		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
-    		std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
+    		//std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
 
 			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
     		LANE_CHANGE_SIDE lcs = LCS_LEFT;//mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-    		std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
+    		//std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
     		vehicle->setTurningDirection(lcs);
-    		std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
+    		//std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
     		double newLatVel;
     		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
     		vehicle->setLatVelocity(newLatVel*20);
@@ -776,28 +777,28 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 //    		// reduce speed
     		if (vehicle->getVelocity() / 100.0 > 2.0)
     		{
-    			std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
+    			//std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
     			if (acc<-5000.0)
     			{
     				vehicle->setAcceleration(acc);
     			} else
     				vehicle->setAcceleration(-5000);
-    			std::cout << "  to " << vehicle->getAcceleration() << "\n";
+    			//std::cout << "  to " << vehicle->getAcceleration() << "\n";
     		}
 
 //    		vehicle->getParkState().setElapsedParkingTime(0);
     	}
 
     	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!vehicle->getParkState().isparkingTimeOver())) {
-        	std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
-        	std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
-        	std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
-        	std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
-        	std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
+        	//std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
+        	//std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
+        	//std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
+        	//std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
+        	//std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
 
     		if (vehicle->getVelocity() > 0)
     			vehicle->setAcceleration(-5000);
-    		std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
+    		//std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
     		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
 //    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
 //    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
@@ -823,8 +824,9 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 			if (lcs.size()>0)
 			{
 				//
-				if(p.currLane->is_pedestrian_lane())
+				if(p.currLane->is_pedestrian_lane()) {
 					std::cout<<"drive on pedestrian lane"<<std::endl;
+				}
 				bool currentLaneConnectToNextLink = false;
 				bool iscurrentLaneConnected = false;
 				int targetLaneIndex=p.currLaneIndex;
@@ -1565,7 +1567,7 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
 			int x = 0;
 			x = path.size();
-			std::cout << "Driver path has " << path.size() << "  elements\n";
+			//std::cout << "Driver path has " << path.size() << "  elements\n";
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');

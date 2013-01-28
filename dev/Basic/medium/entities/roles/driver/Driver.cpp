@@ -65,10 +65,9 @@ double getLastAccept(const Lane* l) {
 
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
-	Role(parent), /*remainingTimeToComplete(0),*/ currLane(nullptr), vehicle(nullptr),
+	Role(parent, "Driver_"), /*remainingTimeToComplete(0),*/ currLane(nullptr), vehicle(nullptr),
 	nextLaneInNextSegment(nullptr), params(parent->getGenerator())
 {
-	name = "Driver_";
 
 //	if (Debug::Drivers) {
 //		DebugStream << "Driver starting: " << parent->getId() << endl;
@@ -82,7 +81,7 @@ sim_mob::medium::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
 
-	ss << "!!__________________________________________!!" << endl;
+	//ss << "!!__________________________________________!!" << endl;
 	//std::cout << ss.str();
 }
 

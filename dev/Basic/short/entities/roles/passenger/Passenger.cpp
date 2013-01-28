@@ -8,21 +8,25 @@
  */
 
 #include "Passenger.hpp"
+
+#include <vector>
+#include <iostream>
+#include <cmath>
+
+#include <boost/unordered_map.hpp>
+
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/signal/Signal.hpp"
+
 #include "geospatial/Node.hpp"
-#include "util/OutputUtil.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "util/DebugFlags.hpp"
 #include "geospatial/Lane.hpp"
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -30,27 +34,24 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/aimsun/Loader.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
-
-#include <vector>
-#include <iostream>
-#include<cmath>
-
-#include "util/DynamicVector.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include <boost/unordered_map.hpp>
+
+#include "util/DebugFlags.hpp"
+#include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/DynamicVector.hpp"
+
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::cout;
 using std::map;
 using std::string;
-//int estimated_boarding_passengers_no=0;
+
 pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 
 

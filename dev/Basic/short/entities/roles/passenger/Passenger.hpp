@@ -102,6 +102,7 @@ private:
         sim_mob::Shared<int> random_y;
         double WaitingTime;
         double TimeofReachingBusStop;
+        Point2D destination;
 };
 
 

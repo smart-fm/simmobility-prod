@@ -84,10 +84,78 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 //passenger_inside_bus.set(false);
 	 busdriver.set(nullptr);
 	// bus stop no 4179,x-372228.099782,143319.818791
+	 destination.setX(parent->destNode->location.getX());
+	 destination.setY(parent->destNode->location.getY());
+
+	if(parent->destNode->getID() == 75780)
+	{
+		destination.setX(37222809);
+		destination.setY(14331981);
+	}
+	else if(parent->destNode->getID()==75822)
+	{
+		destination.setX(37290070);//75822
+		destination.setY(14390218);
+	}
+	else if(parent->destNode->getID() == 91144)
+	{
+		destination.setX(37285920);
+		destination.setY(14375941);
+
+	}
+	else if(parent->destNode->getID() == 106946)
+	{
+		destination.setX(37267223);
+		destination.setY(14352090);
+
+	}
+	else if(parent->destNode->getID() == 103046)
+	{
+		destination.setX(37234196);
+		destination.setY(14337740);
+
+	}
+	else if(parent->destNode->getID() == 95374)
+	{
+		destination.setX(37241994);
+		destination.setY(14347188);
+
+	}
+	else if(parent->destNode->getID() == 58950)
+	{
+		destination.setX(37263940);
+		destination.setY(14373280);
+
+	}
+	else if(parent->destNode->getID() == 75808)
+	{
+		destination.setX(37274363);
+		destination.setY(14385509);
+
+	}
+	else if(parent->destNode->getID() == 98852)
+	{
+		destination.setX(37254693);
+		destination.setY(14335301);
+
+	}
+
 	if(parent->originNode->getID() == 75780)
 	{
 		parent->xPos.set(37222809);
 		parent->yPos.set(14331981);
+
+	}
+	else if(parent->originNode->getID() == 91144)
+	{
+		parent->xPos.set(37285920);
+		parent->yPos.set(14375941);
+
+	}
+	else if(parent->originNode->getID() == 106946)
+	{
+		parent->xPos.set(37267223);
+		parent->yPos.set(14352090);
 
 	}
 	else if(parent->originNode->location.getX()==37236345)//103046
@@ -123,8 +191,8 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 }
 	 else if(parent->originNode->getID()==75822)
 	 {
-		 parent->xPos.set(37290000);//75822
-		 parent->yPos.set(14390200);
+		 parent->xPos.set(37290070);//75822
+		 parent->yPos.set(14390218);
 	 }
 	 else
 	 {

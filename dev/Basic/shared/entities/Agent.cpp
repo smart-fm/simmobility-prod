@@ -154,8 +154,8 @@ void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
 	currSegment = rdSeg;
 }
 
-void sim_mob::Agent::setTravelStats(const Link* link, unsigned int linkExitTime,
-		unsigned int linkTravelTime, bool hasVehicle)
+void sim_mob::Agent::setTravelStats(const Link* link, double linkExitTime,
+		double linkTravelTime, bool hasVehicle)
 {
 	const travelStats tStats(link, linkExitTime, linkExitTime - linkEntryTime, hasVehicle);
 	travelStatsMap.insert(std::make_pair(linkExitTime, tStats));

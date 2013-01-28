@@ -30,18 +30,43 @@ namespace sim_mob {
 
 
 	void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		laneStatsMap[lane]->addAgent(ag);
+		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
+			laneStatsMap[lane]->addAgent(ag);
+		}
+		else{
+			throw std::runtime_error("SegmentStats::addAgent called with invalid laneStats.");
+		}
 	}
 
 	void SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		laneStatsMap[lane]->removeAgent(ag);
+		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
+			laneStatsMap[lane]->removeAgent(ag);
+		}
+		else{
+			throw std::runtime_error("SegmentStats::removeAgent called with invalid laneStats.");
+		}
+	}
+
+	void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
+		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
+			laneStatsMap[lane]->updateQueueStatus(ag);
+		}
+		else{
+			throw std::runtime_error("SegmentStats::updateQueueStatus called with invalid laneStats.");
+		}
 	}
 
 	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::dequeue called with invalid laneStats.");
+		}
 		return laneStatsMap[lane]->dequeue();
 	}
 
 	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+				throw std::runtime_error("SegmentStats::getAgents called with invalid laneStats.");
+		}
 		return laneStatsMap[lane]->laneAgents;
 	}
 
@@ -71,6 +96,10 @@ namespace sim_mob {
 	}
 
 	std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::getLaneAgentCounts called with invalid laneStats.");
+		}
+		std::cout<<"calling getMovingAgentsCount from getLaneAgentCounts "<<roadSegment->getStart()->getID()<<std::endl;
 		return std::make_pair(
 				laneStatsMap[lane]->getQueuingAgentsCount(),
 				laneStatsMap[lane]->getMovingAgentsCount()
@@ -93,49 +122,78 @@ namespace sim_mob {
 	}
 
 	bool SegmentStats::isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::isFront called with invalid laneStats.");
+		}
 		return (agent == laneStatsMap[lane]->laneAgents.front());
 	}
 
 	unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {
+		std::cout<<"calling getMovingAgentsCount from numAgentsInLane "<<roadSegment->getStart()->getID()<<std::endl;
+
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::numAgentsInLane called with invalid laneStats.");
+		}
 		return (laneStatsMap[lane]->getMovingAgentsCount() + laneStatsMap[lane]->getQueuingAgentsCount());
 	}
 
 	unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
-		int movingCounts = 0;
+		unsigned int movingCounts = 0;
 		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
+		std::cout<<"calling getMovingAgentsCount from numMovingInSegment "<<roadSegment->getStart()->getID() <<std::endl;
 		while(lane != roadSegment->getLanes().end())
 		{
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
 			{
-				movingCounts = movingCounts + laneStatsMap[*lane]->getMovingAgentsCount();
+				if(laneStatsMap.find(*lane) != laneStatsMap.end()) {
+					if(laneStatsMap[*lane]->getMovingAgentsCount() > 1000){
+						debugMsgs<< "large moving count: "<<roadSegment->getStart()->getID() <<" lane: "
+						<<"queueCount: "<<laneStatsMap[*lane]->getQueuingAgentsCount()
+						<< (*lane)->getLaneID_str()<<std::endl;
+						std::cout << debugMsgs.str();
+						debugMsgs.str("");
+						throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
+					}
+					movingCounts = movingCounts + laneStatsMap[*lane]->getMovingAgentsCount();
+				}
 			}
 			lane++;
 		}
+
 		return movingCounts;
 	}
 
 	double SegmentStats::getDensity(bool hasVehicle) {
-		int movingCounts = 0;
+		int vehLaneCount = 0;
 		double movingLength = 0.0;
 		const int vehicle_length = 400;
+		double density = 0.0;
+
 		std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
 		while(laneIt != roadSegment->getLanes().end())
 		{
 			if ((hasVehicle && !(*laneIt)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*laneIt)->is_pedestrian_lane()))
 			{
-				movingCounts += laneStatsMap[*laneIt]->getMovingAgentsCount();
-				movingLength += roadSegment->computeLaneZeroLength()
-						- laneStatsMap[*laneIt]->getQueuingAgentsCount()*vehicle_length;
+				vehLaneCount += 1;
 			}
 			laneIt++;
 		}
-		return movingCounts/(movingLength/100.0);
+		movingLength = roadSegment->computeLaneZeroLength()*vehLaneCount
+								- numQueueingInSegment(true)*vehicle_length;
+		if(movingLength > 0)
+		{
+			density = numMovingInSegment(true)/(movingLength/100.0);
+		}
+		else
+			density = 1/(vehicle_length/100.0);
+
+		return density;
 	}
 
 	unsigned int SegmentStats::numQueueingInSegment(bool hasVehicle) {
-		int queuingCounts = 0;
+		unsigned int queuingCounts = 0;
 
 		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
 		while(lane != roadSegment->getLanes().end())
@@ -143,7 +201,12 @@ namespace sim_mob {
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
 			{
-				queuingCounts = queuingCounts + laneStatsMap[*lane]->getQueuingAgentsCount();
+				if(laneStatsMap.find(*lane) != laneStatsMap.end()) {
+					queuingCounts = queuingCounts + laneStatsMap[*lane]->getQueuingAgentsCount();
+				}
+				else{
+					throw std::runtime_error("SegmentStats::numQueueingInSegment called with invalid laneStats.");
+				}
 			}
 			lane++;
 		}
@@ -188,7 +251,12 @@ namespace sim_mob {
 			i++;
 		}
 		frontalAgents.erase(agLane);
-		frontalAgents[agLane] = laneStatsMap[agLane]->next();
+		if(laneStatsMap.find(agLane) != laneStatsMap.end()){
+			frontalAgents[agLane] = laneStatsMap[agLane]->next();
+		}
+		else{
+			throw std::runtime_error("SegmentStats::agentClosestToStopLine called with invalid laneStats.");
+		}
 		return ag;
 	}
 
@@ -237,6 +305,12 @@ namespace sim_mob {
 	}
 
 	unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
+		if(laneAgents.size() < queueCount){
+			std::cout<<"queueCount: "<<queueCount << " |laneAgents count: "<<laneAgents.size()
+					<<"moving: "<< laneAgents.size()-queueCount<<std::endl;
+		//	throw std::runtime_error("number of lane agents cannot be less than the number of "
+		//			"queuing agents");
+		}
 		return (laneAgents.size() - queueCount);
 	}
 
@@ -247,6 +321,16 @@ namespace sim_mob {
 			throw std::runtime_error("Attempting to addAgent to the lane twice!");
 		if(ag->isQueuing)
 			queueCount++;
+	}
+
+	void sim_mob::LaneStats::updateQueueStatus(sim_mob::Agent* ag) {
+		if (std::find(laneAgents.begin(), laneAgents.end(), ag)==laneAgents.end()) // if agent is not already in the lane add him
+			throw std::runtime_error("Attempting to queue an agent who's not in lane!");
+
+		if(ag->isQueuing)
+			queueCount++;
+		else
+			queueCount--;
 	}
 
 	void LaneStats::addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing) {
@@ -306,15 +390,6 @@ namespace sim_mob {
 			laneParams->outputCounter = float(tmp) + 1.0;
 		} else
 			laneParams->outputCounter = float(tmp);
-
-	/*	std::stringstream ss;
-		ss << "Lane: " << lane->getLaneID_str()
-		<< "\tupNode: " << lane->getRoadSegment()->getStart()->getID()
-		<< "\telapsedSec: " << elapsedSeconds
-		<< "\toutputFlowRate: "<< laneParams->outputFlowRate
-		<< "\toutputCounter: " << laneParams->outputCounter
-		<< "\tfraction: " << laneParams->fraction<< std::endl;
-		std::cout << ss.str();*/
 	}
 
 	void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
@@ -324,13 +399,7 @@ namespace sim_mob {
 		double capacity = laneParams->outputFlowRate*elapsedSeconds;
 		double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
 		double acceptRateB = (omega*vehicle_length)/upSpeed;
-		/*std::cout<< "lane: "<<lane->getLaneID_str()<<"\tupNode:"<<lane->getRoadSegment()->getStart()->getID()
-						<<"\tcapacity: "<<capacity
-						<<"\tacRateA: "<<acceptRateA
-						<<"\tacRateB: "<<acceptRateB
-						<< std::endl;
-*/
-		double acceptRate = std::max( acceptRateA, acceptRateB);
+		laneParams->acceptRate = std::max( acceptRateA, acceptRateB);
 	}
 
 	void LaneStats::clear() {
@@ -338,6 +407,9 @@ namespace sim_mob {
 	}
 
 	sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::getLaneParams called with invalid laneStats.");
+		}
 		return laneStatsMap[lane]->laneParams;
 	}
 
@@ -380,6 +452,9 @@ namespace sim_mob {
 	}
 
 	void sim_mob::SegmentStats::restoreLaneParams(const Lane* lane){
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::restoreLaneParams called with invalid laneStats.");
+		}
 		laneStatsMap[lane]->updateOutputFlowRate(lane, getLaneParams(lane)->origOutputFlowRate);
 		laneStatsMap[lane]->updateOutputCounter(lane);
 		segDensity = getDensity(true);
@@ -388,6 +463,9 @@ namespace sim_mob {
 	}
 
 	void sim_mob::SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate){
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::updateLaneParams called with invalid laneStats.");
+		}
 		laneStatsMap[lane]->updateOutputFlowRate(lane, newOutputFlowRate);
 		laneStatsMap[lane]->updateOutputCounter(lane);
 		segDensity = getDensity(true);
@@ -407,13 +485,6 @@ namespace sim_mob {
 				(it->second)->updateOutputCounter(it->first);
 				(it->second)->updateAcceptRate(it->first, segVehicleSpeed);
 				std::stringstream ss;
-			/*	ss<<"frameNumber:"<<frameNumber.ms()/1000
-					<<" lane: "<<(it->first)->getLaneID_str()
-					<<" flowRate: "<<(it->second)->laneParams->getOutputFlowRate()
-					<<" acceptRate: "<<(it->second)->laneParams->getAcceptRate()
-					<<"outputCounter: "<<(it->second)->laneParams->getOutputCounter()<<std::endl;
-				std::cout<<ss.str();
-				ss.str("");*/
 				(it->second)->setInitialQueueCount(it->second->getQueuingAgentsCount());
 			}
 		}
@@ -425,13 +496,14 @@ namespace sim_mob {
 		LogOut("(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
+			//<<","<<roadSegment->getStart()->getID()
+			//<<","<<roadSegment->getEnd()->getID()
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed
 			<<"\",\"flow\":\""<<0
 			<<"\",\"density\":\""<<segDensity
 			<<"\"})"<<std::endl);
 #endif
-
 	}
 
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){
@@ -451,7 +523,25 @@ namespace sim_mob {
 		return false;
 	}
 
+	double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::getPositionOfLastUpdatedAgentInLane"
+					" called with invalid laneStats.");
+		}
+		return laneStatsMap[lane]->getPositionOfLastUpdatedAgent();
+	}
+
+	void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane) {
+		if(lane != laneInfinity and laneStatsMap.find(lane) != laneStatsMap.end()) {
+			laneStatsMap[lane]->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
+		}
+	}
+
 	unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane){
+		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
+			throw std::runtime_error("SegmentStats::getInitialQueueCount"
+								" called with invalid laneStats.");
+		}
 		return laneStatsMap[lane]->getInitialQueueCount();
 	}
 
@@ -466,6 +556,14 @@ namespace sim_mob {
 			}
 		}
 
+	}
+
+	void SegmentStats::resetPositionOfLastUpdatedAgentOnLanes(){
+		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin();
+							i != laneStatsMap.end(); i++)
+		{
+			i->second->setPositionOfLastUpdatedAgent(-1.0);
+		}
 	}
 }// end of namespace sim_mob
 

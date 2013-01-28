@@ -40,7 +40,7 @@ public:
 class LaneStats {
 
 public:
-	LaneStats() : queueCount(0), initialQueueCount(0), laneParams(new LaneParams()) {}
+	LaneStats() : queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0) {}
 	std::vector<sim_mob::Agent*> laneAgents;
 
 	/**
@@ -52,6 +52,7 @@ public:
 
 	void addAgent(sim_mob::Agent* ag);
 	void addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing);
+	void updateQueueStatus(sim_mob::Agent* ag);
 	void removeAgent(sim_mob::Agent* ag);
 	void clear();
 	sim_mob::Agent* dequeue();
@@ -74,11 +75,20 @@ public:
 		this->initialQueueCount = initialQueueCount;
 	}
 
+	double getPositionOfLastUpdatedAgent() const {
+		return positionOfLastUpdatedAgent;
+	}
+
+	void setPositionOfLastUpdatedAgent(double positionOfLastUpdatedAgent) {
+		this->positionOfLastUpdatedAgent = positionOfLastUpdatedAgent;
+	}
+
 	LaneParams* laneParams;
 
 private:
 	unsigned int queueCount;
 	unsigned int initialQueueCount;
+	double positionOfLastUpdatedAgent;
 
 	std::vector<sim_mob::Agent*>::iterator laneAgentsIt;
 };
@@ -120,6 +130,7 @@ public:
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
+	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 
 	sim_mob::Agent* getNext();
 	void resetFrontalAgents();
@@ -135,6 +146,10 @@ public:
 
 	unsigned int numMovingInSegment(bool hasVehicle);
 	unsigned int numQueueingInSegment(bool hasVehicle);
+
+	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
+	void setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane);
+	void resetPositionOfLastUpdatedAgentOnLanes();
 
 	sim_mob::LaneParams* getLaneParams(const Lane* lane);
 	double speed_density_function(bool hasVehicle, double segDensity);

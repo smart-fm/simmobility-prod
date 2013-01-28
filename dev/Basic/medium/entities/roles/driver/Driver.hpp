@@ -106,9 +106,10 @@ private:
 	void addToQueue(const Lane* lane);
 	void addToMovingList();
 	void removeFromQueue();
-	void removeFromMovingList();
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* targetRdSeg, const RoadSegment* nextRdSeg);
 	double getInitialQueueLength(const Lane* l);
+	void insertIncident(const RoadSegment* rdSeg, double newFlowRate);
+	void removeIncident(const RoadSegment* rdSeg);
 
 protected:
 	//virtual double updatePositionOnLink(DriverUpdateParams& p);

@@ -24,6 +24,8 @@ void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
+	resetPositionOfLastUpdatedAgentOnLanes();
+
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(frameNumber); //TODO: Update Signalized must be implemented
 	}
@@ -44,6 +46,7 @@ void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
 	sim_mob::Agent* ag = agentClosestToIntersection();
 	while (ag) {
 		updateAgent(ag);
+
 		// get next agent to update
 		ag = agentClosestToIntersection();
 	}
@@ -52,6 +55,7 @@ void sim_mob::Conflux::updateUnsignalized(timeslice frameNumber) {
 void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::RoadSegment* segBeforeUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
+	bool isQueuingBeforeUpdate = ag->isQueuing;
 
 	debugMsgs << "Updating Agent " << ag->getId() << std::endl;
 	std::cout << debugMsgs.str();
@@ -69,6 +73,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 
 	const sim_mob::RoadSegment* segAfterUpdate = ag->getCurrSegment();
 	const sim_mob::Lane* laneAfterUpdate = ag->getCurrLane();
+	bool isQueuingAfterUpdate = ag->isQueuing;
 
 	sim_mob::SegmentStats* segStatsBfrUpdt = segmentAgents.find(segBeforeUpdate)->second;
 	if(!segStatsBfrUpdt) {
@@ -110,6 +115,18 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 			}
 		}
 	}
+	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate)
+	{
+		segmentAgents[segAfterUpdate]->updateQueueStatus(laneAfterUpdate, ag);
+	}
+
+	// set the position of the last updated agent in his current lane (after update)
+	if(segmentAgents.find(segAfterUpdate) != segmentAgents.end()) {
+		segmentAgents[segAfterUpdate]->setPositionOfLastUpdatedAgentInLane(ag->distanceToEndOfSegment, laneAfterUpdate);
+	}
+	else if(segmentAgentsDownstream.find(segAfterUpdate) != segmentAgentsDownstream.end()) {
+		segmentAgentsDownstream[segAfterUpdate]->setPositionOfLastUpdatedAgentInLane(ag->distanceToEndOfSegment, laneAfterUpdate);
+	}
 }
 
 double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle){
@@ -126,14 +143,20 @@ void sim_mob::Conflux::initCandidateAgents() {
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	for (currSegsOnUpLinksIt i = currSegsOnUpLinks.begin(); i != currSegsOnUpLinks.end(); i++) {
 		lnk = i->first;
-		while (currSegsOnUpLinks[lnk]) {
+		while (currSegsOnUpLinks.find(lnk) != currSegsOnUpLinks.end()) {
 			rdSeg = currSegsOnUpLinks[lnk];
-			if(rdSeg == 0){
+			if( !rdSeg){
+				for(std::map<sim_mob::Link*, const RoadSegment*>::iterator i = currSegsOnUpLinks.begin();
+						i != currSegsOnUpLinks.end(); i++) {
+					debugMsgs<<"currSegsOnUpLinks- multinode: "<< multiNode->getID()<<" size: "<<currSegsOnUpLinks.size()<<std::endl;
+					std::cout << debugMsgs.str();
+					debugMsgs.str("");
+				}
 				throw std::runtime_error("Road Segment NULL");
 			}
 			segmentAgents[rdSeg]->resetFrontalAgents();
 			candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
-			if(!candidateAgents[rdSeg]) {
+			if(candidateAgents.find(rdSeg) != candidateAgents.end()) {
 				// this road segment is deserted. search the next (which is, technically, the previous).
 				const std::vector<sim_mob::RoadSegment*> segments = upstreamSegmentsMap.at(lnk);
 				std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), rdSeg);
@@ -225,7 +248,6 @@ void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
 
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg,
 		bool hasVehicle) {
-	std::cout << "rdSeg in Conflux: "<<rdSeg <<std::endl;
 	return segmentAgents[rdSeg]->numQueueingInSegment(hasVehicle);
 }
 
@@ -295,4 +317,12 @@ double sim_mob::Conflux::getLastAccept(const Lane* lane) {
 
 void sim_mob::Conflux::setLastAccept(const Lane* lane, double lastAcceptTime) {
 	segmentAgents[lane->getRoadSegment()]->getLaneParams(lane)->setLastAccept(lastAcceptTime);
+}
+
+void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.begin();
+	for( ; it != segmentAgents.end(); ++it )
+	{
+		(it->second)->resetPositionOfLastUpdatedAgentOnLanes();
+	}
 }

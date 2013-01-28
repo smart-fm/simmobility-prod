@@ -200,15 +200,15 @@ public:
 	PendingEvent* getCurrEvent() { return currEvent; }
 
 	//used for mid-term supply
-	void setTravelStats(const Link*, unsigned int linkExitTime, unsigned int linkTravelTime, bool hasVehicle);
+	void setTravelStats(const Link*, double linkExitTime, double linkTravelTime, bool hasVehicle);
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
 
 	//for mid-term, to compute link travel times
-	std::map<unsigned int, travelStats> travelStatsMap;
-	unsigned int linkEntryTime;
+	std::map<double, travelStats> travelStatsMap;
+	double linkEntryTime;//in seconds
 
 	//timeslice enqueueTick;
 

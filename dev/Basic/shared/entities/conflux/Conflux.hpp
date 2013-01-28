@@ -169,7 +169,7 @@ public:
 	unsigned int getInitialQueueCount(const Lane* lane);
 	double getLastAccept(const Lane* lane);
 	void setLastAccept(const Lane* lane, double lastAccept);
-
+	void resetPositionOfLastUpdatedAgentOnLanes();
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
 

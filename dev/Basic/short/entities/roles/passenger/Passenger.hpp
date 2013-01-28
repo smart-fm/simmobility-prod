@@ -80,14 +80,7 @@ public:
    bool isBusBoarded();
    double findWaitingTime(Bus* bus);
    void EstimateBoardingAlightingPassengers(Bus* bus);
-  //void updateParentCoordinates(int x,int y);
 
- // int getOriginX();
- // int getOriginY();
-   /*  int getXPosition();
-     int getYPosition();
-     int getDestX();
-     int getDestY();*/
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
@@ -109,9 +102,6 @@ private:
         sim_mob::Shared<int> random_y;
         double WaitingTime;
         double TimeofReachingBusStop;
-	//double cStart_busstop_X, cStart_busstop_Y, cEnd_busstop_X, cEnd_busstop_Y;
-	//Shared<PassengerStage> passengercurrentstage;
-	//sim_mob::Shared<bool> passenger_inside_bus;
 };
 
 

@@ -355,23 +355,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 				bus->TimeOfBusreachingBusstop=p.now.ms();
 
-				//look for passengers at the bus stop
-
-			//	dwellTime_record = passengerGeneration(bus);
 				dwellTime_record = passengerGenerationNew(bus);
-//			no_passengers_alighting=0;
-//			no_passengers_boarding=0;
-//			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
-//			AlightingPassengers(bus);//first alight passengers inside the bus
-//			BoardingPassengers(bus);//then board passengers waiting at the bus stop
-//			dwellTime_record=dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCount());
-//		//	estimated_boarding_passengers_no=0;
-//			std::cout<<"alighting no"<<no_passengers_alighting<<std::endl;
-//			std::cout<<"no_passengers_boarding"<<no_passengers_boarding<<std::endl;
-//			std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
-		//	std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
-		//	std::cout<<"ypos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
-			DwellTime_ijk.set(dwellTime_record);
+				DwellTime_ijk.set(dwellTime_record);
 
 				//int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				//bus->setPassengerCount(pCount);
@@ -425,11 +410,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 //		std::cout << "BusDriver " << this << " ::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
-		//passengerCountOld_display_flag = false;
-		//vehicle->setAcceleration(busAccelerating(p)*100);
-		//sim_mob::Bus * bus = dynamic_cast<sim_mob::Bus *>(vehicle);
-//		if(demo_passenger_increase && bus->getPassengerCount() == 19)
-//			bus->setPassengerCount(20);
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}

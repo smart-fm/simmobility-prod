@@ -26,7 +26,7 @@ class Bus : public sim_mob::Vehicle {
 public:
 	Bus(const BusRoute& route, const Vehicle* clone, std::string busLine_)
 	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine_), route(route), ptCheck(0,0), DistThreshold(2000)
-	, busCapacity(60), TimeOfBusreachingBusstop(0)
+	, busCapacity(30), TimeOfBusreachingBusstop(0)
 	{}
 
 //	BusRoute& getRoute() { return route; }

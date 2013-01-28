@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "TripChain.hpp"
+#include "entities/Person.hpp"
 #include <algorithm>
 
 using std::string;
@@ -60,8 +61,7 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 //{
 //	return LocationType;
 //}
-TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
-		std::string itemType)
+TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType)
 {
 	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace),
 			itemType.end());
@@ -75,17 +75,35 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
 		throw std::runtime_error("Unknown trip chain item type.");
 	}
 }
-
-void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& aSubTrip)
-{
-	subTrips.push_back(aSubTrip);
+bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
+	person->originNode = person->destNode = location;
+	return true;
 }
 
+bool sim_mob::Trip::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
+	const sim_mob::SubTrip &subTrip_ = (subtrip  ? *subtrip : subTrips.front());
+	person->originNode = subTrip_.fromLocation;
+	person->destNode = subTrip_.toLocation;
+	return true;
+}
+void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& subTrip)
+{
+	subTrips.push_back(subTrip);
+}
+const std::string sim_mob::Trip::getMode(const sim_mob::SubTrip *subTrip) const{
+	if(!subTrip)
+		throw std::runtime_error("Invalid subtrip supplied");
+	return subTrip->getMode();
+}
 
+const std::string sim_mob::SubTrip::getMode() const {
+		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
+		return mode;
+	}
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.
-    return (s1.personID == s2.personID);
+    return (s1.personID == s2.personID) ;
 }
 
 

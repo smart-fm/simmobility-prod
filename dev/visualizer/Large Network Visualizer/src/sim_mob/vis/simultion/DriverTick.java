@@ -6,6 +6,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Stroke;
 
 import java.awt.geom.*;
@@ -19,6 +20,7 @@ import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.simultion.DriverTick.RxLocation;
 import sim_mob.vis.util.Utility;
 
 /**
@@ -29,6 +31,8 @@ import sim_mob.vis.util.Utility;
  * \author Anirudh Sivaraman
  */
 public class DriverTick extends AgentTick {
+	//demo
+	public int frame;
 	private static SimpleVectorImage CarImg;
 	private static SimpleVectorImage BusImg;
 	private static SimpleVectorImage TruckImg;
@@ -91,6 +95,7 @@ public class DriverTick extends AgentTick {
 	public DriverTick(long id, double posX, double posY, double angle) {
 		this(id, posX, posY, angle, null);
 	}
+
 	
 	//Let's assume a car is 3m square?
 	public Rectangle2D getBounds() {
@@ -134,7 +139,18 @@ public class DriverTick extends AgentTick {
 		}
 
 	}
+	//demo
+	public DriverTick(long objID, double xPos, double yPos, double angle2, RxLocation msgLoc, int frame2) {
+		// TODO Auto-generated constructor stub
+		this(objID, xPos, yPos, angle2,msgLoc);
+		frame = frame2;
+	}
+//	public DriverTick(long id, double posX, double posY, double angle, int frame_) {
+//		this(id, posX, posY, angle, null);
+//		
+//	}
 	
+/////
 	private static void MakeCarImage() {
 		//Load it.
 		try {
@@ -312,6 +328,25 @@ public class DriverTick extends AgentTick {
 		//Draw the car
 		g.drawImage(toDraw, 0, 0, null);
 		
+		if(frame < 1267)
+		{
+		//Draw a circle with its id
+			Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
+			final int Size = 20;
+			
+			//Background
+			g.setColor(Color.green);
+			g.fillOval(center.x-Size/2, center.y-Size/2, Size, Size);
+			g.setColor(Color.CYAN);
+			g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
+			
+			//Text
+			g.setColor(Color.WHITE);
+			g.setFont(DriverTick.idFont);
+			int strW = g.getFontMetrics().stringWidth(""+ id);
+			g.drawString(""+ id, center.x-strW/2+1, center.y+4);
+
+		}
 		//Draw its message
 		if (msgLocation != null) {
 			g.setBackground(Color.BLUE);

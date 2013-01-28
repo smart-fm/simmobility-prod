@@ -4,6 +4,8 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
+#include "entities/vehicle/Bus.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include <vector>
 
 namespace sim_mob {
@@ -14,6 +16,8 @@ class PackageUtils;
 class UnPackageUtils;
 class BusStop;
 class Person;
+class Bus;
+class Passenger;
 
 
 /**
@@ -34,33 +38,77 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.
-	double distanceToNextBusStop() const;
+	double distanceToNextBusStop();
 
 	/// get distance to bus stop of particular segment (meter)
 	/// A negative return value indicates that there is no relevant bus stop nearby.
-	double getDistanceToBusStopOfSegment(const RoadSegment* rs) const;
+	double getDistanceToBusStopOfSegment(const RoadSegment* rs);
 
-	bool isBusFarawayBusStop() const;
-	bool isBusApproachingBusStop() const;
-	bool isBusArriveBusStop() const;
-	bool isBusLeavingBusStop() const;
+	//double no_passengers_boarding,no_passengers_alighting;
+
+	bool isBusFarawayBusStop();
+	bool isBusApproachingBusStop();
+	bool isBusArriveBusStop();
+	bool isBusLeavingBusStop();
+	bool isBusGngtoBreakDown();
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
 
+//functions for boarding and alighting passengers with trip chaining
+	void BoardingPassengers(Bus* bus);
+  //  void boardBus(Bus* bus, Person* passenger);
+    void AlightingPassengers(Bus* bus);
+    //void EstimateBoardingAlightingPassengers();
+
+//functions for passenger generation with distribution
+	void passengers_Board(Bus* bus);
+	void passengers_Alight(Bus* bus);
+	double passengerGeneration(Bus* bus);
+	double passengerGenerationNew(Bus* bus);
+
+	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
+
+	double getWaitTime_BusStop() { return BUS_STOP_WAIT_PASSENGER_TIME_SEC; }
+	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_PASSENGER_TIME_SEC = time; }
 	Vehicle* initializePath_bus(bool allocateVehicle);
+	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
+		return curr_busStopRealTimes;
+	}
+	std::vector<Shared<BusStop_RealTimes>* >& getBusStop_RealTimes() {
+		return busStopRealTimes_vec_bus;
+	}
 
 	double lastTickDistanceToBusStop;
-	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
-	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
-	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
-	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
+	bool demo_passenger_increase;
+	std::vector<const BusStop*> GetBusstops();
+	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
+	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
+	Shared<double> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
+	Shared<double> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
+	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
+	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
+	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
+	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
+
+	double xpos_approachingbusstop,ypos_approachingbusstop;
+	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
+
+	bool first_busstop;
+	bool last_busstop;
+	bool passengerCountOld_display_flag;
+	size_t no_passengers_boarding;
+	size_t no_passengers_alighting;
+	//std::vector<const Passenger*> passengers_at_currentbusstop;
+	//std::vector<const Passenger*> passengers_inside_bus;
+	std::vector<const BusStop*> busStops;
 
 protected:
 	//Override the following behavior
@@ -68,12 +116,15 @@ protected:
 
 //Basic data
 private:
+	BusDriver * me;
 	//BusRoute route;
 	const DemoBusStop* nextStop;
+	int tick;
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	std::vector<const sim_mob::BusStop*> busStops;
+
+	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 
 
 	//Serialization, not implemented

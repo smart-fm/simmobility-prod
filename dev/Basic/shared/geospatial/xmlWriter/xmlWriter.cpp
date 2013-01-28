@@ -168,7 +168,6 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 //		  {
 //			  std::cout << "xml-witer Lane 1000001000 polypoint " << it->getX() << "," << it->getY() << std::endl;
 //		  }
-//		  getchar();
 //	}
   if(LaneObj->getPolyline(false).size())
   {
@@ -379,7 +378,6 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 //			if(100001500 == rs->getSegmentID())
 //			{
 //				std::cout << "Segment 100001500, One of the obstacles at offset " << res.offset << " just didn't tally\n";
-//				getchar();
 //			}
 //		}
 //		else
@@ -387,7 +385,6 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 //			if(100001500 == rs->getSegmentID())
 //			{
 //				std::cout << "Segment 100001500, an obstacles at offset " << res.offset << " was serialized\n";
-//				getchar();
 //			}
 //
 //		}
@@ -1254,7 +1251,6 @@ void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::S
 	} else {
 		std::cout << "signalTimingMode ( " << signal_scats->getSignalTimingMode()
 				<< ") unknown, press any key ...\n";
-//		getchar();
 	}
 	SCATS->LinkEndChild(signalTimingMode);
 	//splitplan

@@ -359,6 +359,7 @@ void sim_mob::Pedestrian::setSubPath() {
 			int laneID = -1; //Also save the lane id.
 			bool isPassedSeg=false;
 			for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+
 				if (it->type_ == WayPoint::SIDE_WALK) {
 					//Save
 					if (!nextSideWalk) {

@@ -405,7 +405,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //	  if((Segment->getSegmentID() >= 100000302) && (Segment->getSegmentID() <= 100000305))
 //	  {
 //		  std::cout << "In fwdBckSegments_t_pimpl::Segment ... segmentID= " << Segment->getSegmentID() << "\n";
-//		  getchar();
+//
 //	  }
 //	  std::cout << "in fwdBckSegments_t_pimpl::Segment () " << std::endl;
 	  Segments.push_back(Segment);
@@ -511,7 +511,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //	  if((segmentID >= 100000302) && (segmentID <= 100000305))
 //	  {
 //		  std::cout << "In segment_t_pimpl:: segmentID= " << segmentID << "\n";
-//		  getchar();
+//
 //	  }
 
 	  this->rs->setID(segmentID);
@@ -568,7 +568,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //	  if(this->rs->getSegmentID() == 100000100)
 //	  {
 //		  std::cout << "this->rs->laneEdgePolylines_cached.size() =" <<  this->rs->laneEdgePolylines_cached.size() << std::endl;
-//		  getchar();
+//
 //	  }
   }
   void segment_t_pimpl::
@@ -623,7 +623,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //	  if((rs->segmentID >= 100000302) && (rs->segmentID <= 100000305))
 //	  {
 //		  std::cout << "In segment_t_pimpl::post_segment_t... segmentID= " << rs->segmentID << "\n";
-//		  getchar();
+//
 //	  }
 	  return rs;
   }
@@ -674,7 +674,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //		  if(((*it)->getSegmentID() >= 100000302) && ((*it)->getSegmentID() <= 100000305))
 //		  {
 //			  std::cout << "In link_t_pimpl::fwdSegments ... segmentID= " << (*it)->getSegmentID() << "\n";
-//			  getchar();
+//
 //		  }
 		  (*it)->setParentLink(link);
 	  }
@@ -685,7 +685,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //		  if(((*it)->getSegmentID() >= 100000302) && ((*it)->getSegmentID() <= 100000305))
 //		  {
 //			  std::cout << "In link_t_pimpl::BckSegments ... segmentID= " << (*it)->getSegmentID() << "\n";
-//			  getchar();
+//
 //		  }
 		  (*it)->setParentLink(link);
 	  }
@@ -1515,7 +1515,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
     	delete crossing;
     	crossing = geo_Crossings[v.second->getRoadItemID()];//reuse the already created crossing
     	std::cout << "Crossing " << v.second->getRoadItemID() << "  reused\n";
-//    	getchar();
+//
     }
     delete v.second; //cleanup
     return std::make_pair(v.first, crossing);
@@ -1572,7 +1572,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
   void RoadNetwork_t_pimpl::
   Links (std::vector<sim_mob::Link*> Links)
   {
-//	  getchar();
+//
 	  rn.setLinks(Links);
 //	  std::cout << "Links Done	\n";
   }
@@ -1613,10 +1613,10 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 //	    if(Crossing.second->getCrossingID() == 1000010051)
 //	    {
 //	    	std::cout << "crossing->id =" << Crossing.second->getCrossingID() << "  " << Crossing.second << " is received and recorded into Roaditems and temporary geo_crossing " << std::endl;
-//	    	getchar();
+//
 //	    }
 //	  std::cout << "geo_Crossings[" << Crossing.second->getCrossingID() << "] = " <<  Crossing.second << "\n";
-//	  getchar();
+//
   }
 
   void RoadItems_t_pimpl::
@@ -1836,7 +1836,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 		trip->personID = v->personID;
 		trip->itemType = v->itemType;
 		trip->sequenceNumber = v->sequenceNumber;
-		trip->startTime = v->startTime;
+		trip->startTime = sim_mob::DailyTime(v->startTime);
 		trip->endTime = v->endTime;
 		delete v;
 	}
@@ -2089,7 +2089,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
     if(it == geo_Crossings.end()) throw std::runtime_error("invalid crossingID\n");
     LAC.crossing = geo_Crossings[crossingID];
     std::cout << "Crossing " << crossingID << "[" << geo_Crossings[crossingID] << "] added to link and crossing\n";
-//    getchar();
+//
   }
 
   void linkAndCrossing_t_pimpl::
@@ -2374,7 +2374,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   {
     model[crossings_map.first] = crossings_map.second;
     std::cout << "Crossing " << crossings_map.first << " Added to the map, new size of map = " << model.size() << std::endl;
-//    getchar();
+//
   }
 
   std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_maps_t_pimpl::
@@ -2594,7 +2594,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   SCATS ()
   {
 	  targetSignal = new sim_mob::Signal_SCATS(basicSignal->getNode(),sim_mob::ConfigParams::GetInstance().mutexStategy,signalID_,SIG_SCATS);
-//	  std::cout << "Signal_t_pimpl::SCATS  Signal " << targetSignal->getId() << "  Has " <<  targetSignal->phases_.size() << " phases\n"; getchar();
+//	  std::cout << "Signal_t_pimpl::SCATS  Signal " << targetSignal->getId() << "  Has " <<  targetSignal->phases_.size() << " phases\n";
 	  targetSignal->phases_ = basicSignal->phases_;
 	  targetSignal->LinkAndCrossings_ = basicSignal->LinkAndCrossings_;
 	  sim_mob::Signal_SCATS *temp = dynamic_cast<sim_mob::Signal_SCATS *>(targetSignal);
@@ -2624,9 +2624,9 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   void Signals_t_pimpl::
   Signal (sim_mob::Signal* Signal)
   {
-//	  std::cout << "Signal " << Signal->getId() << "  Has " <<  Signal->getPhases().size() << " phases\n"; getchar();
+//	  std::cout << "Signal " << Signal->getId() << "  Has " <<  Signal->getPhases().size() << " phases\n";
 	  sim_mob::Signal::all_signals_.push_back(Signal);
-//	  std::cout << "Signal " << sim_mob::Signal::all_signals_.back()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.back()->getPhases().size() << " phases\n";/* getchar();*/
+//	  std::cout << "Signal " << sim_mob::Signal::all_signals_.back()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.back()->getPhases().size() << " phases\n";/* */
   }
 
   sim_mob::Signal::All_Signals Signals_t_pimpl::

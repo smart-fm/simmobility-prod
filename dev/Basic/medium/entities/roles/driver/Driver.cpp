@@ -68,6 +68,7 @@ sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
 	Role(parent), /*remainingTimeToComplete(0),*/ currLane(nullptr), vehicle(nullptr),
 	nextLaneInNextSegment(nullptr), params(parent->getGenerator())
 {
+	name = "Driver_";
 
 //	if (Debug::Drivers) {
 //		DebugStream << "Driver starting: " << parent->getId() << endl;
@@ -95,26 +96,33 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const
 {
-	return new Driver(parent, parent->getMutexStrategy());
+	Role* role = new Driver(parent, parent->getMutexStrategy());
+	return role;
 }
 
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 {
+	std::cout << "Driver::frame_init -0\n";
 	//Save the path from orign to next activity location in allRoadSegments
 	Vehicle* newVeh = initializePath(true);
+	std::cout << "Driver::frame_init -1\n";
 	if (newVeh) {
 		safe_delete_item(vehicle);
+		std::cout << "Driver::frame_init -2\n";
 		//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
 		vehicle = newVeh;
 		currResource = newVeh;
 	}
-
+	std::cout << "Driver::frame_init -3\n";
 	//Set some properties about the current path, such as the current polyline, etc.
 	if (vehicle && vehicle->hasPath()) {
+		std::cout << "Driver::frame_init -4\n";
 		setOrigin(params);
+		std::cout << "Driver::frame_init -5\n";
 	} else {
 		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
 	}
+	std::cout << "Driver::frame_init -6\n";
 }
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p) {

@@ -34,11 +34,22 @@ class UnPackageUtils;
  */
 class Role
 {
+	//todo: use this to register roles
+	enum type
+	{
+		RL_DRIVER,
+		RL_PEDESTRIAN,
+		RL_BUSDRIVER,
+		RL_ACTIVITY,
+		RL_PASSENGER
+	};
+	const std::string name;
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(Agent* parent = nullptr) :
-		parent(parent), currResource(nullptr)
+	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
+		parent(parent), currResource(nullptr),name(roleName)
 	{
+		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
 	//Allow propagating destructors
@@ -46,6 +57,7 @@ public:
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
+	std::string getRoleName()const {return name;}
 
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).

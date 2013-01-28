@@ -46,7 +46,9 @@ public:
 
 	//Various comparison functions
 	bool isBefore(const DailyTime& other) const;
+	bool isBeforeEqual(const DailyTime& other) const;
 	bool isAfter(const DailyTime& other) const;
+	bool isAfterEqual(const DailyTime& other) const;
 	bool isEqual(const DailyTime& other) const;
 
 	///Retrieve the distance in MS between another DailyTime and this.

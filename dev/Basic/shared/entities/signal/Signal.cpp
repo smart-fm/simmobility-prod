@@ -185,6 +185,13 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 			//Success
 			return crossing;
 		}
+		else
+		{
+			if(res.offset == 0)
+			{
+				res.offset = 1;
+			}
+		}
 
 		//Increment OR Decrement
 		currOffset += (minus) * (res.offset);
@@ -350,7 +357,7 @@ void Signal_SCATS::cycle_reset()
 //This is a part of Signal_SCATS::update function that is executed only if a new cycle has reached
 void Signal_SCATS::newCycleUpdate()
 {
-	std::cout << "Inside newCycleUpdate \n";
+//	std::cout << "Inside newCycleUpdate \n";
 
 	//	6-update split plan
 		plan_.Update(Phase_Density);
@@ -397,13 +404,11 @@ void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 		if((i + 1) < getPhases().size()) output << ",";
 	}
 	output << newLine << "]";
-//	getchar();
 //	/////////////////////////////////////////////////////
 //
 //	while(it !=getPhases().end())
 //	{
 //		std::cout << "getting the out put rep of phase " << (*it).getName();
-//		getchar();
 //		output << (*it).outputPhaseTrafficLight(newLine);
 //		it++;
 //		if(it !=getPhases().end())
@@ -413,7 +418,6 @@ void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 //	return output.str();
 	//........
 //	std::cout << "Outputting " << output.str() << std::endl;
-//	getchar();
 	LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
 }
 std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
@@ -429,11 +433,9 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 		if(sum > currCycleTimer)
 			{
 //				std::cout << "Sum(" <<  sum << ") > currCycleTimer(" << currCycleTimer << "), time to change phase to " << getPhases()[i].getPhaseName() << " (" << i << ")" << std::endl;
-//				getchar();
 				break;
 			}
 	}
-//	  std::cout << "Signal " << sim_mob::Signal::all_signals_.front()->getId() << "  Has " <<  sim_mob::Signal::all_signals_.front()->getPhases().size() << " phases\n"; getchar();
 
 	if(i >= getNOF_Phases())
 		{
@@ -561,7 +563,6 @@ void Signal_SCATS::initializePhases() {
 	//setting percentage and phaseoffset for each phase
 //	std::cout << "Analyzing phase .for signal "<< this->getId() << std::endl;
 //	std::cout << "nof phases = " << getPhases().size() << std::endl;
-//	getchar();
 	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 	{
 		//this ugly line of code is due to the fact that multi index renders constant versions of its elements

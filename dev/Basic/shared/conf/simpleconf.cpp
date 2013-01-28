@@ -35,6 +35,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
 #include "geospatial/xmlLoader/geo8-driver.hpp"
@@ -197,63 +198,28 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
-	//The current agent we are working on.
-	Person* currAg = nullptr;
-	std::string trip_mode;
-	std::vector<const TripChainItem*> currAgTripChain;
+	std::cout << "we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+	std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << std::endl;
 
+	//The current agent we are working on.
+	Person* person = nullptr;
+	std::string trip_mode;
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
-//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
-//		//getchar();
-//		const Trip* trip = dynamic_cast<const Trip*>(tc);
-//		const Activity* act = dynamic_cast<const Activity*>(tc);
-//
-//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
-//			//Origin and destination must be those of the first subtrip if current item is a trip
-//			currAg->originNode = firstSubTrip.fromLocation;
-//			currAg->destNode = firstSubTrip.toLocation;
-//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
-//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-//			currAg->originNode = currAg->destNode = act->location;
-//		} else { //Offer some protection
-//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-//		}
-//
-//		currAg->setTripChain(it_map->second);
-//		if (currAg->currSubTrip) {
-//			if (currAg->currSubTrip->mode == "Bus") {
-//				// currently only one
-//				if (!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
-//							active_agents);
-//				}
-//			}
-//		}
-//		else
-		{
-//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
-			addOrStashEntity(currAg, active_agents, pending_agents);
-		}
+		std::cout << "generateAgentsFromTripChain->Creating Person " << it_map->second.front()->personID << " with size " << it_map->second.size() << " tripchain items\n" << std::endl;
 
+		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent
-		currAg = nullptr;
-
-		
-	} //outer for loop(map)
+		person = nullptr;
+	}//outer for loop(map)
 }
-
-
-
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
@@ -370,6 +336,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 		if (agentType == "busdriver")
 			props["#mode"] = "Bus";
+		if (agentType == "passenger")
+					props["#mode"] = "travel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -405,6 +373,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
+        	std::cout << "catch the loop error try!" << std::endl;
             std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
@@ -431,7 +400,6 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
-		std::cout << "ooops! returning true!" << std::endl;
 		return true;
 	}
 
@@ -777,8 +745,6 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " Before...";
-//		getchar();
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
@@ -792,9 +758,6 @@ void PrintDB_Network()
 			}
 
 		}
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " After...";
-//		getchar();
-
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -884,7 +847,6 @@ struct Sorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
 		  return false;
 	  }
 
@@ -1063,7 +1025,6 @@ void PrintDB_Network_ptrBased()
 			}
 		}
 
-
 		//Save Lane info for later
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
@@ -1081,6 +1042,14 @@ void PrintDB_Network_ptrBased()
 
 			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
 				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				//debug
+				if(laneID != 0 && laneID <(*it)->getLanes().size())
+				{
+					int i = 0;
+					i++;
+//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
+				}
+				//debug ends
 			}
 
 		}
@@ -1154,9 +1123,10 @@ void PrintDB_Network_ptrBased()
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
+//obsolete
 void PrintDB_Network_idBased()
 {
-	if (ConfigParams::GetInstance().OutputDisabled()) {
+	if (ConfigParams::GetInstance().Output_Disabled()) {
 		return;
 	}
 
@@ -1403,7 +1373,7 @@ void patchRoadNetworkwithLaneEdgePolyline() {
 		}
 	}
 }
-
+//obsolete
 void printRoadNetwork_console()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
@@ -1487,7 +1457,6 @@ void printRoadNetwork_console()
 
 
 	std::cout << "Testing Road Network Done\n";
-//	getchar();
 }
 
 
@@ -1535,6 +1504,43 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
 
+	//Save passenger distribution parameters
+	int passenger_busstop_dist,passenger_crowdness_dist,passengers_min_uniformDist,passengers_max_uniformDist;
+	int passenger_busstop_mean,passenger_crowdness_mean,passenger_percent_boarding,passenger_percent_alighting;
+	int passenger_busstop_standardDev,passenger_crowdness_standard_dev;
+	handle.FirstChild("passenger_distribution_busstop").ToElement()->Attribute("value",&passenger_busstop_dist);
+	handle.FirstChild("passenger_mean_busstop").ToElement()->Attribute("value",&passenger_busstop_mean);
+	handle.FirstChild("passenger_standardDev_busstop").ToElement()->Attribute("value",&passenger_busstop_standardDev);
+
+	handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passenger_percent_boarding);
+
+
+
+	//use distribution to get the random no of  passengers inside bus
+	//handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
+	//handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
+	//handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
+
+
+	handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passenger_percent_alighting);
+	handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
+	handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
+	//for alighting passengers
+	//TODO: Refactor to avoid magic numbers
+	int no_of_passengers;
+	srand(time(NULL));
+	ConfigParams::GetInstance().percent_boarding=passenger_percent_boarding;
+	ConfigParams::GetInstance().percent_alighting=passenger_percent_alighting;
+	if (passenger_busstop_dist ==0) {// normal distribution
+		ConfigParams::GetInstance().passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
+	} else if (passenger_busstop_dist==1) {// log normal distribution
+		ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+	} else if(passenger_busstop_dist==2) {// uniform distribution
+		ConfigParams::GetInstance().passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
+	} else {
+		throw std::runtime_error("Unknown magic passenger distribution number.");
+	}
 
 	//Driver::distributionType1 = distributionType1;
 	int signalTimingMode;
@@ -1606,6 +1612,23 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		} else if (mutexStrat != "buffered") {
 			return string("Unknown mutex strategy: ") + mutexStrat;
 		}
+	}
+
+	//Busline Control strategy (optional)
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("busline_control_type").ToElement();
+	if(node) {
+		const char* valStr_controlType = node->Attribute("strategy");
+		std::string busline_control_type(valStr_controlType);
+		if(busline_control_type == "schedule_based" || busline_control_type == "headway_based"
+				|| busline_control_type == "evenheadway_based" || busline_control_type == "hybrid_based"
+				|| busline_control_type == "no_control") {
+			ConfigParams::GetInstance().busline_control_type = busline_control_type;
+		} else {
+			ConfigParams::GetInstance().busline_control_type = "no_control";// default: no control
+		}
+	} else {
+		ConfigParams::GetInstance().busline_control_type = "no_control";// if no setting for this variable: also no control
 	}
 
 
@@ -1706,6 +1729,23 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
 
 
+	//load scheduledTImes if any
+	handle = TiXmlHandle(&document);
+	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
+	if(busScheduleTimes){
+		int stop = 0;
+		for (;busScheduleTimes; busScheduleTimes=busScheduleTimes->NextSiblingElement()) {
+			int AT = atoi(busScheduleTimes->Attribute("offsetAT"));
+			int DT = atoi(busScheduleTimes->Attribute("offsetDT"));
+			vector<int> times;
+			times.push_back(AT);
+			times.push_back(DT);
+			std::pair<int, vector<int> > nextLink(stop, times);
+			ConfigParams::GetInstance().scheduledTimes.insert(nextLink);
+			++stop;
+		}
+	}
+
     //Check the type of geometry
     handle = TiXmlHandle(&document);
     TiXmlElement* geomElem = handle.FirstChild("config").FirstChild("geometry").ToElement();
@@ -1746,7 +1786,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-
 #else
        		/**************************************************
        		 *
@@ -1781,6 +1820,24 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //TEMP: Test network output via boost.
     BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
 
+    //debug: detect sidewalks which are in the middle of road
+    {
+    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
+    	{
+    		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+    		{
+    			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*seg_it)->getLanes().begin(), it_end((*seg_it)->getLanes().end()); lane_it != it_end ; lane_it++)
+    			{
+    				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
+    				{
+    					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
+    				}
+    			}
+    		}
+    	}
+    }
+    //debug.. end
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
@@ -1833,6 +1890,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if (((*it) == "database")||((*it) == "xml-tripchains")) {
     	    	 //Create an agent for each Trip Chain in the database.
+//    		std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+//    		std::cout << "-we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
+//    		std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << " with size " << tcs.begin()->second.size() << std::endl;
     	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
     	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	    	} else if ((*it) == "drivers") {
@@ -1849,7 +1909,14 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
-    	} else {
+    	}
+    	else if ((*it) == "passengers") {
+    	    		if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
+    	    			return "Couldn't load passengers";
+    	    		}
+    	    		cout <<"Loaded Passenger Agents (from config file)." <<endl;
+    	    	}
+    	else {
     		return string("Unknown item in load_agents: ") + (*it);
     	}
     }

@@ -12,13 +12,25 @@ using namespace sim_mob;
 sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime)
 : scheduled_ArrivalTime(scheduled_ArrivalTime), scheduled_DepartureTime(scheduled_DepartureTime)
 {
-
+	Scheduled_busStop = nullptr;
 }
 
 sim_mob::BusStop_RealTimes::BusStop_RealTimes(DailyTime real_ArrivalTime, DailyTime real_DepartureTime)
 : real_ArrivalTime(real_ArrivalTime), real_DepartureTime(real_DepartureTime)
 {
+	Real_busStop = nullptr;
+}
 
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(const BusStop_RealTimes& copyFrom)
+: real_ArrivalTime(copyFrom.real_ArrivalTime), real_DepartureTime(copyFrom.real_DepartureTime)
+, Real_busStop(copyFrom.Real_busStop)
+{
+
+}
+
+void sim_mob::BusStop_RealTimes::setReal_BusStop(const BusStop* real_busStop)
+{
+	Real_busStop = const_cast<BusStop*>(real_busStop);
 }
 
 //BusStop
@@ -48,13 +60,13 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 }
 
 sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int busTripRun_sequenceNum, std::string busLine_id, int vehicle_id,
-		std::string busRoute_id, Node* from, std::string fromLocType, Node* to,
-		std::string toLocType)
+		DailyTime start, DailyTime end, int busTripRun_sequenceNum,
+		Busline* busline, int vehicle_id, std::string busRoute_id, Node* from,
+		std::string fromLocType, Node* to, std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
+busTripRun_sequenceNum(busTripRun_sequenceNum), busline(busline), vehicle_id(vehicle_id), bus_RouteInfo(busRoute_id)
 {
-
+	   lastVisitedStop_SequenceNumber = -1;
 }
 
 void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
@@ -67,9 +79,12 @@ void sim_mob::BusTrip::addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRe
 	busStopRealTimes_vec.push_back(aBusStopRealTime);
 }
 
-void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
+void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes)
 {
-	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
+	//std::cout << "busStopRealTimes " << busStopRealTimes->real_ArrivalTime.getRepr_() << " " << busStopRealTimes->real_DepartureTime.getRepr_() << std::endl;
+	if(!busStopRealTimes_vec.empty()) {
+		busStopRealTimes_vec[busstopSequence_j] = busStopRealTimes;
+	}
 }
 
 bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec)
@@ -90,6 +105,36 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 	for(int j = 0; j < busStop_vec.size(); j++) {
 		bus_RouteInfo.addBusStop(busStop_vec[j]);
 	}
+	// addBusStopRealTimes, first time fake Times
+	ConfigParams& config = ConfigParams::GetInstance();
+	for(int k = 0; k < busStop_vec.size(); k++) {
+		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
+		addBusStopRealTimes(pBusStopRealTimes);
+	}
+
+	// addBusStopScheduledTimes since only "schedule_based", "evenheadway_based" and "hybrid_based" need these
+	if(config.busline_control_type == "schedule_based" || config.busline_control_type == "evenheadway_based" || config.busline_control_type == "hybrid_based") {
+		std::map<int,std::vector<int> > scheduledTimes =  config.scheduledTimes;
+		for(std::map<int,std::vector<int> >::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
+		{
+			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.at(0)),startTime + DailyTime(temp->second.at(1)));
+	//		busStop_ScheduledTimes.Scheduled_busStop = NULL;
+	//		busStopScheduledTimes_vec.push_back(busStop_ScheduledTimes);
+			addBusStopScheduledTimes(busStop_ScheduledTimes);
+			std::cout<<startTime.getValue()<<" "<<temp->second.at(0)<<" "<<busStop_ScheduledTimes.scheduled_ArrivalTime.getValue()<<std::endl;
+			std::cout<<"busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime): " << busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime) << std::endl;
+			std::cout<<"busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime): " << busStop_ScheduledTimes.scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime) << std::endl;
+		}
+
+	//	std::cout << "busStopScheduledTimes_vec[0] " << busStopScheduledTimes_vec[0].scheduled_ArrivalTime.getValue() << std::endl;
+	//	std::cout << "busStopScheduledTimes_vec[1] " << busStopScheduledTimes_vec[1].scheduled_ArrivalTime.getValue() << std::endl;
+	//	std::cout << "busStopScheduledTimes_vec[2] " << busStopScheduledTimes_vec[2].scheduled_ArrivalTime.getValue() << std::endl;
+	//	std::cout << "busStopScheduledTimes_vec[3] " << busStopScheduledTimes_vec[3].scheduled_ArrivalTime.getValue() << std::endl;
+	//	std::cout << "busStopScheduledTimes_vec[4] " << busStopScheduledTimes_vec[4].scheduled_ArrivalTime.getValue() << std::endl;
+		std::cout << "busStopScheduledTimes_vec.size(): " << busStopScheduledTimes_vec.size() << std::endl;
+	}
+
+	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;
 }
 
@@ -102,7 +147,8 @@ sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime en
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
-
+	control_TimePointNum0 = 2;// the number 2 in( 0->1->2->3 )
+	control_TimePointNum1 = 4;
 }
 
 sim_mob::Busline::~Busline()
@@ -139,7 +185,7 @@ void sim_mob::Busline::addFrequencyBusline(const Frequency_Busline& aFrequencyBu
 	frequency_busline.push_back(aFrequencyBusline);
 }
 
-void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
+void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes)
 {
 	if(!busTrip_vec.empty()) {
 		//BusTrip& busTripK = busTrip_vec[trip_k];
@@ -166,6 +212,15 @@ void sim_mob::PT_Schedule::registerBusLine(const std::string busline_id, Busline
 	buslineID_busline[busline_id] = aBusline;
 }
 
+void sim_mob::PT_Schedule::registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType)
+{
+	if (buslineID_controlType.count(busline_id)>0) {
+		throw std::runtime_error("Duplicate buslineid.");
+	}
+
+	buslineID_controlType[busline_id] = aControlType;
+}
+
 Busline* sim_mob::PT_Schedule::findBusline(const std::string& busline_id)
 {
 	std::map<std::string, Busline*>::const_iterator it;
@@ -176,9 +231,9 @@ Busline* sim_mob::PT_Schedule::findBusline(const std::string& busline_id)
 	return nullptr;
 }
 
-const CONTROL_TYPE sim_mob::PT_Schedule::findBuslineControlType(const std::string& busline_id) const
+CONTROL_TYPE sim_mob::PT_Schedule::findBuslineControlType(const std::string& busline_id)
 {
-	std::map<std::string, const CONTROL_TYPE>::const_iterator it;
+	std::map<std::string, CONTROL_TYPE>::const_iterator it;
 	it = buslineID_controlType.find(busline_id);
 	if (it!=buslineID_controlType.end()) {
 		return it->second;

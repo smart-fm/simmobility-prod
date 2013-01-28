@@ -411,7 +411,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath(true);
+            std::vector<RoadSegment *> const & roads = link->getPath();
             if (! roads.empty())
             {
                 createLoopDetectors(roads, entity);
@@ -648,7 +648,6 @@ const
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();
     }
-//    std::cout << "I am going to generate an error\nLoopDetectorEntity::getCountAndTimePair() was called on invalid lane"; //getchar();
     std::ostringstream stream;
     stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
     throw std::runtime_error(stream.str());

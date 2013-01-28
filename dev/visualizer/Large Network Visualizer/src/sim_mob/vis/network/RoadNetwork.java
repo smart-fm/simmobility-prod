@@ -729,6 +729,11 @@ public class RoadNetwork {
 			long toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
+			if((fromLane == null) || (toLane == null))
+			{
+				System.out.println("fromLane or toLane is null, cant collectSignalLineInfo");
+				return;
+			}
 			TrafficSignalLine tempSignalLine;
 			if(Main.NEW_SIGNAL)
 				tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 

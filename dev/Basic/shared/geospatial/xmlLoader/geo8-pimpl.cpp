@@ -974,7 +974,6 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 	  this->linkLoc_ = 0;
 	  //more convenient if create an instance here(to set the const location)
 	  node_ = new sim_mob::Node(location.getX(),location.getY());
-	   std::cout << ">>>>>>>>>>>>>basic node is at [" << node_<< "]<<<<<<<<<<<<<<<<<" << std::endl;
   }
 
   void Node_t_pimpl::
@@ -1019,7 +1018,6 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 		  }
 
 	  }
-//	  std::cout << ">>>>>>>>>>>>>>>>>>Basic Node " << node_ << " posted<<<<<<<<<<<<<<<<<<<<<<<<\n";
 	  return node_;
   }
   // temp_Segmetair_t_pimpl

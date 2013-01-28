@@ -368,40 +368,23 @@ bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person*
 	 	}
 	   return false;
   }
+
+
  std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
- 	{
- 		std::vector<sim_mob::BufferedBase*> res;
- 		//res.push_back(&(passenger_inside_bus));
- 		res.push_back(&(WaitingAtBusStop));
- 		res.push_back(&(boardedBus));
- 		res.push_back(&(alightedBus));
- 		res.push_back(&(DestReached));
- 		res.push_back(&(busdriver));
- 		res.push_back(&(random_x));
- 		res.push_back(&(random_y));
- 	//	res.push_back(&(estimated_boarding_passengers_no));
- 		return res;
- 	}
- bool sim_mob::Passenger::isBusBoarded()
  {
-	 if(this->boardedBus==true)
-		 return true;
-	 else
-		 return false;
+  	std::vector<sim_mob::BufferedBase*> res;
+  	//res.push_back(&(passenger_inside_bus));
+  	res.push_back(&(WaitingAtBusStop));
+  	res.push_back(&(boardedBus));
+  	res.push_back(&(alightedBus));
+  	res.push_back(&(DestReached));
+  	res.push_back(&(busdriver));
+  	res.push_back(&(random_x));
+  	res.push_back(&(random_y));
+  	//	res.push_back(&(estimated_boarding_passengers_no));
+  	return res;
  }
- double sim_mob::Passenger::findWaitingTime(Bus* bus)
- {
-	 //this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
-	 this->WaitingTime=bus->TimeOfBusreachingBusstop-this->TimeofReachingBusStop;
-	/* time_t rawtime;
-	 struct tm * timeinfo;
-	 time ( &rawtime );
-	 timeinfo = localtime ( &rawtime );
-	 printf ( "Current local time and date: %s", asctime (timeinfo) );
-	 int seconds=timeinfo->tm_sec;
-	 int minutes=timeinfo->tm_min;*/
-	 return this->WaitingTime;
- }
+
 /* void sim_mob::Passenger::EstimateBoardingAlightingPassengers(Bus* bus)
  {
 
@@ -431,9 +414,10 @@ bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person*
 
 	}
 	return false;
-}
+}*/
 
-bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
+ //TODO: This might be older code. (There are two copies of this function).
+/*bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
 {
 	if((abs((xpos_approachingbusstop/1000)-(this->getDestPosition().getX()/1000))<=2)and(abs((ypos_approachingbusstop/1000)-(this->getDestPosition().getY()/1000))<=2))
 	{
@@ -453,29 +437,13 @@ bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop
         return true;
 	 }
 	 return false;
-}
+}*/
 
-std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
-{
- 	std::vector<sim_mob::BufferedBase*> res;
- 	//res.push_back(&(passenger_inside_bus));
- 	res.push_back(&(WaitingAtBusStop));
- 	res.push_back(&(boardedBus));
- 	res.push_back(&(alightedBus));
- 	res.push_back(&(DestReached));
- 	res.push_back(&(busdriver));
- 	res.push_back(&(random_x));
- 	res.push_back(&(random_y));
- 	//	res.push_back(&(estimated_boarding_passengers_no));
- 	return res;
-}
+
 
 bool sim_mob::Passenger::isBusBoarded()
 {
-	if(this->boardedBus==true)
-		return true;
-	else
-		return false;
+	return this->boardedBus==true;
 }
 
 double sim_mob::Passenger::findWaitingTime(Bus* bus)

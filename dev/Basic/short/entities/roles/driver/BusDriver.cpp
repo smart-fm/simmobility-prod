@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "BusDriver.hpp"
+
 #include <vector>
 #include <iostream>
 #include <cmath>
@@ -365,8 +366,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		//	wait = true;
 		//	BusController::busBreak = false;
 		//}
-
-	//TODO: Not sure if this scope should be closed here. ~Seth
 	}
 
 	//From Santhosh's branch:
@@ -384,6 +383,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		}
 
 	}*/
+
+	//TODO: I couldn't determine where "wait" comes from; it was probably lost in the merges
+	//      from the past. ~Seth
+	bool wait = false;
 
 	if (!wait && isBusArriveBusStop() && (waitAtStopMS >= 0)
 			&& (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
@@ -437,7 +440,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 					Person* person = dynamic_cast<Person*>(parent);
 
 					if(person) {
-						const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+						BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(person->currTripChainItem)));
 						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
 							const Busline* busline = bustrip->getBusline();
 							if (busline) {

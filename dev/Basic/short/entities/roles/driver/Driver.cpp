@@ -905,7 +905,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 
 						if(iscurrentLaneConnected)
 						{
-							distf = p.nvFwd.distance + vehicle->length + 30;
+							distf = p.nvFwd.distance + vehicle->length + 20;
 						}
 						else
 						{
@@ -916,7 +916,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 						for(std::map<int,vector<int> >::iterator i=indexes.begin();i!=indexes.end();i++)
 						{
 							int temp = i->first;
-							if(i->second.at(0) > distf)
+							if((i->second.at(0) > distf) && (i->second.at(0) > distb))
 							{
 								index = i->first;
 								distf = i->second.at(0);
@@ -982,7 +982,9 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 		const BusDriver* driver2 = dynamic_cast<const BusDriver*> (this);
 		if(driver1 && !driver2)
 		{
-			if(driver1->vehicle->getVelocity() < 0.1)
+			std::cout<<p.now.frame()<<std::endl;
+			double vel = vehicle->getVelocity()/100;
+			if(vel < 2)
 			{
 
 
@@ -1118,8 +1120,8 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 //	}
 	if(true && (vehicle->getTurningDirection() == LCS_SAME && p.currLaneIndex != p.nextLaneIndex))
 	{
-		if((vehicle->getVelocity()/100) > 4.8)
-			vehicle->setVelocity((4.8*100));
+		if((vehicle->getVelocity()/100) > 4.7)
+			vehicle->setVelocity((4.7*100));
 
 	}
 	
@@ -1449,12 +1451,12 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 	if((startOldLane !=-1) && StartnewLane != -1) id = id + (StartnewLane - startOldLane);
 
 
-	/*if(laneIDS.find(id) != laneIDS.end())
+	if(laneIDS.find(id) != laneIDS.end())
 	{
 		entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(0);//  getLaneEdgePolyline(findID).at(0);
 		lastIndex = id;
 	}
-	else*/
+	else
 	{
 		int findID = total - offset;
 		if(findID > 0)

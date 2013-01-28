@@ -84,6 +84,7 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop
 	//std::cout << "busStopRealTimes " << busStopRealTimes->real_ArrivalTime.getRepr_() << " " << busStopRealTimes->real_DepartureTime.getRepr_() << std::endl;
 	if(!busStopRealTimes_vec.empty()) {
 		busStopRealTimes_vec[busstopSequence_j] = busStopRealTimes;
+
 	}
 }
 

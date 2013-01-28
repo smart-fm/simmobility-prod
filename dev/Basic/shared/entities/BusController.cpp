@@ -15,7 +15,10 @@ using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
 vector<BusController*> BusController::all_busctrllers_;// Temporary saved all the buscontroller, eventually it will go to all agent stream
-
+static int default_headway = 170000;//85000; // 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+bool BusController::busBreak = false;
+const char* BusController::buslineID = NULL;
+int BusController::busstopindex = 1;
 
 void sim_mob::BusController::RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
@@ -171,8 +174,11 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			//busline = new sim_mob::Busline(curr->route_id,"no_control");
 			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type);
+
+			//From Santhosh's branch; re-enable if needed.
+			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
+
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
 			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth
@@ -190,6 +196,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
 		DailyTime advance(curr->headway_sec*200); // 100, 120
+		//DailyTime advance(5*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
 			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
@@ -243,6 +250,30 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 
 	double departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
 	double waitTime_BusStop = 0;
+
+	//From Santhosh's branch; re-enable if needed.
+	/*if(!strategyApplied)
+	{
+		departure_time = (double)(ATijk) + (DTijk * 1000.0);
+		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
+		busStop_RealTimes.setReal_BusStop(lastvisited_busStop);
+		curr_busStopRealTimes->set(busStop_RealTimes);
+
+		// here need test, need add fake RealTimes first
+		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
+
+		std::cout<<"abcdef busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<departure_time<<std::endl;
+		if(trip_k == 1) // for debugging
+		{
+			int stop = busstopSequence_j;
+			std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk)).getRepr_()<<std::endl;
+		}
+
+
+		return DTijk;//wht should be return at+dt?
+
+	}*/
+
 	switch(controltype) {
 	case SCHEDULE_BASED:
 		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, busStopRealTimes_vec_bus, lastVisited_BusStop);
@@ -262,15 +293,18 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 		break;
 	default:
 		// may add default scheduled departure time here
-		std::cout<<"No Control Decision is used!!!---> only DwellTime "<<std::endl;
-//		departure_time = ATijk + (DTijk * 1000.0);
-//		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
-//		busStop_RealTimes.setReal_BusStop(lastvisited_busStop);
-//		busStopRealTimes_vec_bus[busstopSequence_j]->set(busStop_RealTimes);
-//
-//		// here need test, need add fake RealTimes first
-//		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes_vec_bus[busstopSequence_j]);// set this value for next step
+
 		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStop, busStopRealTimes_vec_bus);
+
+		//From Santhosh's branch; re-enable if needed.
+		/*departure_time = (double)(ATijk) + (DTijk * 1000.0);
+		BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
+		busStop_RealTimes.setReal_BusStop(lastvisited_busStop);
+		curr_busStopRealTimes->set(busStop_RealTimes);
+
+		// here need test, need add fake RealTimes first
+		busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, curr_busStopRealTimes);// set this value for next step
+*/
 		waitTime_BusStop = DTijk;
 		break;
 	}

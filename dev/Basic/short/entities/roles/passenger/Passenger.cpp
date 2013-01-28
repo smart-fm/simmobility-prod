@@ -63,6 +63,7 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 	cEnd_busstop_Y=0.0;*/
 	 //this->TimeofBoardingBus = 0;
 	 this->TimeofReachingBusStop = 0;
+	 destination  = Point2D(0,0);
 }
 
 sim_mob::Passenger::~Passenger() {
@@ -301,14 +302,115 @@ Point2D sim_mob::Passenger::getXYPosition()
 
 Point2D sim_mob::Passenger::getDestPosition()
 {
-	return Point2D(parent->destNode->location.getX(),parent->destNode->location.getY());
+	//return Point2D(parent->destNode->location.getX(),parent->destNode->location.getY());
+	return Point2D((destination.getX()),(destination.getY()));
 }
 
 bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k)
 {
-	for(;k < busStops.size();k++)//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
-	{
-		if((abs(( busStops[k]->xPos - this->getDestPosition().getX())/1000)<= 3 )and(abs((busStops[k]->yPos - this->getDestPosition().getY())/1000)<= 3))
+	//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
+	for(;k < busStops.size();k++) {
+		  Point2D busStop_Pos(busStops[k]->xPos,busStops[k]->yPos);
+		  //std::cout<<busStops[k]->busstopno_<<" "<<this->getDestPosition().getX()<<std::endl;
+		  //std::cout<<busStops[k]->yPos<<" "<<this->getDestPosition().getY()<<std::endl;
+		  std::cout<<this->parent->originNode->getID()<<" "<<this->parent->destNode->getID()<<std::endl;
+		  std::cout<<abs(( busStop_Pos.getX() - this->getDestPosition().getX()))<<std::endl;
+		  std::cout<<abs(( busStop_Pos.getY() - this->getDestPosition().getY()))<<std::endl;
+	 	  if ((abs(( busStop_Pos.getX() - this->getDestPosition().getX())/100)<= 3 )  and (abs((busStop_Pos.getY() - this->getDestPosition().getY())/100)<= 3))
+	 		{
+	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
+	 		     {
+	 				 //if passenger is to be boarded,add to passenger vector inside the bus
+	 				  bus->passengers_inside_bus.push_back(p);
+	 	              bus->setPassengerCount(bus->getPassengerCount()+1);
+	 				 // this->passenger_inside_bus.set(true);//to indicate whether passenger is waiting at the bus stop or is inside the bus
+	 	             this->WaitingAtBusStop.set(false);
+	 	             this->busdriver.set(busdriver);//passenger should store the bus driver
+	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
+	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
+	 				double waiting_time = findWaitingTime(bus);
+	 				Person* person1 = dynamic_cast<Person*>(busdriver->getParent());
+					const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person1->currTripChainItem));
+	 				std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<" bustripid "<<bustrip->tripID<<std::endl;
+
+	 				/*std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
+	 				std::cout<<"waiting time"<<this->WaitingTime<<std::endl;
+	 				std::cout<<"id "<<this->parent->getId()<<std::endl;
+	 				std::cout<<"node"<<this->parent->originNode->getID()<<std::endl;
+	 				std::cout<<"bus->TimeOfBusreachingBusstop"<<bus->TimeOfBusreachingBusstop<<std::endl;*/
+	 	             return true;
+	 			}
+	 		}
+	 //	 else
+	 		// return false;
+	 }
+	 return false;
+ }
+ bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
+  {
+	 Point2D busStop_Pos(xpos_approachingbusstop,ypos_approachingbusstop);
+     if ((abs((busStop_Pos.getX()/100)-(this->getDestPosition().getX()/100))<=2)  and (abs((busStop_Pos.getY()/100)-(this->getDestPosition().getY()/100))<=2))
+	 	{
+	        //alight-delete passenger agent from list
+    	    std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
+            bus->setPassengerCount(bus->getPassengerCount()-1);
+            std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
+	 		//this->passenger_inside_bus.set(false);
+	 		this->busdriver.set(nullptr);	//driver would be null as passenger has alighted
+	 		this->alightedBus.set(true);
+	 		this->boardedBus.set(false);
+	 		//this->updateParentCoordinates(xpos_approachingbusstop,ypos_approachingbusstop);
+	 		this->parent->xPos.set(xpos_approachingbusstop);
+	 		this->parent->yPos.set(ypos_approachingbusstop);
+	 		this->random_x.set(xpos_approachingbusstop);
+	 		this->random_y.set(ypos_approachingbusstop);
+            return true;
+	 	}
+	   return false;
+  }
+ std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
+ 	{
+ 		std::vector<sim_mob::BufferedBase*> res;
+ 		//res.push_back(&(passenger_inside_bus));
+ 		res.push_back(&(WaitingAtBusStop));
+ 		res.push_back(&(boardedBus));
+ 		res.push_back(&(alightedBus));
+ 		res.push_back(&(DestReached));
+ 		res.push_back(&(busdriver));
+ 		res.push_back(&(random_x));
+ 		res.push_back(&(random_y));
+ 	//	res.push_back(&(estimated_boarding_passengers_no));
+ 		return res;
+ 	}
+ bool sim_mob::Passenger::isBusBoarded()
+ {
+	 if(this->boardedBus==true)
+		 return true;
+	 else
+		 return false;
+ }
+ double sim_mob::Passenger::findWaitingTime(Bus* bus)
+ {
+	 //this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
+	 this->WaitingTime=bus->TimeOfBusreachingBusstop-this->TimeofReachingBusStop;
+	/* time_t rawtime;
+	 struct tm * timeinfo;
+	 time ( &rawtime );
+	 timeinfo = localtime ( &rawtime );
+	 printf ( "Current local time and date: %s", asctime (timeinfo) );
+	 int seconds=timeinfo->tm_sec;
+	 int minutes=timeinfo->tm_min;*/
+	 return this->WaitingTime;
+ }
+/* void sim_mob::Passenger::EstimateBoardingAlightingPassengers(Bus* bus)
+ {
+
+	//estimated_boarding_passengers_no=0;
+	 StreetDirectory::LaneAndIndexPair ln=StreetDirectory::instance().getLane(parent->originNode->location);
+	 const Lane* lane=ln.lane_;
+	 std::vector<const sim_mob::Agent*> nearby_agents=sim_mob::AuraManager::instance().nearbyAgents(Point2D(this->getXYPosition().getX(), this->getXYPosition().getY()),*lane,3500,3500);
+	 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
+>>>>>>> santhosh_max_PTTrip_merge
 	 	{
 			if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
 			{

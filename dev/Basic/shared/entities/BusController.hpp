@@ -41,6 +41,10 @@ public:
 	///This is a hack for now; any function that uses this is doing something that I'm not 100% clear on. ~Seth
 	static BusController* TEMP_Get_Bc_1();
 
+	static bool busBreak;
+	static const char* buslineID;
+	static int busstopindex;
+
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
 	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 

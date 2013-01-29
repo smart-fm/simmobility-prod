@@ -137,37 +137,52 @@ double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehic
 }
 
 void sim_mob::Conflux::initCandidateAgents() {
+	candidateAgents.clear();
 	resetCurrSegsOnUpLinks();
-	typedef std::map<sim_mob::Link*, const sim_mob::RoadSegment* >::iterator currSegsOnUpLinksIt;
+	for(std::map<sim_mob::Link*, const sim_mob::RoadSegment*>::iterator i = currSegsOnUpLinks.begin();
+			i != currSegsOnUpLinks.end(); i++) {
+		debugMsgs << "[" << i->second->getStart()->getID() << "," << i->second->getEnd()->getID() << "]";
+	}
+	debugMsgs << std::endl;
+	std::cout << debugMsgs.str();
+	debugMsgs.str("");
+
 	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
-	for (currSegsOnUpLinksIt i = currSegsOnUpLinks.begin(); i != currSegsOnUpLinks.end(); i++) {
+	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
 		lnk = i->first;
-		while (currSegsOnUpLinks.find(lnk) != currSegsOnUpLinks.end()) {
-			rdSeg = currSegsOnUpLinks[lnk];
-			if( !rdSeg){
+		int count = 0;
+		while (currSegsOnUpLinks.find(lnk) != currSegsOnUpLinks.end() && currSegsOnUpLinks.at(lnk)) {
+			count ++;
+			rdSeg = currSegsOnUpLinks.at(lnk);
+
+			// To be removed
+			if(!rdSeg){
+				debugMsgs << "count: " << count << "|currSegsOnUpLinks- multinode: " << multiNode->getID() << " size: " << currSegsOnUpLinks.size() << "|";
 				for(std::map<sim_mob::Link*, const RoadSegment*>::iterator i = currSegsOnUpLinks.begin();
 						i != currSegsOnUpLinks.end(); i++) {
-					debugMsgs<<"currSegsOnUpLinks- multinode: "<< multiNode->getID()<<" size: "<<currSegsOnUpLinks.size()<<std::endl;
-					std::cout << debugMsgs.str();
-					debugMsgs.str("");
+					debugMsgs<< " ["<< i->second << "]" ;
 				}
+				debugMsgs << std::endl;
+				std::cout << debugMsgs.str();
+				debugMsgs.str("");
 				throw std::runtime_error("Road Segment NULL");
 			}
-			segmentAgents[rdSeg]->resetFrontalAgents();
-			candidateAgents[rdSeg] = segmentAgents[rdSeg]->getNext();
-			if(candidateAgents.find(rdSeg) != candidateAgents.end()) {
+			segmentAgents.at(rdSeg)->resetFrontalAgents();
+			candidateAgents.insert(std::make_pair(rdSeg,segmentAgents.at(rdSeg)->getNext()));
+			if(!candidateAgents.at(rdSeg)) {
 				// this road segment is deserted. search the next (which is, technically, the previous).
-				const std::vector<sim_mob::RoadSegment*> segments = upstreamSegmentsMap.at(lnk);
+				const std::vector<sim_mob::RoadSegment*> segments = i->second; // or upstreamSegmentsMap.at(lnk);
 				std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), rdSeg);
+				currSegsOnUpLinks.erase(lnk);
 				if(rdSegIt != segments.begin()) {
 					rdSegIt--;
-					currSegsOnUpLinks.erase(lnk);
-					currSegsOnUpLinks[lnk] = *rdSegIt;
+					currSegsOnUpLinks.insert(std::make_pair(lnk, *rdSegIt));
 				}
 				else {
 					currSegsOnUpLinks.erase(lnk);
-					currSegsOnUpLinks[lnk] = nullptr;
+					const sim_mob::RoadSegment* nullSeg = nullptr;
+					currSegsOnUpLinks.insert(std::make_pair(lnk, nullSeg));
 				}
 			}
 			else { break; }
@@ -184,6 +199,7 @@ unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rd
 }
 
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
+	debugMsgs << "resetCurrSegsOnUpLinks()|multinode: " << multiNode->getID() << "|";
 	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin();
 			i != upstreamSegmentsMap.end(); i++) {

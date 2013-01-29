@@ -26,6 +26,7 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::default_models_pimpl default_models_p(resultConfig);
 	    ::sim_mob::conf::workgroup_mappings_pimpl workgroup_mappings_p(resultConfig);
 	    ::sim_mob::conf::generic_props_pimpl generic_props_p(resultConfig);
+	    ::sim_mob::conf::road_network_pimpl road_network_p(resultConfig);
 
 	    //Trivially-constructed parsers.
 	    ::sim_mob::conf::model_pimpl model_p;
@@ -49,7 +50,6 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::react_times_pimpl react_times_p;
 	    ::sim_mob::conf::dist_mapping_pimpl dist_mapping_p;
 	    ::sim_mob::conf::geospatial_pimpl geospatial_p;
-	    ::sim_mob::conf::road_network_pimpl road_network_p;
 	    ::sim_mob::conf::database_loader_pimpl database_loader_p;
 	    ::sim_mob::conf::xml_loader_pimpl xml_loader_p;
 	    ::sim_mob::conf::agents_pimpl agents_p;

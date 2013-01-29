@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 #include <stdexcept>
 
 #include "util/LangHelpers.hpp"
@@ -27,6 +28,43 @@ private:
 };
 
 
+/**
+ * A loader for either the database or XML. Kind of a hack for now, since we use value-types in
+ *   the loaders vector.
+ */
+class DbOrXmlLoader {
+public:
+	static DbOrXmlLoader MakeXmlLoader(const std::string& file, const std::string& rootElement) {
+		return DbOrXmlLoader(true, std::make_pair(file, rootElement));
+	}
+	static DbOrXmlLoader MakeDbLoader(const std::string& connection, const std::string& mappings) {
+		return DbOrXmlLoader(false, std::make_pair(connection, mappings));
+	}
+
+	std::string getXmlFile() {
+		if (!isXml) { throw std::runtime_error("Not XmlLoader"); }
+		return props.first;
+	}
+	std::string getXmlRoot() {
+		if (!isXml) { throw std::runtime_error("Not XmlLoader"); }
+		return props.second;
+	}
+
+	std::string getDbConnection() {
+		if (isXml) { throw std::runtime_error("Not DbLoader"); }
+		return props.first;
+	}
+	std::string getDbMappings() {
+		if (isXml) { throw std::runtime_error("Not DbLoader"); }
+		return props.first;
+	}
+
+private:
+	DbOrXmlLoader(bool isXml, std::pair<std::string,std::string> props) : isXml(isXml), props(props) {}
+	std::pair<std::string,std::string> props;
+	bool isXml;
+};
+
 
 
 
@@ -48,7 +86,8 @@ struct Simulation {
 	ReactionTimeDist* subjectVehReactTime;
 	ReactionTimeDist* vehicleGapReactTime;
 
-	//TODO: Geospatial loaders.
+	std::vector<DbOrXmlLoader> roadNetworkLoaders;
+
 	//TODO: Agent loaders.
 
 };

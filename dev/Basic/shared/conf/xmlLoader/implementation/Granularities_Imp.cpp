@@ -16,11 +16,11 @@ void sim_mob::conf::granularities_pimpl::post_granularities ()
 {
 }
 
-void sim_mob::conf::granularities_pimpl::agent ()
+void sim_mob::conf::granularities_pimpl::agent (const sim_mob::Granularity&)
 {
 }
 
-void sim_mob::conf::granularities_pimpl::signal ()
+void sim_mob::conf::granularities_pimpl::signal (const sim_mob::Granularity&)
 {
 }
 

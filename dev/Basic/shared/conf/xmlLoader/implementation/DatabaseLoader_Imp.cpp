@@ -10,20 +10,21 @@ using std::pair;
 
 void sim_mob::conf::database_loader_pimpl::pre ()
 {
+	model = std::make_pair("","");
 }
 
-void sim_mob::conf::database_loader_pimpl::post_database_loader ()
+std::pair<std::string, std::string> sim_mob::conf::database_loader_pimpl::post_database_loader ()
 {
 }
 
-void sim_mob::conf::database_loader_pimpl::connection (const ::std::string& connection)
+void sim_mob::conf::database_loader_pimpl::connection (const ::std::string& value)
 {
-  std::cout << "connection: " << connection << std::endl;
+	model.first = value;
 }
 
-void sim_mob::conf::database_loader_pimpl::mappings (const ::std::string& mappings)
+void sim_mob::conf::database_loader_pimpl::mappings (const ::std::string& value)
 {
-  std::cout << "mappings: " << mappings << std::endl;
+	model.second = value;
 }
 
 

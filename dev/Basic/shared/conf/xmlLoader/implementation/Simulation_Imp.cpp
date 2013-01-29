@@ -16,15 +16,15 @@ void sim_mob::conf::simulation_pimpl::post_simulation ()
 {
 }
 
-void sim_mob::conf::simulation_pimpl::base_granularity ()
+void sim_mob::conf::simulation_pimpl::base_granularity (const sim_mob::Granularity&)
 {
 }
 
-void sim_mob::conf::simulation_pimpl::total_runtime ()
+void sim_mob::conf::simulation_pimpl::total_runtime (const sim_mob::Granularity&)
 {
 }
 
-void sim_mob::conf::simulation_pimpl::total_warmup ()
+void sim_mob::conf::simulation_pimpl::total_warmup (const sim_mob::Granularity&)
 {
 }
 

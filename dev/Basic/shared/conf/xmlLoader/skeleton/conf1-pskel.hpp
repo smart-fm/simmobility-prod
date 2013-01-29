@@ -831,8 +831,8 @@ namespace sim_mob
       virtual void
       units (const ::std::string&);
 
-      virtual void
-      post_val_units ();
+      virtual sim_mob::Granularity
+      post_val_units () = 0;
 
       // Parser construction API.
       //
@@ -915,8 +915,8 @@ namespace sim_mob
       virtual void
       mappings (const ::std::string&);
 
-      virtual void
-      post_database_loader ();
+      virtual std::pair<std::string, std::string>
+      post_database_loader () = 0;
 
       // Parser construction API.
       //
@@ -1002,7 +1002,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1052,7 +1052,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1102,7 +1102,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1231,7 +1231,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1368,7 +1368,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1426,7 +1426,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      database_loader ();
+      database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       xml_loader ();
@@ -1608,13 +1608,13 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      base_granularity ();
+      base_granularity (const sim_mob::Granularity&);
 
       virtual void
-      total_runtime ();
+      total_runtime (const sim_mob::Granularity&);
 
       virtual void
-      total_warmup ();
+      total_warmup (const sim_mob::Granularity&);
 
       virtual void
       start_time ();
@@ -2178,10 +2178,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      agent ();
+      agent (const sim_mob::Granularity&);
 
       virtual void
-      signal ();
+      signal (const sim_mob::Granularity&);
 
       virtual void
       post_granularities ();

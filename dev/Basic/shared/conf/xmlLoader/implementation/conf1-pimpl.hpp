@@ -158,10 +158,13 @@ private:
 class val_units_pimpl: public virtual val_units_pskel {
 public:
 	virtual void pre ();
-	virtual void post_val_units ();
+	virtual sim_mob::Granularity post_val_units ();
 
 	virtual void value (int);
 	virtual void units (const ::std::string&);
+
+private:
+	std::pair<int,std::string> model;
 };
 
 
@@ -177,10 +180,13 @@ public:
 class database_loader_pimpl: public virtual database_loader_pskel {
 public:
 	virtual void pre ();
-	virtual void post_database_loader ();
+	virtual std::pair<std::string, std::string> post_database_loader ();
 
 	virtual void connection (const ::std::string&);
 	virtual void mappings (const ::std::string&);
+
+private:
+	std::pair<std::string,std::string> model;
 };
 
 
@@ -196,11 +202,16 @@ public:
 
 class road_network_pimpl: public virtual road_network_pskel {
 public:
+	road_network_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_road_network ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
+
+private:
+	Config* config;
 };
 
 
@@ -209,7 +220,7 @@ public:
 	virtual void pre ();
 	virtual void post_trip_chains ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
 };
 
@@ -219,7 +230,7 @@ public:
 	virtual void pre ();
 	virtual void post_signals ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
 };
 
@@ -242,7 +253,7 @@ public:
 	virtual void pre ();
 	virtual void post_drivers ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
 	virtual void driver ();
 };
@@ -266,7 +277,7 @@ public:
 	virtual void pre ();
 	virtual void post_pedestrians ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
 	virtual void pedestrian ();
 };
@@ -277,7 +288,7 @@ public:
 	virtual void pre ();
 	virtual void post_busdrivers ();
 
-	virtual void database_loader ();
+	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader ();
 };
 
@@ -316,9 +327,9 @@ public:
 	virtual void pre ();
 	virtual void post_simulation ();
 
-	virtual void base_granularity ();
-	virtual void total_runtime ();
-	virtual void total_warmup ();
+	virtual void base_granularity (const sim_mob::Granularity&);
+	virtual void total_runtime (const sim_mob::Granularity&);
+	virtual void total_warmup (const sim_mob::Granularity&);
 	virtual void start_time ();
 	virtual void granularities ();
 	virtual void react_times ();
@@ -475,8 +486,8 @@ public:
 	virtual void pre ();
 	virtual void post_granularities ();
 
-	virtual void agent ();
-	virtual void signal ();
+	virtual void agent (const sim_mob::Granularity&);
+	virtual void signal (const sim_mob::Granularity&);
 };
 
 

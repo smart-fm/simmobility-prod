@@ -2044,11 +2044,6 @@ namespace sim_mob
     {
     }
 
-    void val_units_pskel::
-    post_val_units ()
-    {
-    }
-
     bool val_units_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -2136,11 +2131,6 @@ namespace sim_mob
 
     void database_loader_pskel::
     mappings (const ::std::string&)
-    {
-    }
-
-    void database_loader_pskel::
-    post_database_loader ()
     {
     }
 
@@ -2244,7 +2234,7 @@ namespace sim_mob
     //
 
     void road_network_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2301,10 +2291,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2327,7 +2314,7 @@ namespace sim_mob
     //
 
     void trip_chains_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2384,10 +2371,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2410,7 +2394,7 @@ namespace sim_mob
     //
 
     void signals_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2467,10 +2451,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2634,7 +2615,7 @@ namespace sim_mob
     //
 
     void drivers_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2706,10 +2687,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2884,7 +2862,7 @@ namespace sim_mob
     //
 
     void pedestrians_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2956,10 +2934,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2993,7 +2968,7 @@ namespace sim_mob
     //
 
     void busdrivers_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -3050,10 +3025,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -3346,17 +3318,17 @@ namespace sim_mob
     //
 
     void simulation_pskel::
-    base_granularity ()
+    base_granularity (const sim_mob::Granularity&)
     {
     }
 
     void simulation_pskel::
-    total_runtime ()
+    total_runtime (const sim_mob::Granularity&)
     {
     }
 
     void simulation_pskel::
-    total_warmup ()
+    total_warmup (const sim_mob::Granularity&)
     {
     }
 
@@ -3493,10 +3465,7 @@ namespace sim_mob
       if (n == "base_granularity" && ns.empty ())
       {
         if (this->base_granularity_parser_)
-        {
-          this->base_granularity_parser_->post_val_units ();
-          this->base_granularity ();
-        }
+          this->base_granularity (this->base_granularity_parser_->post_val_units ());
 
         return true;
       }
@@ -3504,10 +3473,7 @@ namespace sim_mob
       if (n == "total_runtime" && ns.empty ())
       {
         if (this->total_runtime_parser_)
-        {
-          this->total_runtime_parser_->post_val_units ();
-          this->total_runtime ();
-        }
+          this->total_runtime (this->total_runtime_parser_->post_val_units ());
 
         return true;
       }
@@ -3515,10 +3481,7 @@ namespace sim_mob
       if (n == "total_warmup" && ns.empty ())
       {
         if (this->total_warmup_parser_)
-        {
-          this->total_warmup_parser_->post_val_units ();
-          this->total_warmup ();
-        }
+          this->total_warmup (this->total_warmup_parser_->post_val_units ());
 
         return true;
       }
@@ -4279,12 +4242,12 @@ namespace sim_mob
     //
 
     void granularities_pskel::
-    agent ()
+    agent (const sim_mob::Granularity&)
     {
     }
 
     void granularities_pskel::
-    signal ()
+    signal (const sim_mob::Granularity&)
     {
     }
 
@@ -4336,10 +4299,7 @@ namespace sim_mob
       if (n == "agent" && ns.empty ())
       {
         if (this->agent_parser_)
-        {
-          this->agent_parser_->post_val_units ();
-          this->agent ();
-        }
+          this->agent (this->agent_parser_->post_val_units ());
 
         return true;
       }
@@ -4347,10 +4307,7 @@ namespace sim_mob
       if (n == "signal" && ns.empty ())
       {
         if (this->signal_parser_)
-        {
-          this->signal_parser_->post_val_units ();
-          this->signal ();
-        }
+          this->signal (this->signal_parser_->post_val_units ());
 
         return true;
       }

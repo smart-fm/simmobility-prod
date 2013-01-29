@@ -16,7 +16,7 @@ void sim_mob::conf::signals_pimpl::post_signals ()
 {
 }
 
-void sim_mob::conf::signals_pimpl::database_loader ()
+void sim_mob::conf::signals_pimpl::database_loader (const std::pair<std::string, std::string>&)
 {
 }
 

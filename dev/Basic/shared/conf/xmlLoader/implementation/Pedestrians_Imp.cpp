@@ -16,7 +16,7 @@ void sim_mob::conf::pedestrians_pimpl::post_pedestrians ()
 {
 }
 
-void sim_mob::conf::pedestrians_pimpl::database_loader ()
+void sim_mob::conf::pedestrians_pimpl::database_loader (const std::pair<std::string, std::string>&)
 {
 }
 

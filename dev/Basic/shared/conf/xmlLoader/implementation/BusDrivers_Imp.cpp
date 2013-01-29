@@ -16,7 +16,7 @@ void sim_mob::conf::busdrivers_pimpl::post_busdrivers ()
 {
 }
 
-void sim_mob::conf::busdrivers_pimpl::database_loader ()
+void sim_mob::conf::busdrivers_pimpl::database_loader (const std::pair<std::string, std::string>&)
 {
 }
 

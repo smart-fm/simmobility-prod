@@ -16,7 +16,7 @@ void sim_mob::conf::trip_chains_pimpl::post_trip_chains ()
 {
 }
 
-void sim_mob::conf::trip_chains_pimpl::database_loader ()
+void sim_mob::conf::trip_chains_pimpl::database_loader (const std::pair<std::string, std::string>&)
 {
 }
 

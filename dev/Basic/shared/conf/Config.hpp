@@ -94,9 +94,14 @@ public:
 
 	//@{
 	///Accessor for the system struct.
-	///A construct is anything that can be created (dynamically) from the XML config file.
 	sim_mob::System& system() { return system_; }
 	const sim_mob::System& system() const { return system_; }
+	///@
+
+	//@{
+	///Accessor for the simulation struct.
+	sim_mob::Simulation& simulation() { return simulation_; }
+	const sim_mob::Simulation& simulation() const { return simulation_; }
 	///@
 
 	//@{
@@ -112,6 +117,7 @@ private:
 	sim_mob::Constructs constructs_;
 	bool single_threaded;
 	sim_mob::System system_;
+	sim_mob::Simulation simulation_;
 
 	//Default built-in models
 	BuiltInModels built_in_models;

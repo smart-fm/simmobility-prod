@@ -171,9 +171,12 @@ private:
 class dist_mapping_pimpl: public virtual dist_mapping_pskel {
 public:
 	virtual void pre ();
-	virtual void post_dist_mapping ();
+	virtual std::string post_dist_mapping ();
 
 	virtual void dist (const ::std::string&);
+
+private:
+	std::string model;
 };
 
 
@@ -193,10 +196,13 @@ private:
 class xml_loader_pimpl: public virtual xml_loader_pskel {
 public:
 	virtual void pre ();
-	virtual void post_xml_loader ();
+	virtual std::pair<std::string, std::string> post_xml_loader ();
 
 	virtual void file (const ::std::string&);
 	virtual void root_element (const ::std::string&);
+
+private:
+	std::pair<std::string, std::string> model;
 };
 
 
@@ -208,7 +214,7 @@ public:
 	virtual void post_road_network ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 
 private:
 	Config* config;
@@ -221,7 +227,7 @@ public:
 	virtual void post_trip_chains ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 };
 
 
@@ -231,7 +237,7 @@ public:
 	virtual void post_signals ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 };
 
 
@@ -254,7 +260,7 @@ public:
 	virtual void post_drivers ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 	virtual void driver ();
 };
 
@@ -278,7 +284,7 @@ public:
 	virtual void post_pedestrians ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 	virtual void pedestrian ();
 };
 
@@ -289,7 +295,7 @@ public:
 	virtual void post_busdrivers ();
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
-	virtual void xml_loader ();
+	virtual void xml_loader (const std::pair<std::string, std::string>&);
 };
 
 
@@ -324,17 +330,22 @@ public:
 
 class simulation_pimpl: public virtual simulation_pskel {
 public:
+	simulation_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_simulation ();
 
 	virtual void base_granularity (const sim_mob::Granularity&);
 	virtual void total_runtime (const sim_mob::Granularity&);
 	virtual void total_warmup (const sim_mob::Granularity&);
-	virtual void start_time ();
-	virtual void granularities ();
+	virtual void start_time (const sim_mob::DailyTime&);
+	virtual void granularities (const std::pair<sim_mob::Granularity, sim_mob::Granularity>&);
 	virtual void react_times ();
 	virtual void geospatial ();
 	virtual void agents ();
+
+private:
+	Config* config;
 };
 
 
@@ -475,30 +486,42 @@ private:
 class start_time_pimpl: public virtual start_time_pskel {
 public:
 	virtual void pre ();
-	virtual void post_start_time ();
+	virtual sim_mob::DailyTime post_start_time ();
 
 	virtual void value (const ::std::string&);
+
+private:
+	std::string model;
 };
 
 
 class granularities_pimpl: public virtual granularities_pskel {
 public:
 	virtual void pre ();
-	virtual void post_granularities ();
+	virtual std::pair<sim_mob::Granularity, sim_mob::Granularity> post_granularities ();
 
 	virtual void agent (const sim_mob::Granularity&);
 	virtual void signal (const sim_mob::Granularity&);
+
+private:
+	sim_mob::Granularity agentGran;
+	sim_mob::Granularity signalGran;
 };
 
 
 class react_times_pimpl: public virtual react_times_pskel {
 public:
+	react_times_pimpl(Config& config) : config(&config) {}
+
 	virtual void pre ();
 	virtual void post_react_times ();
 
-	virtual void leading_vehicle ();
-	virtual void subject_vehicle ();
-	virtual void vehicle_gap ();
+	virtual void leading_vehicle (const std::string&);
+	virtual void subject_vehicle (const std::string&);
+	virtual void vehicle_gap (const std::string&);
+
+private:
+	Config* config;
 };
 
 

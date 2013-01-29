@@ -20,7 +20,7 @@ void sim_mob::conf::busdrivers_pimpl::database_loader (const std::pair<std::stri
 {
 }
 
-void sim_mob::conf::busdrivers_pimpl::xml_loader ()
+void sim_mob::conf::busdrivers_pimpl::xml_loader (const std::pair<std::string, std::string>&)
 {
 }
 

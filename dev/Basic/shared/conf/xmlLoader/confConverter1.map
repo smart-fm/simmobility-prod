@@ -12,7 +12,11 @@ proc_map           "std::pair<std::string, sim_mob::StoredProcedureMap>";
 default_model      "std::pair<std::string, std::string>";
 workgroup_mapping  "std::string";
 gen_prop           "std::pair<std::string, std::string>";
-database_loader    "std::pair<std::string, std::string>";
 val_units          "sim_mob::Granularity";
+start_time         "sim_mob::DailyTime";
+granularities      "std::pair<sim_mob::Granularity, sim_mob::Granularity>";
+dist_mapping       "std::string";
+database_loader    "std::pair<std::string, std::string>";
+xml_loader    "std::pair<std::string, std::string>";
 
 }

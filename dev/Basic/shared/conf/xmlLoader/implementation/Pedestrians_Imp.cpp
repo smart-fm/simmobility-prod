@@ -20,7 +20,7 @@ void sim_mob::conf::pedestrians_pimpl::database_loader (const std::pair<std::str
 {
 }
 
-void sim_mob::conf::pedestrians_pimpl::xml_loader ()
+void sim_mob::conf::pedestrians_pimpl::xml_loader (const std::pair<std::string, std::string>&)
 {
 }
 

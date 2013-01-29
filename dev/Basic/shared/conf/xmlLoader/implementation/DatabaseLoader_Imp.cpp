@@ -15,6 +15,7 @@ void sim_mob::conf::database_loader_pimpl::pre ()
 
 std::pair<std::string, std::string> sim_mob::conf::database_loader_pimpl::post_database_loader ()
 {
+	return model;
 }
 
 void sim_mob::conf::database_loader_pimpl::connection (const ::std::string& value)

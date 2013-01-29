@@ -874,8 +874,8 @@ namespace sim_mob
       virtual void
       dist (const ::std::string&);
 
-      virtual void
-      post_dist_mapping ();
+      virtual std::string
+      post_dist_mapping () = 0;
 
       // Parser construction API.
       //
@@ -961,8 +961,8 @@ namespace sim_mob
       virtual void
       root_element (const ::std::string&);
 
-      virtual void
-      post_xml_loader ();
+      virtual std::pair<std::string, std::string>
+      post_xml_loader () = 0;
 
       // Parser construction API.
       //
@@ -1005,7 +1005,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       post_road_network ();
@@ -1055,7 +1055,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       post_trip_chains ();
@@ -1105,7 +1105,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       post_signals ();
@@ -1234,7 +1234,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       driver ();
@@ -1371,7 +1371,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       pedestrian ();
@@ -1429,7 +1429,7 @@ namespace sim_mob
       database_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      xml_loader ();
+      xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
       post_busdrivers ();
@@ -1617,10 +1617,10 @@ namespace sim_mob
       total_warmup (const sim_mob::Granularity&);
 
       virtual void
-      start_time ();
+      start_time (const sim_mob::DailyTime&);
 
       virtual void
-      granularities ();
+      granularities (const std::pair<sim_mob::Granularity, sim_mob::Granularity>&);
 
       virtual void
       react_times ();
@@ -2142,8 +2142,8 @@ namespace sim_mob
       virtual void
       value (const ::std::string&);
 
-      virtual void
-      post_start_time ();
+      virtual sim_mob::DailyTime
+      post_start_time () = 0;
 
       // Parser construction API.
       //
@@ -2183,8 +2183,8 @@ namespace sim_mob
       virtual void
       signal (const sim_mob::Granularity&);
 
-      virtual void
-      post_granularities ();
+      virtual std::pair<sim_mob::Granularity, sim_mob::Granularity>
+      post_granularities () = 0;
 
       // Parser construction API.
       //
@@ -2228,13 +2228,13 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      leading_vehicle ();
+      leading_vehicle (const std::string&);
 
       virtual void
-      subject_vehicle ();
+      subject_vehicle (const std::string&);
 
       virtual void
-      vehicle_gap ();
+      vehicle_gap (const std::string&);
 
       virtual void
       post_react_times ();

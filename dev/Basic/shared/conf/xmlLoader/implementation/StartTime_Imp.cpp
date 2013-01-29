@@ -10,15 +10,17 @@ using std::pair;
 
 void sim_mob::conf::start_time_pimpl::pre ()
 {
+	model = "";
 }
 
-void sim_mob::conf::start_time_pimpl::post_start_time ()
+sim_mob::DailyTime sim_mob::conf::start_time_pimpl::post_start_time ()
 {
+	return sim_mob::DailyTime(model);
 }
 
 void sim_mob::conf::start_time_pimpl::value (const ::std::string& value)
 {
-  std::cout << "value: " << value << std::endl;
+	model = value;
 }
 
 

@@ -58,12 +58,6 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :
 			}
 		}
 	}
-
-	//From santhosh_max_PTTrip_merge
-	//Please uncomment if needed.
-	//wait = false;
-	//firstBus = false;
-	//tick = 0;
 }
 
 Role* sim_mob::BusDriver::clone(Person* parent) const {
@@ -327,12 +321,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	p.turningDirection = vehicle->getTurningDirection();
 
-	//NOTE: Santhosh's branch removed this; remove if needed.
-	if(p.now.frame() < 2420 && p.now.frame() > 2065 &&  (this == me))
-	{
-		std::cout << "2-Velocity: " << vehicle->getVelocity() <<  "  LatVelocity: " <<vehicle->getLatVelocity() << "  Approaching = " << (isBusApproachingBusStop()?"TRUE":"FALSE") << std::endl;
-	}
-
 	if (isBusApproachingBusStop()) {
 		double acc = busAccelerating(p) * 100;
 
@@ -360,35 +348,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 							dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 
 		waitAtStopMS = 0;
-
-		//How to generate an incident
-		//if (BusController::busBreak && (busstop_sequence_no == 0 ) && (bustrip->tripID == 2)) {
-		//	wait = true;
-		//	BusController::busBreak = false;
-		//}
 	}
 
-	//From Santhosh's branch:
-	/*if (wait && isBusGngtoBreakDown()) {
-		vehicle->setVelocity(0);
-		vehicle->setAcceleration(0);
-		if ((vehicle->getVelocity() < 0.1) && (waitAtStopMS < 250)) {//old 234
-			waitAtStopMS = waitAtStopMS + p.elapsedSeconds; //tick++;
-		} else if (waitAtStopMS >= 250) {
-			wait = false;
-			tick = 0;
-			waitAtStopMS = 0;
-			//vehicle->setVelocity(60);
-			//vehicle->setAcceleration(10);
-		}
 
-	}*/
-
-	//TODO: I couldn't determine where "wait" comes from; it was probably lost in the merges
-	//      from the past. ~Seth
-	bool wait = false;
-
-	if (!wait && isBusArriveBusStop() && (waitAtStopMS >= 0)
+	if (isBusArriveBusStop() && (waitAtStopMS >= 0)
 			&& (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
 
 //		if ((vehicle->getVelocity()/100) > 0)
@@ -453,43 +416,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 									BusController::TEMP_Get_Bc_1()->storeRealTimes_eachBusStop(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),lastVisited_BusStop.get(),getBusStop_RealTimes());
 								}
 								bustrip->lastVisitedStop_SequenceNumber = busstop_sequence_no.get();
-
-								//From Santhosh's branch; enable if needed.
-								/*if ((busstop_sequence_no.get() == 2)
-										|| (busstop_sequence_no.get() == 6)) { // only use holding control at selected time points
-									double waitTime = 0;
-									waitTime =
-											BusController::TEMP_Get_Bc_1()->decisionCalculation(
-													busline->getBusLineID(),
-													bustrip->getBusTripRun_SequenceNum(),
-													busstop_sequence_no.get(),
-													real_ArrivalTime.get(),
-													DwellTime_ijk.get(),
-													busStopRealTimes_vec.at(
-														busstop_sequence_no.get()),
-													lastVisited_BusStop.get(),
-													true);
-									setWaitTime_BusStop(waitTime);
-								} else { //if bus doesnot come to time point stop need to update the realtime
-									double waitTime = 0;
-									waitTime =
-											BusController::TEMP_Get_Bc_1()->decisionCalculation(
-													busline->getBusLineID(),
-													bustrip->getBusTripRun_SequenceNum(),
-													busstop_sequence_no.get(),
-													real_ArrivalTime.get(),
-													DwellTime_ijk.get(),
-													busStopRealTimes_vec.at(
-															busstop_sequence_no.get()),
-													lastVisited_BusStop.get(),
-													false);
-									setWaitTime_BusStop(waitTime); // ignore the other BusStops, just use DwellTime
-								}
-								BusTrip* bustrip_change =
-										dynamic_cast<BusTrip*>(*(person->currTripChainItem));
-								bustrip_change->lastVisitedStop_SequenceNumber =
-										busstop_sequence_no.get();*/
-
 							} else {
 								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
 								setWaitTime_BusStop(DwellTime_ijk.get());
@@ -507,13 +433,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			}
 		}
 	}
-	if(bustrip->tripID==3 && p.now.frame()>9180)
-			{
-				std::cout<<bustrip->tripID<<" "<<p.now.frame()<<std::endl;
-
-			}
 	if (isBusLeavingBusStop()
-			|| (waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC && !wait)) {
+			|| (waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 				<< std::endl;
 		waitAtStopMS = -1;
@@ -956,36 +877,6 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	//std::cout << "busStopRealTimes_vec_bus.size() " << busStopRealTimes_vec_bus.size() << std::endl;
 	for(int j = 0; j < busStopRealTimes_vec_bus.size(); j++) {
 		res.push_back(busStopRealTimes_vec_bus[j]);
-
-
-	//From Santhosh's branch; re-enable if needed.
-	/*Person* person = dynamic_cast<Person*>(parent);
-	ConfigParams& config = ConfigParams::GetInstance();
-	if (person) {
-		if (person->getAgentSrc() == "BusController") {
-			const BusTrip* bustrip =
-					dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-			if (bustrip
-					&& (*(person->currTripChainItem))->itemType
-							== TripChainItem::IT_BUSTRIP) {
-				std::vector<const BusStop*> busStops_temp =
-						bustrip->getBusRouteInfo().getBusStops();
-				std::cout << "busStops_temp.size(): " << busStops_temp.size()
-						<< std::endl;
-
-				int size = busStops_temp.size();
-
-				for (int i = 0; i < size; i++)
-					busStopRealTimes_vec.push_back(
-							new Shared<BusStop_RealTimes>(
-									ConfigParams::GetInstance().mutexStategy,
-									BusStop_RealTimes()));
-
-				for (int i = 0; i < size; i++)
-					res.push_back(busStopRealTimes_vec.at(i));
-
-			}
-		}*/
 	}
 
 	return res;

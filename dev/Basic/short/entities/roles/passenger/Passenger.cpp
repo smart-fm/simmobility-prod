@@ -57,11 +57,6 @@ pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 
 sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string roleName) : Role(parent,roleName),WaitingAtBusStop(mtxStrat,true),boardedBus(mtxStrat,false),alightedBus(mtxStrat,false),DestReached(mtxStrat,false),busdriver(mtxStrat,nullptr),random_x(mtxStrat,0),random_y(mtxStrat,0),WaitingTime(-1),params(parent->getGenerator())
 {
-	/*cStart_busstop_X=0.0;
-	cStart_busstop_Y=0.0;
-	cEnd_busstop_X=0.0;
-	cEnd_busstop_Y=0.0;*/
-	 //this->TimeofBoardingBus = 0;
 	 this->TimeofReachingBusStop = 0;
 	 destination  = Point2D(0,0);
 }
@@ -76,9 +71,6 @@ void sim_mob::Passenger::setParentBufferedData() {
 	  parent->xPos.set(this->busdriver.get()->getPositionX());//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
 	  parent->yPos.set(this->busdriver.get()->getPositionY());
 	}
-
-
-
 }
 
 void sim_mob::Passenger::frame_init(UpdateParams& p)
@@ -89,81 +81,70 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 destination.setX(parent->destNode->location.getX());
 	 destination.setY(parent->destNode->location.getY());
 
-	if(parent->destNode->getID() == 75780)
-	{
-		destination.setX(37222809);
-		destination.setY(14331981);
-	}
-	else if(parent->destNode->getID()==75822)
-	{
-		destination.setX(37290070);//75822
-		destination.setY(14390218);
-	}
-	else if(parent->destNode->getID() == 91144)
-	{
-		destination.setX(37285920);
-		destination.setY(14375941);
-
-	}
-	else if(parent->destNode->getID() == 106946)
-	{
-		destination.setX(37267223);
-		destination.setY(14352090);
-
-	}
-	else if(parent->destNode->getID() == 103046)
-	{
-		destination.setX(37234196);
-		destination.setY(14337740);
-
-	}
-	else if(parent->destNode->getID() == 95374)
-	{
-		destination.setX(37241994);
-		destination.setY(14347188);
-
-	}
-	else if(parent->destNode->getID() == 58950)
-	{
-		destination.setX(37263940);
-		destination.setY(14373280);
-
-	}
-	else if(parent->destNode->getID() == 75808)
-	{
-		destination.setX(37274363);
-		destination.setY(14385509);
-
-	}
-	else if(parent->destNode->getID() == 98852)
-	{
-		destination.setX(37254693);
-		destination.setY(14335301);
-
-	}
-
-	if(parent->originNode->getID() == 75780)
-	{
-		parent->xPos.set(37222809);
-		parent->yPos.set(14331981);
-
-	}
-	else if(parent->originNode->getID() == 91144)
-	{
-		parent->xPos.set(37285920);
-		parent->yPos.set(14375941);
-
-	}
-	else if(parent->originNode->getID() == 106946)
-	{
-		parent->xPos.set(37267223);
-		parent->yPos.set(14352090);
-
-	}
-	else if(parent->originNode->location.getX()==37236345)//103046
+	 if(parent->destNode->getID() == 75780)
 	 {
-	 parent->xPos.set(37234200);
-	 parent->yPos.set(14337700);
+		 destination.setX(37222809);
+		 destination.setY(14331981);
+	 }
+	 else if(parent->destNode->getID()==75822)
+	 {
+		 destination.setX(37290070);//75822
+		 destination.setY(14390218);
+	 }
+	 else if(parent->destNode->getID() == 91144)
+	 {
+		 destination.setX(37285920);
+		 destination.setY(14375941);
+	 }
+	 else if(parent->destNode->getID() == 106946)
+	 {
+		 destination.setX(37267223);
+		 destination.setY(14352090);
+	 }
+	 else if(parent->destNode->getID() == 103046)
+	 {
+		 destination.setX(37234196);
+		 destination.setY(14337740);
+	 }
+	 else if(parent->destNode->getID() == 95374)
+	 {
+		 destination.setX(37241994);
+		 destination.setY(14347188);
+	 }
+	 else if(parent->destNode->getID() == 58950)
+	 {
+		 destination.setX(37263940);
+		 destination.setY(14373280);
+	 }
+	 else if(parent->destNode->getID() == 75808)
+	 {
+		 destination.setX(37274363);
+		 destination.setY(14385509);
+	 }
+	 else if(parent->destNode->getID() == 98852)
+	 {
+		 destination.setX(37254693);
+		 destination.setY(14335301);
+	 }
+	 if(parent->originNode->getID() == 75780)
+	 {
+		 parent->xPos.set(37222809);
+		 parent->yPos.set(14331981);
+	 }
+	 else if(parent->originNode->getID() == 91144)
+	 {
+		 parent->xPos.set(37285920);
+		 parent->yPos.set(14375941);
+	 }
+	 else if(parent->originNode->getID() == 106946)
+	 {
+		 parent->xPos.set(37267223);
+		 parent->yPos.set(14352090);
+	 }
+	 else if(parent->originNode->location.getX()==37236345)//103046
+	 {
+		 parent->xPos.set(37234200);
+		 parent->yPos.set(14337700);
 	 }
 	 else if(parent->originNode->location.getX()==37242841)//95374
 	 {
@@ -182,14 +163,13 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	 }
 	 else if(parent->originNode->location.getX()==37218351 and parent->originNode->location.getY()==14335255)//75780
 	 {
-        parent->xPos.set(37222800);//4179
-        parent->yPos.set(14332000);
+		 parent->xPos.set(37222800);//4179
+		 parent->yPos.set(14332000);
 	 }
 	 else if(parent->originNode->location.getX()==37200400 and parent->originNode->location.getY()==14349164)//68014
 	 {
-	      parent->xPos.set(37199539);//8069
-	      parent->yPos.set(14351303);
-
+		 parent->xPos.set(37199539);//8069
+		 parent->yPos.set(14351303);
 	 }
 	 else if(parent->originNode->getID()==75822)
 	 {
@@ -214,9 +194,8 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)
 {
 	params.reset(now);
-		return params;
+	return params;
 }
-
 
 //Main update method
 void sim_mob::Passenger::frame_tick(UpdateParams& p)
@@ -269,15 +248,16 @@ void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)
 	}
 }
 
- void sim_mob::Passenger::update(timeslice now)
- {
+void sim_mob::Passenger::update(timeslice now)
+{
 
- }
+}
+
 bool sim_mob::Passenger::isAtBusStop() {
 
 	if(this->WaitingAtBusStop==true)//at bus stop
 	{
-	  return true;
+		return true;
 	}
 	else//at bus
 		return false;
@@ -286,13 +266,13 @@ bool sim_mob::Passenger::isAtBusStop() {
 bool sim_mob::Passenger::isDestBusStopReached() {
 
 	if(alightedBus==true)//passenger alights when destination is reached
-		 return true;
+		return true;
 	else
 	    return false;
 }
 
 Role* sim_mob::Passenger::clone(sim_mob::Person* parent) const {
-		return new Passenger(parent, parent->getMutexStrategy());
+	return new Passenger(parent, parent->getMutexStrategy());
 }
 
 Point2D sim_mob::Passenger::getXYPosition()
@@ -316,62 +296,54 @@ bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person*
 		  std::cout<<this->parent->originNode->getID()<<" "<<this->parent->destNode->getID()<<std::endl;
 		  std::cout<<abs(( busStop_Pos.getX() - this->getDestPosition().getX()))<<std::endl;
 		  std::cout<<abs(( busStop_Pos.getY() - this->getDestPosition().getY()))<<std::endl;
-	 	  if ((abs(( busStop_Pos.getX() - this->getDestPosition().getX())/100)<= 3 )  and (abs((busStop_Pos.getY() - this->getDestPosition().getY())/100)<= 3))
-	 		{
+	 	  if((abs((busStop_Pos.getX() - this->getDestPosition().getX())/100)<= 3) and (abs((busStop_Pos.getY() - this->getDestPosition().getY())/100)<= 3))
+	 	  {
 	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
-	 		     {
-	 				 //if passenger is to be boarded,add to passenger vector inside the bus
-	 				  bus->passengers_inside_bus.push_back(p);
-	 	              bus->setPassengerCount(bus->getPassengerCount()+1);
-	 				 // this->passenger_inside_bus.set(true);//to indicate whether passenger is waiting at the bus stop or is inside the bus
-	 	             this->WaitingAtBusStop.set(false);
-	 	             this->busdriver.set(busdriver);//passenger should store the bus driver
-	 	             this->boardedBus.set(true);//to indicate passenger has boarded bus
-	 	             this->alightedBus.set(false);//to indicate whether passenger has alighted bus
-	 				double waiting_time = findWaitingTime(bus);
-	 				Person* person1 = dynamic_cast<Person*>(busdriver->getParent());
-					const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person1->currTripChainItem));
-	 				std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<" bustripid "<<bustrip->tripID<<std::endl;
-
-	 				/*std::cout<<"this->TimeofReachingBusStop"<<this->TimeofReachingBusStop<<std::endl;
-	 				std::cout<<"waiting time"<<this->WaitingTime<<std::endl;
-	 				std::cout<<"id "<<this->parent->getId()<<std::endl;
-	 				std::cout<<"node"<<this->parent->originNode->getID()<<std::endl;
-	 				std::cout<<"bus->TimeOfBusreachingBusstop"<<bus->TimeOfBusreachingBusstop<<std::endl;*/
-	 	             return true;
-	 			}
-	 		}
-	 //	 else
-	 		// return false;
+	           {
+	        	   //if passenger is to be boarded,add to passenger vector inside the bus
+	        	   bus->passengers_inside_bus.push_back(p);
+	        	   bus->setPassengerCount(bus->getPassengerCount()+1);
+	        	   // this->passenger_inside_bus.set(true);//to indicate whether passenger is waiting at the bus stop or is inside the bus
+	        	   this->WaitingAtBusStop.set(false);
+	        	   this->busdriver.set(busdriver);//passenger should store the bus driver
+	        	   this->boardedBus.set(true);//to indicate passenger has boarded bus
+	        	   this->alightedBus.set(false);//to indicate whether passenger has alighted bus
+	        	   double waiting_time = findWaitingTime(bus);
+	        	   Person* person = dynamic_cast<Person*>(busdriver->getParent());
+	        	   const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	        	   std::cout<<"iamwaiting id "<<this->parent->getId()<<" from "<<this->parent->originNode->getID()<<" to "<<this->parent->destNode->getID()<<" "<<(DailyTime(this->parent->getStartTime()) + DailyTime(waiting_time)).getRepr_()<<" "<<waiting_time<<" bustripid "<<bustrip->tripID<<std::endl;
+	        	   return true;
+	           }
+	 	  }
 	 }
 	 return false;
- }
- bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
-  {
+}
+
+bool sim_mob::Passenger::PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver)
+{
 	 Point2D busStop_Pos(xpos_approachingbusstop,ypos_approachingbusstop);
-     if ((abs((busStop_Pos.getX()/100)-(this->getDestPosition().getX()/100))<=2)  and (abs((busStop_Pos.getY()/100)-(this->getDestPosition().getY()/100))<=2))
-	 	{
-	        //alight-delete passenger agent from list
-    	    std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
-            bus->setPassengerCount(bus->getPassengerCount()-1);
-            std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
-	 		//this->passenger_inside_bus.set(false);
-	 		this->busdriver.set(nullptr);	//driver would be null as passenger has alighted
-	 		this->alightedBus.set(true);
-	 		this->boardedBus.set(false);
-	 		//this->updateParentCoordinates(xpos_approachingbusstop,ypos_approachingbusstop);
-	 		this->parent->xPos.set(xpos_approachingbusstop);
-	 		this->parent->yPos.set(ypos_approachingbusstop);
-	 		this->random_x.set(xpos_approachingbusstop);
-	 		this->random_y.set(ypos_approachingbusstop);
-            return true;
-	 	}
-	   return false;
-  }
+     if((abs((busStop_Pos.getX()/100)-(this->getDestPosition().getX()/100))<=2) and (abs((busStop_Pos.getY()/100)-(this->getDestPosition().getY()/100))<=2))
+	 {
+    	 //alight-delete passenger agent from list
+    	 std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
+    	 bus->setPassengerCount(bus->getPassengerCount()-1);
+    	 std::cout<<"pcount"<<bus->getPassengerCount()<<std::endl;
+    	 //this->passenger_inside_bus.set(false);
+    	 this->busdriver.set(nullptr);	//driver would be null as passenger has alighted
+    	 this->alightedBus.set(true);
+    	 this->boardedBus.set(false);
+    	 //this->updateParentCoordinates(xpos_approachingbusstop,ypos_approachingbusstop);
+    	 this->parent->xPos.set(xpos_approachingbusstop);
+    	 this->parent->yPos.set(ypos_approachingbusstop);
+    	 this->random_x.set(xpos_approachingbusstop);
+    	 this->random_y.set(ypos_approachingbusstop);
+    	 return true;
+	 }
+     return false;
+}
 
-
- std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
- {
+std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
+{
   	std::vector<sim_mob::BufferedBase*> res;
   	//res.push_back(&(passenger_inside_bus));
   	res.push_back(&(WaitingAtBusStop));
@@ -383,7 +355,7 @@ bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person*
   	res.push_back(&(random_y));
   	//	res.push_back(&(estimated_boarding_passengers_no));
   	return res;
- }
+}
 
 /* void sim_mob::Passenger::EstimateBoardingAlightingPassengers(Bus* bus)
  {

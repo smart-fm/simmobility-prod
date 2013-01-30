@@ -151,9 +151,9 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 				currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 				currAgTripChain.clear();
 
-			currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
-			currAg->setTripChain(currAgTripChain);
-			currAg->initTripChain();
+				currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
+				currAg->setTripChain(currAgTripChain);
+				currAg->initTripChain();
 
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
@@ -195,7 +195,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
-		DailyTime advance(curr->headway_sec*200); // 100, 120
+		DailyTime advance(curr->headway_sec*100); // 100, 120
 		//DailyTime advance(5*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
@@ -336,12 +336,6 @@ double sim_mob::BusController::scheduledDecision(const string& busline_i, int tr
 	//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max(SETijk - sij, ATijk + (DTijk * 1000.0));
 
-//	BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
-//	busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
-//	busStopRealTimes_vec_bus[busstopSequence_j]->set(busStop_RealTimes);
-//
-//	// here need test, need add fake RealTimes first
-//	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes_vec_bus[busstopSequence_j]);// set this value for next step
 	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
 
 	return ETijk;
@@ -399,12 +393,6 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 
 	}
 
-//	BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
-//	busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
-//	busStopRealTimes_vec_bus[busstopSequence_j]->set(busStop_RealTimes);
-//
-//	// here need test, need add fake RealTimes first
-//	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes_vec_bus[busstopSequence_j]);// set this value for next step
 	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
 
 	return ETijk;
@@ -460,12 +448,6 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 	}
 
 	std::cout<<"YaoJinTest:  busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<ETijk<<std::endl;
-//	BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(ETijk));
-//	busStop_RealTimes.setReal_BusStop(lastVisited_busStop);
-//	busStopRealTimes_vec_bus[busstopSequence_j]->set(busStop_RealTimes);
-//
-//	// here need test, need add fake RealTimes first
-//	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes_vec_bus[busstopSequence_j]);// set this value for next step
 	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
 
 	return ETijk;
@@ -482,11 +464,6 @@ double sim_mob::BusController::dwellTimeCalculation(const string& busline_i, int
 	double DTijk = 0.0;
 	return DTijk;
 }
-
-/*unsigned int sim_mob::BusController::sendBusInformation()
-{
-throw 1;
-}*/
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
 {

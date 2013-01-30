@@ -70,16 +70,16 @@ public:
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 
-   virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-   bool isAtBusStop();
-   bool isDestBusStopReached();
-   Point2D getXYPosition();
-   Point2D getDestPosition();
-   bool PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k);
-   bool PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver);
-   bool isBusBoarded();
-   double findWaitingTime(Bus* bus);
-   void EstimateBoardingAlightingPassengers(Bus* bus);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	bool isAtBusStop();
+	bool isDestBusStopReached();
+	Point2D getXYPosition();
+	Point2D getDestPosition();
+	bool PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k);
+	bool PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver);
+	bool isBusBoarded();
+	double findWaitingTime(Bus* bus);
+	void EstimateBoardingAlightingPassengers(Bus* bus);
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
@@ -93,16 +93,16 @@ public:
 
 #endif
 private:
-	    sim_mob::Shared<bool> WaitingAtBusStop;
-	   	sim_mob::Shared<bool> boardedBus;
-	   	sim_mob::Shared<bool> alightedBus;
-	   	sim_mob::Shared<bool> DestReached;
-	   	sim_mob::Shared<BusDriver*> busdriver;//passenger should have info about the driver
-        sim_mob::Shared<int> random_x;
-        sim_mob::Shared<int> random_y;
-        double WaitingTime;
-        double TimeofReachingBusStop;
-        Point2D destination;
+	sim_mob::Shared<bool> WaitingAtBusStop;
+	sim_mob::Shared<bool> boardedBus;
+	sim_mob::Shared<bool> alightedBus;
+	sim_mob::Shared<bool> DestReached;
+	sim_mob::Shared<BusDriver*> busdriver;//passenger should have info about the driver
+	sim_mob::Shared<int> random_x;
+	sim_mob::Shared<int> random_y;
+	double WaitingTime;
+	double TimeofReachingBusStop;
+	Point2D destination;
 };
 
 

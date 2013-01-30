@@ -1006,29 +1006,27 @@ void sim_mob::BusDriver::AlightingPassengers(Bus* bus)//for alighting passengers
 			}
 
 			if (passenger->isBusBoarded() == true) //alighting is only for a passenger who has boarded the bus
-					{
+			{
 				if (passenger->PassengerAlightBus(bus, xpos_approachingbusstop,
 						ypos_approachingbusstop, this) == true) //check if passenger wants to alight the bus
-						{
+				{
 					itr = (bus->passengers_inside_bus).erase(
 							bus->passengers_inside_bus.begin() + i);
 					no_passengers_alighting++;
 
-					}
-            	 else
-            	   {
-            		 itr++;
-            		 i++;
-            	   }
-                 }
-	         }
-
+				}
+				else
+				{
+					itr++;
+					i++;
+				}
+			}
+		}
 	}
 }
 
 void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 {
-
 	int j=0,k=0;
 	bool ApproachingBusStop=false;
 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
@@ -1057,7 +1055,7 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 		{
 			if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
 			{
-				 for( k=0;k < busStops.size();k=k+1)//bus should stop at the approaching bus stop,ie,stop is in the bus route
+				 for(k=0;k < busStops.size();k=k+1)//bus should stop at the approaching bus stop,ie,stop is in the bus route
 				 {
 					 if(busStops[k]->xPos==xpos_approachingbusstop) {
 						 ApproachingBusStop=true;
@@ -1068,14 +1066,14 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 				 if(ApproachingBusStop==false) {
 					return;
 				 }
-				  if(ApproachingBusStop==true and k==busStops.size())//last bus stop,no boarding allowed
-				   {
-					  return;
-				   }
-					if(passenger->PassengerBoardBus(bus,this,p,busStops,k)==true)//check if passenger wants to board the bus
-					{
-						no_passengers_boarding++; //set the number of boarding passengers
-					}
+				 if(ApproachingBusStop==true and k==busStops.size())//last bus stop,no boarding allowed
+				 {
+					return;
+				 }
+				 if(passenger->PassengerBoardBus(bus,this,p,busStops,k)==true)//check if passenger wants to board the bus
+				 {
+					no_passengers_boarding++; //set the number of boarding passengers
+				 }
 			}
 
 		}

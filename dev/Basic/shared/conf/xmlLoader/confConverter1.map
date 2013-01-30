@@ -17,6 +17,10 @@ start_time         "sim_mob::DailyTime";
 granularities      "std::pair<sim_mob::Granularity, sim_mob::Granularity>";
 dist_mapping       "std::string";
 database_loader    "std::pair<std::string, std::string>";
-xml_loader    "std::pair<std::string, std::string>";
+xml_loader         "std::pair<std::string, std::string>";
+
+driver_explicit      "sim_mob::DriverSpec";
+pedestrian_explicit  "sim_mob::PedestrianSpec";
+
 
 }

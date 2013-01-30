@@ -2479,11 +2479,6 @@ namespace sim_mob
     {
     }
 
-    void driver_explicit_pskel::
-    post_driver_explicit ()
-    {
-    }
-
     bool driver_explicit_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
@@ -2606,7 +2601,7 @@ namespace sim_mob
     }
 
     void drivers_pskel::
-    driver ()
+    driver (const sim_mob::DriverSpec&)
     {
     }
 
@@ -2684,10 +2679,7 @@ namespace sim_mob
       if (n == "driver" && ns.empty ())
       {
         if (this->driver_parser_)
-        {
-          this->driver_parser_->post_driver_explicit ();
-          this->driver ();
-        }
+          this->driver (this->driver_parser_->post_driver_explicit ());
 
         return true;
       }
@@ -2720,11 +2712,6 @@ namespace sim_mob
 
     void pedestrian_explicit_pskel::
     startFrame (int)
-    {
-    }
-
-    void pedestrian_explicit_pskel::
-    post_pedestrian_explicit ()
     {
     }
 
@@ -2850,7 +2837,7 @@ namespace sim_mob
     }
 
     void pedestrians_pskel::
-    pedestrian ()
+    pedestrian (const sim_mob::PedestrianSpec&)
     {
     }
 
@@ -2928,10 +2915,7 @@ namespace sim_mob
       if (n == "pedestrian" && ns.empty ())
       {
         if (this->pedestrian_parser_)
-        {
-          this->pedestrian_parser_->post_pedestrian_explicit ();
-          this->pedestrian ();
-        }
+          this->pedestrian (this->pedestrian_parser_->post_pedestrian_explicit ());
 
         return true;
       }

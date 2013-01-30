@@ -16,16 +16,24 @@ void sim_mob::conf::drivers_pimpl::post_drivers ()
 {
 }
 
-void sim_mob::conf::drivers_pimpl::database_loader (const std::pair<std::string, std::string>&)
+void sim_mob::conf::drivers_pimpl::database_loader (const std::pair<std::string, std::string>& value)
 {
+	config->simulation().agentsLoaders.push_back(new DbLoader(value.first, value.second));
 }
 
-void sim_mob::conf::drivers_pimpl::xml_loader (const std::pair<std::string, std::string>&)
+void sim_mob::conf::drivers_pimpl::xml_loader (const std::pair<std::string, std::string>& value)
 {
+	config->simulation().agentsLoaders.push_back(new XmlLoader(value.first, value.second));
 }
 
-void sim_mob::conf::drivers_pimpl::driver ()
+void sim_mob::conf::drivers_pimpl::driver (const sim_mob::DriverSpec& value)
 {
+	//To avoid too much waste, we stack multiple agent definitions in a row onto the same loader.
+	std::list<DataLoader*>& loaders = config->simulation().agentsLoaders;
+	if (loaders.empty() || !dynamic_cast<AgentLoader<DriverSpec>*>(loaders.back())) {
+		loaders.push_back(new AgentLoader<DriverSpec>());
+	}
+	dynamic_cast<AgentLoader<DriverSpec>*>(loaders.back())->addAgentSpec(value);
 }
 
 

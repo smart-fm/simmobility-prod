@@ -29,6 +29,13 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::road_network_pimpl road_network_p(resultConfig);
 	    ::sim_mob::conf::simulation_pimpl simulation_p(resultConfig);
 	    ::sim_mob::conf::react_times_pimpl react_times_p(resultConfig);
+	    ::sim_mob::conf::driver_explicit_pimpl driver_explicit_p(resultConfig);
+	    ::sim_mob::conf::drivers_pimpl drivers_p(resultConfig);
+	    ::sim_mob::conf::pedestrians_pimpl pedestrians_p(resultConfig);
+	    ::sim_mob::conf::pedestrian_explicit_pimpl pedestrian_explicit_p(resultConfig);
+	    ::sim_mob::conf::trip_chains_pimpl trip_chains_p(resultConfig);
+	    ::sim_mob::conf::signals_pimpl signals_p(resultConfig);
+	    ::sim_mob::conf::busdrivers_pimpl busdrivers_p(resultConfig);
 
 	    //Trivially-constructed parsers.
 	    ::sim_mob::conf::model_pimpl model_p;
@@ -53,13 +60,6 @@ bool sim_mob::xml::InitAndLoadConfigXML(const std::string& fileName, sim_mob::Co
 	    ::sim_mob::conf::database_loader_pimpl database_loader_p;
 	    ::sim_mob::conf::xml_loader_pimpl xml_loader_p;
 	    ::sim_mob::conf::agents_pimpl agents_p;
-	    ::sim_mob::conf::trip_chains_pimpl trip_chains_p;
-	    ::sim_mob::conf::signals_pimpl signals_p;
-	    ::sim_mob::conf::drivers_pimpl drivers_p;
-	    ::sim_mob::conf::driver_explicit_pimpl driver_explicit_p;
-	    ::sim_mob::conf::pedestrians_pimpl pedestrians_p;
-	    ::sim_mob::conf::pedestrian_explicit_pimpl pedestrian_explicit_p;
-	    ::sim_mob::conf::busdrivers_pimpl busdrivers_p;
 
 	    // Connect the parsers together.
 	    //

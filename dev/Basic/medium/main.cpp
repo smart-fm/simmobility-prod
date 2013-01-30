@@ -146,9 +146,7 @@ bool performMainMed(const std::string& configFileName) {
 	fakeModels(builtIn);
 
 	//Load our user config file
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {
-		return false;
-	}
+	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();

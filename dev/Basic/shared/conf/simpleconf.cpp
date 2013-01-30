@@ -2051,39 +2051,52 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
+void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
 {
-	//Load a (test) configuration in parallel
-	Config cfg;
-	cfg.InitBuiltInModels(builtInModels);
-	if (sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
-		std::cout<<"New config XML loader succeeded.\n";
+	//We'll be switching over pretty cleanly, so just use a local variable here.
+	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
+	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
+	const bool LOAD_NEW_CONFIG_FILE = false;
+
+
+	if (LOAD_NEW_CONFIG_FILE) {
+		//Load using our new config syntax.
+
+		//Load and parse the file, create xml-based objects.
+		Config cfg;
+		cfg.InitBuiltInModels(builtInModels);
+		if (sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
+			std::cout<<"New config XML loader succeeded.\n";
+		} else {
+			throw std::runtime_error("New config XML loader failed.");
+		}
+
+		//Process these xml-based objects; load agents, etc.
 	} else {
-		throw std::runtime_error("New config XML loader failed.");
-	}
+		//Load using our old config syntax.
 
-	//Load our config file into an XML document object.
-	//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
-	TiXmlDocument* doc = new TiXmlDocument(configPath);
+		//Load our config file into an XML document object.
+		//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
+		TiXmlDocument* doc = new TiXmlDocument(configPath);
 
-	if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
-	if (!doc->LoadFile()) {
-		std::cout <<"Error loading config file: " <<doc->ErrorDesc() <<std::endl;
+		if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
+		if (!doc->LoadFile()) {
+			std::stringstream msg;
+			msg <<"Error loading config file: " <<doc->ErrorDesc();
+			throw std::runtime_error(msg.str().c_str());
+		}
+		if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
+
+		//Parse it
+		string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
+		if (!errorMsg.empty()) {
+			std::stringstream msg;
+			msg <<"Aborting on Config error: \n" <<errorMsg;
+			throw std::runtime_error(msg.str().c_str());
+		}
+
 		delete doc;
-		return false;
 	}
-	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
-
-	//Parse it
-	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
-	delete doc;
-
-	if (errorMsg.empty()) {
-		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;
-	} else {
-		std::cout <<"Aborting on Config error: \n" <<errorMsg <<std::endl;
-	}
-	return errorMsg.empty();
 }
 
 

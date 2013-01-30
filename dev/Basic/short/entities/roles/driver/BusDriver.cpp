@@ -806,10 +806,32 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p) {
 	Bus* bus = dynamic_cast<Bus*>(vehicle);
 	if (!passengerCountOld_display_flag) {
 		LogOut(
-				"(\"BusDriver\"" <<","<<p.now.frame() <<","<<parent->getId() <<",{" <<"\"xPos\":\""<<static_cast<int>(bus->getX()) <<"\",\"yPos\":\""<<static_cast<int>(bus->getY()) <<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI)) <<"\",\"length\":\""<<static_cast<int>(3*bus->length) <<"\",\"width\":\""<<static_cast<int>(2*bus->width) <<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0) <<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0) <<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0) <<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0) <<"\"})"<<std::endl);
+				"(\"BusDriver\""
+				<<","<<p.now.frame()
+				<<","<<parent->getId()
+				<<",{" <<"\"xPos\":\""<<static_cast<int>(bus->getX())
+				<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
+				<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+				<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
+				<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
+				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
+				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0) <<"\"})"<<std::endl);
 	} else {
 		LogOut(
-				"(\"BusDriver\"" <<","<<p.now.frame() <<","<<parent->getId() <<",{" <<"\"xPos\":\""<<static_cast<int>(bus->getX()) <<"\",\"yPos\":\""<<static_cast<int>(bus->getY()) <<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI)) <<"\",\"length\":\""<<static_cast<int>(3*bus->length) <<"\",\"width\":\""<<static_cast<int>(2*bus->width) <<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0) <<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0) <<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0) <<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0) <<"\"})"<<std::endl);
+				"(\"BusDriver\""
+				<<","<<p.now.frame()
+				<<","<<parent->getId()
+				<<",{" <<"\"xPos\":\""<<static_cast<int>(bus->getX())
+				<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
+				<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+				<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
+				<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
+				<<"\",\"passengers\":\""<<(bus?bus->getPassengerCountOld():0)
+				<<"\",\"real_ArrivalTime\":\""<<(bus?real_ArrivalTime.get():0)
+				<<"\",\"DwellTime_ijk\":\""<<(bus?DwellTime_ijk.get():0)
+				<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0) <<"\"})"<<std::endl);
 	}
 
 #endif
@@ -969,7 +991,6 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 
 		}
 	}
-
 }
 
 vector<const BusStop*> sim_mob::BusDriver::GetBusstops() {

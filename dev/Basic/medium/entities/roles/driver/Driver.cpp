@@ -225,7 +225,7 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 			<<","<<p.now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<<static_cast<int>(vehicle->getCurrSegment()->getSegmentID())
-			<<"\",\"Lane\":\""<<(vehicle->getCurrLane()->getLaneID())
+			<<"\",\"Lane\":\""<<(currLane->getLaneID())
 			<<"\",\"UpNode\":\""<<(vehicle->getCurrSegment()->getStart()->getID())
 			<<"\",\"DistanceToEndSeg\":\""<<vehicle->getPositionInSegment();
 
@@ -360,6 +360,7 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 								<< std::endl;
 
 		setLastAccept(currLane, linkExitTimeSec);
+		setParentData();
 		res = advance(p, currTimeMS);
 	}
 
@@ -430,6 +431,7 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	unsigned int minAllAgents = std::numeric_limits<int>::max();
 	unsigned int que = 0;
 	unsigned int total = 0;
+	int test_count = 0;
 
 	vector<sim_mob::Lane* >::const_iterator i = nextRdSeg->getLanes().begin();
 
@@ -437,10 +439,11 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	for ( ; i != nextRdSeg->getLanes().end(); ++i){
 		if ( !((*i)->is_pedestrian_lane())){
 			if(nextToNextRdSeg) {
-				if( !isConnectedToNextSeg(*i, nextToNextRdSeg)) continue;
+				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
 			}
 			que = nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).first;
 			total = que + nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).second;
+
 			if (minAllAgents > total){
 				minAllAgents = total;
 				minAgentsLane = *i;
@@ -528,10 +531,12 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	const Lane* laneInfinity = nullptr;
-	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->
+	if(vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().find(vehicle->getCurrSegment())
+			!= vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().end()){
+		laneInfinity = vehicle->getCurrSegment()->getParentConflux()->
 			getSegmentAgents()[vehicle->getCurrSegment()]->laneInfinity;
-
-	if (vehicle && vehicle->hasPath()) {
+	}
+	if (vehicle && vehicle->hasPath() && laneInfinity !=nullptr) {
 		//at start vehicle will be in lane infinity. set origin will move it to the correct lane
 		if (parent->getCurrLane() == laneInfinity){ //for now
 			setOrigin(params);
@@ -557,17 +562,18 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		nextRdSeg = vehicle->getNextSegment(false);
 
 /*	if (nextRdSeg){
-		if(nextRdSeg->getStart()->getID() == 75846 and parent->getId() == 46){
-		std::cout << "46 now "<<p.now.ms() <<std::endl;
-		if (nextRdSeg->getStart()->getID() == 75846 and p.now.ms() == 279000
-				and parent->getId() == 46){
+		if(nextRdSeg->getStart()->getID() == 75846){
+		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
+				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
+		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
+				nextRdSeg->getStart()->getID() == 75846 && p.now.ms() == 15000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}
 		}
 	}
 */
-//	if (vehicle->getCurrSegment()->getStart()->getID() == 103046 and p.now.ms() == 21000
+//	if (vehicle->getCurrSegment()->getStart()->getID() == 103046 && p.now.ms() == 21000
 	//		and parent->getId() == 46){
 		//	std::cout << "incident removed." << std::endl;
 			//removeIncident(vehicle->getCurrSegment());
@@ -730,7 +736,8 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 			std::cout<<"new position in advance: "<< vehicle->getPositionInSegment()
 					<<" for segment "<<vehicle->getCurrSegment()->getStart()->getID()
-					<<" tf: "<< tf << " t0: "<< t0 << " x0: "<<x0 <<" xf: "<<xf
+					<<" veh lane: "<<vehicle->getCurrLane()->getLaneID_str()
+					<<" lane: "<<currLane->getLaneID_str()
 					<<std::endl;
 			p.timeThisTick = tf;
 			//p2.currLaneOffset = vehicle->getDistanceMovedInSegment();

@@ -99,7 +99,6 @@ namespace sim_mob {
 		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
 			throw std::runtime_error("SegmentStats::getLaneAgentCounts called with invalid laneStats.");
 		}
-		std::cout<<"calling getMovingAgentsCount from getLaneAgentCounts "<<roadSegment->getStart()->getID()<<std::endl;
 		return std::make_pair(
 				laneStatsMap[lane]->getQueuingAgentsCount(),
 				laneStatsMap[lane]->getMovingAgentsCount()
@@ -129,8 +128,6 @@ namespace sim_mob {
 	}
 
 	unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {
-		std::cout<<"calling getMovingAgentsCount from numAgentsInLane "<<roadSegment->getStart()->getID()<<std::endl;
-
 		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
 			throw std::runtime_error("SegmentStats::numAgentsInLane called with invalid laneStats.");
 		}
@@ -140,7 +137,7 @@ namespace sim_mob {
 	unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
 		unsigned int movingCounts = 0;
 		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
-		std::cout<<"calling getMovingAgentsCount from numMovingInSegment "<<roadSegment->getStart()->getID() <<std::endl;
+
 		while(lane != roadSegment->getLanes().end())
 		{
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())

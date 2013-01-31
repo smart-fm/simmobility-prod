@@ -376,7 +376,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				//From Santhosh's branch; disable if needed.
 				no_passengers_alighting = 0;
 				no_passengers_boarding = 0;
-				std::cout << "Pcount" << bus->getPassengerCount() << std::endl;
 				bus->setPassengerCountOld(bus->getPassengerCount());
 				AlightingPassengers(bus); //first alight passengers inside the bus
 
@@ -384,12 +383,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				dwellTime_record = dwellTimeCalculation(0, 0, 0,
 						no_passengers_alighting, no_passengers_boarding, 0, 0,
 						0, bus->getPassengerCountOld());
-				//	estimated_boarding_passengers_no=0;
-				std::cout << "alighting no" << no_passengers_alighting
-						<< std::endl;
-				std::cout << "no_passengers_boarding" << no_passengers_boarding
-						<< std::endl;
-				std::cout << "Pcount" << bus->getPassengerCount() << std::endl;
 
 				//Back to both branches:
 				DwellTime_ijk.set(dwellTime_record);
@@ -597,9 +590,6 @@ double sim_mob::BusDriver::passengerGenerationNew(Bus* bus)// new function to ge
 		AlightingPassengers(bus);//first alight passengers inside the bus
 		BoardingPassengers(bus);//then board passengers waiting at the bus stop
 		DTijk = dwellTimeCalculation(0,0,0,no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
-		std::cout<<"alighting no"<<no_passengers_alighting<<std::endl;
-		std::cout<<"no_passengers_boarding"<<no_passengers_boarding<<std::endl;
-		std::cout<<"Pcount"<<bus->getPassengerCount()<<std::endl;
 		no_passengers_bus = bus->getPassengerCount();
 
 		return DTijk;
@@ -673,25 +663,15 @@ double sim_mob::BusDriver::dwellTimeCalculation(int busline_i, int trip_k,
 		int busstopSequence_j, int A, int B, int delta_bay, int delta_full,
 		int Pfront, int no_of_passengers) {
 	//assume single channel passenger movement
-	 /*double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
-	 double alpha2 = 2.1;//boarding passenger service time,assuming alighting through rear door
+	 double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+	 double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
 	 double alpha3 = 2.1;//door opening and closing times
 	 double alpha4 = 1.0;//?
 
 	 double beta1 = 0.7;//fixed parameters
 	 double beta2 = 0.7;
 	 double beta3 = 5;
-	 double DTijk = 0.0;*/
-
-	double alpha1 = 0.5;
-	double alpha2 = 0.5;
-	double alpha3 = 0.5;
-	double alpha4 = 0.5;
-
-	double beta1 = 0.5;
-	double beta2 = 0.5;
-	double beta3 = 0.5;
-	double DTijk = 0.0;
+	 double DTijk = 0.0;
 
 	int no_of_seats = 40;
 	if (no_of_passengers > no_of_seats) //standees are present
@@ -746,8 +726,6 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(
 
 				xpos_approachingbusstop = bs->xPos;
 				ypos_approachingbusstop = bs->yPos;
-				//std::cout<<"xpos_approachingbusstop"<<xpos_approachingbusstop<<std::endl;
-				//std::cout<<"ypos_approachingbusstop"<<ypos_approachingbusstop<<std::endl;
 				if (busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
 						{
 					last_busstop = true;
@@ -940,8 +918,6 @@ void sim_mob::BusDriver::AlightingPassengers(Bus* bus)//for alighting passengers
 
 void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 {
-	int j=0,k=0;
-	bool ApproachingBusStop=false;
 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
 			Point2D((lastVisited_BusStop.get()->xPos - 3500),
 					(lastVisited_BusStop.get()->yPos - 3500)),
@@ -963,22 +939,7 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 		{
 			if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
 			{
-				 for(k=0;k < busStops.size();k++)//bus should stop at the approaching bus stop,ie,stop is in the bus route
-				 {
-					 if(busStops[k]->xPos==xpos_approachingbusstop) {
-						 ApproachingBusStop=true;
-						 k++;
-						 break;
-					 }
-				 }
-				 if(ApproachingBusStop==false) {
-					return;
-				 }
-				 if(ApproachingBusStop==true and k==busStops.size())//last bus stop,no boarding allowed
-				 {
-					return;
-				 }
-				 if(passenger->PassengerBoardBus(bus,this,p,busStops,k)==true)//check if passenger wants to board the bus
+				 if(passenger->PassengerBoardBus(bus,this,p,busStops,busstop_sequence_no.get())==true)//check if passenger wants to board the bus
 				 {
 					no_passengers_boarding++; //set the number of boarding passengers
 				 }

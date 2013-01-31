@@ -38,7 +38,7 @@ public:
 	int getPassengerCountOld() const { return passengerCount_Old; }
 	void setPassengerCountOld(int val) { passengerCount_Old = val; }
 	//bool isSendToBusController(BusController &busctrller);
-	std::vector<const sim_mob::Agent*> passengers;//added by Meenu
+	std::vector<const sim_mob::Agent*> passengers_distribition;//added by Meenu
 	std::string getBusLineID()
 	{
 		return busline;

@@ -30,12 +30,6 @@ class BusStop;
 class Person;
 class Bus;
 class Passenger;
-/*enum PassengerStage {
-	WaitingAtBusStop= 0,
-	BoardedBus = 1,
-	AlightedBus=2,
-	DestReached=3,
-};*/
 
 struct PassengerUpdateParams : public sim_mob::UpdateParams {
 	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
@@ -71,15 +65,14 @@ public:
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	bool isAtBusStop();
-	bool isDestBusStopReached();
-	Point2D getXYPosition();
-	Point2D getDestPosition();
+	bool isAtBusStop();//to check if at busstop
+	bool isDestBusStopReached();//to check if destination is reached
+	Point2D getXYPosition();//to get current x,y position of passenger
+	Point2D getDestPosition();//to get dest x,y position of passenger
 	bool PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person* p,std::vector<const BusStop*> busStops,int k);
 	bool PassengerAlightBus(Bus* bus,int xpos_approachingbusstop,int ypos_approachingbusstop,BusDriver* busdriver);
-	bool isBusBoarded();
-	double findWaitingTime(Bus* bus);
-	void EstimateBoardingAlightingPassengers(Bus* bus);
+	bool isBusBoarded();//to check if boarded
+	void findWaitingTime(Bus* bus);//to find waiting time
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
@@ -93,12 +86,10 @@ public:
 
 #endif
 private:
-	sim_mob::Shared<bool> WaitingAtBusStop;
-	sim_mob::Shared<bool> boardedBus;
-	sim_mob::Shared<bool> alightedBus;
-	sim_mob::Shared<bool> DestReached;
-	sim_mob::Shared<BusDriver*> busdriver;//passenger should have info about the driver
-	sim_mob::Shared<int> random_x;
+	sim_mob::Shared<bool> boardedBus;//true if passenger has boarded bus
+	sim_mob::Shared<bool> alightedBus;//true if passenger has alighted bus
+	sim_mob::Shared<BusDriver*> busdriver;//passenger on bus should have info about the driver
+	sim_mob::Shared<int> random_x;//for displaying passengers at the bus stop having the same trip chain so that they are spread out
 	sim_mob::Shared<int> random_y;
 	double WaitingTime;
 	double TimeofReachingBusStop;

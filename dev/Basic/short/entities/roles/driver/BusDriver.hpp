@@ -65,8 +65,8 @@ public:
     //void EstimateBoardingAlightingPassengers();
 
 //functions for passenger generation with distribution
-	void passengers_Board(Bus* bus);
-	void passengers_Alight(Bus* bus);
+	void Board_passengerGeneration(Bus* bus);
+	void Alight_passengerGeneration(Bus* bus);
 	double passengerGeneration(Bus* bus);
 	double passengerGenerationNew(Bus* bus);
 
@@ -88,7 +88,6 @@ public:
 
 	double lastTickDistanceToBusStop;
 	bool demo_passenger_increase;
-	std::vector<const BusStop*> GetBusstops();
 	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<double> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)

@@ -371,7 +371,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				bus->TimeOfBusreachingBusstop=p.now.ms();
 
 				//From Meenu's branch; enable if needed.
-				//dwellTime_record = passengerGeneration(bus);
+				//dwellTime_record = passengerGeneration(bus);//if random distribution is to be used,uncomment
 
 				//From Santhosh's branch; disable if needed.
 				no_passengers_alighting = 0;
@@ -550,7 +550,7 @@ double sim_mob::BusDriver::distanceToNextBusStop() {
 	return distanceToNextSegmentBusStop;
 }
 
-void sim_mob::BusDriver::passengers_Board(Bus* bus)//for generating random passenger distribution at the bus stop
+void sim_mob::BusDriver::Board_passengerGeneration(Bus* bus)//for generating random passenger distribution at the bus stop
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	if (bus) {
@@ -565,19 +565,19 @@ void sim_mob::BusDriver::passengers_Board(Bus* bus)//for generating random passe
 					manualID);
 			agent->setConfigProperties(props);
 			agent->setStartTime(0);
-			bus->passengers.push_back(agent);
+			bus->passengers_distribition.push_back(agent);
 		}
 	}
 
 }
 
-void sim_mob::BusDriver::passengers_Alight(Bus* bus)//alighting passenger function if random distribution is used
+void sim_mob::BusDriver::Alight_passengerGeneration(Bus* bus)//alighting passenger function if random distribution is used
 {
 	//delete passenger objects in the bus
 	if (bus) {
 		for (int no = 0; no < no_passengers_alighting; no++) {
 			//delete passenger objects from the bus
-			bus->passengers.pop_back();
+			bus->passengers_distribition.pop_back();
 		}
 	}
 }
@@ -609,7 +609,7 @@ double sim_mob::BusDriver::passengerGenerationNew(Bus* bus)// new function to ge
 	}
 }
 
-double sim_mob::BusDriver::passengerGeneration(Bus* bus)//for generating normal/log normal passenger distribution
+double sim_mob::BusDriver::passengerGeneration(Bus* bus)//random passenger distribution(not used now)
 {
 	double DTijk = 0.0;
 	size_t no_passengers_bus = 0;
@@ -627,7 +627,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)//for generating normal/
 			//no_passengers_alighting=(config.percent_alighting * 0.01)*no_passengers_bus;
 			no_passengers_alighting = no_passengers_bus; // last bus stop, all alighting
 			no_passengers_boarding = 0; // reset boarding passengers to be zero at the last bus stop(for dwell time)
-			passengers_Alight(bus); //alight the bus
+			Alight_passengerGeneration(bus); //alight the bus
 			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
 			bus->setPassengerCount(no_passengers_bus);
 			last_busstop = false;
@@ -638,7 +638,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)//for generating normal/
 			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
 			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
 				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
-			passengers_Board(bus);//board the bus
+			Board_passengerGeneration(bus);//board the bus
 			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
 			first_busstop= false;
 		}
@@ -647,7 +647,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)//for generating normal/
 		else {
 			no_passengers_alighting = (config.percent_alighting * 0.01)
 					* no_passengers_bus;
-			passengers_Alight(bus); //alight the bus
+			Alight_passengerGeneration(bus); //alight the bus
 			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
 			bus->setPassengerCount(no_passengers_bus);
 			no_passengers_boarding = (config.percent_boarding * 0.01)
@@ -656,7 +656,7 @@ double sim_mob::BusDriver::passengerGeneration(Bus* bus)//for generating normal/
 					> bus->getBusCapacity() - no_passengers_bus)
 				no_passengers_boarding = bus->getBusCapacity()
 						- no_passengers_bus;
-			passengers_Board(bus); //board the bus
+			Board_passengerGeneration(bus); //board the bus
 			bus->setPassengerCount(no_passengers_bus + no_passengers_boarding);
 		}
 		DTijk = dwellTimeCalculation(0, 0, 0, no_passengers_alighting,
@@ -959,20 +959,15 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 			continue;
 		}
 
-		//From Santhosh's branch.
-		//int size = nearby_agents.size();
-		//int x = (passenger->getXYPosition().getX() / 1000);
-		//int y = (xpos_approachingbusstop / 1000);
-
 		if((abs((passenger->getXYPosition().getX()/1000)-(xpos_approachingbusstop/1000)) <=2) and (abs((passenger->getXYPosition().getY()/1000)-(ypos_approachingbusstop/1000))<=2) )
 		{
 			if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
 			{
-				 for(k=0;k < busStops.size();k=k+1)//bus should stop at the approaching bus stop,ie,stop is in the bus route
+				 for(k=0;k < busStops.size();k++)//bus should stop at the approaching bus stop,ie,stop is in the bus route
 				 {
 					 if(busStops[k]->xPos==xpos_approachingbusstop) {
 						 ApproachingBusStop=true;
-						 k=k+1;
+						 k++;
 						 break;
 					 }
 				 }
@@ -992,8 +987,3 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 		}
 	}
 }
-
-vector<const BusStop*> sim_mob::BusDriver::GetBusstops() {
-	return busStops;
-}
-

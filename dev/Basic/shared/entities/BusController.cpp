@@ -425,11 +425,7 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 	return DTijk;
 }
 
-double sim_mob::BusController::dwellTimeCalculation(const string& busline_i, int trip_k, int busstopSequence_j)
-{
-	double DTijk = 0.0;
-	return DTijk;
-}
+
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
 {

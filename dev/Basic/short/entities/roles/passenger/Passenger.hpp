@@ -15,15 +15,9 @@ namespace sim_mob
  * A Person in the Passenger role is likely just waiting for his or her bus stop.
  *
  * \author Meenu
-
- *  \note
- *  This is a skeleton class. All functions are defined in this header file.
- *  When this class's full functionality is added, these header-defined functions should
- *  be moved into a separate cpp file.
  */
-//Helper struct
-class BusDriver;
 
+class BusDriver;
 class PackageUtils;
 class UnPackageUtils;
 class BusStop;
@@ -50,14 +44,14 @@ struct PassengerUpdateParams : public sim_mob::UpdateParams {
 class Passenger : public sim_mob::Role {
 public:
 	//added by meenu
-	//static Shared<int> estimated_boarding_passengers_no;
+
     PassengerUpdateParams params;
 	Passenger(Agent* parent, MutexStrategy mtxStrat,std::string roleName_ = "passenger");
 	virtual ~Passenger();
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 	virtual void update(timeslice now);
 	void setParentBufferedData();
-	//todo
+
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
@@ -79,7 +73,6 @@ public:
 public:
 	virtual void pack(PackageUtils& packageUtil){}
 	virtual void unpack(UnPackageUtils& unpackageUtil){}
-
 	virtual void packProxy(PackageUtils& packageUtil){}
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil){}
 

@@ -60,17 +60,17 @@ public:
 
 //functions for boarding and alighting passengers with trip chaining
 	void BoardingPassengers(Bus* bus);
-  //  void boardBus(Bus* bus, Person* passenger);
     void AlightingPassengers(Bus* bus);
-    //void EstimateBoardingAlightingPassengers();
+	double passengerGenerationNew(Bus* bus);
 
-//functions for passenger generation with distribution
+    //functions for passenger generation with distribution
 	void Board_passengerGeneration(Bus* bus);
 	void Alight_passengerGeneration(Bus* bus);
 	double passengerGeneration(Bus* bus);
-	double passengerGenerationNew(Bus* bus);
 
-	double dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j,int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
+
+   //dwell time calculation module
+	double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
@@ -96,19 +96,13 @@ public:
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
 	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
-
 	double xpos_approachingbusstop,ypos_approachingbusstop;
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
-
 	bool first_busstop;
 	bool last_busstop;
 	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
-	//std::vector<const Passenger*> passengers_at_currentbusstop;
-	//std::vector<const Passenger*> passengers_inside_bus;
-	std::vector<const BusStop*> busStops;
-
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);
@@ -116,13 +110,12 @@ protected:
 //Basic data
 private:
 	BusDriver * me;
-	//BusRoute route;
 	const DemoBusStop* nextStop;
 	int tick;
 	std::vector<DemoBusStop> stops;
+	std::vector<const BusStop*> busStops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-
 	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 
 

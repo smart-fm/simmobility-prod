@@ -101,7 +101,7 @@ private:
 	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // headway-based control
 	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // evenheadway-based control
 	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
-	double dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j); // dwell time calculation module
+
 
 	uint32_t frameNumberCheck;// check some frame number to do control
 	uint32_t nextTimeTickToStage;// next timeTick to be checked

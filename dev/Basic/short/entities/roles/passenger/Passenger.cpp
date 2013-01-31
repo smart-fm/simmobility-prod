@@ -8,20 +8,14 @@
  */
 
 #include "Passenger.hpp"
-
 #include <vector>
 #include <iostream>
 #include <cmath>
-
-#include <boost/unordered_map.hpp>
-
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/signal/Signal.hpp"
-
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -52,8 +46,8 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 sim_mob::Passenger::~Passenger() {
 }
 
-void sim_mob::Passenger::setParentBufferedData() {
-
+void sim_mob::Passenger::setParentBufferedData() //to update the x,y coordinates of passengers inside the bus every frame tick
+{
 	if((isAtBusStop()==false)and(this->busdriver.get()!=NULL))//if passenger inside bus,update position of the passenger agent(inside bus)every frame tick
 	{
 	  parent->xPos.set(this->busdriver.get()->getPositionX());//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
@@ -64,18 +58,17 @@ void sim_mob::Passenger::setParentBufferedData() {
 void sim_mob::Passenger::frame_init(UpdateParams& p)
 {
 	 busdriver.set(nullptr);
-
 	 destination.setX(parent->destNode->location.getX());
 	 destination.setY(parent->destNode->location.getY());
 
-	 if(parent->destNode->getID() == 75780)
+	 if(parent->destNode->getID() == 75780)//temporary:hardcoded bus stop x,y positions from given nodes;by default position is in middle of road
 	 {
 		 destination.setX(37222809);
 		 destination.setY(14331981);
 	 }
 	 else if(parent->destNode->getID()==75822)
 	 {
-		 destination.setX(37290070);//75822
+		 destination.setX(37290070);
 		 destination.setY(14390218);
 	 }
 	 else if(parent->destNode->getID() == 91144)
@@ -128,42 +121,42 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 		 parent->xPos.set(37267223);
 		 parent->yPos.set(14352090);
 	 }
-	 else if(parent->originNode->getID()==103046)//103046
+	 else if(parent->originNode->getID()==103046)
 	 {
 		 parent->xPos.set(37234200);
 		 parent->yPos.set(14337700);
 	 }
-	 else if(parent->originNode->getID()==95374)//95374
+	 else if(parent->originNode->getID()==95374)
 	 {
 		 parent->xPos.set(37242000);
 	     parent->yPos.set(14347200);
 	 }
-	 else if(parent->originNode->getID()==58950)//58950
+	 else if(parent->originNode->getID()==58950)
 	 {
 		 parent->xPos.set(37263900);
 		 parent->yPos.set(14373300);
 	 }
-	 else if(parent->originNode->getID()==75808)//75808
+	 else if(parent->originNode->getID()==75808)
 	 {
 		 parent->xPos.set(37274300);
 		 parent->yPos.set(14385500);
 	 }
-	 else if(parent->originNode->getID()==75780)//75780
+	 else if(parent->originNode->getID()==75780)
 	 {
 		 parent->xPos.set(37222800);//4179
 		 parent->yPos.set(14332000);
 	 }
-	 else if(parent->originNode->getID()==68014)//68014
+	 else if(parent->originNode->getID()==68014)
 	 {
 		 parent->xPos.set(37199539);//8069
 		 parent->yPos.set(14351303);
 	 }
 	 else if(parent->originNode->getID()==75822)
 	 {
-		 parent->xPos.set(37290070);//75822
+		 parent->xPos.set(37290070);
 		 parent->yPos.set(14390218);
 	 }
-	 else
+	 else//default position
 	 {
 		 parent->xPos.set(parent->originNode->location.getX());
 		 parent->yPos.set(parent->originNode->location.getY());
@@ -186,7 +179,7 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 {
 	setParentBufferedData();//update passenger coordinates every frame tick
 	if(alightedBus==true)
-	parent->setToBeRemoved();
+	  parent->setToBeRemoved();
 }
 
 
@@ -195,13 +188,12 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
-
+	int random_num1,random_num2;//for display purpose,to scatter passengers at the bus stop with same trip chain
 	pthread_mutex_lock(&mu);
 	srand(parent->getId()*parent->getId());
-	int random_num1 = rand()%(250);
-	int random_num2 = rand()%(100);
+    random_num1 = rand()%(250);
+	random_num2 = rand()%(100);
 	pthread_mutex_unlock(&mu);
-
 	if((boardedBus==false) || (alightedBus==true))//output passenger on visualizer only if passenger on road
 		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+random_num2)<<"\",})"<<std::endl);
 }
@@ -209,7 +201,7 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)
 {
 	if (now.frame() < 1 || now.frame() < parent->getStartTime())
-			return;
+	  return;
 	pthread_mutex_lock(&mu);
 	srand(parent->getId()*parent->getId());
 	int random_num1 = rand()%(250);
@@ -276,8 +268,6 @@ bool sim_mob::Passenger::PassengerBoardBus(Bus* bus,BusDriver* busdriver,Person*
 	        	   boardedBus.set(true);//to indicate passenger has boarded bus
 	        	   alightedBus.set(false);//to indicate whether passenger has alighted bus
 	        	   findWaitingTime(bus);
-	        	   Person* person = dynamic_cast<Person*>(busdriver->getParent());
-	        	   const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	        	   return true;
 	           }
 	 	  }
@@ -322,7 +312,5 @@ bool sim_mob::Passenger::isBusBoarded()
 
 void sim_mob::Passenger::findWaitingTime(Bus* bus)
 {
-	//this->WaitingTime=difftime(this->TimeofBoardingBus,this->TimeofReachingBusStop);
 	WaitingTime=(bus->TimeOfBusreachingBusstop)-(TimeofReachingBusStop);
-
 }

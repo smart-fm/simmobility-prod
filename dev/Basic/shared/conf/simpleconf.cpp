@@ -337,7 +337,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		if (agentType == "busdriver")
 			props["#mode"] = "Bus";
 		if (agentType == "passenger")
-					props["#mode"] = "travel";
+			props["#mode"] = "BusTravel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);

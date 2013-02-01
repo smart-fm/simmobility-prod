@@ -6,15 +6,6 @@
 #include <vector>
 #include <set>
 
-/*namespace geo {
-class Links_pimpl;
-class RoadNetwork_t_pimpl;
-class Nodes_pimpl;
-class Intersections_pimpl;
-class roundabouts_pimpl;
-class UniNodes_pimpl;
-class GeoSpatial_t_pimpl;
-}*/
 
 namespace sim_mob
 {

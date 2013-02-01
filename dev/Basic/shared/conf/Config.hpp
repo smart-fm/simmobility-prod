@@ -22,6 +22,7 @@
 #include "Constructs.hpp"
 #include "System.hpp"
 #include "Simulation.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 
 namespace sim_mob {
@@ -105,6 +106,13 @@ public:
 	///@
 
 	//@{
+	///Accessor for the road network.
+	///TODO: Add back in the "sealed" property; check it in the non-const version of this function.
+	sim_mob::RoadNetwork& network() { return network_; }
+	const sim_mob::RoadNetwork& network() const { return network_; }
+	///@
+
+	//@{
 	///Accessor for the build in models struct..
 	///These models represent features of Sim Mobility which are tightly bound to the
 	///infrastructure and cannot exist (for now) as plugins.
@@ -121,6 +129,9 @@ private:
 
 	//Default built-in models
 	BuiltInModels built_in_models;
+
+	//Our Road Network.
+	sim_mob::RoadNetwork network_;
 
 public:
 	///Retrieve an instance of the singleton Config object.

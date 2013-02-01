@@ -38,6 +38,8 @@
 #include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "conf/PrintOutput.hpp"
+
 #include "geospatial/xmlLoader/geo8-driver.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -1740,11 +1742,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		std::cout<<"BuslineID: "<<BusController::buslineID<<" busBreak: "<<BusController::busBreak<<std::endl;
 	}*/
 
-	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(386000)).getRepr_()<<std::endl;
+	/*std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(386000)).getRepr_()<<std::endl;
 	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(396800)).getRepr_()<<std::endl;
 	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(461100)).getRepr_()<<std::endl;
 	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(506100)).getRepr_()<<std::endl;
-	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(599200)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(599200)).getRepr_()<<std::endl;*/
+
 	//load scheduledTImes if any
 	handle = TiXmlHandle(&document);
 	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
@@ -2056,7 +2059,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//We'll be switching over pretty cleanly, so just use a local variable here.
 	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
-	const bool LOAD_NEW_CONFIG_FILE = false;
+	const bool LOAD_NEW_CONFIG_FILE = true;
 
 
 	if (LOAD_NEW_CONFIG_FILE) {
@@ -2065,13 +2068,15 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Load and parse the file, create xml-based objects.
 		Config cfg;
 		cfg.InitBuiltInModels(builtInModels);
-		if (sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
-			std::cout<<"New config XML loader succeeded.\n";
-		} else {
+		if (!sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
 			throw std::runtime_error("New config XML loader failed.");
 		}
 
 		//Process these xml-based objects; load agents, etc.
+		//TODO
+
+		//Print it
+		PrintOutput print(cfg);
 	} else {
 		//Load using our old config syntax.
 

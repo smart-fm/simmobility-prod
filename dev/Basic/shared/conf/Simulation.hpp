@@ -24,7 +24,7 @@ namespace sim_mob {
 class Granularity {
 public:
 	Granularity(int amount=0, const std::string& units="ms");
-	int ms() { return ms_; }
+	int ms() const { return ms_; }
 
 private:
 	int ms_;

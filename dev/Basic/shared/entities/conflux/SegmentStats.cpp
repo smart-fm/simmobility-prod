@@ -30,52 +30,30 @@ namespace sim_mob {
 
 
 	void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
-			laneStatsMap[lane]->addAgent(ag);
-		}
-		else{
-			throw std::runtime_error("SegmentStats::addAgent called with invalid laneStats.");
-		}
+		laneStatsMap.find(lane)->second->addAgent(ag);
 	}
 
 	void SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
-			laneStatsMap[lane]->removeAgent(ag);
-		}
-		else{
-			throw std::runtime_error("SegmentStats::removeAgent called with invalid laneStats.");
-		}
+		laneStatsMap.find(lane)->second->removeAgent(ag);
 	}
 
 	void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		if(laneStatsMap.find(lane) != laneStatsMap.end()) {
-			laneStatsMap[lane]->updateQueueStatus(ag);
-		}
-		else{
-			throw std::runtime_error("SegmentStats::updateQueueStatus called with invalid laneStats.");
-		}
+		laneStatsMap.find(lane)->second->updateQueueStatus(ag);
 	}
 
 	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::dequeue called with invalid laneStats.");
-		}
-		return laneStatsMap[lane]->dequeue();
+		return laneStatsMap.find(lane)->second->dequeue();
 	}
 
 	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-				throw std::runtime_error("SegmentStats::getAgents called with invalid laneStats.");
-		}
-		return laneStatsMap[lane]->laneAgents;
+		return laneStatsMap.find(lane)->second->laneAgents;
 	}
 
 	void SegmentStats::absorbAgents(sim_mob::SegmentStats* segStats)
 	{
 		if(roadSegment == segStats->getRoadSegment())
 		{
-			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin();
-					i != laneStatsMap.end(); i++ ){
+			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++ ){
 				if(i->first == laneInfinity) { // Lane infinities are created individually for each segment stats
 					std::vector<sim_mob::Agent*> agentsOnLnInfinity = segStats->getAgents(segStats->laneInfinity);
 					std::vector<sim_mob::Agent*>::iterator agIt = agentsOnLnInfinity.begin();
@@ -96,12 +74,9 @@ namespace sim_mob {
 	}
 
 	std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::getLaneAgentCounts called with invalid laneStats.");
-		}
 		return std::make_pair(
-				laneStatsMap[lane]->getQueuingAgentsCount(),
-				laneStatsMap[lane]->getMovingAgentsCount()
+				laneStatsMap.find(lane)->second->getQueuingAgentsCount(),
+				laneStatsMap.find(lane)->second->getMovingAgentsCount()
 				);
 	}
 
@@ -116,22 +91,14 @@ namespace sim_mob {
 		return agentCountsOnLanes;
 	}
 
-	const sim_mob::RoadSegment* sim_mob::SegmentStats::getRoadSegment() const {
-		return roadSegment;
-	}
+	const sim_mob::RoadSegment* sim_mob::SegmentStats::getRoadSegment() const { return roadSegment; }
 
 	bool SegmentStats::isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::isFront called with invalid laneStats.");
-		}
-		return (agent == laneStatsMap[lane]->laneAgents.front());
+		return (agent == laneStatsMap.find(lane)->second->laneAgents.front());
 	}
 
 	unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::numAgentsInLane called with invalid laneStats.");
-		}
-		return (laneStatsMap[lane]->getMovingAgentsCount() + laneStatsMap[lane]->getQueuingAgentsCount());
+		return (laneStatsMap.find(lane)->second->getMovingAgentsCount() + laneStatsMap.find(lane)->second->getQueuingAgentsCount());
 	}
 
 	unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
@@ -198,12 +165,7 @@ namespace sim_mob {
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
 			{
-				if(laneStatsMap.find(*lane) != laneStatsMap.end()) {
-					queuingCounts = queuingCounts + laneStatsMap[*lane]->getQueuingAgentsCount();
-				}
-				else{
-					throw std::runtime_error("SegmentStats::numQueueingInSegment called with invalid laneStats.");
-				}
+				queuingCounts = queuingCounts + laneStatsMap[*lane]->getQueuingAgentsCount();
 			}
 			lane++;
 		}
@@ -248,12 +210,7 @@ namespace sim_mob {
 			i++;
 		}
 		frontalAgents.erase(agLane);
-		if(laneStatsMap.find(agLane) != laneStatsMap.end()){
-			frontalAgents[agLane] = laneStatsMap[agLane]->next();
-		}
-		else{
-			throw std::runtime_error("SegmentStats::agentClosestToStopLine called with invalid laneStats.");
-		}
+		frontalAgents.insert(std::make_pair(agLane,laneStatsMap.find(agLane)->second->next()));
 		return ag;
 	}
 
@@ -404,10 +361,7 @@ namespace sim_mob {
 	}
 
 	sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::getLaneParams called with invalid laneStats.");
-		}
-		return laneStatsMap[lane]->laneParams;
+		return laneStatsMap.find(lane)->second->laneParams;
 	}
 
 	double sim_mob::SegmentStats::speed_density_function(bool hasVehicle, double segDensity) {
@@ -449,25 +403,21 @@ namespace sim_mob {
 	}
 
 	void sim_mob::SegmentStats::restoreLaneParams(const Lane* lane){
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::restoreLaneParams called with invalid laneStats.");
-		}
-		laneStatsMap[lane]->updateOutputFlowRate(lane, getLaneParams(lane)->origOutputFlowRate);
-		laneStatsMap[lane]->updateOutputCounter(lane);
+		LaneStats* laneStats = laneStatsMap.find(lane)->second;
+		laneStats->updateOutputFlowRate(lane, getLaneParams(lane)->origOutputFlowRate);
+		laneStats->updateOutputCounter(lane);
 		segDensity = getDensity(true);
 		double upSpeed = speed_density_function(true, segDensity);
-		laneStatsMap[lane]->updateAcceptRate(lane, upSpeed);
+		laneStats->updateAcceptRate(lane, upSpeed);
 	}
 
 	void sim_mob::SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate){
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::updateLaneParams called with invalid laneStats.");
-		}
-		laneStatsMap[lane]->updateOutputFlowRate(lane, newOutputFlowRate);
-		laneStatsMap[lane]->updateOutputCounter(lane);
+		LaneStats* laneStats = laneStatsMap.find(lane)->second;
+		laneStats->updateOutputFlowRate(lane, newOutputFlowRate);
+		laneStats->updateOutputCounter(lane);
 		segDensity = getDensity(true);
 		double upSpeed = speed_density_function(true, segDensity);
-		laneStatsMap[lane]->updateAcceptRate(lane, upSpeed);
+		laneStats->updateAcceptRate(lane, upSpeed);
 	}
 
 	void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber){
@@ -521,25 +471,17 @@ namespace sim_mob {
 	}
 
 	double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::getPositionOfLastUpdatedAgentInLane"
-					" called with invalid laneStats.");
-		}
-		return laneStatsMap[lane]->getPositionOfLastUpdatedAgent();
+		return laneStatsMap.find(lane)->second->getPositionOfLastUpdatedAgent();
 	}
 
 	void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane) {
-		if(lane != laneInfinity and laneStatsMap.find(lane) != laneStatsMap.end()) {
-			laneStatsMap[lane]->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
+		if(lane != laneInfinity) {
+			laneStatsMap.find(lane)->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 		}
 	}
 
 	unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane){
-		if(laneStatsMap.find(lane) == laneStatsMap.end()) {
-			throw std::runtime_error("SegmentStats::getInitialQueueCount"
-								" called with invalid laneStats.");
-		}
-		return laneStatsMap[lane]->getInitialQueueCount();
+		return laneStatsMap.find(lane)->second->getInitialQueueCount();
 	}
 
 	void SegmentStats::clear() {

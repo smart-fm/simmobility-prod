@@ -105,6 +105,9 @@ private:
 
 	void killAgent(sim_mob::Agent* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
 
+	/*Searches segmentAgents and segmentAgentsDownstream to get the segmentStats for a road segment in this conflux*/
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
+
 public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)

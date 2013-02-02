@@ -421,8 +421,57 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 
 double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop)
 {
-	//unsigned int DTijk = 0;
-	return DTijk;
+	Busline* busline = pt_schedule.findBusline(busline_i);
+		if(!busline) {
+			std::cout << "wrong busline assigned:" << std::endl;
+			return -1;
+		}
+		const vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+
+		//unsigned int DTijk = 0;
+		double ETijk = 0;
+		double ATijk_1 = 0;
+		double ATimk_plus1 = 0;
+		double SRTmj = 0;
+		double Hi = 0;
+
+	    bool lastTrip = ((BusTrips.size()-1) == trip_k);//check if last trip
+	    int lastVisitedStopNum = 0;// check whether last visited Stop num is valid or not
+	    if(!lastTrip)
+	    {
+	    	lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;
+	    }
+
+		if (0 == trip_k) {
+			// the first trip just use Dwell Time, no holding strategy
+			ETijk = ATijk + (DTijk * 1000.0);
+
+		}
+		else if(lastTrip || lastVisitedStopNum == -1){
+			// If last trip or if next trip k+1 is not dispatched yet then use single headway
+			return headwayDecision(busline_i,trip_k,busstopSequence_j,ATijk,DTijk, busStopRealTimes_vec_bus, lastVisited_busStop);
+		}
+		else {
+			lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;//last stop visited by bus trip k+1
+			const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+			const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
+			ATimk_plus1 = busStopRealTime_tripKplus1[lastVisitedStopNum]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+			const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
+			SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
+					- busStopScheduledTime_tripKplus1[lastVisitedStopNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+			Hi = 143000;
+			//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
+			ETijk = std::max(std::min(ATijk_1 + (ATimk_plus1 + SRTmj - ATijk_1)/2.0, (ATijk_1 + Hi)),(double)(ATijk) + (DTijk * 1000.0)); // need some changes for precision
+		}
+
+		std::cout<<"YaoJinTest:  busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<ETijk<<std::endl;
+		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
+
+		return ETijk;
 }
 
 

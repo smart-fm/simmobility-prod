@@ -828,7 +828,6 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 					std::cout<<"drive on pedestrian lane"<<std::endl;
 				}
 				bool currentLaneConnectToNextLink = false;
-				bool iscurrentLaneConnected = false;
 				int targetLaneIndex=p.currLaneIndex;
 				std::map<int,vector<int> > indexes;
 				std::set<int> noData;		
@@ -836,56 +835,14 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 						// current lane connect to next link
-						//currentLaneConnectToNextLink = true;
-						//p.nextLaneIndex = p.currLaneIndex;
-						//break;
-					    iscurrentLaneConnected = true;
-						
+						currentLaneConnectToNextLink = true;
+						p.nextLaneIndex = p.currLaneIndex;
+						break;
 					}
 					//find target lane with same index, use this lane
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 					{
 						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
-						vector<int> dis;
-						int currentIndex = p.currLaneIndex;
-						if((targetLaneIndex<=(currentIndex+2)) && (targetLaneIndex > p.currLaneIndex))
-						{
-							if(targetLaneIndex == (p.currLaneIndex+1))
-							{
-								dis.push_back(p.nvLeftFwd.distance);
-								dis.push_back(p.nvLeftBack.distance);
-							}
-							else
-							{
-								dis.push_back(p.nvLeftFwd2.distance);
-								dis.push_back(p.nvLeftBack2.distance);
-							}
-						}
-						else if((targetLaneIndex >= (currentIndex-2)) && (targetLaneIndex < p.currLaneIndex))
-						{
-							if(targetLaneIndex == (p.currLaneIndex-1))
-							{
-								dis.push_back(p.nvRightFwd.distance);
-								dis.push_back(p.nvRightBack.distance);
-							}
-							else
-							{
-								dis.push_back(p.nvRightFwd2.distance);
-								dis.push_back(p.nvRightBack2.distance);
-							}
-						}
-						else if(targetLaneIndex == p.currLaneIndex)
-						{
-							dis.push_back(p.nvFwd.distance);
-							dis.push_back(p.nvBack.distance);
-						}
-
-						if(dis.size() >=1)
-						{
-							std::pair<int,vector<int> > Pair(targetLaneIndex,dis);
-							indexes.insert(Pair);
-						}
-						else noData.insert(targetLaneIndex);
 					}
 				}
 				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
@@ -897,68 +854,8 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 ////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
 //					}
 //					else
-					if(indexes.size() > 0)
-					{
-						int index = -1;
-						int distf = 0; //= p.dis2stop;
-						int distb = vehicle->length + 20;
 
-						if(iscurrentLaneConnected)
-						{
-							distf = p.nvFwd.distance + vehicle->length + 20;
-						}
-						else
-						{
-							index = indexes.begin()->first;
-							distf = indexes.begin()->second.at(0);
-						}
-
-						for(std::map<int,vector<int> >::iterator i=indexes.begin();i!=indexes.end();i++)
-						{
-							int temp = i->first;
-							if((i->second.at(0) > distf) && (i->second.at(0) > distb))
-							{
-								index = i->first;
-								distf = i->second.at(0);
-								distb = i->second.at(1);
-							}
-						}
-
-						if(index == -1 && iscurrentLaneConnected)
-						{
-							p.nextLaneIndex = p.currLaneIndex;
-						}
-						else if(index != -1)
-						{
-							p.nextLaneIndex = index;
-						}
-
-						/*if(true && iscurrentLaneConnected && (p.currLaneIndex != p.nextLaneIndex))
-						{
-
-							if(p.trafficColor == sim_mob::Green)
-							{
-								p.nextLaneIndex = p.currLaneIndex;
-							}
-
-							if(p.nvFwd.driver != nullptr)
-							{
-								if(!(p.nvFwd.driver->vehicle->getVelocity() < 1) && distf != 50000)
-								{
-									p.nextLaneIndex = p.currLaneIndex;
-								}
-							}
-
-						}*/
-
-
-					}
-					else if(noData.size() > 0)
-					{
-						p.nextLaneIndex = *(noData.begin());
-
-					}
-					//p.nextLaneIndex = targetLaneIndex;
+					p.nextLaneIndex = targetLaneIndex;
 					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
 					if (mitsim_lc_model) {
@@ -974,132 +871,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 		}
 	}
 	
-	bool checkBus = false;
 
-	if(true)
-	{
-		const BusDriver* driver1 = dynamic_cast<const BusDriver*> (p.nvFwd.driver);
-		const BusDriver* driver2 = dynamic_cast<const BusDriver*> (this);
-		if(driver1 && !driver2)
-		{
-			std::cout<<p.now.frame()<<std::endl;
-			double vel = vehicle->getVelocity()/100;
-			if(vel < 2)
-			{
-
-
-				std::vector<sim_mob::Lane*> Lanes1 = vehicle->getCurrSegment()->getLanes();
-				int size = Lanes1.size();
-				std::vector<sim_mob::Lane*> Lanes;
-
-				for(int i=0;i<size;i++)
-				{
-					if(Lanes1.at(i)->is_pedestrian_lane())
-					{
-						//std::cout<<"index "<<i<<std::endl;
-					}
-					else Lanes.push_back(Lanes1.at(i));
-				}
-
-				size = Lanes.size();
-
-				if(size > 0)
-				{
-
-					if(p.currLaneIndex == getLaneIndex(Lanes.at(0)))
-					{
-						if(p.nvLeftFwd.distance > (p.nvFwd.distance+vehicle->length+30))
-						{
-							p.nextLaneIndex = p.currLaneIndex+1;
-							//vehicle->setTurningDirection(LCS_RIGHT);
-							//vehicle->setLatVelocity(-150);
-						}
-
-					}
-					else if(p.currLaneIndex == getLaneIndex(Lanes.at(size-1)))
-					{
-						if(p.nvRightFwd.distance > (p.nvFwd.distance+vehicle->length+30))
-						{
-							p.nextLaneIndex = p.currLaneIndex-1;
-							//vehicle->setTurningDirection(LCS_LEFT);
-							//vehicle->setLatVelocity(+150);
-						}
-
-					}
-					else
-					{
-						if(p.nvRightFwd.distance >= p.nvLeftFwd.distance)
-						{
-							if(p.nvRightFwd.distance > (p.nvFwd.distance+vehicle->length+30))
-							{
-								p.nextLaneIndex = p.currLaneIndex-1;
-								//vehicle->setTurningDirection(LCS_LEFT);
-								//vehicle->setLatVelocity(+150);
-							}
-						}
-						else
-						{
-							if(p.nvLeftFwd.distance > (p.nvFwd.distance+vehicle->length+30))
-							{
-								p.nextLaneIndex = p.currLaneIndex+1;
-								//vehicle->setTurningDirection(LCS_RIGHT);
-								//vehicle->setLatVelocity(-150);
-							}
-						}
-
-
-					}
-
-					if(p.nextLaneIndex == (p.currLaneIndex+1) || p.nextLaneIndex == (p.currLaneIndex-1))
-					{
-						const RoadSegment* nextSegment = vehicle->getNextSegment(false);
-						const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
-						if(currEndNode)
-						{
-							const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(vehicle->getCurrSegment());
-							if (lcs.size()>0)
-							{
-
-								bool iscurrentLaneConnected = false;
-
-								for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
-								{
-									if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == Lanes1.at(p.nextLaneIndex))
-									{
-										iscurrentLaneConnected = true;
-										break;
-									}
-								}
-
-								if(!iscurrentLaneConnected)
-								{
-									p.nextLaneIndex = p.currLaneIndex;
-								}
-							}
-						}
-
-
-
-					}
-
-					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-					if (mitsim_lc_model) {
-						LANE_CHANGE_SIDE lcs = LCS_SAME;
-	//						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-						vehicle->setTurningDirection(lcs);
-					} else {
-						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
-					}
-
-					if(vehicle->getTurningDirection() != LCS_SAME)checkBus = true;
-				}
-
-			}
-
-		}
-
-	}
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
 		std::cout<<"find vh"<<std::endl;*/
@@ -1118,12 +890,6 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 //	if (vehicle->getVelocity() <= 0) {
 //		vehicle->setLatVelocity(0);
 //	}
-	if(true && (vehicle->getTurningDirection() == LCS_SAME && p.currLaneIndex != p.nextLaneIndex))
-	{
-		if((vehicle->getVelocity()/100) > 4.7)
-			vehicle->setVelocity((4.7*100));
-
-	}
 	
 	p.turningDirection = vehicle->getTurningDirection();
 

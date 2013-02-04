@@ -75,7 +75,6 @@ public:
 	///Load an agent.
 	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
-
 	virtual Entity::UpdateStatus update(timeslice now) = 0;  ///<Update agent behavior
 
 

@@ -79,14 +79,19 @@ public:
 
 #endif
 private:
-	sim_mob::Shared<bool> boardedBus;//true if passenger has boarded bus
-	sim_mob::Shared<bool> alightedBus;//true if passenger has alighted bus
-	sim_mob::Shared<BusDriver*> busdriver;//passenger on bus should have info about the driver
-	sim_mob::Shared<int> random_x;//for displaying passengers at the bus stop having the same trip chain so that they are spread out
-	sim_mob::Shared<int> random_y;
-	double WaitingTime;
-	double TimeofReachingBusStop;
-	Point2D destination;
+	    sim_mob::Shared<bool> WaitingAtBusStop;
+	   	sim_mob::Shared<bool> boardedBus;
+	   	sim_mob::Shared<bool> alightedBus;
+	   	sim_mob::Shared<bool> DestReached;
+	   	sim_mob::Shared<BusDriver*> busdriver;//passenger should have info about the driver
+        sim_mob::Shared<int> random_x;
+        sim_mob::Shared<int> random_y;
+        double WaitingTime;
+        double TimeofReachingBusStop;
+        Point2D destination;
+
+    	//For display purposes: offset this Passenger by a given +x, +y
+    	Point2D randomOffset;
 };
 
 

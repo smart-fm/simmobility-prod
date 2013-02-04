@@ -45,25 +45,6 @@ public:
 	DailyTime real_DepartureTime;// real Departure Time
 };
 
-//class BusStopInfo { // not clear
-//public:
-//	BusStopInfo();
-//	virtual ~BusStopInfo() {}
-//
-//	const int getBusStopID() const {
-//		return stop_id;
-//	}
-//	const int getRoadSegmentID() const {
-//		return roadsegment_id;
-//	}
-//	Shared<BusStop_ScheduledTimes> busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
-//	mutable Shared<BusStop_RealTimes> busStop_realTimes;
-//private:
-//	int stop_id;
-//	string stop_name;
-//	int roadsegment_id;
-//};
-
 class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
 public:
 	BusRouteInfo(std::string busRoute_id="");

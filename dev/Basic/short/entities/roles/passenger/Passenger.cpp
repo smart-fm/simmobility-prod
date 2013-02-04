@@ -8,18 +8,33 @@
  */
 
 #include "Passenger.hpp"
+
 #include <vector>
 #include <iostream>
 #include <cmath>
+
+#include <boost/unordered_map.hpp>
+
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/AuraManager.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/Point2D.hpp"
+#include "entities/signal/Signal.hpp"
 
-#include "util/DebugFlags.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/BusStop.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/GeomHelpers.hpp"
@@ -33,8 +48,6 @@ using std::vector;
 using std::cout;
 using std::map;
 using std::string;
-
-pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 
 
 sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string roleName) : Role(parent,roleName),boardedBus(mtxStrat,false),alightedBus(mtxStrat,false),busdriver(mtxStrat,nullptr),random_x(mtxStrat,0),random_y(mtxStrat,0),WaitingTime(-1),params(parent->getGenerator())
@@ -188,14 +201,34 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
-	int random_num1,random_num2;//for display purpose,to scatter passengers at the bus stop with same trip chain
-	pthread_mutex_lock(&mu);
+
+	//Reset our offset if it's set to zero
+	if (randomOffset.getX()==0 && randomOffset.getY()==0) {
+		boost::uniform_int<> distX(0, 249);
+		randomOffset.setX(distX(parent->getGenerator())+1);
+		boost::uniform_int<> distY(0, 99);
+		randomOffset.setY(distY(parent->getGenerator())+1);
+	}
+
+	//This code doesn't do what you think it does. ~Seth
+	/*pthread_mutex_lock(&mu);
 	srand(parent->getId()*parent->getId());
-    random_num1 = rand()%(250);
-	random_num2 = rand()%(100);
-	pthread_mutex_unlock(&mu);
-	if((boardedBus==false) || (alightedBus==true))//output passenger on visualizer only if passenger on road
-		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+random_num1)<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+random_num2)<<"\",})"<<std::endl);
+	int random_num1 = rand()%(250);
+	int random_num2 = rand()%(100);
+	pthread_mutex_unlock(&mu);*/
+
+	if((this->WaitingAtBusStop==true) && (!(this->alightedBus)))
+     // LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(this->parent->xPos.get()+randomOffset.getX())<<"\"," <<"\"yPos\":\""<<(this->parent->yPos.get()+randomOffset.getY())<<"\",})"<<std::endl);
+
+	else if(this->alightedBus)
+	{
+
+	   //this->random_x.set(random_x.get()+random_num1);//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
+	   //this->random_y.set(random_y.get()+random_num2);
+	   LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(random_x.get()+randomOffset.getX())<<"\"," <<"\"yPos\":\""<<(random_y.get()+randomOffset.getY())<<"\",})"<<std::endl);
+
+	}
 }
 
 void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)

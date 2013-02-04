@@ -221,11 +221,6 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 		std::cout << "wrong busline assigned:" << std::endl;
 		return;
 	}
-	std::cout << "busline_i: " << busline_i << "trip_k: " << trip_k << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[0]->get() " << busStopRealTimes_vec_bus[0]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[1]->get() " << busStopRealTimes_vec_bus[1]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[2]->get() " << busStopRealTimes_vec_bus[2]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[3]->get() " << busStopRealTimes_vec_bus[3]->get().real_ArrivalTime.getRepr_() << std::endl;
 
 	double ETijk = 0;
 	double departure_time = 0;

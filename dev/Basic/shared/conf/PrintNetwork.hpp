@@ -23,12 +23,12 @@ class LaneConnector;
  * Class used to print output after loading a config file.
  * Typically used like a verb:
  *     Config cfg = //load cfg somehow
- *     PrintOutput print(cfg);
+ *     PrintNetwork print(cfg);
  */
-class PrintOutput : private boost::noncopyable {
+class PrintNetwork : private boost::noncopyable {
 public:
-	///Print the output for a given Config file.
-	PrintOutput(const Config& cfg);
+	///Print the network output for a given Config file.
+	PrintNetwork(const Config& cfg);
 
 protected:
 	///Print the network to "LogOut", using the old network format.

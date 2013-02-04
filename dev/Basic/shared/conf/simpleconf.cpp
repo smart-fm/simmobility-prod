@@ -38,7 +38,7 @@
 #include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
-#include "conf/PrintOutput.hpp"
+#include "conf/PrintNetwork.hpp"
 
 #include "geospatial/xmlLoader/geo8-driver.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
@@ -2076,7 +2076,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//TODO
 
 		//Print it
-		PrintOutput print(cfg);
+		PrintNetwork print(cfg);
 	} else {
 		//Load using our old config syntax.
 

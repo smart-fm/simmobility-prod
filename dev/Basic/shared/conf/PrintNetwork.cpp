@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
 
-#include "PrintOutput.hpp"
+#include "PrintNetwork.hpp"
 
 #include "conf/Config.hpp"
 #include "entities/signal/Signal.hpp"
@@ -27,7 +27,7 @@ using std::string;
 using namespace sim_mob;
 
 
-sim_mob::PrintOutput::PrintOutput(const Config& cfg) : cfg(cfg)
+sim_mob::PrintNetwork::PrintNetwork(const Config& cfg) : cfg(cfg)
 {
 	//Call a series of print functions in order.
 
@@ -37,7 +37,7 @@ sim_mob::PrintOutput::PrintOutput(const Config& cfg) : cfg(cfg)
 }
 
 
-void sim_mob::PrintOutput::LogNetworkLegacyFormat() const
+void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 {
 	//Avoid any output calculations if output is disabled.
 	if (cfg.OutputDisabled()) { return; }
@@ -48,7 +48,7 @@ void sim_mob::PrintOutput::LogNetworkLegacyFormat() const
 	//Print signals.
 	//TODO: It is not clear if this is the appropriate place to print signal information, as
 	//      Nodes have not yet been printed (and items should generally be printed in order).
-	//TODO: Our PrintOutput() constructor should take a Signals array to print, rather than
+	//TODO: Our PrintNetwork() constructor should take a Signals array to print, rather than
 	//      relying on the static Signal::all_signals_
 	LogLegacySignalProps();
 
@@ -88,7 +88,7 @@ void sim_mob::PrintOutput::LogNetworkLegacyFormat() const
 
 
 
-void sim_mob::PrintOutput::LogLegacySimulationProps() const
+void sim_mob::PrintNetwork::LogLegacySimulationProps() const
 {
 	//Initial message
 	LogOut("Printing node network" <<std::endl);
@@ -101,7 +101,7 @@ void sim_mob::PrintOutput::LogLegacySimulationProps() const
 }
 
 
-void sim_mob::PrintOutput::LogLegacySignalProps() const
+void sim_mob::PrintNetwork::LogLegacySignalProps() const
 {
 	//Save signal information.
 	for (vector<Signal*>::const_iterator it = Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
@@ -110,7 +110,7 @@ void sim_mob::PrintOutput::LogLegacySignalProps() const
 }
 
 
-void sim_mob::PrintOutput::LogLegacyUniNodeProps(set<const RoadSegment*>& cachedSegments) const
+void sim_mob::PrintNetwork::LogLegacyUniNodeProps(set<const RoadSegment*>& cachedSegments) const
 {
 	//Print all Uni-Nodes, caching RoadSegments as you go.
 	const set<UniNode*>& nodes = cfg.network().getUniNodes();
@@ -132,7 +132,7 @@ void sim_mob::PrintOutput::LogLegacyUniNodeProps(set<const RoadSegment*>& cached
 }
 
 
-void sim_mob::PrintOutput::LogLegacyMultiNodeProps(set<const RoadSegment*>& cachedSegments, set<LaneConnector*>& cachedConnectors) const
+void sim_mob::PrintNetwork::LogLegacyMultiNodeProps(set<const RoadSegment*>& cachedSegments, set<LaneConnector*>& cachedConnectors) const
 {
 	//Print all MultiNodes, caching segments as you go.
 	const vector<MultiNode*>& nodes = cfg.network().getNodes();
@@ -164,7 +164,7 @@ void sim_mob::PrintOutput::LogLegacyMultiNodeProps(set<const RoadSegment*>& cach
 }
 
 
-void sim_mob::PrintOutput::LogLegacyLinks() const
+void sim_mob::PrintNetwork::LogLegacyLinks() const
 {
 	const vector<Link*>& links = cfg.network().getLinks();
 	for (vector<Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
@@ -184,7 +184,7 @@ void sim_mob::PrintOutput::LogLegacyLinks() const
 
 
 
-void sim_mob::PrintOutput::LogLegacySegment(const RoadSegment* const rs, set<const Crossing*>& cachedCrossings, set<const BusStop*>& cachedBusStops) const
+void sim_mob::PrintNetwork::LogLegacySegment(const RoadSegment* const rs, set<const Crossing*>& cachedCrossings, set<const BusStop*>& cachedBusStops) const
 {
 	LogOut("(\"road-segment\", 0, " <<rs <<", {");
 	LogOut("\"parent-link\":\"" <<rs->getLink() <<"\",");
@@ -219,7 +219,7 @@ void sim_mob::PrintOutput::LogLegacySegment(const RoadSegment* const rs, set<con
 	}
 }
 
-void sim_mob::PrintOutput::LogLegacySegPolyline(const RoadSegment* const rs) const
+void sim_mob::PrintNetwork::LogLegacySegPolyline(const RoadSegment* const rs) const
 {
 	//No polyline?
 	if (rs->polyline.empty()) { return; }
@@ -234,7 +234,7 @@ void sim_mob::PrintOutput::LogLegacySegPolyline(const RoadSegment* const rs) con
 	LogOut("})" <<std::endl);
 }
 
-void sim_mob::PrintOutput::LogLegacySegLanes(const RoadSegment* const rs) const
+void sim_mob::PrintNetwork::LogLegacySegLanes(const RoadSegment* const rs) const
 {
 	//Lane info is buffered into a complete stream, and then printed all at once.
 	std::stringstream buff;
@@ -270,7 +270,7 @@ void sim_mob::PrintOutput::LogLegacySegLanes(const RoadSegment* const rs) const
 }
 
 
-void sim_mob::PrintOutput::LogLegacyCrossing(const Crossing* const cr) const
+void sim_mob::PrintNetwork::LogLegacyCrossing(const Crossing* const cr) const
 {
 	LogOut("(\"crossing\", 0, " <<cr <<", {");
 	LogOut("\"near-1\":\"" <<cr->nearLine.first.getX() <<"," <<cr->nearLine.first.getY() <<"\",");
@@ -281,7 +281,7 @@ void sim_mob::PrintOutput::LogLegacyCrossing(const Crossing* const cr) const
 }
 
 
-void sim_mob::PrintOutput::LogLegacyBusStop(const BusStop* const bs) const
+void sim_mob::PrintNetwork::LogLegacyBusStop(const BusStop* const bs) const
 {
 	//Assumptions about the size of a Bus Stop
 	const centimeter_t length = 400;
@@ -343,7 +343,7 @@ void sim_mob::PrintOutput::LogLegacyBusStop(const BusStop* const bs) const
 	LogOut("})" <<std::endl);*/
 }
 
-void sim_mob::PrintOutput::LogLegacyLaneConnectors(const LaneConnector* const lc) const
+void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const lc) const
 {
 	//Retrieve relevant information
 	const RoadSegment* fromSeg = lc->getLaneFrom()->getRoadSegment();

@@ -75,7 +75,10 @@ public:
 	///Load an agent.
 	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
+
 	virtual Entity::UpdateStatus update(timeslice now) = 0;  ///<Update agent behavior
+
+
 
     ///A temporary list of configuration properties used to load an Agent's role from the config file.
     void setConfigProperties(const std::map<std::string, std::string>& props) {

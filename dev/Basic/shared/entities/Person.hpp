@@ -83,7 +83,7 @@ public:
     }
 
     ///Set this person's trip chain
-    void setTripChain(std::vector<TripChainItem*>& tripChain)
+    void setTripChain(const std::vector<TripChainItem*>& tripChain)
     {
         this->tripChain = tripChain;
     }

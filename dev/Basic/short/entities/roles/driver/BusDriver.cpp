@@ -10,13 +10,15 @@
 #include "entities/Person.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "entities/BusController.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
+
 #include "geospatial/Point2D.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "util/DebugFlags.hpp"
 #include "entities/AuraManager.hpp"
 #include "util/PassengerDistribution.hpp"
 
@@ -339,8 +341,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				// 0.2sec, return and reset BUS_STOP_WAIT_PASSENGER_TIME_SEC
 				// (no control: use dwellTime;
 				// has Control: use DwellTime to calculate the holding strategy and return BUS_STOP_WAIT_PASSENGER_TIME_SEC
-				if (BusController::HasBusControllers()) {
-					//BusController::TEMP_Get_Bc_1()->receiveBusInformation("", 0, 0, p.now.ms());
+				if(BusController::HasBusControllers()) {
 					Person* person = dynamic_cast<Person*>(parent);
 					if(person) {
 						BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(person->currTripChainItem)));

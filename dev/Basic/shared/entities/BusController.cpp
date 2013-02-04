@@ -5,6 +5,8 @@
 #include <stdexcept>
 
 #include "entities/Person.hpp"
+#include "workers/Worker.hpp"
+#include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
 
 using std::vector;
@@ -32,7 +34,7 @@ bool sim_mob::BusController::HasBusControllers()
 	return !all_busctrllers_.empty();
 }
 
-void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list, vector<PT_bus_dispatch_freq>& busdispatch_freq)
+void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list, const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	//Check: Do we have exactly one BusController?
 	if (all_busctrllers_.size()>1) {
@@ -135,23 +137,21 @@ void sim_mob::BusController::remBus(Bus* bus)
 void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& active_agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	map<string, Busline*>& buslines = pt_schedule.get_busLines();
+	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
 	if(0 == buslines.size()) {
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
 
-	vector<TripChainItem*> currAgTripChain;
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
-		std::cout << "busTrip_vec.size() for busline:" << busline->getBusLineID() << " " << busTrip_vec.size() << std::endl;
-		for(int i = 0; i < busTrip_vec.size(); i++) {
-			if(busTrip_vec[i].startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
-				Person* currAg = new Person("BusController", config.mutexStategy, busTrip_vec[i].personID);
-				currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-				currAgTripChain.clear();
+		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
+			if(tripIt->startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
+				Person* currAg = new Person("BusController", config.mutexStategy, tripIt->personID);
+				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 
-				currAgTripChain.push_back(const_cast<BusTrip*>(&busTrip_vec[i]));// one person for one busTrip, currently not considering Activity for BusDriver
+				vector<TripChainItem*> currAgTripChain;
+				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
 
@@ -162,7 +162,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 	}
 }
 
-void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq>& busdispatch_freq)
+void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 
@@ -189,19 +189,23 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
 		sim_mob::DailyTime nextTime = curr->end_time;
-//		if(next != busdispatch_freq.end()) {
-//			nextTime = next->start_time;
-//		}
 
 		//We use a trick to "advance" the time by a given amount; just create a DailyTime with that advance value
 		//  and add it during each time step.
-		DailyTime advance(curr->headway_sec*200); // 100, 120
-		//DailyTime advance(5*curr->headway_sec*100);//2*curr->headway_sec*100); // 100
+		DailyTime advance(curr->headway_sec*200);
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
-			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");// 555 for test
-			vector<const RoadSegment*>& segments = config.getRoadSegments_Map()[curr->route_id];
-			vector<const BusStop*>& stops = config.getBusStops_Map()[curr->route_id];
+			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");
+
+			//Try to find our data.
+			map<string, vector<const RoadSegment*> >::const_iterator segmentsIt = config.getRoadSegments_Map().find(curr->route_id);
+			map<string, vector<const BusStop*> >::const_iterator stopsIt = config.getBusStops_Map().find(curr->route_id);
+
+			//Our algorithm expects empty vectors in some cases.
+			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
+			vector<const RoadSegment*> segments = (segmentsIt==config.getRoadSegments_Map().end()) ? vector<const RoadSegment*>() : segmentsIt->second;
+			vector<const BusStop*> stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
+
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
@@ -209,9 +213,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(vector<PT_bus_dispatch_freq
 	}
 }
 
-void sim_mob::BusController::receiveBusInformation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk) {
-	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
-}
 
 void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus)
 {

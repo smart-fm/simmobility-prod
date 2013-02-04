@@ -1992,7 +1992,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
-	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_Map());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_MapRW());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), ConfigParams::GetInstance().getPT_bus_stops(), ConfigParams::GetInstance().getBusStops_Map());
 	return "";
 }

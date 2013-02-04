@@ -113,7 +113,7 @@ void sim_mob::Person::initTripChain(){
 
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP)
 	{
-		//std::cout << "Pesron " << this << "  is going to ride a bus\n";
+		std::cout << "Person " << this << "  is going to ride a bus\n";
 	}
 	setNextPathPlanned(false);
 	first_update_tick = true;
@@ -121,6 +121,7 @@ void sim_mob::Person::initTripChain(){
 	//since this agent works based on tripchain, we set its start time
 	//using the first trip/activity's start time
 }
+
 sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
 }
@@ -209,51 +210,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if (it != configProps.end()) {
 		this->specialStr = it->second;
 	}
-
-	///
-	///TODO: At some point, we need to check if "origin->dest" paths are valid.
-	///      This should be an option that can be turned on in the config file, and it
-	///      allows us to remove badly-specified agents before they generate an error
-	///      in frame_init.
-	///
-	 /*const bool checkBadPaths = true;
-	 //Optional: Only add this Agent if a path exists for it from start to finish.
-	  StreetDirectory& sd = StreetDirectory::instance();
-	if (foundOrigPos && foundDestPos && checkBadPaths) {
-		bool skip = false;
-		if (agentType=="pedestrian") {
-			//For now, pedestrians can't have invalid routes.
-			//skip = true;
-			//vector<WayPoint> path = sd.SearchShortestWalkingPath(agent->originNode->location, agent->destNode->location);
-			//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-			//	if (it->type_ == WayPoint::SIDE_WALK) {
-			//		skip = false;
-			//		break;
-			//	}
-			//}
-		} else if (agentType=="driver" || agentType=="bus") {
-			skip = true;
-			vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
-			for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-				if (it->type_ == WayPoint::ROAD_SEGMENT) {
-					skip = false;
-					break;
-				}
-			}
-		}
-
-		//Is this Agent invalid?
-		if (skip) {
-			std::cout <<"Skipping agent; can't find route from: " <<(candidate.origin?candidate.origin->originalDB_ID.getLogItem():"<null>") <<" to: " <<(candidate.dest?candidate.dest->originalDB_ID.getLogItem():"<null>");
-			if (candidate.origin && candidate.dest) {
-				std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}";
-			}
-			std::cout <<std::endl;
-
-			config.numAgentsSkipped++;
-			safe_delete_item(candidate.rawAgent);
-			continue;
-		}*/
 }
 
 void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
@@ -329,7 +285,6 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 				i++;
 			}
 		}
-		//std::cout << "  Calling update_time.frame_init at frame " << now.frame() << std::endl;
 
 		currRole->frame_init(params);
 
@@ -337,7 +292,6 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 		{
 			//std::cout << "person " << (*currTripChainItem)->personID ;
 		}
-		//std::cout << "  Calling update_time.frame_init --Done " << std::endl;
 
 		if((*currTripChainItem))
 		{
@@ -345,7 +299,6 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 			{
 				int i =0;
 			}
-			//std::cout << "(person id = " << (*currTripChainItem)->personID << ")--currRole->frame_init Done\n";
 		}
 		//Done
 		call_frame_init = false;
@@ -656,52 +609,3 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
 
-/*sim_mob::Link* sim_mob::Person::getCurrLink(){
-	return currLink;
-}
-void sim_mob::Person::setCurrLink(sim_mob::Link* link){
-	currLink = link;
-}*/
-
-#ifndef SIMMOB_DISABLE_MPI
-/*
- * package Entity, Agent, Person and Role
- */
-//void sim_mob::Person::pack(PackageUtils& packageUtil) {
-//	//package Entity
-//	//std::cout << "Person package Called" << this->getId() << std::endl;
-//	sim_mob::Agent::pack(packageUtil);
-//
-//	//package person
-//	packageUtil.packBasicData(specialStr);
-//	sim_mob::TripChain::pack(packageUtil, currTripChain);
-//	packageUtil.packBasicData(firstFrameTick);
-//}
-//
-//void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
-//
-//	sim_mob::Agent::unpack(unpackageUtil);
-//	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
-//
-//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-//	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
-//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-//}
-//
-//void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
-//	//package Entity
-//	sim_mob::Agent::pack(packageUtil);
-//
-//	//package person
-//	packageUtil.packBasicData(specialStr);
-//	packageUtil.packBasicData(firstFrameTick);
-//}
-//
-//void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
-//	sim_mob::Agent::unpack(unpackageUtil);
-//
-//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-//}
-
-#endif

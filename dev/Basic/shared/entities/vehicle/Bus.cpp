@@ -5,9 +5,7 @@
  *      Author: Yao Jin
  */
 #include "Bus.hpp"
-#include "entities/BusController.hpp"
-#include "util/DynamicVector.hpp"
-#include "util/GeomHelpers.hpp"
+
 
 //bool sim_mob::Bus::isSendToBusController(BusController &busctrller)
 //{

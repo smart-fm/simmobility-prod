@@ -13,7 +13,6 @@
 #include <string>
 
 #include "TripChain.hpp"
-#include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/simpleconf.hpp"
 
@@ -113,7 +112,7 @@ public:
 		return bus_RouteInfo;
 	}
 
-	bool setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec);
+	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
 	void setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);

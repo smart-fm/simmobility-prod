@@ -7,6 +7,9 @@
  */
 #include "BusTrip.hpp"
 
+#include "geospatial/BusStop.hpp"
+
+
 using namespace sim_mob;
 
 sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime)
@@ -88,7 +91,7 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop
 	}
 }
 
-bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec)
+bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec)
 {
 	if(roadSegment_vec.empty()) {
 		std::cout << "Error: no roadSegments!!!" << std::endl;
@@ -99,12 +102,12 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 		// can be, not return
 		//return false;
 	}
-	for(int i = 0; i < roadSegment_vec.size(); i++) {
-		bus_RouteInfo.addRoadSegment(roadSegment_vec[i]);
+	for(std::vector<const RoadSegment*>::const_iterator it=roadSegment_vec.begin(); it!=roadSegment_vec.end(); it++) {
+		bus_RouteInfo.addRoadSegment(*it);
 	}
 	// later add argument std::vector<const BusStop*>& busStop_vec
-	for(int j = 0; j < busStop_vec.size(); j++) {
-		bus_RouteInfo.addBusStop(busStop_vec[j]);
+	for(std::vector<const BusStop*>::const_iterator it=busStop_vec.begin(); it!=busStop_vec.end(); it++) {
+		bus_RouteInfo.addBusStop(*it);
 	}
 	// addBusStopRealTimes, first time fake Times
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -119,23 +122,10 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegm
 		for(std::map<int,std::vector<int> >::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
 		{
 			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.at(0)),startTime + DailyTime(temp->second.at(1)));
-	//		busStop_ScheduledTimes.Scheduled_busStop = NULL;
-	//		busStopScheduledTimes_vec.push_back(busStop_ScheduledTimes);
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
-			std::cout<<startTime.getValue()<<" "<<temp->second.at(0)<<" "<<busStop_ScheduledTimes.scheduled_ArrivalTime.getValue()<<std::endl;
-			std::cout<<"busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime): " << busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime) << std::endl;
-			std::cout<<"busStop_ScheduledTimes.scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime): " << busStop_ScheduledTimes.scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime) << std::endl;
 		}
-
-	//	std::cout << "busStopScheduledTimes_vec[0] " << busStopScheduledTimes_vec[0].scheduled_ArrivalTime.getValue() << std::endl;
-	//	std::cout << "busStopScheduledTimes_vec[1] " << busStopScheduledTimes_vec[1].scheduled_ArrivalTime.getValue() << std::endl;
-	//	std::cout << "busStopScheduledTimes_vec[2] " << busStopScheduledTimes_vec[2].scheduled_ArrivalTime.getValue() << std::endl;
-	//	std::cout << "busStopScheduledTimes_vec[3] " << busStopScheduledTimes_vec[3].scheduled_ArrivalTime.getValue() << std::endl;
-	//	std::cout << "busStopScheduledTimes_vec[4] " << busStopScheduledTimes_vec[4].scheduled_ArrivalTime.getValue() << std::endl;
-		std::cout << "busStopScheduledTimes_vec.size(): " << busStopScheduledTimes_vec.size() << std::endl;
 	}
 
-	std::cout << "busStopRealTimes_vec.size(): " << busStopRealTimes_vec.size() << std::endl;
 	return true;
 }
 

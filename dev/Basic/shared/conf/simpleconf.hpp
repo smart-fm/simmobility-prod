@@ -269,7 +269,12 @@ public:
 	//Temporary: Santhosh
 	std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	//NOTE: Technically we use the "sealed" property to indicate data structures that cannot change later.
+	//      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
+	//      it also indicates that these data structures should not be located in simpleconf.hpp. ~Seth
+	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() const { return routeID_roadSegments;}
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_MapRW() { return routeID_roadSegments;}
+
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
 	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
 

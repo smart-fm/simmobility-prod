@@ -10,11 +10,10 @@
 
 #include "Vehicle.hpp"
 #include "BusRoute.hpp"
-#include "entities/BusController.hpp"
-
 
 namespace sim_mob {
 
+class Person;
 class BusController;
 class PackageUtils;
 class UnPackageUtils;

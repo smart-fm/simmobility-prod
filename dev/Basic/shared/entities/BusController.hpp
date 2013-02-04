@@ -7,13 +7,8 @@
 #include "entities/Agent.hpp"
 
 #include "buffering/Shared.hpp"
-#include "entities/UpdateParams.hpp"
 #include "misc/BusTrip.hpp"
 #include "misc/PublicTransit.hpp"
-#include "vehicle/Bus.hpp"
-#include "util/DynamicVector.hpp"
-#include "workers/Worker.hpp"
-#include "workers/WorkGroup.hpp"
 
 namespace sim_mob {
 
@@ -46,7 +41,7 @@ public:
 	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
-	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
+	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads (since those likely haven't been created yet).
 	static void DispatchAllControllers(std::vector<sim_mob::Entity*>& agents_list);
@@ -59,11 +54,8 @@ public:
 
 	virtual Entity::UpdateStatus update(timeslice now);
 
-	void receiveBusInformation(const std::string& busline_i, int trip_k = 0, int busstopSequence_j = 0, double ATijk = 0);
 	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus);
-	unsigned int sendBusInformation();// depend on the control strategy
-
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//NOTE: There's two problems here:
@@ -81,7 +73,7 @@ public:
 	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
 
 	///Load all bus items from the database.
-	void setPTScheduleFromConfig(std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
+	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	//Functions required by Jenny's code.
 	// TODO: These shouldn't have to be duplicated across all entity types.

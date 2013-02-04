@@ -313,6 +313,8 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		return false;
 	}
 
+	std::cout<<"Driver "<<parent->getId()<<" moveToNextSegment to "<< nextRdSeg->getStart()
+			->getID()<<std::endl;
 	const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 
 	nextLaneInNextSegment = getBestTargetLane(nextRdSeg, nextToNextRdSeg);
@@ -360,7 +362,6 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 								<< std::endl;
 
 		setLastAccept(currLane, linkExitTimeSec);
-		setParentData();
 		res = advance(p, currTimeMS);
 	}
 
@@ -554,19 +555,19 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 
 	//======================================incident==========================================
 	// this needs to be moved to be changed to read from input xml later
-	const sim_mob::RoadSegment* nextRdSeg = nullptr;
+/*	const sim_mob::RoadSegment* nextRdSeg = nullptr;
 	if (vehicle->hasNextSegment(true))
 		nextRdSeg = vehicle->getNextSegment(true);
 
 	else if (vehicle->hasNextSegment(false))
 		nextRdSeg = vehicle->getNextSegment(false);
 
-/*	if (nextRdSeg){
-		if(nextRdSeg->getStart()->getID() == 75846){
+	if (nextRdSeg){
+		if(nextRdSeg->getStart()->getID() == 84882){
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
 		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 75846 && p.now.ms() == 15000){
+				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 15000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}
@@ -820,19 +821,19 @@ void sim_mob::medium::Driver::getSegSpeed(){
 }
 
 int sim_mob::medium::Driver::getOutputCounter(const Lane* l) {
-	return l->getRoadSegment()->getParentConflux()->getOutputCounter(l);
+	return parent->getCurrSegment()->getParentConflux()->getOutputCounter(l);
 }
 
 double sim_mob::medium::Driver::getOutputFlowRate(const Lane* l) {
-	return l->getRoadSegment()->getParentConflux()->getOutputFlowRate(l);
+	return parent->getCurrSegment()->getParentConflux()->getOutputFlowRate(l);
 }
 
 double sim_mob::medium::Driver::getAcceptRate(const Lane* l) {
-	return l->getRoadSegment()->getParentConflux()->getAcceptRate(l);
+	return parent->getCurrSegment()->getParentConflux()->getAcceptRate(l);
 }
 
 double sim_mob::medium::Driver::getQueueLength(const Lane* l) {
-	return ((l->getRoadSegment()->getParentConflux()->getLaneAgentCounts(l)).first) * (vehicle->length);
+	return ((parent->getCurrSegment()->getParentConflux()->getLaneAgentCounts(l)).first) * (vehicle->length);
 }
 
 bool sim_mob::medium::Driver::isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg){
@@ -858,15 +859,15 @@ bool sim_mob::medium::Driver::isConnectedToNextSeg(const Lane* lane, const RoadS
 }
 
 double sim_mob::medium::Driver::getInitialQueueLength(const Lane* l) {
-	return l->getRoadSegment()->getParentConflux()->getInitialQueueCount(l) * vehicle->length;
+	return parent->getCurrSegment()->getParentConflux()->getInitialQueueCount(l) * vehicle->length;
 }
 
 double sim_mob::medium::Driver::getLastAccept(const Lane* l){
-	return l->getRoadSegment()->getParentConflux()->getLastAccept(l);
+	return parent->getCurrSegment()->getParentConflux()->getLastAccept(l);
 }
 
 void sim_mob::medium::Driver::setLastAccept(const Lane* l, double lastAccept){
-	l->getRoadSegment()->getParentConflux()->setLastAccept(l, lastAccept);
+	parent->getCurrSegment()->getParentConflux()->setLastAccept(l, lastAccept);
 }
 
 void sim_mob::medium::Driver::insertIncident(const RoadSegment* rdSeg, double newFlowRate){

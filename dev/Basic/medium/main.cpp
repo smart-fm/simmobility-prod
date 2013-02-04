@@ -138,7 +138,6 @@ bool performMainMed(const std::string& configFileName) {
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
-	//rf.registerRole("BusPassenger", new sim_mob::Passenger(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 
 	//No built-in models available to the medium term (yet).

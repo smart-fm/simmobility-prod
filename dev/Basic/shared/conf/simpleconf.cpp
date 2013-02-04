@@ -38,6 +38,7 @@
 #include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "conf/Validate.hpp"
 #include "conf/PrintNetwork.hpp"
 
 #include "geospatial/xmlLoader/geo8-driver.hpp"
@@ -2072,8 +2073,12 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 			throw std::runtime_error("New config XML loader failed.");
 		}
 
+		//Validate simple data elements
+		Validate val(cfg);
+
 		//Process these xml-based objects; load agents, etc.
 		//TODO
+
 
 		//Print it
 		PrintNetwork print(cfg);

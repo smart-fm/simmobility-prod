@@ -17,17 +17,26 @@ namespace sim_mob {
 
 
 /**
- * A granularity, which can be represented as "x hours", "x minutes", and so forth.
+ * A granularity, which can be represented as "x hours", "x minutes", and so forth,
+ * and may also have a base granularity (used to compute "ticks").
  * The ms() function returns the most often-accessed format; we may choose to add
  * hours(), minutes(), and so forth later.
  */
 class Granularity {
 public:
 	Granularity(int amount=0, const std::string& units="ms");
+
 	int ms() const { return ms_; }
+
+	///Return the number of ticks this granularity represents. Fails if baseGranMS is 0.
+	int ticks() const;
+
+	//Update the BaseGran.
+	void setBaseGranMS(int baseGranMS);
 
 private:
 	int ms_;
+	int base_gran_ms_;
 };
 
 

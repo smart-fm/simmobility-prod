@@ -442,8 +442,8 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 			if(nextToNextRdSeg) {
 				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
 			}
-			que = nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).first;
-			total = que + nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).second;
+			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
+			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
 
 			if (minAllAgents > total){
 				minAllAgents = total;
@@ -458,8 +458,8 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 			if(nextToNextRdSeg) {
 				if( !isConnectedToNextSeg(*i, nextToNextRdSeg)) continue;
 			}
-			que = nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).first;
-			total = que + nextRdSeg->getParentConflux()->getLaneAgentCounts(*i).second;
+			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
+			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
 			if (minAllAgents == total){
 				if (minQueueLength > que){
 					minQueueLength = que;
@@ -555,19 +555,19 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 
 	//======================================incident==========================================
 	// this needs to be moved to be changed to read from input xml later
-/*	const sim_mob::RoadSegment* nextRdSeg = nullptr;
+	const sim_mob::RoadSegment* nextRdSeg = nullptr;
 	if (vehicle->hasNextSegment(true))
 		nextRdSeg = vehicle->getNextSegment(true);
 
 	else if (vehicle->hasNextSegment(false))
 		nextRdSeg = vehicle->getNextSegment(false);
 
-	if (nextRdSeg){
+/*	if (nextRdSeg){
 		if(nextRdSeg->getStart()->getID() == 84882){
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
 		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 15000){
+				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 52000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}

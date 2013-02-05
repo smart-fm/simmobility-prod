@@ -443,8 +443,6 @@ namespace sim_mob {
 		LogOut("(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
-			//<<","<<roadSegment->getStart()->getID()
-			//<<","<<roadSegment->getEnd()->getID()
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed
 			<<"\",\"flow\":\""<<0

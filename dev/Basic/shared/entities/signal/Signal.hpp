@@ -16,6 +16,7 @@
 #include <map>
 #include <vector>
 #include <stdexcept>
+#include <sstream>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "entities/LoopDetectorEntity.hpp"
@@ -148,9 +149,21 @@ public:
 	void updateTrafficLights();
 	void updatecurrSplitPlan();
 	void updateOffset();
-	virtual Entity::UpdateStatus update(timeslice now);
 	void newCycleUpdate();
 	bool updateCurrCycleTimer();
+
+protected:
+	virtual bool frame_init(timeslice now) { return true; }
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+
+private:
+	//Output hack
+	void buffer_output(timeslice now, std::string newLine);
+	std::stringstream buffOut;
+
+public:
+	//virtual Entity::UpdateStatus update(timeslice now);
 
 	/*--------Split Plan----------*/
 //	void startSplitPlan();
@@ -165,8 +178,6 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 
 	/*--------Miscellaneous----------*/
-
-	void frame_output(timeslice now);
 
 	int getSignalTimingMode() { return signalTimingMode;}
 	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
@@ -191,7 +202,7 @@ public:
 	TrafficColor getPedestrianLight  (Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 
-    void outputTrafficLights(timeslice now,std::string newLine)const;
+   // void outputTrafficLights(timeslice now,std::string newLine)const;
 
 
     /* phase

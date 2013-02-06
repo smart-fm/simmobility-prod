@@ -48,8 +48,14 @@ public:
     LoopDetectorEntity(Signal const & signal, MutexStrategy const & mutexStrategy);
     ~LoopDetectorEntity();
 
-    virtual Entity::UpdateStatus update(timeslice now);
+    //virtual Entity::UpdateStatus update(timeslice now);
 
+protected:
+	virtual bool frame_init(timeslice now) { return true; }
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+
+public:
     virtual void output(timeslice now) {}
 
     Node const & getNode() const { return node_; }

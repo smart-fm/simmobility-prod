@@ -23,7 +23,7 @@ class Bus;
 class BusController : public sim_mob::Agent {
 private:
 	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
-		frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), currLink(nullptr)
+		frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), currLink(nullptr)
 	{}
 
 public:
@@ -53,7 +53,7 @@ public:
 
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
-	virtual Entity::UpdateStatus update(timeslice now);
+	//virtual Entity::UpdateStatus update(timeslice now);
 
 	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus);
@@ -86,9 +86,15 @@ private:
 	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
 
-	void dispatchFrameTick(timeslice now);
-	void frame_init(timeslice now);
-	void frame_tick_output(timeslice now);
+protected:
+	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+
+private:
+	//void dispatchFrameTick(timeslice now);
+	//void frame_init(timeslice now);
+	//void frame_tick_output(timeslice now);
 
 	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop);// scheduled-based control
 	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // headway-based control
@@ -99,7 +105,6 @@ private:
 	uint32_t frameNumberCheck;// check some frame number to do control
 	uint32_t nextTimeTickToStage;// next timeTick to be checked
 	unsigned int tickStep;
-	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
 	DPoint posBus;// The sent position of a given bus ,only for test

@@ -531,15 +531,15 @@ LoopDetectorEntity::Impl::check(timeslice now)
         if (detector->check(vehicles))
         {
 #if 0
-            LogOut("vehicle " << detector->vehicle() << " is over loop-detector in lane "
-                   << lane << " in frame " << frameNumber << std::endl);
+        	bufferOut <<"vehicle " << detector->vehicle() << " is over loop-detector in lane "
+                   << lane << " in frame " << frameNumber << std::endl;
 #endif
         }
         else
         {
 #if 0
-            LogOut("no vehicle is over loop-detector in lane " << lane
-                   << " in frame " << frameNumber << std::endl);
+        	bufferOut <<"no vehicle is over loop-detector in lane " << lane
+                   << " in frame " << frameNumber << std::endl;
 #endif
         }
     }
@@ -616,13 +616,33 @@ LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
     }
 }
 
-/* virtual */ UpdateStatus
+
+Entity::UpdateStatus LoopDetectorEntity::frame_tick(timeslice now)
+{
+    if (pimpl_) {
+        return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
+    }
+    return UpdateStatus::Done;
+}
+
+
+void LoopDetectorEntity::frame_output(timeslice now)
+{
+	//Loop detector entity performs no real output
+#if 0
+	LogOut(bufferOut.str());
+	bufferOut.str("");
+#endif
+}
+
+
+/* virtual  UpdateStatus
 LoopDetectorEntity::update(timeslice now)
 {
     if (pimpl_)
         return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
     return UpdateStatus::Done;
-}
+}*/
 
 void
 LoopDetectorEntity::reset()

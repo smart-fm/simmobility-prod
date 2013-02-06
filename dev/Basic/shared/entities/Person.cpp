@@ -76,8 +76,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), /*currTripChainItem(nullptr),
-	currSubTrip(nullptr),*/ call_frame_init(true)
+	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr)
 
 {
 	tripchainInitialized = false;
@@ -91,7 +90,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	currRole = 0;
 	laneID = -1;
 	agentSrc = src;
-	call_frame_init = true;
 	tripChain = tcs;
 //	currTripChainItem(nullptr);
 //	currSubTrip(nullptr);
@@ -212,109 +210,56 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	}
 }
 
-void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
-{
-	
-	//Agents may be created with a null Role and a valid trip chain
-	if (call_frame_init && !currRole) {
 
+bool sim_mob::Person::frame_init(timeslice now)
+{
+	//Agents may be created with a null Role and a valid trip chain
+	if (!currRole) {
+		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
+		//      (one would expect) be dealt with. Where does this happen?
 		UpdateStatus res =	checkTripChain(now.ms());
-		
+
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms());
 
+		//Nothing left to do?
+		if (res.status == UpdateStatus::RS_DONE) {
+			return false;
+		}
 	}
-	 
-	//Failsafe
+
+	//Failsafe: no Role at all?
 	if (!currRole) {
 		std::ostringstream txt ;
 		txt << "Person " << this->getId() <<  " has no Role.";
 		throw std::runtime_error(txt.str());
 	}
-	 
+
 	//Get an UpdateParams instance.
-	UpdateParams& params = currRole->make_frame_tick_params(now);
-	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
-	 
-	//Has update() been called early?
-	if (now.ms()<getStartTime()) {
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			std::stringstream msg;
-			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << now.ms()
-					<< "; this indicates an error, and should be handled automatically.";
-			throw std::runtime_error(msg.str().c_str());
-		}
-		retVal = UpdateStatus::Continue;
-		return;
-	}
-	 
-	//Has update() been called too late?
-	if (isToBeRemoved()) {
-		 
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("Agent is already done, but hasn't been removed.");
-		}
-		retVal = UpdateStatus::Continue;
-		return;
-	}
-	
-	//Is this the first frame tick for this Agent?
-	if (call_frame_init) {
-		//Helper check; not needed once we trust our Workers.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
-				std::stringstream msg;
-				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms() << "\n";
-				msg << "Agent ID: " << getId() << "\n";
-				throw std::runtime_error(msg.str().c_str());
-			}
-			 
-		}
-		 
-		//Now that the Role has been fully constructed, initialize it.
-		if((*currTripChainItem))
-		{
-			//std::cout << "person " << (*currTripChainItem)->personID ;
-			if((*currTripChainItem)->personID == 3)
-			{
-				int i = 0;
-				i++;
-			}
-		}
+	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
+	//      We should replace this eventually (but this will require a larger code cleanup).
+	curr_params = &currRole->make_frame_tick_params(now);
 
-		currRole->frame_init(params);
-
-		if((*currTripChainItem))
-		{
-			//std::cout << "person " << (*currTripChainItem)->personID ;
-		}
-
-		if((*currTripChainItem))
-		{
-			if((*currTripChainItem)->personID == 3)
-			{
-				int i =0;
-			}
-		}
-		//Done
-		call_frame_init = false;
+	//Now that the Role has been fully constructed, initialize it.
+	if((*currTripChainItem)) {
+		currRole->frame_init(*curr_params);
 	}
-	 
-	//Now perform the main update tick
+}
+
+
+Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
+{
+	//TODO: Here is where it gets risky.
+	if (!curr_params) {
+		curr_params = &currRole->make_frame_tick_params(now);
+	}
+
+	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+
 	if (!isToBeRemoved()) {
-		//added to get the detailed plan before next activity
-		currRole->frame_tick(params);
+		currRole->frame_tick(*curr_params);
 	}
-	 
-	//Finally, save the output
-	if (!isToBeRemoved()) {
-		currRole->frame_tick_output(params);
-	}
-	 
+
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
@@ -323,86 +268,41 @@ void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
-		if(currTripChainItem != tripChain.end())
-		if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
-		{
-			sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
-			//std::cout << "intial Activity start time = " << (*currTripChainItem)->startTime.toString() << " to " << (*currTripChainItem)->endTime.toString() << std::endl;
-			//std::cout << "intial Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
-			ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
-			ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
-			//std::cout << "later Activity performer start time = " << ap->getActivityStartTime().toString() << " to " << ap->getActivityEndTime().toString() << std::endl;
-			ap->initializeRemainingTime();
-			//std::cout << "Activity remaining time initialized to " << ap->remainingTimeToComplete << std::endl;
+		if(currTripChainItem != tripChain.end()) {
+			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
+				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
+				ap->initializeRemainingTime();
+			}
 		}
 	}
-	 
-	//Output if removal requested.
-	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
-	}
-	 
 }
 
 
-UpdateStatus sim_mob::Person::update(timeslice now) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentUpdateBegin(*this, frameNumber);
-#endif
 
-	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	//unsigned int currTimeMS = now.frame() * ConfigParams::GetInstance().baseGranMS;
-
-	//Update within an optional try/catch block.
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-//todo uncomment try-catch
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try {
-#endif
-//		std::cout << "Person " << (*currTripChainItem)->personID << "  start time is " <<  getStartTime() << "  and now is " << now.ms() << std::endl;
-		//Update functionality
-		update_time(now, retVal);
-
-
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	} catch (std::exception& ex) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentException(*this, frameNumber, ex);
-#endif
-		//std::cout << "Person " << (*currTripChainItem)->personID << " is in trouble \n";
-		//Add a line to the output file.
-		if (ConfigParams::GetInstance().OutputEnabled()) {
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
-		}
-		setToBeRemoved();
-	}
-#endif
-
-	//Return true unless we are scheduled for removal.
-	//NOTE: Make sure you set this flag AFTER performing your final output.
-	if (isToBeRemoved()) {
-		retVal.status = UpdateStatus::RS_DONE;
+void sim_mob::Person::frame_output(timeslice now)
+{
+	//Save the output
+	if (!isToBeRemoved()) {
+		currRole->frame_tick_output(*curr_params);
 	}
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentUpdateEnd(*this, frameNumber);
-#endif
-	return retVal;
+	//TODO: Still risky.
+	curr_params = nullptr; //WARNING: Do *not* delete curr_params; it is only used to point to the result of get_params.
 }
+
+
 
 bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTrip *subtrip)
 {
 	return tc->setPersonOD(this, subtrip);
 }
+
 bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip) const
 {
 	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
@@ -454,35 +354,35 @@ bool sim_mob::Person::updatePersonRole()
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
-	//std::cout << "checking the tripchain for person " << this ;
-	//std::cout << "[currTripChainItem: " << (*currTripChainItem) ;
-
 	//some normal checks
-	if(tripChain.size() < 1)
+	if(tripChain.size() < 1) {
 		return UpdateStatus::Done;
-	//advance the trip,subtrip or activity....
-	if(!first_update_tick)
-		if(!(advanceCurrentTripChainItem()))
-			return UpdateStatus::Done;
+	}
 
-//	int i = std::distance(currTripChainItem,tripChain.begin());
-//	std::cout << "\ndistance = " << i+1 << "/" << tripChain.size() << std::endl;
+	//advance the trip,subtrip or activity....
+	if(!first_update_tick) {
+		if(!(advanceCurrentTripChainItem())) {
+			return UpdateStatus::Done;
+		}
+	}
+
 	first_update_tick = false;
+
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
 	setNextPathPlanned(false);
+
 	//Create a new Role based on the trip chain type
-	if(currRole) {
-	//	std::cout << "calling updatePersonRole to Check if we can change the role from " << currRole->getRoleName();
-	}
 	updatePersonRole();
-	//currentTipchainItem or current subtrip are changed
-	//so OD will be changed too,
-//	therefore we need to call frame_init regardless of change in the role
-	call_frame_init = true;
 
 	//Update our origin/dest pair.
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)//put if to avoid & evade bustrips, can be removed when everything is ok
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) { //put if to avoid & evade bustrips, can be removed when everything is ok
 		updateOD(*currTripChainItem, &(*currSubTrip));
+	}
+
+	//currentTipchainItem or current subtrip are changed
+	//so OD will be changed too,
+	//therefore we need to call frame_init regardless of change in the role
+	resetFrameInit();
 
 	//Create a return type based on the differences in these Roles
 	vector<BufferedBase*> prevParams;

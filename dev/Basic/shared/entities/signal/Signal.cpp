@@ -380,7 +380,20 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 }
 
 //Output To Visualizer
-void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
+void sim_mob::Signal_SCATS::frame_output(timeslice now)
+{
+	LogOut(buffOut.str());
+	buffOut.str("");
+}
+
+
+
+void sim_mob::Signal_SCATS::buffer_output(timeslice now, std::string newLine)
+{
+	//Reset again, just in case:
+	buffOut.str("");
+
+//void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 	std::stringstream output;
 	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
@@ -389,7 +402,7 @@ void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 //	output << plan_.outputTrafficLights(newLine);
 	if(getNOF_Phases() == 0)
 		{
-			LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
+			buffOut <<output.str() << newLine << "}" << newLine << "}" << std::endl;
 			return;
 		}
 //	std::ostringstream output;
@@ -418,8 +431,9 @@ void Signal_SCATS::outputTrafficLights(timeslice now,std::string newLine)const {
 //	return output.str();
 	//........
 //	std::cout << "Outputting " << output.str() << std::endl;
-	LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
+	buffOut <<output.str() << newLine << "}" << newLine << "}" << std::endl;
 }
+
 std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 {
 	std::vector< double > currSplitPlan = plan_.CurrSplitPlan();
@@ -447,6 +461,8 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 	currPhaseID = (std::size_t)(i);
 	return currPhaseID;
 }
+
+
 /*
  * 1- update current cycle timer
  * 2- update current phase color
@@ -460,10 +476,17 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
  * 8-reset the loop detector to make it ready for the next cycle
  * 8-start
  */
-UpdateStatus Signal_SCATS::update(timeslice now) {
+Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
+{
+//UpdateStatus Signal_SCATS::update(timeslice now) {
 	if(!isIntersection_) return UpdateStatus::Continue;
 	isNewCycle = false;
-	outputTrafficLights(now,"");
+
+
+	buffer_output(now, "");
+	//outputTrafficLights(now,"");
+
+
 //	1- update current cycle timer( Signal_SCATS::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase

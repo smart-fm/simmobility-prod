@@ -38,14 +38,9 @@ class UnPackageUtils;
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
- *  all roles which a Person may fulfil.
+ *  all roles which a Person may fulfill.
  */
 class Person : public sim_mob::Agent {
-	bool advanceCurrentTripChainItem();
-//	bool advanceCurrentTripChainItem_Trip();
-	bool advanceCurrentSubTrip();
-//	bool advanceCurrentTripChainItem_Activity();
-	inline std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
 public:
 	bool tripchainInitialized;
 	///The "src" variable is used to help flag how this person was created.
@@ -53,8 +48,10 @@ public:
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
 	virtual ~Person();
 	void initTripChain();
-	///Update Person behavior
-	virtual Entity::UpdateStatus update(timeslice now);
+
+
+	//Update Person behavior (old)
+	//virtual Entity::UpdateStatus update(timeslice now);
 
 	///Load a Person's config-specified properties, creating a placeholder trip chain if
 	/// requested.
@@ -92,25 +89,32 @@ public:
 	void setCurrLink(sim_mob::Link* link);*/
 	
 	int laneID;
-	const std::string& getAgentSrc() const {
-		return agentSrc;
-	}
+	const std::string& getAgentSrc() const { return agentSrc; }
+
     SubTrip* getNextSubTripInTrip();
     TripChainItem* findNextItemInTripChain();
 
-//    TripChainItem* currTripChainItem; // pointer to current item in trip chain
-//    SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
 
 
+protected:
+	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+
 
 private:
-    //Internal update functionality
-    void update_time(timeslice now, Entity::UpdateStatus& retVal);
+	//Very risky:
+	UpdateParams* curr_params;
 
+
+	bool advanceCurrentTripChainItem();
+	bool advanceCurrentSubTrip();
+	std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
 
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
@@ -121,8 +125,10 @@ private:
 
     int currTripChainSequenceNumber;
     std::vector<TripChainItem*> tripChain;
-    bool call_frame_init;    //to mark the first tick of the role with respect to its newly updated OD
-    bool first_update_tick; //to mark the first call to update function
+
+    //to mark the first call to update function
+    bool first_update_tick;
+
     ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;

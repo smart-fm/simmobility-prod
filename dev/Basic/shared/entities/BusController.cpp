@@ -74,8 +74,8 @@ void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsLi
 }
 
 
-UpdateStatus sim_mob::BusController::update(timeslice now)
-{
+//UpdateStatus sim_mob::BusController::update(timeslice now)
+//{
 	//NOTE: I am removing the AGENT_UPDATE_PROFILE/STRICT_AGENT_ERRORS check, since it was clearly copied from Person.cpp
 	//      We will (after merging) be migrating the "frame_init"/"frame_tick" pattern out of Person and into Agent, with
 	//      Entity remaining the "minimal" class. To make this easier, it will help if BusController::update() only contains
@@ -89,36 +89,36 @@ UpdateStatus sim_mob::BusController::update(timeslice now)
 	//      Aim for the following API:
 	//      if (updateBeforeStartTime() { return UpdateStatus::Continue; }
 	//      ...and have the parent function take care of throwing the error. ~Seth
-	if (now.ms() < getStartTime()) {
+	//if (now.ms() < getStartTime()) {
 		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			std::stringstream msg;
-			msg << "Agent(" << getId() << ") specifies a start time of: "
-					<< getStartTime() << " but it is currently: " << now.ms()
-					<< "; this indicates an error, and should be handled automatically.";
-			throw std::runtime_error(msg.str().c_str());
-		}
-		return UpdateStatus::Continue;
-	}
+	//	if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	//		std::stringstream msg;
+	//		msg << "Agent(" << getId() << ") specifies a start time of: "
+	//				<< getStartTime() << " but it is currently: " << now.ms()
+	//				<< "; this indicates an error, and should be handled automatically.";
+	//		throw std::runtime_error(msg.str().c_str());
+	//	}
+	//	return UpdateStatus::Continue;
+	//}
 
 	//TEMPORARY: will exist at the Agent level later.
-	if (firstFrameTick) {
-		frame_init(now);
-		firstFrameTick = false;
-	}
+	//if (firstFrameTick) {
+	//	frame_init(now);
+	//	firstFrameTick = false;
+	//}
 	//END TEMPORARY
 
 	//TEMPORARY: This will become our frame_tick method.
-	dispatchFrameTick(now);
+	//dispatchFrameTick(now);
 	//END TEMPORARY
 
 	//TEMPORARY: This will become frame_output
-	frame_tick_output(now);
+	//frame_tick_output(now);
 	//END TEMPORARY
 
 	//The variable UpdateStatus::Continue is a convenient way of returning just the simple status.
-	return UpdateStatus::Continue;
-}
+	//return UpdateStatus::Continue;
+//}
 
 
 void sim_mob::BusController::addBus(Bus* bus)
@@ -486,7 +486,8 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_a
 }
 
 
-void sim_mob::BusController::dispatchFrameTick(timeslice now)
+Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
+//void sim_mob::BusController::dispatchFrameTick(timeslice now)
 {
 	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
 	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
@@ -512,16 +513,19 @@ void sim_mob::BusController::dispatchFrameTick(timeslice now)
 		currWorker->getParent()->scheduleEntity(pending_buses.top());
 		pending_buses.pop();
 	}
+
+	return Entity::UpdateStatus::Continue;
 }
 
 
 
-void sim_mob::BusController::frame_init(timeslice now)
+bool sim_mob::BusController::frame_init(timeslice now)
 {
 	frameNumberCheck = 0;
+	return true;
 }
 
-void sim_mob::BusController::frame_tick_output(timeslice now)
+void sim_mob::BusController::frame_output(timeslice now)
 {
 	//if no buscontroller in the loadorder, no output
 	if (!getToBeInList()) {

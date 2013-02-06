@@ -58,7 +58,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	bool isQueuingBeforeUpdate = ag->isQueuing;
 	sim_mob::SegmentStats* segStatsBfrUpdt = findSegStats(segBeforeUpdate);
 
-	debugMsgs << "Updating Agent " << ag->getId() << std::endl;
+	debugMsgs << "Updating Agent " << ag->getId()  << "|Segment End: " << ag->getCurrSegment()->getEnd()->getID() << std::endl;
 	std::cout << debugMsgs.str();
 	debugMsgs.str("");
 	UpdateStatus res = ag->update(currFrameNumber);
@@ -89,6 +89,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 			ag->setCurrLane(segStatsAftrUpdt->laneInfinity);
 			ag->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
 			segStatsAftrUpdt->addAgent(segStatsAftrUpdt->laneInfinity, ag);
+			laneAfterUpdate = segStatsAftrUpdt->laneInfinity;
 		}
 	}
 	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate)

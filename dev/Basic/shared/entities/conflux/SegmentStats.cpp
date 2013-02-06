@@ -117,9 +117,12 @@ namespace sim_mob {
 						<< (*lane)->getLaneID_str()<<std::endl;
 						std::cout << debugMsgs.str();
 						debugMsgs.str("");
-						throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
+						throw std::runtime_error("Queuing count is great than lane agent count!");
 					}
 					movingCounts = movingCounts + laneStatsMap[*lane]->getMovingAgentsCount();
+				}
+				else{
+					throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
 				}
 			}
 			lane++;

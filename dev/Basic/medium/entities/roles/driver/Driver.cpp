@@ -136,18 +136,9 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	nextLaneInNextSegment = getBestTargetLane(vehicle->getCurrSegment(), nextRdSeg);
 
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
-	double t = std::max(p.timeThisTick, departTime - (p.now.ms()/1000.0));	//in seconds
+	p.timeThisTick = std::max(p.timeThisTick, departTime - (p.now.ms()/1000.0));	//in seconds
 
-	std::cout<< parent->getId()<<" Driver is added at: "<< t*1000 << "ms to lane "<<
-			nextLaneInNextSegment->getLaneID_str()
-			<<" in RdSeg "<< nextRdSeg->getStart()->getID()
-			<<" last Accept: "<< getLastAccept(nextLaneInNextSegment)
-			<<" accept rate: "<<getAcceptRate(nextLaneInNextSegment)
-			<<"timeThisTick: "<<p.timeThisTick
-			<<"now: "<<p.now.ms()
-			<< std::endl;
-
-	if(canGoToNextRdSeg(p, t))
+	if(canGoToNextRdSeg(p, p.timeThisTick))
 	{
 		//set position to start
 		if(vehicle->getCurrSegment())
@@ -155,8 +146,17 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 			vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 		}
 		currLane = nextLaneInNextSegment;
-		double actualT = t + (p.now.ms()/1000.0);
+		double actualT = p.timeThisTick + (p.now.ms()/1000.0);
 		parent->linkEntryTime = actualT;
+		std::cout<< parent->getId()<<" Driver is added at: "<< actualT*1000 << "ms to lane "<<
+					nextLaneInNextSegment->getLaneID_str()
+					<<" in RdSeg "<< nextRdSeg->getStart()->getID()
+					<<" last Accept: "<< getLastAccept(nextLaneInNextSegment)
+					<<" accept rate: "<<getAcceptRate(nextLaneInNextSegment)
+					<<"timeThisTick: "<<p.timeThisTick
+					<<"now: "<<p.now.ms()
+					<< std::endl;
+
 		setLastAccept(currLane, actualT);
 		std::cout<<"actualT: " <<actualT<<std::endl;
 		setParentData();
@@ -567,7 +567,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
 		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 52000){
+				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 27000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}

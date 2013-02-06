@@ -1,6 +1,8 @@
 //This class contains all "primary" classes; i.e., those which are the same as those in the geospatial/ folder.
 #pragma once
 
+#include "geospatial/BusStop.hpp"
+
 namespace sim_mob {
 namespace xml {
 

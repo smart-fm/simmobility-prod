@@ -9,6 +9,7 @@
 #include "buffering/Shared.hpp"
 #include "misc/BusTrip.hpp"
 #include "misc/PublicTransit.hpp"
+#include "util/DynamicVector.hpp"
 
 namespace sim_mob {
 

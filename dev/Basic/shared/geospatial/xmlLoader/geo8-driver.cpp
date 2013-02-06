@@ -5,6 +5,9 @@
 // programs without any restrictions.
 //
 
+//NOTE: Commenting out; will remove if no-one needs this class.
+#if 0
+
 #include "geo8-driver.hpp"
 
 #include <iostream>
@@ -424,3 +427,4 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
   return true;
 }
 
+#endif

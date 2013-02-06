@@ -38,7 +38,11 @@
 #include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
+//NOTE: Commenting out; will remove if no-one needs this class.
+#if 0
 #include "geospatial/xmlLoader/geo8-driver.hpp"
+#endif
+
 #include "geospatial/xmlLoader/geo10.hpp"
 
 //add by xuyan

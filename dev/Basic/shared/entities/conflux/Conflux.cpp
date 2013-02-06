@@ -57,10 +57,11 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	const sim_mob::Lane* laneBeforeUpdate = ag->getCurrLane();
 	bool isQueuingBeforeUpdate = ag->isQueuing;
 	sim_mob::SegmentStats* segStatsBfrUpdt = findSegStats(segBeforeUpdate);
+	debugMsgs << "SegStatsBeforeUpdate:" <<segBeforeUpdate->getStart()->getID() << "Queuing count: "<<
+			segStatsBfrUpdt->numQueueingInSegment(true)
+			<<" Moving count: "<<segStatsBfrUpdt->numMovingInSegment(true)<<std::endl;
+	debugMsgs << "Updating Agent " << ag->getId()  << "Start" << ag->getCurrSegment()->getStart()->getID() << std::endl;
 
-	debugMsgs << "Updating Agent " << ag->getId()  << "|Segment End: " << ag->getCurrSegment()->getEnd()->getID() << std::endl;
-	std::cout << debugMsgs.str();
-	debugMsgs.str("");
 	UpdateStatus res = ag->update(currFrameNumber);
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This agent is done. Remove from simulation.
@@ -99,6 +100,12 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 
 	// set the position of the last updated agent in his current lane (after update)
 	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(ag->distanceToEndOfSegment, laneAfterUpdate);
+
+	debugMsgs << "SegStatsAfterUpdate:" <<segAfterUpdate->getStart()->getID() << "Queuing count: "<<
+			segStatsAftrUpdt->numQueueingInSegment(true)
+			<<" Moving count: "<<segStatsAftrUpdt->numMovingInSegment(true)<<std::endl;
+	std::cout << debugMsgs.str();
+	debugMsgs.str("");
 
 }
 

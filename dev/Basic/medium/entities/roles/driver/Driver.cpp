@@ -386,8 +386,8 @@ bool sim_mob::medium::Driver::canGoToNextRdSeg(DriverUpdateParams& p, double t)
 
 	if ( !nextRdSeg) return false;
 
-	unsigned int total = nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg, true)
-			+ nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
+	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
+			+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
 	std::cout << "nextRdSeg: "<<nextRdSeg->getStart()->getID()
 			<<" queueCount: " << nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
 			<<" movingCount: "<<nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg, true)
@@ -499,8 +499,10 @@ void sim_mob::medium::Driver::addToMovingList() {
 void sim_mob::medium::Driver::removeFromQueue() {
 
 	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP)
-		parentP->isQueuing = vehicle->isQueuing = false;
+	if (parentP) {
+		parentP->isQueuing = false;
+		vehicle->isQueuing = false;
+	}
 }
 
 bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double distance)

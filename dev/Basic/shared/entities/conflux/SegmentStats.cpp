@@ -42,6 +42,10 @@ namespace sim_mob {
 	}
 
 	sim_mob::Agent* SegmentStats::dequeue(const sim_mob::Lane* lane) {
+		debugMsgs<<"dequeue: "<< roadSegment->getStart()->getID()
+				<<"moving: "<< laneStatsMap.find(lane)->second->laneAgents.size() <<std::endl;
+		std::cout<<debugMsgs.str();
+		debugMsgs.str("");
 		return laneStatsMap.find(lane)->second->dequeue();
 	}
 
@@ -103,25 +107,21 @@ namespace sim_mob {
 
 	unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
 		unsigned int movingCounts = 0;
-		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
+		debugMsgs << "numMovingInSegment:roadSegment: " ;
+		std::cout << debugMsgs.str();
+		debugMsgs.str("");
 
+		std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
 		while(lane != roadSegment->getLanes().end())
 		{
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
 			{
-				if(laneStatsMap.find(*lane) != laneStatsMap.end()) {
-					if(laneStatsMap[*lane]->getMovingAgentsCount() > 1000){
-						debugMsgs<< "large moving count: "<<roadSegment->getStart()->getID() <<" lane: "
-						<<"queueCount: "<<laneStatsMap[*lane]->getQueuingAgentsCount()
-						<< (*lane)->getLaneID_str()<<std::endl;
-						std::cout << debugMsgs.str();
-						debugMsgs.str("");
-						throw std::runtime_error("Queuing count is great than lane agent count!");
-					}
-					movingCounts = movingCounts + laneStatsMap[*lane]->getMovingAgentsCount();
+				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
+				if(laneStatsIt != laneStatsMap.end()) {
+					movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
 				}
-				else{
+				else {
 					throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
 				}
 			}
@@ -168,7 +168,13 @@ namespace sim_mob {
 			if ((hasVehicle && !(*lane)->is_pedestrian_lane())
 				|| ( !hasVehicle && (*lane)->is_pedestrian_lane()))
 			{
-				queuingCounts = queuingCounts + laneStatsMap[*lane]->getQueuingAgentsCount();
+				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
+				if(laneStatsIt != laneStatsMap.end()) {
+					queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
+				}
+				else {
+					throw std::runtime_error("SegmentStats::numQueueingInSegment was called with invalid laneStats!");
+				}
 			}
 			lane++;
 		}
@@ -309,8 +315,12 @@ namespace sim_mob {
 
 	sim_mob::Agent* sim_mob::LaneStats::dequeue() {
 		sim_mob::Agent* ag = laneAgents.front();
+		if(laneAgents.size() == 0){
+			throw std::runtime_error("Trying to dequeue from empty lane.");
+		}
 		laneAgents.erase(laneAgents.begin());
-		if(ag->isQueuing) {
+		if(queueCount > 0) {
+			// we have removed a queuing agent
 			queueCount--;
 		}
 		return ag;

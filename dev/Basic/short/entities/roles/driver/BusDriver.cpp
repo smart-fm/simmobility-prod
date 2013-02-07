@@ -140,7 +140,13 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p) {
 	if (newVeh) {
 		//Use this sample vehicle to build our Bus, then delete the old vehicle.
 		BusRoute nullRoute; //Buses don't use the route at the moment.
-		BusTrip* bustrip_change =dynamic_cast<BusTrip*>(*(person->currTripChainItem));
+
+		TripChainItem* tci = *person->currTripChainItem;
+		BusTrip* bustrip_change =dynamic_cast<BusTrip*>(tci);
+		if (!bustrip_change) {
+			throw std::runtime_error("BusDriver created without an appropriate BusTrip item.");
+		}
+
 		vehicle = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
 		delete newVeh;
 

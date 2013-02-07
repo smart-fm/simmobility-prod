@@ -1907,40 +1907,43 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
-    for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
-    	if (((*it) == "database")||((*it) == "xml-tripchains")) {
-    	    	 //Create an agent for each Trip Chain in the database.
-//    		std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-//    		std::cout << "-we have trip chain for " << tcs.size() <<  " Persons" << std::endl;
-//    		std::cout << "First Tripchain goes to person " << tcs.begin()->second.front()->personID << " with size " << tcs.begin()->second.size() << std::endl;
-    	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
-    	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
-    	    	} else if ((*it) == "drivers") {
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
-    	    	return	 "Couldn't load drivers";
-    	    }
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints)) {
-    	    	return	 "Couldn't load bus drivers";
-    	    }
-    		cout <<"Loaded Driver Agents (from config file)." <<endl;
+	for (vector<string>::iterator it = loadAgentOrder.begin();
+			it != loadAgentOrder.end(); it++) {
+		if (((*it) == "database") || ((*it) == "xml-tripchains")) {
+			//Create an agent for each Trip Chain in the database.
+			generateAgentsFromTripChain(active_agents, pending_agents,
+					constraints);
+			cout << "Loaded Database Agents (from Trip Chains)." << endl;
+		} else if ((*it) == "drivers") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"driver", constraints)) {
+				return "Couldn't load drivers";
+			}
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"busdriver", constraints)) {
+				return "Couldn't load bus drivers";
+			}
+			cout << "Loaded Driver Agents (from config file)." << endl;
 
-    	} else if ((*it) == "pedestrians") {
-    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
-    			return "Couldn't load pedestrians";
-    		}
-    		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
-    	}
-    	else if ((*it) == "passengers") {
-    	    		if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
-    	    			return "Couldn't load passengers";
-    	    		}
-    	    		cout <<"Loaded Passenger Agents (from config file)." <<endl;
-    	    	}
-    	else {
-    		return string("Unknown item in load_agents: ") + (*it);
-    	}
-    }
-    std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
+		} else if ((*it) == "pedestrians") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"pedestrian", constraints)) {
+				return "Couldn't load pedestrians";
+			}
+			cout << "Loaded Pedestrian Agents (from config file)." << endl;
+		} else if ((*it) == "passengers") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"passenger", constraints)) {
+				return "Couldn't load passengers";
+			}
+			cout << "Loaded Passenger Agents (from config file)." << endl;
+		} else {
+			return string("Unknown item in load_agents: ") + (*it);
+		}
+	}
+	std::cout
+			<< "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!"
+			<< std::endl;
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document,

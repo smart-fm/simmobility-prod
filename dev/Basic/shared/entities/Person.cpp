@@ -84,15 +84,14 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 	laneID = -1;
 }
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs):Agent(mtxStrat, tcs.front()->personID)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
+	: Agent(mtxStrat, tcs.front()->personID)
 {
 	prevRole = 0;
 	currRole = 0;
 	laneID = -1;
 	agentSrc = src;
 	tripChain = tcs;
-//	currTripChainItem(nullptr);
-//	currSubTrip(nullptr);
 	tripchainInitialized = false;
 	initTripChain();
 }
@@ -109,15 +108,12 @@ void sim_mob::Person::initTripChain(){
 		}
 	}
 
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP)
-	{
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
 		std::cout << "Person " << this << "  is going to ride a bus\n";
 	}
 	setNextPathPlanned(false);
 	first_update_tick = true;
 	tripchainInitialized = true;
-	//since this agent works based on tripchain, we set its start time
-	//using the first trip/activity's start time
 }
 
 sim_mob::Person::~Person() {
@@ -347,10 +343,12 @@ bool sim_mob::Person::updatePersonRole()
 		safe_delete_item(prevRole);
 		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 		prevRole = currRole;
-		const sim_mob::SubTrip *temp = ((*(this->currTripChainItem))->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
-		sim_mob::Role* newRole = rf.createRole(*(this->currTripChainItem),temp, this);
+
+		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
+
+		sim_mob::Role* newRole = rf.createRole(tci, str, this);
 		changeRole(newRole);
-		//std::cout << "role changed to " << rf.GetTripChainItemMode((*currTripChainItem),temp) << std::endl;
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {

@@ -105,7 +105,7 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 {
 		if (subTrip.mode=="Car")    return "driver";
 		if (subTrip.mode=="Walk")   return "pedestrian";
-		if (subTrip.mode=="Bus")    return "busdriver";
+		//if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="BusTravel")    return "passenger";
 		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");
@@ -113,23 +113,24 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 
 //gets mode of transfer from tripchain item and converts it to a mapping understandable by rolfactory and person classes, that is all
 const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const{
-	if(tripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) return "busdriver";
-	const std::string roleName = tripChainItem->getMode(subTrip);//(subTrip ? tripChainItem->getMode(subTrip) : "");
-	//std::cout << "tripChainItem->personid " << (tripChainItem)->personID << std::endl;
-	//std::cout << "rolename = " << roleName << std::endl;
-//	std::cout << "subTrip->mode = " << subTrip->mode << std::endl;
+	if(tripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		return "busdriver";
+	}
+
+	const std::string roleName = tripChainItem->getMode(subTrip);
 	if (roleName == "Car")
 		return "driver";
 	if (roleName == "Walk")
 		return "pedestrian";
 	if (roleName == "BusTravel")
 		return "passenger";
-//	if (roleName == "Bus")
-//		return "busdriver";
+	if (roleName == "Bus")
+		return "busdriver";
 	if (roleName == "Activity")
 		return "activityRole";
+
 	std::ostringstream out;
-	out << "Unknown SubTrip mode : " << roleName;
+	out << "Unknown SubTrip mode : \"" << roleName <<"\"";
 	throw std::runtime_error(out.str());
 }
 

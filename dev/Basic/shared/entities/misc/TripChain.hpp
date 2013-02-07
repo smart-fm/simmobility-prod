@@ -65,7 +65,7 @@ public:
 	static ItemType getItemType(std::string itemType);
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
-	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const {};//can't make it pur virtual coz the class will turn to abstract and we will face problem in XML reader
+	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pur virtual coz the class will turn to abstract and we will face problem in XML reader
 };
 
 /**

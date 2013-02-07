@@ -331,9 +331,14 @@ private:
     friend class ::geo::segment_t_pimpl;
 public:
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned long laneID = 0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0) {/*10 lanes per segment*/
-    	laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
-    	//setLaneID_str(laneID_);
+    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned long laneID = 0, const std::string& bit_pattern="")
+    	: parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(0)
+    {
+    	if (segment) {
+			//10 lanes per segment
+			//TODO: This is not a reasonable restriction. ~Seth
+			laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
+    	}
     }
     
     

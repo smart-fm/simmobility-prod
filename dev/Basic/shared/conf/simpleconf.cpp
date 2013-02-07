@@ -2067,7 +2067,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//We'll be switching over pretty cleanly, so just use a local variable here.
 	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
-	const bool LOAD_NEW_CONFIG_FILE = false;
+	const bool LOAD_NEW_CONFIG_FILE = true;
 
 
 	if (LOAD_NEW_CONFIG_FILE) {

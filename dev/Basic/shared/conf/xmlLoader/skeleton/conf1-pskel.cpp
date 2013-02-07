@@ -2044,11 +2044,6 @@ namespace sim_mob
     {
     }
 
-    void val_units_pskel::
-    post_val_units ()
-    {
-    }
-
     bool val_units_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -2096,11 +2091,6 @@ namespace sim_mob
     {
     }
 
-    void dist_mapping_pskel::
-    post_dist_mapping ()
-    {
-    }
-
     bool dist_mapping_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -2136,11 +2126,6 @@ namespace sim_mob
 
     void database_loader_pskel::
     mappings (const ::std::string&)
-    {
-    }
-
-    void database_loader_pskel::
-    post_database_loader ()
     {
     }
 
@@ -2196,11 +2181,6 @@ namespace sim_mob
     {
     }
 
-    void xml_loader_pskel::
-    post_xml_loader ()
-    {
-    }
-
     bool xml_loader_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -2244,12 +2224,12 @@ namespace sim_mob
     //
 
     void road_network_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void road_network_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2301,10 +2281,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2312,10 +2289,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -2327,12 +2301,12 @@ namespace sim_mob
     //
 
     void trip_chains_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void trip_chains_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2384,10 +2358,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2395,10 +2366,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -2410,12 +2378,12 @@ namespace sim_mob
     //
 
     void signals_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void signals_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -2467,10 +2435,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2478,10 +2443,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -2514,11 +2476,6 @@ namespace sim_mob
 
     void driver_explicit_pskel::
     startFrame (int)
-    {
-    }
-
-    void driver_explicit_pskel::
-    post_driver_explicit ()
     {
     }
 
@@ -2634,17 +2591,17 @@ namespace sim_mob
     //
 
     void drivers_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void drivers_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void drivers_pskel::
-    driver ()
+    driver (const sim_mob::DriverSpec&)
     {
     }
 
@@ -2706,10 +2663,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2717,10 +2671,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -2728,10 +2679,7 @@ namespace sim_mob
       if (n == "driver" && ns.empty ())
       {
         if (this->driver_parser_)
-        {
-          this->driver_parser_->post_driver_explicit ();
-          this->driver ();
-        }
+          this->driver (this->driver_parser_->post_driver_explicit ());
 
         return true;
       }
@@ -2764,11 +2712,6 @@ namespace sim_mob
 
     void pedestrian_explicit_pskel::
     startFrame (int)
-    {
-    }
-
-    void pedestrian_explicit_pskel::
-    post_pedestrian_explicit ()
     {
     }
 
@@ -2884,17 +2827,17 @@ namespace sim_mob
     //
 
     void pedestrians_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void pedestrians_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void pedestrians_pskel::
-    pedestrian ()
+    pedestrian (const sim_mob::PedestrianSpec&)
     {
     }
 
@@ -2956,10 +2899,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -2967,10 +2907,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -2978,10 +2915,7 @@ namespace sim_mob
       if (n == "pedestrian" && ns.empty ())
       {
         if (this->pedestrian_parser_)
-        {
-          this->pedestrian_parser_->post_pedestrian_explicit ();
-          this->pedestrian ();
-        }
+          this->pedestrian (this->pedestrian_parser_->post_pedestrian_explicit ());
 
         return true;
       }
@@ -2993,12 +2927,12 @@ namespace sim_mob
     //
 
     void busdrivers_pskel::
-    database_loader ()
+    database_loader (const std::pair<std::string, std::string>&)
     {
     }
 
     void busdrivers_pskel::
-    xml_loader ()
+    xml_loader (const std::pair<std::string, std::string>&)
     {
     }
 
@@ -3050,10 +2984,7 @@ namespace sim_mob
       if (n == "database_loader" && ns.empty ())
       {
         if (this->database_loader_parser_)
-        {
-          this->database_loader_parser_->post_database_loader ();
-          this->database_loader ();
-        }
+          this->database_loader (this->database_loader_parser_->post_database_loader ());
 
         return true;
       }
@@ -3061,10 +2992,7 @@ namespace sim_mob
       if (n == "xml_loader" && ns.empty ())
       {
         if (this->xml_loader_parser_)
-        {
-          this->xml_loader_parser_->post_xml_loader ();
-          this->xml_loader ();
-        }
+          this->xml_loader (this->xml_loader_parser_->post_xml_loader ());
 
         return true;
       }
@@ -3346,27 +3274,27 @@ namespace sim_mob
     //
 
     void simulation_pskel::
-    base_granularity ()
+    base_granularity (const sim_mob::Granularity&)
     {
     }
 
     void simulation_pskel::
-    total_runtime ()
+    total_runtime (const sim_mob::Granularity&)
     {
     }
 
     void simulation_pskel::
-    total_warmup ()
+    total_warmup (const sim_mob::Granularity&)
     {
     }
 
     void simulation_pskel::
-    start_time ()
+    start_time (const sim_mob::DailyTime&)
     {
     }
 
     void simulation_pskel::
-    granularities ()
+    granularities (const std::pair<sim_mob::Granularity, sim_mob::Granularity>&)
     {
     }
 
@@ -3493,10 +3421,7 @@ namespace sim_mob
       if (n == "base_granularity" && ns.empty ())
       {
         if (this->base_granularity_parser_)
-        {
-          this->base_granularity_parser_->post_val_units ();
-          this->base_granularity ();
-        }
+          this->base_granularity (this->base_granularity_parser_->post_val_units ());
 
         return true;
       }
@@ -3504,10 +3429,7 @@ namespace sim_mob
       if (n == "total_runtime" && ns.empty ())
       {
         if (this->total_runtime_parser_)
-        {
-          this->total_runtime_parser_->post_val_units ();
-          this->total_runtime ();
-        }
+          this->total_runtime (this->total_runtime_parser_->post_val_units ());
 
         return true;
       }
@@ -3515,10 +3437,7 @@ namespace sim_mob
       if (n == "total_warmup" && ns.empty ())
       {
         if (this->total_warmup_parser_)
-        {
-          this->total_warmup_parser_->post_val_units ();
-          this->total_warmup ();
-        }
+          this->total_warmup (this->total_warmup_parser_->post_val_units ());
 
         return true;
       }
@@ -3526,10 +3445,7 @@ namespace sim_mob
       if (n == "start_time" && ns.empty ())
       {
         if (this->start_time_parser_)
-        {
-          this->start_time_parser_->post_start_time ();
-          this->start_time ();
-        }
+          this->start_time (this->start_time_parser_->post_start_time ());
 
         return true;
       }
@@ -3537,10 +3453,7 @@ namespace sim_mob
       if (n == "granularities" && ns.empty ())
       {
         if (this->granularities_parser_)
-        {
-          this->granularities_parser_->post_granularities ();
-          this->granularities ();
-        }
+          this->granularities (this->granularities_parser_->post_granularities ());
 
         return true;
       }
@@ -4245,11 +4158,6 @@ namespace sim_mob
     {
     }
 
-    void start_time_pskel::
-    post_start_time ()
-    {
-    }
-
     bool start_time_pskel::
     _attribute_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -4279,17 +4187,12 @@ namespace sim_mob
     //
 
     void granularities_pskel::
-    agent ()
+    agent (const sim_mob::Granularity&)
     {
     }
 
     void granularities_pskel::
-    signal ()
-    {
-    }
-
-    void granularities_pskel::
-    post_granularities ()
+    signal (const sim_mob::Granularity&)
     {
     }
 
@@ -4336,10 +4239,7 @@ namespace sim_mob
       if (n == "agent" && ns.empty ())
       {
         if (this->agent_parser_)
-        {
-          this->agent_parser_->post_val_units ();
-          this->agent ();
-        }
+          this->agent (this->agent_parser_->post_val_units ());
 
         return true;
       }
@@ -4347,10 +4247,7 @@ namespace sim_mob
       if (n == "signal" && ns.empty ())
       {
         if (this->signal_parser_)
-        {
-          this->signal_parser_->post_val_units ();
-          this->signal ();
-        }
+          this->signal (this->signal_parser_->post_val_units ());
 
         return true;
       }
@@ -4362,17 +4259,17 @@ namespace sim_mob
     //
 
     void react_times_pskel::
-    leading_vehicle ()
+    leading_vehicle (const std::string&)
     {
     }
 
     void react_times_pskel::
-    subject_vehicle ()
+    subject_vehicle (const std::string&)
     {
     }
 
     void react_times_pskel::
-    vehicle_gap ()
+    vehicle_gap (const std::string&)
     {
     }
 
@@ -4434,10 +4331,7 @@ namespace sim_mob
       if (n == "leading_vehicle" && ns.empty ())
       {
         if (this->leading_vehicle_parser_)
-        {
-          this->leading_vehicle_parser_->post_dist_mapping ();
-          this->leading_vehicle ();
-        }
+          this->leading_vehicle (this->leading_vehicle_parser_->post_dist_mapping ());
 
         return true;
       }
@@ -4445,10 +4339,7 @@ namespace sim_mob
       if (n == "subject_vehicle" && ns.empty ())
       {
         if (this->subject_vehicle_parser_)
-        {
-          this->subject_vehicle_parser_->post_dist_mapping ();
-          this->subject_vehicle ();
-        }
+          this->subject_vehicle (this->subject_vehicle_parser_->post_dist_mapping ());
 
         return true;
       }
@@ -4456,10 +4347,7 @@ namespace sim_mob
       if (n == "vehicle_gap" && ns.empty ())
       {
         if (this->vehicle_gap_parser_)
-        {
-          this->vehicle_gap_parser_->post_dist_mapping ();
-          this->vehicle_gap ();
-        }
+          this->vehicle_gap (this->vehicle_gap_parser_->post_dist_mapping ());
 
         return true;
       }

@@ -10,20 +10,22 @@ using std::pair;
 
 void sim_mob::conf::xml_loader_pimpl::pre ()
 {
+	model = std::make_pair("", "");
 }
 
-void sim_mob::conf::xml_loader_pimpl::post_xml_loader ()
+std::pair<std::string, std::string> sim_mob::conf::xml_loader_pimpl::post_xml_loader ()
 {
+	return model;
 }
 
-void sim_mob::conf::xml_loader_pimpl::file (const ::std::string& file)
+void sim_mob::conf::xml_loader_pimpl::file (const ::std::string& value)
 {
-  std::cout << "file: " << file << std::endl;
+	model.first = value;
 }
 
-void sim_mob::conf::xml_loader_pimpl::root_element (const ::std::string& root_element)
+void sim_mob::conf::xml_loader_pimpl::root_element (const ::std::string& value)
 {
-  std::cout << "root_element: " << root_element << std::endl;
+	model.first = value;
 }
 
 

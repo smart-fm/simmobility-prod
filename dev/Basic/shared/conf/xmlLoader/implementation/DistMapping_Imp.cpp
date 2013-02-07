@@ -10,13 +10,15 @@ using std::pair;
 
 void sim_mob::conf::dist_mapping_pimpl::pre ()
 {
+	model = "";
 }
 
-void sim_mob::conf::dist_mapping_pimpl::post_dist_mapping ()
+std::string sim_mob::conf::dist_mapping_pimpl::post_dist_mapping ()
 {
+	return model;
 }
 
-void sim_mob::conf::dist_mapping_pimpl::dist (const ::std::string& dist)
+void sim_mob::conf::dist_mapping_pimpl::dist (const ::std::string& value)
 {
-  std::cout << "dist: " << dist << std::endl;
+	model = value;
 }

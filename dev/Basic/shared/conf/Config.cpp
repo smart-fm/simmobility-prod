@@ -17,8 +17,9 @@ using namespace sim_mob;
 Config sim_mob::Config::instance_;
 
 
-sim_mob::Granularity::Granularity(int amount, const string& units)
+sim_mob::Granularity::Granularity(int amount, const string& units) : base_gran_ms_(0)
 {
+	//Set the value in milliseconds.
 	if (units=="hours") {
 		ms_ = amount * 3600000;
 	} else if (units=="minutes" || units=="min") {
@@ -31,6 +32,28 @@ sim_mob::Granularity::Granularity(int amount, const string& units)
 		throw std::runtime_error("Unknown units for Granularity.");
 	}
 }
+
+
+void sim_mob::Granularity::setBaseGranMS(int baseGranMS)
+{
+	//Set it.
+	base_gran_ms_ = baseGranMS;
+
+	//Truncate it if necessary.
+	if ((base_gran_ms_>0) && (ms_%base_gran_ms_!=0)) {
+		ms_ -= (ms_%base_gran_ms_);
+	}
+}
+
+
+int sim_mob::Granularity::ticks() const
+{
+	if (base_gran_ms_==0) {
+		throw std::runtime_error("Can't retrieve ticks() of a Granularity with no base.");
+	}
+	return ms_ / base_gran_ms_;
+}
+
 
 sim_mob::WorkGroup* WorkGroupFactory::getItem()
 {

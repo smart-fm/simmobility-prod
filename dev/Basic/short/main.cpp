@@ -139,9 +139,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn)) {
-		return false;
-	}
+	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();

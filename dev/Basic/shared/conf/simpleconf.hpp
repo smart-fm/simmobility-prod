@@ -232,7 +232,7 @@ public:
 	 * \param active_agents Vector to hold all agents that will be active during time tick zero.
 	 * \param pending_agents Priority queue to hold all agents that will become active after time tick zero.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
+	static void InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.

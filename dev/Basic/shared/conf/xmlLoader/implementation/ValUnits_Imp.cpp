@@ -10,19 +10,21 @@ using std::pair;
 
 void sim_mob::conf::val_units_pimpl::pre ()
 {
+	model = std::make_pair(0,"");
 }
 
-void sim_mob::conf::val_units_pimpl::post_val_units ()
+sim_mob::Granularity sim_mob::conf::val_units_pimpl::post_val_units ()
 {
+	return sim_mob::Granularity(model.first, model.second);
 }
 
 void sim_mob::conf::val_units_pimpl::value (int value)
 {
-  std::cout << "value: " << value << std::endl;
+	model.first = value;
 }
 
-void sim_mob::conf::val_units_pimpl::units (const ::std::string& units)
+void sim_mob::conf::val_units_pimpl::units (const ::std::string& value)
 {
-  std::cout << "units: " << units << std::endl;
+  model.second = value;
 }
 

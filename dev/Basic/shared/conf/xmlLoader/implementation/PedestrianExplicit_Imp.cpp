@@ -10,34 +10,40 @@ using std::pair;
 
 void sim_mob::conf::pedestrian_explicit_pimpl::pre ()
 {
+	model = sim_mob::PedestrianSpec();
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::post_pedestrian_explicit ()
+sim_mob::PedestrianSpec sim_mob::conf::pedestrian_explicit_pimpl::post_pedestrian_explicit ()
 {
+	return model;
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::property (const std::pair<std::string, std::string>&)
+void sim_mob::conf::pedestrian_explicit_pimpl::property (const std::pair<std::string, std::string>& value)
 {
+	model.properties[value.first] = value.second;
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::originPos (const ::std::string& originPos)
+void sim_mob::conf::pedestrian_explicit_pimpl::originPos (const ::std::string& value)
 {
-  std::cout << "originPos: " << originPos << std::endl;
+	std::pair<uint32_t, uint32_t> pt = parse_point(value);
+	model.origin = sim_mob::Point2D(pt.first, pt.second);
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::destPos (const ::std::string& destPos)
+void sim_mob::conf::pedestrian_explicit_pimpl::destPos (const ::std::string& value)
 {
-  std::cout << "destPos: " << destPos << std::endl;
+	std::pair<uint32_t, uint32_t> pt = parse_point(value);
+	model.dest = sim_mob::Point2D(pt.first, pt.second);
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::startTime (const ::std::string& startTime)
+void sim_mob::conf::pedestrian_explicit_pimpl::startTime (const ::std::string& value)
 {
-  std::cout << "startTime: " << startTime << std::endl;
+	model.startTimeMs = parse_start_time_ms(value);
 }
 
-void sim_mob::conf::pedestrian_explicit_pimpl::startFrame (int startFrame)
+void sim_mob::conf::pedestrian_explicit_pimpl::startFrame (int value)
 {
-  std::cout << "startFrame: " << startFrame << std::endl;
+	//We convert based on the "base_units", which have/will be/been validated elsewhere.
+	model.startTimeMs = value * config->simulation().baseGranularity.ms();
 }
 
 

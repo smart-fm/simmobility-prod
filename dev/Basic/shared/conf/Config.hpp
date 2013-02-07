@@ -22,6 +22,7 @@
 #include "Constructs.hpp"
 #include "System.hpp"
 #include "Simulation.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 
 namespace sim_mob {
@@ -94,9 +95,21 @@ public:
 
 	//@{
 	///Accessor for the system struct.
-	///A construct is anything that can be created (dynamically) from the XML config file.
 	sim_mob::System& system() { return system_; }
 	const sim_mob::System& system() const { return system_; }
+	///@
+
+	//@{
+	///Accessor for the simulation struct.
+	sim_mob::Simulation& simulation() { return simulation_; }
+	const sim_mob::Simulation& simulation() const { return simulation_; }
+	///@
+
+	//@{
+	///Accessor for the road network.
+	///TODO: Add back in the "sealed" property; check it in the non-const version of this function.
+	sim_mob::RoadNetwork& network() { return network_; }
+	const sim_mob::RoadNetwork& network() const { return network_; }
 	///@
 
 	//@{
@@ -112,9 +125,13 @@ private:
 	sim_mob::Constructs constructs_;
 	bool single_threaded;
 	sim_mob::System system_;
+	sim_mob::Simulation simulation_;
 
 	//Default built-in models
 	BuiltInModels built_in_models;
+
+	//Our Road Network.
+	sim_mob::RoadNetwork network_;
 
 public:
 	///Retrieve an instance of the singleton Config object.

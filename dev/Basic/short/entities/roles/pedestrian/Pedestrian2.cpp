@@ -20,7 +20,6 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
-#include "entities/Signal.hpp"
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"

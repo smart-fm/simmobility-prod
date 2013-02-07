@@ -10,9 +10,6 @@
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
 
-#if 0
-	#include "entities/Signal.hpp"
-#endif
 
 namespace sim_mob
 {

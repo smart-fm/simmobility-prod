@@ -14,10 +14,6 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
-#if 0
-#include "entities/Signal.hpp"
-#endif
-
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"

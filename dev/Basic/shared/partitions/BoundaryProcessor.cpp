@@ -38,7 +38,7 @@
 #include "entities/roles/Role.hpp"
 
 #include "ParitionDebugOutput.hpp"
-#include "entities/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "partitions/PartitionManager.hpp"
 
 #define BOUNDARY_BOX_SIZE 4

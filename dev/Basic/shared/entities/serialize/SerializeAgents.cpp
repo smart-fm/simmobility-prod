@@ -5,7 +5,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Agent.hpp"
-#include "entities/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/Person.hpp"
 
 #include "partitions/PackageUtils.hpp"

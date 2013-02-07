@@ -240,6 +240,8 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if((*currTripChainItem)) {
 		currRole->frame_init(*curr_params);
 	}
+
+	return true;
 }
 
 
@@ -277,6 +279,8 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 			}
 		}
 	}
+
+	return retVal;
 }
 
 

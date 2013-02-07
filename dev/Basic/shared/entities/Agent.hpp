@@ -146,9 +146,7 @@ public:
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.
-	void resetFrameInit() {
-		call_frame_init = true;
-	}
+	void resetFrameInit();
 
 private:
 	//For future reference.

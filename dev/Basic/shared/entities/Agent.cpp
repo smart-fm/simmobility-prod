@@ -114,6 +114,12 @@ sim_mob::Agent::~Agent()
 }
 
 
+void sim_mob::Agent::resetFrameInit()
+{
+	call_frame_init = true;
+}
+
+
 namespace {
 //Ensure all time ticks are valid.
 void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
@@ -154,13 +160,14 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
 	bool calledFrameInit = false;
 	if (call_frame_init) {
-		call_frame_init = false; //Only initialize once.
-		calledFrameInit = true;
-
-		//Error?
+		//Call frame_init() and exit early if requested to.
 		if (!frame_init(now)) {
 			return UpdateStatus::Done;
 		}
+
+		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
+		call_frame_init = false; //Only initialize once.
+		calledFrameInit = true;
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.

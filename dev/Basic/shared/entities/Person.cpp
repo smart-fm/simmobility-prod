@@ -80,7 +80,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, u
 
 {
 	tripchainInitialized = false;
-	//throw 1;
 	laneID = -1;
 }
 
@@ -261,6 +260,11 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 	// in this manner), but it's the easiest solution that uses the current API.
+	//TODO: This section should technically go after frame_output(), but doing that
+	//      (by overriding Person::update() and calling Agent::update() then inserting this code)
+	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
+	//      statement into the worker class, but I don't want to change too many things
+	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved()) {
 		retVal = checkTripChain(now.ms());
 

@@ -46,9 +46,6 @@ bool sim_mob::cmp_event_start::operator()(const PendingEvent& x, const PendingEv
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
-	//std::cout <<"Asking for agent ID: " <<preferredID <<std::endl;
-
-
 	//If the ID is valid, modify next_agent_id;
 	if (preferredID > static_cast<int> (next_agent_id)) {
 		next_agent_id = static_cast<unsigned int> (preferredID);
@@ -236,7 +233,6 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 
 void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
-//	std::cout << "addresses of subscription  list elements : "<< &xPos << " " << &yPos<< " " <<&fwdVel<< " " <<&latVel<< " " <<&xAcc<< " " <<&yAcc << std::endl;
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
 	subsList.push_back(&fwdVel);
@@ -245,7 +241,6 @@ void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 	subsList.push_back(&yAcc);
 	//subscriptionList_cached.push_back(&currentLink);
 	//subscriptionList_cached.push_back(&currentCrossing);
-
 }
 
 bool sim_mob::Agent::isToBeRemoved() {

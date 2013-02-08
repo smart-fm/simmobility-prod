@@ -2081,6 +2081,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		}
 
 		//Validate simple data elements
+		//This needs to be first, since it sets our mutex enforcement strategy.
 		Validate val(cfg);
 
 		//Process these xml-based objects; load agents, etc.

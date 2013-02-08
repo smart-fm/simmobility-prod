@@ -23,6 +23,7 @@
 #include "System.hpp"
 #include "Simulation.hpp"
 #include "geospatial/RoadNetwork.hpp"
+#include "buffering/Shared.hpp"
 
 
 namespace sim_mob {
@@ -66,7 +67,7 @@ public:
 	///\note
 	///Config is typically used as a Singleton class, so you should rarely have to
 	///call its constructor.
-	Config() : single_threaded(false) {}
+	Config() : single_threaded(false), mtx_strat(MtxStrat_Buffered) {}
 
 	///Helper struct: Which built-in models are available in each category
 	struct BuiltInModels {
@@ -120,6 +121,14 @@ public:
 	const sim_mob::Config::BuiltInModels& builtInModels() const { return built_in_models; }
 	///@
 
+	//@{
+	///Accessor for the mutex enforcement strategy
+	///This strategy is used to handle our Shared<> variables, which can either be handled
+	///  via locking or buffering.
+	sim_mob::MutexStrategy& mutexStrategy() { return mtx_strat; }
+	const sim_mob::MutexStrategy& mutexStrategy() const { return mtx_strat; }
+	///@
+
 private:
 	//Data
 	sim_mob::Constructs constructs_;
@@ -132,6 +141,9 @@ private:
 
 	//Our Road Network.
 	sim_mob::RoadNetwork network_;
+
+	//Mutex enforcement strategy
+	sim_mob::MutexStrategy mtx_strat;
 
 public:
 	///Retrieve an instance of the singleton Config object.

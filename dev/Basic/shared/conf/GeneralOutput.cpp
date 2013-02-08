@@ -3,6 +3,11 @@
 
 #include "GeneralOutput.hpp"
 
+//TODO: Remove this include once we get Confluxes somewhere more stable.
+#include "conf/simpleconf.hpp"
+
+#include "geospatial/xmlWriter/boostXmlWriter.hpp"
+
 
 using std::map;
 using std::set;
@@ -24,6 +29,10 @@ void sim_mob::GeneralOutput::LogRelevantOutput() const
 	//Avoid any output calculations if output is disabled.
 	if (cfg.OutputDisabled()) { return; }
 
+    //TEMP: Test network output via boost.
+    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
+
+    //Print general properties.
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
     std::cout <<"  Base Granularity: "    <<cfg.simulation().baseGranularity.ms()      <<" " <<"ms"     <<"\n";
@@ -33,6 +42,12 @@ void sim_mob::GeneralOutput::LogRelevantOutput() const
     std::cout <<"  Signal Granularity: "  <<cfg.simulation().signalGranularity.ticks() <<" " <<"ticks" <<"\n";
     std::cout <<"  Start time: "          <<cfg.simulation().startTime.toString()      <<"\n";
     std::cout <<"  Mutex strategy: "      <<((cfg.mutexStrategy()==MtxStrat_Locked)?"Locked":(cfg.mutexStrategy()==MtxStrat_Buffered)?"Buffered":"Unknown") <<"\n";
+    std::cout <<"------------------\n";
+
+    //Size of confluxes.
+    //TODO: These need to be separated from the ConfigParams.
+    std::cout <<"Confluxes size: " <<ConfigParams::GetInstance().getConfluxes().size() <<std::endl;
+
 }
 
 

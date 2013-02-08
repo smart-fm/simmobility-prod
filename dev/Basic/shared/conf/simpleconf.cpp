@@ -44,6 +44,7 @@
 #endif
 
 #include "conf/Validate.hpp"
+#include "conf/GeneralOutput.hpp"
 #include "conf/PrintNetwork.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
@@ -2088,8 +2089,11 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//TODO
 
 
-		//Print it
+		//Print the network.
 		PrintNetwork print(cfg);
+
+		//Finally, print general logging information to stdout
+		GeneralOutput out(cfg);
 	} else {
 		//Load using our old config syntax.
 

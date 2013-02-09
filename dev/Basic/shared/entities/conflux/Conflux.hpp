@@ -86,7 +86,7 @@ private:
 	void updateSignalized();
 
 	/* function to call agents' updates if the MultiNode is not signalized */
-	void updateUnsignalized(timeslice frameNumber);
+	void updateUnsignalized();
 
 	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
 	void updateAgent(sim_mob::Agent* ag);

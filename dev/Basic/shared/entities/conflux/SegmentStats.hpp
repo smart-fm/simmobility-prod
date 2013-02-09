@@ -40,7 +40,8 @@ public:
 class LaneStats {
 
 public:
-	LaneStats() : queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0) {}
+	LaneStats(const sim_mob::Lane* laneInSegment) :
+		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), debugMsgs(std::stringstream::out) {}
 	std::vector<sim_mob::Agent*> laneAgents;
 
 	/**
@@ -66,6 +67,8 @@ public:
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
+	// This function prints all agents in laneAgents
+	void printAgents();
 
 	unsigned int getInitialQueueCount() const {
 		return initialQueueCount;
@@ -83,12 +86,20 @@ public:
 		this->positionOfLastUpdatedAgent = positionOfLastUpdatedAgent;
 	}
 
+	const sim_mob::Lane* getLane() const {
+		return lane;
+	}
+
 	LaneParams* laneParams;
+
+	//TODO: To be removed after debugging.
+	std::stringstream debugMsgs;
 
 private:
 	unsigned int queueCount;
 	unsigned int initialQueueCount;
 	double positionOfLastUpdatedAgent;
+	const sim_mob::Lane* lane;
 
 	std::vector<sim_mob::Agent*>::iterator laneAgentsIt;
 };
@@ -105,9 +116,6 @@ private:
 
 	std::map<const sim_mob::Lane*, sim_mob::Agent* > frontalAgents;
 
-	bool allAgentsProcessed();
-	sim_mob::Agent* agentClosestToStopLine();
-
 	bool downstreamCopy;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
 
@@ -115,6 +123,7 @@ private:
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
 	double segDensity;
 	double lastAcceptTime;
+
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
 
@@ -132,9 +141,8 @@ public:
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
 	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 
-	sim_mob::Agent* getNext();
 	void resetFrontalAgents();
-
+	sim_mob::Agent* agentClosestToStopLineFromFrontalAgents();
 	bool isDownstreamCopy() const {
 		return downstreamCopy;
 	}
@@ -163,12 +171,17 @@ public:
 	void setLastAccept(const Lane* l, double lastAccept);
 	double getLastAccept(const Lane* l);
 
+	// This function prints all agents in this segment
+	void printAgents();
+
 	/**
-	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects.
+	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
 	 * The LaneStats object created for laneInfinity stores the new agents who will start at this road segment. An agent will be
 	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his  start time falls within the current tick. The lane
 	 * and moving/queuing status is still unknown for agents in laneInfinity. The frame_init function of the agent's role will have
 	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
+	 *
+	 * Agents who are performing an activity are stashed in laneInfinity.
 	 */
 	const sim_mob::Lane* laneInfinity;
 

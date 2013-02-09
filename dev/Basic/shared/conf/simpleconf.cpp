@@ -1146,6 +1146,8 @@ void PrintDB_Network_ptrBased()
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
 
+	//Required for the visualizer
+	LogOutNotSync("ROADNETWORK_DONE" <<endl);
 }
 
 

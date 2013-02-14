@@ -313,7 +313,7 @@ public:
 	driver_explicit_pimpl(Config& config) : config(&config) {}
 
 	virtual void pre ();
-	virtual sim_mob::DriverSpec post_driver_explicit ();
+	virtual sim_mob::AgentSpec<sim_mob::DriverSpec> post_driver_explicit ();
 
 	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
@@ -323,7 +323,7 @@ public:
 
 private:
 	Config* config;
-	sim_mob::DriverSpec model;
+	sim_mob::AgentSpec<sim_mob::DriverSpec> model;
 };
 
 
@@ -336,7 +336,7 @@ public:
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader (const std::pair<std::string, std::string>&);
-	virtual void driver (const sim_mob::DriverSpec&);
+	virtual void driver (const sim_mob::AgentSpec<sim_mob::DriverSpec>&);
 
 private:
 	Config* config;
@@ -348,7 +348,7 @@ public:
 	pedestrian_explicit_pimpl(Config& config) : config(&config) {}
 
 	virtual void pre ();
-	virtual sim_mob::PedestrianSpec post_pedestrian_explicit ();
+	virtual sim_mob::AgentSpec<sim_mob::PedestrianSpec> post_pedestrian_explicit ();
 
 	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
@@ -358,7 +358,7 @@ public:
 
 private:
 	Config* config;
-	sim_mob::PedestrianSpec model;
+	sim_mob::AgentSpec<sim_mob::PedestrianSpec> model;
 };
 
 
@@ -371,7 +371,7 @@ public:
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader (const std::pair<std::string, std::string>&);
-	virtual void pedestrian (const sim_mob::PedestrianSpec&);
+	virtual void pedestrian (const sim_mob::AgentSpec<sim_mob::PedestrianSpec>&);
 
 private:
 	Config* config;

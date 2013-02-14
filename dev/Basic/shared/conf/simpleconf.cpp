@@ -46,6 +46,7 @@
 #include "conf/Validate.hpp"
 #include "conf/GeneralOutput.hpp"
 #include "conf/PrintNetwork.hpp"
+#include "conf/LoadAgents.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -2088,6 +2089,8 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Process these xml-based objects; load agents, etc.
 		//TODO
 
+		//Load the Agents
+		LoadAgents load(cfg);
 
 		//Print the network.
 		PrintNetwork print(cfg);

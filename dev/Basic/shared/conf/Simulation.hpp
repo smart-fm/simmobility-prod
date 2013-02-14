@@ -10,6 +10,8 @@
 
 #include "geospatial/Point2D.hpp"
 
+#include "conf/LoadAgents.hpp"
+
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
@@ -48,6 +50,11 @@ class DataLoader {
 public:
 	virtual ~DataLoader() {}
 
+	///Optional: Check manually assigned IDs for all Agents. This is done in the "pre-load" phase, so
+	///          certain Loader types (e.g., database, XML) cannot benefit from it and must
+	///          wait for the "load" phase to validate IDs.
+	virtual void checkManualIDs(LoadAgents::AgentConstraints& constraints) {}
+
 	//TODO: Later, once we know how loadData should work.
 	//virtual void loadData() = 0;
 };
@@ -76,18 +83,47 @@ protected:
 };
 
 
+
+///A class used to specify Agents that should be loaded.
+///Uses a template parameter to provide detailed parameters for a specific subclass,
+///as well as specializations for loading that particular class (in the future)
+template <class Details>
+struct AgentSpec {
+	AgentSpec() : id(-1), startTimeMs(0) {}
+
+	int32_t id; //Set to a positive number to "force" that id.
+	uint32_t startTimeMs; //Frames are converted to ms
+	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
+	Details specifics; //Put type-specific details here.
+};
+
+
+
+
 /**
  * Load a series of manual Agent specifications
  */
-template <class AgentSpec>
+template <class Details>
 class AgentLoader : public DataLoader {
 public:
-	void addAgentSpec(const AgentSpec& ags) {
+	void addAgentSpec(const AgentSpec<Details>& ags) {
 		agents.push_back(ags);
 	}
 
+	virtual void checkManualIDs(LoadAgents::AgentConstraints& constraints) {
+		for (typename std::vector< AgentSpec<Details> >::iterator it=agents.begin(); it!=agents.end(); it++) {
+			//Agents can specify manual or automatic IDs. We only need to check manual IDs, since automatic IDs are handled
+			//  by the Agent class.
+			if (it->id >= 0) {
+				//Manual ID
+				constraints.validateID(it->id);
+			}
+		}
+	}
+
+
 protected:
-	std::vector<AgentSpec> agents;
+	std::vector< AgentSpec<Details> > agents;
 };
 
 
@@ -95,12 +131,9 @@ protected:
  * Specification for explicit Driver agents.
  */
 struct DriverSpec {
-	DriverSpec() : startTimeMs(0) {}
-
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
-	uint32_t startTimeMs; //Frames are converted to ms
-	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
+
 };
 
 /**
@@ -109,8 +142,6 @@ struct DriverSpec {
 struct PedestrianSpec {
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
-	uint32_t startTimeMs; //Frames are converted to ms
-	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
 };
 
 

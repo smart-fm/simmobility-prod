@@ -26,14 +26,16 @@ void sim_mob::conf::pedestrians_pimpl::xml_loader (const std::pair<std::string, 
 	config->simulation().agentsLoaders.push_back(new DbLoader(value.first, value.second));
 }
 
-void sim_mob::conf::pedestrians_pimpl::pedestrian (const sim_mob::PedestrianSpec& value)
+void sim_mob::conf::pedestrians_pimpl::pedestrian (const sim_mob::AgentSpec<sim_mob::PedestrianSpec>& value)
 {
+	typedef AgentLoader< PedestrianSpec > PedestrianLoader;
+
 	//To avoid too much waste, we stack multiple agent definitions in a row onto the same loader.
 	std::list<DataLoader*>& loaders = config->simulation().agentsLoaders;
-	if (loaders.empty() || !dynamic_cast<AgentLoader<PedestrianSpec>*>(loaders.back())) {
-		loaders.push_back(new AgentLoader<PedestrianSpec>());
+	if (loaders.empty() || !dynamic_cast<PedestrianLoader*>(loaders.back())) {
+		loaders.push_back(new PedestrianLoader());
 	}
-	dynamic_cast<AgentLoader<PedestrianSpec>*>(loaders.back())->addAgentSpec(value);
+	dynamic_cast<PedestrianLoader*>(loaders.back())->addAgentSpec(value);
 }
 
 

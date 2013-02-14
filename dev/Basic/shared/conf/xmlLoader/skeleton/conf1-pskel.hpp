@@ -1166,7 +1166,7 @@ namespace sim_mob
       virtual void
       startFrame (int);
 
-      virtual sim_mob::DriverSpec
+      virtual sim_mob::AgentSpec<sim_mob::DriverSpec>
       post_driver_explicit () = 0;
 
       // Parser construction API.
@@ -1237,7 +1237,7 @@ namespace sim_mob
       xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      driver (const sim_mob::DriverSpec&);
+      driver (const sim_mob::AgentSpec<sim_mob::DriverSpec>&);
 
       virtual void
       post_drivers ();
@@ -1303,7 +1303,7 @@ namespace sim_mob
       virtual void
       startFrame (int);
 
-      virtual sim_mob::PedestrianSpec
+      virtual sim_mob::AgentSpec<sim_mob::PedestrianSpec>
       post_pedestrian_explicit () = 0;
 
       // Parser construction API.
@@ -1374,7 +1374,7 @@ namespace sim_mob
       xml_loader (const std::pair<std::string, std::string>&);
 
       virtual void
-      pedestrian (const sim_mob::PedestrianSpec&);
+      pedestrian (const sim_mob::AgentSpec<sim_mob::PedestrianSpec>&);
 
       virtual void
       post_pedestrians ();

@@ -147,7 +147,8 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.timeThisTick + (p.now.ms()/1000.0);
-		parent->linkEntryTime = actualT;
+		parent->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
+
 		std::cout<< parent->getId()<<" Driver is added at: "<< actualT*1000 << "ms to lane "<<
 					nextLaneInNextSegment->getLaneID_str()
 					<<" in RdSeg "<< nextRdSeg->getStart()->getID()
@@ -331,25 +332,30 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 		}
 
 		currLane = nextLaneInNextSegment;
+		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
+		addToMovingList();
+		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 
 		double linkExitTimeSec =  p.timeThisTick + (p.now.ms()/1000.0);
 
 		if (isNewLinkNext)
 		{
-			//Updating location information for agent for density calculations
-		//	parent->setCurrLink((currLane)->getRoadSegment()->getLink());
 			//set Link Travel time for previous link
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 			if (prevSeg){
 				const Link* prevLink = prevSeg->getLink();
-				parent->setTravelStats(prevLink, linkExitTimeSec, parent->linkEntryTime, true); //in seconds
+				std::cout<<"prevLink: "<<prevLink->getStart()->getID()<<" | link_: "
+						<<parent->getTravelStats().link_->getStart()->getID()<<
+						" : "<<parent->getCurrSegment()->getLink()->getStart()->getID()
+						<<std::endl;
+				if(prevLink == parent->getTravelStats().link_){
+					parent->addToTravelStatsMap(parent->getTravelStats(), linkExitTimeSec); //in seconds
+					prevSeg->getParentConflux()->setTravelTimes(parent, linkExitTimeSec);
+				}
+				parent->initTravelStats(parent->getCurrSegment()->getLink(), linkExitTimeSec);
 			}
-		parent->linkEntryTime = linkExitTimeSec;
-		}
 
-		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		addToMovingList();
-		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+		}
 
 		std::cout<< parent->getId()<<" Driver is movedToNextSeg at: "<< linkExitTimeSec*1000 << "ms to lane "<<
 								currLane->getLaneID_str()
@@ -388,12 +394,14 @@ bool sim_mob::medium::Driver::canGoToNextRdSeg(DriverUpdateParams& p, double t)
 
 	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 			+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
+
 	std::cout << "nextRdSeg: "<<nextRdSeg->getStart()->getID()
-			<<" queueCount: " << nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
-			<<" movingCount: "<<nextRdSeg->getParentConflux()->numMovingInSegment(nextRdSeg, true)
+			<<" queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
+			<<" movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 			<<" | numLanes: " << nextRdSeg->getLanes().size()
 			<< " | physical cap: " << nextRdSeg->getLanes().size()
-			* nextRdSeg->computeLaneZeroLength()/vehicle->length << std::endl;
+			* nextRdSeg->computeLaneZeroLength()/vehicle->length - total<< std::endl;
+
 	return total < nextRdSeg->getLanes().size() * nextRdSeg->computeLaneZeroLength()/vehicle->length;
 }
 
@@ -492,8 +500,10 @@ void sim_mob::medium::Driver::addToQueue(const Lane* lane) {
 void sim_mob::medium::Driver::addToMovingList() {
 
 	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP)
-		parentP->isQueuing = vehicle->isQueuing = false;
+	if (parentP){
+		parentP->isQueuing = false;
+		vehicle->isQueuing = false;
+	}
 }
 
 void sim_mob::medium::Driver::removeFromQueue() {
@@ -564,18 +574,18 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	else if (vehicle->hasNextSegment(false))
 		nextRdSeg = vehicle->getNextSegment(false);
 
-/*	if (nextRdSeg){
-		if(nextRdSeg->getStart()->getID() == 84882){
+	if (nextRdSeg){
+		if(nextRdSeg->getStart()->getID() == 61688){
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
 		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 27000){
+				nextRdSeg->getStart()->getID() == 61688 && p.now.ms() == 19000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}
 		}
 	}
-*/
+
 //	if (vehicle->getCurrSegment()->getStart()->getID() == 103046 && p.now.ms() == 21000
 	//		and parent->getId() == 46){
 		//	std::cout << "incident removed." << std::endl;
@@ -707,7 +717,8 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 		tf = t0 + x0/vu;
 		if (tf < p.elapsedSeconds)
 		{
-			ss << "tf less than tick | output: " << output << endl;
+			ss << vehicle->getCurrSegment()->getStart()->getID()
+					<<"tf less than tick | output: " << output << endl;
 			std::cout<<ss.str();
 			ss.str("");
 

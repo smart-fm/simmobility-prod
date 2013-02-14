@@ -91,7 +91,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -154,11 +154,14 @@ void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
 	currSegment = rdSeg;
 }
 
-void sim_mob::Agent::setTravelStats(const Link* link, double linkExitTime,
-		double linkTravelTime, bool hasVehicle)
+void sim_mob::Agent::initTravelStats(const Link* link, double entryTime)
 {
-	const travelStats tStats(link, linkExitTime, linkExitTime - linkEntryTime, hasVehicle);
-	travelStatsMap.insert(std::make_pair(linkExitTime, tStats));
+	currTravelStats.link_ = link;
+	currTravelStats.linkEntryTime_= entryTime;
+}
+
+void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
+	travelStatsMap.insert(std::make_pair(exitTime, ts));
 }
 
 #ifndef SIMMOB_DISABLE_MPI

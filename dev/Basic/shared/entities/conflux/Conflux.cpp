@@ -33,6 +33,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 		updateUnsignalized();
 	}
 	updateSupplyStats(frameNumber);
+
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
 }
@@ -292,4 +293,38 @@ sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment
 		it = segmentAgentsDownstream.find(rdSeg);
 	}
 	return it->second;
+}
+
+void sim_mob::Conflux::setTravelTimes(Agent* ag, double linkExitTime) {
+
+	std::map<double, Agent::travelStats>::const_iterator it =
+			ag->getTravelStatsMap().find(linkExitTime);
+	if (it != ag->getTravelStatsMap().end()){
+		double travelTime = (it->first) - (it->second).linkEntryTime_;
+		std::map<const Link*, travelTimes>::iterator itTT = LinkTravelTimesMap.find((it->second).link_);
+		if (itTT != LinkTravelTimesMap.end())
+		{
+			itTT->second.agentCount_ = itTT->second.agentCount_ + 1;
+			itTT->second.linkTravelTime_ = itTT->second.linkTravelTime_ + travelTime;
+		}
+		else{
+			travelTimes tTimes(travelTime, 1);
+			LinkTravelTimesMap.insert(std::make_pair(ag->getCurrSegment()->getLink(), tTimes));
+		}
+	}
+}
+
+void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+	std::map<const Link*, travelTimes>::const_iterator it = LinkTravelTimesMap.begin();
+	for( ; it != LinkTravelTimesMap.end(); ++it )
+	{
+		LogOut("(\"linkTravelTime\""
+			<<","<<frameNumber.frame()
+			<<","<<it->first->getLinkId()
+			<<",{"
+			<<"\"travelTime\":\""<< (it->second.linkTravelTime_)/(it->second.agentCount_)
+			<<"\"})"<<std::endl);
+#endif
+	}
 }

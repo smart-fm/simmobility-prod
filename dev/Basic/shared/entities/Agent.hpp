@@ -125,14 +125,12 @@ private:
 	{
 	public:
 		const Link* link_;
-		unsigned int linkTravelTime_;
-		unsigned int linkExitTime_;
-		bool hasVehicle_;
+		unsigned int linkEntryTime_;
+		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
-		travelStats(const Link* link, unsigned int linkExitTime,
-				unsigned int linkTravelTime, bool hasVehicle)
-		: link_(link), linkTravelTime_(linkTravelTime),
-		  linkExitTime_(linkExitTime), hasVehicle_(hasVehicle)
+		travelStats(const Link* link,
+				unsigned int linkEntryTime)
+		: link_(link), linkEntryTime_(linkEntryTime)
 		{
 		}
 	};
@@ -199,16 +197,29 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
-	//used for mid-term supply
-	void setTravelStats(const Link*, double linkExitTime, double linkTravelTime, bool hasVehicle);
+	//used for mid-term supply for link travel time computation
+	//travelStats for each agent will be updated either for a role change or link change
+	void initTravelStats(const Link* link, double entryTime);
+	void addToTravelStatsMap(travelStats ts, double exitTime);
+	travelStats getTravelStats()
+	{
+		return currTravelStats;
+	}
+
+	const std::map<double, travelStats>& getTravelStatsMap()
+	{
+		return this->travelStatsMap;
+	}
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
 
 	//for mid-term, to compute link travel times
-	std::map<double, travelStats> travelStatsMap;
-	double linkEntryTime;//in seconds
+	travelStats currTravelStats;
+	std::map<double, travelStats> travelStatsMap; //<linkExitTime, travelStats>
+//	double linkEntryTime; //in seconds - time agent change to the current link
+//	double roleEntryTime; //in seconds - time agent changed to the current role
 
 	//timeslice enqueueTick;
 

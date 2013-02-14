@@ -176,6 +176,26 @@ public:
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
 
+	//for mid-term link travel time computation for current frame tick
+	struct travelTimes
+	{
+	public:
+		unsigned int linkTravelTime_;
+		unsigned int agentCount_;
+
+		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
+		: linkTravelTime_(linkTravelTime),
+		  agentCount_(agentCount)
+		{
+		}
+	};
+	std::map<const Link*, travelTimes> LinkTravelTimesMap;
+	void setTravelTimes(Agent* ag, double linkExitTime);
+	void clearTravelTimesMap()
+	{
+		this->LinkTravelTimesMap.clear();
+	}
+	void reportLinkTravelTimes(timeslice frameNumber);
 };
 
 } /* namespace sim_mob */

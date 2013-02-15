@@ -104,7 +104,6 @@ private:
 	bool isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg);
 
 	void addToQueue(const Lane* lane);
-	void addToMovingList();
 	void removeFromQueue();
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* targetRdSeg, const RoadSegment* nextRdSeg);
 	double getInitialQueueLength(const Lane* l);

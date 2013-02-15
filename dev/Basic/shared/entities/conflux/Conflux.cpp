@@ -79,6 +79,8 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	{
 		Agent* dequeuedAgent = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
 		if(dequeuedAgent != ag) {
+			segStatsBfrUpdt->printAgents();
+			segStatsAftrUpdt->printAgents();
 			debugMsgs << "Error: Agent " << dequeuedAgent->getId() << " dequeued instead of Agent " << ag->getId() << "|Frame " << currFrameNumber.frame();
 			throw std::runtime_error(debugMsgs.str());
 		}
@@ -226,6 +228,14 @@ void sim_mob::Conflux::absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* source
 	if(sourceSegStats->hasAgents()) {
 		segmentAgents.at(sourceSegStats->getRoadSegment())->absorbAgents(sourceSegStats);
 		std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > laneCounts = segmentAgents.at(sourceSegStats->getRoadSegment())->getAgentCountsOnLanes();
+
+		//Handle lane infinity (laneInfinity is different for original and downstream copy)
+		const sim_mob::Lane* originalLaneInfinity = segmentAgents.at(sourceSegStats->getRoadSegment())->laneInfinity;
+		const sim_mob::Lane* downstreamCopyLaneInfinity = sourceSegStats->laneInfinity;
+		std::pair<unsigned int, unsigned int> laneInfinityCounts = laneCounts.at(originalLaneInfinity);
+		laneCounts.erase(originalLaneInfinity);
+		laneCounts.insert(std::make_pair(downstreamCopyLaneInfinity, laneInfinityCounts));
+
 		sourceSegStats->setPrevTickLaneCountsFromOriginal(laneCounts);
 		sourceSegStats->clear();
 	}

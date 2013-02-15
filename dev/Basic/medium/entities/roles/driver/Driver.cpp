@@ -333,7 +333,6 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		addToMovingList();
 		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 
 		double linkExitTimeSec =  p.timeThisTick + (p.now.ms()/1000.0);
@@ -377,6 +376,9 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 			moveInQueue();
 		}
 		else{
+			DebugStream << "moveToNextSegment() calls addToQueue(" << currLane->getLaneID_str() << ")";
+			std::cout << DebugStream.str();
+			DebugStream.str("");
 			addToQueue(currLane);
 		}
 	}
@@ -493,16 +495,9 @@ void sim_mob::medium::Driver::addToQueue(const Lane* lane) {
 	vehicle->setPositionInSegment(getQueueLength(lane));
 
 	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP)
-		parentP->isQueuing = vehicle->isQueuing = true;
-}
-
-void sim_mob::medium::Driver::addToMovingList() {
-
-	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP){
-		parentP->isQueuing = false;
-		vehicle->isQueuing = false;
+	if (parentP) {
+		vehicle->isQueuing = true;
+		parentP->isQueuing = vehicle->isQueuing;
 	}
 }
 
@@ -575,11 +570,11 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		nextRdSeg = vehicle->getNextSegment(false);
 
 	if (nextRdSeg){
-		if(nextRdSeg->getStart()->getID() == 61688){
+		if(nextRdSeg->getStart()->getID() == 58944){
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
 		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 61688 && p.now.ms() == 19000){
+				nextRdSeg->getStart()->getID() == 58944 && p.now.ms() == 114000){
 			std::cout << "incident added." << p.now.ms() << std::endl;
 			insertIncident(nextRdSeg, 0);
 		}
@@ -682,6 +677,9 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 	if (laneQueueLength > vehicle->getCurrLinkLaneZeroLength() )
 	{
 		std::cout<< "queue longer than segment"<< std::endl;
+		DebugStream << "advanceMovingVehicle() laneQueueLength > vehicle->getCurrLinkLaneZeroLength() calls addToQueue(" << currLane->getLaneID_str() << ")";
+		std::cout << DebugStream.str();
+		DebugStream.str("");
 		addToQueue(currLane);
 		p.timeThisTick = p.elapsedSeconds;
 	}
@@ -693,6 +691,9 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 
 		if (tf < p.elapsedSeconds)
 		{
+			DebugStream << "advanceMovingVehicle() laneQueueLength > 0 calls addToQueue(" << currLane->getLaneID_str() << ")";
+			std::cout << DebugStream.str();
+			DebugStream.str("");
 			addToQueue(currLane);
 			p.timeThisTick = p.elapsedSeconds;
 		}
@@ -732,6 +733,9 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p, unsign
 				std::cout<<parent->getId() << " add to queue: "
 						<<" start Seg:"<<vehicle->getCurrSegment()->getStart()->getID()
 						<<" currLane: "<<currLane->getLaneID_str()<<std::endl;
+				DebugStream << "advanceMovingVehicle() output > 0 calls addToQueue(" << currLane->getLaneID_str() << ")";
+				std::cout << DebugStream.str();
+				DebugStream.str("");
 				addToQueue(currLane);
 				std::cout<<currLane->getLaneID_str() << " queue length: "
 						<<getQueueLength(currLane) <<std::endl;
@@ -798,6 +802,9 @@ bool sim_mob::medium::Driver::advanceMovingVehicleWithInitialQ(DriverUpdateParam
 		}
 		else
 		{
+			DebugStream << "advanceMovingVehicleWithInitialQ() calls addToQueue(" << currLane->getLaneID_str() << ")";
+			std::cout << DebugStream.str();
+			DebugStream.str("");
 			addToQueue(currLane);
 		}
 	}

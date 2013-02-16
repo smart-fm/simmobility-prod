@@ -21,11 +21,11 @@ def createLines(fromnode,tonode,bt,interval):
         newtime_str = newtime.strftime("%H:%M:%S")
         id_s = str(lid)
         id_s2 = str(lid-199)
-        line_subtrip = id_s+",1,"+fromnode+",node,"+tonode+",node,9,1,"+newtime_str+"\n"
+        line_subtrip = id_s+",1,"+fromnode+",node,"+tonode+",node,9,1,"+newtime_str+",0"+"\n"
         fo.write(line_subtrip)
         line_trip = id_s+","+fromnode+",node,"+tonode+",node"+"\n"
         fo2.write(line_trip)
-        line_tripchain = id_s2+",1,trip,"+id_s+",0"+"\n"
+        line_tripchain = id_s2+",1,Trip,"+id_s+",0"+"\n"
         fo3.write(line_tripchain)
         lid = lid + 1
     id = lid

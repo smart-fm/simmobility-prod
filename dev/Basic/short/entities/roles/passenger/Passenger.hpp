@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include <vector>
-#include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 
 namespace sim_mob
 {
@@ -82,8 +81,6 @@ public:
 #endif
 private:
 	PassengerUpdateParams params;
-
-	sim_mob::Shared<bool> waitingAtBusStop;
 	sim_mob::Shared<bool> boardedBus;
 	sim_mob::Shared<bool> alightedBus;
 	sim_mob::Shared<BusDriver*> busdriver;//passenger should have info about the driver
@@ -93,20 +90,11 @@ private:
 	Point2D destination;
 
 	//I'm still using the old naming style, even though "random" is probably not the right word.
-	int randomX;
-	int randomY;
-	//sim_mob::Shared<int> random_x;
-	//sim_mob::Shared<int> random_y;
-
-	//More variables that used to be Shared<>
-	bool destReached;
-	//sim_mob::Shared<bool> DestReached;
-
-
-
+	int displayX;
+	int displayY;
 
 	//For display purposes: offset this Passenger by a given +x, +y
-	Point2D randomOffset;
+	Point2D DisplayOffset;
 };
 
 

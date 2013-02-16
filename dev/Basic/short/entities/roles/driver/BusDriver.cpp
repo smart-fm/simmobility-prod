@@ -856,7 +856,10 @@ void sim_mob::BusDriver::BoardingPassengers(Bus* bus) //boarding passengers
 		{
 			if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
 			{
-				 if(passenger->PassengerBoardBus(bus,this,p,busStops,busstop_sequence_no.get())==true)//check if passenger wants to board the bus
+				std::cout<<"x"<<passenger->getXYPosition().getX()<<std::endl;
+				std::cout<<"y"<<passenger->getXYPosition().getY()<<std::endl;
+				std::cout<<"seq"<<busstop_sequence_no.get()<<std::endl;
+				 if(passenger->PassengerBoardBus(bus,this,p,busStops,busstop_sequence_no.get()+1)==true)//check if passenger wants to board the bus
 					no_passengers_boarding++; //set the number of boarding passengers
 			}
 

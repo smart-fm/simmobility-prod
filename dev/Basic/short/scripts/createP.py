@@ -9,7 +9,7 @@ def createLines(fromnode,tonode,bt,interval):
     inter = float(interval)
     print inter
     random_second = random.expovariate(1/inter)
-    number_of_psg = 10 #random.randrange(100)
+    number_of_psg = 1 #random.randrange(100)
     #print random_second
     newtime = bt
     global id

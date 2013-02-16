@@ -45,9 +45,6 @@ public:
 	/// get distance to bus stop of particular segment (meter)
 	/// A negative return value indicates that there is no relevant bus stop nearby.
 	double getDistanceToBusStopOfSegment(const RoadSegment* rs);
-
-	//double no_passengers_boarding,no_passengers_alighting;
-
 	bool isBusFarawayBusStop();
 	bool isBusApproachingBusStop();
 	bool isBusArriveBusStop();
@@ -56,18 +53,24 @@ public:
 	double busAccelerating(DriverUpdateParams& p);
 	//mutable double lastTickDistanceToBusStop;
 
-//functions for boarding and alighting passengers with trip chaining
-	void BoardingPassengers(Bus* bus);
-    void AlightingPassengers(Bus* bus);
-	double passengerGenerationNew(Bus* bus);
 
-    //functions for passenger generation with distribution
+	///here passenger initially chooses which bus lines to board upon reaching bus stop
+	///and board the bus when it approaches based on this initial choice
+	void BoardingPassengers_Choice(Bus* bus);
+	///here passenger makes decision to board bus when bus reaches bus stop
+	///if the bus goes to the destination passenger decides to board
+	void BoardingPassengers_Normal(Bus* bus);
+
+    void AlightingPassengers(Bus* bus);
+
+    ///functions for passenger generation with distribution
+    double passengerGeneration(Bus* bus);//for generating random distribution and calling boarding and alighting functions
 	void Board_passengerGeneration(Bus* bus);
 	void Alight_passengerGeneration(Bus* bus);
-	double passengerGeneration(Bus* bus);
 
 
-   //dwell time calculation module
+
+   ///dwell time calculation module
 	double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
@@ -116,13 +119,11 @@ private:
 	double waitAtStopMS;
 	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
 
-
 	//Serialization, not implemented
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil){};
 	virtual void unpack(UnPackageUtils& unpackageUtil){};
-
 	virtual void packProxy(PackageUtils& packageUtil){};
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil){};
 #endif

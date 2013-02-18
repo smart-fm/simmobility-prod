@@ -49,11 +49,7 @@ void sim_mob::Passenger::setParentBufferedData()
 void sim_mob::Passenger::frame_init(UpdateParams& p)
 {
    //initialization
-   BoardedBus.set(false);
-   AlightedBus.set(false);
-   busdriver.set(nullptr);
    WaitingTime = -1;
-
    OriginBusStop=setBusStopXY(parent->originNode);
    parent->xPos.set(OriginBusStop->xPos);
    parent->yPos.set(OriginBusStop->yPos);

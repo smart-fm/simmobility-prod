@@ -504,93 +504,6 @@ double sim_mob::BusDriver::distanceToNextBusStop() {
 	return distanceToNextSegmentBusStop;
 }
 
-void sim_mob::BusDriver::Board_passengerGeneration(Bus* bus)//for generating random passenger distribution at the bus stop
-{
-	ConfigParams& config = ConfigParams::GetInstance();
-	if (bus) {
-		int manualID = -1;
-		map<string, string> props;
-		props["#mode"] = "BusTravel";
-		props["#time"] = "0";
-		for (int no = 0; no < no_passengers_boarding; no++) {
-			//create passenger objects in the bus,bus has a list of passenger objects
-			//Create the Person agent with that given ID (or an auto-generated one)
-			Person* agent = new Person("XML_Def", config.mutexStategy,
-					manualID);
-			agent->setConfigProperties(props);
-			agent->setStartTime(0);
-			bus->passengers_distribition.push_back(agent);
-		}
-	}
-
-}
-
-void sim_mob::BusDriver::Alight_passengerGeneration(Bus* bus)//alighting passenger function if random distribution is used
-{
-	//delete passenger objects in the bus
-	if (bus) {
-		for (int no = 0; no < no_passengers_alighting; no++) {
-			//delete passenger objects from the bus
-			bus->passengers_distribition.pop_back();
-		}
-	}
-}
-
-
-
-double sim_mob::BusDriver::passengerGeneration(Bus* bus)//random passenger distribution(not used now)
-{
-	double DTijk = 0.0;
-	size_t no_passengers_bus = 0;
-	size_t no_passengers_busstop = 0;
-	ConfigParams& config = ConfigParams::GetInstance();
-	PassengerDist* passenger_dist = config.passengerDist_busstop;
-	//create the passenger objects at the bus stop=random no-boarding passengers
-	if (bus && passenger_dist)
-	{
-		no_passengers_busstop = passenger_dist->getnopassengers();
-		no_passengers_bus = bus->getPassengerCount();
-		bus->setPassengerCountOld(no_passengers_bus); // record the old passenger number
-		//if last busstop,only alighting
-		if (last_busstop == true)
-		{
-			no_passengers_alighting = no_passengers_bus; // last bus stop, all alighting
-			no_passengers_boarding = 0; // reset boarding passengers to be zero at the last bus stop(for dwell time)
-			Alight_passengerGeneration(bus); //alight the bus
-			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			last_busstop = false;
-		}
-		//if first busstop,only boarding
-		else if(first_busstop ==true)
-		{
-			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
-			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
-				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
-			Board_passengerGeneration(bus);//board the bus
-			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
-			first_busstop= false;
-		}
-
-		//normal busstop,both boarding and alighting
-		else {
-			no_passengers_alighting = (config.percent_alighting * 0.01)* no_passengers_bus;
-			Alight_passengerGeneration(bus); //alight the bus
-			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			no_passengers_boarding = (config.percent_boarding * 0.01)* no_passengers_busstop;
-			if (no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
-				no_passengers_boarding = bus->getBusCapacity()- no_passengers_bus;
-			Board_passengerGeneration(bus); //board the bus
-			bus->setPassengerCount(no_passengers_bus + no_passengers_boarding);
-		}
-		DTijk = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding, 0, 0, 0, bus->getPassengerCount());
-		return DTijk;
-	} else {
-		throw std::runtime_error("Passenger distributions have not been initialized yet.");
-		return -1;
-	}
-}
 
 double sim_mob::BusDriver::dwellTimeCalculation(int A, int B, int delta_bay, int delta_full,int Pfront, int no_of_passengers)
 {
@@ -883,3 +796,90 @@ void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
  		}
  	}
  }
+
+
+/*double sim_mob::BusDriver::passengerGeneration(Bus* bus)//random passenger distribution(not used now)
+{
+	double DTijk = 0.0;
+	size_t no_passengers_bus = 0;
+	size_t no_passengers_busstop = 0;
+	ConfigParams& config = ConfigParams::GetInstance();
+	PassengerDist* passenger_dist = config.passengerDist_busstop;
+	//create the passenger objects at the bus stop=random no-boarding passengers
+	if (bus && passenger_dist)
+	{
+		no_passengers_busstop = passenger_dist->getnopassengers();
+		no_passengers_bus = bus->getPassengerCount();
+		bus->setPassengerCountOld(no_passengers_bus); // record the old passenger number
+		//if last busstop,only alighting
+		if (last_busstop == true)
+		{
+			no_passengers_alighting = no_passengers_bus; // last bus stop, all alighting
+			no_passengers_boarding = 0; // reset boarding passengers to be zero at the last bus stop(for dwell time)
+			Alight_passengerGeneration(bus); //alight the bus
+			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
+			bus->setPassengerCount(no_passengers_bus);
+			last_busstop = false;
+		}
+		//if first busstop,only boarding
+		else if(first_busstop ==true)
+		{
+			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
+			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
+				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
+			Board_passengerGeneration(bus);//board the bus
+			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
+			first_busstop= false;
+		}
+
+		//normal busstop,both boarding and alighting
+		else {
+			no_passengers_alighting = (config.percent_alighting * 0.01)* no_passengers_bus;
+			Alight_passengerGeneration(bus); //alight the bus
+			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
+			bus->setPassengerCount(no_passengers_bus);
+			no_passengers_boarding = (config.percent_boarding * 0.01)* no_passengers_busstop;
+			if (no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
+				no_passengers_boarding = bus->getBusCapacity()- no_passengers_bus;
+			Board_passengerGeneration(bus); //board the bus
+			bus->setPassengerCount(no_passengers_bus + no_passengers_boarding);
+		}
+		DTijk = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding, 0, 0, 0, bus->getPassengerCount());
+		return DTijk;
+	} else {
+		throw std::runtime_error("Passenger distributions have not been initialized yet.");
+		return -1;
+	}
+}
+void sim_mob::BusDriver::Board_passengerGeneration(Bus* bus)//for generating random passenger distribution at the bus stop
+{
+	ConfigParams& config = ConfigParams::GetInstance();
+	if (bus) {
+		int manualID = -1;
+		map<string, string> props;
+		props["#mode"] = "BusTravel";
+		props["#time"] = "0";
+		for (int no = 0; no < no_passengers_boarding; no++) {
+			//create passenger objects in the bus,bus has a list of passenger objects
+			//Create the Person agent with that given ID (or an auto-generated one)
+			Person* agent = new Person("XML_Def", config.mutexStategy,
+					manualID);
+			agent->setConfigProperties(props);
+			agent->setStartTime(0);
+			bus->passengers_distribition.push_back(agent);
+		}
+	}
+
+}
+void sim_mob::BusDriver::Alight_passengerGeneration(Bus* bus)//alighting passenger function if random distribution is used
+{
+	//delete passenger objects in the bus
+	if (bus) {
+		for (int no = 0; no < no_passengers_alighting; no++) {
+			//delete passenger objects from the bus
+			bus->passengers_distribition.pop_back();
+		}
+	}
+}*/
+
+

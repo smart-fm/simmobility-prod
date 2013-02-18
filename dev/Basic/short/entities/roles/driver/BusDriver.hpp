@@ -63,10 +63,11 @@ public:
 
     void AlightingPassengers(Bus* bus);
 
-    ///functions for passenger generation with distribution
-    double passengerGeneration(Bus* bus);//for generating random distribution and calling boarding and alighting functions
+    ///functions for passenger generation with distribution(version 1 implementation of passenger)
+    ///for generating passenger random passenger distribution at a bus stop by bus driver and calling boarding and alighting functions
+   /* double passengerGeneration(Bus* bus);
 	void Board_passengerGeneration(Bus* bus);
-	void Alight_passengerGeneration(Bus* bus);
+	void Alight_passengerGeneration(Bus* bus);*/
 
 
 

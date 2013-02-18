@@ -76,14 +76,14 @@ public:
 	const sim_mob::Vehicle* getVehicle() const {return vehicle;}
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	void stepFwdInTime(DriverUpdateParams& p, double time);
-	bool advance(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool moveToNextSegment(DriverUpdateParams& p, unsigned int currTimeMS, double timeSpent);
+	bool advance(DriverUpdateParams& p);
+	bool moveToNextSegment(DriverUpdateParams& p);
 	bool canGoToNextRdSeg(DriverUpdateParams& p, double t);
 	void moveInQueue();
 	bool moveInSegment(DriverUpdateParams& p2, double distance);
-	bool advanceQueuingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
+	bool advanceQueuingVehicle(DriverUpdateParams& p);
+	bool advanceMovingVehicle(DriverUpdateParams& p);
+	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2);
 	void getSegSpeed();
 	int getOutputCounter(const Lane* l);
 	double getOutputFlowRate(const Lane* l);

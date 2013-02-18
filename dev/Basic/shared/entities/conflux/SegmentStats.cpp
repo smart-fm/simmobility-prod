@@ -131,7 +131,9 @@ namespace sim_mob {
 			}
 			lane++;
 		}
-
+		if(movingCounts > roadSegment->getLanes().size()*roadSegment->computeLaneZeroLength()/400.0){
+			std::cout<<"large moving count "<< roadSegment->getStart()->getID()<<std::endl;
+		}
 		return movingCounts;
 	}
 
@@ -156,6 +158,15 @@ namespace sim_mob {
 		if(movingLength > 0)
 		{
 			density = numMovingInSegment(true)/(movingLength/100.0);
+			if(density > 0.25) {
+				debugMsgs<<"density problem : segment: "<< roadSegment->getStart()->getID()
+						<< "numMovingInSeg: "<< numMovingInSegment(true)
+						<<" | movLength: "<< movingLength/100.0
+						<<" | rdSegLength: "<< roadSegment->computeLaneZeroLength()<<std::endl;
+				std::cout<<debugMsgs.str();
+				debugMsgs.str("");
+				throw std::runtime_error("error in segment Density");
+			}
 		}
 		else
 			density = 1/(vehicle_length/100.0);
@@ -415,6 +426,7 @@ namespace sim_mob {
 
 	void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber){
 		segDensity = getDensity(true);
+
 		segVehicleSpeed = speed_density_function(true, segDensity);
 		//need to update segPedSpeed in future
 		std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator it = laneStatsMap.begin();
@@ -442,6 +454,16 @@ namespace sim_mob {
 			<<"\",\"density\":\""<<segDensity
 			<<"\"})"<<std::endl);
 #endif
+		debugMsgs << "(\"segmentState\""
+					<<","<<frameNumber.frame()
+					<<","<<roadSegment->getStart()->getID()
+					<<",{"
+					<<"\"speed\":\""<<segVehicleSpeed
+					<<"\",\"flow\":\""<<0
+					<<"\",\"density\":\""<<segDensity
+					<<"\"})"<<std::endl;
+		std::cout<<debugMsgs.str();
+		debugMsgs.str("");
 	}
 
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){

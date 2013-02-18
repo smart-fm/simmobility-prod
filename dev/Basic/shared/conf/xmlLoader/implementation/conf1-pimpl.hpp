@@ -15,18 +15,6 @@
 
 //TODO: These helper functions should eventually go somewhere else.
 namespace {
-//Converts, e.g., "driver" into "Car".
-//TODO: We should be able to unify our terminology here; why not just use "driver" overall?
-std::string translate_mode(const std::string& src) {
-	     if (src=="driver")       { return "Car"; }
-	else if (src=="pedestrian")   { return "Walk"; }
-	else if (src=="busdriver")    { return "Bus"; }
-	else if (src=="passenger")    { return "travel"; }
-	else                          { return "Unknown"; }
-}
-
-
-
 //Takes "xxxx,yyyy" or "(xxxx,yyyy)" and returns the x's and y's in a pair.
 //Ignores spaces (but not tabs/newlines)
 std::pair<uint32_t, uint32_t> parse_point(const std::string& src) {

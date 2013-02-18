@@ -14,6 +14,6 @@ void sim_mob::xml::TripChains_t_pimpl::post_TripChains_t ()
 void sim_mob::xml::TripChains_t_pimpl::TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > value)
 {
 	//TODO: Avoid static references!
-	sim_mob::ConfigParams::GetInstance().getTripChains()[value.first] = value.second;
+	tripChains[value.first] = value.second;
 }
 

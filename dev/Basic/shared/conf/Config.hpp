@@ -157,11 +157,11 @@ private:
 
 public:
 	///Retrieve an instance of the singleton Config object.
-	static const Config& GetInstance();
+	static const Config& GetInstance() { return instance_; }
 
 	///Retrieve a mutable instance of the singleton Config object.
 	///Don't use this function unless you know that it's ok to modify the Config object.
-	static Config& GetInstanceRW();
+	static Config& GetInstanceRW() { return instance_; }
 
 private:
 	static Config instance_;

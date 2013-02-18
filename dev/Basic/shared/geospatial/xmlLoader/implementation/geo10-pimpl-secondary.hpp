@@ -478,6 +478,8 @@ private:
 
 class TripChains_t_pimpl: public virtual TripChains_t_pskel {
 public:
+	TripChains_t_pimpl(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tripChains) : tripChains(tripChains) {}
+
 	virtual void pre ();
 	virtual void post_TripChains_t ();
 
@@ -485,6 +487,7 @@ public:
 
 private:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > model;
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tripChains;
 };
 
 

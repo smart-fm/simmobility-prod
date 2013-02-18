@@ -11,7 +11,7 @@
 
 #include "geo10-pimpl.hpp"
 
-bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork) {
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains) {
 	try {
 		//Our bookkeeper assists various classes with optimizations, and is shared between them.
 		::sim_mob::xml::helper::Bookkeeping book;
@@ -34,6 +34,9 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 		::sim_mob::xml::UniNode_t_pimpl UniNode_t_p(book);
 		::sim_mob::xml::intersection_t_pimpl intersection_t_p(book);
 		::sim_mob::xml::fwdBckSegments_t_pimpl fwdBckSegments_t_p(book);
+
+		//Also simple, but for TripChains.
+		::sim_mob::xml::TripChains_t_pimpl TripChains_t_p(resultTripChains);
 
 		//Trivial parsers
 	    ::sim_mob::xml::SimMobility_t_pimpl SimMobility_t_p;
@@ -79,7 +82,6 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 	    ::sim_mob::xml::crossing_t_pimpl crossing_t_p;
 	    ::sim_mob::xml::PointPair_t_pimpl PointPair_t_p;
 	    ::sim_mob::xml::RoadBump_t_pimpl RoadBump_t_p;
-	    ::sim_mob::xml::TripChains_t_pimpl TripChains_t_p;
 	    ::sim_mob::xml::TripChain_t_pimpl TripChain_t_p;
 	    ::xml_schema::integer_pimpl integer_p;
 	    ::sim_mob::xml::TripchainItemType_pimpl TripchainItemType_p;

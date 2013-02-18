@@ -4,9 +4,11 @@
 
 #include "GenConfig.h"
 
-#include "workers/WorkGroup.hpp"
-#include "partitions/PartitionManager.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/Person.hpp"
+#include "geospatial/aimsun/Loader.hpp"
+#include "partitions/PartitionManager.hpp"
+#include "workers/WorkGroup.hpp"
 
 using std::string;
 using std::map;
@@ -118,6 +120,41 @@ void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgent
 		res.push_back(ag);
 	}
 }
+
+
+void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
+{
+	//Find our stored procedure map (this should be guaranteed from our previous XML code).
+	std::map<std::string, StoredProcedureMap>::iterator it = cfg.constructs().storedProcedureMaps.find(mappings);
+	if (it==cfg.constructs().storedProcedureMaps.end()) { throw std::runtime_error("Unexpected; can't find mapping in loadAgents."); }
+
+	//Ensure we're loading the right type.
+	if (it->second.dbFormat!="aimsun") { throw std::runtime_error("DatabaseAgentLoader error: only the aimsun format supported (for now)."); }
+
+	//Load using the same code found in our NetworkLoader.
+	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+	TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
+
+	//Create one person per trip-chain, as required.
+	for (TripChainList::iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
+		TripChainItem* tc = it->second.front();
+
+		//Perform some amount of validation.
+		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
+		//      the value of "-1" could have been lost in the conversion. This should catch basic
+		//      usages; perhaps we might want to switch "0" to mean "auto id"?
+		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
+		if (id != -1) {
+			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
+		}
+
+		//Create the person; the constructor *should* handle the rest.
+		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", cfg.mutexStrategy(), it->second);
+		res.push_back(ag);
+	}
+}
+
+
 
 
 const Config& sim_mob::Config::GetInstance()

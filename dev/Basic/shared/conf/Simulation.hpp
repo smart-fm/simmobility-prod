@@ -67,6 +67,8 @@ public:
 class DatabaseAgentLoader : public AbstractAgentLoader {
 public:
 	DatabaseAgentLoader(const std::string& connection, const std::string& mappings) : connection(connection), mappings(mappings) {}
+
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 protected:
 	std::string connection;
 	std::string mappings;
@@ -78,6 +80,8 @@ protected:
 class XmlAgentLoader : public AbstractAgentLoader {
 public:
 	XmlAgentLoader(const std::string& fileName, const std::string& rootNode) : fileName(fileName), rootNode(rootNode) {}
+
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 protected:
 	std::string fileName;
 	std::string rootNode;

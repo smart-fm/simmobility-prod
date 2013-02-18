@@ -110,7 +110,16 @@ namespace sim_mob {
 	}
 
 	unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {
-		return (laneStatsMap.find(lane)->second->getMovingAgentsCount() + laneStatsMap.find(lane)->second->getQueuingAgentsCount());
+		if(isDownstreamCopy()) {
+			return (laneStatsMap.at(lane)->getMovingAgentsCount()
+					+ laneStatsMap.at(lane)->getQueuingAgentsCount()
+					+ prevTickLaneCountsFromOriginal.at(lane).first
+					+ prevTickLaneCountsFromOriginal.at(lane).second
+					);
+		}
+		return (laneStatsMap.at(lane)->getMovingAgentsCount()
+				+ laneStatsMap.at(lane)->getQueuingAgentsCount()
+				);
 	}
 
 	unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
@@ -123,7 +132,12 @@ namespace sim_mob {
 			{
 				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
 				if(laneStatsIt != laneStatsMap.end()) {
-					movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
+					if(isDownstreamCopy()) {
+						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount() + prevTickLaneCountsFromOriginal.at(laneStatsIt->first).second;
+					}
+					else {
+						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
+					}
 				}
 				else {
 					throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
@@ -159,10 +173,14 @@ namespace sim_mob {
 		{
 			density = numMovingInSegment(true)/(movingLength/100.0);
 			if(density > 0.25) {
-				debugMsgs<<"density problem : segment: "<< roadSegment->getStart()->getID()
-						<< "numMovingInSeg: "<< numMovingInSegment(true)
-						<<" | movLength: "<< movingLength/100.0
-						<<" | rdSegLength: "<< roadSegment->computeLaneZeroLength()<<std::endl;
+				debugMsgs<<"density problem | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
+						<< "| numMovingInSeg: "<< numMovingInSegment(true)
+						<< "| numQueueingInSeg: " << numQueueingInSegment(true)
+						<< "| numLanes: " << vehLaneCount
+						<< "| movLength: "<< movingLength/100.0
+						<< "| rdSegLength: "<< roadSegment->computeLaneZeroLength()
+						<< "| density " << density
+						<<std::endl;
 				std::cout<<debugMsgs.str();
 				debugMsgs.str("");
 				throw std::runtime_error("error in segment Density");
@@ -185,7 +203,12 @@ namespace sim_mob {
 			{
 				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
 				if(laneStatsIt != laneStatsMap.end()) {
-					queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
+					if(isDownstreamCopy()) {
+						queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount() + prevTickLaneCountsFromOriginal.at(laneStatsIt->first).first;
+					}
+					else {
+						queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
+					}
 				}
 				else {
 					throw std::runtime_error("SegmentStats::numQueueingInSegment was called with invalid laneStats!");

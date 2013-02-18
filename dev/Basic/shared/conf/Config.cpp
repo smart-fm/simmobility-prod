@@ -9,6 +9,7 @@
 #include "geospatial/aimsun/Loader.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/WorkGroup.hpp"
+#include "geospatial/xmlLoader/implementation/geo10-driver.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -173,9 +174,22 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 
 void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
 {
-	//Load using the same code found in our NetworkLoader.
+	//Create an output parameter.
 	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
-	TripChainList tripChains = LOAD_XML_TRIP_CHAINS_SOMEHOW.
+	TripChainList tripChains;
+
+
+	//Use code similar to our XML loading code to retrieve our TripChains.
+	sim_mob::xml::InitAndLoadTripChainsFromXML();
+
+
+
+	::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
+	SimMobility_t_p.pre();
+	doc_p.parse(fileName);
+	SimMobility_t_p.post_SimMobility_t();
+
+
 
 	//Create one person per trip-chain, as required.
 	for (TripChainList::iterator it=tripChains.begin(); it!=tripChains.end(); it++) {

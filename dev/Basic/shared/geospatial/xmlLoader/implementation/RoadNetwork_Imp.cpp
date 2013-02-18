@@ -10,14 +10,16 @@ void sim_mob::xml::RoadNetwork_t_pimpl::pre ()
 
 sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 {
-	return modelRef;
+	throw_if_null();
+	return *modelRef;
 }
 
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 {
-	modelRef.segmentnodes = value.uniNodes;
-	modelRef.nodes.insert(modelRef.nodes.end(), value.multiNodes.begin(), value.multiNodes.end());
+	throw_if_null();
+	modelRef->segmentnodes = value.uniNodes;
+	modelRef->nodes.insert(modelRef->nodes.end(), value.multiNodes.begin(), value.multiNodes.end());
 
 	//TODO: Why isn't this a set?
 	//modelRef.nodes = value.second;
@@ -25,6 +27,7 @@ void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Links (const std::vector<sim_mob::Link*>& value)
 {
-	modelRef.setLinks(value);
+	throw_if_null();
+	modelRef->setLinks(value);
 }
 

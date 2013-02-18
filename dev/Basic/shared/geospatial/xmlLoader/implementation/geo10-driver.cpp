@@ -11,7 +11,18 @@
 
 #include "geo10-pimpl.hpp"
 
-bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains) {
+
+namespace {
+
+/**
+ * Because of the massive amount of initialization required by XSD, we cheat a bit and use this function to provide all of our
+ *   higher-level functionality. As of now, the function does the following:
+ *     1) If "resultNetwork" is non-null and "resultTripChains" is non-null, attempt to load an entire "SimMobility" spec.
+ *     2) If "resultNetwork" is null, and "resultTripChains" is non-null, attempt to load just the "TripChains" section.
+ */
+bool init_and_load_internal(const std::string& fileName, sim_mob::RoadNetwork* resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
+{
+	//Attempt to load
 	try {
 		//Our bookkeeper assists various classes with optimizations, and is shared between them.
 		::sim_mob::xml::helper::Bookkeeping book;
@@ -392,12 +403,22 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 	                               unsigned_byte_p);
 
 
-		// Parse the XML document.
-		//
-		::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
-		SimMobility_t_p.pre();
-		doc_p.parse(fileName);
-		SimMobility_t_p.post_SimMobility_t();
+		//Parse differently depending on what we are trying to fill.
+	    if (resultNetwork && resultTripChains) {
+	    	//Parse the entire thing.
+			::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
+			SimMobility_t_p.pre();
+			doc_p.parse(fileName);
+			SimMobility_t_p.post_SimMobility_t();
+	    } else if (!resultNetwork && resultTripChains) {
+	    	//Only parse the tripchains
+			::xml_schema::document doc_p(TripChains_t_p, "http://www.smart.mit.edu/geo", "TripChains");
+			TripChains_t_p.pre();
+			doc_p.parse(fileName);
+			TripChains_t_p.post_TripChains_t();
+	    } else {
+	    	throw std::runtime_error("geo10-driver sanity check failed; unknown parameter combination.");
+	    }
 
 	} catch (const ::xml_schema::exception& e) {
 		std::cerr << e << std::endl;
@@ -409,4 +430,21 @@ bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetw
 
 	return true;
 }
+
+} //End unnamed namespace
+
+
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+{
+	return init_and_load_internal(fileName, &resultNetwork, &resultTripChains);
+}
+
+bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+{
+	return init_and_load_internal(fileName, nullptr, &resultTripChains);
+}
+
+
+
+
 

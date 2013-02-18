@@ -94,6 +94,7 @@ void sim_mob::Validate::CheckAndSetGeneralProps() const
 		//Only set if >0
 		if (val>0) {
 			Agent::SetIncrementIDStartValue(val, true);
+			cfg.system().startingAgentAutoID = val;
 		}
 
 		//Erase from our map

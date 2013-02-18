@@ -10,10 +10,10 @@ using std::pair;
 
 void sim_mob::conf::pedestrian_explicit_pimpl::pre ()
 {
-	model = sim_mob::AgentSpec<sim_mob::PedestrianSpec>();
+	model = sim_mob::AgentSpec("pedestrian");
 }
 
-sim_mob::AgentSpec<sim_mob::PedestrianSpec> sim_mob::conf::pedestrian_explicit_pimpl::post_pedestrian_explicit ()
+sim_mob::AgentSpec sim_mob::conf::pedestrian_explicit_pimpl::post_pedestrian_explicit ()
 {
 	return model;
 }

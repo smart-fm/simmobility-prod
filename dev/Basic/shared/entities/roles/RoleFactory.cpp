@@ -7,6 +7,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusTrip.hpp"
 
 using namespace sim_mob;
 using std::map;
@@ -140,7 +141,7 @@ map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& role
 	map<string, bool> res;
 	res["originPos"] = false;
 	res["destPos"] = false;
-	res["time"] = false;
+	//res["time"] = false;
 	return res;
 }
 

@@ -12,13 +12,13 @@
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
 
+//#include "conf/simpleconf.hpp"
+
 #include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Point2D.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-
 #include "entities/Entity.hpp"
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"

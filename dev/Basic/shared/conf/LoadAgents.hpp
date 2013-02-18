@@ -15,7 +15,9 @@
 
 namespace sim_mob {
 
+//Forward declarations
 class Config;
+class Agent;
 
 
 /**
@@ -31,6 +33,8 @@ public:
 
 	///Used to ensure that all Agent IDs are unique and < startingAutoAgentID.
 	struct AgentConstraints {
+		AgentConstraints() : startingAutoAgentID(0) {}
+
 		int startingAutoAgentID;
 		std::set<unsigned int> manualAgentIDs;
 
@@ -53,14 +57,11 @@ public:
 	};
 
 protected:
-	///Perform all "pre" loading activities (e.g., validation)
-	void PreLoad(AgentConstraints& constraints);
+	///Create empty copied of each (Person) agent. These will be filled in once they are fully dispatched.
+	void CreateAgentShells(AgentConstraints& constraints, std::list<sim_mob::Agent*>& res_agents);
 
-	///Perform the actual loading of each Agent.
-	void OnLoad(AgentConstraints& constraints);
-
-	///Perform all "post" loading activities (e.g., clear the Agents array from the config file).
-	void PostLoad();
+	///Send all Agents into the simulation.
+	void DispatchOrPend(const std::list<sim_mob::Agent*>& res_agents);
 
 private:
 	//Internal helper functions

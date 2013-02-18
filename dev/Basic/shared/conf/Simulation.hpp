@@ -11,11 +11,16 @@
 #include "geospatial/Point2D.hpp"
 
 #include "conf/LoadAgents.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/Person.hpp"
 
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
 namespace sim_mob {
+
+//Forward declarations
+class Config;
 
 
 /**
@@ -46,37 +51,33 @@ private:
  * A generic "loader" class. Can be used for loading a variety of data (RoadNetworks, Agents, etc.)
  * Sub-classes will specify the actual loading to be done.
  */
-class DataLoader {
+class AbstractAgentLoader {
 public:
-	virtual ~DataLoader() {}
+	virtual ~AbstractAgentLoader() {}
 
-	///Optional: Check manually assigned IDs for all Agents. This is done in the "pre-load" phase, so
-	///          certain Loader types (e.g., database, XML) cannot benefit from it and must
-	///          wait for the "load" phase to validate IDs.
-	virtual void checkManualIDs(LoadAgents::AgentConstraints& constraints) {}
-
-	//TODO: Later, once we know how loadData should work.
-	//virtual void loadData() = 0;
+	///Create agent "shells" and store them into a resulting list.
+	///Overrides of this function should use the AgentConstraints to check any manual IDs.
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg) = 0;
 };
 
 
 /**
- * Loader for Database-based data.
+ * Loader for Database-based Agents.
  */
-class DbLoader : public DataLoader {
+class DatabaseAgentLoader : public AbstractAgentLoader {
 public:
-	DbLoader(const std::string& connection, const std::string& mappings) : connection(connection), mappings(mappings) {}
+	DatabaseAgentLoader(const std::string& connection, const std::string& mappings) : connection(connection), mappings(mappings) {}
 protected:
 	std::string connection;
 	std::string mappings;
 };
 
 /**
- * Loader for Xml-based data.
+ * Loader for Xml-based Agents.
  */
-class XmlLoader : public DataLoader {
+class XmlAgentLoader : public AbstractAgentLoader {
 public:
-	XmlLoader(const std::string& fileName, const std::string& rootNode) : fileName(fileName), rootNode(rootNode) {}
+	XmlAgentLoader(const std::string& fileName, const std::string& rootNode) : fileName(fileName), rootNode(rootNode) {}
 protected:
 	std::string fileName;
 	std::string rootNode;
@@ -87,14 +88,23 @@ protected:
 ///A class used to specify Agents that should be loaded.
 ///Uses a template parameter to provide detailed parameters for a specific subclass,
 ///as well as specializations for loading that particular class (in the future)
-template <class Details>
+///
+///NOTE: This used to be a templatized class, but:
+///      1) The use of "agentType" made it pointless.
+///      2) The fact that it used "Conf" so much meant we had to put the implementation into
+///         a separate file... so templates just got in the way.
+///
 struct AgentSpec {
-	AgentSpec() : id(-1), startTimeMs(0) {}
+	//Agents are still constructed based on their "agentType" for now. We can clean this up later; for now, just
+	// make sure that you are constructing AgentSpecs with the correct agentType strings.
+	AgentSpec(const std::string& agentType="ERR") : id(-1), agentType(agentType), startTimeMs(0) {}
 
 	int32_t id; //Set to a positive number to "force" that id.
+	std::string agentType; //Mirrors the old "agent type" in simpleconf.
 	uint32_t startTimeMs; //Frames are converted to ms
 	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
-	Details specifics; //Put type-specific details here.
+	sim_mob::Point2D origin;
+	sim_mob::Point2D dest;
 };
 
 
@@ -103,46 +113,33 @@ struct AgentSpec {
 /**
  * Load a series of manual Agent specifications
  */
-template <class Details>
-class AgentLoader : public DataLoader {
+class AgentLoader : public AbstractAgentLoader {
 public:
-	void addAgentSpec(const AgentSpec<Details>& ags) {
-		agents.push_back(ags);
-	}
+	void addAgentSpec(const AgentSpec& ags);
 
-	virtual void checkManualIDs(LoadAgents::AgentConstraints& constraints) {
-		for (typename std::vector< AgentSpec<Details> >::iterator it=agents.begin(); it!=agents.end(); it++) {
-			//Agents can specify manual or automatic IDs. We only need to check manual IDs, since automatic IDs are handled
-			//  by the Agent class.
-			if (it->id >= 0) {
-				//Manual ID
-				constraints.validateID(it->id);
-			}
-		}
-	}
-
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 
 protected:
-	std::vector< AgentSpec<Details> > agents;
+	std::vector< AgentSpec > agents;
 };
 
 
 /**
  * Specification for explicit Driver agents.
  */
-struct DriverSpec {
+/*struct DriverSpec {
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
 
-};
+};*/
 
 /**
  * Specification for explicit Pedestrian agents.
  */
-struct PedestrianSpec {
+/*struct PedestrianSpec {
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
-};
+};*/
 
 
 
@@ -167,11 +164,11 @@ struct Simulation {
 
 	//Loader for all items inside the "road_network" tag. For now, only the first is used.
 	//This array is cleared (and its items are deleted) after the config file has been processed.
-	std::list<DataLoader*> roadNetworkLoaders;
+	std::list<AbstractAgentLoader*> roadNetworkLoaders;
 
 	//Loader for all items inside the "agents" tag.
 	//This array is cleared (and its items are deleted) after the config file has been processed.
-	std::list<DataLoader*> agentsLoaders;
+	std::list<AbstractAgentLoader*> agentsLoaders;
 };
 
 }

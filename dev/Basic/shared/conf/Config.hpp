@@ -129,6 +129,13 @@ public:
 	const sim_mob::MutexStrategy& mutexStrategy() const { return mtx_strat; }
 	///@
 
+	//@{
+	///Accessor for the role factory.
+	///This is used for creating roles based on string names. Later we can probably do this entirely with plugins.
+	sim_mob::RoleFactory& roleFactory() { return role_fact_; }
+	const sim_mob::RoleFactory& roleFactory() const { return role_fact_; }
+	///@
+
 private:
 	//Data
 	sim_mob::Constructs constructs_;
@@ -144,6 +151,9 @@ private:
 
 	//Mutex enforcement strategy
 	sim_mob::MutexStrategy mtx_strat;
+
+	//Factory for creating Roles
+	sim_mob::RoleFactory role_fact_;
 
 public:
 	///Retrieve an instance of the singleton Config object.

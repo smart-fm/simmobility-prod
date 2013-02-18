@@ -4,7 +4,7 @@
 #include "LoadAgents.hpp"
 
 #include "conf/Config.hpp"
-
+#include "entities/Agent.hpp"
 
 using std::map;
 using std::set;
@@ -22,43 +22,30 @@ sim_mob::LoadAgents::LoadAgents(Config& cfg) : cfg(cfg)
 	// constructors (as BusController once did).
 	AgentConstraints constraints;
 
-	//Ordering is simply pre, load, post
-	PreLoad(constraints);
-	OnLoad(constraints);
-	PostLoad();
+	//TODO: The fact that this is used twice indicates that it needs a more permanent storage location
+	//      (e.g., in "system"), rather than in "gen_props"
+	constraints.startingAutoAgentID = cfg.system().startingAgentAutoID;
+
+	//A list to hold all generated Agents.
+	std::list<sim_mob::Agent*> res_agents;
+
+	//Perform key tasks
+	CreateAgentShells(constraints, res_agents);
+	//TODO: BusControllers need to be initialized here (check pg. 40, simpleconf)
+	DispatchOrPend(res_agents);
 }
 
 
-void sim_mob::LoadAgents::PreLoad(AgentConstraints& constraints)
+void sim_mob::LoadAgents::CreateAgentShells(AgentConstraints& constraints, std::list<sim_mob::Agent*>& res_agents)
 {
-	//Ensure that all manual IDs are accounted for. This only works for "explicit" agents right now;
-	//   XML and DB agents have their IDs checked later.
-	for (list<DataLoader*>::const_iterator it=cfg.simulation().agentsLoaders.begin(); it!=cfg.simulation().agentsLoaders.end(); it++) {
-		(*it)->checkManualIDs(constraints);
+	for (list<AbstractAgentLoader*>::const_iterator it=cfg.simulation().agentsLoaders.begin(); it!=cfg.simulation().agentsLoaders.end(); it++) {
+		(*it)->loadAgents(res_agents, constraints, cfg);
 	}
-
-
-
-
-
-
-
-
-
-
-
 }
 
-void sim_mob::LoadAgents::OnLoad(AgentConstraints& constraints)
+void sim_mob::LoadAgents::DispatchOrPend(const std::list<sim_mob::Agent*>& res_agents)
 {
-	//TODO: XML and DB-loaded Agents *must* check their IDs here using the constraints array.
-	//      ("explicit" agents were already checked.)
-
-
-}
-
-void sim_mob::LoadAgents::PostLoad()
-{
+	//TODO: Now add/dispatch them.
 }
 
 

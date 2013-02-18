@@ -53,6 +53,10 @@ struct DefaultWorkGroups {
  * Collection of various System-level settings.
  */
 struct System {
+	System() : startingAgentAutoID(0) {}
+
+	int startingAgentAutoID; //How to start counting.
+
 	DefaultModels defaultModels;
 	DefaultWorkGroups defaultWorkGroups;
 

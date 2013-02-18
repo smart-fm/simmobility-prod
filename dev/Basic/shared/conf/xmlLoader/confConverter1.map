@@ -19,8 +19,8 @@ dist_mapping       "std::string";
 database_loader    "std::pair<std::string, std::string>";
 xml_loader         "std::pair<std::string, std::string>";
 
-driver_explicit      "sim_mob::AgentSpec<sim_mob::DriverSpec>";
-pedestrian_explicit  "sim_mob::AgentSpec<sim_mob::PedestrianSpec>";
+driver_explicit      "sim_mob::AgentSpec";
+pedestrian_explicit  "sim_mob::AgentSpec";
 
 
 }

@@ -12,11 +12,11 @@ using std::pair;
 
 void sim_mob::conf::driver_explicit_pimpl::pre ()
 {
-	model = sim_mob::AgentSpec<sim_mob::DriverSpec>();
+	model = sim_mob::AgentSpec("driver");
 
 }
 
-sim_mob::AgentSpec<sim_mob::DriverSpec> sim_mob::conf::driver_explicit_pimpl::post_driver_explicit ()
+sim_mob::AgentSpec sim_mob::conf::driver_explicit_pimpl::post_driver_explicit ()
 {
 	return model;
 }

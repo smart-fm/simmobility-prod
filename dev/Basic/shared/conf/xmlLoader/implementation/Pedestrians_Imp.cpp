@@ -18,24 +18,22 @@ void sim_mob::conf::pedestrians_pimpl::post_pedestrians ()
 
 void sim_mob::conf::pedestrians_pimpl::database_loader (const std::pair<std::string, std::string>& value)
 {
-	config->simulation().agentsLoaders.push_back(new DbLoader(value.first, value.second));
+	config->simulation().agentsLoaders.push_back(new DatabaseAgentLoader(value.first, value.second));
 }
 
 void sim_mob::conf::pedestrians_pimpl::xml_loader (const std::pair<std::string, std::string>& value)
 {
-	config->simulation().agentsLoaders.push_back(new DbLoader(value.first, value.second));
+	config->simulation().agentsLoaders.push_back(new XmlAgentLoader(value.first, value.second));
 }
 
-void sim_mob::conf::pedestrians_pimpl::pedestrian (const sim_mob::AgentSpec<sim_mob::PedestrianSpec>& value)
+void sim_mob::conf::pedestrians_pimpl::pedestrian (const sim_mob::AgentSpec& value)
 {
-	typedef AgentLoader< PedestrianSpec > PedestrianLoader;
-
 	//To avoid too much waste, we stack multiple agent definitions in a row onto the same loader.
-	std::list<DataLoader*>& loaders = config->simulation().agentsLoaders;
-	if (loaders.empty() || !dynamic_cast<PedestrianLoader*>(loaders.back())) {
-		loaders.push_back(new PedestrianLoader());
+	std::list<AbstractAgentLoader*>& loaders = config->simulation().agentsLoaders;
+	if (loaders.empty() || !dynamic_cast<AgentLoader*>(loaders.back())) {
+		loaders.push_back(new AgentLoader());
 	}
-	dynamic_cast<PedestrianLoader*>(loaders.back())->addAgentSpec(value);
+	dynamic_cast<AgentLoader*>(loaders.back())->addAgentSpec(value);
 }
 
 

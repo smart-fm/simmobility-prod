@@ -2601,7 +2601,7 @@ namespace sim_mob
     }
 
     void drivers_pskel::
-    driver (const sim_mob::AgentSpec<sim_mob::DriverSpec>&)
+    driver (const sim_mob::AgentSpec&)
     {
     }
 
@@ -2837,7 +2837,7 @@ namespace sim_mob
     }
 
     void pedestrians_pskel::
-    pedestrian (const sim_mob::AgentSpec<sim_mob::PedestrianSpec>&)
+    pedestrian (const sim_mob::AgentSpec&)
     {
     }
 

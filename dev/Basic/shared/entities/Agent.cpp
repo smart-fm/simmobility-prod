@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <cmath>
 
+#include "conf/simpleconf.hpp"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "geospatial/Node.hpp"
 #include "partitions/PackageUtils.hpp"

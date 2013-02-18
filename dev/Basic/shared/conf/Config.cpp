@@ -77,6 +77,49 @@ sim_mob::WorkGroup* WorkGroupFactory::getItem()
 }
 
 
+void sim_mob::AgentLoader::addAgentSpec(const AgentSpec& ags)
+{
+	agents.push_back(ags);
+}
+
+void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
+{
+	for (std::vector<AgentSpec>::iterator it=agents.begin(); it!=agents.end(); it++) {
+		//Agents can specify manual or automatic IDs. We only need to check manual IDs, since automatic IDs are handled by the Agent class.
+		if (it->id >= 0) {
+			constraints.validateID(it->id);
+		}
+
+		//Check that we know how to create an Agent in this Role.
+		bool knownRole = cfg.roleFactory().isKnownRole(it->agentType);
+		if (!knownRole) {
+			std::stringstream msg;
+			msg <<"Unknown role type: \"" <<it->agentType <<"\"";
+			throw std::runtime_error(msg.str().c_str());
+		}
+
+		//Set the "#mode" flag. The "#" ensures this can never be set in XML accidentally.
+		it->properties["#mode"] = translate_mode(it->agentType);
+
+		//WORKAROUND: The old code required an Agent's origin/dest to be in string format.
+		//            We should *definitely* get rid of that requirement later; for now I'm
+		//            adding this here. ~Seth
+		std::stringstream msg;
+		msg <<it->origin.getX() <<"," <<it->origin.getY();
+		it->properties["originPos"] = msg.str();
+		msg.str("");
+		msg <<it->dest.getX() <<"," <<it->dest.getY();
+		it->properties["destPos"] = msg.str();
+
+		//Now create a shell Agent, assign it any remaining properties, and add it to the results.
+		sim_mob::Person* ag = new sim_mob::Person("XML_Def", cfg.mutexStrategy(), it->id);
+		ag->setConfigProperties(it->properties);
+		ag->setStartTime(it->startTimeMs);
+		res.push_back(ag);
+	}
+}
+
+
 const Config& sim_mob::Config::GetInstance()
 {
 	return instance_;

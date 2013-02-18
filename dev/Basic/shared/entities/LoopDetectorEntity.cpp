@@ -11,6 +11,8 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/Role.hpp"
 
+#include "conf/simpleconf.hpp"
+
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"

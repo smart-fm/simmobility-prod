@@ -2090,7 +2090,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//TODO
 
 		//Load the Agents
-		LoadAgents load(cfg);
+		LoadAgents load(cfg, active_agents, pending_agents);
 
 		//Print the network.
 		PrintNetwork print(cfg);

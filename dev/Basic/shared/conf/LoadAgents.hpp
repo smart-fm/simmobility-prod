@@ -17,7 +17,9 @@ namespace sim_mob {
 
 //Forward declarations
 class Config;
+class StartTimePriorityQueue;
 class Agent;
+class Entity;
 
 
 /**
@@ -29,7 +31,7 @@ class Agent;
 class LoadAgents : private boost::noncopyable {
 public:
 	///Load all Agents for a given Config file.
-	LoadAgents(sim_mob::Config& cfg);
+	LoadAgents(sim_mob::Config& cfg, std::vector<sim_mob::Entity*>& active_agents, sim_mob::StartTimePriorityQueue& pending_agents);
 
 	///Used to ensure that all Agent IDs are unique and < startingAutoAgentID.
 	struct AgentConstraints {
@@ -61,7 +63,7 @@ protected:
 	void CreateAgentShells(AgentConstraints& constraints, std::list<sim_mob::Agent*>& res_agents);
 
 	///Send all Agents into the simulation.
-	void DispatchOrPend(const std::list<sim_mob::Agent*>& res_agents);
+	void DispatchOrPend(const std::list<sim_mob::Agent*>& res_agents, std::vector<sim_mob::Entity*>& active_agents, sim_mob::StartTimePriorityQueue& pending_agents);
 
 private:
 	//Internal helper functions

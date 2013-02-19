@@ -391,16 +391,9 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 }
 
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
-
-#if 0
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
-#endif
-
 {
-	std::cout << "inside loadXMLSignals !" << std::endl;
 	//Quick check.
 	if (signalKeyID!="signal") {
-		std::cout << "oops! returning false!" << std::endl;
 		return false;
 	}
 

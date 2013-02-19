@@ -15,6 +15,104 @@ using std::string;
 using namespace sim_mob;
 
 
+namespace {
+///TODO: This code is old code from simpleconf.cpp; it is the only thing which was not immediately upgraded.
+///      We need to make an "ExplicitSignal" class, and allow loading from conf. For now, though, we can rely on DB loading.
+///NOTE: Do *NOT* delete this code, even though it's commented. ~Seth
+/***********************************
+bool LoadExplicitSignals()
+{
+	//Quick check.
+	std::string signalKeyID = "signal";
+	if (signalKeyID!="signal") {
+		return false;
+	}
+
+	//Build the expression dynamically.
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
+	if (!node) {
+		//Signals are optional
+		return true;
+	}
+
+        StreetDirectory& streetDirectory = StreetDirectory::instance();
+
+	//Loop through all agents of this type
+	for (;node;node=node->NextSiblingElement()) {
+            char const * xPosAttr = node->Attribute("xpos");
+            char const * yPosAttr = node->Attribute("ypos");
+            if (0 == xPosAttr || 0 == yPosAttr)
+            {
+
+                std::cerr << "signals must have 'xpos', and 'ypos' attributes in the config file." << std::endl;
+                return false;
+            }
+
+            try
+            {
+                int xpos = boost::lexical_cast<int>(xPosAttr);
+                int ypos = boost::lexical_cast<int>(yPosAttr);
+
+                const Point2D pt(xpos, ypos);
+                Node* road_node = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+                if (0 == road_node)
+                {
+                    std::cerr << "xpos=\"" << xPosAttr << "\" and ypos=\"" << yPosAttr
+                              << "\" are not suitable attributes for Signal because there is no node there; correct the config file."
+                              << std::endl;
+                    continue;
+                }
+
+                // See the comments in createSignals() in geospatial/aimsun/Loader.cpp.
+                // At some point in the future, this function loadXMLSignals() will be removed
+                // in its entirety, not just the following code fragment.
+                std::set<Link const *> links;
+                if (MultiNode const * multi_node = dynamic_cast<MultiNode const *>(road_node))
+                {
+                    std::set<RoadSegment*> const & roads = multi_node->getRoadSegments();
+                    std::set<RoadSegment*>::const_iterator iter;
+                    for (iter = roads.begin(); iter != roads.end(); ++iter)
+                    {
+                        RoadSegment const * road = *iter;
+                        links.insert(road->getLink());
+                    }
+                }
+                if (links.size() != 4)
+                {
+                    std::cerr << "the multi-node at " << pt << " does not have 4 links; "
+                              << "no signal will be created here." << std::endl;
+                    continue;
+                }
+                Signal const * signal = streetDirectory.signalAt(*road_node);
+                if (signal)
+                {
+                    std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
+                              << "skipping this config file entry" << std::endl;
+                }
+                else
+                {
+                	std::cout << "signal at node(" << xpos << ", " << ypos << ") was not found; No more action will be taken\n ";
+//                    // The following call will create and register the signal with the
+//                    // street-directory.
+//                	std::cout << "register signal again!" << std::endl;
+//                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
+                }
+            }
+            catch (boost::bad_lexical_cast &)
+            {
+            	std::cout << "catch the loop error try!" << std::endl;
+                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
+                return false;
+            }
+	}
+	return true;
+}
+***************************************/
+} //End un-named namespace
+
+
+
 sim_mob::LoadAgents::LoadAgents(Config& cfg, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(cfg)
 {
 	//Ensure as we go that all Agents have unique IDs.

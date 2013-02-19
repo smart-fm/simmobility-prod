@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "geo10-pimpl.hpp"
+#include "entities/misc/TripChain.hpp"
 
 
 namespace {
@@ -20,7 +21,7 @@ namespace {
  *     1) If "resultNetwork" is non-null and "resultTripChains" is non-null, attempt to load an entire "SimMobility" spec.
  *     2) If "resultNetwork" is null, and "resultTripChains" is non-null, attempt to load just the "TripChains" section.
  */
-bool init_and_load_internal(const std::string& fileName, sim_mob::RoadNetwork* resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
+bool init_and_load_internal(const std::string& fileName, const std::string& rootNode, sim_mob::RoadNetwork* resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
 {
 	//Attempt to load
 	try {
@@ -406,13 +407,13 @@ bool init_and_load_internal(const std::string& fileName, sim_mob::RoadNetwork* r
 		//Parse differently depending on what we are trying to fill.
 	    if (resultNetwork && resultTripChains) {
 	    	//Parse the entire thing.
-			::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
+			::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", rootNode);
 			SimMobility_t_p.pre();
 			doc_p.parse(fileName);
 			SimMobility_t_p.post_SimMobility_t();
 	    } else if (!resultNetwork && resultTripChains) {
 	    	//Only parse the tripchains
-			::xml_schema::document doc_p(TripChains_t_p, "http://www.smart.mit.edu/geo", "TripChains");
+			::xml_schema::document doc_p(TripChains_t_p, "http://www.smart.mit.edu/geo", rootNode);
 			TripChains_t_p.pre();
 			doc_p.parse(fileName);
 			TripChains_t_p.post_TripChains_t();
@@ -436,12 +437,12 @@ bool init_and_load_internal(const std::string& fileName, sim_mob::RoadNetwork* r
 
 bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
-	return init_and_load_internal(fileName, &resultNetwork, &resultTripChains);
+	return init_and_load_internal(fileName, "SimMobility", &resultNetwork, &resultTripChains);
 }
 
-bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, const std::string& rootNode, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
-	return init_and_load_internal(fileName, nullptr, &resultTripChains);
+	return init_and_load_internal(fileName, rootNode, nullptr, &resultTripChains);
 }
 
 

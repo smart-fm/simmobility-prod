@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "buffering/Buffered.hpp"
+#include "conf/simpleconf.hpp"
 #include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"

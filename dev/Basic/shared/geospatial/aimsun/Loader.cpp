@@ -139,8 +139,10 @@ private:
 	void LoadLanes(const std::string& storedProc);
 	void LoadTurnings(const std::string& storedProc);
 	void LoadPolylines(const std::string& storedProc);
-	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+
+public:
+	void LoadTripchains(const std::string& storedProc);
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.

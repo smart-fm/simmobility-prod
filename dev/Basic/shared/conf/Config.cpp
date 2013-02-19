@@ -138,6 +138,31 @@ void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgent
 }
 
 
+namespace {
+void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, MutexStrategy mtxStrat, const std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tripChains) {
+	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+
+	//Create one person per trip-chain, as required.
+	for (TripChainList::const_iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
+		TripChainItem* tc = it->second.front();
+
+		//Perform some amount of validation.
+		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
+		//      the value of "-1" could have been lost in the conversion. This should catch basic
+		//      usages; perhaps we might want to switch "0" to mean "auto id"?
+		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
+		if (id != -1) {
+			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
+		}
+
+		//Create the person; the constructor *should* handle the rest.
+		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", mtxStrat, it->second);
+		res.push_back(ag);
+	}
+}
+}  //End un-named namespace
+
+
 void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
 {
 	//Find our stored procedure map (this should be guaranteed from our previous XML code).
@@ -151,23 +176,8 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
 
-	//Create one person per trip-chain, as required.
-	for (TripChainList::iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
-		TripChainItem* tc = it->second.front();
-
-		//Perform some amount of validation.
-		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
-		//      the value of "-1" could have been lost in the conversion. This should catch basic
-		//      usages; perhaps we might want to switch "0" to mean "auto id"?
-		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
-		if (id != -1) {
-			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
-		}
-
-		//Create the person; the constructor *should* handle the rest.
-		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", cfg.mutexStrategy(), it->second);
-		res.push_back(ag);
-	}
+	//Now use the same code for Db and Xml trip-chains.
+	GenerateAgentsFromTripChains(res, constraints, cfg.mutexStrategy(), tripChains);
 }
 
 
@@ -178,36 +188,11 @@ void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAg
 	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains;
 
-
 	//Use code similar to our XML loading code to retrieve our TripChains.
-	sim_mob::xml::InitAndLoadTripChainsFromXML();
+	sim_mob::xml::InitAndLoadTripChainsFromXML(fileName, rootNode, tripChains);
 
-
-
-	::xml_schema::document doc_p(SimMobility_t_p, "http://www.smart.mit.edu/geo", "SimMobility");
-	SimMobility_t_p.pre();
-	doc_p.parse(fileName);
-	SimMobility_t_p.post_SimMobility_t();
-
-
-
-	//Create one person per trip-chain, as required.
-	for (TripChainList::iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
-		TripChainItem* tc = it->second.front();
-
-		//Perform some amount of validation.
-		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
-		//      the value of "-1" could have been lost in the conversion. This should catch basic
-		//      usages; perhaps we might want to switch "0" to mean "auto id"?
-		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
-		if (id != -1) {
-			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
-		}
-
-		//Create the person; the constructor *should* handle the rest.
-		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", cfg.mutexStrategy(), it->second);
-		res.push_back(ag);
-	}
+	//Now use the same code for Db and Xml trip-chains.
+	GenerateAgentsFromTripChains(res, constraints, cfg.mutexStrategy(), tripChains);
 }
 
 

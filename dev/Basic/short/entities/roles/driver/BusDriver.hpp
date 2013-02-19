@@ -4,6 +4,7 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include <vector>
 
 namespace sim_mob {

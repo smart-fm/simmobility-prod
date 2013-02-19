@@ -117,7 +117,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//      should really be clear about when this is not ok.
 	for (int i=0; i<2; i++) {
 		//Set for the old-style config first, new-style config second.
-		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstance().roleFactory();
+		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
 		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));

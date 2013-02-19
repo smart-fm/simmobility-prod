@@ -47,6 +47,7 @@
 #include "conf/GeneralOutput.hpp"
 #include "conf/PrintNetwork.hpp"
 #include "conf/LoadAgents.hpp"
+#include "conf/LoadNetwork.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -1351,30 +1352,7 @@ void PrintDB_Network_idBased()
 
 }
 
-void patchRoadNetworkwithLaneEdgePolyline() {
-	//Initial message
-	const RoadNetwork& rn = sim_mob::ConfigParams::GetInstance().getNetwork();
-	std::set<const RoadSegment*, Sorter> cachedSegments;
-	for (set<UniNode*>::const_iterator it = rn.getUniNodes().begin(); it != rn.getUniNodes().end(); it++) {
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2 = segs.begin(); i2 != segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (vector<MultiNode*>::const_iterator it = rn.getNodes().begin(); it != rn.getNodes().end(); it++) {
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2 = nodeInt->getRoadSegments().begin(); i2 != nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (std::set<const RoadSegment*>::const_iterator it = cachedSegments.begin(); it != cachedSegments.end(); it++) {
-		for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
-		}
-	}
-}
+
 //obsolete
 void printRoadNetwork_console()
 {
@@ -1880,10 +1858,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
  	std::cout << "XML input for SimMobility Created....\n";
  	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
  #endif
-    patchRoadNetworkwithLaneEdgePolyline();//apparently, must be called before StreetDirectory.init
 
-    std::cout << "Street Directory initialized" << std::endl;
+ 	//Generate lanes, before StreetDirectory::init()
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
+
+ 	//Initialize the street directory.
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    std::cout << "Street Directory initialized" << std::endl;
 
     //process confluxes
     std::cout << "confluxes size before: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
@@ -2079,11 +2060,11 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//This needs to be first, since it sets our mutex enforcement strategy.
 		Validate val(cfg);
 
-		//Process these xml-based objects; load agents, etc.
-		//TODO
+		//Load the Road Network
+		LoadNetwork loadN(cfg);
 
 		//Load the Agents
-		LoadAgents load(cfg, active_agents, pending_agents);
+		LoadAgents loadA(cfg, active_agents, pending_agents);
 
 		//Print the network.
 		PrintNetwork print(cfg);

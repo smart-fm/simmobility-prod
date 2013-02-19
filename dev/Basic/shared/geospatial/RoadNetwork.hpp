@@ -56,6 +56,22 @@ public:
 
 	DRIVING_SIDE drivingSide;
 
+
+	/**
+	 * Forces all lane-edge and lane polylines to generate.
+	 * For legacy reasons, our Road Network doesn't always generate lane lines and lane-edge lines.
+	 * This function iterates through each Segment in a RoadNetwork in order of increasing ID, and
+	 * generates both the lane-edge and lane polylines. The ordered ID should ensure that each
+	 * lane/lane edge is given the same LaneID for multiple runs of Sim Mobility.
+	 *
+	 * \todo
+	 * This function needs to be migrated to the Database and XML loaders. In other words,
+	 * Road Networks should *not* delay loading of lane edge polylines, and should not have any
+	 * mutable properties at runtime (these should go into StreetDirectory decorator classes).
+	 */
+	static void ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn);
+
+
 	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.

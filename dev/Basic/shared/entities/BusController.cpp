@@ -165,7 +165,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-
+	vector<const BusStop*> stops;
 	sim_mob::Busline* busline = nullptr;
 	int step = 0;
 
@@ -204,12 +204,17 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			//Our algorithm expects empty vectors in some cases.
 			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
 			vector<const RoadSegment*> segments = (segmentsIt==config.getRoadSegments_Map().end()) ? vector<const RoadSegment*>() : segmentsIt->second;
-			vector<const BusStop*> stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
+			stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
 
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
 		}
+	}
+	for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
+	{
+	  BusStop* rs=const_cast<BusStop*>(stops[k]);
+	  rs->BusLines.push_back(busline);
 	}
 }
 

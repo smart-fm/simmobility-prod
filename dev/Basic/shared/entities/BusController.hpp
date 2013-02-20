@@ -3,19 +3,15 @@
 #pragma once
 
 #include <vector>
-
 #include "entities/Agent.hpp"
-
 #include "buffering/Shared.hpp"
 #include "misc/BusTrip.hpp"
 #include "misc/PublicTransit.hpp"
 #include "util/DynamicVector.hpp"
-
+#include "geospatial/BusStop.hpp"
 namespace sim_mob {
 
 class Bus;
-
-
 /*
  * BusController class.
  * \author Yao Jin

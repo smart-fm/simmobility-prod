@@ -1492,19 +1492,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle.FirstChild("passenger_mean_busstop").ToElement()->Attribute("value",&passenger_busstop_mean);
 	handle.FirstChild("passenger_standardDev_busstop").ToElement()->Attribute("value",&passenger_busstop_standardDev);
 
+
 	handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passenger_percent_boarding);
-
-
-
-	//use distribution to get the random no of  passengers inside bus
-	//handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
-	//handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
-	//handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
-
-
 	handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passenger_percent_alighting);
+
 	handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
 	handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
+
 	//for alighting passengers
 	//TODO: Refactor to avoid magic numbers
 	int no_of_passengers;

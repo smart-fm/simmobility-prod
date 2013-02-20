@@ -21,6 +21,10 @@ pair<string, ReactionTimeDist*> sim_mob::conf::distribution_pimpl::post_distribu
 		return std::make_pair(distID, new NormalReactionTimeDist(distMean, distStdev));
 	} else if (distType=="lognormal") {
 		return std::make_pair(distID, new LognormalReactionTimeDist(distMean, distStdev));
+	} else if (distType=="uniform") {
+		//Distmean becomes "min", distStdev becomes "max".
+		//TODO: Better wording...
+		return std::make_pair(distID, new UniformReactionTimeDist(distMean, distStdev));
 	} else {
 		throw std::runtime_error("Distributions other than normal/lognormal not currently supported.");
 	}

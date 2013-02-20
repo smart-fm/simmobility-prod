@@ -9,9 +9,9 @@
 //#include "Conflux.hpp"
 #include <cmath>
 
-using std::vector;
 using std::set;
 using std::pair;
+using std::vector;
 using namespace sim_mob;
 
 
@@ -31,7 +31,40 @@ int dist(const Point2D& p1, double xPos, double yPos) {
 	return (int)d2;
 }
 
+//Sort RoadSegments by ID
+struct RS_ID_Sorter {
+  bool operator() (const sim_mob::RoadSegment* a, const sim_mob::RoadSegment* b) {
+	  return a->getSegmentID() < b->getSegmentID();
+  }
+};
+
 } //End anon namespace
+
+
+void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)
+{
+	//Set of road segments, sorted by ID.
+	set<RoadSegment*, RS_ID_Sorter> cachedSegments;
+
+	//Add all RoadSegments to our list of cached segments.
+	for (set<UniNode*>::const_iterator it = rn.getUniNodes().begin(); it != rn.getUniNodes().end(); it++) {
+		//TODO: Annoying const-cast
+		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
+		for (vector<const RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+			cachedSegments.insert(const_cast<RoadSegment*>(*segIt));
+		}
+	}
+	for (vector<MultiNode*>::const_iterator it = rn.getNodes().begin(); it != rn.getNodes().end(); it++) {
+		set<RoadSegment*> segs = (*it)->getRoadSegments();
+		cachedSegments.insert(segs.begin(), segs.end());
+	}
+
+	//Now retrieve lane edge line zero (which will trigger generation of all other lane/edge lines).
+	for (std::set<RoadSegment*>::const_iterator it = cachedSegments.begin(); it != cachedSegments.end(); it++) {
+		(*it)->getLaneEdgePolyline(0);
+	}
+}
+
 
 
 

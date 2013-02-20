@@ -87,8 +87,7 @@ using std::multimap;
 namespace {
 
 
-class DatabaseLoader : private boost::noncopyable
-{
+class DatabaseLoader : private boost::noncopyable {
 public:
 	explicit DatabaseLoader(string const & connectionString);
 
@@ -100,8 +99,13 @@ public:
 
 	void DecorateAndTranslateObjects();
 	void PostProcessNetwork();
+
+	//NOTE: Some of these are handled automatically under SaveSimMobilityNetwork, but should really be separated out.
+	//      I've migrated saveTripChains into its own function in order to help with this.
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
+	void saveTripChains(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
+
 	map<int, Section> const & sections() const { return sections_; }
 	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
 	const map<std::string, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
@@ -135,8 +139,10 @@ private:
 	void LoadLanes(const std::string& storedProc);
 	void LoadTurnings(const std::string& storedProc);
 	void LoadPolylines(const std::string& storedProc);
-	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+
+public:
+	void LoadTripchains(const std::string& storedProc);
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
@@ -1062,81 +1068,8 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 }
 
 
-void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
+void DatabaseLoader::saveTripChains(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
-	//First, Nodes. These match cleanly to the Sim Mobility data structures
-	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
-	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
-		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
-	}
-	//Next, Links and RoadSegments. See comments for our approach.
-	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		if (!it->second.hasBeenSaved) {  //Workaround...
-			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
-		}
-	}
-	//Scan the vector to see if any skipped Sections were not filled in later.
-	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		if (!it->second.hasBeenSaved) {
-			throw std::runtime_error("Section was skipped.");
-		}
-		if (it->second.generatedSegment->originalDB_ID.getLogItem().empty()) { //A bit hackish...
-			it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
-		}
-	}
-	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
-	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-		if (it->second.candidateForSegmentNode) {
-			sim_mob::aimsun::Loader::ProcessUniNode(res, it->second);
-		}
-	}
-	//Next, Turnings. These generally match up.
-	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
-	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
-	}
-	//Next, save the Polylines. This is best done at the Section level
-	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
-	}
-
-	//seth suggested its removal for good reasons-vahid
-//	//Finalize our MultiNodes' circular arrays
-//	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
-//		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
-//	}
-
-	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
-	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
-	//   outgoing RoadSegment that it crosses.
-	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-		for (map<Node*, std::vector<int> >::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
-			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
-		}
-	}
-//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-//		Node origin = (*it).second;
-//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
-//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
-//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
-//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//					{
-//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//						if((cr))
-//						{
-//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
-//						}
-//					}
-//		}
-//	}
-	//Prune lanes and figure out where the median is.
-	// TODO: This should eventually allow other lanes to be designated too.
-	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
-
-	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
-
-	//Save all trip chains
 	sim_mob::Trip* tripToSave = nullptr;
 	for (vector<TripChainItem>::const_iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
 		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
@@ -1178,9 +1111,82 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			}
 		}
 	}
+}
 
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
-	{
+
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
+{
+	//First, Nodes. These match cleanly to the Sim Mobility data structures
+	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
+		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
+	}
+	//Next, Links and RoadSegments. See comments for our approach.
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
+		if (!it->second.hasBeenSaved) {  //Workaround...
+			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
+		}
+	}
+	//Scan the vector to see if any skipped Sections were not filled in later.
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
+		if (!it->second.hasBeenSaved) {
+			throw std::runtime_error("Section was skipped.");
+		}
+		if (it->second.generatedSegment->originalDB_ID.getLogItem().empty()) { //A bit hackish...
+			it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
+		}
+	}
+	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+		if (it->second.candidateForSegmentNode) {
+			sim_mob::aimsun::Loader::ProcessUniNode(res, it->second);
+		}
+	}
+	//Next, Turnings. These generally match up.
+	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
+	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
+		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
+	}
+	//Next, save the Polylines. This is best done at the Section level
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
+		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
+	}
+
+	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
+	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
+	//   outgoing RoadSegment that it crosses.
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+		for (map<Node*, std::vector<int> >::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
+			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
+		}
+	}
+//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+//		Node origin = (*it).second;
+//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
+//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
+//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
+//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
+//					{
+//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
+//						if((cr))
+//						{
+//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
+//						}
+//					}
+//		}
+//	}
+	//Prune lanes and figure out where the median is.
+	// TODO: This should eventually allow other lanes to be designated too.
+	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
+
+	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
+
+	//Save all trip chains
+	saveTripChains(tcs);
+
+	//Save all bus stops
+	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
 		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
 		if(findPtr == sections_.end())
 		{
@@ -1454,8 +1460,8 @@ DatabaseLoader::createSignals()
 	}
 }
 #endif
-}
- //End anon namespace
+
+} //End anon namespace
 
 
 //Another temporary function
@@ -1924,11 +1930,23 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 }
 
 
+std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(const string& connectionStr, const map<string, string>& storedProcs)
+{
+	std::cout << "Attempting to connect to database (TripChains)" << std::endl;
+	DatabaseLoader loader(connectionStr);
+	std::cout << ">Success." << std::endl;
+
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > res;
+	loader.LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	loader.saveTripChains(res);
+	return res;
+}
+
 
 
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
-	std::cout << "Attempting to connect to database...." << std::endl;
+	std::cout << "Attempting to connect to database (generic)" << std::endl;
 
 	//Connection string will look something like this:
 	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"

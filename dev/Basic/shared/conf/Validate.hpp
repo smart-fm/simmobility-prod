@@ -32,6 +32,7 @@ public:
 private:
 	//Various internal validation checks.
 	void CheckAndSetGranularities() const;
+	void CheckAndSetGeneralProps() const;
 
 private:
 	//The config file we are currently dealing with.

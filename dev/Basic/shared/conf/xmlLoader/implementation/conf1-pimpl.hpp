@@ -50,6 +50,11 @@ std::pair<uint32_t, uint32_t> parse_point(const std::string& src) {
 
 //Helper: Parse "1ms". Also accepts "1 ms", but not much else (for now)
 uint32_t parse_start_time_ms(const std::string& src) {
+	//Quick check: negative numbers
+	if (src.find('-')<src.size()) {
+		throw std::runtime_error("start_time can't be negative.");
+	}
+
 	//Split the "number" amount off of the start time
 	size_t numStart = src.find_first_of("0123456789");
 	size_t numEnd = src.find_first_not_of("0123456789");
@@ -313,7 +318,7 @@ public:
 	driver_explicit_pimpl(Config& config) : config(&config) {}
 
 	virtual void pre ();
-	virtual sim_mob::DriverSpec post_driver_explicit ();
+	virtual sim_mob::AgentSpec post_driver_explicit ();
 
 	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
@@ -323,7 +328,7 @@ public:
 
 private:
 	Config* config;
-	sim_mob::DriverSpec model;
+	sim_mob::AgentSpec model;
 };
 
 
@@ -336,7 +341,7 @@ public:
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader (const std::pair<std::string, std::string>&);
-	virtual void driver (const sim_mob::DriverSpec&);
+	virtual void driver (const sim_mob::AgentSpec&);
 
 private:
 	Config* config;
@@ -348,7 +353,7 @@ public:
 	pedestrian_explicit_pimpl(Config& config) : config(&config) {}
 
 	virtual void pre ();
-	virtual sim_mob::PedestrianSpec post_pedestrian_explicit ();
+	virtual sim_mob::AgentSpec post_pedestrian_explicit ();
 
 	virtual void property (const std::pair<std::string, std::string>&);
 	virtual void originPos (const ::std::string&);
@@ -358,7 +363,7 @@ public:
 
 private:
 	Config* config;
-	sim_mob::PedestrianSpec model;
+	sim_mob::AgentSpec model;
 };
 
 
@@ -371,7 +376,7 @@ public:
 
 	virtual void database_loader (const std::pair<std::string, std::string>&);
 	virtual void xml_loader (const std::pair<std::string, std::string>&);
-	virtual void pedestrian (const sim_mob::PedestrianSpec&);
+	virtual void pedestrian (const sim_mob::AgentSpec&);
 
 private:
 	Config* config;

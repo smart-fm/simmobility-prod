@@ -50,6 +50,10 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static std::string LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
 
+	///For partial network loading.
+	static std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
+
+
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);
 	static void ProcessUniNode(sim_mob::RoadNetwork& res, Node& src);

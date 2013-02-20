@@ -1,8 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include <algorithm>
 #include "SegmentStats.hpp"
+
+#include <algorithm>
+
 #include "util/OutputUtil.hpp"
+#include "conf/simpleconf.hpp"
 
 using std::string;
 

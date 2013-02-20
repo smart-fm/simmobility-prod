@@ -18,12 +18,12 @@ void sim_mob::conf::trip_chains_pimpl::post_trip_chains ()
 
 void sim_mob::conf::trip_chains_pimpl::database_loader (const std::pair<std::string, std::string>& value)
 {
-	config->simulation().agentsLoaders.push_back(new DbLoader(value.first, value.second));
+	config->simulation().agentsLoaders.push_back(new DatabaseAgentLoader(value.first, value.second));
 }
 
 void sim_mob::conf::trip_chains_pimpl::xml_loader (const std::pair<std::string, std::string>& value)
 {
-	config->simulation().agentsLoaders.push_back(new XmlLoader(value.first, value.second));
+	config->simulation().agentsLoaders.push_back(new XmlAgentLoader(value.first, value.second));
 }
 
 

@@ -18,6 +18,19 @@ class WorkGroup;
 
 
 /**
+ * Busline control strategies.
+ */
+enum BusControlStrategy {
+	BusCtrl_None,
+	BusCtrl_Schedule,
+	BusCtrl_Headway,
+	BusCtrl_EvenHeadway,
+	BusCtrl_Hybrid
+};
+
+
+
+/**
  * A default model mapping
  */
 template <class PrototypeClass>
@@ -53,8 +66,26 @@ struct DefaultWorkGroups {
  * Collection of various System-level settings.
  */
 struct System {
+	System() : startingAgentAutoID(0), signalTimingMode(0), passengerPercentBoarding(100), passengerPercentAlighting(100),
+			passengerBusStopDistribution(nullptr), busControlStrategy(BusCtrl_None)
+	{}
+
+	int startingAgentAutoID; //How to start counting.
+
 	DefaultModels defaultModels;
 	DefaultWorkGroups defaultWorkGroups;
+
+	///Note: The "signalTimingMode" seemed to be missing from the config file (i.e., not used).
+	///      If you need it back, just add it to "generic_props" in the new Config file.
+	int signalTimingMode;
+
+	///Percent of passengers boarding and alighting at each bus stop.
+	/// TODO: This should *definitely* be moved out of the config file eventually.
+	int passengerPercentBoarding;
+	int passengerPercentAlighting;
+	ReactionTimeDist* passengerBusStopDistribution;  //<NOTE: We call it "ReactionTimeDist", but it's really just a distribution.
+
+	BusControlStrategy busControlStrategy;
 
 	std::map<std::string, std::string> genericProps;
 };

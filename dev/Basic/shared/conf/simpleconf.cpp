@@ -44,7 +44,10 @@
 #endif
 
 #include "conf/Validate.hpp"
+#include "conf/GeneralOutput.hpp"
 #include "conf/PrintNetwork.hpp"
+#include "conf/LoadAgents.hpp"
+#include "conf/LoadNetwork.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -389,16 +392,9 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 }
 
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
-
-#if 0
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
-#endif
-
 {
-	std::cout << "inside loadXMLSignals !" << std::endl;
 	//Quick check.
 	if (signalKeyID!="signal") {
-		std::cout << "oops! returning false!" << std::endl;
 		return false;
 	}
 
@@ -1356,30 +1352,7 @@ void PrintDB_Network_idBased()
 
 }
 
-void patchRoadNetworkwithLaneEdgePolyline() {
-	//Initial message
-	const RoadNetwork& rn = sim_mob::ConfigParams::GetInstance().getNetwork();
-	std::set<const RoadSegment*, Sorter> cachedSegments;
-	for (set<UniNode*>::const_iterator it = rn.getUniNodes().begin(); it != rn.getUniNodes().end(); it++) {
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2 = segs.begin(); i2 != segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (vector<MultiNode*>::const_iterator it = rn.getNodes().begin(); it != rn.getNodes().end(); it++) {
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2 = nodeInt->getRoadSegments().begin(); i2 != nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (std::set<const RoadSegment*>::const_iterator it = cachedSegments.begin(); it != cachedSegments.end(); it++) {
-		for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
-		}
-	}
-}
+
 //obsolete
 void printRoadNetwork_console()
 {
@@ -1519,19 +1492,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle.FirstChild("passenger_mean_busstop").ToElement()->Attribute("value",&passenger_busstop_mean);
 	handle.FirstChild("passenger_standardDev_busstop").ToElement()->Attribute("value",&passenger_busstop_standardDev);
 
+
 	handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passenger_percent_boarding);
-
-
-
-	//use distribution to get the random no of  passengers inside bus
-	//handle.FirstChild("passenger_distributionType2").ToElement()->Attribute("value",&passenger_crowdness_dist);
-	//handle.FirstChild("passenger_crowdnessmean").ToElement()->Attribute("value",&passenger_crowdness_mean);
-	//handle.FirstChild("passenger_standardDev_crowdness").ToElement()->Attribute("value",&passenger_crowdness_standard_dev);
-
-
 	handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passenger_percent_alighting);
+
 	handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
 	handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
+
 	//for alighting passengers
 	//TODO: Refactor to avoid magic numbers
 	int no_of_passengers;
@@ -1817,7 +1784,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
 //#ifdef SIMMOB_PARTIAL_XML_READER
-    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW())) {
+    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
     			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
     		}
 //#else
@@ -1885,10 +1852,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
  	std::cout << "XML input for SimMobility Created....\n";
  	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
  #endif
-    patchRoadNetworkwithLaneEdgePolyline();//apparently, must be called before StreetDirectory.init
 
-    std::cout << "Street Directory initialized" << std::endl;
+ 	//Generate lanes, before StreetDirectory::init()
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
+
+ 	//Initialize the street directory.
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    std::cout << "Street Directory initialized" << std::endl;
 
     //process confluxes
     std::cout << "confluxes size before: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
@@ -2067,7 +2037,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//We'll be switching over pretty cleanly, so just use a local variable here.
 	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
-	const bool LOAD_NEW_CONFIG_FILE = false;
+	const bool LOAD_NEW_CONFIG_FILE = true;
 
 
 	if (LOAD_NEW_CONFIG_FILE) {
@@ -2081,14 +2051,20 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		}
 
 		//Validate simple data elements
+		//This needs to be first, since it sets our mutex enforcement strategy.
 		Validate val(cfg);
 
-		//Process these xml-based objects; load agents, etc.
-		//TODO
+		//Load the Road Network
+		LoadNetwork loadN(cfg);
 
+		//Load the Agents
+		LoadAgents loadA(cfg, active_agents, pending_agents);
 
-		//Print it
+		//Print the network.
 		PrintNetwork print(cfg);
+
+		//Finally, print general logging information to stdout
+		GeneralOutput out(cfg);
 	} else {
 		//Load using our old config syntax.
 

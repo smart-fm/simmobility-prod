@@ -117,15 +117,20 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-	//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
+	for (int i=0; i<2; i++) {
+		//Set for the old-style config first, new-style config second.
+		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
+		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
-	rf.registerRole("passenger",new sim_mob::Passenger(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
+		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
+		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
+
+		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
+		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
+		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
+	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);

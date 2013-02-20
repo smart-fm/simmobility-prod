@@ -478,13 +478,22 @@ private:
 
 class TripChains_t_pimpl: public virtual TripChains_t_pskel {
 public:
+	TripChains_t_pimpl(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* tripChains) : tripChains(tripChains) {}
+
 	virtual void pre ();
 	virtual void post_TripChains_t ();
 
 	virtual void TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
 
+protected:
+	//Catch errors early.
+	void throw_if_null() {
+		if (!tripChains) { throw std::runtime_error("TripChains_t_pimpl attempts to use a null tripChains"); }
+	}
+
 private:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > model;
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* tripChains;
 };
 
 

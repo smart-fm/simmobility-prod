@@ -10,10 +10,17 @@
 
 #include "geospatial/Point2D.hpp"
 
+#include "conf/LoadAgents.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/Person.hpp"
+
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
 namespace sim_mob {
+
+//Forward declarations
+class Config;
 
 
 /**
@@ -44,74 +51,99 @@ private:
  * A generic "loader" class. Can be used for loading a variety of data (RoadNetworks, Agents, etc.)
  * Sub-classes will specify the actual loading to be done.
  */
-class DataLoader {
+class AbstractAgentLoader {
 public:
-	virtual ~DataLoader() {}
+	virtual ~AbstractAgentLoader() {}
 
-	//TODO: Later, once we know how loadData should work.
-	//virtual void loadData() = 0;
+	///Create agent "shells" and store them into a resulting list.
+	///Overrides of this function should use the AgentConstraints to check any manual IDs.
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg) = 0;
 };
 
 
 /**
- * Loader for Database-based data.
+ * Loader for Database-based Agents.
  */
-class DbLoader : public DataLoader {
+class DatabaseAgentLoader : public AbstractAgentLoader {
 public:
-	DbLoader(const std::string& connection, const std::string& mappings) : connection(connection), mappings(mappings) {}
+	DatabaseAgentLoader(const std::string& connection, const std::string& mappings) : connection(connection), mappings(mappings) {}
+
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 protected:
 	std::string connection;
 	std::string mappings;
 };
 
 /**
- * Loader for Xml-based data.
+ * Loader for Xml-based Agents.
  */
-class XmlLoader : public DataLoader {
+class XmlAgentLoader : public AbstractAgentLoader {
 public:
-	XmlLoader(const std::string& fileName, const std::string& rootNode) : fileName(fileName), rootNode(rootNode) {}
+	XmlAgentLoader(const std::string& fileName, const std::string& rootNode) : fileName(fileName), rootNode(rootNode) {}
+
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 protected:
 	std::string fileName;
 	std::string rootNode;
 };
 
 
+
+///A class used to specify Agents that should be loaded.
+///Uses a template parameter to provide detailed parameters for a specific subclass,
+///as well as specializations for loading that particular class (in the future)
+///
+///NOTE: This used to be a templatized class, but:
+///      1) The use of "agentType" made it pointless.
+///      2) The fact that it used "Conf" so much meant we had to put the implementation into
+///         a separate file... so templates just got in the way.
+///
+struct AgentSpec {
+	//Agents are still constructed based on their "agentType" for now. We can clean this up later; for now, just
+	// make sure that you are constructing AgentSpecs with the correct agentType strings.
+	AgentSpec(const std::string& agentType="ERR") : id(-1), agentType(agentType), startTimeMs(0) {}
+
+	int32_t id; //Set to a positive number to "force" that id.
+	std::string agentType; //Mirrors the old "agent type" in simpleconf.
+	uint32_t startTimeMs; //Frames are converted to ms
+	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
+	sim_mob::Point2D origin;
+	sim_mob::Point2D dest;
+};
+
+
+
+
 /**
  * Load a series of manual Agent specifications
  */
-template <class AgentSpec>
-class AgentLoader : public DataLoader {
+class AgentLoader : public AbstractAgentLoader {
 public:
-	void addAgentSpec(const AgentSpec& ags) {
-		agents.push_back(ags);
-	}
+	void addAgentSpec(const AgentSpec& ags);
+
+	virtual void loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg);
 
 protected:
-	std::vector<AgentSpec> agents;
+	std::vector< AgentSpec > agents;
 };
 
 
 /**
  * Specification for explicit Driver agents.
  */
-struct DriverSpec {
-	DriverSpec() : startTimeMs(0) {}
-
+/*struct DriverSpec {
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
-	uint32_t startTimeMs; //Frames are converted to ms
-	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
-};
+
+};*/
 
 /**
  * Specification for explicit Pedestrian agents.
  */
-struct PedestrianSpec {
+/*struct PedestrianSpec {
 	sim_mob::Point2D origin;
 	sim_mob::Point2D dest;
-	uint32_t startTimeMs; //Frames are converted to ms
-	std::map<std::string, std::string> properties;  //Customized properties, to be used later.
-};
+};*/
 
 
 
@@ -136,11 +168,11 @@ struct Simulation {
 
 	//Loader for all items inside the "road_network" tag. For now, only the first is used.
 	//This array is cleared (and its items are deleted) after the config file has been processed.
-	std::list<DataLoader*> roadNetworkLoaders;
+	std::list<AbstractAgentLoader*> roadNetworkLoaders;
 
 	//Loader for all items inside the "agents" tag.
 	//This array is cleared (and its items are deleted) after the config file has been processed.
-	std::list<DataLoader*> agentsLoaders;
+	std::list<AbstractAgentLoader*> agentsLoaders;
 };
 
 }

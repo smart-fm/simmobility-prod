@@ -23,6 +23,7 @@
 #include "System.hpp"
 #include "Simulation.hpp"
 #include "geospatial/RoadNetwork.hpp"
+#include "buffering/Shared.hpp"
 
 
 namespace sim_mob {
@@ -66,7 +67,7 @@ public:
 	///\note
 	///Config is typically used as a Singleton class, so you should rarely have to
 	///call its constructor.
-	Config() : single_threaded(false) {}
+	Config() : single_threaded(false), mtx_strat(MtxStrat_Buffered) {}
 
 	///Helper struct: Which built-in models are available in each category
 	struct BuiltInModels {
@@ -120,6 +121,21 @@ public:
 	const sim_mob::Config::BuiltInModels& builtInModels() const { return built_in_models; }
 	///@
 
+	//@{
+	///Accessor for the mutex enforcement strategy
+	///This strategy is used to handle our Shared<> variables, which can either be handled
+	///  via locking or buffering.
+	sim_mob::MutexStrategy& mutexStrategy() { return mtx_strat; }
+	const sim_mob::MutexStrategy& mutexStrategy() const { return mtx_strat; }
+	///@
+
+	//@{
+	///Accessor for the role factory.
+	///This is used for creating roles based on string names. Later we can probably do this entirely with plugins.
+	sim_mob::RoleFactory& roleFactory() { return role_fact_; }
+	const sim_mob::RoleFactory& roleFactory() const { return role_fact_; }
+	///@
+
 private:
 	//Data
 	sim_mob::Constructs constructs_;
@@ -133,13 +149,19 @@ private:
 	//Our Road Network.
 	sim_mob::RoadNetwork network_;
 
+	//Mutex enforcement strategy
+	sim_mob::MutexStrategy mtx_strat;
+
+	//Factory for creating Roles
+	sim_mob::RoleFactory role_fact_;
+
 public:
 	///Retrieve an instance of the singleton Config object.
-	static const Config& GetInstance();
+	static const Config& GetInstance() { return instance_; }
 
 	///Retrieve a mutable instance of the singleton Config object.
 	///Don't use this function unless you know that it's ok to modify the Config object.
-	static Config& GetInstanceRW();
+	static Config& GetInstanceRW() { return instance_; }
 
 private:
 	static Config instance_;

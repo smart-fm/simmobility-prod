@@ -29,9 +29,6 @@ using namespace sim_mob;
 
 sim_mob::PrintNetwork::PrintNetwork(const Config& cfg) : cfg(cfg)
 {
-	//Call a series of print functions in order.
-
-
 	//Print the network legacy format to logout.
 	LogNetworkLegacyFormat();
 }

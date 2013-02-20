@@ -8,6 +8,7 @@
 
 #include "GenConfig.h"
 
+#include "conf/simpleconf.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"

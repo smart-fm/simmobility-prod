@@ -498,6 +498,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 		currRole->setParent(nullptr);
 		if (this->currWorker) {
 			this->currWorker->stopManaging(currRole->getSubscriptionParams());
+			this->currWorker->stopManaging(currRole->getRequestParams());
 		}
 	}
 
@@ -507,6 +508,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 		currRole->setParent(this);
 		if (this->currWorker) {
 			this->currWorker->beginManaging(currRole->getSubscriptionParams());
+			this->currWorker->beginManaging(currRole->getRequestParams());
 		}
 	}
 }

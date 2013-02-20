@@ -37,6 +37,7 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual std::vector<sim_mob::BufferedBase*> getRequestParams();
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.
@@ -81,7 +82,7 @@ public:
 	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_PASSENGER_TIME_SEC = time; }
 	Vehicle* initializePath_bus(bool allocateVehicle);
 	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
-		return curr_busStopRealTimes;
+		return last_busStopRealTimes;
 	}
 	std::vector<Shared<BusStop_RealTimes>* >& getBusStop_RealTimes() {
 		return busStopRealTimes_vec_bus;
@@ -93,10 +94,14 @@ public:
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
 	Shared<double> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<double> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
-	Shared<BusStop_RealTimes>* curr_busStopRealTimes; // current BusStop real Times, convenient for reset
+	Shared<BusStop_RealTimes>* last_busStopRealTimes; // current BusStop real Times, convenient for reset
 	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
 	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
 	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
+	Shared<std::string> lastVisited_Busline; //get bus line information
+	Shared<int> lastVisited_BusTrip_SequenceNo;
+	Shared<int> existed_Request_Mode;
+	Shared<double> waiting_Time;
 	double xpos_approachingbusstop,ypos_approachingbusstop;
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	bool first_busstop;

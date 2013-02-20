@@ -25,6 +25,7 @@ class UnPackageUtils;
  *
  * \author Seth N. Hetu
  * \author Xu Yan
+ * \author huaipeng
  *
  * Allows Person agents to swap out roles easily,
  * without re-creating themselves or maintaining temporarily irrelevant data.
@@ -80,6 +81,9 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
+	///return a request list for asychronous communication. ~huaipeng
+	virtual std::vector<sim_mob::BufferedBase*> getRequestParams() { return std::vector<sim_mob::BufferedBase*>(); }
 
 	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
 	virtual Vehicle* getResource() { return currResource; }

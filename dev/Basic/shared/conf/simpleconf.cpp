@@ -1830,6 +1830,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
     //debug.. end
 
+ 	//Generate lanes, before StreetDirectory::init()
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
+
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
@@ -1852,9 +1855,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
  	std::cout << "XML input for SimMobility Created....\n";
  	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
  #endif
-
- 	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
 
  	//Initialize the street directory.
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
@@ -2037,7 +2037,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//We'll be switching over pretty cleanly, so just use a local variable here.
 	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
-	const bool LOAD_NEW_CONFIG_FILE = true;
+	const bool LOAD_NEW_CONFIG_FILE = false;
 
 
 	if (LOAD_NEW_CONFIG_FILE) {

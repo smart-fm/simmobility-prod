@@ -386,6 +386,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 				existed_Request_Mode.set( Role::REQUEST_NONE );
+				busStopRealTimes_vec_bus[busstop_sequence_no.get()]->set(last_busStopRealTimes->get());
 			}
 			/*else if ((waitAtStopMS == p.elapsedSeconds * 2.0) && bus) {
 				// 0.2sec, return and reset BUS_STOP_WAIT_PASSENGER_TIME_SEC

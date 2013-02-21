@@ -513,6 +513,7 @@ void sim_mob::BusController::handleDriverRequest()
 				if( res.size() > 0 ){
 					Shared<int>* existed_Request_Mode = dynamic_cast<Shared<int>*>(res[0]);
 					if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME) ){
+
 						Shared<string>* lastVisited_Busline = dynamic_cast<Shared<string>*>(res[1]);
 						Shared<int>* lastVisited_BusTrip_SequenceNo = dynamic_cast<Shared<int>*>(res[2]);
 						Shared<int>* busstop_sequence_no = dynamic_cast<Shared<int>*>(res[3]);
@@ -521,6 +522,7 @@ void sim_mob::BusController::handleDriverRequest()
 						Shared<const BusStop*>* lastVisited_BusStop = dynamic_cast<Shared<const BusStop*>*>(res[6]);
 						Shared<BusStop_RealTimes>* last_busStopRealTimes = dynamic_cast<Shared<BusStop_RealTimes>*>(res[7]);
 						Shared<double>* waiting_Time = dynamic_cast<Shared<double>* >(res[8]);
+
 						if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
 						   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
 						{

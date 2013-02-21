@@ -578,7 +578,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 	else if (vehicle->hasNextSegment(false))
 		nextRdSeg = vehicle->getNextSegment(false);
 
-/*	if (nextRdSeg){
+	if (nextRdSeg){
 		if(nextRdSeg->getStart()->getID() == 84882){
 		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
 				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
@@ -589,7 +589,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 		}
 		}
 	}
-*/
+
 //	if (vehicle->getCurrSegment()->getStart()->getID() == 103046 && p.now.ms() == 21000
 	//		and parent->getId() == 46){
 		//	std::cout << "incident removed." << std::endl;
@@ -691,8 +691,12 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p){
 	}
 	else if (laneQueueLength > 0)
 	{
-		std::cout<<parent->getId() << " has queue: "
-								<<currLane->getLaneID_str()<<std::endl;
+		std::cout<<parent->getId() << " has queue: lane: "
+								<<currLane->getLaneID_str()<<
+								" segment: "<<vehicle->getCurrSegment()->getStart()->getID() <<std::endl;
+		std::cout<<"time: "<<p.now.ms() <<
+				" currLane: "<<currLane->getLaneID_str() << " queue length: "
+								<<getQueueLength(currLane) <<std::endl;
 		tf = t0 + (x0-laneQueueLength)/vu; //time to reach end of queue
 
 		if (tf < p.elapsedSeconds)

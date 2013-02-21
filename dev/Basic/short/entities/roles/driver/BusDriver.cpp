@@ -352,7 +352,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				DwellTime_ijk.set(dwellTime_record);
 
 				//create request for communication with bus controller
-				existed_Request_Mode.set(0);
+				existed_Request_Mode.set( Role::REQUEST_NONE );
 				Person* person = dynamic_cast<Person*>(parent);
 				if(person) {
 					BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(person->currTripChainItem)));
@@ -362,10 +362,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 						lastVisited_BusTrip_SequenceNo.set(bustrip->getBusTripRun_SequenceNum());
 						if (busline) {
 							if(busline->getControl_TimePointNum0() == busstop_sequence_no.get() || busline->getControl_TimePointNum1() == busstop_sequence_no.get()) { // only use holding control at selected time points
-								existed_Request_Mode.set(1);
+								existed_Request_Mode.set( Role::REQUEST_DECISION_TIME );
 							}
 							else{
-								existed_Request_Mode.set(2);
+								existed_Request_Mode.set( Role::REQUEST_STORE_ARRIVING_TIME );
 							}
 						}
 					}
@@ -374,18 +374,18 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			else if(fabs(waitAtStopMS-p.elapsedSeconds * 3.0)<0.0000001 && bus)
 			{
 				int mode = existed_Request_Mode.get();
-				if(mode == 1){
+				if(mode == Role::REQUEST_DECISION_TIME ){
 					double waitingtime = waiting_Time.get();
 					setWaitTime_BusStop(waitingtime);
 				}
-				else if(mode == 2){
+				else if(mode == Role::REQUEST_STORE_ARRIVING_TIME ){
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
 				else{
 					std::cout << "no request existed, something is wrong!!! " << std::endl;
 					setWaitTime_BusStop(DwellTime_ijk.get());
 				}
-				existed_Request_Mode.set(0);
+				existed_Request_Mode.set( Role::REQUEST_NONE );
 			}
 			/*else if ((waitAtStopMS == p.elapsedSeconds * 2.0) && bus) {
 				// 0.2sec, return and reset BUS_STOP_WAIT_PASSENGER_TIME_SEC

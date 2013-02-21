@@ -35,6 +35,7 @@ class UnPackageUtils;
  */
 class Role
 {
+public:
 	//todo: use this to register roles
 	enum type
 	{
@@ -44,6 +45,15 @@ class Role
 		RL_ACTIVITY,
 		RL_PASSENGER
 	};
+
+	//todo: use this to identify the type of request
+	enum request
+	{
+		REQUEST_NONE=0,
+		REQUEST_DECISION_TIME,
+		REQUEST_STORE_ARRIVING_TIME
+	};
+
 	const std::string name;
 public:
 	//NOTE: Don't forget to call this from sub-classes!

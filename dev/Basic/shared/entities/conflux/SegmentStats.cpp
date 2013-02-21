@@ -36,7 +36,7 @@ namespace sim_mob {
 
 	void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
 		laneStatsMap.find(lane)->second->addAgent(ag);
-		if(lane != laneInfinity) laneStatsMap.find(lane)->second->verifyOrdering();
+		// if(lane != laneInfinity) laneStatsMap.find(lane)->second->verifyOrdering();
 	}
 
 	void SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
@@ -173,7 +173,7 @@ namespace sim_mob {
 		{
 			density = numMovingInSegment(true)/(movingLength/100.0);
 			if(density > 0.25) {
-				debugMsgs<<"density problem | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
+				debugMsgs<<"Error in segment Density | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
 						<< "| numMovingInSeg: "<< numMovingInSegment(true)
 						<< "| numQueueingInSeg: " << numQueueingInSegment(true)
 						<< "| numLanes: " << vehLaneCount
@@ -181,9 +181,7 @@ namespace sim_mob {
 						<< "| rdSegLength: "<< roadSegment->computeLaneZeroLength()
 						<< "| density " << density
 						<<std::endl;
-				std::cout<<debugMsgs.str();
-				debugMsgs.str("");
-				throw std::runtime_error("error in segment Density");
+				throw std::runtime_error(debugMsgs.str());
 			}
 		}
 		else
@@ -477,16 +475,6 @@ namespace sim_mob {
 			<<"\",\"density\":\""<<segDensity
 			<<"\"})"<<std::endl);
 #endif
-		debugMsgs << "(\"segmentState\""
-					<<","<<frameNumber.frame()
-					<<","<<roadSegment->getStart()->getID()
-					<<",{"
-					<<"\"speed\":\""<<segVehicleSpeed
-					<<"\",\"flow\":\""<<0
-					<<"\",\"density\":\""<<segDensity
-					<<"\"})"<<std::endl;
-		std::cout<<debugMsgs.str();
-		debugMsgs.str("");
 	}
 
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){

@@ -69,7 +69,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
-	//Determine whether or not the first one is fwd.
+/*	//Determine whether or not the first one is fwd.
 	bool OLD_isFwd; //(Probably?) not used anymore.
 	if (path.empty()) {
 		throw std::runtime_error("Attempting to set a path with 0 road segments");
@@ -114,7 +114,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		}
 
 		throw std::runtime_error(msg.str().c_str());
-	}
+	}*/ // This unwanted chunk of code throws a runtime_error if there are agents who have trips starting and ending their trips within the same link ~ Harish
 
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
@@ -171,7 +171,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
-	//Determine whether or not the first one is fwd.
+	/*//Determine whether or not the first one is fwd.
 	bool OLD_isFwd; //TODO: Likely isn't needed anymore
 	if (path.empty())
 	{
@@ -226,7 +226,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		}
 		throw std::runtime_error(msg.str().c_str());
 
-	}
+	}*/ // This unwanted chunk of code throws a runtime_error if there are agents who have trips starting and ending their trips within the same link ~ Harish
 
 	areFwds.insert(areFwds.begin(), true);
 	//areFwds.front() = isFwd;

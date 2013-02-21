@@ -196,7 +196,6 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
@@ -209,7 +208,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
+		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second);
 //		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
 //		//getchar();
 //		const Trip* trip = dynamic_cast<const Trip*>(tc);

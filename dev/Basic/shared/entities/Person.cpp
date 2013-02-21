@@ -535,7 +535,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 		}
 		setCurrSegment(rdSeg);
 
-		debugMsgs << "\nAgent " << getId() << "|Path: ";
+/*		debugMsgs << "\nAgent " << getId() << "|Path: ";
 		for(vector<WayPoint>::iterator k = path.begin(); k != path.end(); k++) {
 			if((*k).type_ == WayPoint::ROAD_SEGMENT) {
 				rdSeg = (*k).roadSegment_;
@@ -544,7 +544,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 		}
 		debugMsgs << std::endl;
 		std::cout << debugMsgs.str();
-		debugMsgs.str("");
+		debugMsgs.str("");*/
 
 		//Null out our trip chain, remove the "removed" flag, and return
 		clearToBeRemoved();

@@ -79,8 +79,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	{
 		Agent* dequeuedAgent = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
 		if(dequeuedAgent != ag) {
-			segStatsBfrUpdt->printAgents();
-			segStatsAftrUpdt->printAgents();
 			debugMsgs << "Error: Agent " << dequeuedAgent->getId() << " dequeued instead of Agent " << ag->getId() << "|Frame " << currFrameNumber.frame();
 			throw std::runtime_error(debugMsgs.str());
 		}

@@ -624,14 +624,13 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-		std::cout << "\n Agent ID: " << ag->getId() << "| Agent DB_id:" << person->getDatabaseId();
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		if(rdSeg) {
 			ag->setCurrSegment(rdSeg);
 			rdSeg->getParentConflux()->addAgent(ag);
 		}
 		else {
-			std::cout << " | Not added into the simulation";
+			std::cout << "\n Agent ID: " << ag->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
 		}
 	}
 }

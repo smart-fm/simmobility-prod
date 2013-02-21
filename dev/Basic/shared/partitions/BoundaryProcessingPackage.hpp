@@ -11,14 +11,12 @@
 #include <vector>
 #include "entities/Person.hpp"
 
-//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
-#include "entities/signal_transitional.hpp"
 
 namespace sim_mob {
 
 //Forward declarations
 class Person;
-//class Signal;
+class Signal;
 
 
 /**
@@ -30,9 +28,9 @@ public:
 	int from_id;
 	int to_id;
 
-	std::vector<Person const*> cross_persons;
-	std::vector<Person const*> feedback_persons;
-	std::vector<Signal const*> boundary_signals;
+	std::vector<const Person*> cross_persons;
+	std::vector<const Person*> feedback_persons;
+	std::vector<const Signal*> boundary_signals;
 };
 
 }

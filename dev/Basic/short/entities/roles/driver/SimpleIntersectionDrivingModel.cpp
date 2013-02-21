@@ -1,6 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "IntersectionDrivingModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"

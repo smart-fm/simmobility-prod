@@ -27,6 +27,7 @@ template<> struct type_conversion<TripChainItem>
     	res.personID = vals.get<std::string>("entityid","");
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
+    	std::cout << "Person id " << res.personID << "   trip_chain_item_type : " << vals.get<std::string>("trip_chain_item_type","") << std::endl;
     	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<std::string>("trip_id", "");
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);
@@ -46,10 +47,12 @@ template<> struct type_conversion<TripChainItem>
     	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
     		res.tmp_activityID = vals.get<int>("activity_id", 0);
     		res.description = vals.get<std::string>("activity_description", "");
+    		std::cout << "Activity description: " << res.description << std::endl;
     		res.isPrimary = vals.get<int>("primary_activity", 0);
     		res.isFlexible = vals.get<int>("flexible_activity", 0);
     		res.isMandatory = vals.get<int>("mandatory_activity", 0);
     		res.tmp_locationID = vals.get<int>("location_id", 0);
+    		std::cout << "Activity location_type: " << vals.get<std::string>("location_type", "") << std::endl;
     		res.locationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("location_type", ""));
     		res.tmp_startTime = vals.get<std::string>("activity_start_time", "");
     		res.tmp_endTime = vals.get<std::string>("activity_end_time", "");
@@ -160,6 +163,29 @@ struct type_conversion<sim_mob::PT_bus_routes>
         values.set("route_id", pt_bus_routes.route_id);
         values.set("link_id", pt_bus_routes.link_id);
         values.set("link_sequence_no", pt_bus_routes.link_sequence_no);
+        indicator = i_ok;
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::PT_bus_stops>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_stops& pt_bus_stops)
+    {
+    	pt_bus_stops.route_id = values.get<std::string>("route_id", "");
+    	pt_bus_stops.busstop_no = values.get<std::string>("busstop_no", "");
+    	pt_bus_stops.busstop_sequence_no = values.get<int>("busstop_sequence_no", 0);
+    }
+
+    static void
+    to_base(sim_mob::PT_bus_stops const & pt_bus_stops, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("route_id", pt_bus_stops.route_id);
+        values.set("busstop_no", pt_bus_stops.busstop_no);
+        values.set("busstop_sequence_no", pt_bus_stops.busstop_sequence_no);
         indicator = i_ok;
     }
 };

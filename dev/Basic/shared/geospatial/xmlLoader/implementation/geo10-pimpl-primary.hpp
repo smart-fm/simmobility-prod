@@ -1,6 +1,8 @@
 //This class contains all "primary" classes; i.e., those which are the same as those in the geospatial/ folder.
 #pragma once
 
+#include "geospatial/BusStop.hpp"
+
 namespace sim_mob {
 namespace xml {
 
@@ -305,7 +307,7 @@ public:
 
 class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel {
 public:
-	RoadNetwork_t_pimpl(sim_mob::RoadNetwork& modelRef) : modelRef(modelRef) {}
+	RoadNetwork_t_pimpl(sim_mob::RoadNetwork* modelRef) : modelRef(modelRef) {}
 
 	virtual void pre ();
 	virtual sim_mob::RoadNetwork& post_RoadNetwork_t ();
@@ -313,8 +315,14 @@ public:
 	virtual void Nodes (const sim_mob::xml::helper::NodesRes&);
 	virtual void Links (const std::vector<sim_mob::Link*>&);
 
+protected:
+	//Catch errors early.
+	void throw_if_null() {
+		if (!modelRef) { throw std::runtime_error("RoadNetwork_t_pimpl attempts to use a null modelRef"); }
+	}
+
 private:
-	sim_mob::RoadNetwork& modelRef;
+	sim_mob::RoadNetwork* modelRef;
 };
 
 

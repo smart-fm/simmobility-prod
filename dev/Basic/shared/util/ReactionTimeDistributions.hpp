@@ -9,6 +9,7 @@
 
 #include <boost/random.hpp>
 #include <boost/math/distributions.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 
 namespace sim_mob {
@@ -17,6 +18,22 @@ namespace sim_mob {
 class ReactionTimeDist {
 public:
 	virtual double getReactionTime() = 0;
+};
+
+
+///Pre-specialized sub-classes for reaction time distributions
+class UniformReactionTimeDist : public ReactionTimeDist {
+private:
+	boost::mt19937 gen;
+	boost::random::uniform_int_distribution<> dist;
+
+public:
+	UniformReactionTimeDist(double min, double max)
+	 : gen(), dist(min, max)
+	{
+	}
+
+	virtual double getReactionTime() { return dist(gen); }
 };
 
 

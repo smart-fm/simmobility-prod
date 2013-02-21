@@ -22,7 +22,6 @@
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"
-#include "entities/Signal.hpp"
 #include "geospatial/Crossing.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -67,7 +66,7 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
  */
 class Pedestrian2 : public sim_mob::Role {
 public:
-	Pedestrian2(Agent* parent);
+	Pedestrian2(Agent* parent, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

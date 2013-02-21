@@ -13,8 +13,8 @@
 #include <string>
 
 #include "TripChain.hpp"
-#include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
+#include "conf/simpleconf.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -22,13 +22,14 @@
 #endif
 
 namespace sim_mob {
+class Busline;
 
 // offsetMS_From(ConfigParams::GetInstance().simStartTime)???
 class BusStop_ScheduledTimes{
 public:
 	explicit BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime);
 	~BusStop_ScheduledTimes() {}
-	BusStop* Scheduled_busStop;
+	BusStop* Scheduled_busStop; // use this to check whether the whole set is valid or not
 	DailyTime scheduled_ArrivalTime;
 	DailyTime scheduled_DepartureTime;
 };
@@ -36,30 +37,13 @@ public:
 class BusStop_RealTimes{
 public:
 	explicit BusStop_RealTimes(DailyTime real_ArrivalTime = DailyTime("00:00:00"), DailyTime real_DepartureTime = DailyTime("00:00:00"));
+	BusStop_RealTimes(const BusStop_RealTimes& copyFrom);
 	~BusStop_RealTimes() {}
+	void setReal_BusStop(const BusStop* real_busStop);
 	BusStop* Real_busStop;
 	DailyTime real_ArrivalTime;// real Arrival Time
 	DailyTime real_DepartureTime;// real Departure Time
 };
-
-//class BusStopInfo { // not clear
-//public:
-//	BusStopInfo();
-//	virtual ~BusStopInfo() {}
-//
-//	const int getBusStopID() const {
-//		return stop_id;
-//	}
-//	const int getRoadSegmentID() const {
-//		return roadsegment_id;
-//	}
-//	Shared<BusStop_ScheduledTimes> busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
-//	mutable Shared<BusStop_RealTimes> busStop_realTimes;
-//private:
-//	int stop_id;
-//	string stop_name;
-//	int roadsegment_id;
-//};
 
 class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
 public:
@@ -88,7 +72,7 @@ public:
 	//Note: I am changing the default entID value to "-1", which *should* generate Agent IDs correctly.
 	BusTrip(std::string entId="", std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTripRun_sequenceNum=0,
-			std::string busLine_id="", int vehicle_id=0, std::string busRoute_id="",
+			Busline* busline=nullptr, int vehicle_id=0, std::string busRoute_id="",
 			Node* from=nullptr, std::string fromLocType="node", Node* to=nullptr,
 			std::string toLocType="node");
 	virtual ~BusTrip() {}
@@ -96,8 +80,11 @@ public:
 	const int getBusTripRun_SequenceNum() const {
 		return busTripRun_sequenceNum;
 	}
-	const std::string& getBusLineID() const {
-		return busLine_id;
+	void setBusline(Busline* aBusline) {
+		busline = aBusline;
+	}
+	const Busline* getBusline() const {
+		return busline;
 	}
 	int getVehicleID() const {
 		return vehicle_id;
@@ -105,22 +92,26 @@ public:
 	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
-	bool setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec, std::vector<const BusStop*>& busStop_vec);
+
+	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
-	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
+	void setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);
 	const std::vector<BusStop_ScheduledTimes>& getBusStopScheduledTimes() const {
 		return busStopScheduledTimes_vec;
 	}
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
+	int lastVisitedStop_SequenceNumber;
+
 private:
-	std::string busLine_id;
 	int busTripRun_sequenceNum;
 	int vehicle_id;
+	Busline* busline; // indicate the busline pointer. save when assigned all bustrips.
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
+	//each bustrip holds last sequence number.default -1 no busstop visited yet
 	std::vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };
@@ -151,6 +142,12 @@ public:
 	const std::string& getBusLineID() const {
 		return busline_id;
 	}
+	const int getControl_TimePointNum0() const {
+		return control_TimePointNum0;
+	}
+	const int getControl_TimePointNum1() const {
+		return control_TimePointNum1;
+	}
 	void addBusTrip(BusTrip& aBusTrip);
 	void addFrequencyBusline(const Frequency_Busline& aFrequencyBusline);
 	const std::vector<BusTrip>& queryBusTrips() const {
@@ -159,12 +156,14 @@ public:
 	const std::vector<Frequency_Busline>& query_Frequency_Busline() const {
 		return frequency_busline;
 	}
-	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);// mainly for realTimes
+	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);// mainly for realTimes
 private:
 	std::string busline_id;
 	CONTROL_TYPE controlType;
 	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
+	int control_TimePointNum0; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
+	int control_TimePointNum1; // now another time point (hardcoded)
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly
@@ -173,12 +172,13 @@ public:
 	virtual ~PT_Schedule();
 
 	void registerBusLine(const std::string busline_id, Busline* aBusline);
+	void registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType);
 	Busline* findBusline(const std::string& busline_id);
-	const CONTROL_TYPE findBuslineControlType(const std::string& busline_id) const;
+	CONTROL_TYPE findBuslineControlType(const std::string& busline_id);
 	std::map<std::string, Busline*>& get_busLines() { return buslineID_busline; }
 private:
 	std::map<std::string, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
-	std::map<std::string, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
+	std::map<std::string, CONTROL_TYPE> buslineID_controlType;// busline--->controlType
 };
 
 }

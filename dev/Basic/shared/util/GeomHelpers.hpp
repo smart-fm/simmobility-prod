@@ -19,8 +19,6 @@
 
 #include "DynamicVector.hpp"
 
-//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
-#include "entities/signal_transitional.hpp"
 
 namespace sim_mob {
 class Point2D;
@@ -28,6 +26,7 @@ class RoadSegment;
 class Link;
 class Crossing;
 class Agent;
+class Signal;
 
 namespace aimsun {
 class Node;

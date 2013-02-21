@@ -1,15 +1,9 @@
 #include <tinyxml.h>
 #include <vector>
 #include <string>
-#include <ctime>
 
-#include "conf/simpleconf.hpp"
-#include "geospatial/Pavement.hpp"
-#include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "entities/signal/defaults.hpp"
 #include "entities/signal/Phase.hpp"
-#include "entities/signal/SplitPlan.hpp"
 
 namespace sim_mob
 {

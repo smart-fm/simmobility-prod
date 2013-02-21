@@ -20,12 +20,15 @@
 //#include "geospatial/Pavement.hpp"
 #include "geospatial/Traversable.hpp"
 #include "geospatial/UniNode.hpp"
+#include "geospatial/BusStop.hpp"
 #include "conf/simpleconf.hpp"
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/signal/Color.hpp"
+#include "entities/signal/defaults.hpp"
+#include "entities/signal/SplitPlan.hpp"
 
 #include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
@@ -93,7 +96,7 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	TiXmlElement * Lane = new TiXmlElement("Lane"); Lanes->LinkEndChild(Lane);
 	//ID
 	TiXmlElement * laneID = new TiXmlElement("laneID"); Lane->LinkEndChild(laneID);
-	Id << LaneObj->getLaneID_str();
+	Id << LaneObj->getLaneID();
 	laneID->LinkEndChild(new  TiXmlText(Id.str()));
 	//Width
 	TiXmlElement * width = new TiXmlElement("width"); Lane->LinkEndChild(width);
@@ -165,7 +168,6 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 //		  {
 //			  std::cout << "xml-witer Lane 1000001000 polypoint " << it->getX() << "," << it->getY() << std::endl;
 //		  }
-//		  getchar();
 //	}
   if(LaneObj->getPolyline(false).size())
   {
@@ -299,6 +301,7 @@ bool sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlEl
 			return false;
 		}
 	}
+	return true;
 }
 
 void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
@@ -375,7 +378,6 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 //			if(100001500 == rs->getSegmentID())
 //			{
 //				std::cout << "Segment 100001500, One of the obstacles at offset " << res.offset << " just didn't tally\n";
-//				getchar();
 //			}
 //		}
 //		else
@@ -383,7 +385,6 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 //			if(100001500 == rs->getSegmentID())
 //			{
 //				std::cout << "Segment 100001500, an obstacles at offset " << res.offset << " was serialized\n";
-//				getchar();
 //			}
 //
 //		}
@@ -482,9 +483,9 @@ void sim_mob::WriteXMLInput_UniNode_Connectors(sim_mob::UniNode* uninode,TiXmlEl
 		Connector = new TiXmlElement("Connector"); Connectors->LinkEndChild(Connector);
 		laneFrom = new TiXmlElement("laneFrom"); Connector->LinkEndChild(laneFrom);
 		laneTo = new TiXmlElement("laneTo"); Connector->LinkEndChild(laneTo);
-		out.str(""); out << (*it).first->getLaneID_str();
+		out.str(""); out << (*it).first->getLaneID();
 		laneFrom->LinkEndChild( new TiXmlText(out.str()));
-		out.str(""); out << (*it).second->getLaneID_str();
+		out.str(""); out << (*it).second->getLaneID();
 		laneTo->LinkEndChild( new TiXmlText(out.str()));
 	}
 }
@@ -587,10 +588,10 @@ void sim_mob::WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlEle
 			TiXmlElement * Connector = new TiXmlElement("Connector"); Connectors->LinkEndChild(Connector);
 			TiXmlElement * laneFrom = new TiXmlElement("laneFrom"); Connector->LinkEndChild(laneFrom);
 			TiXmlElement * laneTo = new TiXmlElement("laneTo"); Connector->LinkEndChild(laneTo);
-			out.str(""); out << (*l_conn_it)->getLaneFrom()->getLaneID_str();
+			out.str(""); out << (*l_conn_it)->getLaneFrom()->getLaneID();
 			laneFrom->LinkEndChild( new TiXmlText(out.str()));
 
-			out.str(""); out << (*l_conn_it)->getLaneTo()->getLaneID_str();
+			out.str(""); out << (*l_conn_it)->getLaneTo()->getLaneID();
 			laneTo->LinkEndChild( new TiXmlText(out.str()));
 		}
 	}
@@ -1250,7 +1251,6 @@ void sim_mob::WriteXMLInput_TrafficSignal_SCATS(TiXmlElement * Signal,sim_mob::S
 	} else {
 		std::cout << "signalTimingMode ( " << signal_scats->getSignalTimingMode()
 				<< ") unknown, press any key ...\n";
-//		getchar();
 	}
 	SCATS->LinkEndChild(signalTimingMode);
 	//splitplan

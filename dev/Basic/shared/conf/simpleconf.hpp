@@ -38,6 +38,9 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
+
+#include "Config.hpp"
 
 
 namespace sim_mob
@@ -96,6 +99,15 @@ public:
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
 	ReactionTimeDist* reactDist2;
+	//for generating passenger distribution
+
+
+	PassengerDist* passengerDist_busstop;
+	PassengerDist* passengerDist_crowdness;
+
+	int percent_boarding;
+	int percent_alighting;
+//	PassengerDist* passengerDist_alighting;
 
 
 	//Number of agents skipped in loading
@@ -104,6 +116,12 @@ public:
 	//Locking strategy
 	sim_mob::MutexStrategy mutexStategy;
 
+	//Busline_Control_Type
+	std::string busline_control_type;
+
+	// temporary maps
+	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
+
 //TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
 //      be modified once set.
 //private:
@@ -111,8 +129,8 @@ public:
 	bool dynamicDispatchDisabled;
 
 public:
-
 	int signalTimingMode;
+	int signalAlgorithm;
 
 	//When the simulation begins
 	DailyTime simStartTime;
@@ -156,6 +174,14 @@ public:
 		return false;
 #endif
 	}
+	
+	bool Output_Disabled() const {
+#ifdef SIMMOB_DISABLE_OUTPUT
+		return true;
+#else
+		return false;
+#endif
+	}
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const {
@@ -186,7 +212,7 @@ public:
 #ifdef SIMMOB_NEW_SIGNAL
 		return true;
 #else
-		return false;
+#error SIMMOB_NEW_SIGNAL must always be defined.
 #endif
 	}
 
@@ -198,7 +224,7 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
-	std::vector<SubTrip> subTrips;
+	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
@@ -206,7 +232,7 @@ public:
 	 * \param active_agents Vector to hold all agents that will be active during time tick zero.
 	 * \param pending_agents Priority queue to hold all agents that will become active after time tick zero.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof);
+	static void InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.
@@ -238,8 +264,17 @@ public:
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
 	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
+	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops() { return pt_bus_stops; }
 
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	//Temporary: Santhosh
+	std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
+
+	//NOTE: Technically we use the "sealed" property to indicate data structures that cannot change later.
+	//      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
+	//      it also indicates that these data structures should not be located in simpleconf.hpp. ~Seth
+	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() const { return routeID_roadSegments;}
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_MapRW() { return routeID_roadSegments;}
+
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
 	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
 
@@ -265,6 +300,7 @@ private:
 	std::vector<sim_mob::PT_trip*> pt_trip;
 	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
 	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
+	std::vector<sim_mob::PT_bus_stops> pt_bus_stops;
 	// Temporary: Yao Jin
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>

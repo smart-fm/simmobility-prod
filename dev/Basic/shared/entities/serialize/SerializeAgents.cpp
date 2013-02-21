@@ -5,7 +5,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Agent.hpp"
-#include "entities/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/Person.hpp"
 
 #include "partitions/PackageUtils.hpp"
@@ -195,7 +195,7 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 /**
  * Serialization of Signal
  */
-#ifndef SIMMOB_NEW_SIGNAL
+#if 0
 void Signal::packProxy(PackageUtils& packageUtil) {
 
 	//Agent::packageProxy(packageUtil);
@@ -220,6 +220,11 @@ void Signal::packProxy(PackageUtils& packageUtil) {
 		int value = buffered_TC.get().TC_for_Pedestrian[i];
 		packageUtil<<(value);
 	}
+
+	for (int i = 0; i < 4; i++) {
+			int value = buffered_TC.get().TC_for_Passenger[i];
+			packageUtil<<(value);
+		}
 }
 
 void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
@@ -255,6 +260,9 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 	for (int i = 0; i < 4; i++) {
 		unpackageUtil >> buffered_signal.TC_for_Pedestrian[i];
 	}
+	for (int i = 0; i < 4; i++) {
+			unpackageUtil >> buffered_signal.TC_for_Passenger[i];
+		}
 
 	buffered_TC.force(buffered_signal);
 //	debug.outputToConsole("signal 3");

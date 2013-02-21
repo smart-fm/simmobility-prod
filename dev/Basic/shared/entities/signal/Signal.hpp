@@ -13,13 +13,10 @@
 //If we're not using the "new signal" flag, just forward this header file to the old location.
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
-#ifndef SIMMOB_NEW_SIGNAL
-#include "entities/Signal.hpp"
-#include "util/SignalStatus.hpp"
-#else
 #include <map>
 #include <vector>
 #include <stdexcept>
+#include <sstream>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "entities/LoopDetectorEntity.hpp"
@@ -28,6 +25,9 @@
 #include "Cycle.hpp"
 #include "Offset.hpp"
 #include "defaults.hpp"
+
+//For forward declarations (for friend functions)
+#include "geospatial/xmlWriter/xmlWriter.hpp"
 
 
 #include <boost/multi_index_container.hpp>
@@ -95,12 +95,12 @@ public:
 
    virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
 
-   virtual unsigned int getSignalId(){}
+   virtual unsigned int getSignalId(){ return -1;}
    
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
-   virtual Entity::UpdateStatus update(timeslice now){}
+   virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
@@ -121,7 +121,7 @@ private:
 
 class Signal_SCATS  : public sim_mob::Signal {
 	friend class geo::Signal_t_pimpl;
-friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal_SCATS *signal);
+friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
@@ -149,9 +149,21 @@ public:
 	void updateTrafficLights();
 	void updatecurrSplitPlan();
 	void updateOffset();
-	virtual Entity::UpdateStatus update(timeslice now);
 	void newCycleUpdate();
 	bool updateCurrCycleTimer();
+
+protected:
+	virtual bool frame_init(timeslice now) { return true; }
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+
+private:
+	//Output hack
+	void buffer_output(timeslice now, std::string newLine);
+	std::stringstream buffOut;
+
+public:
+	//virtual Entity::UpdateStatus update(timeslice now);
 
 	/*--------Split Plan----------*/
 //	void startSplitPlan();
@@ -166,8 +178,6 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 
 	/*--------Miscellaneous----------*/
-
-	void frame_output(timeslice now);
 
 	int getSignalTimingMode() { return signalTimingMode;}
 	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
@@ -192,7 +202,7 @@ public:
 	TrafficColor getPedestrianLight  (Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 
-    void outputTrafficLights(timeslice now,std::string newLine)const;
+   // void outputTrafficLights(timeslice now,std::string newLine)const;
 
 
     /* phase
@@ -308,4 +318,4 @@ public:
 };//class Signal_SCATS
 
 }//namespace sim_mob
-#endif
+

@@ -119,6 +119,14 @@ public:
 	virtual void load(const std::map<std::string, std::string>&) {}
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
+	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
+protected:
+	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+
+public:
+
 	// Getters
 	const sim_mob::MultiNode* getMultiNode() const {
 		return multiNode;

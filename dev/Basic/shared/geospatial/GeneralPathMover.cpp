@@ -8,6 +8,7 @@
 
 #include "GenConfig.h"
 
+#include "conf/simpleconf.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -72,7 +73,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 /*	//Determine whether or not the first one is fwd.
 	bool OLD_isFwd; //(Probably?) not used anymore.
 	if (path.empty()) {
-		throw std::runtime_error("Attempting to set a path with 0 road segments");
+		throw std::runtime_error("Attempting to set a path with 0 road segments_");
 	}
 
 	//We know we are moving forward if the last Node in the last Segment in the first Link is
@@ -112,7 +113,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		{
 			msg << "  " << (*it)->getStart()->originalDB_ID.getLogItem() << " => " << (*it)->getEnd()->originalDB_ID.getLogItem() << "\n";
 		}
-
+		LogOut(msg.str() <<std::endl);
 		throw std::runtime_error(msg.str().c_str());
 	}*/ // This unwanted chunk of code throws a runtime_error if there are agents who have trips starting and ending their trips within the same link ~ Harish
 
@@ -148,7 +149,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
 
 	//Generate a polyline array
-	LogOut("noteForDebug generateNewPolylineArray run in point 1"<<std::endl);
+	//LogOut("noteForDebug generateNewPolylineArray run in point 1"<<std::endl);
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	distAlongPolyline = 0;
 
@@ -266,7 +267,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
 
 	//Generate a polyline array
-	LogOut("noteForDebug generateNewPolylineArray run in point 2"<<std::endl);
+	//LogOut("noteForDebug generateNewPolylineArray run in point 2"<<std::endl);
 	generateNewPolylineArray(getCurrSegment(), path, areFwds);
 	distAlongPolyline = 0;
 	inIntersection = false;
@@ -379,16 +380,16 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 
 void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* currSegment, vector<const RoadSegment*> path, vector<bool> areFwds)
 {
-	LogOut("noteForDebug generateNewPolylineArray run, path.size = "<<path.size() <<std::endl);
+	//LogOut("noteForDebug generateNewPolylineArray run, path.size = "<<path.size() <<std::endl);
 	int i = 0;
 	bool isFwd = true;
 	for(i = 0; i < path.size(); i++){
 		if( currSegment == path[i] ){
 			isFwd = areFwds[i];
-			LogOut("noteForIsFwd at ["<<i<<"]: "<< isFwd <<std::endl);
+			//LogOut("noteForIsFwd at ["<<i<<"]: "<< isFwd <<std::endl);
 			break;
 		}
-		LogOut("noteForI at ["<<i<<"]" <<std::endl);
+		//LogOut("noteForI at ["<<i<<"]" <<std::endl);
 	}
 
 	//Simple; just make sure to take the forward direction into account.
@@ -761,7 +762,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	}
 
 	//Now generate a new polyline array.
-	LogOut("noteForDebug generateNewPolylineArray run in point 3"<<std::endl);
+	//LogOut("noteForDebug generateNewPolylineArray run in point 3"<<std::endl);
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 
 	//Done
@@ -961,7 +962,7 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 	currLaneID = newLaneID;
 
 	//Update our polyline array
-	LogOut("noteForDebug generateNewPolylineArray run in point 4"<<std::endl);
+	//LogOut("noteForDebug generateNewPolylineArray run in point 4"<<std::endl);
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	if (distTraveled > 0)
 	{
@@ -1114,8 +1115,6 @@ void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir_med()
 	}
 
 	//Now generate a new polyline array.
-#ifndef SIMMOB_DISABLE_OUTPUT
-	LogOut("noteForDebug generateNewPolylineArray run in point 3"<<std::endl);
-#endif
+	//LogOut("noteForDebug generateNewPolylineArray run in point 3"<<std::endl);
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 }

@@ -55,21 +55,24 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #      we build two versions of the code: non-PIC for the executable, and 
 #      PIC for the library. Of course, this slows the build process down.
 IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fPIC")
-  SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC")
+  IF (NOT CMAKE_BUILD_TYPE MATCHES "Release")   #Match "empty" build_type too
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  ENDIF()
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
-option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
+#option(SIMMOB_NEW_SIGNAL "Use the new signal Model." ON)
 
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
 
-#Option: USE XML file as SimMobility input
+#Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
+#        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
 option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 
 #Option: Our new (new) XML classes. This option will disappear as soon as possible.
-option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
+#option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
@@ -265,12 +268,12 @@ add_library(SimMob_Shared OBJECT ${SharedCode_CPP})
 
 #Build an *actual* shared object for the geospatial code & XML loader.
 #TODO: For now we just include everything in the shared lib. Later we can slim it down.
-IF (CMAKE_BUILD_TYPE MATCHES "Debug") 
-  #The debug code already uses PIC
-  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
-ELSEIF(CMAKE_BUILD_TYPE MATCHES "Release")
+IF (CMAKE_BUILD_TYPE MATCHES "Release") 
   #We need to re-build Release mode, since PIC is (likely) off.
   add_library(simmob_geoxml SHARED  ${SharedCode_CPP})
+ELSE()
+  #The debug (or other) code already uses PIC
+  add_library(simmob_geoxml SHARED $<TARGET_OBJECTS:SimMob_Shared>)
 ENDIF()
 
 #Install targets for our shared library (header files)

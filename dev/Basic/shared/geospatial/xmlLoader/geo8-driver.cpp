@@ -5,17 +5,15 @@
 // programs without any restrictions.
 //
 
+//NOTE: Commenting out; will remove if no-one needs this class.
+#if 0
+
 #include "geo8-driver.hpp"
 
 #include <iostream>
 #include "geo8-pimpl.hpp"
 
 using namespace geo;
-//#ifdef SIMMOB_PARTIAL_XML_READER
-//    		geo::InitAndLoadXML(XML_OutPutFileName)
-//#else
-//    		geo::InitAndLoadXML(XML_OutPutFileName)
-//#endif
 bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
 //geo::InitAndLoadXML(XML_OutPutFileName)
 {
@@ -429,3 +427,4 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
   return true;
 }
 
+#endif

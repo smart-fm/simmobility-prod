@@ -74,37 +74,44 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 }  //End unnamed namespace
 
-
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), currTripChainItem(nullptr),
-	currSubTrip(nullptr), firstFrameTick(true), databaseID(""), debugMsgs(std::stringstream::out)
-
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) : Agent(mtxStrat, id),
+	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
+    databaseID(""), debugMsgs(std::stringstream::out)
 {
-	//throw 1;
+	tripchainInitialized = false;
+	laneID = -1;
 }
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs) :
-	Agent(mtxStrat), prevRole(nullptr), currRole(nullptr), agentSrc(src), firstFrameTick(true), tripChain(tcs),currTripChainItem(nullptr), currSubTrip(nullptr), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
+	: Agent(mtxStrat, tcs.front()->personID), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
-	std::string trip_mode;
-	TripChainItem* tc = tcs.front();
-	Trip* trip = dynamic_cast<Trip*>(tc);
-	Activity* act = dynamic_cast<Activity*>(tc);
-//	currTripChainItem = tcs.front();//shouldn't it be limitted to TripChainItem::IT_TRIP only
+	prevRole = 0;
+	currRole = 0;
+	laneID = -1;
+	agentSrc = src;
+	tripChain = tcs;
+	tripchainInitialized = false;
+	initTripChain();
+}
 
-	if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-//		currSubTrip = &(trip->getSubTripsRW().front());
-		//Origin and destination must be those of the first subtrip if current item is a trip
-		this->originNode = trip->getSubTripsRW().front().fromLocation;
-		this->destNode = trip->getSubTripsRW().front().toLocation;
-		trip_mode = trip->getSubTripsRW().front().mode;// currently choose the first subtrip mode as the mode of the trip
-	} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-		this->originNode = this->destNode = act->location;
-	} else { //Offer some protection
-		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+void sim_mob::Person::initTripChain(){
+	currTripChainItem = tripChain.begin();
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();
+		//consider putting this in IT_TRIP clause
+		if(!updateOD(*currTripChainItem)){ //Offer some protection
+				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+		}
 	}
-//	std::cout << "Person::preson " << this->id << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+		std::cout << "Person " << this << "  is going to ride a bus\n";
+	}
+	setNextPathPlanned(false);
+	first_update_tick = true;
+	tripchainInitialized = true;
 }
 
 sim_mob::Person::~Person() {
@@ -129,6 +136,24 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
 	}
+
+
+	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
+	if(lanepointer != configProps.end())
+	{
+		/*if(atoi(lanepointer->second.c_str()))
+		{
+			laneID = atoi(lanepointer->second.c_str());
+		}*/
+
+		try {
+		    int x = boost::lexical_cast<int>( lanepointer->second );
+		    laneID = x;
+		} catch( boost::bad_lexical_cast const& ) {
+		    std::cout << "Error: input string was not valid" << std::endl;
+		}
+	}
+
 
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
 	map<string, string>::const_iterator origIt = configProps.find("originPos");
@@ -169,6 +194,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
 		this->setTripChain(trip_chain);
+		this->initTripChain();
 	}
 
 	//One more check: If they have a special string, save it now
@@ -176,296 +202,192 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if (it != configProps.end()) {
 		this->specialStr = it->second;
 	}
-
-	///
-	///TODO: At some point, we need to check if "origin->dest" paths are valid.
-	///      This should be an option that can be turned on in the config file, and it
-	///      allows us to remove badly-specified agents before they generate an error
-	///      in frame_init.
-	///
-	 /*const bool checkBadPaths = true;
-	 //Optional: Only add this Agent if a path exists for it from start to finish.
-	  StreetDirectory& sd = StreetDirectory::instance();
-	if (foundOrigPos && foundDestPos && checkBadPaths) {
-		bool skip = false;
-		if (agentType=="pedestrian") {
-			//For now, pedestrians can't have invalid routes.
-			//skip = true;
-			//vector<WayPoint> path = sd.SearchShortestWalkingPath(agent->originNode->location, agent->destNode->location);
-			//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-			//	if (it->type_ == WayPoint::SIDE_WALK) {
-			//		skip = false;
-			//		break;
-			//	}
-			//}
-		} else if (agentType=="driver" || agentType=="bus") {
-			skip = true;
-			vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
-			for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-				if (it->type_ == WayPoint::ROAD_SEGMENT) {
-					skip = false;
-					break;
-				}
-			}
-		}
-
-		//Is this Agent invalid?
-		if (skip) {
-			std::cout <<"Skipping agent; can't find route from: " <<(candidate.origin?candidate.origin->originalDB_ID.getLogItem():"<null>") <<" to: " <<(candidate.dest?candidate.dest->originalDB_ID.getLogItem():"<null>");
-			if (candidate.origin && candidate.dest) {
-				std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}";
-			}
-			std::cout <<std::endl;
-
-			config.numAgentsSkipped++;
-			safe_delete_item(candidate.rawAgent);
-			continue;
-		}*/
 }
 
 
-
-void sim_mob::Person::getNextSubTripInTrip(){
-	if(!currTripChainItem || currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-		currSubTrip = nullptr;
-	}
-	else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-		Trip* currTrip = dynamic_cast<Trip*>(this->currTripChainItem);
-		vector<SubTrip>& currSubTripsList = currTrip->getSubTripsRW();
-		if(!currSubTrip) {
-			//Return the first sub trip if the current sub trip which is passed in is null
-			currSubTrip = &currSubTripsList.front();
-		} else {
-			// else return the next sub trip if available; return nullptr otherwise.
-			vector<SubTrip>::iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (*currSubTrip));
-			currSubTrip = nullptr;
-			if (subTripIterator!=currSubTripsList.end()) {
-				//Set it equal to the next item, assuming we are not at the end of the list.
-				if (++subTripIterator != currSubTripsList.end()) {
-					currSubTrip = &(*subTripIterator);
-				}
-			}
-		}
-	} else if (this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
-		std::cout << "BusTrip happens " << std::endl;
-	} else{
-		throw std::runtime_error("Invalid trip chain item type!");
-	}
-}
-
-void sim_mob::Person::findNextItemInTripChain() {
-	if(!this->currTripChainItem) {
-		//set the first item if the current item is null
-		this->currTripChainItem = this->tripChain.front();
-	} else {
-		// else set the next item if available; return nullptr otherwise.
-		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
-		currTripChainItem = nullptr;
-		if (itemIterator!=tripChain.end()) {
-			//Set it equal to the next item, assuming we are not at the end of the list.
-			if (++itemIterator != tripChain.end()) {
-				currTripChainItem = *itemIterator;
-			}
-		}
-	}
-
-	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
-}
-
-
-void sim_mob::Person::update_time(timeslice now, UpdateStatus& retVal)
+bool sim_mob::Person::frame_init(timeslice now)
 {
-	
 	//Agents may be created with a null Role and a valid trip chain
-	if (firstFrameTick && !currRole) {
-
-		checkAndReactToTripChain(now.ms());
+	if (!currRole) {
+		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
+		//      (one would expect) be dealt with. Where does this happen?
+		UpdateStatus res =	checkTripChain(now.ms());
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms());
 
+		//Nothing left to do?
+		if (res.status == UpdateStatus::RS_DONE) {
+			return false;
+		}
 	}
-	 
-	//Failsafe
+
+	//Failsafe: no Role at all?
 	if (!currRole) {
-		throw std::runtime_error("Person has no Role.");
+		std::ostringstream txt ;
+		txt << "Person " << this->getId() <<  " has no Role.";
+		throw std::runtime_error(txt.str());
 	}
-	 
+
 	//Get an UpdateParams instance.
-	UpdateParams& params = currRole->make_frame_tick_params(now);
-	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
-	 
-	//Has update() been called early?
-	if (now.ms()<getStartTime()) {
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			std::stringstream msg;
-			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << now.ms()
-					<< "; this indicates an error, and should be handled automatically.";
-			throw std::runtime_error(msg.str().c_str());
-		}
-		retVal = UpdateStatus::Continue;
-		return;
-	}
-	 
-	//Has update() been called too late?
-	if (isToBeRemoved()) {
-		 
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("Agent is already done, but hasn't been removed.");
-		}
-		 
-		retVal = UpdateStatus::Continue;
-		return;
-	}
-	
-	//Is this the first frame tick for this Agent?
-	if (firstFrameTick) {
-		//Helper check; not needed once we trust our Workers.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(now.ms()-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
-				std::stringstream msg;
-				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << now.ms() << "\n";
-				msg << "Agent ID: " << getId() << "\n";
-				throw std::runtime_error(msg.str().c_str());
-			}
-			 
-		}
-		 
-		//Now that the Role has been fully constructed, initialize it.
-		currRole->frame_init(params);
+	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
+	//      We should replace this eventually (but this will require a larger code cleanup).
+	curr_params = &currRole->make_frame_tick_params(now);
 
-		//Done
-		firstFrameTick = false;
+	//Now that the Role has been fully constructed, initialize it.
+	if((*currTripChainItem)) {
+		currRole->frame_init(*curr_params);
 	}
-	 
-	//Now perform the main update tick
-	if (!isToBeRemoved()) {
-		//added to get the detailed plan before next activity
-		currRole->frame_tick(params);
-	}
-	 
-	//Finally, save the output
-	if (!isToBeRemoved()) {
-		currRole->frame_tick_output(params);
-	}
-	 
-	//If we're "done", try checking to see if we have any more items in our Trip Chain.
-	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
-	// in this manner), but it's the easiest solution that uses the current API.
-	if (isToBeRemoved()) {
-		retVal = checkAndReactToTripChain(now.ms());
 
-		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
-	}
-	 
-	//Output if removal requested.
-	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
-	}
-	 
+	return true;
 }
 
 
-UpdateStatus sim_mob::Person::update(timeslice now) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentUpdateBegin(*this, frameNumber);
-#endif
-
-	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	//unsigned int currTimeMS = now.frame() * ConfigParams::GetInstance().baseGranMS;
-
-	//Update within an optional try/catch block.
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try {
-#endif
-		//Update functionality
-		update_time(now, retVal);
-
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	} catch (std::exception& ex) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentException(*this, frameNumber, ex);
-#endif
-
-		//Add a line to the output file.
-		if (ConfigParams::GetInstance().OutputEnabled()) {
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
-		}
-		setToBeRemoved();
+Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
+{
+	//TODO: Here is where it gets risky.
+	if (!curr_params) {
+		curr_params = &currRole->make_frame_tick_params(now);
 	}
-#endif
 
-	//Return true unless we are scheduled for removal.
-	//NOTE: Make sure you set this flag AFTER performing your final output.
+	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+
+	if (!isToBeRemoved()) {
+		currRole->frame_tick(*curr_params);
+	}
+
+	//If we're "done", try checking to see if we have any more items in our Trip Chain.
+	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
+	// in this manner), but it's the easiest solution that uses the current API.
+	//TODO: This section should technically go after frame_output(), but doing that
+	//      (by overriding Person::update() and calling Agent::update() then inserting this code)
+	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
+	//      statement into the worker class, but I don't want to change too many things
+	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved()) {
-		retVal.status = UpdateStatus::RS_DONE;
-	}
+		retVal = checkTripChain(now.ms());
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentUpdateEnd(*this, frameNumber);
-#endif
+		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
+		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+
+		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+		//since start time of the activity is usually later than what is configured initially,
+		//we have to make adjustments so that it waits for exact amount of time
+		if(currTripChainItem != tripChain.end()) {
+			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
+				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
+				ap->initializeRemainingTime();
+			}
+		}
+	}
 
 	return retVal;
 }
 
 
-UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
-	this->getNextSubTripInTrip();
 
-	if(!this->currSubTrip){
-		this->findNextItemInTripChain();
+void sim_mob::Person::frame_output(timeslice now)
+{
+	//Save the output
+	if (!isToBeRemoved()) {
+		currRole->frame_tick_output(*curr_params);
 	}
 
-	if (!this->currTripChainItem) {
+	//TODO: Still risky.
+	curr_params = nullptr; //WARNING: Do *not* delete curr_params; it is only used to point to the result of get_params.
+}
+
+
+
+bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTrip *subtrip)
+{
+	return tc->setPersonOD(this, subtrip);
+}
+
+bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip) const
+{
+	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) return false;
+	//the current role type and target(next) role type are not same. so we need to change the role!
+	return true;
+}
+
+bool sim_mob::Person::changeRoleRequired(sim_mob::TripChainItem &tripChinItem) const
+{
+	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP)
+		return changeRoleRequired_Trip();
+		return changeRoleRequired_Activity();
+}
+bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
+{
+	//std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
+	string roleName = RoleFactory::GetSubTripMode(*currSubTrip);
+	//std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
+	//std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
+	if(targetRole->getRoleName() ==  currRole->getRoleName())
+		return false;
+	//the current role type and target(next) role type are not same. so we need to change the role!
+	return true;
+}
+
+bool sim_mob::Person::changeRoleRequired_Activity(/*sim_mob::Activity &activity*/) const
+{
+	return true;
+}
+
+bool sim_mob::Person::updatePersonRole()
+{
+	if(!((!currRole) ||(changeRoleRequired(*(*(this->currTripChainItem)))))) return false;
+		//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
+		// it's better to avoid possible errors (e.g., if the equality operator is defined)
+		// by saving it until the next time tick.
+		safe_delete_item(prevRole);
+		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+		prevRole = currRole;
+
+		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
+
+		sim_mob::Role* newRole = rf.createRole(tci, str, this);
+		changeRole(newRole);
+}
+
+UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
+	//some normal checks
+	if(tripChain.size() < 1) {
 		return UpdateStatus::Done;
 	}
-//	std::cout << "Person::checkAndReactToTripChain " << this->id  << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
-	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-	// it's better to avoid possible errors (e.g., if the equality operator is defined)
-	// by saving it until the next time tick.
-	safe_delete_item(prevRole);
-	prevRole = currRole;
+
+	//advance the trip,subtrip or activity....
+	if(!first_update_tick) {
+		if(!(advanceCurrentTripChainItem())) {
+			return UpdateStatus::Done;
+		}
+	}
+
+	first_update_tick = false;
+
+	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
+	setNextPathPlanned(false);
 
 	//Create a new Role based on the trip chain type
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	changeRole(rf.createRole(this->currTripChainItem, this));
+	updatePersonRole();
 
 	//Update our origin/dest pair.
-	//TODO: We need to make TripChainItems a little friendlier in terms of
-	//      getting the origin/dest (which can be the same or null for Activity types)
-	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-		originNode = this->currSubTrip->fromLocation;
-		destNode = this->currSubTrip->toLocation;
-	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
-		std::cout << "BusTrip happens " << std::endl;
-	} else {
-		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
-		destNode = originNode;
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) { //put if to avoid & evade bustrips, can be removed when everything is ok
+		updateOD(*currTripChainItem, &(*currSubTrip));
 	}
 
-	//Activities require some additional work
-	//TODO: A more centralized way of doing this is necessary; we can't be casting directly
-	//      to an ActivityPerformer.
-	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-		ActivityPerformer* actPerf = dynamic_cast<ActivityPerformer*>(getRole());
-		const Activity& act = dynamic_cast<const Activity&>(*currTripChainItem);
-		actPerf->setActivityStartTime(act.startTime);
-		actPerf->setActivityEndTime(act.endTime);
-		actPerf->setLocation(act.location);
-	}
+	//currentTipchainItem or current subtrip are changed
+	//so OD will be changed too,
+	//therefore we need to call frame_init regardless of change in the role
+	resetFrameInit();
 
 	//Create a return type based on the differences in these Roles
 	vector<BufferedBase*> prevParams;
@@ -477,89 +399,83 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(uint32_t currTimeMS) {
 		currParams = currRole->getSubscriptionParams();
 	}
 
-	//Indicate that this is the firstFrameTick of the new Role.
+	//Set our start time to the NEXT time tick so that frame_init is called
+	//  on the first pass through.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
-	firstFrameTick = true;
-	setNextPathPlanned(false);
 
-	std::string role = rf.GetTripChainMode(currTripChainItem);
-	vector<WayPoint> path;
-	const sim_mob::RoadSegment* rdSeg = nullptr;
-	if (role == "driver") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(currTripChainItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
-	}
-	else if (role == "pedestrian") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(currTripChainItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
-	}
-	else if (role == "busdriver") {
-		throw std::runtime_error("Bus trips are not implemented in the medium term yet");
-	}
-	else if (role == "activityRole") {
-		Trip* tripAfterCurrentActivity = nullptr;
-		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
-		if(++itemIterator != tripChain.end()) {
-			if((*itemIterator)->itemType == sim_mob::TripChainItem::IT_TRIP) {
-				tripAfterCurrentActivity = dynamic_cast<sim_mob::Trip*>(*itemIterator);
-				std::string nextRole = rf.GetTripChainMode(tripAfterCurrentActivity);
-				if (nextRole == "driver") {
-					const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(tripAfterCurrentActivity)->getSubTrips().front();
-					path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
-				}
-				else if (nextRole == "pedestrian") {
-					const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(tripAfterCurrentActivity)->getSubTrips().front();
-					path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
-				}
-				else if (nextRole == "busdriver") {
-					throw std::runtime_error("Bus trips are not implemented in the medium term yet");
-				}
-			}
-			else {
-				throw std::runtime_error("Back to back activities in trip chain. Please merge the activities.");
-			}
-		}
-	}
-
-	/*
-	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
-	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
-	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
-	 */
-	if(path.size() > 0) {
-		// The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-		// you will get into.
-		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-			rdSeg = path.at(1).roadSegment_;
-		}
-		setCurrSegment(rdSeg);
-
-/*		debugMsgs << "\nAgent " << getId() << "|Path: ";
-		for(vector<WayPoint>::iterator k = path.begin(); k != path.end(); k++) {
-			if((*k).type_ == WayPoint::ROAD_SEGMENT) {
-				rdSeg = (*k).roadSegment_;
-				debugMsgs << "[" << rdSeg->getStart()->getID() << "," << rdSeg->getEnd()->getID() << "] ";
-			}
-		}
-		debugMsgs << std::endl;
-		std::cout << debugMsgs.str();
-		debugMsgs.str("");*/
+	//setStartTime(nextValidTimeMS); done out side this function
+//	call_frame_init = true;//what a hack! -vahid
 
 		//Null out our trip chain, remove the "removed" flag, and return
 		clearToBeRemoved();
 		return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
-	}
-	else {
-		debugMsgs << "checkAndReactToTripChain: path could not be established for next trip of agent " << id
-				<< ". Agent will be removed from the Simulation" << std::endl;
-		std::cout << debugMsgs.str();
-		debugMsgs.str("");
-		return UpdateStatus(UpdateStatus::Done);
-	}
+
 }
 
+//sets the current subtrip to the first subtrip of the provided trip(provided trip is usually the current tripChianItem)
+std::vector<sim_mob::SubTrip>::const_iterator sim_mob::Person::resetCurrSubTrip()
+{
+	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
+		if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
+	return trip->getSubTrips().begin();
+}
 
+//advance to the next subtrip inside the current TripChainItem
+bool sim_mob::Person::advanceCurrentSubTrip()
+{
+	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
+	if(!trip) return false;
+	if (currSubTrip == trip->getSubTrips().end())//just a routine check
+		return false;
+
+	currSubTrip++;
+
+	if (currSubTrip == trip->getSubTrips().end())
+		return false;
+
+	return true;
+}
+
+////advance to the next subtrip inside the current TripChainItem assuming that the current TripChainItem is an activity
+//bool sim_mob::Person::advanceCurrentTripChainItem_Activity()
+//{
+//
+//}
+bool sim_mob::Person::advanceCurrentTripChainItem()
+{
+
+	bool res = false;
+	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
+//	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
+	//first check if you just need to advance the subtrip
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		//dont advance to next tripchainItem immidiately, check the subtrip first
+		res = advanceCurrentSubTrip();
+	}
+
+	if(res) return res;
+
+	//no, it is not the subtrip we need to advance, it is the tripchain item
+	currTripChainItem ++;
+	if(currTripChainItem != tripChain.end())
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+	//	std::cout << "processing Activity";
+	}
+	//but tripchainitems are also over, get out !
+	if(currTripChainItem == tripChain.end()) return false;
+
+	//so far, advancing the tripchainitem has been successful
+
+	//Also set the currSubTrip to the beginning of trip , just in case
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		currSubTrip = resetCurrSubTrip();
+
+
+
+	return true;
+}
 
 void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	//First, add the x and y co-ordinates
@@ -599,52 +515,3 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
 
-/*sim_mob::Link* sim_mob::Person::getCurrLink(){
-	return currLink;
-}
-void sim_mob::Person::setCurrLink(sim_mob::Link* link){
-	currLink = link;
-}*/
-
-#ifndef SIMMOB_DISABLE_MPI
-/*
- * package Entity, Agent, Person and Role
- */
-//void sim_mob::Person::pack(PackageUtils& packageUtil) {
-//	//package Entity
-//	//std::cout << "Person package Called" << this->getId() << std::endl;
-//	sim_mob::Agent::pack(packageUtil);
-//
-//	//package person
-//	packageUtil.packBasicData(specialStr);
-//	sim_mob::TripChain::pack(packageUtil, currTripChain);
-//	packageUtil.packBasicData(firstFrameTick);
-//}
-//
-//void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
-//
-//	sim_mob::Agent::unpack(unpackageUtil);
-//	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
-//
-//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-//	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
-//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-//}
-//
-//void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
-//	//package Entity
-//	sim_mob::Agent::pack(packageUtil);
-//
-//	//package person
-//	packageUtil.packBasicData(specialStr);
-//	packageUtil.packBasicData(firstFrameTick);
-//}
-//
-//void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
-//	sim_mob::Agent::unpack(unpackageUtil);
-//
-//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-//}
-
-#endif

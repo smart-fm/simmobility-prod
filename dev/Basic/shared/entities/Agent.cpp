@@ -2,9 +2,13 @@
 
 #include "Agent.hpp"
 
+#include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 #include "partitions/PartitionManager.hpp"
 #include <cstdlib>
+#include <cmath>
+
+#include "conf/simpleconf.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "geospatial/Node.hpp"
@@ -13,9 +17,11 @@
 #endif
 
 using namespace sim_mob;
+typedef Entity::UpdateStatus UpdateStatus;
 
 using std::vector;
 using std::priority_queue;
+
 
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
@@ -42,9 +48,6 @@ bool sim_mob::cmp_event_start::operator()(const PendingEvent& x, const PendingEv
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
-	//std::cout <<"Asking for agent ID: " <<preferredID <<std::endl;
-
-
 	//If the ID is valid, modify next_agent_id;
 	if (preferredID > static_cast<int> (next_agent_id)) {
 		next_agent_id = static_cast<unsigned int> (preferredID);
@@ -88,7 +91,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
-	mutexStrat(mtxStrat),
+	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0)
@@ -109,9 +112,129 @@ sim_mob::Agent::~Agent()
 #endif
 }
 
+
+void sim_mob::Agent::resetFrameInit()
+{
+	call_frame_init = true;
+}
+
+
+namespace {
+//Ensure all time ticks are valid.
+void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
+	//Has update() been called early?
+	if (now<startTime) {
+		std::stringstream msg;
+		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
+				<< " but it is currently: " << now
+				<< "; this indicates an error, and should be handled automatically.";
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Has update() been called too late?
+	if (wasRemoved) {
+		std::stringstream msg;
+		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
+				<< "; this indicates an error, and should be handled automatically.";
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Was frame_init() called at the wrong point in time?
+	if (wasFirstFrame) {
+		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
+			std::stringstream msg;
+			msg <<"Agent was not started within one timespan of its requested start time.";
+			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
+			msg <<"Agent ID: " <<agentId <<"\n";
+			throw std::runtime_error(msg.str().c_str());
+		}
+	}
+}
+} //End un-named namespace
+
+UpdateStatus sim_mob::Agent::perform_update(timeslice now)
+{
+	//We give the Agent the benefit of the doubt here and simply call frame_init().
+	//This allows them to override the start_time if it seems appropriate (e.g., if they
+	// are swapping trip chains). If frame_init() returns false, immediately exit.
+	bool calledFrameInit = false;
+	if (call_frame_init) {
+		//Call frame_init() and exit early if requested to.
+		if (!frame_init(now)) {
+			return UpdateStatus::Done;
+		}
+
+		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
+		call_frame_init = false; //Only initialize once.
+		calledFrameInit = true;
+	}
+
+	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
+	check_frame_times(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
+
+	//Perform the main update tick
+	UpdateStatus retVal = frame_tick(now);
+
+	//Save the output
+	if (retVal.status != UpdateStatus::RS_DONE) {
+		frame_output(now);
+	}
+
+	//Output if removal requested.
+	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
+		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
+	}
+
+	return retVal;
+}
+
+
+
+Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
+{
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, frameNumber);
+
+	//Update within an optional try/catch block.
+	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+
+#ifndef SIMMOB_STRICT_AGENT_ERRORS
+	try {
+#endif
+		//Update functionality
+		retVal = perform_update(now);
+
+//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
+#ifndef SIMMOB_STRICT_AGENT_ERRORS
+	} catch (std::exception& ex) {
+		PROFILE_LOG_AGENT_EXCEPTION(profile, *this, frameNumber, ex);
+
+		//Add a line to the output file.
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			std::stringstream msg;
+			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
+			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n  " <<ex.what();
+			LogOut(msg.str() <<std::endl);
+		}
+		setToBeRemoved();
+	}
+#endif
+
+	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
+	if (isToBeRemoved() || retVal.status==UpdateStatus::RS_DONE) {
+		retVal.status = UpdateStatus::RS_DONE;
+		setToBeRemoved();
+	}
+
+	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, frameNumber);
+	return retVal;
+}
+
+
+
 void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
-//	std::cout << "addresses of subscription  list elements : "<< &xPos << " " << &yPos<< " " <<&fwdVel<< " " <<&latVel<< " " <<&xAcc<< " " <<&yAcc << std::endl;
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
 	subsList.push_back(&fwdVel);
@@ -120,7 +243,6 @@ void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 	subsList.push_back(&yAcc);
 	//subscriptionList_cached.push_back(&currentLink);
 	//subscriptionList_cached.push_back(&currentCrossing);
-
 }
 
 bool sim_mob::Agent::isToBeRemoved() {

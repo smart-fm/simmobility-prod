@@ -18,5 +18,6 @@ void sim_mob::xml::ColorDuration_t_pimpl::Duration (unsigned char value)
 
 std::pair<sim_mob::TrafficColor,std::size_t> sim_mob::xml::ColorDuration_t_pimpl::post_ColorDuration_t ()
 {
+	return std::pair<sim_mob::TrafficColor,std::size_t> ();
 }
 

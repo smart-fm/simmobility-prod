@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "buffering/Buffered.hpp"
+#include "conf/simpleconf.hpp"
 #include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
@@ -22,6 +23,16 @@ using std::vector;
 using namespace sim_mob;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::WorkerUnitTests);
+
+
+//Hack around an Agent's frame_* functions.
+#define IGNORE_AGENT_FRAME_FUNCTIONS \
+  protected: \
+  virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods not supported for Unit Tests."); } \
+  virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* methods not supported for Unit Tests."); } \
+  virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods not supported for Unit Tests."); } \
+  public:  //Let's hope
+
 
 
 namespace {
@@ -60,6 +71,8 @@ public:
 	int getValue() { return value; }
 private:
 	int value;
+
+	IGNORE_AGENT_FRAME_FUNCTIONS;
 };
 
 
@@ -84,6 +97,8 @@ public:
 
 private:
 	int divisor;
+
+	IGNORE_AGENT_FRAME_FUNCTIONS;
 };
 
 
@@ -98,6 +113,8 @@ public:
 	}
 private:
 	int& srcValue;
+
+	IGNORE_AGENT_FRAME_FUNCTIONS;
 };
 
 
@@ -120,6 +137,8 @@ public:
 	}
 
 	Buffered<int> flag;
+
+	IGNORE_AGENT_FRAME_FUNCTIONS;
 };
 
 
@@ -139,6 +158,8 @@ public:
 private:
 	FlagAgent& flagAg;
 	int count;
+
+	IGNORE_AGENT_FRAME_FUNCTIONS;
 };
 
 
@@ -615,4 +636,8 @@ void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 	//Finally, clean up all the Work Groups and reset (for the next test)
 	WorkGroup::FinalizeAllWorkGroups();
 }
+
+
+//Magic
+#undef IGNORE_AGENT_FRAME_FUNCTIONS
 

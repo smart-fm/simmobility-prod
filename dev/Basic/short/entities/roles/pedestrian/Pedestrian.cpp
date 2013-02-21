@@ -23,11 +23,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -142,9 +138,9 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	//      The RoleManger in particular relies on this. ~Seth
 
 	//Init
-#ifdef SIMMOB_NEW_SIGNAL
 	sigColor = sim_mob::Green; //Green by default
-#else
+
+#if 0
 	sigColor = Signal::Green; //Green by default
 #endif
 
@@ -248,13 +244,12 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 	else if(atCrossing){
 		//Check whether to start to cross or not
-		LogOut("noteForDebug updatePedestrianSignal run"<<std::endl);
+		//LogOut("noteForDebug updatePedestrianSignal run"<<std::endl);
 		updatePedestrianSignal(fwdMovement.pathWithDirection.areFwds.front());
 
-#ifdef SIMMOB_NEW_SIGNAL
 		if (!startToCross) {
 			if (sigColor == sim_mob::Green){ //Green phase
-				LogOut("noteForDebug Green signal 1"<<std::endl);
+				//LogOut("noteForDebug Green signal 1"<<std::endl);
 				startToCross = true;
 			}
 			else if (sigColor == sim_mob::Red) { //Red phase
@@ -270,10 +265,11 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 				updateVelocity(2);
 			updatePosition();
 		}
-#else
+
+#if 0
 		if (!startToCross) {
 			if (sigColor == Signal::Green){ //Green phase
-				LogOut("noteForDebug Green signal 2"<<std::endl);
+				//LogOut("noteForDebug Green signal 2"<<std::endl);
 				startToCross = true;
 			}
 			else if (sigColor == Signal::Red) { //Red phase
@@ -363,6 +359,7 @@ void sim_mob::Pedestrian::setSubPath() {
 			int laneID = -1; //Also save the lane id.
 			bool isPassedSeg=false;
 			for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+
 				if (it->type_ == WayPoint::SIDE_WALK) {
 					//Save
 					if (!nextSideWalk) {
@@ -402,11 +399,11 @@ void sim_mob::Pedestrian::setSubPath() {
 			//      difficult to fix, but for now I'm just flipping the path.
 			if (currPath.empty()){
 
-				LogOut("noteForDebug setSubPath run atSideWalk binary 1"<<std::endl);
+			//	LogOut("noteForDebug setSubPath run atSideWalk binary 1"<<std::endl);
 
 				if(segWithDirection.path.front()->getEnd() == parent->originNode) {
 
-					LogOut("noteForDebug setSubPath run atSideWalk binary 1.1"<<std::endl);
+				//	LogOut("noteForDebug setSubPath run atSideWalk binary 1.1"<<std::endl);
 
 					//segWithDirection.path = ForceForwardSubpath(segWithDirection.path.front(), segWithDirection.path.front()->getLink()->getPath(true),
 					//		segWithDirection.path.front()->getLink()->getPath(false));
@@ -415,11 +412,11 @@ void sim_mob::Pedestrian::setSubPath() {
 			}
 			else{
 
-				LogOut("noteForDebug setSubPath run atSideWalk binary 2"<<std::endl);
+				//LogOut("noteForDebug setSubPath run atSideWalk binary 2"<<std::endl);
 
 				if(segWithDirection.path.front()->getEnd() == currPath.back()->getEnd()) {
 
-					LogOut("noteForDebug setSubPath run atSideWalk binary 2.1"<<std::endl);
+				//	LogOut("noteForDebug setSubPath run atSideWalk binary 2.1"<<std::endl);
 
 					//segWithDirection.path = ForceForwardSubpath(segWithDirection.path.front(), segWithDirection.path.front()->getLink()->getPath(true),
 					//		segWithDirection.path.front()->getLink()->getPath(false));
@@ -436,7 +433,7 @@ void sim_mob::Pedestrian::setSubPath() {
 			parent->yPos.set(fwdMovement.getPosition().y);
 
 			//pathWithDirection = segWithDirection;
-			LogOut("noteForDebug fwdMovement.pathWithDirection set"<<std::endl);
+			//LogOut("noteForDebug fwdMovement.pathWithDirection set"<<std::endl);
 			fwdMovement.pathWithDirection = segWithDirection;
 
 	}
@@ -630,13 +627,13 @@ void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
-			LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
+			//LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
 			trafficSignal = nullptr;
 		}
 
 		if (!trafficSignal){
 			std::cout << "Traffic signal not found!" << std::endl;
-			LogOut("noteForDebug Traffic signal not found!"<<std::endl);
+		//	LogOut("noteForDebug Traffic signal not found!"<<std::endl);
 		}
 		else {
 			if (currCrossing) {
@@ -651,13 +648,13 @@ void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
-			LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
+		//	LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
 			trafficSignal = nullptr;
 		}
 
 		if (!trafficSignal){
 			std::cout << "Traffic signal not found!" << std::endl;
-			LogOut("noteForDebug Traffic signal not found!"<<std::endl);
+			//LogOut("noteForDebug Traffic signal not found!"<<std::endl);
 		}
 		else {
 			if (currCrossing) {

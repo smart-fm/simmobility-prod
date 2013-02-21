@@ -15,20 +15,18 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 
-#include "CarFollowModel.hpp"
-#include "LaneChangeModel.hpp"
-#include "IntersectionDrivingModel.hpp"
+#include "entities/models/CarFollowModel.hpp"
+#include "entities/models/LaneChangeModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
-//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
-#include "entities/signal_transitional.hpp"
 
 namespace sim_mob
 {
 
 //Forward declarations
 class Pedestrian;
-//class Signal;
+class Signal;
 class Link;
 class RoadSegment;
 class Lane;
@@ -41,6 +39,9 @@ class UpdateParams;
 class PackageUtils;
 class UnPackageUtils;
 #endif
+
+
+
 
 
 /**
@@ -73,7 +74,7 @@ public:
 
 
 
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat , std::string roleName_ = "driver");
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -100,13 +101,16 @@ public:
 	Shared<double> latVelocity;
 	Shared<double> fwdAccel;
 	Shared<LANE_CHANGE_SIDE> turningDirection;
+	Vehicle* getVehicle() { return vehicle; }
 
+public:
+	double startTime;
+	bool isAleadyStarted;
 //Basic data
 protected:
 	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
-
 	//This should be done through the Role class itself; for now, I'm just forcing
 	//  it so that we can get the mid-term working. ~Seth
 	virtual Vehicle* getResource() { return vehicle; }
@@ -125,17 +129,19 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
+	int lastIndex;
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
 	FixedDelayed<double> *perceivedVelOfFwdCar;
 	FixedDelayed<double> *perceivedAccOfFwdCar;
 	FixedDelayed<double> *perceivedDistToFwdCar;
-#ifdef SIMMOB_NEW_SIGNAL
 	FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
-#else
+
+#if 0
 	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
 #endif
+
 	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;
@@ -154,7 +160,8 @@ public:
 
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 private:
-	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
 	bool update_sensors(DriverUpdateParams& params, timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.

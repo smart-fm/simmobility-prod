@@ -27,11 +27,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
 
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 
 #include "entities/TrafficWatch.hpp"
 #include "A_StarShortestPathImpl.hpp"

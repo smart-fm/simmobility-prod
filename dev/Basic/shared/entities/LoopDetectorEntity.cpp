@@ -5,15 +5,13 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/Role.hpp"
+
+#include "conf/simpleconf.hpp"
 
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
@@ -365,7 +363,6 @@ LoopDetectorEntity::Impl::~Impl()
     }
 }
 
-#ifdef SIMMOB_NEW_SIGNAL
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
@@ -401,7 +398,8 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         }
     }
 }
-#else
+
+#if 0
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
@@ -415,7 +413,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath(true);
+            std::vector<RoadSegment *> const & roads = link->getPath();
             if (! roads.empty())
             {
                 createLoopDetectors(roads, entity);
@@ -535,15 +533,15 @@ LoopDetectorEntity::Impl::check(timeslice now)
         if (detector->check(vehicles))
         {
 #if 0
-            LogOut("vehicle " << detector->vehicle() << " is over loop-detector in lane "
-                   << lane << " in frame " << frameNumber << std::endl);
+        	bufferOut <<"vehicle " << detector->vehicle() << " is over loop-detector in lane "
+                   << lane << " in frame " << frameNumber << std::endl;
 #endif
         }
         else
         {
 #if 0
-            LogOut("no vehicle is over loop-detector in lane " << lane
-                   << " in frame " << frameNumber << std::endl);
+        	bufferOut <<"no vehicle is over loop-detector in lane " << lane
+                   << " in frame " << frameNumber << std::endl;
 #endif
         }
     }
@@ -620,13 +618,33 @@ LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
     }
 }
 
-/* virtual */ UpdateStatus
+
+Entity::UpdateStatus LoopDetectorEntity::frame_tick(timeslice now)
+{
+    if (pimpl_) {
+        return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
+    }
+    return UpdateStatus::Done;
+}
+
+
+void LoopDetectorEntity::frame_output(timeslice now)
+{
+	//Loop detector entity performs no real output
+#if 0
+	LogOut(bufferOut.str());
+	bufferOut.str("");
+#endif
+}
+
+
+/* virtual  UpdateStatus
 LoopDetectorEntity::update(timeslice now)
 {
     if (pimpl_)
         return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
     return UpdateStatus::Done;
-}
+}*/
 
 void
 LoopDetectorEntity::reset()
@@ -652,7 +670,6 @@ const
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();
     }
-//    std::cout << "I am going to generate an error\nLoopDetectorEntity::getCountAndTimePair() was called on invalid lane"; //getchar();
     std::ostringstream stream;
     stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
     throw std::runtime_error(stream.str());

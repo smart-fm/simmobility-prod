@@ -12,13 +12,13 @@
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
 
+//#include "conf/simpleconf.hpp"
+
 #include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Point2D.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-
 #include "entities/Entity.hpp"
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
@@ -75,7 +75,34 @@ public:
 	///Load an agent.
 	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
-	virtual Entity::UpdateStatus update(timeslice now) = 0;  ///<Update agent behavior
+	///Update agent behavior. This will call frame_init, frame_tick, etc. correctly.
+	///Sub-classes should generally override the frame_* methods, but overriding update()
+	/// is ok too (it just overrides all the safeguards).
+	virtual Entity::UpdateStatus update(timeslice now);
+
+
+protected:
+
+	///Called during the first call to update() for a given agent.
+	///Return false to indicate failure; the Agent will be removed from the simulation with no
+	/// further processing.
+	virtual bool frame_init(timeslice now) = 0;
+
+
+	///Called during every call to update() for a given agent. This is called after frame_tick()
+	/// for the first call to update(). Return an UpdateStatus indicating future action.
+	///NOTE: Returning "UpdateStatus::RS_DONE" will negate the final line of output.
+	//       It is generally better to call "setToBeRemoved()", and return "UpdateStatus::RS_CONTINUE",
+	//       even though conceptually this is slightly confusing. We can clean this up later.
+	virtual Entity::UpdateStatus frame_tick(timeslice now) = 0;
+
+
+	///Called after frame_tick() for every call to update() for a given agent.
+	///Use this method to display output for this time tick.
+	virtual void frame_output(timeslice now) = 0;
+
+
+public:
 
     ///A temporary list of configuration properties used to load an Agent's role from the config file.
     void setConfigProperties(const std::map<std::string, std::string>& props) {
@@ -116,9 +143,17 @@ public:
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
+protected:
+	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
+	///      probably a better way of doing it.
+	void resetFrameInit();
+
 private:
 	//For future reference.
 	const sim_mob::MutexStrategy mutexStrat;
+
+	//Internal update function for handling frame_init(), frame_tick(), etc.
+	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
 	//for mid-term link travel time computation
 	struct travelStats
@@ -227,6 +262,11 @@ private:
 	//unsigned int currMode;
 	bool toRemoved;
 	static unsigned int next_agent_id;
+
+	///Should this agent call frame_init()?
+	///NOTE: This only applies to the Agent; a Person, for example, may call frame_init()
+	///      on its Roles from its own frame_tick() method.
+	bool call_frame_init;
 
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;

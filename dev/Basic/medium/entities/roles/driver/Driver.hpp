@@ -12,7 +12,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
-#include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/AuraManager.hpp"
 

@@ -12,6 +12,36 @@
 #include "util/LangHelpers.hpp"
 
 
+///Helper macro: call profie.logAgentUpdateBegin(agent, frameNumber)
+///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) \
+		  profile.logAgentUpdateBegin(agent, frameNumber);
+#else
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) ;
+#endif
+
+///Helper macro: call profie.logAgentUpdateEnd(agent, frameNumber)
+///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) \
+		  profile.logAgentUpdateEnd(agent, frameNumber);
+#else
+  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) ;
+#endif
+
+///Helper macro: call profile.logAgentException(agent, frameNumber, ex);
+///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) \
+		  profile.logAgentException(agent, frameNumber, ex);
+#else
+  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) ;
+#endif
+
+
+
+
 namespace sim_mob
 {
 

@@ -288,7 +288,11 @@ public class SimulationResults {
 				parsePedestrian(pRes);
 			} else if (pRes.type.equals("simulation")) {
 				parseSimulation(pRes);
-			} else {
+			}
+			else if (pRes.type.equals("passenger")) {
+				parsePassenger(pRes);
+			}
+			 else {
 				if (pRes.frame>0) {
 					System.out.println("WARNING: Unknown type: " + pRes.type);
 				}
@@ -411,7 +415,8 @@ public class SimulationResults {
 			if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
 				throw new IOException("Missing required key in type: " + pRes.type);
 			}
-		    
+		    try
+		    {
 		    //Now save the relevant information
 		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
 		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
@@ -430,8 +435,38 @@ public class SimulationResults {
 		    
 		    //Add this agent to the proper frame.
 		    saveTempAgent(pRes.frame, tempPedestrian, false);
+		    }
+		    catch(Exception e)
+		    {
+		    	System.out.println(e.getMessage());
+		    }
 		}
 		
+		void parsePassenger(Utility.ParseResults pRes) throws IOException {
+		    //Check and parse properties.
+			if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
+		    
+		    //Now save the relevant information
+		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
+		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
+
+		    
+		    //Create a temp passenger
+		    PassengerTick tempPassenger = new PassengerTick(pRes.objID, xPos, yPos);
+		    
+		    //Check if the pedestrian is fake
+		    if(pRes.properties.containsKey("fake")){
+		    	if(pRes.properties.get("fake").equals("true")){
+		    		tempPassenger.setItFake();
+		    	}
+		    }
+
+		    
+		    //Add this agent to the proper frame.
+		    saveTempAgent(pRes.frame, tempPassenger, false);
+		}
 		
 		void parseSignalLines(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.

@@ -10,11 +10,10 @@
 
 #include "Vehicle.hpp"
 #include "BusRoute.hpp"
-#include "entities/BusController.hpp"
-
 
 namespace sim_mob {
 
+class Person;
 class BusController;
 class PackageUtils;
 class UnPackageUtils;
@@ -24,22 +23,36 @@ class UnPackageUtils;
  */
 class Bus : public sim_mob::Vehicle {
 public:
-	Bus(const BusRoute& route, const Vehicle* clone)
-	: Vehicle(*clone), passengerCount(0), route(route), ptCheck(0,0), DistThreshold(2000)
+	Bus(const BusRoute& route, const Vehicle* clone, std::string busLine_)
+	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine_), route(route), ptCheck(0,0), DistThreshold(2000)
+	, busCapacity(30), TimeOfBusreachingBusstop(0)
 	{}
 
 //	BusRoute& getRoute() { return route; }
 	int getPassengerCount() const { return passengerCount; }
+	int getBusCapacity() const { return busCapacity; }
 	void setPassengerCount(int val) { passengerCount = val; }
 	void setBusNumber(int &n) { busNumber = n; }
 	int getBusNumber() { return busNumber; }
+	int getPassengerCountOld() const { return passengerCount_Old; }
+	void setPassengerCountOld(int val) { passengerCount_Old = val; }
 	//bool isSendToBusController(BusController &busctrller);
+	std::vector<const sim_mob::Agent*> passengers_distribition;//added by Meenu
+	std::string getBusLineID()
+	{
+		return busline;
+	}
 
+	double TimeOfBusreachingBusstop;
+	std::vector<sim_mob::Person*> passengers_inside_bus;//added by Meenu
 private:
 	int passengerCount;
+	int passengerCount_Old;// record for dwell time
+	int busCapacity;
 	BusRoute route;
 	DPoint ptCheck;// Later connect to Stops, calculate the position to some stops
 	double DistThreshold;
+	std::string busline;
 
 	int busNumber;
 

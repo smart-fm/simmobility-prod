@@ -1,0 +1,26 @@
+namespace http://www.smart.mit.edu/conf  {
+	include "conf/Config.hpp";
+
+
+model              "std::pair<std::string, std::string>";
+workgroup          "std::pair<std::string, sim_mob::WorkGroupFactory>";
+distribution       "std::pair<std::string, sim_mob::ReactionTimeDist*>";
+db_connection      "std::pair<std::string, sim_mob::DatabaseConnection>";
+db_param           "std::pair<std::string, std::string>";
+db_proc_mapping    "std::pair<std::string, std::string>";
+proc_map           "std::pair<std::string, sim_mob::StoredProcedureMap>";
+default_model      "std::pair<std::string, std::string>";
+workgroup_mapping  "std::string";
+gen_prop           "std::pair<std::string, std::string>";
+val_units          "sim_mob::Granularity";
+start_time         "sim_mob::DailyTime";
+granularities      "std::pair<sim_mob::Granularity, sim_mob::Granularity>";
+dist_mapping       "std::string";
+database_loader    "std::pair<std::string, std::string>";
+xml_loader         "std::pair<std::string, std::string>";
+
+driver_explicit      "sim_mob::AgentSpec";
+pedestrian_explicit  "sim_mob::AgentSpec";
+
+
+}

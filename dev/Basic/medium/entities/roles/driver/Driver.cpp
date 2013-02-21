@@ -1,12 +1,19 @@
-#include <math.h>
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-//#include "entities/roles/driver/BusDriver.hpp"
 #include "Driver.hpp"
+
+#include <cmath>
+#include <ostream>
+#include <algorithm>
+
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+
 #include "buffering/BufferedDataManager.hpp"
+#include "conf/simpleconf.hpp"
+
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -15,20 +22,14 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/OutputUtil.hpp"
-//#include "util/DynamicVector.hpp"
-//#include "util/GeomHelpers.hpp"
-#include "util/DebugFlags.hpp"
-#include "partitions/PartitionManager.hpp"
-#include "entities/AuraManager.hpp"
-#include <ostream>
-#include <algorithm>
 
-#ifndef SIMMOB_DISABLE_PI
+#include "util/OutputUtil.hpp"
+#include "util/DebugFlags.hpp"
+
+#include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
-#endif
 
 using namespace sim_mob;
 
@@ -41,9 +42,6 @@ using std::endl;
 
 //Helper functions
 namespace {
-//Helpful constants
-
-
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l) {
 	if (l) {
@@ -60,7 +58,7 @@ size_t getLaneIndex(const Lane* l) {
 
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
-	Role(parent), /*remainingTimeToComplete(0),*/ currLane(nullptr), vehicle(nullptr),
+	Role(parent, "Driver_"), /*remainingTimeToComplete(0),*/ currLane(nullptr), vehicle(nullptr),
 	nextLaneInNextSegment(nullptr), params(parent->getGenerator())
 {
 
@@ -75,7 +73,6 @@ sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat) :
 sim_mob::medium::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
-	std::cout << ss.str() << endl;
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -88,11 +85,13 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const
 {
-	return new Driver(parent, parent->getMutexStrategy());
+	Role* role = new Driver(parent, parent->getMutexStrategy());
+	return role;
 }
 
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 {
+	std::cout << "Driver::frame_init -0\n";
 	//Save the path from orign to next activity location in allRoadSegments
 	if (!currResource) {
 		Vehicle* veh = initializePath(true);
@@ -106,7 +105,6 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 	else {
 		initializePath(false);
 	}
-
 }
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p) {

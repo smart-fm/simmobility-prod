@@ -27,6 +27,7 @@ namespace sim_mob {
 //Forward declarations
 class Node;
 class SubTrip;
+class Person;
 
 
 
@@ -62,6 +63,9 @@ public:
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
+	//initialization within person's constructor with respect to tripchain
+	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
+	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pur virtual coz the class will turn to abstract and we will face problem in XML reader
 };
 
 /**
@@ -73,13 +77,15 @@ class Activity: public sim_mob::TripChainItem {
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
-	const sim_mob::Node* location;
+	sim_mob::Node* location;
 	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
 	bool isMandatory;
 
 	Activity(std::string locType="node");
+	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
+	 const std::string getMode(const sim_mob::SubTrip *subTrip) const  { return "Activity";}
 };
 
 /**
@@ -117,7 +123,8 @@ public:
 	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips) {
 		this->subTrips = subTrips;
 	}
-
+	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
+	 const std::string getMode(const sim_mob::SubTrip *subTrip) const;
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
 };
@@ -137,6 +144,11 @@ public:
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	const std::string getMode() const ;
+//	{
+//		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
+//		return mode;
+//	}//this is not implementation of a vrtual function
 	virtual ~SubTrip() {}
 };
 

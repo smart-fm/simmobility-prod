@@ -1,8 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include <algorithm>
 #include "SegmentStats.hpp"
+
+#include <algorithm>
+
 #include "util/OutputUtil.hpp"
+#include "conf/simpleconf.hpp"
 
 using std::string;
 
@@ -540,12 +543,12 @@ namespace sim_mob {
 	}
 
 	void LaneStats::printAgents() {
-		debugMsgs << "Lane " << lane->getLaneID_str();
+		debugMsgs << "Lane " << lane->getLaneID();
 		for(std::vector<sim_mob::Agent*>::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++) {
 			debugMsgs << "|" << (*i)->getId();
 		}
 		debugMsgs <<std::endl;
-		debugMsgs << "LaneCopy " << lane->getLaneID_str();
+		debugMsgs << "LaneCopy " << lane->getLaneID();
 		for(std::vector<sim_mob::Agent*>::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++) {
 			debugMsgs << "|" << (*i)->getId();
 		}

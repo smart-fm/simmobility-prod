@@ -87,7 +87,6 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 //					  std::cout << "(45666 : " << this << ") -->connectors[link-seg(" << from << "):" << (*it).first->getLink()->getLinkId() << ":" << (*it).first->getSegmentID() << "] size  is : " << (*it).second.size() << std::endl;
 //				  }
 //			  }
-//			  getchar();
 //			  std::vector<sim_mob::MultiNode*> mNodes = sim_mob::ConfigParams::GetInstance().getNetwork().getNodes();
 //			  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
 //			  {
@@ -102,7 +101,6 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 //					  }
 //				  }
 //			  }
-//			  getchar();
 
 
 		//TODO: How are we handling logical errors?

@@ -38,8 +38,8 @@ public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
 	virtual void setParentSegment(sim_mob::RoadSegment*) {};
 
-	const sim_mob::Point2D& getStart() { return start; }
-	const sim_mob::Point2D& getEnd() { return end; }
+	const sim_mob::Point2D& getStart() const { return start; }
+	const sim_mob::Point2D& getEnd() const { return end; }
 	const unsigned long getRoadItemID()const { return id;}
 	void setRoadItemID(unsigned long id_) { id = id_;}
 	static unsigned long generateRoadItemID(const sim_mob::RoadSegment rs)

@@ -153,7 +153,7 @@ void SplitPlan::Update(std::vector<double> &DS)
 	double DS_all = fmax(DS);
 	cycle_.Update(DS_all);
 	cycleLength = cycle_.getcurrCL();
-	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
+//	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
 		std::cout << currSplitPlanID << std::endl;
@@ -248,8 +248,8 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	currSplitPlanID = 0;
 }
 
-std::string SplitPlan::createStringRepresentation(std::string newLine)
-{
+//std::string SplitPlan::createStringRepresentation(std::string newLine)
+//{
 //	if(phases_.size() == 0)
 //		{
 //			return 0;
@@ -266,7 +266,7 @@ std::string SplitPlan::createStringRepresentation(std::string newLine)
 //	}
 //	output << newLine << "]";
 //	return output.str();
-}
+//}
 
 
 

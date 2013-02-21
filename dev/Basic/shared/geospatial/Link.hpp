@@ -14,8 +14,6 @@
 
 #include "Traversable.hpp"
 
-//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
-#include "entities/signal_transitional.hpp"
 
 //namespace geo {
 //class link_t_pimpl;
@@ -36,12 +34,13 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-namespace aimsun
-{
+namespace aimsun {
 //Forward declaration
 class Loader;
 } //End aimsun namespace
 
+//Forward declaration.
+class Signal;
 
 
 /**
@@ -94,7 +93,7 @@ public:
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-	const std::vector<sim_mob::RoadSegment*> & getSegments() { return segs; }
+	const std::vector<sim_mob::RoadSegment*> & getSegments() const { return segs; }
 //	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);

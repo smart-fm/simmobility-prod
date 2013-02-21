@@ -9,6 +9,9 @@
 #include "RoadSegment.hpp"
 #include <tinyxml.h>
 
+//For forward declarations (for friend functions)
+#include "geospatial/xmlWriter/xmlWriter.hpp"
+
 //using namespace geo;
 namespace geo {
 class lane_t_pimpl;
@@ -249,10 +252,10 @@ public:
     unsigned int getWidth() const {
     	if (width_==0) {
     		unsigned int width = parentSegment_->width / parentSegment_->getLanes().size();
-//    		if(width <= 0)
-//    		{
-//    			throw std::runtime_error("Can't manage with a Lane with zero width.");
-//    		}
+    		if(width <= 0) {
+    			return 50; //0.5 m should be visible; better than throwing an error.
+    			//throw std::runtime_error("Can't manage with a Lane with zero width.");
+    		}
     		return width;
     	}
     	return width_;
@@ -267,9 +270,9 @@ public:
     unsigned int getLaneID() const {
     	return laneID_;
     }
-    std::string getLaneID_str() const {
+    /*std::string getLaneID_str() const {
     	return laneID_str;
-    }
+    }*/
 
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
     const std::vector<sim_mob::Point2D>& getPolyline(bool sync = true) const;
@@ -291,7 +294,7 @@ public:
 
     void setLaneID(unsigned int laneID) {
     	this->laneID_ = laneID;
-    	setLaneID_str(laneID);
+    	//setLaneID_str(laneID);
     	//Build a laneID string
 //    	std::ostringstream Id ;
 //    	if (parentSegment_) {
@@ -328,25 +331,30 @@ private:
     friend class ::geo::segment_t_pimpl;
 public:
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, unsigned long laneID = 0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0) {/*10 lanes per segment*/
-    	laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
-    	setLaneID_str(laneID_);
+    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned long laneID = 0, const std::string& bit_pattern="")
+    	: parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(0)
+    {
+    	if (segment) {
+			//10 lanes per segment
+			//TODO: This is not a reasonable restriction. ~Seth
+			laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
+    	}
     }
     
     
-    Lane(){};//is needed by the xml reader
-    inline void setLaneID_str( unsigned long segmentId, unsigned int laneID)
+   // Lane(){};//is needed by the xml reader
+    /*inline void setLaneID_str( unsigned long segmentId, unsigned int laneID)
     {
         std::ostringstream Id ;
         Id << segmentId*10 + laneID ;
        	laneID_str = Id.str();
-    }
-    inline void setLaneID_str( unsigned int laneID)
+    }*/
+/*    inline void setLaneID_str( unsigned int laneID)
     {
         std::ostringstream Id ;
         Id <<  laneID;
        	laneID_str = Id.str();
-    }
+    }*/
     inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
@@ -417,7 +425,7 @@ private:
 	unsigned int width_;
 	unsigned long laneID_;
 	//I don't want to disturb the usage of laneID_ by other modules so i made the following variable for xml write/read purposes--vahid
-	std::string laneID_str;
+	//std::string laneID_str;
 
 
 	friend class RoadSegment;

@@ -148,7 +148,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		//Check whether the link is one-way
 		if (parentLink->hasOpposingLink==0)
 		//if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
-		//if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
+		//if(parentLink->getPath(false).empty() || parentLink->getPath().empty())
 		{
 			//Add a sidewalk on the other side of the road segment
 			Lane* swLane2 = new Lane(this, lanes.size());
@@ -297,7 +297,12 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 
 	//Rebuild if needed
 	if (laneEdgePolylines_cached.empty() || syncNeeded) {
-		syncLanePolylines();
+		//try {
+			syncLanePolylines();
+		//} catch (std::exception& ex) {
+			//std::cout <<"ERROR_2905" <<std::endl;
+			//laneEdgePolylines_cached.push_back(std::vector<Point2D>());
+		//}
 	}
 	return laneEdgePolylines_cached[laneID];
 }

@@ -16,8 +16,6 @@
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
-//Pull in our typedefs
-#include "entities/signal_transitional.hpp"
 
 namespace sim_mob
 {
@@ -30,6 +28,7 @@ class Node;
 class MultiNode;
 class BusStop;
 class Crossing;
+class Signal;
 
 
 /**

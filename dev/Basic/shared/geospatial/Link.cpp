@@ -95,7 +95,11 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	//Double-check that everything's been read at least once.
 	if (usedSegments.size() < newSegs.size()) {
 		std::stringstream msg;
-		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size();
+		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size()
+			<<"  segments are: ";
+		for (std::set<sim_mob::RoadSegment*>::const_iterator it=newSegs.begin(); it!=newSegs.end(); it++) {
+			msg <<(*it)->originalDB_ID.getLogItem() <<"  ";
+		}
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -183,14 +187,11 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	{
 		RoadSegment* seg1 = segments.at(i);
 		RoadSegment* seg2 = segments.at(i+1);
-//		std::cout << "\nloop 0"; //getchar();
 		size_t j=0;
 		for(;j<seg1->getLanes().size();j++)
 		{
 			seg1->getLanes()[j]->getPolyline();
-//			std::cout << "\nended getPolyline"; //getchar();
 		}
-//		std::cout << "\nloop 00"; //getchar();
 		for(j=0;j<seg2->getLanes().size();j++)
 			seg2->getLanes()[j]->getPolyline();
 //		std::cout << " 000\n";

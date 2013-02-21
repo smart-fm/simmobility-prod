@@ -27,6 +27,7 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 class BusRoute;
+class Busline;
 
    //
 /**
@@ -88,6 +89,7 @@ public:
 
 
 public:
+    std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
 	sim_mob::RoadSegment* parentSegment_;
 	std::string busstopno_;
 		double xPos;

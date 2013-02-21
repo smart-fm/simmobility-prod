@@ -2,6 +2,9 @@
 //tripChains Branch
 #include "simpleconf.hpp"
 
+//Make sure our "test" (new) Config variant compiles.
+#include "conf/xmlLoader/implementation/conf1-driver.hpp"
+
 #include <tinyxml.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -9,16 +12,14 @@
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 
+#include "geospatial/xmlWriter/boostXmlWriter.hpp"
+
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEvent.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
-#else
-#include "entities/Signal.hpp"
-#endif
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -34,9 +35,20 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/PassengerDistribution.hpp"
 #include "util/OutputUtil.hpp"
 
+//NOTE: Commenting out; will remove if no-one needs this class.
+#if 0
 #include "geospatial/xmlLoader/geo8-driver.hpp"
+#endif
+
+#include "conf/Validate.hpp"
+#include "conf/GeneralOutput.hpp"
+#include "conf/PrintNetwork.hpp"
+#include "conf/LoadAgents.hpp"
+#include "conf/LoadNetwork.hpp"
+
 #include "geospatial/xmlLoader/geo10.hpp"
 
 //add by xuyan
@@ -200,57 +212,20 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
 	//The current agent we are working on.
-	Person* currAg = nullptr;
+	Person* person = nullptr;
 	std::string trip_mode;
-	std::vector<const TripChainItem*> currAgTripChain;
-
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-//		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
-//		//getchar();
-//		const Trip* trip = dynamic_cast<const Trip*>(tc);
-//		const Activity* act = dynamic_cast<const Activity*>(tc);
-//
-//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
-//			//Origin and destination must be those of the first subtrip if current item is a trip
-//			currAg->originNode = firstSubTrip.fromLocation;
-//			currAg->destNode = firstSubTrip.toLocation;
-//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
-//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-//			currAg->originNode = currAg->destNode = act->location;
-//		} else { //Offer some protection
-//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-//		}
-//
-//		currAg->setTripChain(it_map->second);
-//		if (currAg->currSubTrip) {
-//			if (currAg->currSubTrip->mode == "Bus") {
-//				// currently only one
-//				if (!BusController::all_busctrllers_.empty()) {
-//					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
-//							active_agents);
-//				}
-//			}
-//		}
-//		else
-		{
-//			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
-			addOrStashEntity(currAg, active_agents, pending_agents);
-		}
 
+		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent
-		currAg = nullptr;
-
-		
-	} //outer for loop(map)
+		person = nullptr;
+	}//outer for loop(map)
 }
-
-
-
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
@@ -367,6 +342,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 		if (agentType == "busdriver")
 			props["#mode"] = "Bus";
+		if (agentType == "passenger")
+			props["#mode"] = "BusTravel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -402,6 +379,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
+        	std::cout << "catch the loop error try!" << std::endl;
             std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
@@ -409,17 +387,10 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 	return true;
 }
 
-#ifdef SIMMOB_NEW_SIGNAL
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
-#else
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
-#endif
-
 {
-	std::cout << "inside loadXMLSignals !" << std::endl;
 	//Quick check.
 	if (signalKeyID!="signal") {
-		std::cout << "oops! returning false!" << std::endl;
 		return false;
 	}
 
@@ -640,10 +611,10 @@ void PrintDB_Network()
 	LogOutNotSync("})" <<endl);
 
 
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-#else
+
+#if 0
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
 	//Print the Signal representation.
@@ -773,8 +744,6 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " Before...";
-//		getchar();
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
@@ -788,9 +757,6 @@ void PrintDB_Network()
 			}
 
 		}
-//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " After...";
-//		getchar();
-
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -880,29 +846,28 @@ struct Sorter {
 	  if(!(c && d))
 	  {
 		  std::cout << "A lane connector is null\n";
-		  getchar();
 		  return false;
 	  }
 
 	  const sim_mob::Lane* a = (c->getLaneFrom());
-	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  aaaa = a->getLaneID() ;
+	  const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  const unsigned int  aaaa = a->getLaneID() ;
 
 	  const sim_mob::Lane* b = (d->getLaneFrom());
-	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  bbbb = b->getLaneID() ;
+	  const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  const unsigned int  bbbb = b->getLaneID() ;
 	  ///////////////////////////////////////////////////////
 	  const sim_mob::Lane* a1 = (c->getLaneTo());
-	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
+	  const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  const unsigned int  aaaa1 = a1->getLaneID() ;
 
 	  const sim_mob::Lane* b1 = (d->getLaneTo());
-	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
-	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
-	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
+	  const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
+	  const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  const unsigned int  bbbb1 = b1->getLaneID() ;
 
 	  if(!(a && b))
 	  {
@@ -938,10 +903,10 @@ void PrintDB_Network_ptrBased()
 	LogOutNotSync("})" <<endl);
 
 
-#ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-#else
+
+#if 0
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
 	//Print the Signal representation.
@@ -1059,7 +1024,6 @@ void PrintDB_Network_ptrBased()
 			}
 		}
 
-
 		//Save Lane info for later
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
@@ -1077,6 +1041,14 @@ void PrintDB_Network_ptrBased()
 
 			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
 				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				//debug
+				if(laneID != 0 && laneID <(*it)->getLanes().size())
+				{
+					int i = 0;
+					i++;
+//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
+				}
+				//debug ends
 			}
 
 		}
@@ -1152,9 +1124,10 @@ void PrintDB_Network_ptrBased()
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
+//obsolete
 void PrintDB_Network_idBased()
 {
-	if (ConfigParams::GetInstance().OutputDisabled()) {
+	if (ConfigParams::GetInstance().Output_Disabled()) {
 		return;
 	}
 
@@ -1377,31 +1350,8 @@ void PrintDB_Network_idBased()
 
 }
 
-void patchRoadNetworkwithLaneEdgePolyline() {
-	//Initial message
-	const RoadNetwork& rn = sim_mob::ConfigParams::GetInstance().getNetwork();
-	std::set<const RoadSegment*, Sorter> cachedSegments;
-	for (set<UniNode*>::const_iterator it = rn.getUniNodes().begin(); it != rn.getUniNodes().end(); it++) {
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2 = segs.begin(); i2 != segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (vector<MultiNode*>::const_iterator it = rn.getNodes().begin(); it != rn.getNodes().end(); it++) {
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2 = nodeInt->getRoadSegments().begin(); i2 != nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (std::set<const RoadSegment*>::const_iterator it = cachedSegments.begin(); it != cachedSegments.end(); it++) {
-		for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
-		}
-	}
-}
 
+//obsolete
 void printRoadNetwork_console()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
@@ -1427,7 +1377,7 @@ void printRoadNetwork_console()
 			std::sort(tmpLanes.begin(), tmpLanes.end(), sorter_);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+				std::cout << "		laneId: " << 	(*lane_it)->getLaneID()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
@@ -1485,7 +1435,6 @@ void printRoadNetwork_console()
 
 
 	std::cout << "Testing Road Network Done\n";
-//	getchar();
 }
 
 
@@ -1533,6 +1482,37 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
 
+	//Save passenger distribution parameters
+	int passenger_busstop_dist,passenger_crowdness_dist,passengers_min_uniformDist,passengers_max_uniformDist;
+	int passenger_busstop_mean,passenger_crowdness_mean,passenger_percent_boarding,passenger_percent_alighting;
+	int passenger_busstop_standardDev,passenger_crowdness_standard_dev;
+	handle.FirstChild("passenger_distribution_busstop").ToElement()->Attribute("value",&passenger_busstop_dist);
+	handle.FirstChild("passenger_mean_busstop").ToElement()->Attribute("value",&passenger_busstop_mean);
+	handle.FirstChild("passenger_standardDev_busstop").ToElement()->Attribute("value",&passenger_busstop_standardDev);
+
+
+	handle.FirstChild("passenger_percent_boarding").ToElement()->Attribute("value",&passenger_percent_boarding);
+	handle.FirstChild("passenger_percent_alighting").ToElement()->Attribute("value",&passenger_percent_alighting);
+
+	handle.FirstChild("passenger_min_uniform_distribution").ToElement()->Attribute("value",&passengers_min_uniformDist);
+	handle.FirstChild("passenger_max_uniform_distribution").ToElement()->Attribute("value",&passengers_max_uniformDist);
+
+	//for alighting passengers
+	//TODO: Refactor to avoid magic numbers
+	int no_of_passengers;
+	srand(time(NULL));
+	ConfigParams::GetInstance().percent_boarding=passenger_percent_boarding;
+	ConfigParams::GetInstance().percent_alighting=passenger_percent_alighting;
+	if (passenger_busstop_dist ==0) {// normal distribution
+		ConfigParams::GetInstance().passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
+	} else if (passenger_busstop_dist==1) {// log normal distribution
+		ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+	} else if(passenger_busstop_dist==2) {// uniform distribution
+		ConfigParams::GetInstance().passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
+	} else {
+		throw std::runtime_error("Unknown magic passenger distribution number.");
+	}
 
 	//Driver::distributionType1 = distributionType1;
 	int signalTimingMode;
@@ -1604,6 +1584,23 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		} else if (mutexStrat != "buffered") {
 			return string("Unknown mutex strategy: ") + mutexStrat;
 		}
+	}
+
+	//Busline Control strategy (optional)
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("busline_control_type").ToElement();
+	if(node) {
+		const char* valStr_controlType = node->Attribute("strategy");
+		std::string busline_control_type(valStr_controlType);
+		if(busline_control_type == "schedule_based" || busline_control_type == "headway_based"
+				|| busline_control_type == "evenheadway_based" || busline_control_type == "hybrid_based"
+				|| busline_control_type == "no_control") {
+			ConfigParams::GetInstance().busline_control_type = busline_control_type;
+		} else {
+			ConfigParams::GetInstance().busline_control_type = "no_control";// default: no control
+		}
+	} else {
+		ConfigParams::GetInstance().busline_control_type = "no_control";// if no setting for this variable: also no control
 	}
 
 
@@ -1703,6 +1700,40 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     }
 
+    //From Santhosh's branch; doesn't appear to do anything.
+    /*handle = TiXmlHandle(&document);
+	TiXmlElement* busBreak = handle.FirstChild("config").FirstChild("busBreak").ToElement();
+	if(busBreak){
+		const char* routeID = busBreak->Attribute("routeID");
+		const char* index =   busBreak->Attribute("index");
+		BusController::buslineID = routeID;
+		BusController::busBreak = true;
+		BusController::busstopindex = atoi(index);
+		std::cout<<"BuslineID: "<<BusController::buslineID<<" busBreak: "<<BusController::busBreak<<std::endl;
+	}*/
+
+	/*std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(386000)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(396800)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(461100)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(506100)).getRepr_()<<std::endl;
+	std::cout<<(ConfigParams::GetInstance().simStartTime + DailyTime(599200)).getRepr_()<<std::endl;*/
+
+	//load scheduledTImes if any
+	handle = TiXmlHandle(&document);
+	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
+	if(busScheduleTimes){
+		int stop = 0;
+		for (;busScheduleTimes; busScheduleTimes=busScheduleTimes->NextSiblingElement()) {
+			int AT = atoi(busScheduleTimes->Attribute("offsetAT"));
+			int DT = atoi(busScheduleTimes->Attribute("offsetDT"));
+			vector<int> times;
+			times.push_back(AT);
+			times.push_back(DT);
+			std::pair<int, vector<int> > nextLink(stop, times);
+			ConfigParams::GetInstance().scheduledTimes.insert(nextLink);
+			++stop;
+		}
+	}
 
     //Check the type of geometry
     handle = TiXmlHandle(&document);
@@ -1744,43 +1775,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-
-//    		for(std::vector<sim_mob::Link*>::const_iterator it = ConfigParams::GetInstance().getNetworkRW().getLinks().begin(), it_end(ConfigParams::GetInstance().getNetworkRW().getLinks().end()); it != it_end; it++)
-//    		{
-//    			if((*it)->getLinkId() != 1000010) continue;
-//    			for(std::set<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//    			{
-//    				if(((*it_seg)->getSegmentID() == 100001005) || ((*it_seg)->getSegmentID() == 100001004))
-//    				{
-//    					for(std::map<centimeter_t, const RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//    					{
-//    						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//    						if((cr))
-//    						{
-//    							std::cout << "SimpleConf::Segment " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() << std::endl;
-//    						}
-//    					}
-//    				}
-//    			}
-//    		}
-//    		getchar();
-
 #else
        		/**************************************************
        		 *
        		 * ****************  XML-READER *******************
         	 *
         	 *************************************************/
-#ifdef SIMMOB_PARTIAL_XML_READER
-    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW())) {
+//#ifdef SIMMOB_PARTIAL_XML_READER
+    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
     			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
     		}
-#else
-    		geo::InitAndLoadXML(XML_OutPutFileName);
-
-
-
-#endif
+//#else
+ //   		geo::InitAndLoadXML(XML_OutPutFileName);
+//#endif
     		//Re-enable if you need diagnostic information. ~Seth
     		//runXmlChecks(ConfigParams::GetInstance().getNetwork().getLinks());
 #endif
@@ -1799,6 +1806,30 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }
 
+    //TEMP: Test network output via boost.
+    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
+
+    //debug: detect sidewalks which are in the middle of road
+    {
+    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
+    	{
+    		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+    		{
+    			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*seg_it)->getLanes().begin(), it_end((*seg_it)->getLanes().end()); lane_it != it_end ; lane_it++)
+    			{
+    				if(((*lane_it) != (*seg_it)->getLanes().front()) && ((*lane_it) != (*seg_it)->getLanes().back()) && (*lane_it)->is_pedestrian_lane())
+    				{
+    					std::cout << "we have a prolem with a pedestrian lane in the middle of the segment\n";
+    				}
+    			}
+    		}
+    	}
+    }
+    //debug.. end
+
+ 	//Generate lanes, before StreetDirectory::init()
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
@@ -1822,10 +1853,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
  	std::cout << "XML input for SimMobility Created....\n";
  	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
  #endif
-    patchRoadNetworkwithLaneEdgePolyline();//apparently, must be called before StreetDirectory.init
 
-    std::cout << "Street Directory initialized" << std::endl;
+ 	//Initialize the street directory.
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    std::cout << "Street Directory initialized" << std::endl;
 
     //process confluxes
     std::cout << "confluxes size before: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
@@ -1848,34 +1879,47 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
-    for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
-    	if (((*it) == "database")||((*it) == "xml-tripchains")) {
-    	    	 //Create an agent for each Trip Chain in the database.
-    	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
-    	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
-    	    	} else if ((*it) == "drivers") {
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
-    	    	return	 "Couldn't load drivers";
-    	    }
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints)) {
-    	    	return	 "Couldn't load bus drivers";
-    	    }
-    		cout <<"Loaded Driver Agents (from config file)." <<endl;
+	for (vector<string>::iterator it = loadAgentOrder.begin();
+			it != loadAgentOrder.end(); it++) {
+		if (((*it) == "database") || ((*it) == "xml-tripchains")) {
+			//Create an agent for each Trip Chain in the database.
+			generateAgentsFromTripChain(active_agents, pending_agents,
+					constraints);
+			cout << "Loaded Database Agents (from Trip Chains)." << endl;
+		} else if ((*it) == "drivers") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"driver", constraints)) {
+				return "Couldn't load drivers";
+			}
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"busdriver", constraints)) {
+				return "Couldn't load bus drivers";
+			}
+			cout << "Loaded Driver Agents (from config file)." << endl;
 
-    	} else if ((*it) == "pedestrians") {
-    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
-    			return "Couldn't load pedestrians";
-    		}
-    		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
-    	} else {
-    		return string("Unknown item in load_agents: ") + (*it);
-    	}
-    }
-    std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
+		} else if ((*it) == "pedestrians") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"pedestrian", constraints)) {
+				return "Couldn't load pedestrians";
+			}
+			cout << "Loaded Pedestrian Agents (from config file)." << endl;
+		} else if ((*it) == "passengers") {
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"passenger", constraints)) {
+				return "Couldn't load passengers";
+			}
+			cout << "Loaded Passenger Agents (from config file)." << endl;
+		} else {
+			return string("Unknown item in load_agents: ") + (*it);
+		}
+	}
+	std::cout
+			<< "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!"
+			<< std::endl;
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document,
-#ifndef SIMMOB_NEW_SIGNAL
+#if 0
     		Signal::all_signals_,
 #endif
     		"signal")) {
@@ -1946,9 +1990,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	BusController::DispatchAllControllers(active_agents);
     }
 
-#ifndef SIMMOB_NEW_SIGNAL
     std::vector<Signal*>& all_signals = Signal::all_signals_;
-#else
+
+#if 0
     sim_mob::Signal::All_Signals & all_signals = sim_mob::Signal::all_signals_;
 #endif
 
@@ -1956,13 +2000,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     {
     	Signal  * signal;
 //        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
-	#ifndef SIMMOB_NEW_SIGNAL
+#if 0
     	signal =  dynamic_cast<Signal  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
-	#else
+#else
     	signal =  dynamic_cast<Signal_SCATS  *>(all_signals[i]);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
-	#endif
+#endif
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
@@ -1986,30 +2030,64 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
+void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
 {
-	//Load our config file into an XML document object.
-	//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
-	TiXmlDocument* doc = new TiXmlDocument(configPath);
+	//We'll be switching over pretty cleanly, so just use a local variable here.
+	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
+	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
+	const bool LOAD_NEW_CONFIG_FILE = false;
 
-	if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
-	if (!doc->LoadFile()) {
-		std::cout <<"Error loading config file: " <<doc->ErrorDesc() <<std::endl;
-		delete doc;
-		return false;
-	}
-	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
-	//Parse it
-	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
-	delete doc;
+	if (LOAD_NEW_CONFIG_FILE) {
+		//Load using our new config syntax.
 
-	if (errorMsg.empty()) {
-		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;
+		//Load and parse the file, create xml-based objects.
+		Config cfg;
+		cfg.InitBuiltInModels(builtInModels);
+		if (!sim_mob::xml::InitAndLoadConfigXML("data/simrun_seth.xml", cfg)) {
+			throw std::runtime_error("New config XML loader failed.");
+		}
+
+		//Validate simple data elements
+		//This needs to be first, since it sets our mutex enforcement strategy.
+		Validate val(cfg);
+
+		//Load the Road Network
+		LoadNetwork loadN(cfg);
+
+		//Load the Agents
+		LoadAgents loadA(cfg, active_agents, pending_agents);
+
+		//Print the network.
+		PrintNetwork print(cfg);
+
+		//Finally, print general logging information to stdout
+		GeneralOutput out(cfg);
 	} else {
-		std::cout <<"Aborting on Config error: \n" <<errorMsg <<std::endl;
+		//Load using our old config syntax.
+
+		//Load our config file into an XML document object.
+		//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
+		TiXmlDocument* doc = new TiXmlDocument(configPath);
+
+		if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
+		if (!doc->LoadFile()) {
+			std::stringstream msg;
+			msg <<"Error loading config file: " <<doc->ErrorDesc();
+			throw std::runtime_error(msg.str().c_str());
+		}
+		if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
+
+		//Parse it
+		string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
+		if (!errorMsg.empty()) {
+			std::stringstream msg;
+			msg <<"Aborting on Config error: \n" <<errorMsg;
+			throw std::runtime_error(msg.str().c_str());
+		}
+
+		delete doc;
 	}
-	return errorMsg.empty();
 }
 
 

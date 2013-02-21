@@ -8,17 +8,18 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
-	#include "entities/signal/Signal.hpp"
-#else
-	#include "entities/Signal.hpp"
-#endif
+#include "entities/signal/Signal.hpp"
+
 
 namespace sim_mob
 {
 
 //Forward declarations
 class Lane;
+
+//Needed to prevent a declaration error.
+class NearestVehicle {};
+
 
 namespace medium
 {

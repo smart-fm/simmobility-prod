@@ -299,14 +299,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 			setParentBufferedData();
 		}
 	}
-	else if(vehicle)
-	{
-//		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
-		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p2.elapsedSeconds);
-//		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-//		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-//		std::cout << "\n\n\n";
-	}
 
 
 	//Update our Buffered types
@@ -705,106 +697,6 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 		else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-
-
-	//vahid begins
-//	find out the last trip that this driver has to finally take
-	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
-	std::vector<TripChainItem*>& tripchain = person->getTripChain();
-	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
-    Trip* trip_1; // pointer to current item in trip chain
-    while(tripChainItem_it != tripchain.end())
-    {
-    	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
-    	{
-    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
-    	}
-    	tripChainItem_it++;
-    }
-//    Node *lastSubTripEndingNode = 0;
-    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
-    Node * lastSubTripEndingNode = 0;
-    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
-    {
-    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
-    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
-    	nextNonTrip_it ++;
-    }
-    //now find the last sub trip within that trip
-//    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
-    if(lastSubTripEndingNode) {
-    	//std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
-	} else {
-    	if((*(tripchain.begin()))->personID == 3)
-    	{
-    		std::cout << " there is no lastSubTripEndingNode\n";
-    	}
-	}
-    if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
-	{
-    	//std::cout << "1-  We are in business\n";
-    	if (p.dis2stop >=0 &&  p.dis2stop <= 100) {//is approaching the park point?
-        	//std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
-    		//Retrieve a new acceleration value.
-    		double acc = 0;
-    		//Convert back to m/s
-    		//TODO: Is this always m/s? We should rename the variable then...
-    		p.currSpeed = vehicle->getVelocity() / 100;
-    		//std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
-    		//Call our model
-    		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
-    		//move to most left lane
-//    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
-//    		std::vector<sim_mob::Lane*>::iterator it = vehicle->getCurrSegment()->getLanes().begin();
-////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
-//    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
-    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
-    		//std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
-
-			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-    		LANE_CHANGE_SIDE lcs = LCS_LEFT;//mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-    		//std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
-    		vehicle->setTurningDirection(lcs);
-    		//std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
-    		double newLatVel;
-    		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
-    		vehicle->setLatVelocity(newLatVel*20);
-
-//    		// reduce speed
-    		if (vehicle->getVelocity() / 100.0 > 2.0)
-    		{
-    			//std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
-    			if (acc<-5000.0)
-    			{
-    				vehicle->setAcceleration(acc);
-    			} else
-    				vehicle->setAcceleration(-5000);
-    			//std::cout << "  to " << vehicle->getAcceleration() << "\n";
-    		}
-
-//    		vehicle->getParkState().setElapsedParkingTime(0);
-    	}
-
-    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!vehicle->getParkState().isparkingTimeOver())) {
-        	//std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
-        	//std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
-        	//std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
-        	//std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
-        	//std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
-
-    		if (vehicle->getVelocity() > 0)
-    			vehicle->setAcceleration(-5000);
-    		//std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
-    		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
-//    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-//    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-//    		std::cout << "\n\n\n";
-    		}
-//    	}
-	}
-
-    //....end of vahid
-
 
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane

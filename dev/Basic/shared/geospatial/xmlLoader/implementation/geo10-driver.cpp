@@ -21,7 +21,7 @@ namespace {
  *     1) If "resultNetwork" is non-null and "resultTripChains" is non-null, attempt to load an entire "SimMobility" spec.
  *     2) If "resultNetwork" is null, and "resultTripChains" is non-null, attempt to load just the "TripChains" section.
  */
-bool init_and_load_internal(const std::string& fileName, const std::string& rootNode, sim_mob::RoadNetwork* resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
+bool init_and_load_internal(const std::string& fileName, const std::string& rootNode, sim_mob::RoadNetwork* resultNetwork, std::map<std::string, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
 {
 	//Attempt to load
 	try {
@@ -435,12 +435,12 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 } //End unnamed namespace
 
 
-bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
 	return init_and_load_internal(fileName, "SimMobility", &resultNetwork, &resultTripChains);
 }
 
-bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, const std::string& rootNode, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, const std::string& rootNode, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
 	return init_and_load_internal(fileName, rootNode, nullptr, &resultTripChains);
 }

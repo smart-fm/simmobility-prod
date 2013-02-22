@@ -74,16 +74,16 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 }  //End unnamed namespace
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) : Agent(mtxStrat, id),
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
-    databaseID(""), debugMsgs(std::stringstream::out)
+    databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat, tcs.front()->personID), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	prevRole = 0;
 	currRole = 0;
@@ -514,4 +514,3 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
-

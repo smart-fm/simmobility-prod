@@ -139,22 +139,11 @@ void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgent
 
 
 namespace {
-void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, MutexStrategy mtxStrat, const std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tripChains) {
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, MutexStrategy mtxStrat, const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tripChains) {
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 
 	//Create one person per trip-chain, as required.
 	for (TripChainList::const_iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
-		TripChainItem* tc = it->second.front();
-
-		//Perform some amount of validation.
-		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
-		//      the value of "-1" could have been lost in the conversion. This should catch basic
-		//      usages; perhaps we might want to switch "0" to mean "auto id"?
-		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
-		if (id != -1) {
-			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
-		}
-
 		//Create the person; the constructor *should* handle the rest.
 		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", mtxStrat, it->second);
 		res.push_back(ag);
@@ -173,7 +162,7 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 	if (it->second.dbFormat!="aimsun") { throw std::runtime_error("DatabaseAgentLoader error: only the aimsun format supported (for now)."); }
 
 	//Load using the same code found in our NetworkLoader.
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
 
 	//Now use the same code for Db and Xml trip-chains.
@@ -185,7 +174,7 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
 {
 	//Create an output parameter.
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains;
 
 	//Use code similar to our XML loading code to retrieve our TripChains.

@@ -103,7 +103,7 @@ public:
 	//NOTE: Some of these are handled automatically under SaveSimMobilityNetwork, but should really be separated out.
 	//      I've migrated saveTripChains into its own function in order to help with this.
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs);
-	void saveTripChains(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
+	void saveTripChains(std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 
 	map<int, Section> const & sections() const { return sections_; }
@@ -1069,7 +1069,7 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
 
-void DatabaseLoader::saveTripChains(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
+void DatabaseLoader::saveTripChains(std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	sim_mob::Trip* tripToSave = nullptr;
 	for (vector<TripChainItem>::const_iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
@@ -1186,33 +1186,12 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	//Save all trip chains
 	saveTripChains(tcs);
 
-<<<<<<< HEAD
-
-			//Are we "done" with this trip? The only way to continue is if there is a trip with the same
-			//  trip ID immediately following this.
-			if (tripToSave) {
-				bool done = true;
-				vector<TripChainItem>::const_iterator next = it+1;
-				if (next!=tripchains_.end()
-						&& next->itemType==sim_mob::TripChainItem::IT_TRIP
-						&& next->tripID.compare(tripToSave->tripID) == 0) {
-					done = false;
-				}
-
-				//If done, save it.
-				if (done) {
-					tcs[it->personID].push_back(tripToSave);
-					tripToSave = nullptr;
-				}
-			}
-=======
 	//Save all bus stops
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
 		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
 		if(findPtr == sections_.end())
 		{
 			continue;
->>>>>>> master
 		}
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
@@ -1952,13 +1931,13 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 }
 
 
-std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(const string& connectionStr, const map<string, string>& storedProcs)
+std::map<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(const string& connectionStr, const map<string, string>& storedProcs)
 {
 	std::cout << "Attempting to connect to database (TripChains)" << std::endl;
 	DatabaseLoader loader(connectionStr);
 	std::cout << ">Success." << std::endl;
 
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > res;
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> > res;
 	loader.LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	loader.saveTripChains(res);
 	return res;

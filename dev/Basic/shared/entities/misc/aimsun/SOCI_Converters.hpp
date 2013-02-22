@@ -27,7 +27,6 @@ template<> struct type_conversion<TripChainItem>
     	res.personID = vals.get<std::string>("entityid","");
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
-    	std::cout << "Person id " << res.personID << "   trip_chain_item_type : " << vals.get<std::string>("trip_chain_item_type","") << std::endl;
     	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<std::string>("trip_id", "");
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);

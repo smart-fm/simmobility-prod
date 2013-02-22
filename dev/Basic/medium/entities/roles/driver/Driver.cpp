@@ -91,7 +91,6 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 
 void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 {
-	std::cout << "Driver::frame_init -0\n";
 	//Save the path from orign to next activity location in allRoadSegments
 	if (!currResource) {
 		Vehicle* veh = initializePath(true);
@@ -299,8 +298,8 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p)
 		//vehicle is done
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 		if (vehicle->isDone()) {
-				parent->setToBeRemoved();
-			}
+			parent->setToBeRemoved();
+		}
 		return false;
 	}
 

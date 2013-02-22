@@ -8,6 +8,13 @@ from lxml import etree
 # flipping the network for driving on the left).
 
 #Simple classes. IDs are always strings
+class Node:
+  def __init__(self, nodeId, xPos, yPos):
+    if not (nodeId and xPos and yPos):
+      raise Exception('Null parameters in Node constructor')
+    self.nodeId = str(nodeId)
+    self.pos = Point(float(xPos), float(yPos))
+
 class Edge:
   def __init__(self, edgeId, fromNode, toNode):
     if not (edgeId and fromNode and toNode):
@@ -64,11 +71,42 @@ def parse_edge(e, edges, lanes):
       lanes[newLane.laneId] = newLane
 
 
+def parse_junctions(j, nodes):
+    #Add a new Node
+    res = Node(j.get('id'), j.get('x'), j.get('y'))
+    nodes[res.nodeId] = res
+
+
+def check_and_flip(nodes, edges, lanes):
+  #Save the maximum X co-ordinate
+  maxX = None
+
+  #Iteraet through Edges; check node IDs
+  for e in edges.values():
+    if not (nodes.has_key(e.fromNode) and nodes.has_key(e.toNode)):
+      raise Exception('Edge references unknown Node ID')
+
+  #Iterate through Nodes, Lanes (Shapes) and check all points here too.
+  for n in nodes.values():
+    maxX = max((maxX if maxX else n.pos.x),n.pos.x)
+  for l in lanes.values():
+    for p in l.shape.points:
+      maxX = max((maxX if maxX else p.x),p.x)
+
+  #Now invert all x co-ordinates
+  for n in nodes.values():
+    n.pos.x = (maxX - n.pos.x)
+  for l in lanes.values():
+    for p in l.shape.points:
+      p.x = (maxX - p.x)
+
+
 
 def run_main(inFile):
   #Result containers
   edges = {}
   lanes = {}
+  nodes = {}
 
   #Load, parse
   inFile = open(inFile)
@@ -78,6 +116,14 @@ def run_main(inFile):
   edgeTags = doc.xpath("/net/edge[(@from)and(@to)]")
   for e in edgeTags:
     parse_edge(e, edges, lanes)
+
+  #For each junction
+  junctTags = doc.xpath('/net/junction')
+  for j in junctTags:
+    parse_junctions(j, nodes)
+
+  #Check network properties; flip X coordinates
+  check_and_flip(nodes, edges, lanes)
 
 
 

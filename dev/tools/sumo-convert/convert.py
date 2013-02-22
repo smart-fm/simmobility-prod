@@ -102,6 +102,52 @@ def check_and_flip(nodes, edges, lanes):
 
 
 
+def print_old_format(nodes, edges, lanes):
+  #We need integer-style IDs for sim mobility
+  node_ids = {}
+  link_ids = {}
+  segment_ids = {}
+  currLaneId = 1
+
+  #Open, start writing
+  f = open('out.txt', 'w')
+  f.write('("simulation", 0, 0, {"frame-time-ms":"100",})\n')
+
+  #Nodes
+  for n in nodes.values():
+    node_ids[n.nodeId] = len(node_ids)+1
+    f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (node_ids[n.nodeId], n.pos.x*100, n.pos.y*100))
+
+  #Links (every Edge represents a Link in this case)
+  for e in edges.values():
+    link_ids[e.edgeId] = len(link_ids)+1
+    segment_ids[e.edgeId] = len(segment_ids)+1
+    fromId = node_ids[nodes[e.fromNode].nodeId]
+    toId = node_ids[nodes[e.toNode].nodeId]
+    f.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[%d]",})\n' % (link_ids[e.edgeId], fromId, toId, segment_ids[e.edgeId]))
+    f.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (segment_ids[e.edgeId], link_ids[e.edgeId], (250*len(e.lanes)), len(e.lanes), fromId, toId))
+
+    #Lanes are somewhat more messy
+    f.write('("lane", 0, %d, {"parent-segment":"%d",' % (currLaneId, segment_ids[e.edgeId]))
+    currLaneId+=1
+
+    #Each lane component
+    i = 0
+    for l in e.lanes:
+      f.write('"lane-%d":"[' % (i))
+      for p in l.shape.points:
+        f.write('(%d,%d),' % (p.x, p.y))
+      f.write(']"')
+      i+=1
+
+    #And finally
+    f.write('",})\n')
+
+  #Done
+  f.close()
+
+
+
 def run_main(inFile):
   #Result containers
   edges = {}
@@ -124,6 +170,10 @@ def run_main(inFile):
 
   #Check network properties; flip X coordinates
   check_and_flip(nodes, edges, lanes)
+
+  #Before printing the XML network, we should print an "out.txt" file for 
+  #  easier visual verification with our old GUI.
+  print_old_format(nodes, edges, lanes)
 
 
 

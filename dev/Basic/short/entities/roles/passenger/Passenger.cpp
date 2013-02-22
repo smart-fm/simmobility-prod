@@ -171,31 +171,7 @@ Point2D sim_mob::Passenger::getDestPosition()
 	return Point2D((DestBusStop->xPos),(DestBusStop->yPos));
 }
 
-bool sim_mob::Passenger::PassengerBoardBus_Normal(BusDriver* busdriver,std::vector<const BusStop*> busStops)
-{
-   int busstop_sequence_no=busdriver->busstop_sequence_no.get()+1;
-	//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
-	for(int k=busstop_sequence_no;k < busStops.size();k++) {
-		  Point2D busStop_Pos(busStops[k]->xPos,busStops[k]->yPos);
-	 	  if((abs((busStop_Pos.getX() - getDestPosition().getX())/100)<= 3) and (abs((busStop_Pos.getY() - getDestPosition().getY())/100)<= 3))
-	 	  {
-	 		 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
-	           {
-	        	   Person* p=dynamic_cast<Person*>(this->getParent());
-	        	   //if passenger is to be boarded,add to passenger vector inside the bus
-	        	   bus->passengers_inside_bus.push_back(p);
-	        	   bus->setPassengerCount(bus->getPassengerCount()+1);
-	        	   this->busdriver.set(busdriver);//passenger should store the bus driver
-	        	   BoardedBus.set(true);//to indicate passenger has boarded bus
-	        	   AlightedBus.set(false);//to indicate whether passenger has alighted bus
-	        	   findWaitingTime(bus);
-	        	   return true;
-	           }
-	 	  }
-	 }
-	 return false;
-}
+
 
 bool sim_mob::Passenger::PassengerAlightBus(BusDriver* busdriver)
 {
@@ -324,6 +300,8 @@ bool sim_mob::Passenger::PassengerBoardBus_Choice(BusDriver* busdriver)
  		if(BuslinesToTake[i]->getBusLineID()==bus->getBusLineID())//boards if approaching busline of approaching busline
  		//is in the pre-decided busline list
  		{
+ 		  if(bus->getPassengerCount()+1<=bus->getBusCapacity())
+ 		 {
  			Person* p=dynamic_cast<Person*>(this->getParent());
  			bus->passengers_inside_bus.push_back(p);
  			bus->setPassengerCount(bus->getPassengerCount()+1);
@@ -333,6 +311,7 @@ bool sim_mob::Passenger::PassengerBoardBus_Choice(BusDriver* busdriver)
  	        findWaitingTime(bus);
  	        BuslinesToTake.clear();
  			return true;
+ 		 }
  		}
  	}
  	return false;
@@ -350,13 +329,22 @@ void sim_mob::Passenger::FindBusLines() //find bus lines there and decide which 
 		  choose the busline with the shortest path*/
 
 		  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
+
+		  //busstops has the info about the list of bus stops a particular bus line goes to
 		  std::vector<const::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
+
 		  std::vector<const::BusStop*>::iterator it;
 		  int noOfBusstops=0;
+
+		  //queries through list of bus stops of bus line starting from current bus stop to end bus stop
+		  //this is to see if the particular bus line has the destination bus stop of passenger
+		  //if yes and if its shortest available route, the bus line is added to the list of bus lines passenger is supposed to take
 		  for(it=++std::find(busstops.begin(),busstops.end(),OriginBusStop);it!=busstops.end();it++)
 		  {
    			  BusStop* bs=const_cast<BusStop*>(*it);
-			  if(bs==DestBusStop)//add this line to the list,if its shortest
+
+   			  //checking if the bus stop is the destination bus stop of passenger
+			  if(bs==DestBusStop)//add this bus line to the list,if it is the shortest
 			  {
 				  if(prev==0 || prev> noOfBusstops)
 				  {
@@ -366,7 +354,7 @@ void sim_mob::Passenger::FindBusLines() //find bus lines there and decide which 
 				  }
 				  else if(prev==noOfBusstops)
 				  {
-					  BuslinesToTake.push_back(buslines[i]);
+					  BuslinesToTake.push_back(buslines[i]);//update the list of bus lines passenger is supposed to take
 					  prev=noOfBusstops;
 				  }
 			  }
@@ -379,3 +367,28 @@ std::vector<Busline*> sim_mob::Passenger::ReturnBusLines()
 {
 	 return BuslinesToTake;
 }
+/*bool sim_mob::Passenger::PassengerBoardBus_Normal(BusDriver* busdriver,std::vector<const BusStop*> busStops)
+{
+   int busstop_sequence_no=busdriver->busstop_sequence_no.get()+1;
+	//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
+	for(int k=busstop_sequence_no;k < busStops.size();k++) {
+		  Point2D busStop_Pos(busStops[k]->xPos,busStops[k]->yPos);
+	 	  if((abs((busStop_Pos.getX() - getDestPosition().getX())/100)<= 3) and (abs((busStop_Pos.getY() - getDestPosition().getY())/100)<= 3))
+	 	  {
+	 		 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
+	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
+	           {
+	        	   Person* p=dynamic_cast<Person*>(this->getParent());
+	        	   //if passenger is to be boarded,add to passenger vector inside the bus
+	        	   bus->passengers_inside_bus.push_back(p);
+	        	   bus->setPassengerCount(bus->getPassengerCount()+1);
+	        	   this->busdriver.set(busdriver);//passenger should store the bus driver
+	        	   BoardedBus.set(true);//to indicate passenger has boarded bus
+	        	   AlightedBus.set(false);//to indicate whether passenger has alighted bus
+	        	   findWaitingTime(bus);
+	        	   return true;
+	           }
+	 	  }
+	 }
+	 return false;
+}*/

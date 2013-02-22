@@ -343,9 +343,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				no_passengers_boarding=0;
 				bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
 				AlightingPassengers(bus);//first alight passengers inside the bus
-
-				//BoardingPassengers_Choice(bus);//then board passengers waiting at the bus stop
-				BoardingPassengers_Normal(bus);
+				BoardingPassengers_Choice(bus);//then board passengers waiting at the bus stop
+				//BoardingPassengers_Normal(bus);
 				dwellTime_record = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 
 				//Back to both branches:
@@ -747,7 +746,31 @@ void sim_mob::BusDriver::AlightingPassengers(Bus* bus)//for alighting passengers
 	}
 }
 
-void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
+
+void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
+ {
+ 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((lastVisited_BusStop.get()->xPos - 3500),(lastVisited_BusStop.get()->yPos - 3500)),Point2D((lastVisited_BusStop.get()->xPos + 3500),(lastVisited_BusStop.get()->yPos + 3500))); //  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
+ 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+ 	{
+ 		//Retrieve only Passenger agents.
+ 		const Person* person = dynamic_cast<const Person *>(*it);
+ 		Person* p = const_cast<Person *>(person);
+ 		Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+ 		if (!passenger)
+ 		  continue;
+ 		if ((abs((passenger->getXYPosition().getX())- (xpos_approachingbusstop)) <= 2)and (abs((passenger->getXYPosition().getY() / 1000)- (ypos_approachingbusstop / 1000)) <= 2))
+ 		 {
+ 	       if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
+ 			{
+ 	    	   if(passenger->PassengerBoardBus_Choice(this)==true)
+ 	    		  no_passengers_boarding++;
+ 			}
+
+ 		}
+ 	}
+ }
+
+/*void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
 {
 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
 			Point2D((lastVisited_BusStop.get()->xPos - 3500),
@@ -773,31 +796,7 @@ void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
 
 		}
 	}
-}
-void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
- {
- 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((lastVisited_BusStop.get()->xPos - 3500),(lastVisited_BusStop.get()->yPos - 3500)),Point2D((lastVisited_BusStop.get()->xPos + 3500),(lastVisited_BusStop.get()->yPos + 3500))); //  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
- 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
- 	{
- 		//Retrieve only Passenger agents.
- 		const Person* person = dynamic_cast<const Person *>(*it);
- 		Person* p = const_cast<Person *>(person);
- 		Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
- 		if (!passenger)
- 		  continue;
- 		if ((abs((passenger->getXYPosition().getX())- (xpos_approachingbusstop)) <= 2)and (abs((passenger->getXYPosition().getY() / 1000)- (ypos_approachingbusstop / 1000)) <= 2))
- 		 {
- 	       if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
- 			{
- 	    	   if(passenger->PassengerBoardBus_Choice(this)==true)
- 	    		  no_passengers_boarding++;
- 			}
-
- 		}
- 	}
- }
-
-
+}*/
 /*double sim_mob::BusDriver::passengerGeneration(Bus* bus)//random passenger distribution(not used now)
 {
 	double DTijk = 0.0;

@@ -363,7 +363,7 @@ def write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids
     look_lc = {} #fromSegID => [LaneConnector]
     if (n.nodeId in lookup):
       for lc in turnings:
-        if (lc.fromSegId in lookup[n.nodeId]) and (lc.toSegId in lookup[n.nodeId]):
+        if (edges[lc.fromSegId] in lookup[n.nodeId]) and (edges[lc.toSegId] in lookup[n.nodeId]):
           if not (lc.fromSegId in look_lc):
             look_lc[lc.fromSegId] = []
           look_lc[lc.fromSegId].append(lc)
@@ -386,12 +386,16 @@ def write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids
 
 
 def write_xml_nodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
+  #Write Nodes
   f.write('      <Nodes>\n')
   f.write('        <UniNodes/>\n')
   f.write('        <Intersections>\n')
   write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
   f.write('        </Intersections>\n')
   f.write('      </Nodes>\n')
+
+  #Write Links
+  #TODO
 
 
 def print_xml_format(nodes, edges, lanes, turnings):

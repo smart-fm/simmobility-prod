@@ -471,11 +471,6 @@ public class RoadNetwork {
 	    		
 	    	int endMiddleX = (lineMarkingPositions.get(i).get(2) + lineMarkingPositions.get(j).get(2))/2;
 	    	int endMiddleY = (lineMarkingPositions.get(i).get(3) + lineMarkingPositions.get(j).get(3))/2;
-	    	
-    		/*System.out.println("Adding Lane from: (" + 
-    			startMiddleX + "," + startMiddleY + "), to: (" +
-				endMiddleX + "," + endMiddleY + ")"
-			);*/
 	    		
 	    	Lane tempLane = new Lane(i,new Node(startMiddleX, startMiddleY,true, null),new Node(endMiddleX,endMiddleY,false,null));	    		
 	    	
@@ -487,10 +482,6 @@ public class RoadNetwork {
 	    	segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
-	    
-	    //System.out.println(parentKey + " : " + tempLaneTable.size() + " lanes");
-	    //System.out.println("  " + pRes.objID + " : " + tempLineTable.size() + " lines");
-	    
 	    
 	    //Create a new Lane, save it
 	    linaMarkings.put(pRes.objID, tempLineTable);

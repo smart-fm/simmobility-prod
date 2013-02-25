@@ -77,7 +77,7 @@ def parse_junctions(j, nodes):
     nodes[res.nodeId] = res
 
 
-def check_and_flip(nodes, edges, lanes):
+def check_and_flip_and_scale(nodes, edges, lanes):
   #Save the maximum X co-ordinate
   maxX = None
 
@@ -93,12 +93,14 @@ def check_and_flip(nodes, edges, lanes):
     for p in l.shape.points:
       maxX = max((maxX if maxX else p.x),p.x)
 
-  #Now invert all x co-ordinates
+  #Now invert all x co-ordinates, and scale by 100 (to cm)
   for n in nodes.values():
-    n.pos.x = (maxX - n.pos.x)
+    n.pos.x = (maxX - n.pos.x) * 100
+    n.pos.y *= 100
   for l in lanes.values():
     for p in l.shape.points:
-      p.x = (maxX - p.x)
+      p.x = (maxX - p.x) * 100
+      p.y *= 100
 
 
 
@@ -116,7 +118,7 @@ def print_old_format(nodes, edges, lanes):
   #Nodes
   for n in nodes.values():
     node_ids[n.nodeId] = len(node_ids)+1
-    f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (node_ids[n.nodeId], n.pos.x*100, n.pos.y*100))
+    f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (node_ids[n.nodeId], n.pos.x, n.pos.y))
 
   #Links (every Edge represents a Link in this case)
   for e in edges.values():
@@ -172,7 +174,7 @@ def run_main(inFile):
     parse_junctions(j, nodes)
 
   #Check network properties; flip X coordinates
-  check_and_flip(nodes, edges, lanes)
+  check_and_flip_and_scale(nodes, edges, lanes)
 
   #Before printing the XML network, we should print an "out.txt" file for 
   #  easier visual verification with our old GUI.

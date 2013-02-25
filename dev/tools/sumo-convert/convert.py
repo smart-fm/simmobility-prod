@@ -6,6 +6,8 @@ from lxml import etree
 
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
+#Note: Run SUMO like so:
+#   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
 
 #Simple classes. IDs are always strings
 class Node:
@@ -139,7 +141,8 @@ def print_old_format(nodes, edges, lanes):
       f.write('"lane-%d":"[' % (i))
 
       #Lane lines also contain the start/end Node
-      all_points = [nodes[e.fromNode].pos] + l.shape.points + [nodes[e.toNode].pos]
+      #all_points = [nodes[e.fromNode].pos] + l.shape.points + [nodes[e.toNode].pos]
+      all_points = l.shape.points    #(no they don't)
       for p in all_points:
         f.write('(%d,%d),' % (p.x, p.y))
       f.write(']",')

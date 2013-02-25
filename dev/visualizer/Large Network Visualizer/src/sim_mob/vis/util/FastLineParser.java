@@ -122,12 +122,14 @@ public class FastLineParser {
 		if (currPos<endPos && endPos>=1) {
 			return;
 		}
-		res.errorMsg = "Index out of bounds parsing log line [" + currPos + "," + endPos + "] => " + line.charAt(currPos); 
+		//res.errorMsg = 
+		throw new RuntimeException("Index out of bounds parsing log line [" + currPos + "," + endPos + "]  => \"" + line + "\"");
+		
 	}
 	
 	private char advance(Utility.ParseResults res) {
 		checkIndices(res);
-		return line.charAt(currPos++);
+		return res.isError() ? '\0' : line.charAt(currPos++);
 	}
 	
 	private void undo() {
@@ -164,6 +166,7 @@ public class FastLineParser {
 		StringBuffer sb = new StringBuffer();
 		if (quoteChar=='"' || quoteChar=='\'') {
 			while ((currChar=advance(res))!=quoteChar) {
+				if (res.isError()) { break; }
 				sb.append(currChar);
 			}
 		} else {

@@ -137,11 +137,11 @@ def print_old_format(nodes, edges, lanes):
       f.write('"lane-%d":"[' % (i))
       for p in l.shape.points:
         f.write('(%d,%d),' % (p.x, p.y))
-      f.write(']"')
+      f.write(']",')
       i+=1
 
     #And finally
-    f.write('",})\n')
+    f.write('})\n')
 
   #Done
   f.close()

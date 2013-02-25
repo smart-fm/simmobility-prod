@@ -136,6 +136,18 @@ def parse_junctions(j, nodes):
     nodes[res.nodeId] = res
 
 
+def remove_unused_nodes(nodes, edges):
+  #Just rebuild the hash using the edges as a guide
+  res_nodes = {}
+  for e in edges.values():
+    res_nodes[e.fromNode] = nodes[e.fromNode]
+    res_nodes[e.toNode] = nodes[e.toNode]
+
+  #Now flip it
+  nodes.clear()
+  nodes.update(res_nodes)
+
+
 def check_and_flip_and_scale(nodes, edges, lanes):
   #Save the maximum X co-ordinate
   maxX = None
@@ -294,6 +306,12 @@ def run_main(inFile):
   for j in junctTags:
     parse_junctions(j, nodes)
 
+  #Remove junction nodes which aren't referenced by anything else.
+  nodesPruned = len(nodes)
+  remove_unused_nodes(nodes, edges)
+  nodesPruned -= len(nodes)
+  print("Pruned unreferenced nodes: %d" % nodesPruned)
+
   #Check network properties; flip X coordinates
   check_and_flip_and_scale(nodes, edges, lanes)
 
@@ -305,13 +323,13 @@ def run_main(inFile):
   print_old_format(nodes, edges, lanes)
 
 
-
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print ('Usage:\n' , sys.argv[0] , '<in_file.net.xml>')
     sys.exit(0)
 
   run_main(sys.argv[1])
+  print("Done")
 
 
 

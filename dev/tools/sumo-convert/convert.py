@@ -29,6 +29,14 @@ class Edge:
     self.lanes = []
     self.lane_edges = []
 
+#Note that "from/toLaneId" are zero-numbered, not actual lane IDs
+class LaneConnector:
+  def __init__(self, fromSegId, toSegId, fromLaneId, toLaneId):
+    self.fromSegId = fromSegId
+    self.toSegId = toSegId
+    self.fromLaneId = fromLaneId
+    self.toLaneId = toLaneId
+
 class Lane:
   def __init__(self, laneId, shape):
     if not (laneId and shape):
@@ -148,6 +156,38 @@ def remove_unused_nodes(nodes, edges):
   nodes.update(res_nodes)
 
 
+class InOut:
+  def __init__(self):
+    self.incoming = []
+    self.outgoing = []
+
+def make_lane_connectors(nodes, edges, turnings):
+  #First, make a list of all "incoming" and "outgoing" edges at a given node
+  lookup = {}  #nodeId => InOut
+  for e in edges.values():
+    #Give it an entry
+    if not (e.fromNode in lookup):
+      lookup[e.fromNode] = InOut()
+    if not (e.toNode in lookup):
+      lookup[e.toNode] = InOut()
+
+    #Append
+    lookup[e.toNode].incoming.append(e)
+    lookup[e.fromNode].outgoing.append(e)
+
+  #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
+  for n in nodes.values():
+    for fromEdge in lookup[n.nodeId].incoming:
+      for toEdge in lookup[n.nodeId].outgoing:
+        if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
+          continue
+
+        #The looping gets even deeper!
+        for fromLaneID in range(len(fromEdge.lanes)):
+          for toLaneID in range(len(toEdge.lanes)):
+            turnings.append(LaneConnector(fromEdge.edgeId, toEdge.edgeId, fromLaneID, toLaneID))
+
+
 def check_and_flip_and_scale(nodes, edges, lanes):
   #Save the maximum X co-ordinate
   maxX = None
@@ -238,7 +278,7 @@ def make_lane_edges(nodes, edges, lanes):
 
 
 
-def print_old_format(nodes, edges, lanes):
+def print_old_format(nodes, edges, lanes, turnings):
   #We need integer-style IDs for sim mobility
   node_ids = {}
   link_ids = {}
@@ -281,6 +321,12 @@ def print_old_format(nodes, edges, lanes):
     #And finally
     f.write('})\n')
 
+  #Write all Lane Connectors
+  currLC_id = 1
+  for lc in turnings:
+    f.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, segment_ids[lc.fromSegId], lc.fromLaneId, segment_ids[lc.toSegId], lc.toLaneId))
+    currLC_id += 1
+
   #Done
   f.close()
 
@@ -291,6 +337,7 @@ def run_main(inFile):
   edges = {}
   lanes = {}
   nodes = {}
+  turnings = []
 
   #Load, parse
   inFile = open(inFile)
@@ -318,9 +365,13 @@ def run_main(inFile):
   #Create N+1 lane edges from N lanes
   make_lane_edges(nodes, edges, lanes)
 
+  #Create lane connectors from/to every lane *except* going backwards. This is an 
+  # oversimplification, but it applies to all generated SUMO networks.
+  make_lane_connectors(nodes, edges, turnings)
+
   #Before printing the XML network, we should print an "out.txt" file for 
   #  easier visual verification with our old GUI.
-  print_old_format(nodes, edges, lanes)
+  print_old_format(nodes, edges, lanes, turnings)
 
 
 if __name__ == "__main__":

@@ -43,8 +43,8 @@ class LaneEdge:
 #A basic vector (in the geometrical sense)
 class DynVect:
   def __init__(self, start, end):
-    self.pos = start
-    self.mag = Point(end.x-start.x, end.y-start.y)
+    self.pos = Point(float(start.x), float(start.y))
+    self.mag = Point(float(end.x-start.x), float(end.y-start.y))
 
   def getPos(self):
     return self.pos
@@ -203,7 +203,6 @@ def make_lane_edges(nodes, edges, lanes):
     #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
     zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
     if not mostly_parallel(segLine, zeroLine):
-      print (zeroLine , " => " , segLine)
       raise Exception("Can't convert; lines are not parallel")
 
     #Now that we know the lines are parallel, get the distance between them. This should be half the lane width

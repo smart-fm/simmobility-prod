@@ -385,7 +385,6 @@ public class RoadNetwork {
 	}
 	
 	private void parseLineMarking(Utility.ParseResults pRes) throws IOException {
-	    
 	    //Check and parse properties. for lanes, it checks only parent-segment only as the number of lanes is not fixed
 		if (!pRes.confirmProps(new String[]{"parent-segment"})) {
 			throw new IOException("Missing required key in type: " + pRes.type);
@@ -488,6 +487,9 @@ public class RoadNetwork {
 	    	segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
+	    
+	    //System.out.println(parentKey + " : " + tempLaneTable.size() + " lanes");
+	    //System.out.println("  " + pRes.objID + " : " + tempLineTable.size() + " lines");
 	    
 	    
 	    //Create a new Lane, save it

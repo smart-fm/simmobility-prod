@@ -31,11 +31,13 @@ class Edge:
 
 #Note that "from/toLaneId" are zero-numbered, not actual lane IDs
 class LaneConnector:
-  def __init__(self, fromSegId, toSegId, fromLaneId, toLaneId):
+  def __init__(self, fromSegId, toSegId, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
     self.fromSegId = fromSegId
     self.toSegId = toSegId
     self.fromLaneId = fromLaneId
     self.toLaneId = toLaneId
+    self.laneFromOrigId = laneFromOrigId
+    self.laneToOrigId = laneToOrigId
 
 class Lane:
   def __init__(self, laneId, shape):
@@ -185,7 +187,7 @@ def make_lane_connectors(nodes, edges, turnings):
         #The looping gets even deeper!
         for fromLaneID in range(len(fromEdge.lanes)):
           for toLaneID in range(len(toEdge.lanes)):
-            turnings.append(LaneConnector(fromEdge.edgeId, toEdge.edgeId, fromLaneID, toLaneID))
+            turnings.append(LaneConnector(fromEdge.edgeId, toEdge.edgeId, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
 def check_and_flip_and_scale(nodes, edges, lanes):
@@ -331,6 +333,100 @@ def print_old_format(nodes, edges, lanes, turnings):
   f.close()
 
 
+def write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
+  #Build a lookup of "edges at nodes"
+  lookup = {} #nodeID => [edgeIDs]
+  for e in edges.values():
+    if not (e.fromNode in lookup):
+      lookup[e.fromNode] = []
+    if not (e.toNode in lookup):
+      lookup[e.toNode] = []
+    lookup[e.fromNode].append(e)
+    lookup[e.toNode].append(e)
+
+  #Now write it.
+  for n in nodes.values():
+    f.write('          <Intersection>\n')
+    f.write('            <nodeID>%d</nodeID>\n' % node_ids[n.nodeId])
+    f.write('            <location>\n')
+    f.write('              <xPos>%d</xPos>\n' % n.pos.x)
+    f.write('              <yPos>%d</yPos>\n' % n.pos.y)
+    f.write('            </location>\n')
+
+    f.write('            <roadSegmentsAt>\n')
+    if (n.nodeId in lookup):
+      for lk in lookup[n.nodeId]:
+        f.write('              <segmentID>%d</segmentID>\n' % edge_ids[lk.edgeId])
+    f.write('            </roadSegmentsAt>\n')
+
+    #Wee need another lookup; this one for lane connectors
+    look_lc = {} #fromSegID => [LaneConnector]
+    if (n.nodeId in lookup):
+      for lc in turnings:
+        if (lc.fromSegId in lookup[n.nodeId]) and (lc.toSegId in lookup[n.nodeId]):
+          if not (lc.fromSegId in look_lc):
+            look_lc[lc.fromSegId] = []
+          look_lc[lc.fromSegId].append(lc)
+
+    #Write connectors
+    f.write('            <Connectors>\n')
+    for rsId in look_lc.keys():
+      f.write('              <MultiConnectors>\n')
+      f.write('                <RoadSegment>%d</RoadSegment>\n' % edge_ids[rsId])
+      f.write('                <Connectors>\n')
+      for lc in look_lc[rsId]:
+        f.write('                  <Connector>\n')
+        f.write('                    <laneFrom>%d</laneFrom>\n' % lane_ids[lc.laneFromOrigId])
+        f.write('                    <laneTo>%d</laneTo>\n' % lane_ids[lc.laneToOrigId])
+        f.write('                  </Connector>\n')
+      f.write('              </MultiConnectors>\n')
+    f.write('            </Connectors>\n')
+
+    f.write('          </Intersection>\n')
+
+
+def write_xml_nodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
+  f.write('      <Nodes>\n')
+  f.write('        <UniNodes/>\n')
+  f.write('        <Intersections>\n')
+  write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
+  f.write('        </Intersections>\n')
+  f.write('      </Nodes>\n')
+
+
+def print_xml_format(nodes, edges, lanes, turnings):
+  #We need integer-style IDs for sim mobility
+  node_ids = {}
+  link_ids = {}
+  edge_ids = {}
+  lane_ids = {}
+
+  #Cache node and edge IDs
+  for n in nodes.values():
+    node_ids[n.nodeId] = len(node_ids)+1
+  for e in edges.values():
+    edge_ids[e.edgeId] = len(edge_ids)+1
+  for l in lanes.values():
+    lane_ids[l.laneId] = len(lane_ids)+1
+
+  #Open, start writing
+  f = open('simmob.network.xml', 'w')
+  f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
+  f.write('<geo:SimMobility\n')
+  f.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
+  f.write('    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \n')
+  f.write('    xsi:schemaLocation="http://www.smart.mit.edu/geo   ../shared/geospatial/xmlLoader/geo10.xsd">\n\n')
+
+  f.write('    <GeoSpatial>\n')
+  f.write('    <RoadNetwork>\n')
+  write_xml_nodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
+  f.write('    </RoadNetwork>\n')
+  f.write('    </GeoSpatial>\n')
+
+  #Done
+  f.close()
+
+
 
 def run_main(inFile):
   #Result containers
@@ -373,6 +469,9 @@ def run_main(inFile):
   #  easier visual verification with our old GUI.
   print_old_format(nodes, edges, lanes, turnings)
 
+  #Now print the network in XML format, for use with the actual software.
+  print_xml_format(nodes, edges, lanes, turnings)
+
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
@@ -381,7 +480,6 @@ if __name__ == "__main__":
 
   run_main(sys.argv[1])
   print("Done")
-
 
 
 

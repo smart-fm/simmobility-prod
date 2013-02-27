@@ -377,7 +377,42 @@ public:
 class signalTimingMode_t_pimpl: public virtual signalTimingMode_t_pskel, public ::xml_schema::string_pimpl {
 public:
 	virtual void pre ();
-	virtual void post_signalTimingMode_t ();
+	virtual int post_signalTimingMode_t ();
+};
+
+
+class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
+{
+	  std::map<sim_mob::Crossing *, sim_mob::Crossings> model;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>);
+
+  virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_maps_t ();
+};
+
+class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
+{
+	  sim_mob::Crossings model;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  linkID (unsigned int);
+
+  virtual void
+  crossingID (unsigned int);
+
+  virtual void
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
+
+  virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_map_t ();
 };
 
 class Plans_t_pimpl: public virtual Plans_t_pskel {
@@ -414,7 +449,7 @@ public:
 class Phases_t_pimpl: public virtual Phases_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Phases_t ();
+	virtual sim_mob::Signal::phases post_Phases_t ();
 
 	virtual void Phase ();
 };
@@ -422,7 +457,7 @@ public:
 class Signals_t_pimpl: public virtual Signals_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Signals_t ();
+	virtual std::vector<sim_mob::Signal*> post_Signals_t ();
 
 	virtual void signal (sim_mob::Signal*);
 };

@@ -7,7 +7,7 @@ void sim_mob::xml::Signals_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::Signals_t_pimpl::post_Signals_t ()
+std::vector<sim_mob::Signal*> sim_mob::xml::Signals_t_pimpl::post_Signals_t ()
 {
 }
 

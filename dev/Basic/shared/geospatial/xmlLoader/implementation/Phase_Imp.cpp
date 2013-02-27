@@ -7,7 +7,7 @@ void sim_mob::xml::Phase_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::Phase_t_pimpl::post_Phase_t ()
+sim_mob::Phase sim_mob::xml::Phase_t_pimpl::post_Phase_t ()
 {
 }
 

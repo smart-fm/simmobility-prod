@@ -576,7 +576,7 @@
   <xs:complexType name="ColorDuration_t">
     <xs:sequence>
       <xs:element name="TrafficColor" type="geo:TrafficColor_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="Duration" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Duration" type="xs:short" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 

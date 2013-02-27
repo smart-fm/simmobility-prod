@@ -339,25 +339,27 @@ public:
 class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel, public ::xml_schema::string_pimpl {
 public:
 	virtual void pre ();
-	virtual void post_TrafficColor_t ();
+	virtual sim_mob::TrafficColor post_TrafficColor_t ();
 };
 
 class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel {
+	std::pair<sim_mob::TrafficColor,short> model;
 public:
 	virtual void pre ();
-	virtual std::pair<sim_mob::TrafficColor,std::size_t> post_ColorDuration_t ();
+	virtual std::pair<sim_mob::TrafficColor,short> post_ColorDuration_t ();
 
-	virtual void TrafficColor ();
-	virtual void Duration (unsigned char);
+	virtual void TrafficColor (sim_mob::TrafficColor);
+	virtual void Duration (short);
 };
 
 
 class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel {
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > > model;
 public:
 	virtual void pre ();
-	virtual std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > > post_ColorSequence_t ();
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > > post_ColorSequence_t ();
 
-	virtual void TrafficLightType (const ::std::string&);
+	virtual void TrafficLightType (sim_mob::TrafficLightType);
 	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
 };
 
@@ -365,7 +367,7 @@ public:
 class Phase_t_pimpl: public virtual Phase_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Phase_t ();
+	virtual sim_mob::Phase post_Phase_t ();
 
 	virtual void phaseID (unsigned char);
 	virtual void name (const ::std::string&);
@@ -397,6 +399,19 @@ public:
 	virtual void signalTimingMode ();
 	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
 	virtual void SplitPlan (sim_mob::SplitPlan);
+};
+
+
+class SCATS_t_pimpl: public virtual SCATS_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::xml::helper::SCATS_Info  post_SCATS_t ();
+
+    void signalTimingMode (int);
+
+    void SplitPlan (sim_mob::SplitPlan);
+
+
 };
 
 class SimMobility_t_pimpl: public virtual SimMobility_t_pskel {

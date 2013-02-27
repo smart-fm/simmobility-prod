@@ -13,6 +13,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "entities/signal/SplitPlan.hpp"
 
 
 namespace sim_mob {
@@ -149,7 +150,6 @@ public:
 		throw std::runtime_error("No UniNodeSegmentPair exists in bookkeeper with the requested id.");
 	}
 
-
 private:
 	std::map<unsigned long, sim_mob::Node*> nodeLookup;
 	std::map<unsigned long, sim_mob::Lane*> laneLookup;
@@ -165,6 +165,11 @@ private:
 	std::map<sim_mob::UniNode*, SegPair> uniNodeSegmentPairCache;
 };
 
+struct SCATS_Info
+{
+	int signalTimingMode;
+	sim_mob::SplitPlan SplitPlan;
+};
 
 }}} //End sim_mob::xml::helper namespace
 

@@ -11,7 +11,7 @@ void sim_mob::xml::Phases_t_pimpl::Phase ()
 {
 }
 
-void sim_mob::xml::Phases_t_pimpl::post_Phases_t ()
+sim_mob::Signal::phases sim_mob::xml::Phases_t_pimpl::post_Phases_t ()
 {
 }
 

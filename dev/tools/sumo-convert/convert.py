@@ -9,7 +9,8 @@ from lxml import etree
 # flipping the network for driving on the left).
 #Note: Run SUMO like so:
 #   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
-#Should work with Python 2 or 3.
+
+#Note that this program runs about 10x faster on Python3 for some reason
 
 #Simple classes. IDs are always strings
 class Node:
@@ -379,6 +380,7 @@ def write_xml_multinodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids
         f.write('                    <laneFrom>%d</laneFrom>\n' % lane_ids[lc.laneFromOrigId])
         f.write('                    <laneTo>%d</laneTo>\n' % lane_ids[lc.laneToOrigId])
         f.write('                  </Connector>\n')
+      f.write('                </Connectors>\n')
       f.write('              </MultiConnectors>\n')
     f.write('            </Connectors>\n')
 
@@ -542,7 +544,7 @@ def print_xml_format(nodes, edges, lanes, turnings):
   f.write('<geo:SimMobility\n')
   f.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
   f.write('    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \n')
-  f.write('    xsi:schemaLocation="http://www.smart.mit.edu/geo   ../shared/geospatial/xmlLoader/geo10.xsd">\n\n')
+  f.write('    xsi:schemaLocation="http://www.smart.mit.edu/geo   ../../Basic/shared/geospatial/xmlLoader/geo10.xsd">\n\n')
 
   f.write('    <GeoSpatial>\n')
   f.write('    <RoadNetwork>\n')

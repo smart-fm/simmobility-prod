@@ -187,6 +187,7 @@ void sim_mob::Worker::barrier_mgmt()
 		//Remove Agents as requires
 		removePendingEntities();
 
+
 		//Advance local time-step.
 		currTick += tickStep;
 		active = (endTick==0 || currTick<endTick);

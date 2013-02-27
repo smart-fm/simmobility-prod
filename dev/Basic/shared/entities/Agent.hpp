@@ -192,6 +192,9 @@ public:
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
+	sim_mob::Shared<std::string> outgoing;  //data to be sent to other agents through communication simulator
+	sim_mob::Shared<std::string> incoming; //data received from other agents
+
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Entity*> all_agents;
@@ -288,6 +291,7 @@ public:
 	int getOwnRandomNumber();
 
 	friend class BoundaryProcessor;
+
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

@@ -104,6 +104,19 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
+
+////for communication simulator -vahid
+std::ostream& operator <<(std::ostream& out, timeval const& tv)
+{
+    return out << tv.tv_sec << " " << tv.tv_usec;
+}
+
+std::istream& operator >>(std::istream& is, timeval& tv)
+{
+    return is >> tv.tv_sec >> tv.tv_usec;
+}
+////....
+
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 	
@@ -351,6 +364,7 @@ int main(int argc, char* argv[])
 #endif
 	//Save start time
 	gettimeofday(&start_time, nullptr);
+	ConfigParams::GetInstance().realSimStartTime = start_time;
 
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI

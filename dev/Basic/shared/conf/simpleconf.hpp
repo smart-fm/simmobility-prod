@@ -132,8 +132,10 @@ public:
 	int signalTimingMode;
 	int signalAlgorithm;
 
-	//When the simulation begins
+	//When the simulation begins(based on configuration)
 	DailyTime simStartTime;
+	//when Simulation really begins
+	timeval realSimStartTime;
 
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"

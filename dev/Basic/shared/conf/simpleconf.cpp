@@ -24,6 +24,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
+#include "entities/communicationAgent/CommunicationAgent.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -390,6 +391,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
 	}
 	return true;
 }
+
 
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 {
@@ -1439,6 +1441,10 @@ void printRoadNetwork_console()
 	std::cout << "Testing Road Network Done\n";
 }
 
+bool createCommunicationAgent()
+{
+//	sim_mob::Agent *agent = new sim_mob::CommunicationAgent(ConfigParams::GetInstance().mutexStategy);
+}
 
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
@@ -1587,6 +1593,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			return string("Unknown mutex strategy: ") + mutexStrat;
 		}
 	}
+
+	//Communication Simulator (optional)
+	std::string commSimYesNo;
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication_simulator").ToElement();
+	if (node) {
+		const char* commSimYesNo = node->Attribute("value");
+		if (commSimYesNo == "yes") {
+			createCommunicationAgent();
+
+		}
+	}
+
+
 
 	//Busline Control strategy (optional)
 	handle = TiXmlHandle(&document);
@@ -1928,8 +1948,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
-
-
 
     //Display
     std::cout <<"Config parameters:\n";

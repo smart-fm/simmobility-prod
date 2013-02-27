@@ -255,6 +255,10 @@ FILE(GLOB_RECURSE SharedCode_HPP shared/*.hpp)
 FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*.c")
 LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 
+#Remove geospatial/xmlreader
+#FILE(GLOB_RECURSE SharedCode_xmlLoader "shared/geospatial/xmlLoader/*.cpp")
+#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_xmlLoader})
+
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")
 

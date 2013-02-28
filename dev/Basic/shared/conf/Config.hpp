@@ -52,8 +52,6 @@ public:
 	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
 	bool GenerateAgentUpdateProfile() const;
 
-	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-	bool NewSignalModelEnabled() const;
 };
 
 

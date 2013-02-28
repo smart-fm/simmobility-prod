@@ -31,8 +31,6 @@
 #cmakedefine SIMMOB_XML_READER
 #cmakedefine SIMMOB_USE_CONFLUXES
 
-//Deprecated flags:
-#define SIMMOB_NEW_SIGNAL
 
 
 

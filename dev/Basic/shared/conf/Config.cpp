@@ -238,14 +238,6 @@ bool sim_mob::CMakeConfig::GenerateAgentUpdateProfile() const
 #endif
 }
 
-bool sim_mob::CMakeConfig::NewSignalModelEnabled() const
-{
-#ifdef SIMMOB_NEW_SIGNAL
-	return true;
-#else
-#error SIMMOB_NEW_SIGNAL must always be defined.
-#endif
-}
 
 
 

@@ -207,17 +207,6 @@ public:
 #endif
 	}
 
-	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-	bool NewSignalModelEnabled() const {
-#ifdef SIMMOB_NEW_SIGNAL
-		return true;
-#else
-#error SIMMOB_NEW_SIGNAL must always be defined.
-#endif
-	}
-
-
-
 
 public:
 	/***

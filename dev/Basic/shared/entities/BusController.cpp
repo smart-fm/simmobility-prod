@@ -432,9 +432,9 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_a
 void sim_mob::BusController::handleDriverRequest()
 {
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		Person* person = dynamic_cast<sim_mob::Person*>(*it);
+		const Person* person = dynamic_cast<sim_mob::Person*>(*it);
 		if(person){
-			Role* role = person->getRole();
+			const Role* role = person->getRole();
 			if(role){
 				vector<BufferedBase*> res = role->getRequestParams();
 				if( res.size() > 0 ){

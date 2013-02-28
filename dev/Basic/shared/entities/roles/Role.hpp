@@ -93,7 +93,9 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
 
 	///return a request list for asychronous communication. ~huaipeng
-	virtual std::vector<sim_mob::BufferedBase*> getRequestParams() { return std::vector<sim_mob::BufferedBase*>(); }
+	virtual std::vector<sim_mob::BufferedBase*> getRequestParams() const {
+		return std::vector<sim_mob::BufferedBase*>();
+	}
 
 	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
 	virtual Vehicle* getResource() { return currResource; }

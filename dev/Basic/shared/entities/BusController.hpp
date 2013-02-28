@@ -34,7 +34,6 @@ public:
 	static BusController* TEMP_Get_Bc_1();
 
 	static bool busBreak;
-	static const char* buslineID;
 	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.

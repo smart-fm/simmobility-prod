@@ -333,6 +333,7 @@ private:
 
 class RoadItems_t_pimpl: public virtual RoadItems_t_pskel {
 public:
+	RoadItems_t_pimpl(helper::Bookkeeping& book) : book(book) {}
 	virtual void pre ();
 	virtual std::map<sim_mob::centimeter_t,const sim_mob::RoadItem*> post_RoadItems_t ();
 
@@ -343,6 +344,7 @@ public:
 
 private:
 	std::map<centimeter_t,const RoadItem*> model;
+	helper::Bookkeeping& book;
 };
 
 
@@ -381,39 +383,6 @@ public:
 };
 
 
-class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
-{
-	  std::map<sim_mob::Crossing *, sim_mob::Crossings> model;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>);
-
-  virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>
-  post_crossings_maps_t ();
-};
-
-class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
-{
-	  sim_mob::Crossings model;
-  public:
-  virtual void
-  pre ();
-
-  virtual void
-  linkID (unsigned int);
-
-  virtual void
-  crossingID (unsigned int);
-
-  virtual void
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
-
-  virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
-  post_crossings_map_t ();
-};
 
 class Plans_t_pimpl: public virtual Plans_t_pskel {
 public:
@@ -423,6 +392,15 @@ public:
 	virtual void Plan ();
 };
 
+
+
+class links_maps_t_pimpl: public virtual links_maps_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
+
+	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+};
 
 class links_map_t_pimpl: public virtual links_map_t_pskel {
 public:
@@ -434,15 +412,6 @@ public:
 	virtual void SegmentFrom (unsigned int);
 	virtual void SegmentTo (unsigned int);
 	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
-};
-
-
-class links_maps_t_pimpl: public virtual links_maps_t_pskel {
-public:
-	virtual void pre ();
-	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
-
-	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
 };
 
 

@@ -30,6 +30,7 @@ void sim_mob::xml::RoadItems_t_pimpl::ERP_Gantry ()
 void sim_mob::xml::RoadItems_t_pimpl::Crossing (std::pair<unsigned long,sim_mob::Crossing*> value)
 {
 	model[value.first] = value.second;
+	book.addCrossing(value.second);
 }
 
 void sim_mob::xml::RoadItems_t_pimpl::RoadBump ()

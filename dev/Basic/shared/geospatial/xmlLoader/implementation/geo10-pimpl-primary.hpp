@@ -363,6 +363,44 @@ public:
 	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
 };
 
+class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
+{
+	  std::map<sim_mob::Crossing *, sim_mob::Crossings> model;
+//		helper::Bookkeeping& book;
+public:
+//	  crossings_maps_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+  virtual void  pre ();
+
+  virtual void
+  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>);
+
+  virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_maps_t ();
+};
+
+class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
+{
+	  sim_mob::Crossings model;
+	  const helper::Bookkeeping& book;
+  public:
+	  crossings_map_t_pimpl(const helper::Bookkeeping& book) : book(book) {}
+
+  virtual void
+  pre ();
+
+  virtual void
+  linkID (unsigned int);
+
+  virtual void
+  crossingID (unsigned int);
+
+  virtual void
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
+
+  virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_map_t ();
+};
 
 class Phase_t_pimpl: public virtual Phase_t_pskel {
 public:

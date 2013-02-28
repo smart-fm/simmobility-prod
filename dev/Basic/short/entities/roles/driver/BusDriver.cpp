@@ -363,38 +363,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				existed_Request_Mode.set( Role::REQUEST_NONE );
 				busStopRealTimes_vec_bus[busstop_sequence_no.get()]->set(last_busStopRealTimes->get());
 			}
-			/*else if ((waitAtStopMS == p.elapsedSeconds * 2.0) && bus) {
-				// 0.2sec, return and reset BUS_STOP_WAIT_PASSENGER_TIME_SEC
-				// (no control: use dwellTime;
-				// has Control: use DwellTime to calculate the holding strategy and return BUS_STOP_WAIT_PASSENGER_TIME_SEC
-				if(BusController::HasBusControllers()) {
-					Person* person = dynamic_cast<Person*>(parent);
-					if(person) {
-						BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(person->currTripChainItem)));
-						if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
-							const Busline* busline = bustrip->getBusline();
-							if (busline) {
-								BusStop_RealTimes realTime;
-								if(busline->getControl_TimePointNum0() == busstop_sequence_no.get() || busline->getControl_TimePointNum1() == busstop_sequence_no.get()) { // only use holding control at selected time points
-									double waitTime = 0;
-									waitTime = BusController::TEMP_Get_Bc_1()->decisionCalculation(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),realTime,lastVisited_BusStop.get());
-									setWaitTime_BusStop(waitTime);
-								} else { // other bus stops store the real time values
-									setWaitTime_BusStop(DwellTime_ijk.get());// ignore the other BusStops, just use DwellTime
-									BusController::TEMP_Get_Bc_1()->storeRealTimes_eachBusStop(busline->getBusLineID(),bustrip->getBusTripRun_SequenceNum(),busstop_sequence_no.get(),real_ArrivalTime.get(),DwellTime_ijk.get(),lastVisited_BusStop.get(),realTime);
-								}
-								busStopRealTimes_vec_bus[busstop_sequence_no.get()]->set(realTime);
-								bustrip->lastVisitedStop_SequenceNumber = busstop_sequence_no.get();
-							} else {
-								std::cout << "Busline is nullptr, something is wrong!!! " << std::endl;
-								setWaitTime_BusStop(DwellTime_ijk.get());
-							}
-						}
-					}
-				} else {
-					setWaitTime_BusStop(DwellTime_ijk.get());
-				}
-			}*/
 			if (waitAtStopMS >= dwellTime_record) {
 				passengerCountOld_display_flag = false;
 			} else {
@@ -496,10 +464,6 @@ bool sim_mob::BusDriver::isBusLeavingBusStop() {
 }
 
 double sim_mob::BusDriver::distanceToNextBusStop() {
-//	if (!vehicle->getCurrSegment() || !vehicle->hasNextSegment(true)) {
-//		return -1;
-//	}
-
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(
 			vehicle->getCurrSegment());
 	double distanceToNextSegmentBusStop = -1;

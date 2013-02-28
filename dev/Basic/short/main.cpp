@@ -16,6 +16,7 @@
 #include <string>
 #include <ctime>
 
+//main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
 #include "workers/Worker.hpp"

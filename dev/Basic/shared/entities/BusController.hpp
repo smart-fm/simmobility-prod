@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include <vector>
 #include "entities/Agent.hpp"
 #include "buffering/Shared.hpp"

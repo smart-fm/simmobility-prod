@@ -6,6 +6,8 @@
 #include <list>
 #include <stdexcept>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "partitions/Serialization.hpp"
 

@@ -10,9 +10,8 @@
 
 #pragma once
 
-//If we're not using the "new signal" flag, just forward this header file to the old location.
-//  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include <map>
 #include <vector>
 #include <stdexcept>

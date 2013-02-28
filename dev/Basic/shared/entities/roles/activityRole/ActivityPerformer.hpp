@@ -13,7 +13,8 @@
 
 #include <boost/random.hpp>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "entities/roles/Role.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/UpdateParams.hpp"

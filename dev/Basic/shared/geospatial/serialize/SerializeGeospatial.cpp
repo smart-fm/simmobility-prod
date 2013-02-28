@@ -1,5 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI

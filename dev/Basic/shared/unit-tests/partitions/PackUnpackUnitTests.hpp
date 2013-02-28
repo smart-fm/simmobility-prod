@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include <cppunit/TestCase.h>
 #include <cppunit/extensions/HelperMacros.h>

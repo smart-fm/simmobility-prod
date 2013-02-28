@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 #include "geospatial/GeneralPathMover.hpp"

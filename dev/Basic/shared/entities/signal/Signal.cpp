@@ -9,6 +9,8 @@
 
 #include "Signal.hpp"
 
+#include "GenConfig.h"
+
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"

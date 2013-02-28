@@ -5,6 +5,8 @@
 #include <vector>
 #include <sstream>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"

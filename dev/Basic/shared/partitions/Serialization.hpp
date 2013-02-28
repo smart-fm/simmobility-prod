@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include <boost/archive/text_oarchive.hpp>

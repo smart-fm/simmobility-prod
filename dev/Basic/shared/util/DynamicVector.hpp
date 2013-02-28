@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <iostream>
 #include <boost/thread.hpp>
+
+#include "conf/settings/DisableMPI.h"
+
 #include "util/OutputUtil.hpp"
 
 #include "geospatial/Point2D.hpp"

@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/DynamicVector.hpp"
@@ -76,10 +77,6 @@ struct DriverUpdateParams : public UpdateParams {
 	double elapsedSeconds;
 	sim_mob::TrafficColor trafficColor;
 
-#if 0
-	Signal::TrafficColor trafficColor;
-#endif
-
 
 	double perceivedFwdVelocity;
 	double perceivedLatVelocity;
@@ -100,10 +97,6 @@ struct DriverUpdateParams : public UpdateParams {
 	}
 
 	sim_mob::TrafficColor perceivedTrafficColor;
-
-#if 0
-	sim_mob::Signal::TrafficColor perceivedTrafficColor;
-#endif
 	LANE_CHANGE_SIDE turningDirection;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).

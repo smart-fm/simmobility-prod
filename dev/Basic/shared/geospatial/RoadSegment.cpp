@@ -2,6 +2,8 @@
 
 #include "RoadSegment.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"
 

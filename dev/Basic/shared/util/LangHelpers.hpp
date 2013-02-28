@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
+//TEMP: We still need this until LATEST_STANDARD has been migrated.
 #include "GenConfig.h"
 
 #include <vector>

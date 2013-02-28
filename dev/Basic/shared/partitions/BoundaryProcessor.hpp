@@ -14,7 +14,8 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 
 #include "BoundaryProcessingPackage.hpp"

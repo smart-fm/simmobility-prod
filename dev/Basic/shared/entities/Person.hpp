@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "entities/Agent.hpp"
 #include "roles/Role.hpp"

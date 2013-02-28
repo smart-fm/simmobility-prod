@@ -5,6 +5,8 @@
 
 #include "BoundaryProcessor.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "mpi.h"
 #include <boost/mpi.hpp>
@@ -905,21 +907,12 @@ string sim_mob::BoundaryProcessor::outputAllEntities(timeslice now)
 		return "";
 	}
 
-#if 0
-	std::vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
-	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
-	{
-		Signal* one_signal = (*itr_sig);
-		one_signal->frame_output(now.frame());
-	}
-#else
 	All_Signals::iterator itr_sig = Signal::all_signals_.begin();
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{
 		Signal* one_signal = (*itr_sig);
 		one_signal->outputTrafficLights(now.frame(),"");
 	}
-#endif
 
 	return "";
 }

@@ -120,6 +120,14 @@ configure_file (
   "${PROJECT_SOURCE_DIR}/shared/GenConfig.h"
 )
 
+#Add all config files in "shared/conf/settings"
+FILE(GLOB SettingsFiles "${PROJECT_SOURCE_DIR}/shared/conf/settings/*.h.in")
+FOREACH(InFile ${SettingsFiles})
+  STRING(REGEX REPLACE "(.*[.]h)[.]in" "\\1" OutFile "${InFile}")
+  configure_file ("${InFile}" "${OutFile}")
+ENDFOREACH()
+
+
 
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)

@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "Traversable.hpp"
 #include "Point2D.hpp"
 #include "metrics/Length.hpp"

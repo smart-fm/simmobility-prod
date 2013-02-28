@@ -9,7 +9,8 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"

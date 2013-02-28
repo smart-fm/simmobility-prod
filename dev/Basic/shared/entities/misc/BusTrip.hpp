@@ -16,6 +16,8 @@
 #include "buffering/Shared.hpp"
 #include "conf/simpleconf.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"

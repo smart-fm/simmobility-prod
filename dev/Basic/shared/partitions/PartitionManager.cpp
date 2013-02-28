@@ -4,6 +4,9 @@
  */
 
 #include "PartitionManager.hpp"
+
+#include "conf/settings/DisableMPI.h"
+
 #ifndef SIMMOB_DISABLE_MPI
 
 #include <iostream>

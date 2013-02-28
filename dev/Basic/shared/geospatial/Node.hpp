@@ -8,6 +8,8 @@
 #include <string>
 #include <math.h>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
 #include "Point2D.hpp"

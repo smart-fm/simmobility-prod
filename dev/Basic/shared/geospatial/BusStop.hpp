@@ -5,6 +5,8 @@
 #include <vector>
 #include <stdexcept>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "RoadItem.hpp"
 #include "Route.hpp"
 #include "Lane.hpp"

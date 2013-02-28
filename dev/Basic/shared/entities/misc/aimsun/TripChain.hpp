@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 

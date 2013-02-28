@@ -3,11 +3,12 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include <vector>
 #include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"

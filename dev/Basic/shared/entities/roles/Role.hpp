@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"

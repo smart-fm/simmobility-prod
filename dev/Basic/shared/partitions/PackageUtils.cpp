@@ -1,4 +1,4 @@
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "PackageUtils.hpp"
 

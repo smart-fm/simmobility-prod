@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include <bitset>
 #include <sstream>
 #include <cstdio>

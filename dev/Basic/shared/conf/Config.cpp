@@ -2,6 +2,7 @@
 //tripChains Branch
 #include "Config.hpp"
 
+//Config.cpp should include GenConfig.h, just to make sure we don't forget any files.
 #include "GenConfig.h"
 
 #include "entities/AuraManager.hpp"

@@ -12,6 +12,8 @@
 #include "util/DailyTime.hpp"
 #include "geospatial/Node.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"

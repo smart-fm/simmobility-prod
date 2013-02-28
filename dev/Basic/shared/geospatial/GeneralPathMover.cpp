@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "conf/simpleconf.hpp"
 #include "geospatial/RoadSegment.hpp"

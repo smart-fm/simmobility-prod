@@ -2,6 +2,8 @@
 
 #include "Agent.hpp"
 
+#include "GenConfig.h"
+
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 #include "partitions/PartitionManager.hpp"
@@ -101,14 +103,17 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	dynamic_seed = id;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentCreated(*this);
+	profile = new ProfileBuilder();
+	profile->logAgentCreated(*this);
+#else
+	profile = nullptr;
 #endif
 }
 
 sim_mob::Agent::~Agent()
 {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentDeleted(*this);
+	profile->logAgentDeleted(*this);
 #endif
 }
 

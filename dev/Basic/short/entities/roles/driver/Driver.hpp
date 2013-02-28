@@ -6,7 +6,7 @@
 #include <math.h>
 #include <set>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "entities/roles/Role.hpp"
 #include "buffering/Shared.hpp"
@@ -137,11 +137,6 @@ private:
 	FixedDelayed<double> *perceivedAccOfFwdCar;
 	FixedDelayed<double> *perceivedDistToFwdCar;
 	FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
-
-#if 0
-	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
-#endif
-
 	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;

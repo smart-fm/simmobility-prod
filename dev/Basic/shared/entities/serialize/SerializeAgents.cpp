@@ -1,5 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -195,84 +196,11 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 /**
  * Serialization of Signal
  */
-#if 0
-void Signal::packProxy(PackageUtils& packageUtil) {
 
-	//Agent::packageProxy(packageUtil);
-	packageUtil<<(id);
-	packageUtil<<(currCL);
-	packageUtil<<(currSplitPlan);
-	packageUtil<<(currOffset);
-	packageUtil<<(currPhase);
-	packageUtil<<(currSplitPlanID);
-	packageUtil<<(phaseCounter);
-
-	//very dangerous, suggest to change
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
-			//int value = one_signal->TC_for_Driver[i][j];
-			int value = buffered_TC.get().TC_for_Driver[i][j];
-			packageUtil<<(value);
-		}
-	}
-
-	for (int i = 0; i < 4; i++) {
-		int value = buffered_TC.get().TC_for_Pedestrian[i];
-		packageUtil<<(value);
-	}
-
-	for (int i = 0; i < 4; i++) {
-			int value = buffered_TC.get().TC_for_Passenger[i];
-			packageUtil<<(value);
-		}
-}
-
-void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
-
-	ParitionDebugOutput debug;
-//	debug.outputToConsole("signal 0");
-
-	//Agent::unpackageProxy(unpackageUtil);
-	unpackageUtil >> id;
-	unpackageUtil >> currCL;
-	unpackageUtil >> currSplitPlan;
-//	debug.outputToConsole("signal 0.5");
-
-	unpackageUtil >> currOffset;
-	unpackageUtil >> currPhase;
-//	debug.outputToConsole("signal 0.7");
-
-	unpackageUtil >> currSplitPlanID;
-	unpackageUtil >> phaseCounter;
-
-//	debug.outputToConsole("signal 1");
-
-	SignalStatus buffered_signal;
-	//very dangerous, suggest to change
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
-			unpackageUtil >> buffered_signal.TC_for_Driver[i][j];
-		}
-	}
-
-//	debug.outputToConsole("signal 2");
-
-	for (int i = 0; i < 4; i++) {
-		unpackageUtil >> buffered_signal.TC_for_Pedestrian[i];
-	}
-	for (int i = 0; i < 4; i++) {
-			unpackageUtil >> buffered_signal.TC_for_Passenger[i];
-		}
-
-	buffered_TC.force(buffered_signal);
-//	debug.outputToConsole("signal 3");
-}
-#else
 //Note: The new signal class will require packing, but don't do it yet
 //       ---we will remove the old Signal class anyway. ~Seth
 //void Signal::packProxy(PackageUtils& packageUtil) {}
 //void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {}
-#endif
 
 }
 

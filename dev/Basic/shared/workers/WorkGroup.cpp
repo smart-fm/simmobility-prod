@@ -2,6 +2,8 @@
 
 #include "WorkGroup.hpp"
 
+#include "GenConfig.h"
+
 //For debugging
 #include <stdexcept>
 #include <boost/thread.hpp>

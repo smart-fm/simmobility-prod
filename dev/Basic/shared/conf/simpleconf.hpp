@@ -23,7 +23,9 @@
 #include <string>
 #include <sstream>
 
+//simpleconf.hpp can include GenConfig.h for now (since the entire file will be deleted soon)
 #include "GenConfig.h"
+
 #include "geospatial/xmlWriter/xmlWriter.hpp"
 #include <boost/utility.hpp>
 

@@ -209,10 +209,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string role
 
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-#if 0
-	perceivedTrafficColor = new FixedDelayed<Signal::TrafficColor>(reacTime,true);
-#endif
-
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
@@ -435,11 +431,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	trafficColor = sim_mob::Green;
 	perceivedTrafficColor = sim_mob::Green;
 
-#if 0
-	trafficColor = Signal::Green;
-	perceivedTrafficColor = Signal::Green; //Green by default
-#endif
-
 	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
 
@@ -450,10 +441,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
 	perceivedTrafficColor  = sim_mob::Green;
-
-#if 0
-	perceivedTrafficColor  = Signal::Green; //Green by default
-#endif
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
@@ -898,27 +885,6 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 	LinkAndCrossingByLink::iterator it = LAC.find(vehicle->getNextSegment()->getLink());
 	if(it != LAC.end())
 		const Crossing* crossing = (*it).crossing;
-
-#if 0
-		map<Link const*, size_t> const linkMap = trafficSignal->links_map();
-		int index = -1;
-		for (map<Link const*, size_t>::const_iterator link_i = linkMap.begin(); link_i != linkMap.end(); link_i++) {
-			if (vehicle->getNextSegment() && link_i->first == vehicle->getNextSegment()->getLink()) {
-				index = (*link_i).second;
-				break;
-			}
-		}
-
-		map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
-		const Crossing* crossing = nullptr;
-		for (map<Crossing const *, size_t>::const_iterator crossing_i = crossingMap.begin(); crossing_i
-				!= crossingMap.end(); crossing_i++) {
-			if (static_cast<int> (crossing_i->second) == index) {
-				crossing = crossing_i->first;
-				break;
-			}
-		}
-#endif
 
 	//Have we found a relevant crossing?
 		if (!crossing) {
@@ -2034,17 +2000,10 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 	if (!trafficSignal) {
 			p.trafficColor = sim_mob::Green;
 
-#if 0
-			p.trafficColor = Signal::Green;
-#endif
-
 		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
 		sim_mob::TrafficColor color;
 
-#if 0
-		Signal::TrafficColor color;
-#endif
 		if (vehicle->hasNextSegment(false)) {
 
 //			std::cout << "In Driver::setTrafficSignalParams, frame number " << p.frameNumber <<
@@ -2071,29 +2030,17 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		switch (color) {
 		case sim_mob::Red:
 
-#if 0
-		case Signal::Red:
-#endif
-
 //			std::cout<< "Driver is getting Red light \n";
 			p.trafficColor = color;
 			break;
 		case sim_mob::Amber:
 		case sim_mob::Green:
 
-#if 0
-		case Signal::Amber:
-		case Signal::Green:
-#endif
-
 //			std::cout<< "Driver is getting Green or Amber light \n";
 			if (!isPedestrianOnTargetCrossing())
 				p.trafficColor = color;
 			else
 				p.trafficColor = sim_mob::Red;
-#if 0
-				p.trafficColor = Signal::Red;
-#endif
 				break;
 		}
 

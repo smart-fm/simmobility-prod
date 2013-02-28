@@ -4,6 +4,8 @@
 #include <cassert>
 #include <limits>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "Lane.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
@@ -100,8 +102,4 @@ void Lane::insertNewPolylinePoint(Point2D p, bool isPre)
 		polyline_.insert(polyline_.begin(), p);
 }
 
-
-#ifndef SIMMOB_DISABLE_MPI
-
-#endif
 }

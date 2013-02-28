@@ -7,7 +7,7 @@
 #include <functional>
 #include <stdlib.h>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
@@ -290,9 +290,7 @@ protected:
 	const sim_mob::Lane* currLane;
 	const sim_mob::RoadSegment* currSegment;
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	sim_mob::ProfileBuilder profile;
-#endif
+	sim_mob::ProfileBuilder* profile;
 
 public:
 	//xuyan: old code, might not used any more

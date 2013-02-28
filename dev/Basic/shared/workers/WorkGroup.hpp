@@ -9,7 +9,7 @@
 #include <boost/thread.hpp>
 #include <string>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"

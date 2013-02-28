@@ -37,7 +37,7 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	virtual std::vector<sim_mob::BufferedBase*> getRequestParams();
+	virtual sim_mob::DriverRequestParams getDriverRequestParams();
 
 	/// Return the distance (m) to the (next) bus stop.
 	/// A negative return value indicates that there is no relevant bus stop nearby.

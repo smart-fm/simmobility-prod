@@ -252,11 +252,12 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
 
+	//TODO: This should be integrated into Person::getSubscriptionList()
 	Person* person = dynamic_cast<Person*>(&ag);
 	if(person)	{
 		Role* role = person->getRole();
 		if(role){
-			stopManaging(role->getRequestParams());
+			stopManaging(role->getDriverRequestParams().asVector());
 		}
 	}
 

@@ -430,24 +430,23 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_a
 }
 
 
-void sim_mob::BusController::handleRequestParams(vector<BufferedBase*> rParams)
+void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rParams)
 {
 	//No reaction if request params is empty.
-	if(rParams.empty() ) {
+	if(rParams.asVector().empty() ) {
 		return;
 	}
 
-	Shared<int>* existed_Request_Mode = dynamic_cast<Shared<int>*>(rParams[0]);
-	if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME) ){
-
-		Shared<string>* lastVisited_Busline = dynamic_cast<Shared<string>*>(rParams[1]);
-		Shared<int>* lastVisited_BusTrip_SequenceNo = dynamic_cast<Shared<int>*>(rParams[2]);
-		Shared<int>* busstop_sequence_no = dynamic_cast<Shared<int>*>(rParams[3]);
-		Shared<double>* real_ArrivalTime = dynamic_cast<Shared<double>*>(rParams[4]);
-		Shared<double>* DwellTime_ijk = dynamic_cast<Shared<double>*>(rParams[5]);
-		Shared<const BusStop*>* lastVisited_BusStop = dynamic_cast<Shared<const BusStop*>*>(rParams[6]);
-		Shared<BusStop_RealTimes>* last_busStopRealTimes = dynamic_cast<Shared<BusStop_RealTimes>*>(rParams[7]);
-		Shared<double>* waiting_Time = dynamic_cast<Shared<double>* >(rParams[8]);
+	Shared<int>* existed_Request_Mode = rParams.existedRequest_Mode;
+	if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME)) {
+		Shared<string>* lastVisited_Busline = rParams.lastVisited_Busline;
+		Shared<int>* lastVisited_BusTrip_SequenceNo = rParams.lastVisited_BusTrip_SequenceNo;
+		Shared<int>* busstop_sequence_no = rParams.busstop_sequence_no;
+		Shared<double>* real_ArrivalTime = rParams.real_ArrivalTime;
+		Shared<double>* DwellTime_ijk = rParams.DwellTime_ijk;
+		Shared<const BusStop*>* lastVisited_BusStop = rParams.lastVisited_BusStop;
+		Shared<BusStop_RealTimes>* last_busStopRealTimes = rParams.last_busStopRealTimes;
+		Shared<double>* waiting_Time = rParams.waiting_Time;
 
 		if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
 		   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
@@ -473,7 +472,7 @@ void sim_mob::BusController::handleDriverRequest()
 		if(person){
 			Role* role = person->getRole();
 			if(role){
-				handleRequestParams(role->getRequestParams());
+				handleRequestParams(role->getDriverRequestParams());
 			}
 		}
 	}

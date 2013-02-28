@@ -224,16 +224,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
-//	if (p.nvFwd.exists())
-//		p.space = p.nvFwd.distance;
-//	else
-//		p.space = 50;
-//	if (nv.distance <= 0) {
-//		//if (nv.driver->parent->getId() > this->parent->getId())
-//		if (getDriverParent(nv.driver)->getId() > this->parent->getId()) {
-//			nv = NearestVehicle();
-//		}
-//	}
 	if (isAleadyStarted == false) {
 		if (nv.distance <= 0) {
 			if (getDriverParent(nv.driver)->getId() > this->parent->getId()) {
@@ -249,9 +239,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
-	//if (isBusFarawayBusStop()) {
-//	double acci = busAccelerating(p)*100;
-//	vehicle->setAcceleration(acci);
 	p.currSpeed = vehicle->getVelocity() / 100;
 	double newFwdAcc = 0;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
@@ -259,18 +246,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		newFwdAcc = 0;
 	}
 	vehicle->setAcceleration(newFwdAcc * 100);
-	//}
-
-//	//Retrieve a new acceleration value.
-//		double newFwdAcc = 0;
-//		//Convert back to m/s
-//		//TODO: Is this always m/s? We should rename the variable then...
-//		p.currSpeed = vehicle->getVelocity() / 100;
-//		//Call our model
-//		//Return the remaining amount (obtained by calling updatePositionOnLink)
-//		newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
-//		//Update our chosen acceleration; update our position on the link.
-//		vehicle->setAcceleration(newFwdAcc * 100);
 
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
@@ -844,22 +819,23 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	return res;
 }
 
-vector<BufferedBase*> sim_mob::BusDriver::getRequestParams()
+
+
+sim_mob::DriverRequestParams sim_mob::BusDriver::getDriverRequestParams()
 {
 	Person* person = dynamic_cast<Person*>(parent);
-	vector<BufferedBase*> res;
-	if(person )
-	{
-		res.push_back(&(existed_Request_Mode)); //Shared<int>
-		res.push_back(&(lastVisited_Busline));  //Shared<string>
-		res.push_back(&(lastVisited_BusTrip_SequenceNo)); //Shared<int>
-		res.push_back(&(busstop_sequence_no)); //Shared<int>
-		res.push_back(&(real_ArrivalTime)); //Shared<double>
-		res.push_back(&(DwellTime_ijk)); //Shared<double>
-		res.push_back(&(lastVisited_BusStop)); //Shared<BusStop*>
-		res.push_back((last_busStopRealTimes)); //Shared<BusStop_RealTimes>
-		res.push_back(&(waiting_Time)); //Shared<double>
-	}
+	sim_mob::DriverRequestParams res;
+
+	res.existedRequest_Mode = &existed_Request_Mode;
+	res.lastVisited_Busline = &lastVisited_Busline;
+	res.lastVisited_BusTrip_SequenceNo = &lastVisited_BusTrip_SequenceNo;
+	res.busstop_sequence_no = &busstop_sequence_no;
+	res.real_ArrivalTime = &real_ArrivalTime;
+	res.DwellTime_ijk = &DwellTime_ijk;
+	res.lastVisited_BusStop = &lastVisited_BusStop;
+	res.last_busStopRealTimes = last_busStopRealTimes;
+	res.waiting_Time = &waiting_Time;
+
 	return res;
 }
 

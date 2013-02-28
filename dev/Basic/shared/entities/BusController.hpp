@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
 #include "buffering/Shared.hpp"
 #include "misc/BusTrip.hpp"
@@ -51,7 +52,7 @@ public:
 	//virtual Entity::UpdateStatus update(timeslice now);
 
 	void handleDriverRequest();
-	void handleRequestParams(std::vector<sim_mob::BufferedBase*> rParams);
+	void handleRequestParams(sim_mob::DriverRequestParams rParams);
 
 	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);

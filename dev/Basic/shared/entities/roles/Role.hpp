@@ -92,8 +92,10 @@ public:
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
 
-	///return a request list for asychronous communication. ~huaipeng
-	virtual std::vector<sim_mob::BufferedBase*> getRequestParams() const {
+	///Return a request list for asychronous communication.
+	///  Subclasses of Role should override this method if they want to enable
+	///  asynchronous communication.
+	virtual std::vector<sim_mob::BufferedBase*> getRequestParams() {
 		return std::vector<sim_mob::BufferedBase*>();
 	}
 

@@ -429,42 +429,51 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_a
 	}
 }
 
+
+void sim_mob::BusController::handleRequestParams(vector<BufferedBase*> rParams)
+{
+	//No reaction if request params is empty.
+	if(rParams.empty() ) {
+		return;
+	}
+
+	Shared<int>* existed_Request_Mode = dynamic_cast<Shared<int>*>(rParams[0]);
+	if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME) ){
+
+		Shared<string>* lastVisited_Busline = dynamic_cast<Shared<string>*>(rParams[1]);
+		Shared<int>* lastVisited_BusTrip_SequenceNo = dynamic_cast<Shared<int>*>(rParams[2]);
+		Shared<int>* busstop_sequence_no = dynamic_cast<Shared<int>*>(rParams[3]);
+		Shared<double>* real_ArrivalTime = dynamic_cast<Shared<double>*>(rParams[4]);
+		Shared<double>* DwellTime_ijk = dynamic_cast<Shared<double>*>(rParams[5]);
+		Shared<const BusStop*>* lastVisited_BusStop = dynamic_cast<Shared<const BusStop*>*>(rParams[6]);
+		Shared<BusStop_RealTimes>* last_busStopRealTimes = dynamic_cast<Shared<BusStop_RealTimes>*>(rParams[7]);
+		Shared<double>* waiting_Time = dynamic_cast<Shared<double>* >(rParams[8]);
+
+		if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
+		   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
+		{
+			BusStop_RealTimes realTime;
+			if(existed_Request_Mode->get() == Role::REQUEST_DECISION_TIME ){
+				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),realTime,lastVisited_BusStop->get());
+				waiting_Time->set(waitingtime);
+			}
+			else if(existed_Request_Mode->get() == Role::REQUEST_STORE_ARRIVING_TIME ){
+				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), realTime);
+			}
+			last_busStopRealTimes->set(realTime);
+		}
+	}
+}
+
+
 void sim_mob::BusController::handleDriverRequest()
 {
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		const Person* person = dynamic_cast<sim_mob::Person*>(*it);
+		Person* person = dynamic_cast<sim_mob::Person*>(*it);
 		if(person){
-			const Role* role = person->getRole();
+			Role* role = person->getRole();
 			if(role){
-				vector<BufferedBase*> res = role->getRequestParams();
-				if( res.size() > 0 ){
-					Shared<int>* existed_Request_Mode = dynamic_cast<Shared<int>*>(res[0]);
-					if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME) ){
-
-						Shared<string>* lastVisited_Busline = dynamic_cast<Shared<string>*>(res[1]);
-						Shared<int>* lastVisited_BusTrip_SequenceNo = dynamic_cast<Shared<int>*>(res[2]);
-						Shared<int>* busstop_sequence_no = dynamic_cast<Shared<int>*>(res[3]);
-						Shared<double>* real_ArrivalTime = dynamic_cast<Shared<double>*>(res[4]);
-						Shared<double>* DwellTime_ijk = dynamic_cast<Shared<double>*>(res[5]);
-						Shared<const BusStop*>* lastVisited_BusStop = dynamic_cast<Shared<const BusStop*>*>(res[6]);
-						Shared<BusStop_RealTimes>* last_busStopRealTimes = dynamic_cast<Shared<BusStop_RealTimes>*>(res[7]);
-						Shared<double>* waiting_Time = dynamic_cast<Shared<double>* >(res[8]);
-
-						if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
-						   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
-						{
-							BusStop_RealTimes realTime;
-							if(existed_Request_Mode->get() == Role::REQUEST_DECISION_TIME ){
-								double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),realTime,lastVisited_BusStop->get());
-								waiting_Time->set(waitingtime);
-							}
-							else if(existed_Request_Mode->get() == Role::REQUEST_STORE_ARRIVING_TIME ){
-								storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), realTime);
-							}
-							last_busStopRealTimes->set(realTime);
-						}
-					}
-				}
+				handleRequestParams(role->getRequestParams());
 			}
 		}
 	}

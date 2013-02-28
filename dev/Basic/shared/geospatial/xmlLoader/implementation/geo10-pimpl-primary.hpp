@@ -396,13 +396,14 @@ class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
   crossingID (unsigned int);
 
   virtual void
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
 
   virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
   post_crossings_map_t ();
 };
 
 class Phase_t_pimpl: public virtual Phase_t_pskel {
+	sim_mob::Phase model;
 public:
 	virtual void pre ();
 	virtual sim_mob::Phase post_Phase_t ();
@@ -410,42 +411,57 @@ public:
 	virtual void phaseID (unsigned char);
 	virtual void name (const ::std::string&);
 	virtual void links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>);
+    virtual void crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>);
 };
 
 
 class SplitPlan_t_pimpl: public virtual SplitPlan_t_pskel {
+	sim_mob::SplitPlan model;
 public:
 	virtual void pre ();
 	virtual sim_mob::SplitPlan post_SplitPlan_t ();
 
 	virtual void splitplanID (unsigned int);
-	virtual void signalTimingMode ();
 	virtual void cycleLength (unsigned char);
 	virtual void offset (unsigned char);
 	virtual void ChoiceSet ();
-	virtual void Phases ();
 };
 
 
 class Signal_t_pimpl: public virtual Signal_t_pskel {
+
 public:
+	typedef sim_mob::xml::helper::SignalHelper SignalHelper_;
+	Signal_t_pimpl(helper::Bookkeeping& book_, helper::SignalHelper & signal_) : book(book_),signalHelper(signal_){}
 	virtual void pre ();
 	virtual sim_mob::Signal* post_Signal_t ();
-
-	virtual void signalID (unsigned char);
+	virtual void phases (sim_mob::Signal::phases);
+	virtual void signalID (unsigned int);
 	virtual void nodeID (unsigned int);
-	virtual void signalTimingMode ();
+//	virtual void signalTimingMode ();
 	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
-	virtual void SplitPlan (sim_mob::SplitPlan);
+//	virtual void SplitPlan (sim_mob::SplitPlan);
+	virtual void SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info SCATS_Info_);
+private:
+	SignalHelper_ &signalHelper;
+	helper::Bookkeeping& book;
+	sim_mob::Signal* model;
 };
 
 
 class SCATS_t_pimpl: public virtual SCATS_t_pskel {
+	typedef sim_mob::xml::helper::SignalHelper SignalHelper_;
 public:
 	virtual void pre ();
-	virtual sim_mob::xml::helper::SCATS_Info  post_SCATS_t ();
+	virtual sim_mob::xml::helper::SignalHelper::SCATS_Info  post_SCATS_t ();
 	virtual void signalTimingMode (int);
 	virtual void SplitPlan (sim_mob::SplitPlan);
+//	SCATS_t_pimpl(helper::Bookkeeping& book_, helper::SignalHelper & signal_) : book(book_),signalHelper(signal_){}
+
+private:
+//	SignalHelper_ &signalHelper;
+//	helper::Bookkeeping& book;
+	sim_mob::xml::helper::SignalHelper::SCATS_Info model;
 };
 
 class SimMobility_t_pimpl: public virtual SimMobility_t_pskel {

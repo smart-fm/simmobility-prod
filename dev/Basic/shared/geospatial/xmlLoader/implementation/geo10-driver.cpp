@@ -27,6 +27,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	try {
 		//Our bookkeeper assists various classes with optimizations, and is shared between them.
 		::sim_mob::xml::helper::Bookkeeping book;
+		::sim_mob::xml::helper::SignalHelper signal;
 
 		//Complex (usually optimized) parsers require external information.
 		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
@@ -100,7 +101,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 	    ::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
 	    ::sim_mob::xml::Signals_t_pimpl Signals_t_p;
-	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p;
+	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p(book,signal);
 	    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
 //	    ::sim_mob::xml::signalTimingMode_t_pimpl signalAlgorithm_t_p;
 	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
@@ -116,7 +117,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::TrafficColor_t_pimpl TrafficColor_t_p;
 	    ::sim_mob::xml::crossings_maps_t_pimpl crossings_maps_t_p/*(book)*/;
 	    ::sim_mob::xml::crossings_map_t_pimpl crossings_map_t_p(book);
-	    ::sim_mob::xml::SCATS_t_pimpl SCATS_t_p;
+	    ::sim_mob::xml::SCATS_t_pimpl SCATS_t_p/*(book,signal)*/;
 	    ::sim_mob::xml::signalTimingMode_t_pimpl signalTimingMode_t_p;	    
 
 	    // Connect the parsers together.

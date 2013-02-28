@@ -7968,7 +7968,7 @@ namespace sim_mob
     }
 
     void links_map_t_pskel::
-    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
     {
     }
 
@@ -8148,7 +8148,7 @@ namespace sim_mob
     }
 
     void crossings_map_t_pskel::
-    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
     {
     }
 
@@ -8613,7 +8613,7 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    SCATS (sim_mob::xml::helper::SCATS_Info)
+    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info)
     {
     }
 

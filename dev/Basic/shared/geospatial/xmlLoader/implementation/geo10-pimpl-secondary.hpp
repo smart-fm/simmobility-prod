@@ -395,6 +395,7 @@ public:
 
 
 class links_maps_t_pimpl: public virtual links_maps_t_pskel {
+	std::multimap<sim_mob::Link*,sim_mob::linkToLink> model;
 public:
 	virtual void pre ();
 	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
@@ -417,16 +418,17 @@ public:
 	virtual void linkTo (unsigned int);
 	virtual void SegmentFrom (unsigned int);
 	virtual void SegmentTo (unsigned int);
-	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,short> > >);
+	virtual void ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,short> > >);
 };
 
 
 class Phases_t_pimpl: public virtual Phases_t_pskel {
+	sim_mob::Signal::phases model;
 public:
 	virtual void pre ();
 	virtual sim_mob::Signal::phases post_Phases_t ();
 
-	virtual void Phase ();
+	virtual void Phase (sim_mob::Phase phase);
 };
 
 class Signals_t_pimpl: public virtual Signals_t_pskel {

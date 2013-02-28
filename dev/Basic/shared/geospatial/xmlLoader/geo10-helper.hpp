@@ -183,11 +183,37 @@ private:
 	std::map<sim_mob::UniNode*, SegPair> uniNodeSegmentPairCache;
 };
 
-struct SCATS_Info
-{
-	int signalTimingMode;
-	sim_mob::SplitPlan SplitPlan;
-};
+class SignalHelper {public:
+	struct SCATS_Info {
+		int signalTimingMode;
+		sim_mob::SplitPlan SplitPlan;
+	};
+private:
 
+	sim_mob::Signal *targetSignal;
+	sim_mob::Signal *basicSignal;
+	unsigned int signalID;
+	SCATS_Info SCATS_Info_;
+public:
+	void clearSignalHelper()
+	{
+		targetSignal = basicSignal = 0;
+		signalID = -1;
+	}
+
+	SignalHelper()
+	{
+		clearSignalHelper();
+	}
+	sim_mob::Signal *getTargetSignal() { return targetSignal; }
+	void setTargetSignal(sim_mob::Signal *t) { targetSignal = t; }
+
+	sim_mob::Signal *getBasicSignal() { return basicSignal; }
+	void setBasicSignal(sim_mob::Signal *t) { basicSignal = t; }
+	unsigned int getSignalID() { return signalID; }
+	void setSignalID(unsigned int id) {signalID = id; }
+	SCATS_Info getSCATS_Info() { return SCATS_Info_;}
+	void setSCATS_Info(SCATS_Info SCATS_Info__) {SCATS_Info_ = SCATS_Info__;}
+};
 }}} //End sim_mob::xml::helper namespace
 

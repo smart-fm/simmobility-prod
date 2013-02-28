@@ -17,6 +17,11 @@ class Signal_t_pimpl;
 }
 namespace sim_mob
 {
+namespace xml
+{
+class Signal_t_pimpl;
+class SplitPlan_t_pimpl;
+}
 //Forward dseclaration
 class Signal_SCATS;
 
@@ -29,8 +34,8 @@ enum TrafficControlMode
 class SplitPlan
 {
 
-	friend class geo::SplitPlan_t_pimpl;
-	friend class geo::Signal_t_pimpl;
+//	friend class geo::SplitPlan_t_pimpl;
+//	friend class geo::Signal_t_pimpl;
 public:
 	typedef boost::multi_index_container<
 			sim_mob::Phase,

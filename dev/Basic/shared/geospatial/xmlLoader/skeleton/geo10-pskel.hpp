@@ -3454,7 +3454,7 @@ namespace sim_mob
       virtual void
       ColorDuration (std::pair<sim_mob::TrafficColor,short>);
 
-      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > >
+      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > >
       post_ColorSequence_t () = 0;
 
       // Parser construction API.
@@ -3553,7 +3553,7 @@ namespace sim_mob
       SegmentTo (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
 
       virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>
       post_links_map_t () = 0;
@@ -3663,7 +3663,7 @@ namespace sim_mob
       crossingID (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
 
       virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
       post_crossings_map_t () = 0;
@@ -3894,7 +3894,7 @@ namespace sim_mob
       virtual void
       SplitPlan (sim_mob::SplitPlan);
 
-      virtual sim_mob::xml::helper::SCATS_Info
+      virtual sim_mob::xml::helper::SignalHelper::SCATS_Info
       post_SCATS_t () = 0;
 
       // Parser construction API.
@@ -3951,7 +3951,7 @@ namespace sim_mob
       phases (sim_mob::Signal::phases);
 
       virtual void
-      SCATS (sim_mob::xml::helper::SCATS_Info);
+      SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info);
 
       virtual sim_mob::Signal*
       post_Signal_t () = 0;

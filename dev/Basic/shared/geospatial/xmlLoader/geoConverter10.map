@@ -103,7 +103,7 @@ plan_t "std::pair<short,std::vector<double> >"  "std::pair<short,std::vector<dou
 plans_t "std::vector<std::vector<double> >" "std::vector<std::vector<double> >";
 TrafficColor_t sim_mob::TrafficColor sim_mob::TrafficColor;
 ColorDuration_t std::pair<sim_mob::TrafficColor,short>  std::pair<sim_mob::TrafficColor,short>;
-ColorSequence_t "std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > >" "std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >";
+ColorSequence_t "std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > >" "std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,std::size_t> > >";
 links_map_t "std::pair<sim_mob::Link*,sim_mob::linkToLink>"  "std::pair<sim_mob::Link*,sim_mob::linkToLink>";
 links_maps_t "std::multimap<sim_mob::Link*,sim_mob::linkToLink>"  "std::multimap<sim_mob::Link*,sim_mob::linkToLink>";
 crossings_maps_t "std::map<sim_mob::Crossing *, sim_mob::Crossings>" "std::map<sim_mob::Crossing *, sim_mob::Crossings>";

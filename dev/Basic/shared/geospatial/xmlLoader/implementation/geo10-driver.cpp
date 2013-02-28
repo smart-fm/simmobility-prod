@@ -101,22 +101,23 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
 	    ::sim_mob::xml::Signals_t_pimpl Signals_t_p;
 	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p;
-	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
 	    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
+//	    ::sim_mob::xml::signalTimingMode_t_pimpl signalAlgorithm_t_p;
+	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
+	    ::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
+	    ::sim_mob::xml::Plans_t_pimpl Plans_t_p;
+	    ::sim_mob::xml::Plan_t_pimpl Plan_t_p;
 	    ::sim_mob::xml::Phases_t_pimpl Phases_t_p;
 	    ::sim_mob::xml::Phase_t_pimpl Phase_t_p;
 	    ::sim_mob::xml::links_maps_t_pimpl links_maps_t_p;
-	    ::sim_mob::xml::links_map_t_pimpl links_map_t_p;
+	    ::sim_mob::xml::links_map_t_pimpl links_map_t_p(book);
 	    ::sim_mob::xml::ColorSequence_t_pimpl ColorSequence_t_p;
 	    ::sim_mob::xml::ColorDuration_t_pimpl ColorDuration_t_p;
 	    ::sim_mob::xml::TrafficColor_t_pimpl TrafficColor_t_p;
 	    ::sim_mob::xml::crossings_maps_t_pimpl crossings_maps_t_p/*(book)*/;
 	    ::sim_mob::xml::crossings_map_t_pimpl crossings_map_t_p(book);
 	    ::sim_mob::xml::SCATS_t_pimpl SCATS_t_p;
-	    ::sim_mob::xml::signalTimingMode_t_pimpl signalTimingMode_t_p;
-	    ::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
-	    ::sim_mob::xml::Plans_t_pimpl Plans_t_p;
-	    ::sim_mob::xml::Plan_t_pimpl Plan_t_p;
+	    ::sim_mob::xml::signalTimingMode_t_pimpl signalTimingMode_t_p;	    
 
 	    // Connect the parsers together.
 	    //

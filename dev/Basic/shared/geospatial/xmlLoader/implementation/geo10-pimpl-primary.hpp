@@ -354,13 +354,13 @@ public:
 
 
 class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel {
-	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > > model;
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > model;
 public:
 	virtual void pre ();
-	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,std::size_t> > > post_ColorSequence_t ();
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > post_ColorSequence_t ();
 
 	virtual void TrafficLightType (sim_mob::TrafficLightType);
-	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
+	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,short>);
 };
 
 class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
@@ -444,12 +444,8 @@ class SCATS_t_pimpl: public virtual SCATS_t_pskel {
 public:
 	virtual void pre ();
 	virtual sim_mob::xml::helper::SCATS_Info  post_SCATS_t ();
-
-    void signalTimingMode (int);
-
-    void SplitPlan (sim_mob::SplitPlan);
-
-
+	virtual void signalTimingMode (int);
+	virtual void SplitPlan (sim_mob::SplitPlan);
 };
 
 class SimMobility_t_pimpl: public virtual SimMobility_t_pskel {

@@ -403,7 +403,13 @@ public:
 };
 
 class links_map_t_pimpl: public virtual links_map_t_pskel {
+	std::pair<sim_mob::Link*,sim_mob::linkToLink> model;
+	sim_mob::linkToLink ll;
+	unsigned int linkFrom_;
+	helper::Bookkeeping& book;
 public:
+	links_map_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
 	virtual void pre ();
 	virtual std::pair<sim_mob::Link*,sim_mob::linkToLink> post_links_map_t ();
 
@@ -411,7 +417,7 @@ public:
 	virtual void linkTo (unsigned int);
 	virtual void SegmentFrom (unsigned int);
 	virtual void SegmentTo (unsigned int);
-	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
+	virtual void ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,short> > >);
 };
 
 

@@ -85,45 +85,6 @@ bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
 
 
-bool sim_mob::ConfigParams::MPI_Disabled() const
-{
-#ifdef SIMMOB_DISABLE_MPI
-	return true;
-#else
-	return false;
-#endif
-}
-
-
-bool sim_mob::ConfigParams::OutputDisabled() const
-{
-#ifdef SIMMOB_DISABLE_OUTPUT
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::StrictAgentErrors() const
-{
-#ifdef SIMMOB_STRICT_AGENT_ERRORS
-	return true;
-#else
-	return false;
-#endif
-}
-
-///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-bool sim_mob::ConfigParams::GenerateAgentUpdateProfile() const
-{
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	return true;
-#else
-	return false;
-#endif
-}
-
-
 int getValueInMS(double value, const std::string& units)
 {
 	//Detect errors
@@ -2066,6 +2027,50 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
+
+
+//////////////////////////////////////////
+// Macro definitions
+//////////////////////////////////////////
+
+bool sim_mob::ConfigParams::MPI_Disabled() const
+{
+#ifdef SIMMOB_DISABLE_MPI
+	return true;
+#else
+	return false;
+#endif
+}
+
+
+bool sim_mob::ConfigParams::OutputDisabled() const
+{
+#ifdef SIMMOB_DISABLE_OUTPUT
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::StrictAgentErrors() const
+{
+#ifdef SIMMOB_STRICT_AGENT_ERRORS
+	return true;
+#else
+	return false;
+#endif
+}
+
+///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
+bool sim_mob::ConfigParams::GenerateAgentUpdateProfile() const
+{
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	return true;
+#else
+	return false;
+#endif
+}
+
 
 //////////////////////////////////////////
 // Main external method

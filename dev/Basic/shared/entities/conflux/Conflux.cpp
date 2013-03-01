@@ -5,10 +5,12 @@
  *      Author: harish
  */
 
+#include "Conflux.hpp"
+
 #include<map>
 #include <stdexcept>
 #include <vector>
-#include "Conflux.hpp"
+#include "conf/simpleconf.hpp"
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 

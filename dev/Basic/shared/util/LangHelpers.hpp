@@ -3,9 +3,7 @@
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
-
-//TEMP: We still need this until LATEST_STANDARD has been migrated.
-#include "GenConfig.h"
+#include "conf/settings/LatestStandard.h"
 
 #include <vector>
 #include <stdexcept>
@@ -58,13 +56,8 @@
 ///\note
 ///"Final" doesn't seem to be supported in gcc yet. Disabling this for now; it's more trouble than it's worth to
 ///  support.
-//#ifndef SIMMOB_LATEST_STANDARD
 #define newstd_final
 #define newstd_override
-//#else
-//#define newstd_final  final
-//#define newstd_override  override
-//#endif
 
 
 

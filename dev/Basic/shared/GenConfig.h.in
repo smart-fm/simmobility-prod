@@ -27,8 +27,6 @@
 #define SIMMOB_VERSION_MAJOR "@Basic_VERSION_MAJOR@"
 #define SIMMOB_VERSION_MINOR "@Basic_VERSION_MINOR@"
 
-//TODO: These flags should also be in their own folders.
-#cmakedefine SIMMOB_LATEST_STANDARD
 
 //Miscellaneous cmake flags; define "temporary" flags here.
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE

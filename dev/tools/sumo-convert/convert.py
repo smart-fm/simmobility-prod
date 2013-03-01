@@ -124,7 +124,7 @@ class Point:
 
 
 
-def parse_edge(e, edges, lanes):
+def parse_edge_sumo(e, edges, lanes):
     #Sanity check
     if e.get('function')=='internal':
       raise Exception('Node with from/to should not be internal')
@@ -141,9 +141,39 @@ def parse_edge(e, edges, lanes):
       lanes[newLane.laneId] = newLane
 
 
-def parse_junctions(j, nodes):
+def project_coords(wgsRev, utmZone, lat, lon):
+  from LatLongUTMconversion import LLtoUTM
+
+  #Make sure we have both params, convert to float.
+  if not (lat and lon):
+    raise Exception('lat/lon required in project_coords')
+  lat = float(lat)
+  lon = float(lon)
+
+  #Make sure they are using the latest standard
+  if (wgsRev.replace(' ', '') != 'WGS84'):
+    raise Exception('Deprecated WGS specification (only WGS 84 supported)')
+
+  #Now, perform the projection. Make sure our result matches our expectations.
+  (resZone, x, y) = LLtoUTM(23, lat, lon)
+  if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
+    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (utmZone, resZone))
+
+  #All is good; return a Point
+  return Point(x,y)
+
+
+def parse_junctions_sumo(j, nodes):
     #Add a new Node
     res = Node(j.get('id'), j.get('x'), j.get('y'))
+    nodes[res.nodeId] = res
+
+def parse_nodes_osm(n, nodes):
+    #Nodes are slightly complicated by the fact that they use lat/long.
+    projected = project_coords('WGS 84', 'UTM 48N', n.get('lat'), n.get('lon'))  #Returns a point
+
+    #Add a new Node
+    res = Node(n.get('id'), projected.x, projected.y)
     nodes[res.nodeId] = res
 
 
@@ -557,8 +587,33 @@ def print_xml_format(nodes, edges, lanes, turnings):
   f.close()
 
 
+def parse_all_sumo(rootNode, nodes, edges, lanes):
+  #For each edge; ignore "internal"
+  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
+  for e in edgeTags:
+    parse_edge_sumo(e, edges, lanes)
 
-def run_main(inFile):
+  #For each junction
+  junctTags = rootNode.xpath('/net/junction')
+  for j in junctTags:
+    parse_junctions_sumo(j, nodes)
+
+
+
+def parse_all_osm(rootNode, nodes, edges, lanes):
+  #All edges
+#  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
+#  for e in edgeTags:
+#    parse_edge_sumo(e, edges, lanes)
+
+  #All nodes
+  nodeTags = rootNode.xpath('/osm/node')
+  for n in nodeTags:
+    parse_nodes_osm(n, nodes)
+
+
+
+def run_main(inFileName):
   #Result containers
   edges = {}
   lanes = {}
@@ -566,18 +621,24 @@ def run_main(inFile):
   turnings = []
 
   #Load, parse
-  inFile = open(inFile)
+  inFile = open(inFileName)
   doc = objectify.parse(inFile)
 
-  #For each edge; ignore "internal"
-  edgeTags = doc.xpath("/net/edge[(@from)and(@to)]")
-  for e in edgeTags:
-    parse_edge(e, edges, lanes)
+  #What kind of file is this?
+  format = 'U'  #U[nknown], [S]umo, [O]penStreetMap
+  if len(doc.xpath("/net"))>0:
+    format = 'S'
+  elif len(doc.xpath("/osm"))>0:
+    format = 'O'
 
-  #For each junction
-  junctTags = doc.xpath('/net/junction')
-  for j in junctTags:
-    parse_junctions(j, nodes)
+  #Parse edges, lanes, nodes
+  if format=='S':
+    parse_all_sumo(doc, nodes, edges, lanes)
+  elif format=='O':
+    parse_all_osm(doc, nodes, edges, lanes)
+  else:
+    raise Exception('Unknown road network format: ' + inFileName)
+
 
   #Remove junction nodes which aren't referenced by anything else.
   nodesPruned = len(nodes)

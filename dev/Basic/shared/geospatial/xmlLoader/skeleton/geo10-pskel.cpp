@@ -7630,11 +7630,6 @@ namespace sim_mob
     {
     }
 
-    void Plan_t_pskel::
-    post_Plan_t ()
-    {
-    }
-
     bool Plan_t_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
@@ -7698,12 +7693,7 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    plan ()
-    {
-    }
-
-    void Plans_t_pskel::
-    post_Plans_t ()
+    plan (std::pair<short,std::vector<double> >)
     {
     }
 
@@ -7740,10 +7730,7 @@ namespace sim_mob
       if (n == "plan" && ns.empty ())
       {
         if (this->plan_parser_)
-        {
-          this->plan_parser_->post_Plan_t ();
-          this->plan ();
-        }
+          this->plan (this->plan_parser_->post_Plan_t ());
 
         return true;
       }
@@ -8415,7 +8402,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    ChoiceSet ()
+    ChoiceSet (std::vector<std::vector<double> >)
     {
     }
 
@@ -8506,10 +8493,7 @@ namespace sim_mob
       if (n == "ChoiceSet" && ns.empty ())
       {
         if (this->ChoiceSet_parser_)
-        {
-          this->ChoiceSet_parser_->post_Plans_t ();
-          this->ChoiceSet ();
-        }
+          this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
 
         return true;
       }

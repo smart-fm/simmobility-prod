@@ -29,8 +29,9 @@ void sim_mob::xml::SplitPlan_t_pimpl::offset (unsigned char value)
 	model.offset =  static_cast<unsigned short> (value);
 }
 
-void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet ()
+void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet (std::vector<std::vector<double> > &value)
 {
+	model.setCoiceSet(value );
 }
 
 

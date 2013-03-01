@@ -329,7 +329,7 @@ private:
 class Plan_t_pimpl: public virtual Plan_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Plan_t ();
+	virtual std::pair<short int, std::vector<double> > post_Plan_t ();
 
 	virtual void planID (unsigned char);
 	virtual void PhasePercentage (double);
@@ -424,7 +424,7 @@ public:
 	virtual void splitplanID (unsigned int);
 	virtual void cycleLength (unsigned char);
 	virtual void offset (unsigned char);
-	virtual void ChoiceSet ();
+	virtual void ChoiceSet (std::vector<std::vector<double> >&);
 };
 
 
@@ -432,7 +432,7 @@ class Signal_t_pimpl: public virtual Signal_t_pskel {
 
 public:
 	typedef sim_mob::xml::helper::SignalHelper SignalHelper_;
-	Signal_t_pimpl(helper::Bookkeeping& book_, helper::SignalHelper & signal_) : book(book_),signalHelper(signal_){}
+	Signal_t_pimpl(helper::Bookkeeping& book_) : book(book_){}
 	virtual void pre ();
 	virtual sim_mob::Signal* post_Signal_t ();
 	virtual void phases (sim_mob::Signal::phases);
@@ -443,7 +443,7 @@ public:
 //	virtual void SplitPlan (sim_mob::SplitPlan);
 	virtual void SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info SCATS_Info_);
 private:
-	SignalHelper_ &signalHelper;
+	SignalHelper_ signalHelper;
 	helper::Bookkeeping& book;
 	sim_mob::Signal* model;
 };
@@ -455,7 +455,7 @@ public:
 	virtual void pre ();
 	virtual sim_mob::xml::helper::SignalHelper::SCATS_Info  post_SCATS_t ();
 	virtual void signalTimingMode (int);
-	virtual void SplitPlan (sim_mob::SplitPlan);
+	virtual void SplitPlan (sim_mob::SplitPlan&);
 //	SCATS_t_pimpl(helper::Bookkeeping& book_, helper::SignalHelper & signal_) : book(book_),signalHelper(signal_){}
 
 private:

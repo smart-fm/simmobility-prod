@@ -34,7 +34,7 @@ enum TrafficControlMode
 class SplitPlan
 {
 
-//	friend class geo::SplitPlan_t_pimpl;
+	friend class sim_mob::xml::SplitPlan_t_pimpl;
 //	friend class geo::Signal_t_pimpl;
 public:
 	typedef boost::multi_index_container<

@@ -60,6 +60,6 @@ ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<Traffi
 std::pair<sim_mob::Crossing *, sim_mob::Crossings> sim_mob::xml::crossings_map_t_pimpl:://todo:make reference
 post_crossings_map_t ()
 {
-	std::cout << "Sending a crossing pair with key " << model.crossig << "\n";
+//	std::cout << "Sending a crossing pair with key " << model.crossig << "\n";
   return std::make_pair(model.crossig,model);
 }

@@ -3300,8 +3300,8 @@ namespace sim_mob
       virtual void
       PhasePercentage (double);
 
-      virtual void
-      post_Plan_t ();
+      virtual std::pair<short,std::vector<double> >
+      post_Plan_t () = 0;
 
       // Parser construction API.
       //
@@ -3345,10 +3345,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      plan ();
+      plan (std::pair<short,std::vector<double> >);
 
-      virtual void
-      post_Plans_t ();
+      virtual std::vector<std::vector<double> >
+      post_Plans_t () = 0;
 
       // Parser construction API.
       //
@@ -3832,7 +3832,7 @@ namespace sim_mob
       offset (unsigned char);
 
       virtual void
-      ChoiceSet ();
+      ChoiceSet (std::vector<std::vector<double> >);
 
       virtual sim_mob::SplitPlan
       post_SplitPlan_t () = 0;

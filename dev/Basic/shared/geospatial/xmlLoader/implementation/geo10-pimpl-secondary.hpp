@@ -368,6 +368,7 @@ private:
 
 
 class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel {
+	sim_mob::LinkAndCrossingC model;
 public:
 	virtual void pre ();
 
@@ -387,7 +388,7 @@ public:
 class Plans_t_pimpl: public virtual Plans_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Plans_t ();
+	virtual std::vector<std::vector<double> > post_Plans_t ();
 
 	virtual void Plan ();
 };

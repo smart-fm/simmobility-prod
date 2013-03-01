@@ -11,7 +11,7 @@ void sim_mob::xml::SCATS_t_pimpl::signalTimingMode (int value)
 	model.signalTimingMode = value;
 }
 
-void sim_mob::xml::SCATS_t_pimpl::SplitPlan (sim_mob::SplitPlan value)
+void sim_mob::xml::SCATS_t_pimpl::SplitPlan (sim_mob::SplitPlan& value)
 {
 	model.SplitPlan = value;
 }

@@ -7,7 +7,7 @@ using namespace sim_mob::xml;
 void sim_mob::xml::Signal_t_pimpl::pre ()
 {
 	  signalHelper.clearSignalHelper();
-	  model = signalHelper.getBasicSignal();//this is what will be finally returned
+	  model = signalHelper.getTargetSignal();//this is what will be finally returned
 }
 
 sim_mob::Signal* sim_mob::xml::Signal_t_pimpl::post_Signal_t ()

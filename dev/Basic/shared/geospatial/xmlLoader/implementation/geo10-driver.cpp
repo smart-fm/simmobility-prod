@@ -101,7 +101,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 	    ::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
 	    ::sim_mob::xml::Signals_t_pimpl Signals_t_p;
-	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p(book,signal);
+	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p(book);
 	    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
 //	    ::sim_mob::xml::signalTimingMode_t_pimpl signalAlgorithm_t_p;
 	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;

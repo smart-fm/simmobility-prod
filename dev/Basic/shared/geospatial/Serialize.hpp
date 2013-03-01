@@ -240,7 +240,7 @@ void write_xml(XmlWriter& write, const std::map<sim_mob::centimeter_t, const sim
 			const Crossing* cr = dynamic_cast<const Crossing*>(it->second);
 			write.prop_begin("Crossing");
 			write.prop("id", cr->getRoadItemID());
-			write.prop("offset", it->first);
+			write.prop("Offset", it->first);
 			write.prop("start", cr->getStart());
 			write.prop("end", cr->getEnd());
 			write.prop("nearLine", cr->nearLine);

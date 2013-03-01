@@ -39,10 +39,9 @@ void PrintArray(const std::vector<int>& ids, const std::string& label="", const 
 
 class Logger
 {
-private:
+public:
 	static boost::mutex global_mutex;
 
-public:
 	static bool log_init(const std::string& path) {
 		if (!path.empty()) {
 			file_output.open(path.c_str());

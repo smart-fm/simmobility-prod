@@ -534,8 +534,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 		if (Debug::Drivers && !DebugStream.str().empty()) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout << DebugStream.str();
+				SyncCout(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -1359,8 +1358,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout << DebugStream.str();
+				SyncCout(DebugStream.str());
 			}
 		}
 
@@ -1930,8 +1928,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 				if (Debug::Drivers) {
 					if (ConfigParams::GetInstance().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-						boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-						std::cout << DebugStream.str();
+						SyncCout(DebugStream.str());
 					}
 				}
 

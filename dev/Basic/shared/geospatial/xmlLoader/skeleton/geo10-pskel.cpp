@@ -2132,14 +2132,14 @@ namespace sim_mob
     }
 
     void ColorDuration_t_pskel::
-    Duration_parser (::xml_schema::unsigned_byte_pskel& p)
+    Duration_parser (::xml_schema::short_pskel& p)
     {
       this->Duration_parser_ = &p;
     }
 
     void ColorDuration_t_pskel::
     parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
-             ::xml_schema::unsigned_byte_pskel& Duration)
+             ::xml_schema::short_pskel& Duration)
     {
       this->TrafficColor_parser_ = &TrafficColor;
       this->Duration_parser_ = &Duration;
@@ -7617,14 +7617,6 @@ namespace sim_mob
       return false;
     }
 
-    // signalTimingMode_t_pskel
-    //
-
-    void signalTimingMode_t_pskel::
-    post_signalTimingMode_t ()
-    {
-    }
-
     // Plan_t_pskel
     //
 
@@ -7635,11 +7627,6 @@ namespace sim_mob
 
     void Plan_t_pskel::
     PhasePercentage (double)
-    {
-    }
-
-    void Plan_t_pskel::
-    post_Plan_t ()
     {
     }
 
@@ -7706,12 +7693,7 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    plan ()
-    {
-    }
-
-    void Plans_t_pskel::
-    post_Plans_t ()
+    plan (std::pair<short,std::vector<double> >)
     {
     }
 
@@ -7748,10 +7730,7 @@ namespace sim_mob
       if (n == "plan" && ns.empty ())
       {
         if (this->plan_parser_)
-        {
-          this->plan_parser_->post_Plan_t ();
-          this->plan ();
-        }
+          this->plan (this->plan_parser_->post_Plan_t ());
 
         return true;
       }
@@ -7759,24 +7738,16 @@ namespace sim_mob
       return false;
     }
 
-    // TrafficColor_t_pskel
-    //
-
-    void TrafficColor_t_pskel::
-    post_TrafficColor_t ()
-    {
-    }
-
     // ColorDuration_t_pskel
     //
 
     void ColorDuration_t_pskel::
-    TrafficColor ()
+    TrafficColor (sim_mob::TrafficColor)
     {
     }
 
     void ColorDuration_t_pskel::
-    Duration (unsigned char)
+    Duration (short)
     {
     }
 
@@ -7823,10 +7794,7 @@ namespace sim_mob
       if (n == "TrafficColor" && ns.empty ())
       {
         if (this->TrafficColor_parser_)
-        {
-          this->TrafficColor_parser_->post_TrafficColor_t ();
-          this->TrafficColor ();
-        }
+          this->TrafficColor (this->TrafficColor_parser_->post_TrafficColor_t ());
 
         return true;
       }
@@ -7834,7 +7802,7 @@ namespace sim_mob
       if (n == "Duration" && ns.empty ())
       {
         if (this->Duration_parser_)
-          this->Duration (this->Duration_parser_->post_unsigned_byte ());
+          this->Duration (this->Duration_parser_->post_short ());
 
         return true;
       }
@@ -7851,7 +7819,7 @@ namespace sim_mob
     }
 
     void ColorSequence_t_pskel::
-    ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>)
+    ColorDuration (std::pair<sim_mob::TrafficColor,short>)
     {
     }
 
@@ -7987,7 +7955,7 @@ namespace sim_mob
     }
 
     void links_map_t_pskel::
-    ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
     {
     }
 
@@ -8108,12 +8076,7 @@ namespace sim_mob
     //
 
     void crossings_maps_t_pskel::
-    crossings_map ()
-    {
-    }
-
-    void crossings_maps_t_pskel::
-    post_crossings_maps_t ()
+    crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>)
     {
     }
 
@@ -8150,10 +8113,7 @@ namespace sim_mob
       if (n == "crossings_map" && ns.empty ())
       {
         if (this->crossings_map_parser_)
-        {
-          this->crossings_map_parser_->post_crossings_map_t ();
-          this->crossings_map ();
-        }
+          this->crossings_map (this->crossings_map_parser_->post_crossings_map_t ());
 
         return true;
       }
@@ -8175,12 +8135,7 @@ namespace sim_mob
     }
 
     void crossings_map_t_pskel::
-    ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >)
-    {
-    }
-
-    void crossings_map_t_pskel::
-    post_crossings_map_t ()
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
     {
     }
 
@@ -8280,12 +8235,7 @@ namespace sim_mob
     }
 
     void Phase_t_pskel::
-    crossings_maps ()
-    {
-    }
-
-    void Phase_t_pskel::
-    post_Phase_t ()
+    crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>)
     {
     }
 
@@ -8376,10 +8326,7 @@ namespace sim_mob
       if (n == "crossings_maps" && ns.empty ())
       {
         if (this->crossings_maps_parser_)
-        {
-          this->crossings_maps_parser_->post_crossings_maps_t ();
-          this->crossings_maps ();
-        }
+          this->crossings_maps (this->crossings_maps_parser_->post_crossings_maps_t ());
 
         return true;
       }
@@ -8391,12 +8338,7 @@ namespace sim_mob
     //
 
     void Phases_t_pskel::
-    phase ()
-    {
-    }
-
-    void Phases_t_pskel::
-    post_Phases_t ()
+    phase (sim_mob::Phase)
     {
     }
 
@@ -8433,10 +8375,7 @@ namespace sim_mob
       if (n == "phase" && ns.empty ())
       {
         if (this->phase_parser_)
-        {
-          this->phase_parser_->post_Phase_t ();
-          this->phase ();
-        }
+          this->phase (this->phase_parser_->post_Phase_t ());
 
         return true;
       }
@@ -8463,7 +8402,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    ChoiceSet ()
+    ChoiceSet (std::vector<std::vector<double> >)
     {
     }
 
@@ -8554,10 +8493,7 @@ namespace sim_mob
       if (n == "ChoiceSet" && ns.empty ())
       {
         if (this->ChoiceSet_parser_)
-        {
-          this->ChoiceSet_parser_->post_Plans_t ();
-          this->ChoiceSet ();
-        }
+          this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
 
         return true;
       }
@@ -8569,17 +8505,12 @@ namespace sim_mob
     //
 
     void SCATS_t_pskel::
-    signalTimingMode ()
+    signalTimingMode (int)
     {
     }
 
     void SCATS_t_pskel::
     SplitPlan (sim_mob::SplitPlan)
-    {
-    }
-
-    void SCATS_t_pskel::
-    post_SCATS_t ()
     {
     }
 
@@ -8626,10 +8557,15 @@ namespace sim_mob
       if (n == "signalTimingMode" && ns.empty ())
       {
         if (this->signalTimingMode_parser_)
-        {
-          this->signalTimingMode_parser_->post_signalTimingMode_t ();
-          this->signalTimingMode ();
-        }
+          this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
+
+        return true;
+      }
+
+      if (n == "SplitPlan" && ns.empty ())
+      {
+        if (this->SplitPlan_parser_)
+          this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
 
         return true;
       }
@@ -8664,12 +8600,12 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    phases ()
+    phases (sim_mob::Signal::phases)
     {
     }
 
     void Signal_t_pskel::
-    SCATS ()
+    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info)
     {
     }
 
@@ -8770,10 +8706,7 @@ namespace sim_mob
       if (n == "phases" && ns.empty ())
       {
         if (this->phases_parser_)
-        {
-          this->phases_parser_->post_Phases_t ();
-          this->phases ();
-        }
+          this->phases (this->phases_parser_->post_Phases_t ());
 
         return true;
       }
@@ -8781,10 +8714,7 @@ namespace sim_mob
       if (n == "SCATS" && ns.empty ())
       {
         if (this->SCATS_parser_)
-        {
-          this->SCATS_parser_->post_SCATS_t ();
-          this->SCATS ();
-        }
+          this->SCATS (this->SCATS_parser_->post_SCATS_t ());
 
         return true;
       }
@@ -8797,11 +8727,6 @@ namespace sim_mob
 
     void Signals_t_pskel::
     Signal (sim_mob::Signal*)
-    {
-    }
-
-    void Signals_t_pskel::
-    post_Signals_t ()
     {
     }
 
@@ -8914,7 +8839,7 @@ namespace sim_mob
     }
 
     void SimMobility_t_pskel::
-    Signals ()
+    Signals (std::vector<sim_mob::Signal*>)
     {
     }
 
@@ -8998,10 +8923,7 @@ namespace sim_mob
       if (n == "Signals" && ns.empty ())
       {
         if (this->Signals_parser_)
-        {
-          this->Signals_parser_->post_Signals_t ();
-          this->Signals ();
-        }
+          this->Signals (this->Signals_parser_->post_Signals_t ());
 
         return true;
       }

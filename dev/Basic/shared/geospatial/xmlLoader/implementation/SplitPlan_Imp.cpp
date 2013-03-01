@@ -5,38 +5,33 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::SplitPlan_t_pimpl::pre ()
 {
+	model = sim_mob::SplitPlan();
 }
 
 sim_mob::SplitPlan sim_mob::xml::SplitPlan_t_pimpl::post_SplitPlan_t ()
 {
-	return sim_mob::SplitPlan();
+	return model;
 }
 
 void sim_mob::xml::SplitPlan_t_pimpl::splitplanID (unsigned int value)
 {
+	 model.TMP_PlanID = value;
 	//std::cout << "splitplanID: " <<value << std::endl;
-}
-
-void sim_mob::xml::SplitPlan_t_pimpl::signalTimingMode ()
-{
 }
 
 void sim_mob::xml::SplitPlan_t_pimpl::cycleLength (unsigned char value)
 {
-	//std::cout << "cycleLength: " << static_cast<unsigned short> (value) << std::endl;
+	model.cycleLength =  static_cast<unsigned short> (value) ;
 }
 
 void sim_mob::xml::SplitPlan_t_pimpl::offset (unsigned char value)
 {
-	//std::cout << "offset: " << static_cast<unsigned short> (value) << std::endl;
+	model.offset =  static_cast<unsigned short> (value);
 }
 
-void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet ()
+void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet (std::vector<std::vector<double> > &value)
 {
-}
-
-void sim_mob::xml::SplitPlan_t_pimpl::Phases ()
-{
+	model.setCoiceSet(value );
 }
 
 

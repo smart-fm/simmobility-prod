@@ -107,7 +107,7 @@ std::string getColor(size_t id)
 		links_map_const_iterator link_it = links_map_.begin();
 		for(max_green = 0; link_it != links_map_.end() ; link_it++)
 		{
-			std::vector< std::pair<TrafficColor,std::size_t> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();
+			std::vector< std::pair<TrafficColor,short> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();
 		for (green = 0;	color_it != (*link_it).second.colorSequence.ColorDuration.end(); color_it++) {
 			if ((*color_it).first != Red) {
 				green += (*color_it).second;
@@ -267,8 +267,8 @@ void Phase::printColorDuration()
 	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
 	{
 		ColorSequence cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,std::size_t> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_color = cd.begin();
+		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
 		int greenIndex=-1, tempgreenIndex = -1;
 		for(; it_color != cd.end(); it_color++)
 		{
@@ -300,8 +300,8 @@ void Phase::calculateGreen_Links(){
 //		phaseLength is a member
 		//2.find out how long the colors other than green will take
 		ColorSequence & cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,std::size_t> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_color = cd.begin();
+		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
 		size_t other_than_green = 0;
 		int greenIndex=-1, tempgreenIndex = -1;
 		for(int tempgreenIndex = 0; it_color != cd.end(); it_color++)
@@ -340,8 +340,8 @@ void Phase::calculateGreen_Crossings(){
 //		phaseLength is a member
 		//2.find out how long the colors other than green will take
 		ColorSequence & cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,std::size_t> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_color = cd.begin();
+		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
 		size_t other_than_green = 0;
 		int greenIndex=-1, FgreenIndex = -1;
 		int tempGreenIndex = 0, tempFGreenIndex = 0;

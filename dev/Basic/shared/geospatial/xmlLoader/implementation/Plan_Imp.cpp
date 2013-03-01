@@ -7,7 +7,7 @@ void sim_mob::xml::Plan_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::Plan_t_pimpl::post_Plan_t ()
+std::pair<short int, std::vector<double> > sim_mob::xml::Plan_t_pimpl::post_Plan_t ()
 {
 }
 

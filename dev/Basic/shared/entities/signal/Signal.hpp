@@ -36,13 +36,13 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
-namespace geo
+
+namespace sim_mob
+{
+namespace xml
 {
 class Signal_t_pimpl;
 }
-namespace sim_mob
-{
-
 // Forwared declarations.
 class Node;
 class Lane;
@@ -76,7 +76,7 @@ class Signal  : public sim_mob::Agent
 {
 public:
 	typedef std::vector<sim_mob::Phase> phases;
-	friend class geo::Signal_t_pimpl;
+	friend class sim_mob::xml::Signal_t_pimpl;
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC)
 	  : Agent(mtxStrat, id), node_(node){};
    signalType getSignalType() const { return signalType_;}
@@ -103,6 +103,9 @@ public:
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
+   bool frame_init(timeslice){}
+   sim_mob::Entity::UpdateStatus frame_tick(timeslice){}
+   void frame_output(timeslice){}
 
    typedef std::vector<Signal *> All_Signals;
    static All_Signals all_signals_;
@@ -119,7 +122,7 @@ private:
 
 
 class Signal_SCATS  : public sim_mob::Signal {
-	friend class geo::Signal_t_pimpl;
+	friend class sim_mob::xml::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;

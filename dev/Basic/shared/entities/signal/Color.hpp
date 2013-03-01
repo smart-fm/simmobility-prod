@@ -52,25 +52,25 @@ public:
 		type = TrafficColorType;
 	}
 
-	ColorSequence(std::vector< std::pair<TrafficColor,std::size_t> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
+	ColorSequence(std::vector< std::pair<TrafficColor,short> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
 		ColorDuration(ColorDurationInput),
 		type(TrafficColorType){}
 
-	std::vector< std::pair<TrafficColor,std::size_t> > & getColorDuration();
+	std::vector< std::pair<TrafficColor,short> > & getColorDuration();
 	const TrafficLightType getTrafficLightType() const;
 
-	void addColorPair(std::pair<TrafficColor,std::size_t> p);
-	void addColorDuration(TrafficColor,std::size_t);
+	void addColorPair(std::pair<TrafficColor,short> p);
+	void addColorDuration(TrafficColor,short);
 	void removeColorPair(int position);
 	void clear();
 
-	void changeColorDuration(std::size_t color,std::size_t duration);
+	void changeColorDuration(std::size_t color,short duration);
 	//computes the supposed color of the sequence after a give time lapse
 	TrafficColor computeColor(double Duration);
-	void setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> >);
+	void setColorDuration(std::vector< std::pair<TrafficColor,short> >);
 	void setTrafficLightType(TrafficLightType);
 private:
-	std::vector< std::pair<TrafficColor,std::size_t> > ColorDuration;
+	std::vector< std::pair<TrafficColor,short> > ColorDuration;
 	TrafficLightType type;
 //public:
 //	void operator= (const  ColorSequence & c)

@@ -54,7 +54,7 @@ namespace sim_mob {
 		return laneStatsMap.find(lane)->second->dequeue();
 	}
 
-	std::vector<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
+	std::deque<sim_mob::Agent*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
 		return laneStatsMap.find(lane)->second->laneAgents;
 	}
 
@@ -64,8 +64,8 @@ namespace sim_mob {
 		{
 			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++ ){
 				if(i->first == laneInfinity) { // Lane infinities are created individually for each segment stats
-					std::vector<sim_mob::Agent*> agentsOnLnInfinity = segStats->getAgents(segStats->laneInfinity);
-					std::vector<sim_mob::Agent*>::iterator agIt = agentsOnLnInfinity.begin();
+					std::deque<sim_mob::Agent*> agentsOnLnInfinity = segStats->getAgents(segStats->laneInfinity);
+					std::deque<sim_mob::Agent*>::iterator agIt = agentsOnLnInfinity.begin();
 					while (agIt != agentsOnLnInfinity.end()) {
 						(*agIt)->setCurrLane(i->first); // lane infinities are different for each SegmentStats. It has to be set explicitly.
 						i->second->addAgent(*agIt);
@@ -310,7 +310,7 @@ namespace sim_mob {
 			queueCount--;
 	}
 
-	void LaneStats::addAgents(std::vector<sim_mob::Agent*> agents, unsigned int numQueuing) {
+	void LaneStats::addAgents(std::deque<sim_mob::Agent*> agents, unsigned int numQueuing) {
 		if(agents.size() > 0) {
 			queueCount = queueCount + numQueuing;
 			laneAgents.insert(laneAgents.end(), agents.begin(), agents.end());
@@ -318,7 +318,7 @@ namespace sim_mob {
 	}
 
 	void sim_mob::LaneStats::removeAgent(sim_mob::Agent* ag) {
-		std::vector<sim_mob::Agent*>::iterator agIt =  std::find(laneAgents.begin(), laneAgents.end(), ag);
+		std::deque<sim_mob::Agent*>::iterator agIt =  std::find(laneAgents.begin(), laneAgents.end(), ag);
 		if(agIt != laneAgents.end()){
 			laneAgents.erase(agIt);
 		}
@@ -544,12 +544,12 @@ namespace sim_mob {
 
 	void LaneStats::printAgents() {
 		debugMsgs << "Lane " << lane->getLaneID();
-		for(std::vector<sim_mob::Agent*>::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++) {
+		for(std::deque<sim_mob::Agent*>::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++) {
 			debugMsgs << "|" << (*i)->getId();
 		}
 		debugMsgs <<std::endl;
 		debugMsgs << "LaneCopy " << lane->getLaneID();
-		for(std::vector<sim_mob::Agent*>::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++) {
+		for(std::deque<sim_mob::Agent*>::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++) {
 			debugMsgs << "|" << (*i)->getId();
 		}
 		debugMsgs <<std::endl;
@@ -559,7 +559,7 @@ namespace sim_mob {
 
 	void LaneStats::verifyOrdering() {
 		double distance = -1.0;
-		for(std::vector<sim_mob::Agent*>::const_iterator i = laneAgents.begin(); i!=laneAgents.end(); i++) {
+		for(std::deque<sim_mob::Agent*>::const_iterator i = laneAgents.begin(); i!=laneAgents.end(); i++) {
 			if(distance >= (*i)->distanceToEndOfSegment) {
 				debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
 						<< "\nSegment: [" << lane->getRoadSegment()->getStart()->getID() << "," << lane->getRoadSegment()->getEnd()->getID() << "] "
@@ -567,7 +567,7 @@ namespace sim_mob {
 						<< "\nLane: " << lane->getLaneID()
 						<< "\nCulprit Agent: " << (*i)->getId();
 				debugMsgs << "\nAgents ";
-				for(std::vector<sim_mob::Agent*>::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++) {
+				for(std::deque<sim_mob::Agent*>::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++) {
 					debugMsgs << "|" << (*j)->getId() << "--" << (*j)->distanceToEndOfSegment;
 				}
 				throw std::runtime_error(debugMsgs.str());

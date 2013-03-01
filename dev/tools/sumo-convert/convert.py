@@ -594,6 +594,7 @@ def print_xml_format(nodes, edges, lanes, turnings):
   write_xml_links(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
   f.write('    </RoadNetwork>\n')
   f.write('    </GeoSpatial>\n')
+  f.write('</geo:SimMobility>\n')
 
   #Done
   f.close()

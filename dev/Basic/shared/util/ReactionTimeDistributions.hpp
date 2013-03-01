@@ -9,8 +9,17 @@
 
 #include <boost/random.hpp>
 #include <boost/math/distributions.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
+#include <boost/version.hpp>
 
+//Boost::Random is slightly messy re: uniform_int_distribution >1.47.0
+//For now we just workaround via a macro and another define (which is undone after this file).
+#if BOOST_VERSION >= 104700
+#include <boost/random/uniform_int_distribution.hpp>
+#define  boost_uniform_int  boost::random::uniform_int_distribution
+#else
+#include <boost/random/uniform_int.hpp>
+#define  boost_uniform_int  boost::uniform_int
+#endif
 
 namespace sim_mob {
 
@@ -25,7 +34,7 @@ public:
 class UniformReactionTimeDist : public ReactionTimeDist {
 private:
 	boost::mt19937 gen;
-	boost::random::uniform_int_distribution<> dist;
+	boost_uniform_int<> dist;
 
 public:
 	UniformReactionTimeDist(double min, double max)
@@ -71,3 +80,7 @@ public:
 
 
 }
+
+//Remove our macro; we don't need it after this.
+#undef  boost_uniform_int
+

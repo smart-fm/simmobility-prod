@@ -394,14 +394,137 @@ def write_xml_nodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
   f.write('        </Intersections>\n')
   f.write('      </Nodes>\n')
 
+
+#Distance between 2 nodes/points
+def dist(m, n):
+  #Convert to Point
+  if isinstance(m, Node):
+    m = m.pos
+  if isinstance(n, Node):
+    n = n.pos
+
+  #Calc distance
+  dx = n.x - m.x;
+  dy = n.y - m.y;
+  return math.sqrt(dx**2 + dy**2);
+
+
+
+def write_xml_lane_edge_polylines(f, lane_edges):
+  #Relatively simple layout
+  curr_id = 0
+  for le in lane_edges:
+    f.write('                <laneEdgePolyline_cached>\n')
+    f.write('                  <laneNumber>%d</laneNumber>\n' % curr_id)
+    curr_id += 1
+    f.write('                  <polyline>\n')
+    pt_id = 0
+    for p in le.points:
+      f.write('                    <PolyPoint>\n')
+      f.write('                      <pointID>%d</pointID>\n' % pt_id)
+      pt_id += 1
+      f.write('                      <location>\n')
+      f.write('                        <xPos>%d</xPos>\n' % p.x)
+      f.write('                        <yPos>%d</yPos>\n' % p.y)
+      f.write('                      </location>\n')
+      f.write('                    </PolyPoint>\n')
+    f.write('                  </polyline>\n')
+    f.write('                </laneEdgePolyline_cached>\n')
+
+
+def write_xml_lanes(f, lanes, lane_ids, est_width):
+  #Lanes just have a lot of properties; we fake nearly all of them.
+  for l in lanes:
+    f.write('                <Lane>\n')
+    f.write('                  <laneID>%d</laneID>\n' % lane_ids[l.laneId])
+    f.write('                  <width>%d</width>\n' % est_width)
+    f.write('                  <can_go_straight>true</can_go_straight>\n')
+    f.write('                  <can_turn_left>true</can_turn_left>\n')
+    f.write('                  <can_turn_right>true</can_turn_right>\n')
+    f.write('                  <can_turn_on_red_signal>false</can_turn_on_red_signal>\n')
+    f.write('                  <can_change_lane_left>true</can_change_lane_left>\n')
+    f.write('                  <can_change_lane_right>true</can_change_lane_right>\n')
+    f.write('                  <is_road_shoulder>false</is_road_shoulder>\n')
+    f.write('                  <is_bicycle_lane>false</is_bicycle_lane>\n')
+    f.write('                  <is_pedestrian_lane>false</is_pedestrian_lane>\n')
+    f.write('                  <is_vehicle_lane>true</is_vehicle_lane>\n')
+    f.write('                  <is_standard_bus_lane>false</is_standard_bus_lane>\n')
+    f.write('                  <is_whole_day_bus_lane>false</is_whole_day_bus_lane>\n')
+    f.write('                  <is_high_occupancy_vehicle_lane>false</is_high_occupancy_vehicle_lane>\n')
+    f.write('                  <can_freely_park_here>false</can_freely_park_here>\n')
+    f.write('                  <can_stop_here>false</can_stop_here>\n')
+    f.write('                  <is_u_turn_allowed>false</is_u_turn_allowed>\n')
+    f.write('                  <PolyLine>\n')
+    pt_id = 0
+    for p in l.shape.points:
+      f.write('                    <PolyPoint>\n')
+      f.write('                      <pointID>%d</pointID>\n' % pt_id)
+      pt_id += 1
+      f.write('                      <location>\n')
+      f.write('                        <xPos>%d</xPos>\n' % p.x)
+      f.write('                        <yPos>%d</yPos>\n' % p.y)
+      f.write('                      </location>\n')
+      f.write('                    </PolyPoint>\n')
+    f.write('                  </PolyLine>\n')
+    f.write('                </Lane>\n')
+
+
+def write_xml_segment(f, e, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
+  #Each Link has only 1 segment
+  seg_width = dist(e.lane_edges[0].points[0],e.lane_edges[-1].points[0])
+  f.write('            <Segment>\n')
+  f.write('              <segmentID>%d</segmentID>\n' % edge_ids[e.edgeId])
+  f.write('              <startingNode>%d</startingNode>\n' % node_ids[e.fromNode])
+  f.write('              <endingNode>%d</endingNode>\n' % node_ids[e.toNode])
+  f.write('              <maxSpeed>60</maxSpeed>\n')
+  f.write('              <Length>%d</Length>\n' % dist(nodes[e.fromNode],nodes[e.toNode]))
+  f.write('              <Width>%d</Width>\n' % seg_width)
+  f.write('              <polyline>\n')
+  f.write('                <PolyPoint>\n')
+  f.write('                  <pointID>0</pointID>\n')
+  f.write('                  <location>\n')
+  f.write('                    <xPos>%d</xPos>\n' % nodes[e.fromNode].pos.x)
+  f.write('                    <yPos>%d</yPos>\n' % nodes[e.fromNode].pos.y)
+  f.write('                  </location>\n')
+  f.write('                </PolyPoint>\n')
+  f.write('                <PolyPoint>\n')
+  f.write('                  <pointID>1</pointID>\n')
+  f.write('                  <location>\n')
+  f.write('                    <xPos>%d</xPos>\n' % nodes[e.toNode].pos.x)
+  f.write('                    <yPos>%d</yPos>\n' % nodes[e.toNode].pos.y)
+  f.write('                  </location>\n')
+  f.write('                </PolyPoint>\n')
+  f.write('              </polyline>\n')
+  f.write('              <laneEdgePolylines_cached>\n')
+  write_xml_lane_edge_polylines(f, e.lane_edges)
+  f.write('              </laneEdgePolylines_cached>\n')
+  f.write('              <Lanes>\n')
+  write_xml_lanes(f, e.lanes, lane_ids, seg_width/float(len(e.lanes)))
+  f.write('              </Lanes>\n')
+  f.write('              <Obstacles>\n')  #No obstacles for now, but we might generate pedestrian crossings later.
+  f.write('              </Obstacles>\n')
+  f.write('            </Segment>\n')
+
+def write_xml_links(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids):
   #Write Links
-  #TODO
+  f.write('      <Links>\n')
+  for e in edges.values():
+    f.write('        <Link>\n')
+    f.write('          <linkID>%d</linkID>\n' % edge_ids[e.edgeId])
+    f.write('          <roadName/>\n')
+    f.write('          <StartingNode>%d</StartingNode>\n' % node_ids[e.fromNode])
+    f.write('          <EndingNode>%d</EndingNode>\n' % node_ids[e.toNode])
+    f.write('          <Segments>\n')
+    write_xml_segment(f, e, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
+    f.write('          </Segments>\n')
+    f.write('        </Link>\n')
+  f.write('      </Links>\n')
 
 
 def print_xml_format(nodes, edges, lanes, turnings):
   #We need integer-style IDs for sim mobility
   node_ids = {}
-  link_ids = {}
+  #link_ids = {} (same)
   edge_ids = {}
   lane_ids = {}
 
@@ -424,6 +547,7 @@ def print_xml_format(nodes, edges, lanes, turnings):
   f.write('    <GeoSpatial>\n')
   f.write('    <RoadNetwork>\n')
   write_xml_nodes(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
+  write_xml_links(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
   f.write('    </RoadNetwork>\n')
   f.write('    </GeoSpatial>\n')
 

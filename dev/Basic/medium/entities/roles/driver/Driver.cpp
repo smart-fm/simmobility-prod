@@ -161,11 +161,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	}
 	else
 	{
-		/*std::cout<<"cangoto failed"<<std::endl;*/
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "Driver cannot be started in new segment, will remain in lane infinity!\n";
-#endif
+		SyncCout("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
 	}
 }
 
@@ -212,11 +208,10 @@ void sim_mob::medium::Driver::setParentData() {
 void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers || ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
 
-#ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 	logout << "(\"Driver\""
 			<<","<<parent->getId()
@@ -236,7 +231,6 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 		logout << "\"})" << std::endl;
 
 		LogOut(logout.str());
-#endif
 }
 
 Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
@@ -480,10 +474,7 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	}
 
 	if( !minQueueLengthLane){
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "ERROR: best target lane was not set!\n";
-#endif
+		SyncCout("ERROR: best target lane was not set!" <<std::endl);
 	}
 	return minQueueLengthLane;
 }
@@ -516,12 +507,10 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 		vehicle->moveFwd_med(distance);
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
-
-#ifndef SIMMOB_DISABLE_OUTPUT
-			DebugStream << ">>>Exception: " << ex.what() << endl;
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << DebugStream.str();
-#endif
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				DebugStream << ">>>Exception: " << ex.what() << endl;
+				SyncCout(DebugStream.str());
+			}
 		}
 
 		std::stringstream msg;

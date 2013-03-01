@@ -326,16 +326,15 @@ void sim_mob::Conflux::setTravelTimes(Agent* ag, double linkExitTime) {
 }
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-	std::map<const Link*, travelTimes>::const_iterator it = LinkTravelTimesMap.begin();
-	for( ; it != LinkTravelTimesMap.end(); ++it )
-	{
-		LogOut("(\"linkTravelTime\""
-			<<","<<frameNumber.frame()
-			<<","<<it->first->getLinkId()
-			<<",{"
-			<<"\"travelTime\":\""<< (it->second.linkTravelTime_)/(it->second.agentCount_)
-			<<"\"})"<<std::endl);
-#endif
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		std::map<const Link*, travelTimes>::const_iterator it = LinkTravelTimesMap.begin();
+		for( ; it != LinkTravelTimesMap.end(); ++it ) {
+			LogOut("(\"linkTravelTime\""
+				<<","<<frameNumber.frame()
+				<<","<<it->first->getLinkId()
+				<<",{"
+				<<"\"travelTime\":\""<< (it->second.linkTravelTime_)/(it->second.agentCount_)
+				<<"\"})"<<std::endl);
+		}
 	}
 }

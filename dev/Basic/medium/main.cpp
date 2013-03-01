@@ -42,7 +42,7 @@
 #include "partitions/PartitionManager.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
-//      access to cout if SIMMOB_DISABLE_OUTPUT is true.
+//      access to cout if output is disabled.
 #include <iostream>
 
 using std::cout;

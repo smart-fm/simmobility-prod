@@ -1,7 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "GenConfig.h"
-
 #include "OutputUtil.hpp"
 
 #include <sstream>

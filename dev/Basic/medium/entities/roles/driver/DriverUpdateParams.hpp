@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "GenConfig.h"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/DynamicVector.hpp"

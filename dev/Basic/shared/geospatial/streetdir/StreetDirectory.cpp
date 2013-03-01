@@ -73,9 +73,6 @@ void sim_mob::StreetDirectory::updateDrivingMap()
 {
 	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
-#if 0
-		spImpl_->GeneratePathChoiceSet();
-#endif
 	}
 }
 

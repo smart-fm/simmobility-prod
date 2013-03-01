@@ -50,7 +50,6 @@ class Entity;
 class Agent;
 class Person;
 class BusController;// add by Yao Jin
-class Region;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "metrics/Length.hpp"
 #include "geospatial/Point2D.hpp"

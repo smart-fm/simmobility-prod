@@ -2,6 +2,8 @@
 
 #include "Worker.hpp"
 
+#include "GenConfig.h"
+
 #include <queue>
 #include <sstream>
 

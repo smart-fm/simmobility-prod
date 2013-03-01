@@ -6,7 +6,6 @@
 #include <map>
 #include <set>
 
-#include "GenConfig.h"
 
 #include "Node.hpp"
 #include "util/LangHelpers.hpp"
@@ -16,8 +15,7 @@ class UniNode_t_pimpl;
 class GeoSpatial_t_pimpl;
 }
 
-namespace sim_mob
-{
+namespace sim_mob {
 
 
 //Forward declarations

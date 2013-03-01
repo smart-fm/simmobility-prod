@@ -28,12 +28,8 @@ using namespace sim_mob;
 
 sim_mob::A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network)
 {
-#if 1
 	initDrivingNetworkNew(network.getLinks());
 	initWalkingNetworkNew(network.getLinks());
-#else
-	initNetworkOld(network.getLinks());
-#endif
 }
 
 /*sim_mob::A_StarShortestPathImpl::~A_StarShortestPathImpl()
@@ -1334,11 +1330,6 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
                 addCrossing(crossing, length);
             }
         }
-#if 0
-        else if (ZebraCrossing const * crossing = dynamic_cast<ZebraCrossing const *>(pair.item))
-        {
-        }
-#endif
       else if (BusStop const * busStop = dynamic_cast<BusStop const *>(pair.item))
         {
             const Point2D pos = getBusStopPosition(road, offset);

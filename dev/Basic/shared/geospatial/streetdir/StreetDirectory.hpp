@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 
 #include <map>

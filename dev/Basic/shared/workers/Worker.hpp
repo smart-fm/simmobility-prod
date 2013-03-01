@@ -28,8 +28,6 @@
 #include <boost/unordered_map.hpp>
 #include "util/FlexiBarrier.hpp"
 
-#include "GenConfig.h"
-
 #include "entities/Entity.hpp"
 
 #include "metrics/Frame.hpp"

@@ -6,7 +6,6 @@
 #include <map>
 #include <set>
 
-#include "GenConfig.h"
 #include "geospatial/RoadSegment.hpp"
 #include "Node.hpp"
 /*namespace geo {

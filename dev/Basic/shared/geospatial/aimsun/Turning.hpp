@@ -5,12 +5,9 @@
 #include <string>
 
 #include "Base.hpp"
-#include "GenConfig.h"
 
-namespace sim_mob
-{
-namespace aimsun
-{
+namespace sim_mob {
+namespace aimsun {
 
 //Forward declarations
 class Section;
@@ -25,7 +22,8 @@ public:
 	sim_mob::aimsun::Section* fromSection;
 	sim_mob::aimsun::Section* toSection;
 
-	Turning() : Base(), fromSection(nullptr), toSection(nullptr) {}
+	Turning() : Base(), fromSection(nullptr), toSection(nullptr), TMP_FromSection(0), TMP_ToSection(0)
+	{}
 
 	//Temporaries
 	int TMP_FromSection;

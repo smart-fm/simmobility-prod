@@ -5,6 +5,9 @@
 //Make sure our "test" (new) Config variant compiles.
 #include "conf/xmlLoader/implementation/conf1-driver.hpp"
 
+//simpleconf.hpp can include GenConfig.h for now (since the entire file will be deleted soon)
+#include "GenConfig.h"
+
 #include <tinyxml.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -82,6 +85,43 @@ bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
 
 
+bool sim_mob::ConfigParams::MPI_Disabled() const
+{
+#ifdef SIMMOB_DISABLE_MPI
+	return true;
+#else
+	return false;
+#endif
+}
+
+
+bool sim_mob::ConfigParams::OutputDisabled() const
+{
+#ifdef SIMMOB_DISABLE_OUTPUT
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::StrictAgentErrors() const
+{
+#ifdef SIMMOB_STRICT_AGENT_ERRORS
+	return true;
+#else
+	return false;
+#endif
+}
+
+///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
+bool sim_mob::ConfigParams::GenerateAgentUpdateProfile() const
+{
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	return true;
+#else
+	return false;
+#endif
+}
 
 
 int getValueInMS(double value, const std::string& units)

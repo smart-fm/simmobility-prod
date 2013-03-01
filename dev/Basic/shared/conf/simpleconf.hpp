@@ -23,9 +23,6 @@
 #include <string>
 #include <sstream>
 
-//simpleconf.hpp can include GenConfig.h for now (since the entire file will be deleted soon)
-#include "GenConfig.h"
-
 #include "geospatial/xmlWriter/xmlWriter.hpp"
 #include <boost/utility.hpp>
 
@@ -160,30 +157,10 @@ public:
 	}
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
-	bool MPI_Disabled() const {
-#ifdef SIMMOB_DISABLE_MPI
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool MPI_Disabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool OutputDisabled() const {
-#ifdef SIMMOB_DISABLE_OUTPUT
-		return true;
-#else
-		return false;
-#endif
-	}
-	
-	bool Output_Disabled() const {
-#ifdef SIMMOB_DISABLE_OUTPUT
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool OutputDisabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const {
@@ -192,22 +169,10 @@ public:
 
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
-	bool StrictAgentErrors() const {
-#ifdef SIMMOB_STRICT_AGENT_ERRORS
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool StrictAgentErrors() const;
 
 	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-	bool GenerateAgentUpdateProfile() const {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool GenerateAgentUpdateProfile() const ;
 
 
 public:

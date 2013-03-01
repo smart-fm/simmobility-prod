@@ -2,7 +2,10 @@
 
 #include "Agent.hpp"
 
+//GenConfig is still needed for SIMMOB_AGENT_UPDATE_PROFILE
 #include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/StrictAgentErrors.h"
 
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
@@ -292,106 +295,6 @@ void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-//void sim_mob::Agent::pack(PackageUtils& packageUtil) {
-//	//std::cout << "Agent package Called" <<this->getId()<< std::endl;
-//
-//	packageUtil.packBasicData(id);
-//	//packageUtil.packBasicData(isSubscriptionListBuilt);
-//	packageUtil.packBasicData(startTime);
-//
-//	sim_mob::Node::pack(packageUtil, originNode);
-//	sim_mob::Node::pack(packageUtil, destNode);
-//
-////	packageUtil.packNode(originNode);
-////	packageUtil.packNode(destNode);
-//
-//	packageUtil.packBasicData(xPos.get());
-//	packageUtil.packBasicData(yPos.get());
-//	packageUtil.packBasicData(fwdVel.get());
-//	packageUtil.packBasicData(latVel.get());
-//	packageUtil.packBasicData(xAcc.get());
-//	packageUtil.packBasicData(yAcc.get());
-//
-//	packageUtil.packBasicData(toRemoved);
-//	packageUtil.packBasicData(dynamic_seed);
-//}
-//
-//void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
-//
-//	id = unpackageUtil.unpackBasicData<int> ();
-//	//std::cout << "Agent unpackage Called:" <<this->getId() << std::endl;
-//	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
-//	startTime = unpackageUtil.unpackBasicData<int> ();
-//
-//	originNode = Node::unpack(unpackageUtil);
-//	destNode = Node::unpack(unpackageUtil);
-//
-//	int x_pos, y_pos;
-//	double x_acc, y_acc;
-//	double x_vel, y_vel;
-//
-//	x_pos = unpackageUtil.unpackBasicData<int> ();
-//	y_pos = unpackageUtil.unpackBasicData<int> ();
-//	x_acc = unpackageUtil.unpackBasicData<double> ();
-//	y_acc = unpackageUtil.unpackBasicData<double> ();
-//	x_vel = unpackageUtil.unpackBasicData<double> ();
-//	y_vel = unpackageUtil.unpackBasicData<double> ();
-//
-//	xPos.force(x_pos);
-//	yPos.force(y_pos);
-//	xAcc.force(x_acc);
-//	yAcc.force(y_acc);
-//	fwdVel.force(x_vel);
-//	latVel.force(y_vel);
-//
-//	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
-//}
-//
-//void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
-//{
-//	packageUtil.packBasicData(id);
-//	//packageUtil.packBasicData(isSubscriptionListBuilt);
-//	packageUtil.packBasicData(startTime);
-//
-//	packageUtil.packBasicData(xPos.get());
-//	packageUtil.packBasicData(yPos.get());
-//	packageUtil.packBasicData(fwdVel.get());
-//	packageUtil.packBasicData(latVel.get());
-//	packageUtil.packBasicData(xAcc.get());
-//	packageUtil.packBasicData(yAcc.get());
-//
-//	packageUtil.packBasicData(toRemoved);
-//	packageUtil.packBasicData(dynamic_seed);
-//}
-
-//void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
-//	id = unpackageUtil.unpackBasicData<int> ();
-//	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
-//	startTime = unpackageUtil.unpackBasicData<int> ();
-//
-//	int x_pos, y_pos;
-//	double x_acc, y_acc;
-//	double x_vel, y_vel;
-//
-//	x_pos = unpackageUtil.unpackBasicData<int> ();
-//	y_pos = unpackageUtil.unpackBasicData<int> ();
-//	x_acc = unpackageUtil.unpackBasicData<double> ();
-//	y_acc = unpackageUtil.unpackBasicData<double> ();
-//	x_vel = unpackageUtil.unpackBasicData<double> ();
-//	y_vel = unpackageUtil.unpackBasicData<double> ();
-//
-//	xPos.force(x_pos);
-//	yPos.force(y_pos);
-//	xAcc.force(x_acc);
-//	yAcc.force(y_acc);
-//	fwdVel.force(x_vel);
-//	latVel.force(y_vel);
-//
-//	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
-//}
-
 int sim_mob::Agent::getOwnRandomNumber() {
 	int one_try = -1;
 	int second_try = -2;

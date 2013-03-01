@@ -106,9 +106,11 @@ public:
 
 	void addCrossing(sim_mob::Crossing* crossing) {
 		unsigned long id = crossing->getCrossingID();
-		if (crossingLookup.count(id)>0) {
-			throw std::runtime_error("Crossing already registered with bookkeeper.");
-		}
+//		if (crossingLookup.count(id)>0) {
+//			std::cout << id << " ";
+//			throw std::runtime_error("Crossing already registered with bookkeeper.");
+//		}
+//		std::cout << " Crossing " << id << " added \n";
 		crossingLookup[id] = crossing;
 	}
 	sim_mob::Crossing* getCrossing(unsigned long id) const {

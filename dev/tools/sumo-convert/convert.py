@@ -17,7 +17,7 @@ from lxml import etree
 class RoadNetwork:
   def __init__(self):
     self.nodes = {}    #origId => Node
-    self.edges = {}    #origId => Edge
+    self.links = {}    #origId => Link
     self.lanes = {}    #origId => Lane
     self.turnings = [] #LaneConnector
 
@@ -37,13 +37,22 @@ class Node:
       raise Exception('isUni not defined for Node')
     return self.is_uni
 
+class Link:
+  def __init__(self, linkId, fromNode, toNode):
+    if not (linkId and fromNode and toNode):
+      raise Exception('Null parameters in Link constructor')
+    self.linkId = str(linkId)
+    self.guid = None
+    self.fromNode = str(fromNode)
+    self.toNode = str(toNode)
+    self.segments = [] #List of segment IDs
+
 class Edge:
   def __init__(self, edgeId, fromNode, toNode):
     if not (edgeId and fromNode and toNode):
       raise Exception('Null parameters in Edge constructor')
     self.edgeId = str(edgeId)
     self.guid = None
-    self.guidLink = None  #Edges and Links are 1-to-1 for now.
     self.fromNode = str(fromNode)
     self.toNode = str(toNode)
     self.lanes = []
@@ -51,9 +60,9 @@ class Edge:
 
 #Note that "from/toLaneId" are zero-numbered, not actual lane IDs
 class LaneConnector:
-  def __init__(self, fromSegId, toSegId, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
-    self.fromSegId = fromSegId
-    self.toSegId = toSegId
+  def __init__(self, fromSegment, toSegment, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
+    self.fromSegment = fromSegment  #These are references
+    self.toSegment = toSegment      #These are references
     self.fromLaneId = fromLaneId
     self.toLaneId = toLaneId
     self.laneFromOrigId = laneFromOrigId
@@ -144,20 +153,22 @@ class Point:
 
 
 
-def parse_edge_sumo(e, edges, lanes):
+def parse_edge_sumo(e, links, lanes):
     #Sanity check
     if e.get('function')=='internal':
       raise Exception('Node with from/to should not be internal')
 
-    #Add a new edge
-    res = Edge(e.get('id'), e.get('from'), e.get('to'))
-    edges[res.edgeId] = res
+    #Add a new edge/link (both with the same "sumo id")
+    res = Link(e.get('id'), e.get('from'), e.get('to'))
+    primEdge = Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
+    res.segments.append(primEdge)
+    links[res.linkId] = res
 
     #Add child Lanes
     laneTags = e.xpath("lane")
     for l in laneTags:
       newLane = Lane(l.get('id'), l.get('shape'))
-      res.lanes.append(newLane)
+      primEdge.lanes.append(newLane)
       lanes[newLane.laneId] = newLane
 
 
@@ -197,12 +208,13 @@ def parse_nodes_osm(n, nodes):
     nodes[res.nodeId] = res
 
 
-def remove_unused_nodes(nodes, edges):
+def remove_unused_nodes(nodes, links):
   #Just rebuild the hash using the edges as a guide
   res_nodes = {}
-  for e in edges.values():
-    res_nodes[e.fromNode] = nodes[e.fromNode]
-    res_nodes[e.toNode] = nodes[e.toNode]
+  for lk in links.values():
+    for e in lk.segments:
+      res_nodes[e.fromNode] = nodes[e.fromNode]
+      res_nodes[e.toNode] = nodes[e.toNode]
 
   #Now flip it
   nodes.clear()
@@ -217,12 +229,13 @@ class InOut:
 def make_lane_connectors(rn):
   #First, make a list of all "incoming" and "outgoing" edges at a given node
   lookup = {}  #nodeId => InOut
-  for e in rn.edges.values():
-    #Give it an entry
-    if not (e.fromNode in lookup):
-      lookup[e.fromNode] = InOut()
-    if not (e.toNode in lookup):
-      lookup[e.toNode] = InOut()
+  for lk in rn.links.values():
+    for e in lk.segments:
+      #Give it an entry
+      if not (e.fromNode in lookup):
+        lookup[e.fromNode] = InOut()
+      if not (e.toNode in lookup):
+        lookup[e.toNode] = InOut()
 
     #Append
     lookup[e.toNode].incoming.append(e)
@@ -238,7 +251,7 @@ def make_lane_connectors(rn):
         #The looping gets even deeper!
         for fromLaneID in range(len(fromEdge.lanes)):
           for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(LaneConnector(fromEdge.edgeId, toEdge.edgeId, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+            rn.turnings.append(LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
 def check_and_flip_and_scale(rn):
@@ -250,9 +263,10 @@ def check_and_flip_and_scale(rn):
   minY = 0
 
   #Iteraet through Edges; check node IDs
-  for e in rn.edges.values():
-    if not ((e.fromNode in rn.nodes) and (e.toNode in rn.nodes)):
-      raise Exception('Edge references unknown Node ID')
+  for lk in rn.links.values():
+    for e in lk.segments:
+      if not ((e.fromNode in rn.nodes) and (e.toNode in rn.nodes)):
+        raise Exception('Edge references unknown Node ID')
 
   #Iterate through Nodes, Lanes (Shapes) and check all points here too.
   for n in rn.nodes.values():
@@ -313,33 +327,34 @@ def get_line_dist(first, second):
 
 
 def make_lane_edges(rn):
-  for e in rn.edges.values():
-    #All lanes are relative to our Segment line
-    segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
+  for lk in rn.links.values():
+    for e in lk.segments:
+      #All lanes are relative to our Segment line
+      segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
 
-    #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
-    zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
-    if not mostly_parallel(segLine, zeroLine):
-      raise Exception("Can't convert; lines are not parallel")
+      #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
+      zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
+      if not mostly_parallel(segLine, zeroLine):
+        raise Exception("Can't convert; lines are not parallel")
 
-    #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
-    halfW = get_line_dist(segLine, zeroLine)
+      #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
+      halfW = get_line_dist(segLine, zeroLine)
 
-    #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
-    zeroStart = DynVect(zeroLine[0], zeroLine[1])
-    zeroStart.rotateRight().scaleVectTo(halfW).translate()
-    zeroEnd = DynVect(zeroLine[1], zeroLine[0])
-    zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-    e.lane_edges.append(LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
+      #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
+      zeroStart = DynVect(zeroLine[0], zeroLine[1])
+      zeroStart.rotateRight().scaleVectTo(halfW).translate()
+      zeroEnd = DynVect(zeroLine[1], zeroLine[0])
+      zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
+      e.lane_edges.append(LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
 
-    #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
-    for i in reversed(range(len(e.lanes))):
-      currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
-      currStart = DynVect(currLine[0], currLine[1])
-      currStart.rotateLeft().scaleVectTo(halfW).translate()
-      currEnd = DynVect(currLine[1], currLine[0])
-      currEnd.rotateRight().scaleVectTo(halfW).translate()
-      e.lane_edges.append(LaneEdge([currStart.getPos(), currEnd.getPos()]))
+      #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
+      for i in reversed(range(len(e.lanes))):
+        currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
+        currStart = DynVect(currLine[0], currLine[1])
+        currStart.rotateLeft().scaleVectTo(halfW).translate()
+        currEnd = DynVect(currLine[1], currLine[0])
+        currEnd.rotateRight().scaleVectTo(halfW).translate()
+        e.lane_edges.append(LaneEdge([currStart.getPos(), currEnd.getPos()]))
 
 
 
@@ -352,51 +367,61 @@ def print_old_format(rn):
   for n in rn.nodes.values():
     f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (n.guid, n.pos.x, n.pos.y))
 
-  #Links (every Edge represents a Link in this case)
-  for e in rn.edges.values():
-    fromId = rn.nodes[e.fromNode].guid
-    toId = rn.nodes[e.toNode].guid
-    f.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[%d]",})\n' % (e.guidLink, fromId, toId, e.guid))
-    f.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (e.guid, e.guidLink, (250*len(e.lanes)), len(e.lanes), fromId, toId))
+  #Links, edges
+  for lk in rn.links.values():
+    #Write the link (and its forward segments)
+    fromId = rn.nodes[lk.fromNode].guid
+    toId = rn.nodes[lk.toNode].guid
+    f.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[' % (lk.guid, fromId, toId))
+    for e in lk.segments:
+      f.write('%d,' % e.guid)
+    f.write(']",})\n')
 
-    #Lanes are somewhat more messy
-    #Note that "lane_id" here just refers to lane line 0, since lanes are grouped by edges in this output format. (Confusingly)
-    f.write('("lane", 0, %d, {"parent-segment":"%d",' % (e.lanes[0].guid, e.guid))
+    #Write the segments one-by-one
+    for e in lk.segments:
+      fromId = rn.nodes[e.fromNode].guid
+      toId = rn.nodes[e.toNode].guid
+      f.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (e.guid, lk.guid,(250*len(e.lanes)), len(e.lanes), fromId, toId))
 
-    #Each lane component
-    i = 0
-    for l in e.lane_edges:
-      f.write('"lane-%d":"[' % (i))
+      #Lanes are somewhat more messy
+      #Note that "lane_id" here just refers to lane line 0, since lanes are grouped by edges in this output format. (Confusingly)
+      f.write('("lane", 0, %d, {"parent-segment":"%d",' % (e.lanes[0].guid, e.guid))
 
-      #Lane lines are mildly more complicated, since we need lane *edge* lines.
-      for p in l.points:
-        f.write('(%d,%d),' % (p.x, p.y))
-      f.write(']",')
-      i+=1
+      #Each lane component
+      i = 0
+      for l in e.lane_edges:
+        f.write('"lane-%d":"[' % (i))
 
-    #And finally
-    f.write('})\n')
+        #Lane lines are mildly more complicated, since we need lane *edge* lines.
+        for p in l.points:
+          f.write('(%d,%d),' % (p.x, p.y))
+        f.write(']",')
+        i+=1
+
+      #And finally
+      f.write('})\n')
 
   #Write all Lane Connectors
   currLC_id = 1
   for lc in rn.turnings:
-    f.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, rn.edges[lc.fromSegId].guid, lc.fromLaneId, rn.edges[lc.toSegId].guid, lc.toLaneId))
+    f.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, lc.fromSegment.guid, lc.fromLaneId, lc.toSegment.guid, lc.toLaneId))
     currLC_id += 1
 
   #Done
   f.close()
 
 
-def write_xml_multinodes(f, nodes, edges, lanes, turnings):
+def write_xml_multinodes(f, nodes, links, lanes, turnings):
   #Build a lookup of "edges at nodes"
-  lookup = {} #nodeID => [edgeIDs]
-  for e in edges.values():
-    if not (e.fromNode in lookup):
-      lookup[e.fromNode] = []
-    if not (e.toNode in lookup):
-      lookup[e.toNode] = []
-    lookup[e.fromNode].append(e)
-    lookup[e.toNode].append(e)
+  lookup = {} #nodeID => [edges(refs)]
+  for lk in links.values():
+    for e in lk.segments:
+      if not (e.fromNode in lookup):
+        lookup[e.fromNode] = []
+      if not (e.toNode in lookup):
+        lookup[e.toNode] = []
+      lookup[e.fromNode].append(e)
+      lookup[e.toNode].append(e)
 
   #Now write it.
   for n in nodes.values():
@@ -409,26 +434,26 @@ def write_xml_multinodes(f, nodes, edges, lanes, turnings):
 
     f.write('            <roadSegmentsAt>\n')
     if (n.nodeId in lookup):
-      for lk in lookup[n.nodeId]:
-        f.write('              <segmentID>%d</segmentID>\n' % edges[lk.edgeId].guid)
+      for e in lookup[n.nodeId]:
+        f.write('              <segmentID>%d</segmentID>\n' % e.guid)
     f.write('            </roadSegmentsAt>\n')
 
     #Wee need another lookup; this one for lane connectors
-    look_lc = {} #fromSegID => [LaneConnector]
+    look_lc = {} #fromSegment => [LaneConnector]
     if (n.nodeId in lookup):
       for lc in turnings:
-        if (edges[lc.fromSegId] in lookup[n.nodeId]) and (edges[lc.toSegId] in lookup[n.nodeId]):
-          if not (lc.fromSegId in look_lc):
-            look_lc[lc.fromSegId] = []
-          look_lc[lc.fromSegId].append(lc)
+        if (lc.fromSegment in lookup[n.nodeId]) and (lc.toSegment in lookup[n.nodeId]):
+          if not (lc.fromSegment in look_lc):
+            look_lc[lc.fromSegment] = []
+          look_lc[lc.fromSegment].append(lc)
 
     #Write connectors
     f.write('            <Connectors>\n')
-    for rsId in look_lc.keys():
+    for rs in look_lc.keys():
       f.write('              <MultiConnectors>\n')
-      f.write('                <RoadSegment>%d</RoadSegment>\n' % edges[rsId].guid)
+      f.write('                <RoadSegment>%d</RoadSegment>\n' % rs.guid)
       f.write('                <Connectors>\n')
-      for lc in look_lc[rsId]:
+      for lc in look_lc[rs]:
         f.write('                  <Connector>\n')
         f.write('                    <laneFrom>%d</laneFrom>\n' % lanes[lc.laneFromOrigId].guid)
         f.write('                    <laneTo>%d</laneTo>\n' % lanes[lc.laneToOrigId].guid)
@@ -445,7 +470,7 @@ def write_xml_nodes(f, rn):
   f.write('      <Nodes>\n')
   f.write('        <UniNodes/>\n')
   f.write('        <Intersections>\n')
-  write_xml_multinodes(f, rn.nodes, rn.edges, rn.lanes, rn.turnings)
+  write_xml_multinodes(f, rn.nodes, rn.links, rn.lanes, rn.turnings)
   f.write('        </Intersections>\n')
   f.write('      </Nodes>\n')
 
@@ -524,7 +549,7 @@ def write_xml_lanes(f, lanes, est_width):
     f.write('                </Lane>\n')
 
 
-def write_xml_segment(f, e, nodes, edges, turnings):
+def write_xml_segment(f, e, nodes, links, turnings):
   #Each Link has only 1 segment
   seg_width = dist(e.lane_edges[0].points[0],e.lane_edges[-1].points[0])
   f.write('            <Segment>\n')
@@ -563,14 +588,15 @@ def write_xml_segment(f, e, nodes, edges, turnings):
 def write_xml_links(f, rn):
   #Write Links
   f.write('      <Links>\n')
-  for e in rn.edges.values():
+  for lk in rn.links.values():
     f.write('        <Link>\n')
-    f.write('          <linkID>%d</linkID>\n' % e.guidLink)
+    f.write('          <linkID>%d</linkID>\n' % lk.guid)
     f.write('          <roadName/>\n')
-    f.write('          <StartingNode>%d</StartingNode>\n' % rn.nodes[e.fromNode].guid)
-    f.write('          <EndingNode>%d</EndingNode>\n' % rn.nodes[e.toNode].guid)
+    f.write('          <StartingNode>%d</StartingNode>\n' % rn.nodes[lk.fromNode].guid)
+    f.write('          <EndingNode>%d</EndingNode>\n' % rn.nodes[lk.toNode].guid)
     f.write('          <Segments>\n')
-    write_xml_segment(f, e, rn.nodes, rn.edges, rn.turnings)
+    for e in lk.segments:
+      write_xml_segment(f, e, rn.nodes, rn.links, rn.turnings)
     f.write('          </Segments>\n')
     f.write('        </Link>\n')
   f.write('      </Links>\n')
@@ -603,10 +629,12 @@ def assign_unique_ids(rn, currId):
   for n in rn.nodes.values():
     n.guid = currId
     currId += 1
-  for e in rn.edges.values():
-    e.guid = currId
-    e.guidLink = currId+1
-    currId += 2
+  for lk in rn.links.values():
+    lk.guid = currId
+    currId += 1
+    for e in lk.segments:
+      e.guid = currId
+      currId += 1
   for l in rn.lanes.values():
     l.guid = currId
     currId += 1
@@ -618,7 +646,7 @@ def parse_all_sumo(rootNode, rn):
   #For each edge; ignore "internal"
   edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
   for e in edgeTags:
-    parse_edge_sumo(e, rn.edges, rn.lanes)
+    parse_edge_sumo(e, rn.links, rn.lanes)
 
   #For each junction
   junctTags = rootNode.xpath('/net/junction')
@@ -666,7 +694,7 @@ def run_main(inFileName):
 
   #Remove junction nodes which aren't referenced by anything else.
   nodesPruned = len(rn.nodes)
-  remove_unused_nodes(rn.nodes, rn.edges)
+  remove_unused_nodes(rn.nodes, rn.links)
   nodesPruned -= len(rn.nodes)
   print("Pruned unreferenced nodes: %d" % nodesPruned)
 

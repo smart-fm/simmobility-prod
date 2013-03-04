@@ -320,7 +320,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                           Trip_t_p,
 	                           Activity_t_p);
 
-	    Trip_t_p.parsers (integer_p,
+	    Trip_t_p.parsers (string_p,
 	                      TripchainItemType_p,
 	                      unsigned_int_p,
 	                      string_p,
@@ -334,7 +334,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    SubTrips_t_p.parsers (SubTrip_t_p);
 
-	    SubTrip_t_p.parsers (integer_p,
+	    SubTrip_t_p.parsers (string_p,
 	                         TripchainItemType_p,
 	                         unsigned_int_p,
 	                         string_p,
@@ -349,7 +349,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                         boolean_p,
 	                         string_p);
 
-	    Activity_t_p.parsers (integer_p,
+	    Activity_t_p.parsers (string_p,
 	                          TripchainItemType_p,
 	                          unsigned_int_p,
 	                          string_p,

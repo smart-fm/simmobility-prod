@@ -1128,7 +1128,7 @@ void PrintDB_Network_ptrBased()
 //obsolete
 void PrintDB_Network_idBased()
 {
-	if (ConfigParams::GetInstance().Output_Disabled()) {
+	if (ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
 

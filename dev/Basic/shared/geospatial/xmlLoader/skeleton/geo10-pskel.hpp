@@ -2716,7 +2716,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      personID (long long);
+      personID (const ::std::string&);
 
       virtual void
       itemType (std::string);
@@ -2736,7 +2736,7 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      personID_parser (::xml_schema::integer_pskel&);
+      personID_parser (::xml_schema::string_pskel&);
 
       void
       itemType_parser (::sim_mob::xml::TripchainItemType_pskel&);
@@ -2751,7 +2751,7 @@ namespace sim_mob
       endTime_parser (::xml_schema::string_pskel&);
 
       void
-      parsers (::xml_schema::integer_pskel& /* personID */,
+      parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
                ::xml_schema::string_pskel& /* startTime */,
@@ -2774,7 +2774,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
-      ::xml_schema::integer_pskel* personID_parser_;
+      ::xml_schema::string_pskel* personID_parser_;
       ::sim_mob::xml::TripchainItemType_pskel* itemType_parser_;
       ::xml_schema::unsigned_int_pskel* sequenceNumber_parser_;
       ::xml_schema::string_pskel* startTime_parser_;
@@ -2831,7 +2831,7 @@ namespace sim_mob
       subTrips_parser (::sim_mob::xml::SubTrips_t_pskel&);
 
       void
-      parsers (::xml_schema::integer_pskel& /* personID */,
+      parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
                ::xml_schema::string_pskel& /* startTime */,
@@ -2900,7 +2900,7 @@ namespace sim_mob
       ptLineId_parser (::xml_schema::string_pskel&);
 
       void
-      parsers (::xml_schema::integer_pskel& /* personID */,
+      parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
                ::xml_schema::string_pskel& /* startTime */,
@@ -3029,7 +3029,7 @@ namespace sim_mob
       isMandatory_parser (::xml_schema::boolean_pskel&);
 
       void
-      parsers (::xml_schema::integer_pskel& /* personID */,
+      parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
                ::xml_schema::string_pskel& /* startTime */,
@@ -3083,7 +3083,7 @@ namespace sim_mob
       virtual void
       Activity (sim_mob::TripChainItem*);
 
-      virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >
+      virtual std::pair<std::string, std::vector<sim_mob::TripChainItem*> >
       post_TripChain_t () = 0;
 
       // Parser construction API.
@@ -3133,7 +3133,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+      TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >);
 
       virtual void
       post_TripChains_t ();

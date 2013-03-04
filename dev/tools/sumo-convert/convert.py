@@ -83,6 +83,7 @@ class LaneEdge:
 #A basic vector (in the geometrical sense)
 class DynVect:
   def __init__(self, start, end):
+    #Ensure that we copy.
     self.pos = Point(float(start.x), float(start.y))
     self.mag = Point(float(end.x-start.x), float(end.y-start.y))
 
@@ -170,6 +171,64 @@ def parse_edge_sumo(e, links, lanes):
       newLane = Lane(l.get('id'), l.get('shape'))
       primEdge.lanes.append(newLane)
       lanes[newLane.laneId] = newLane
+
+
+def parse_link_osm(lk, nodes, links, lanes):
+    #First, build up a series of Node IDs
+    nodeIds = []
+    for ndItem in lk.iter("nd"):
+      nId = ndItem.get('ref')
+      if not nId:
+        raise Exception('No "ref" for "nd" in "way"')
+      nodeIds.append(nId)
+
+    #Ensure we have at least two points.
+    if len(nodeIds) < 2:
+      print('Warning: Skipping OSM way, as it does not have at least 2 node refs: %s' % lk.get('id'))
+      return
+
+    #Attempt to extract the lane count; default to 1
+    numLanes = 1
+    numLanesTag = lk.xpath("tag[@k=lanes]")
+    if len(numLanesTag) > 0:
+      numLanes = int(numLanesTag[0].get('v'))
+
+    #First, add a new Link
+    res = Link(lk.get('id'), nodeIds[0], nodeIds[-1])
+    links[res.linkId] = res
+
+    #Now add one segment per node pair. (For now Sim Mobility does not handle polylines that well).
+    for i in range(len(nodeIds)-1):
+      fromNode = nodeIds[i]
+      toNode = nodeIds[i+1]
+      e = Edge(res.linkId, fromNode, toNode)
+      res.segments.append(e)
+
+      #Sanity check
+      if not (fromNode in nodes and toNode in nodes):
+        raise Exception('Way references unknown Nodes')
+
+      #We create two vectors, one at the fromNode and one at the toNode. Both are pointing away from median line.
+      #These are incremented by a faux-lane-width in order to generate basic lane sizes.
+      LaneWidth = 3.4
+      startVec = DynVect(nodes[fromNode].pos, nodes[toNode].pos)
+      startVec.rotateLeft().scaleVectTo(LaneWidth/2).translate().scaleVectTo(LaneWidth)
+      endVec = DynVect(nodes[toNode].pos, nodes[fromNode].pos)
+      endVec.rotateRight().scaleVectTo(LaneWidth/2).translate().scaleVectTo(LaneWidth)
+
+      #Add child Lanes for each Segment
+      for lIt in range(numLanes):
+        #Fake the shape; we'll have to translate it right back unfortunately.
+        shapeStr = '%d,%d %d,%d' % (startVec.getPos().x, startVec.getPos().y, endVec.getPos().x, endVec.getPos().y)
+        startVec.translate()
+        endVec.translate()
+
+        #Make the new lane.
+        #Lane IDs (here) probably don't matter, since they are only used internally.
+        newLane = Lane(len(lanes)+100, shapeStr)
+        e.lanes.append(newLane)
+        lanes[newLane.laneId] = newLane
+
 
 
 def project_coords(wgsRev, utmZone, lat, lon):
@@ -335,7 +394,7 @@ def make_lane_edges(rn):
       #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
       zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
       if not mostly_parallel(segLine, zeroLine):
-        raise Exception("Can't convert; lines are not parallel")
+        raise Exception("Can't convert; lines are not parallel: [%s=>%s] and [%s=>%s]" % (segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
 
       #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
       halfW = get_line_dist(segLine, zeroLine)
@@ -643,28 +702,28 @@ def assign_unique_ids(rn, currId):
 
 
 def parse_all_sumo(rootNode, rn):
-  #For each edge; ignore "internal"
-  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
-  for e in edgeTags:
-    parse_edge_sumo(e, rn.links, rn.lanes)
-
   #For each junction
   junctTags = rootNode.xpath('/net/junction')
   for j in junctTags:
     parse_junctions_sumo(j, rn.nodes)
 
+  #For each edge; ignore "internal"
+  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
+  for e in edgeTags:
+    parse_edge_sumo(e, rn.links, rn.lanes)
+
 
 
 def parse_all_osm(rootNode, rn):
-  #All edges
-#  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
-#  for e in edgeTags:
-#    parse_edge_sumo(e, edges, lanes)
-
   #All nodes
   nodeTags = rootNode.xpath('/osm/node')
   for n in nodeTags:
     parse_nodes_osm(n, rn.nodes)
+
+  #All links
+  linksTags = rootNode.xpath("/osm/way")
+  for lk in linksTags:
+    parse_link_osm(lk, rn.nodes, rn.links, rn.lanes)
 
 
 

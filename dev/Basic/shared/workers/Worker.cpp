@@ -320,7 +320,10 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
+		(*it)->updateAndReportSupplyStats(currTime);
 		(*it)->reportLinkTravelTimes(currTime);
+		(*it)->resetSegmentFlows();
+		(*it)->resetLinkTravelTimes(currTime);
 	}
 #endif
 }

@@ -25,14 +25,17 @@ void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
+
 	resetPositionOfLastUpdatedAgentOnLanes();
+//	resetSegmentFlows();
+
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented
 	}
 	else {
 		updateUnsignalized();
 	}
-	updateSupplyStats(frameNumber);
+	//updateSupplyStats(frameNumber);
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
@@ -251,7 +254,7 @@ void sim_mob::Conflux::restoreSupplyStats(const Lane* lane) {
 	findSegStats(lane->getRoadSegment())->restoreLaneParams(lane);
 }
 
-void sim_mob::Conflux::updateSupplyStats(timeslice frameNumber) {
+void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.begin();
 	for( ; it != segmentAgents.end(); ++it )
 	{
@@ -337,5 +340,33 @@ void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
 			<<"\"travelTime\":\""<< (it->second.linkTravelTime_)/(it->second.agentCount_)
 			<<"\"})"<<std::endl);
 #endif
+	}
+}
+
+void sim_mob::Conflux::resetLinkTravelTimes(timeslice frameNumber) {
+	LinkTravelTimesMap.clear();
+}
+
+void sim_mob::Conflux::updateLaneParams(const Lane* lane, double newOutFlowRate) {
+	findSegStats(lane->getRoadSegment())->updateLaneParams(lane, newOutFlowRate);
+}
+
+void sim_mob::Conflux::restoreLaneParams(const Lane* lane) {
+	findSegStats(lane->getRoadSegment())->restoreLaneParams(lane);
+}
+
+double sim_mob::Conflux::getSegmentFlow(const RoadSegment* rdSeg){
+	return findSegStats(rdSeg)->getSegFlow();
+}
+
+void sim_mob::Conflux::incrementSegmentFlow(const RoadSegment* rdSeg) {
+	findSegStats(rdSeg)->incrementSegFlow();
+}
+
+void sim_mob::Conflux::resetSegmentFlows() {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.begin();
+	for( ; it != segmentAgents.end(); ++it )
+	{
+		(it->second)->resetSegFlow();
 	}
 }

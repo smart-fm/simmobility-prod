@@ -144,6 +144,8 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.timeThisTick + (p.now.ms()/1000.0);
+		std::cout<<"setorigin prevLink>0 driver:"<< parent->getId()<<" | "<<vehicle->getCurrSegment()->getLink()->getStart()
+				->getID()<<std::endl;
 		parent->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
 
 /*		std::cout<< parent->getId()<<" Driver is added at: "<< actualT*1000 << "ms to lane "<<
@@ -332,15 +334,14 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p)
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 			if (prevSeg){
 				const Link* prevLink = prevSeg->getLink();
-/*				std::cout<<"prevLink: "<<prevLink->getStart()->getID()<<" | link_: "
-						<<parent->getTravelStats().link_->getStart()->getID()<<
-						" : "<<parent->getCurrSegment()->getLink()->getStart()->getID()
-						<<std::endl;*/
+
+				//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
 				if(prevLink == parent->getTravelStats().link_){
 					parent->addToTravelStatsMap(parent->getTravelStats(), linkExitTimeSec); //in seconds
 					prevSeg->getParentConflux()->setTravelTimes(parent, linkExitTimeSec);
 				}
-				parent->initTravelStats(parent->getCurrSegment()->getLink(), linkExitTimeSec);
+				//creating a new entry in agent's travelStats for the new link, with entry time
+				parent->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
 			}
 
 		}
@@ -512,6 +513,8 @@ void sim_mob::medium::Driver::removeFromQueue() {
 
 bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double distance)
 {
+	double startPos = vehicle->getPositionInSegment();
+
 	try {
 		vehicle->moveFwd_med(distance);
 	} catch (std::exception& ex) {
@@ -526,10 +529,14 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 
 		std::stringstream msg;
 		msg << "Error moving vehicle forward for Agent ID: " << parent->getId() << ","
-				<< this->vehicle->getX() << "," << this->vehicle->getY() << "\n" << ex.what();
+				<< this->vehicle->getPositionInSegment() << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 		return false;
 	}
+
+	double endPos = vehicle->getPositionInSegment();
+	updateFlow(vehicle->getCurrSegment(), startPos, endPos);
+
 	return true;
 }
 
@@ -699,7 +706,7 @@ bool sim_mob::medium::Driver::advanceMovingVehicle(DriverUpdateParams& p){
 		{
 			xf = x0 - vu * (p.elapsedSeconds - t0);
 			res = moveInSegment(p, x0 - xf);
-//			std::cout<<"advanceMoving (with Q) rdSeg: "<<vehicle->getCurrSegment()->getStart()->getID()<<" setPos: "<< xf<<std::endl;
+//			std::cout<<"advanceMoving (with Q) rdSeg: "<<vehicle->getf()->getStart()->getID()<<" setPos: "<< xf<<std::endl;
 			vehicle->setPositionInSegment(xf);
 			p.timeThisTick = p.elapsedSeconds;
 		}
@@ -882,13 +889,22 @@ void sim_mob::medium::Driver::setLastAccept(const Lane* l, double lastAccept){
 void sim_mob::medium::Driver::insertIncident(const RoadSegment* rdSeg, double newFlowRate){
 	const vector<Lane*> lanes = rdSeg->getLanes();
 	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
-		rdSeg->getParentConflux()->getSegmentAgents()[rdSeg]->updateLaneParams((*it), newFlowRate);
+		rdSeg->getParentConflux()->updateLaneParams((*it), newFlowRate);
 	}
 }
 
 void sim_mob::medium::Driver::removeIncident(const RoadSegment* rdSeg){
 	const vector<Lane*> lanes = rdSeg->getLanes();
 	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
-		rdSeg->getParentConflux()->getSegmentAgents()[rdSeg]->restoreLaneParams(*it);
+		rdSeg->getParentConflux()->restoreLaneParams(*it);
+	}
+}
+
+void sim_mob::medium::Driver::updateFlow(const RoadSegment* rdSeg, double startPos, double endPos){
+	double mid = rdSeg->computeLaneZeroLength();
+	if (startPos >= mid && mid >= endPos){
+		std::cout<<"updateFlow: rdSeg> "<< rdSeg->getStart()->getID() << "flow: "
+				<< rdSeg->getParentConflux()->getSegmentFlow(rdSeg)<<std::endl;
+		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg);
 	}
 }

@@ -91,6 +91,7 @@ public:
 	double getQueueLength(const Lane* l);
 	double getLastAccept(const Lane* l);
 	void setLastAccept(const Lane* l, double lastAccept);
+	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
 
 private:
 	//void chooseNextLaneForNextLink(DriverUpdateParams& p);

@@ -206,12 +206,20 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
       if not (fromNode in nodes and toNode in nodes):
         raise Exception('Way references unknown Nodes')
 
-      #We create two vectors, one at the fromNode and one at the toNode. Both are pointing away from median line.
-      #These are incremented by a faux-lane-width in order to generate basic lane sizes.
+      #We create two vectors, one at the fromNode and one at the toNode. 
       LaneWidth = 3.4
       startVec = DynVect(nodes[fromNode].pos, nodes[toNode].pos)
-      startVec.scaleVectTo(LaneWidth/2.0).rotateLeft().translate().scaleVectTo(LaneWidth)
       endVec = DynVect(nodes[toNode].pos, nodes[fromNode].pos)
+
+      #We can provide a simple "intersection" buffer if the total lane length allows it.
+      BufferSize = 10.0
+      if (startVec.getMagnitude() > 1.1*BufferSize):
+         startVec.scaleVectTo(BufferSize/2.0).translate()
+         endVec.scaleVectTo(BufferSize/2.0).translate()
+
+      #Point both away from the median line.
+      #These are incremented by a faux-lane-width in order to generate basic lane sizes.
+      startVec.scaleVectTo(LaneWidth/2.0).rotateLeft().translate().scaleVectTo(LaneWidth)
       endVec.scaleVectTo(LaneWidth/2.0).rotateRight().translate().scaleVectTo(LaneWidth)
 
       #Add child Lanes for each Segment

@@ -222,8 +222,12 @@ def make_lane_connectors(nodes, edges, turnings):
 
 
 def check_and_flip_and_scale(nodes, edges, lanes):
-  #Save the maximum X co-ordinate
+  #Save the maximum X co-ordinate, minimum Y
   maxX = None
+
+  #Currently SimMobility can't take negative y coords
+  minX = 0
+  minY = 0
 
   #Iteraet through Edges; check node IDs
   for e in edges.values():
@@ -233,18 +237,26 @@ def check_and_flip_and_scale(nodes, edges, lanes):
   #Iterate through Nodes, Lanes (Shapes) and check all points here too.
   for n in nodes.values():
     maxX = max((maxX if maxX else n.pos.x),n.pos.x)
+    minX = min(minX, n.pos.x)
+    minY = min(minY, n.pos.y)
   for l in lanes.values():
     for p in l.shape.points:
       maxX = max((maxX if maxX else p.x),p.x)
+      minX = min(minX, p.x)
+      minY = min(minY, p.y)
+
+  #Add some buffer space to the y-value (for lane edge lines)
+  minX -= 10
+  minY -= 10
 
   #Now invert all x co-ordinates, and scale by 100 (to cm)
   for n in nodes.values():
-    n.pos.x = (maxX - n.pos.x) * 100
-    n.pos.y *= 100
+    n.pos.x = (-minX + maxX - n.pos.x) * 100
+    n.pos.y = (-minY + n.pos.y) * 100
   for l in lanes.values():
     for p in l.shape.points:
-      p.x = (maxX - p.x) * 100
-      p.y *= 100
+      p.x = (-minX + maxX - p.x) * 100
+      p.y = (-minY + p.y) * 100
 
 
 def mostly_parallel(first, second):
@@ -582,6 +594,7 @@ def print_xml_format(nodes, edges, lanes, turnings):
   write_xml_links(f, nodes, node_ids, edges, edge_ids, turnings, lane_ids)
   f.write('    </RoadNetwork>\n')
   f.write('    </GeoSpatial>\n')
+  f.write('</geo:SimMobility>\n')
 
   #Done
   f.close()

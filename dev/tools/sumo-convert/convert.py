@@ -85,7 +85,7 @@ class DynVect:
   def __init__(self, start, end):
     #Ensure that we copy.
     self.pos = Point(float(start.x), float(start.y))
-    self.mag = Point(float(end.x-start.x), float(end.y-start.y))
+    self.mag = Point(float(end.x)-start.x, float(end.y)-start.y)
 
   def getPos(self):
     return self.pos
@@ -96,23 +96,17 @@ class DynVect:
     return self
 
   def scaleVectTo(self, amount):
-    self.makeUnit()
-    self.scaleVect(amount)
+    #Factoring in the unit vector by dividing early is more accurate.
+    factor = amount/self.getMagnitude()
+    self.mag.x = factor * self.mag.x
+    self.mag.y = factor * self.mag.y
     return self
 
-  def makeUnit(self):
-    self.scaleVect(1.0/self.getMagnitude())
-
   def getMagnitude(self):
-    return math.sqrt(self.mag.x*self.mag.x + self.mag.y*self.mag.y)
-
-  #NOTE: Be careful calling this: you almost always want "scaleVectTo()"
-  def scaleVect(self, amount):
-    self.mag.x *= amount
-    self.mag.y *= amount
+    return math.sqrt(self.mag.x**2.0 + self.mag.y**2.0)
 
   def flipNormal(self, clockwise):
-    sign =  1 if clockwise else -1
+    sign =  1.0 if clockwise else -1.0
     newX = self.mag.y*sign
     newY = -self.mag.x*sign
     self.mag.x = newX
@@ -147,10 +141,10 @@ class Point:
     self.y = y
 
   def __repr__(self):
-    return "Point(%d,%d)" % (self.x, self.y)
+    return "Point(%f,%f)" % (self.x, self.y)
 
   def __str__(self):
-    return "(%d,%d)" % (self.x, self.y)
+    return "(%f,%f)" % (self.x, self.y)
 
 
 
@@ -173,7 +167,7 @@ def parse_edge_sumo(e, links, lanes):
       lanes[newLane.laneId] = newLane
 
 
-def parse_link_osm(lk, nodes, links, lanes):
+def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
     #First, build up a series of Node IDs
     nodeIds = []
     for ndItem in lk.iter("nd"):
@@ -185,7 +179,7 @@ def parse_link_osm(lk, nodes, links, lanes):
     #Ensure we have at least two points.
     if len(nodeIds) < 2:
       print('Warning: Skipping OSM way, as it does not have at least 2 node refs: %s' % lk.get('id'))
-      return
+      return globalIdCounter
 
     #Attempt to extract the lane count; default to 1
     numLanes = 1
@@ -199,9 +193,13 @@ def parse_link_osm(lk, nodes, links, lanes):
 
     #Now add one segment per node pair. (For now Sim Mobility does not handle polylines that well).
     for i in range(len(nodeIds)-1):
+      #Retrieve the node IDs
       fromNode = nodeIds[i]
       toNode = nodeIds[i+1]
-      e = Edge(res.linkId, fromNode, toNode)
+
+      #Make an edge
+      e = Edge(globalIdCounter, fromNode, toNode)
+      globalIdCounter += 1
       res.segments.append(e)
 
       #Sanity check
@@ -212,14 +210,14 @@ def parse_link_osm(lk, nodes, links, lanes):
       #These are incremented by a faux-lane-width in order to generate basic lane sizes.
       LaneWidth = 3.4
       startVec = DynVect(nodes[fromNode].pos, nodes[toNode].pos)
-      startVec.rotateLeft().scaleVectTo(LaneWidth/2).translate().scaleVectTo(LaneWidth)
+      startVec.scaleVectTo(LaneWidth/2.0).rotateLeft().translate().scaleVectTo(LaneWidth)
       endVec = DynVect(nodes[toNode].pos, nodes[fromNode].pos)
-      endVec.rotateRight().scaleVectTo(LaneWidth/2).translate().scaleVectTo(LaneWidth)
+      endVec.scaleVectTo(LaneWidth/2.0).rotateRight().translate().scaleVectTo(LaneWidth)
 
       #Add child Lanes for each Segment
       for lIt in range(numLanes):
         #Fake the shape; we'll have to translate it right back unfortunately.
-        shapeStr = '%d,%d %d,%d' % (startVec.getPos().x, startVec.getPos().y, endVec.getPos().x, endVec.getPos().y)
+        shapeStr = '%f,%f %f,%f' % (startVec.getPos().x, startVec.getPos().y, endVec.getPos().x, endVec.getPos().y)
         startVec.translate()
         endVec.translate()
 
@@ -228,6 +226,11 @@ def parse_link_osm(lk, nodes, links, lanes):
         newLane = Lane(len(lanes)+100, shapeStr)
         e.lanes.append(newLane)
         lanes[newLane.laneId] = newLane
+
+      #SUMO expects lanes in reverse; we'll do the same here (for now).
+      e.lanes.reverse()
+
+    return globalIdCounter
 
 
 
@@ -353,16 +356,21 @@ def check_and_flip_and_scale(rn):
 
 
 def mostly_parallel(first, second):
+  #Cutoff point for considering lines *not* parallel
+  #You can increase this as your lines skew, but don't go too high.
+  #Cutoff = 3.0
+  Cutoff = 5.0  #TODO: Temp, while we work on OSM data.
+
   #Both/one vertical?
   fDx= first[-1].x-first[0].x
   sDx = second[-1].x-second[0].x
   if (fDx==0 or sDx==0):
-    return fDx==sDx
+    return (fDx-sDx) < Cutoff
 
   #Calculate slope
   mFirst = float(first[-1].y-first[0].y) / float(fDx)
   mSecond = (second[-1].y-second[0].y) / float(sDx)
-  return abs(mFirst-mSecond) < 3.0  #You can increase this as your lines skew, but don't go too high.
+  return abs(mFirst-mSecond) < Cutoff
 
 
 
@@ -394,7 +402,7 @@ def make_lane_edges(rn):
       #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
       zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
       if not mostly_parallel(segLine, zeroLine):
-        raise Exception("Can't convert; lines are not parallel: [%s=>%s] and [%s=>%s]" % (segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
+        raise Exception("Can't convert edge %s; lines are not parallel: [%s=>%s] and [%s=>%s]" % (e.edgeId, segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
 
       #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
       halfW = get_line_dist(segLine, zeroLine)
@@ -722,8 +730,9 @@ def parse_all_osm(rootNode, rn):
 
   #All links
   linksTags = rootNode.xpath("/osm/way")
+  globalIdCounter = 1000 #For edges
   for lk in linksTags:
-    parse_link_osm(lk, rn.nodes, rn.links, rn.lanes)
+    globalIdCounter = parse_link_osm(lk, rn.nodes, rn.links, rn.lanes, globalIdCounter)
 
 
 

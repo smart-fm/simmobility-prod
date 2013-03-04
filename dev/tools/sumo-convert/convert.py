@@ -359,7 +359,7 @@ def mostly_parallel(first, second):
   #Cutoff point for considering lines *not* parallel
   #You can increase this as your lines skew, but don't go too high.
   #Cutoff = 3.0
-  Cutoff = 5.0  #TODO: Temp, while we work on OSM data.
+  Cutoff = 50.0  #TODO: Temp, while we work on OSM data.
 
   #Both/one vertical?
   fDx= first[-1].x-first[0].x

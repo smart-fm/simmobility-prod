@@ -1655,7 +1655,7 @@ namespace sim_mob
     //
 
     void TripChainItem_t_pskel::
-    personID_parser (::xml_schema::integer_pskel& p)
+    personID_parser (::xml_schema::string_pskel& p)
     {
       this->personID_parser_ = &p;
     }
@@ -1685,7 +1685,7 @@ namespace sim_mob
     }
 
     void TripChainItem_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1748,7 +1748,7 @@ namespace sim_mob
     }
 
     void Trip_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1806,7 +1806,7 @@ namespace sim_mob
     }
 
     void SubTrip_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1906,7 +1906,7 @@ namespace sim_mob
     }
 
     void Activity_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -6680,7 +6680,7 @@ namespace sim_mob
     //
 
     void TripChainItem_t_pskel::
-    personID (long long)
+    personID (const ::std::string&)
     {
     }
 
@@ -6777,7 +6777,7 @@ namespace sim_mob
       if (n == "personID" && ns.empty ())
       {
         if (this->personID_parser_)
-          this->personID (this->personID_parser_->post_integer ());
+          this->personID (this->personID_parser_->post_string ());
 
         return true;
       }
@@ -7400,7 +7400,7 @@ namespace sim_mob
     //
 
     void TripChains_t_pskel::
-    TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >)
+    TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >)
     {
     }
 
@@ -8558,14 +8558,6 @@ namespace sim_mob
       {
         if (this->signalTimingMode_parser_)
           this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
-
-        return true;
-      }
-
-      if (n == "SplitPlan" && ns.empty ())
-      {
-        if (this->SplitPlan_parser_)
-          this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
 
         return true;
       }

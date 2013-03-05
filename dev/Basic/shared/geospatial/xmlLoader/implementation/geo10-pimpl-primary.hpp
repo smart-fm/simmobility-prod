@@ -494,7 +494,7 @@ public:
 	virtual void pre ();
 	virtual sim_mob::TripChainItem* post_TripChainItem_t ();
 
-	virtual void personID (long long);
+	virtual void personID (std::string);
 	virtual void itemType (std::string);
 	virtual void sequenceNumber (unsigned int);
 	virtual void startTime (const ::std::string&);
@@ -565,14 +565,14 @@ private:
 class TripChain_t_pimpl: public virtual TripChain_t_pskel {
 public:
 	virtual void pre ();
-	virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
+	virtual std::pair<std::string, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
 
-	virtual void personID (long long);
+	virtual void personID (std::string);
 	virtual void Trip (sim_mob::TripChainItem*);
 	virtual void Activity (sim_mob::TripChainItem*);
 
 private:
-	std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > model;
+	std::pair<std::string, std::vector<sim_mob::TripChainItem*> > model;
 };
 
 

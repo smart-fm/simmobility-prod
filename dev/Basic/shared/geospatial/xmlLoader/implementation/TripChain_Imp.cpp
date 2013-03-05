@@ -9,12 +9,12 @@ void sim_mob::xml::TripChain_t_pimpl::pre ()
 	model.second.clear();
 }
 
-std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > sim_mob::xml::TripChain_t_pimpl::post_TripChain_t ()
+std::pair<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::xml::TripChain_t_pimpl::post_TripChain_t ()
 {
 	return model;
 }
 
-void sim_mob::xml::TripChain_t_pimpl::personID (long long value)
+void sim_mob::xml::TripChain_t_pimpl::personID (std::string value)
 {
 	model.first = value;
 }

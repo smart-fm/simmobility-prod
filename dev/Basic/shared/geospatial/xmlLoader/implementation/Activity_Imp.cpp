@@ -31,7 +31,7 @@ void sim_mob::xml::Activity_t_pimpl::pre ()
 
 sim_mob::TripChainItem* sim_mob::xml::Activity_t_pimpl::post_Activity_t ()
 {
-	sim_mob::Activity* res = new sim_mob::Activity(model);
+	sim_mob::Activity* res = new sim_mob::Activity(model);//here, model only helps as a factory object
 
 	//Retrieve a temporary item, copy over.
 	sim_mob::TripChainItem* temp = TripChainItem_t_pimpl::post_TripChainItem_t ();

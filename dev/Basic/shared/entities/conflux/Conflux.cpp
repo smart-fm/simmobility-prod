@@ -10,6 +10,7 @@
 #include<map>
 #include <stdexcept>
 #include <vector>
+#include "Conflux.hpp"
 #include "conf/simpleconf.hpp"
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -102,7 +103,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Agent* ag) {
 	}
 
 	// set the position of the last updated agent in his current lane (after update)
-	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(ag->distanceToEndOfSegment, laneAfterUpdate);
+	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(ag->distanceToEndOfSegment, ag->getCurrLane());
 
 }
 
@@ -236,6 +237,26 @@ void sim_mob::Conflux::absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* source
 		laneCounts.erase(originalLaneInfinity);
 		laneCounts.insert(std::make_pair(downstreamCopyLaneInfinity, laneInfinityCounts));
 
+		for(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> >::iterator i = laneCounts.begin(); i != laneCounts.end(); i++) {
+			if(i->first != downstreamCopyLaneInfinity) {
+				//get output flow rate.... subtract from queuing and moving counts
+				int numVehCanMoveOut = (int)(findSegStats(i->first->getRoadSegment())->getLaneParams(i->first)->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS / 1000);
+
+				// decrement queuing first and then moving
+				if(numVehCanMoveOut >= i->second.first) {
+					if((numVehCanMoveOut - i->second.first) >= i->second.second) {
+						i->second.second = 0;
+					}
+					else {
+						i->second.second = i->second.second - (numVehCanMoveOut - i->second.first);
+					}
+					i->second.first = 0;
+				}
+				else {
+					i->second.first = i->second.first - numVehCanMoveOut;
+				}
+			}
+		}
 		sourceSegStats->setPrevTickLaneCountsFromOriginal(laneCounts);
 		sourceSegStats->clear();
 	}

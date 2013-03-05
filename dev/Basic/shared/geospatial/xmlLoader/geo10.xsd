@@ -465,7 +465,8 @@
 
   <xs:complexType name="TripChainItem_t">
     <xs:sequence>
-      <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <!--<xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>-->
+      <xs:element name="personID" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="itemType" type="geo:TripchainItemType" minOccurs="1" maxOccurs="1"/>
       <!-- <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="sequenceNumber" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>

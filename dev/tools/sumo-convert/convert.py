@@ -169,9 +169,23 @@ def parse_edge_sumo(e, links, lanes):
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
     #Skip footways.
-    hwTag = lk.xpath("tag[@k='highway']")
-    if len(hwTag) > 0:
-      if (hwTag[0].get('v')=='footway'):
+    tag = lk.xpath("tag[@k='highway']")
+    if len(tag) > 0:
+      if (tag[0].get('v')=='footway'):
+        return globalIdCounter
+
+    #Skip anything with a post code (likely a building), or a "residential" land use tag.
+    if len(lk.xpath("tag[@k='addr:postcode']"))>0:
+      return globalIdCounter
+    tag = lk.xpath("tag[@k='landuse']")
+    if len(tag) > 0:
+      if (tag[0].get('v')=='residential'):
+        return globalIdCounter
+
+    #Remove service highways.
+    tag = lk.xpath("tag[@k='highway']")
+    if len(tag) > 0:
+      if (tag[0].get('v')=='service'):
         return globalIdCounter
 
     #First, build up a series of Node IDs
@@ -349,7 +363,8 @@ def remove_unused_nodes(nodes, links):
     #NOTE: This currently affects 10% of all Nodes. 
     for i in range(1, len(seg_nodes)-2):
       if not seg_nodes[i].isUni():
-        raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
+        #raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
+        print('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
 
   #We can cheat a little here: Nodes with no references won't even be in our result set.
   nodes.clear()

@@ -26,6 +26,7 @@ namespace sim_mob {
 class PackageUtils;
 class UnPackageUtils;
 
+/*// Commented out by Vahid
 class Park
 {
 	bool parkingEnabled;
@@ -44,7 +45,7 @@ public:
 	bool isparkingTimeOver() const {
 //		std::cout << "isparkingTimeOver()::elapsedParkingTime =" << elapsedParkingTime << "   parkingTime = " << parkingTime << std::endl;
 		return elapsedParkingTime >= parkingTime; }
-};
+};*/
 
 class Vehicle {
 public:

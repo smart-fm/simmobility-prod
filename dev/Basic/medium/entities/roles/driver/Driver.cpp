@@ -120,8 +120,10 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	//Vehicles start at rest
 	vehicle->setVelocity(0);
 
-	//set time to start - to accommodate drivers starting during the frame
-	stepFwdInTime(p, (parent->getStartTime() - p.now.ms())/1000.0);
+	if(p.now.ms() < parent->getStartTime()) {
+		//set time to start - to accommodate drivers starting during the frame
+		stepFwdInTime(p, (parent->getStartTime() - p.now.ms())/1000.0);
+	}
 
 	const sim_mob::RoadSegment* nextRdSeg = nullptr;
 	if (vehicle->hasNextSegment(true))

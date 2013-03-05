@@ -43,11 +43,10 @@ public:
 
 	std::deque<sim_mob::Agent*> laneAgents;
 
-	LaneStats(const sim_mob::Lane* laneInSegment) :
-		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), debugMsgs(std::stringstream::out) {}
+	LaneStats(const sim_mob::Lane* laneInSegment, bool isLaneInfinity = false) :
+		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
 
 	void addAgent(sim_mob::Agent* ag);
-	void addAgents(std::deque<sim_mob::Agent*> agents, unsigned int numQueuing);
 	void updateQueueStatus(sim_mob::Agent* ag);
 	void removeAgent(sim_mob::Agent* ag);
 	void clear();
@@ -63,7 +62,7 @@ public:
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
 	// This function prints all agents in laneAgents
-	void printAgents();
+	void printAgents(bool copy = false);
 
 	/*Verifies if the invariant that the order in laneAgents of each lane matches with the ordering w.r.t the distance to the end of segment*/
 	void verifyOrdering();
@@ -88,6 +87,10 @@ public:
 		return lane;
 	}
 
+	const bool isLaneInfinity() const {
+		return laneInfinity;
+	}
+
 	LaneParams* laneParams;
 
 	//TODO: To be removed after debugging.
@@ -98,6 +101,7 @@ private:
 	unsigned int initialQueueCount;
 	double positionOfLastUpdatedAgent;
 	const sim_mob::Lane* lane;
+	const bool laneInfinity;
 
 	/**
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
@@ -127,10 +131,12 @@ private:
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
 	double segDensity;
 	double lastAcceptTime;
+	int numVehicleLanes;
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
 
+	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
@@ -152,6 +158,7 @@ public:
 	}
 
 	bool hasAgents();
+	bool canAccommodate(SegmentStats::VehicleType type);
 
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
 	void setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);

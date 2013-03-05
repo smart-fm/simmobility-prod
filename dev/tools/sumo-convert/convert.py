@@ -168,6 +168,12 @@ def parse_edge_sumo(e, links, lanes):
 
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
+    #Skip footways.
+    hwTag = lk.xpath("tag[@k='highway']")
+    if len(hwTag) > 0:
+      if (hwTag[0].get('v')=='footway'):
+        return globalIdCounter
+
     #First, build up a series of Node IDs
     nodeIds = []
     for ndItem in lk.iter("nd"):
@@ -183,7 +189,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
     #Attempt to extract the lane count; default to 1
     numLanes = 1
-    numLanesTag = lk.xpath("tag[@k=lanes]")
+    numLanesTag = lk.xpath("tag[@k='lanes']")
     if len(numLanesTag) > 0:
       numLanes = int(numLanesTag[0].get('v'))
 

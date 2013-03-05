@@ -168,6 +168,17 @@ def parse_edge_sumo(e, links, lanes):
 
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
+    #TEMP blacklist
+    lkId = lk.get('id')
+    if (lkId=='121879126' or lkId=='112128548' or lkId=='41661873'):
+      return globalIdCounter
+
+    #TEMP: Skip everything except primary highways
+    tag = lk.xpath("tag[@k='highway']")
+    if len(tag) > 0:
+      if (tag[0].get('v')!='primary'):
+        return globalIdCounter
+
     #Skip footways.
     tag = lk.xpath("tag[@k='highway']")
     if len(tag) > 0:
@@ -361,10 +372,11 @@ def remove_unused_nodes(nodes, links):
     #Ensure middle nodes are UniNodes. Note that this is not strictly required; we'll just
     #   have to false-segment the nodes that trigger this. 
     #NOTE: This currently affects 10% of all Nodes. 
+    #Example: Node 74389907 is a legitimate candidate for Node splitting.
     for i in range(1, len(seg_nodes)-2):
       if not seg_nodes[i].isUni():
         #raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
-        print('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
+        print('ERROR: Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId) 
 
   #We can cheat a little here: Nodes with no references won't even be in our result set.
   nodes.clear()
@@ -405,7 +417,7 @@ def make_lane_connectors(rn):
             rn.turnings.append(LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
-def check_and_flip_and_scale(rn):
+def check_and_flip_and_scale(rn, flipMap):
   #Save the maximum X co-ordinate, minimum Y
   maxX = None
 
@@ -436,11 +448,17 @@ def check_and_flip_and_scale(rn):
 
   #Now invert all x co-ordinates, and scale by 100 (to cm)
   for n in rn.nodes.values():
-    n.pos.x = (-minX + maxX - n.pos.x) * 100
+    if flipMap:
+      n.pos.x = (-minX + maxX - n.pos.x) * 100
+    else:
+      n.pos.x = (-minX + n.pos.x) * 100
     n.pos.y = (-minY + n.pos.y) * 100
   for l in rn.lanes.values():
     for p in l.shape.points:
-      p.x = (-minX + maxX - p.x) * 100
+      if flipMap:
+        p.x = (-minX + maxX - p.x) * 100
+      else:
+        p.x = (-minX + p.x) * 100
       p.y = (-minY + p.y) * 100
 
 
@@ -859,7 +877,7 @@ def run_main(inFileName):
   assign_unique_ids(rn, 1000)
 
   #Check network properties; flip X coordinates
-  check_and_flip_and_scale(rn)
+  check_and_flip_and_scale(rn, format=='S')
 
   #Create N+1 lane edges from N lanes
   make_lane_edges(rn)

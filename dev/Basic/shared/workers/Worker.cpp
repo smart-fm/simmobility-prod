@@ -18,6 +18,7 @@ using boost::function;
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -251,6 +252,15 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
+
+	//TODO: This should be integrated into Person::getSubscriptionList()
+	Person* person = dynamic_cast<Person*>(&ag);
+	if(person)	{
+		Role* role = person->getRole();
+		if(role){
+			stopManaging(role->getDriverRequestParams().asVector());
+		}
+	}
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {

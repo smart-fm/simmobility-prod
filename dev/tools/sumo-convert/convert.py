@@ -330,7 +330,7 @@ def remove_unused_nodes(nodes, links):
   for lk in links.values():
     seg_nodes = [nodes[lk.segments[0].fromNode]]
     for e in lk.segments:
-      seg_nodes.append(nodes[lk.segments[0].toNode])
+      seg_nodes.append(nodes[e.toNode])
 
     #Begins and ends at a MultiNode? (This shouldn't fail)
     if seg_nodes[0].isUni():

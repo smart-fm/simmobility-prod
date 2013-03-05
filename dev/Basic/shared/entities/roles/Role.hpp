@@ -8,6 +8,7 @@
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"

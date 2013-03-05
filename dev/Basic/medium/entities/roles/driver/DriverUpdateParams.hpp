@@ -31,7 +31,8 @@ class Driver;
 /// \author Seth N. Hetu
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen)/* ,nextLaneIndex(0)*/{}
+	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen), secondsInTick(0.0),
+			elapsedSeconds(0.0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -41,8 +42,8 @@ struct DriverUpdateParams : public UpdateParams {
 
 	//double currLaneOffset;
 	//double currLaneLength;
-	double elapsedSeconds;
-	double timeThisTick;	//in seconds
+	double secondsInTick;
+	double elapsedSeconds;	//time elapsed in the current tick
 
 	//Handles state information
 	//double overflowIntoIntersection;

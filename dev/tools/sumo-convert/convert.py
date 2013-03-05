@@ -178,7 +178,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
     #Ensure we have at least two points.
     if len(nodeIds) < 2:
-      print('Warning: Skipping OSM way, as it does not have at least 2 node refs: %s' % lk.get('id'))
+      print('Warning: Skipping an OSM Way, as it does not have at least 2 node refs: %s' % lk.get('id'))
       return globalIdCounter
 
     #Attempt to extract the lane count; default to 1
@@ -308,19 +308,22 @@ def remove_unused_nodes(nodes, links):
 
     #Don't set it unless it's still unset.
     if n.is_uni is None:
-      #Easy check:
+      #This should fail:
       if len(segs)==1:
-        n.is_uni = True
+        raise Exception('Node should be a MultiNode...')
+        #n.is_uni = True
 
-      #Also easy
+      #Simple. 
+      #TODO: What if len(segs)==4? We can share Nodes, right?
       elif len(segs)>2:
         n.is_uni = False
 
       #Somewhat harder:
       else:
-        s1 = segs[0]
-        s2 = segs[1]
-        n.is_uni = ((s1.fromNode==s2.toNode) and (s1.toNode==s2.fromNode))
+        #The segments here should share one node (this node) and then go to different destinations.
+        n1 = segs[0].fromNode if segs[0].toNode==n.nodeId else segs[0].toNode
+        n2 = segs[1].fromNode if segs[1].toNode==n.nodeId else segs[1].toNode
+        n.is_uni = (n1 != n2)
 
 
   #Finally, do a quick test for our OSM data:
@@ -331,16 +334,16 @@ def remove_unused_nodes(nodes, links):
 
     #Begins and ends at a MultiNode? (This shouldn't fail)
     if seg_nodes[0].isUni():
-      raise Exception('Segment must begin at a MultiNode')
+      raise Exception('UniNode found (%s) at start of Segment where a MultiNode was expected.' % seg_nodes[0].nodeId)
     if seg_nodes[-1].isUni():
-      raise Exception('Segment must end at a MultiNode')
+      raise Exception('UniNode found (%s) at end of Segment where a MultiNode was expected.' % seg_nodes[-1].nodeId)
 
     #Ensure middle nodes are UniNodes. Note that this is not strictly required; we'll just
     #   have to false-segment the nodes that trigger this. 
     #NOTE: This currently affects 10% of all Nodes. 
     for i in range(1, len(seg_nodes)-2):
       if not seg_nodes[i].isUni():
-        raise Exception('Middle of a Segment must only be UniNodes.')
+        raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
 
   #We can cheat a little here: Nodes with no references won't even be in our result set.
   nodes.clear()

@@ -3,6 +3,7 @@
 #include "Person.hpp"
 
 #include <algorithm>
+#include <sstream>
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -32,7 +33,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
 	if (!(ag.originNode && ag.destNode)) {
-		throw std::runtime_error("Can't make a pseudo-trip for an Agent with no origin and destination.");
+		std::stringstream msg;
+		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode <<" , " <<ag.destNode;
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Make the trip itself
@@ -141,11 +144,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
 	if(lanepointer != configProps.end())
 	{
-		/*if(atoi(lanepointer->second.c_str()))
-		{
-			laneID = atoi(lanepointer->second.c_str());
-		}*/
-
 		try {
 		    int x = boost::lexical_cast<int>( lanepointer->second );
 		    laneID = x;
@@ -159,20 +157,17 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	map<string, string>::const_iterator origIt = configProps.find("originPos");
 	map<string, string>::const_iterator destIt = configProps.find("destPos");
 	if (origIt!=configProps.end() && destIt!=configProps.end()) {
+		//Double-check some potential error states.
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
-
 		if (this->originNode || this->destNode) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.
-
-		//std::cout << "sim_mob::Person::load=>input[" << origIt->second << " , " << destIt->second << "]\n";
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
-		//std::cout << "Resulting nodes[" << this->originNode << " , " << this->destNode << "]\n";
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");

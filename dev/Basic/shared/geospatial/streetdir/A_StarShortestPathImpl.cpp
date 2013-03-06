@@ -144,7 +144,6 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddWalkingLinks(walkingMap_, (*iter)->getPath(), nodeLookup);
-    	//procAddWalkingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Now add all Crossings
@@ -152,7 +151,6 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
     set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(), nodeLookup, completedCrossings);
-    	//procAddWalkingCrossings(walkingMap_, (*iter)->getPath(false), nodeLookup, completedCrossings);
     }
     }
 
@@ -247,7 +245,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices." <<std::endl;
+			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
 			continue;
 		}
 
@@ -634,19 +632,25 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 	//  may be represented by multiple vertices; overall, though, it's a conceptually simple procedure.
 	//Note that Walking edges are two-directional; for now, we accomplish this by adding 2 edges (we can change it to an undirected graph later).
 	for (std::vector<RoadSegment*>::const_iterator it=roadway.begin(); it!=roadway.end(); it++) {
+		//Retrieve the lane pairs and return early if there are none. This allows us to avoid generating warnings
+		//  when there *is* no associated Vertex for a given Segment, for whatever reason.
 		const RoadSegment* rs = *it;
+		std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(rs, nullptr);
+		if (lanePairs.empty()) {
+			continue;
+		}
+
 		std::map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
 		std::map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
 		if (from==nodeLookup.end() || to==nodeLookup.end()) {
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices." <<std::endl;
+			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (2)." <<std::endl;
 			continue;
 		}
 
 		//Of course, we still need to deal with Lanes
-		std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(rs, nullptr);
 		for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
 			int laneID = it->first;
 			//For simply nodes, this will be sufficient.

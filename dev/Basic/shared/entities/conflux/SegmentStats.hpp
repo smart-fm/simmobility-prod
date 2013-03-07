@@ -132,6 +132,7 @@ private:
 	double segDensity;
 	double lastAcceptTime;
 	int numVehicleLanes;
+	double segFlow;
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
@@ -178,9 +179,10 @@ public:
 	void reportSegmentStats(timeslice frameNumber);
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
+	double getSegFlow();
+	void incrementSegFlow();
+	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
-	void setLastAccept(const Lane* l, double lastAccept);
-	double getLastAccept(const Lane* l);
 
 	// This function prints all agents in this segment
 	void printAgents();

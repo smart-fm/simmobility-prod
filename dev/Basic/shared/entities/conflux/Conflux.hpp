@@ -100,9 +100,6 @@ private:
 	/* selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Agent* agentClosestToIntersection();
 
-	/* updates lane params for all lanes within the conflux */
-	void updateSupplyStats(timeslice frameNumber);
-
 	void killAgent(sim_mob::Agent* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
 
 	/*Searches segmentAgents and segmentAgentsDownstream to get the segmentStats for a road segment in this conflux*/
@@ -181,6 +178,16 @@ public:
 	double getLastAccept(const Lane* lane);
 	void setLastAccept(const Lane* lane, double lastAccept);
 	void resetPositionOfLastUpdatedAgentOnLanes();
+	void updateLaneParams(const Lane* lane, double newOutFlowRate);
+	void restoreLaneParams(const Lane* lane);
+	double getSegmentFlow(const RoadSegment* rdSeg);
+	void incrementSegmentFlow(const RoadSegment* rdSeg);
+	void resetSegmentFlows();
+	void resetLinkTravelTimes(timeslice frameNumber);
+
+	/* updates lane params for all lanes within the conflux */
+	void updateAndReportSupplyStats(timeslice frameNumber);
+
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
 

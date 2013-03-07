@@ -324,7 +324,14 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 			//Note that both of these tasks require calculating normal intersection of the BusStop and the RoadSegment.
 			Point2D bstopPoint(bstop->xPos, bstop->yPos);
 			DynamicVector roadSegVec(rs->getStart()->location, rs->getEnd()->location);
-			Point2D newSegPt = normal_intersect(bstopPoint, roadSegVec);
+			Point2D newSegPt;
+
+			//For now, this is optional.
+			try {
+				newSegPt = normal_intersect(bstopPoint, roadSegVec);
+			} catch (std::exception& ex) {
+				continue;
+			}
 
 			//Note that, in terms of "segmenting", we can either *actually* split the segment, or we can add
 			//  a second, segmented version of the Road Segment on top of the original. This is helpful in terms

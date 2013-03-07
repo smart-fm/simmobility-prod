@@ -81,7 +81,11 @@ Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::Dyn
 	double rhs = (pt.getY() - line.getY()) * (line.getEndY() - line.getY());
 	double denom = line.getMagnitude() * line.getMagnitude();
 	if (denom==0) {
-		throw std::runtime_error("Cannot determine the normal intersection: points are co-incidental.");
+		std::stringstream msg;
+		msg <<"Cannot determine the normal intersection: points are co-incidental.";
+		msg <<"\n  Point: " <<pt;
+		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
+		throw std::runtime_error(msg.str().c_str());
 	}
 	double u = (lhs + rhs) / denom;
 
@@ -94,7 +98,11 @@ Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::Dyn
 	// dot product approach above guarantees this or not.
 	if ((dist(res.getX(), res.getY(), line.getX(), line.getY()) > line.getMagnitude()) ||
 		(dist(res.getX(), res.getY(), line.getEndX(), line.getEndY()) > line.getMagnitude())) {
-		throw std::runtime_error("Cannot determine the normal intersection: point is too far outside the line.");
+		std::stringstream msg;
+		msg <<"Cannot determine the normal intersection: point is too far outside the line.";
+		msg <<"\n  Point: " <<pt;
+		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	return res;

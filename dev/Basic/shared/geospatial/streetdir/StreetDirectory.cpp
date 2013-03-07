@@ -101,18 +101,47 @@ const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 }
 
 
-vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const Node& n) const
 {
-	if (!spImpl_) { return vector<WayPoint>(); }
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
 
-	return spImpl_->GetShortestDrivingPath(fromNode, toNode);
+	return spImpl_->DrivingVertex(n);
 }
 
-vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const Node& n) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->WalkingVertex(n);
+}
+
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const BusStop& b) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->DrivingVertex(b);
+}
+
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const BusStop& b) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->WalkingVertex(b);
+}
+
+
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(VertexDesc from, VertexDesc to) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }
 
-	return spImpl_->shortestWalkingPath(fromPoint, toPoint);
+	return spImpl_->GetShortestDrivingPath(from, to);
+}
+
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const
+{
+	if (!spImpl_) { return vector<WayPoint>(); }
+
+	return spImpl_->GetShortestWalkingPath(from, to);
 }
 
 

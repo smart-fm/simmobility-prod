@@ -30,9 +30,14 @@ public:
     virtual ~A_StarShortestPathImpl() {}
 
 protected:
-    virtual std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
+	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& n) const;
+	virtual StreetDirectory::VertexDesc WalkingVertex(const Node& n) const;
+	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& b) const;
+	virtual StreetDirectory::VertexDesc WalkingVertex(const BusStop& b) const;
 
-    virtual std::vector<WayPoint> shortestWalkingPath(const Point2D& fromPoint, const Point2D& toPoint) const;
+    virtual std::vector<WayPoint> GetShortestDrivingPath(StreetDirectory::VertexDesc from, StreetDirectory::VertexDesc to) const;
+    virtual std::vector<WayPoint> GetShortestWalkingPath(StreetDirectory::VertexDesc from, StreetDirectory::VertexDesc to) const;
+
 
     virtual void updateEdgeProperty();
 
@@ -79,6 +84,10 @@ private:
     std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > drivingNodeLookup_;
     std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > walkingNodeLookup_;
 
+    //Lookups for Bus Stops; the "source" and "sink" for these are the same.
+    std::map<const BusStop*, StreetDirectory::Vertex> drivingBusStopLookup_;
+    std::map<const BusStop*, StreetDirectory::Vertex> walkingBusStopLookup_;
+
 private:
     //Initialize
     void initDrivingNetworkNew(const std::vector<sim_mob::Link*>& links);
@@ -87,7 +96,7 @@ private:
     //New processing code: Driving path
     void procAddDrivingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddDrivingLinks(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddDrivingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, StreetDirectory::Vertex>& resLookup);
     void procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //New processing code: Walking path

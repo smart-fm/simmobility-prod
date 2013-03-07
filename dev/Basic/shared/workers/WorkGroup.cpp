@@ -20,6 +20,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Node.hpp"
 
 using std::map;
 using std::vector;
@@ -644,15 +645,17 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	std::string role = rf.GetTripChainMode(firstItem);
 
+	StreetDirectory& stdir = StreetDirectory::instance();
+
 	vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	if (role == "driver") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation), stdir.DrivingVertex(*firstSubTrip.toLocation));
 	}
 	else if (role == "pedestrian") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation), stdir.WalkingVertex(*firstSubTrip.toLocation));
 	}
 	else if (role == "busdriver") {
 		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");

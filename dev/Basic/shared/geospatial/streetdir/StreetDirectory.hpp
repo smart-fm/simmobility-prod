@@ -14,6 +14,7 @@
 #include "metrics/Length.hpp"
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/Node.hpp"
 
 
 namespace sim_mob
@@ -263,6 +264,16 @@ public:
     typedef Graph::edge_descriptor Edge;
 
 
+	//A return value for "Driving/WalkingVertex"
+	struct VertexDesc {
+		bool valid;    //Is this a valid struct? If false, treat as "null"
+		Vertex source; //The outgoing Vertex (used for "source" master nodes).
+		Vertex sink;   //The incoming Vertex (used for "sink" master nodes).
+
+		VertexDesc(bool valid=false) : valid(valid), source(Vertex()), sink(Vertex()) {}
+	};
+
+
     /**
      * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
      *   to allow the testing of different implementations, rather than restricting ourselves to cpp-defined functionality.
@@ -293,9 +304,15 @@ public:
     protected:
     	//ShortestPathImpl();   //Abstract?
 
-        virtual std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const = 0;
+    	///Retrieve a Vertex based on a Node, BusStop, etc.. Flag in the return value is false to indicate failure.
+    	virtual VertexDesc DrivingVertex(const Node& n) const = 0;
+    	virtual VertexDesc WalkingVertex(const Node& n) const = 0;
+    	virtual VertexDesc DrivingVertex(const BusStop& b) const = 0;
+    	virtual VertexDesc WalkingVertex(const BusStop& b) const = 0;
 
-        virtual std::vector<WayPoint> shortestWalkingPath(const Point2D& fromPoint, const Point2D& toPoint) const = 0;
+    	//Meant to be used with the "DrivingVertex/WalkingVertex" functions.
+        virtual std::vector<WayPoint> GetShortestDrivingPath(VertexDesc from, VertexDesc to) const = 0;
+        virtual std::vector<WayPoint> GetShortestWalkingPath(VertexDesc from, VertexDesc to) const = 0;
 
         virtual void updateEdgeProperty() = 0;
 
@@ -343,7 +360,13 @@ public:
      * It is possible that the intersection, specified by \c node, is an unsignalized junction.
      * All road users must observe the highway code.
      */
-    const Signal* signalAt(const Node& node) const;
+    const Signal* signalAt(const sim_mob::Node& node) const;
+
+
+	VertexDesc DrivingVertex(const sim_mob::Node& n) const;
+	VertexDesc WalkingVertex(const sim_mob::Node& n) const;
+	VertexDesc DrivingVertex(const sim_mob::BusStop& b) const;
+	VertexDesc WalkingVertex(const sim_mob::BusStop& b) const;
 
 
     /**
@@ -361,7 +384,7 @@ public:
      *   a lot of drivers asking for the same path information. This is trickier than one might think, since the
      *   StreetDirectory is used in parallel, so a shared structure will need to be designed carefully. ~Seth
      */
-    std::vector<WayPoint> SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
+    std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to) const;
 
 
     /**
@@ -381,7 +404,7 @@ public:
      * \todo
      * Adding of ad-hoc points is untested at the moment.
      */
-    std::vector<WayPoint> SearchShortestWalkingPath(const Point2D& fromPoint, const Point2D& toPoint) const;
+    std::vector<WayPoint> SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const;
 
 
     /**

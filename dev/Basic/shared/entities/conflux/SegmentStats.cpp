@@ -12,11 +12,11 @@ using std::string;
 namespace sim_mob {
 
 	SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
-		: roadSegment(rdSeg), segDensity(0.0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
+		: roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0.0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
 	{
 		segVehicleSpeed = getRoadSegment()->maxSpeed/3.6 *100; //converting from kmph to m/s
-		segPedSpeed = 0.0;
 		numVehicleLanes = 0;
+
 		// initialize LaneAgents in the map
 		std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
 		while(lane != rdSeg->getLanes().end())
@@ -479,14 +479,17 @@ namespace sim_mob {
 	}
 
 	void sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
-			LogOut("(\"segmentState\""
-				<<","<<frameNumber.frame()
-				<<","<<roadSegment
-				<<",{"
-				<<"\"speed\":\""<<segVehicleSpeed
-				<<"\",\"flow\":\""<<0
-				<<"\",\"density\":\""<<segDensity
-				<<"\"})"<<std::endl);
+#ifndef SIMMOB_DISABLE_OUTPUT
+//		("segmentState",20,0xa0e30d8,{"speed":"10.4","flow":"8","density":"12"})
+		LogOut("(\"segmentState\""
+			<<","<<frameNumber.frame()
+			<<","<<roadSegment
+			<<",{"
+			<<"\"speed\":\""<<segVehicleSpeed
+			<<"\",\"flow\":\""<<segFlow
+			<<"\",\"density\":\""<<segDensity
+			<<"\"})"<<std::endl);
+#endif
 	}
 
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){
@@ -539,6 +542,18 @@ namespace sim_mob {
 		{
 			i->second->setPositionOfLastUpdatedAgent(-1.0);
 		}
+	}
+
+	double SegmentStats::getSegFlow() {
+		return segFlow;
+	}
+
+	void SegmentStats::incrementSegFlow(){
+		segFlow++;
+	}
+
+	void SegmentStats::resetSegFlow(){
+		segFlow = 0.0;
 	}
 
 	void SegmentStats::printAgents() {

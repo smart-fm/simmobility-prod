@@ -1442,9 +1442,9 @@ void printRoadNetwork_console()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
-	//std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
+	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
 	//std::string XML_OutPutFileName = "NetworkCopy.xml";
-	std::string XML_OutPutFileName = "../tools/sumo-convert/simmob.network.xml";
+	//std::string XML_OutPutFileName = "../tools/sumo-convert/simmob.network.xml";
 
 
 	//Save granularities: system

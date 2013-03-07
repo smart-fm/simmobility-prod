@@ -317,13 +317,20 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 				continue;
 			}
 
+			//Retrieve the original "start" and "end" Nodes for this segment.
+			StreetDirectory::Vertex fromVertex = FindStartingVertex(rs, nodeLookup);
+			StreetDirectory::Vertex toVertex = FindEndingVertex(rs, nodeLookup);
+
 			//At this point, we have the Bus Stop, as well as the Road Segment that it appears on.
 			//We need to do two things:
 			//  1) Segment the current Edge into two smaller edges; one before the BusStop and one after.
 			//  2) Add a Vertex for the stop itself, and connect an incoming and outgoing Edge to it.
 			//Note that both of these tasks require calculating normal intersection of the BusStop and the RoadSegment.
 			Point2D bstopPoint(bstop->xPos, bstop->yPos);
-			DynamicVector roadSegVec(rs->getStart()->location, rs->getEnd()->location);
+			DynamicVector roadSegVec(
+				boost::get(boost::vertex_name, graph, fromVertex),
+				boost::get(boost::vertex_name, graph, toVertex)
+			);
 			Point2D newSegPt;
 
 			//For now, this is optional.
@@ -344,10 +351,6 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 			//This node has no associated "lookup" or "original" values, since it's artificial.
 			StreetDirectory::Vertex midV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), midV, newSegPt);
-
-			//Retrieve the original "start" and "end" Nodes for this segment.
-			StreetDirectory::Vertex fromVertex = FindStartingVertex(rs, nodeLookup);
-			StreetDirectory::Vertex toVertex = FindEndingVertex(rs, nodeLookup);
 
 			//Add the BusStop vertex. This node is unique per BusStop per SEGMENT, since it allows a loopback.
 			//For  now, it makes no sense to put a path to the Bus Stop on the reverse segment (cars need to park on

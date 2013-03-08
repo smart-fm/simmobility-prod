@@ -301,7 +301,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 }
 
 
-void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, StreetDirectory::Vertex>& resLookup)
+void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
 {
 	//Skip empty roadways
 	if (roadway.empty()) {
@@ -355,19 +355,23 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 			//Add the BusStop vertex. This node is unique per BusStop per SEGMENT, since it allows a loopback.
 			//For  now, it makes no sense to put a path to the Bus Stop on the reverse segment (cars need to park on
 			// the correct side of the road), but for path finding we might want to consider it later.
-			StreetDirectory::Vertex busV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busV, bstopPoint);
+			StreetDirectory::Vertex busSrcV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSrcV, bstopPoint);
+
+			StreetDirectory::Vertex busSinkV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSinkV, bstopPoint);
 
 			//Add the Bus vertex to a lookup
 			if (resLookup.count(bstop)>0) {
 				throw std::runtime_error("Duplicate Bus Stop in lookup.");
 			}
-			resLookup[bstop] = busV;
+			resLookup[bstop] = std::make_pair(busSrcV, busSinkV);
 
-			//Add the new route. (from->mid->bus->mid->to)
+			//Add the new route. (from->mid->bus; bus->mid->to)
 			AddSimpleEdge(graph, fromVertex, midV, WayPoint(rs));
-			AddSimpleEdge(graph, midV, busV, WayPoint(bstop));
-			AddSimpleEdge(graph, busV, midV, WayPoint(bstop));
+			AddSimpleEdge(graph, midV, busSinkV, WayPoint(bstop));
+
+			AddSimpleEdge(graph, busSrcV, midV, WayPoint(bstop));
 			AddSimpleEdge(graph, midV, toVertex, WayPoint(rs));
 		}
 	}
@@ -1086,11 +1090,11 @@ StreetDirectory::VertexDesc sim_mob::A_StarShortestPathImpl::DrivingVertex(const
 
     //Convert the node (position in 2D geometry) to a vertex in the map.
 	//It is possible that fromNode and toNode are not represented by any vertex in the graph.
-	map<const BusStop*, StreetDirectory::Vertex>::const_iterator vertexIt = drivingBusStopLookup_.find(&b);
+	map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >::const_iterator vertexIt = drivingBusStopLookup_.find(&b);
     if (vertexIt!=drivingBusStopLookup_.end()) {
     	res.valid = true;
-    	res.source = vertexIt->second;
-    	res.sink = vertexIt->second;
+    	res.source = vertexIt->second.first;
+    	res.sink = vertexIt->second.second;
     	return res;
     }
 
@@ -1105,11 +1109,11 @@ StreetDirectory::VertexDesc sim_mob::A_StarShortestPathImpl::WalkingVertex(const
 
     //Convert the node (position in 2D geometry) to a vertex in the map.
 	//It is possible that fromNode and toNode are not represented by any vertex in the graph.
-	map<const BusStop*, StreetDirectory::Vertex>::const_iterator vertexIt = walkingBusStopLookup_.find(&b);
+	map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >::const_iterator vertexIt = walkingBusStopLookup_.find(&b);
     if (vertexIt!=walkingBusStopLookup_.end()) {
     	res.valid = true;
-    	res.source = vertexIt->second;
-    	res.sink = vertexIt->second;
+    	res.source = vertexIt->second.first;
+    	res.sink = vertexIt->second.second;
     	return res;
     }
 

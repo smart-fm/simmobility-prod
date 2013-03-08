@@ -85,8 +85,8 @@ private:
     std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > walkingNodeLookup_;
 
     //Lookups for Bus Stops; the "source" and "sink" for these are the same.
-    std::map<const BusStop*, StreetDirectory::Vertex> drivingBusStopLookup_;
-    std::map<const BusStop*, StreetDirectory::Vertex> walkingBusStopLookup_;
+    std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > drivingBusStopLookup_;
+    std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > walkingBusStopLookup_;
 
 private:
     //Initialize
@@ -96,7 +96,7 @@ private:
     //New processing code: Driving path
     void procAddDrivingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddDrivingLinks(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddDrivingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, StreetDirectory::Vertex>& resLookup);
+    void procAddDrivingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup);
     void procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //New processing code: Walking path

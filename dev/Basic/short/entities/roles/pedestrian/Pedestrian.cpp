@@ -328,7 +328,8 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(timeslice now)
 
 void sim_mob::Pedestrian::setSubPath() {
 	if(atSidewalk){
-		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
 
 		//Used to debug pedestrian walking paths.
 		/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
@@ -440,9 +441,8 @@ void sim_mob::Pedestrian::setSubPath() {
 	else if(atCrossing){
 
 		//LogOut("noteForDebug setSubPath run atCrossing"<<std::endl);
-
-		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location,
-				parent->destNode->location);
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
 		bool isPassedCrossing=false;
 		vector<const Crossing*> newCrossings;
 		if(currCrossings.empty()){

@@ -252,7 +252,8 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		}
 
 		//TODO: Start in lane 0?

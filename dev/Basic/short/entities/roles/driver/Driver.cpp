@@ -1185,7 +1185,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 			int x = 0;
 			x = path.size();
 			//std::cout << "Driver path has " << path.size() << "  elements\n";
@@ -1197,7 +1198,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				int x = path.size();
 				initTripChainSpecialString(specialValue);
 			} else {
@@ -1242,7 +1244,8 @@ void sim_mob::Driver::initializePathMed() {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1251,7 +1254,8 @@ void sim_mob::Driver::initializePathMed() {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				int x = path.size();
 				initTripChainSpecialString(specialValue);
 			} else {
@@ -1269,7 +1273,8 @@ void sim_mob::Driver::initializePathMed() {
 void sim_mob::Driver::resetPath(DriverUpdateParams& p) {
 	const Node * node = vehicle->getCurrSegment()->getEnd();
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	vector<WayPoint> path = StreetDirectory::instance().SearchShortestDrivingPath(*node, *goal.node);
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*goal.node));
 
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(vehicle->getCurrSegment()));

@@ -76,6 +76,12 @@ void sim_mob::StreetDirectory::updateDrivingMap()
 	}
 }
 
+const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& point) const
+{
+    return pimpl_ ? pimpl_->getBusStop(point) : nullptr;
+}
+
+
 StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point2D& point) const
 {
     return pimpl_ ? pimpl_->getLane(point) : LaneAndIndexPair();

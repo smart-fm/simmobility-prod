@@ -285,6 +285,8 @@ public:
     protected:
         //Impl();  //Abstract?
 
+		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
+
         virtual LaneAndIndexPair getLane(const Point2D& position) const = 0;
 
         virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
@@ -332,6 +334,9 @@ public:
         	throw std::runtime_error("StreetDirectory::Stats not implemented yet");
         }
     };
+
+
+    const BusStop* getBusStop(const Point2D& position) const;
 
 
     /**

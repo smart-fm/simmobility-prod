@@ -124,7 +124,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	vector<const BusStop*> stops;
 	sim_mob::Busline* busline = nullptr;
 	int step = 0;
-
+	bool busstop_busline_registered=false;
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
 
@@ -135,6 +135,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
 			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth
+			busstop_busline_registered = true;
 		}
 
 		// define frequency_busline for one busline
@@ -159,17 +160,22 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
 			vector<const RoadSegment*> segments = (segmentsIt==config.getRoadSegments_Map().end()) ? vector<const RoadSegment*>() : segmentsIt->second;
 			stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
-
+			if(busstop_busline_registered) // for each busline, only push once
+			{
+			  for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
+			  {
+				 BusStop* busStop=const_cast<BusStop*>(stops[k]);
+				 busStop->BusLines.push_back(busline);
+				// std:cout<<"busline"<<busline->getBusLineID()<<std::endl;
+			  }
+		     busstop_busline_registered = false;
+			}
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
 		}
 	}
-	for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
-	{
-	  BusStop* rs=const_cast<BusStop*>(stops[k]);
-	  rs->BusLines.push_back(busline);
-	}
+
 }
 
 

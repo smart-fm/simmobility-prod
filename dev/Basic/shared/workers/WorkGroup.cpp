@@ -219,12 +219,14 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
 	if (UseDynamicDispatch) {
 		entToBeRemovedPerWorker.resize(numWorkers, vector<Entity*>());
+		entToBeBredPerWorker.resize(numWorkers, vector<Entity*>());
 	}
 
 	//Init the workers themselves.
 	for (size_t i=0; i<numWorkers; i++) {
 		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
-		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, numSimTicks, tickStep));
+		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
 
@@ -264,6 +266,17 @@ void sim_mob::WorkGroup::stageEntities()
 	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
 		return;
+	}
+
+	//Each Worker has its own vector of Entities to post addition requests to.
+	for (vector<vector <Entity*> >::iterator outerIt=entToBeBredPerWorker.begin(); outerIt!=entToBeBredPerWorker.end(); outerIt++) {
+		for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
+			//schedule each Entity.
+			scheduleEntity( dynamic_cast<Agent*>(*it) );
+		}
+
+		//This worker's list of entries is clear
+		outerIt->clear();
 	}
 
 	//Keep assigning the next entity until none are left.
@@ -316,6 +329,10 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 			if (it2!=loader->entity_dest.end()) {
 				loader->entity_dest.erase(it2);
 			}
+
+			//if parent existed, will inform parent to unregister this child if necessary
+			if( Entity* parent = (*it)->parentEntity )
+				parent->unregisteredChild( (*it) );
 
 			//Delete this entity
 			delete *it;

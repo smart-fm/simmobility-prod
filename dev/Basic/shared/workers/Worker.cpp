@@ -24,13 +24,14 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, uint32_t endTick, uint32_t tickStep)
+sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
     : BufferedDataManager(),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick),
       tickStep(tickStep),
       parent(parent),
       entityRemovalList(entityRemovalList),
+      entityBredList(entityBredList),
       debugMsg(std::stringstream::out)
 
 {
@@ -107,6 +108,15 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 	}
 }
 
+void sim_mob::Worker::scheduleForBred(Entity* entity)
+{
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		//Nothing to be done.
+	} else {
+		//Save for later
+		toBeBred.push_back(entity);
+	}
+}
 
 
 void sim_mob::Worker::start()
@@ -165,6 +175,23 @@ void sim_mob::Worker::removePendingEntities()
 	toBeRemoved.clear();
 }
 
+void sim_mob::Worker::breedPendingEntities()
+{
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		return;
+	}
+
+	for (vector<Entity*>::iterator it=toBeBred.begin(); it!=toBeBred.end(); it++) {
+		//Remove it from our global list.
+		if (!entityBredList) {
+			throw std::runtime_error("Attempting to breed an entity from parent that doesn't allow it.");
+		}
+
+		//(*it)->currWorker = this;
+		entityBredList->push_back(*it);
+	}
+	toBeBred.clear();
+}
 
 
 void sim_mob::Worker::barrier_mgmt()
@@ -189,6 +216,10 @@ void sim_mob::Worker::barrier_mgmt()
 
 		//Remove Agents as requires
 		removePendingEntities();
+
+		// breed new children entities from parent
+		breedPendingEntities();
+
 
 		//Advance local time-step.
 		currTick += tickStep;

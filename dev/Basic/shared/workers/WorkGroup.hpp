@@ -129,6 +129,7 @@ public:
 	void stageEntities();
 	void collectRemovedEntities();
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
+	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorker(Entity* ag);
 

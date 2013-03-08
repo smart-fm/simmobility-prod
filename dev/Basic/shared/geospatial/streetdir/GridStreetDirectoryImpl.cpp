@@ -445,7 +445,7 @@ const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& posit
 	//TODO: Ideally, it would use some kind of spatial index.
 	const int Threshold = 10 * 100; //10m
 	for (std::set<const BusStop*>::const_iterator it=busStops_.begin(); it!=busStops_.end(); it++) {
-		if (dist(Point2D((*it)->xPos, (*it)->yPos), position) > Threshold) {
+		if (dist(Point2D((*it)->xPos, (*it)->yPos), position) < Threshold) {
 			return *it;
 		}
 	}

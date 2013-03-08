@@ -231,8 +231,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	const StreetDirectory& stdir = StreetDirectory::instance();
 
 	//TODO: It seems that *all* paths are reversed.
-	//const BusStop* from = stdir.getBusStop(Point2D(37290071,14390219));
-	const Node* from = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37241080,14362955)); //61688
+	const BusStop* from = stdir.getBusStop(Point2D(37290071,14390219));
+	//const Node* from = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37241080,14362955)); //61688
 	const Node* to = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959)); //45666
 
 	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*from), stdir.DrivingVertex(*to));

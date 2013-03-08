@@ -227,6 +227,11 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
     }
     }
 
+    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
+    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingBusStops(walkingMap_, (*iter)->getPath(), nodeLookup, walkingBusStopLookup_);
+    }
+
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(walkingMap_, nodeLookup, walkingNodeLookup_);
 }
@@ -376,6 +381,124 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 		}
 	}
 }
+
+
+void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
+{
+	//Skip empty roadways
+	if (roadway.empty()) {
+		return;
+	}
+
+	//Iterate through all obstacles on all RoadSegments and find BusStop obstacles.
+	for (vector<RoadSegment*>::const_iterator rsIt=roadway.begin(); rsIt!=roadway.end(); rsIt++) {
+		const RoadSegment* rs = *rsIt;
+		for (map<centimeter_t, const RoadItem*>::const_iterator it=rs->obstacles.begin(); it!=rs->obstacles.end(); it++) {
+			const BusStop* bstop = dynamic_cast<const BusStop*>(it->second);
+			if (!bstop) {
+				continue;
+			}
+
+			//At this point, our goal is still to retrieve the from/to Vertices. However, lanes make this
+			// more complicated. The easiest solution is to compute the midpoint of each potential Lane
+			// candidate, and then choose the closest one. This won't affect performance much, as each
+			// RoadSegment will usually only have 1 or 2 sidewalks.
+			std::map<const Node*, VertexLookup>::const_iterator fromIt = nodeLookup.find(rs->getStart());
+			std::map<const Node*, VertexLookup>::const_iterator toIt = nodeLookup.find(rs->getEnd());
+			if (fromIt==nodeLookup.end() || toIt==nodeLookup.end()) {
+				throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
+			}
+			if (fromIt->second.vertices.empty() || toIt->second.vertices.empty()) {
+				std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (3)." <<std::endl;
+				continue;
+			}
+
+			//Helper data
+			Point2D bstopPoint(bstop->xPos, bstop->yPos);
+
+			//What we're searching for.
+			StreetDirectory::Vertex fromV;
+			StreetDirectory::Vertex toV;
+
+			//Our quality control.
+			Point2D midPt;
+			double minDist = -1; //<0 == error
+
+			//Start searching!
+			for (std::vector<NodeDescriptor>::const_iterator it1=fromIt->second.vertices.begin(); it1!=fromIt->second.vertices.end(); it1++) {
+				NodeDescriptor fromCandidate = *it1;
+				if (rs != fromCandidate.after) { continue; }
+				for (std::vector<NodeDescriptor>::const_iterator it2=toIt->second.vertices.begin(); it2!=toIt->second.vertices.end(); it2++) {
+					NodeDescriptor toCandidate = *it2;
+					if (rs != toCandidate.before) { continue; }
+					if (fromCandidate.afterLaneID != toCandidate.beforeLaneID) { continue; }
+
+					//At this point, fromCandidate and toCandidate represent a viable from/to pair on a RoadSegment representing the same Lane.
+					DynamicVector laneSegVect(
+						boost::get(boost::vertex_name, graph, fromCandidate.v),
+						boost::get(boost::vertex_name, graph, toCandidate.v)
+					);
+					Point2D candMidPt;
+
+					//For now, this is optional.
+					try {
+						candMidPt = normal_intersect(bstopPoint, laneSegVect);
+					} catch (std::exception& ex) {
+						continue;
+					}
+
+					//Is it closer?
+					double candDist = sim_mob::dist(candMidPt, bstopPoint);
+					if ((minDist<0) || (candDist<minDist)) {
+						minDist = candDist;
+						midPt = candMidPt;
+						fromV = fromCandidate.v;
+						toV = toCandidate.v;
+					}
+				}
+			}
+
+			//Did we find anything?
+			if (minDist<0) {
+				//For now it's not an error.
+				std::cout <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
+				continue;
+			}
+
+			//Now our algorithm proceeds much the same as before, except that Sidewalks are bi-directional in nature.
+			StreetDirectory::Vertex midSinkV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), midSinkV, midPt);
+			StreetDirectory::Vertex midSrcV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), midSrcV, midPt);
+
+			//Add the BusStop vertex. This node is unique per BusStop per SEGMENT, since it allows a loopback.
+			//For  now, it makes no sense to put a path to the Bus Stop on the reverse segment (cars need to park on
+			// the correct side of the road), but for path finding we might want to consider it later.
+			StreetDirectory::Vertex busSrcV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSrcV, bstopPoint);
+
+			StreetDirectory::Vertex busSinkV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSinkV, bstopPoint);
+
+			//Add the Bus vertex to a lookup
+			if (resLookup.count(bstop)>0) {
+				throw std::runtime_error("Duplicate Bus Stop in lookup.");
+			}
+			resLookup[bstop] = std::make_pair(busSrcV, busSinkV);
+
+			//Add the new route. (from->mid->bus; to->mid->bus)
+			AddSimpleEdge(graph, fromV, midSinkV, WayPoint(rs));
+			AddSimpleEdge(graph, toV, midSinkV, WayPoint(rs));
+			AddSimpleEdge(graph, midSinkV, busSinkV, WayPoint(bstop));
+
+			//Add the new route. (bus->mid->from; bus->mid->to)
+			AddSimpleEdge(graph, busSrcV, midSrcV, WayPoint(bstop));
+			AddSimpleEdge(graph, midSrcV, fromV, WayPoint(rs));
+			AddSimpleEdge(graph, midSrcV, toV, WayPoint(rs));
+		}
+	}
+}
+
 
 
 void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup)

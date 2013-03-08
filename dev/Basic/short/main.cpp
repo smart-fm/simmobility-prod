@@ -230,6 +230,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	///START DEBUG
 	const StreetDirectory& stdir = StreetDirectory::instance();
 
+	//TODO: Find the two Bus Stops closest to node 58950 (two different sides of Victoria Street)
+	//      and plan a path from one to the other (will ensure they walk around the long way).
+
 	//TODO: It seems that *all* paths are reversed.
 	const BusStop* from = stdir.getBusStop(Point2D(37290071,14390219));
 	//const Node* from = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37241080,14362955)); //61688

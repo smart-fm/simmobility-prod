@@ -383,6 +383,72 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 }
 
 
+namespace {
+
+//Helper function: Retrieve a set of sidewalk lane pairs (fromLane, toLane) given two RoadSegments.
+//If both inputs are non-null, then from/to *must* exist (e.g., UniNodes).
+//TODO: Right now, this function is quite hackish, and only checks the outer and inner lanes.
+//      We need to improve it to work for any number of sidewalk lanes (e.g., median sidewalks), but
+//      for now we don't even have the data.
+//TODO: The proper way to do this is with an improved version of UniNode lane connectors.
+vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, const RoadSegment* after) {
+	//Error check: at least one segment must exist
+	if (!before && !after) { throw std::runtime_error("Can't GetSidewalkLanePairs on two null segments."); }
+
+	//Store two partial lists
+	vector<int> beforeLanes;
+	vector<int> afterLanes;
+	vector< std::pair<int, int> > res;
+
+	//Build up before
+	if (before) {
+		for (size_t i=0; i<before->getLanes().size(); i++) {
+			if (before->getLanes().at(i)->is_pedestrian_lane()) {
+				beforeLanes.push_back(i);
+			}
+		}
+	}
+
+	//Build up after
+	if (after) {
+		for (size_t i=0; i<after->getLanes().size(); i++) {
+			if (after->getLanes().at(i)->is_pedestrian_lane()) {
+				afterLanes.push_back(i);
+			}
+		}
+	}
+
+	//It's possible that we have no results
+	if ((before&&beforeLanes.empty()) || (after&&afterLanes.empty())) {
+		return res;
+	}
+
+	//If we have both before and after, only pairs can be added (no null values).
+	// We can manage this implicitly by either counting up or down, and stopping when we have no more values.
+	// For now, we just ensure they're equal or add NONE
+	if (before && after) {
+		if (beforeLanes.size()==afterLanes.size()) {
+			for (size_t i=0; i<beforeLanes.size(); i++) {
+				res.push_back(std::make_pair(beforeLanes.at(i), afterLanes.at(i)));
+			}
+		}
+		return res;
+	}
+
+	//Otherwise, just build a partial list
+	for (size_t i=0; i<beforeLanes.size() || i<afterLanes.size(); i++) {
+		if (before) {
+			res.push_back(std::make_pair(beforeLanes.at(i), -1));
+		} else {
+			res.push_back(std::make_pair(-1, afterLanes.at(i)));
+		}
+	}
+	return res;
+}
+
+} //End un-named namespace
+
+
 void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
 {
 	//Skip empty roadways
@@ -392,7 +458,13 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 
 	//Iterate through all obstacles on all RoadSegments and find BusStop obstacles.
 	for (vector<RoadSegment*>::const_iterator rsIt=roadway.begin(); rsIt!=roadway.end(); rsIt++) {
+		//Exit early, if necessary
 		const RoadSegment* rs = *rsIt;
+		std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(rs, nullptr);
+		if (lanePairs.empty()) {
+			continue;
+		}
+
 		for (map<centimeter_t, const RoadItem*>::const_iterator it=rs->obstacles.begin(); it!=rs->obstacles.end(); it++) {
 			const BusStop* bstop = dynamic_cast<const BusStop*>(it->second);
 			if (!bstop) {
@@ -424,42 +496,53 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 			Point2D midPt;
 			double minDist = -1; //<0 == error
 
+			//Use this to ensure that we aren't getting the wrong RoadSegment as an artifact.
+			bool error = false;
+
 			//Start searching!
-			for (std::vector<NodeDescriptor>::const_iterator it1=fromIt->second.vertices.begin(); it1!=fromIt->second.vertices.end(); it1++) {
-				NodeDescriptor fromCandidate = *it1;
-				if (rs != fromCandidate.after) { continue; }
-				for (std::vector<NodeDescriptor>::const_iterator it2=toIt->second.vertices.begin(); it2!=toIt->second.vertices.end(); it2++) {
-					NodeDescriptor toCandidate = *it2;
-					if (rs != toCandidate.before) { continue; }
-					if (fromCandidate.afterLaneID != toCandidate.beforeLaneID) { continue; }
+			for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
+				int laneID = it->first;
 
-					//At this point, fromCandidate and toCandidate represent a viable from/to pair on a RoadSegment representing the same Lane.
-					DynamicVector laneSegVect(
-						boost::get(boost::vertex_name, graph, fromCandidate.v),
-						boost::get(boost::vertex_name, graph, toCandidate.v)
-					);
-					Point2D candMidPt;
+				//Find a "from" and "to" Vertex that match this laneID
+				for (std::vector<NodeDescriptor>::const_iterator it1=fromIt->second.vertices.begin(); it1!=fromIt->second.vertices.end(); it1++) {
+					if ((rs==it1->after && laneID==it1->afterLaneID) || (rs==it1->before && laneID==it1->beforeLaneID)) {
+						NodeDescriptor fromCandidate = *it1;
+						for (std::vector<NodeDescriptor>::const_iterator it2=toIt->second.vertices.begin(); it2!=toIt->second.vertices.end(); it2++) {
+							if ((rs==it2->before && laneID==it2->beforeLaneID) || (rs==it2->after && laneID==it2->afterLaneID)) {
+								NodeDescriptor toCandidate = *it2;
 
-					//For now, this is optional.
-					try {
-						candMidPt = normal_intersect(bstopPoint, laneSegVect);
-					} catch (std::exception& ex) {
-						continue;
-					}
+								//At this point, fromCandidate and toCandidate represent a viable from/to pair on a RoadSegment representing the same Lane.
+								DynamicVector laneSegVect(
+									boost::get(boost::vertex_name, graph, fromCandidate.v),
+									boost::get(boost::vertex_name, graph, toCandidate.v)
+								);
+								Point2D candMidPt;
 
-					//Is it closer?
-					double candDist = sim_mob::dist(candMidPt, bstopPoint);
-					if ((minDist<0) || (candDist<minDist)) {
-						minDist = candDist;
-						midPt = candMidPt;
-						fromV = fromCandidate.v;
-						toV = toCandidate.v;
+								//For now, this is optional.
+								try {
+									candMidPt = normal_intersect(bstopPoint, laneSegVect);
+								} catch (std::exception& ex) {
+									error = true;
+									continue;
+								}
+
+								//Is it closer?
+								double candDist = sim_mob::dist(candMidPt, bstopPoint);
+								if ((minDist<0) || (candDist<minDist)) {
+									minDist = candDist;
+									midPt = candMidPt;
+									fromV = fromCandidate.v;
+									toV = toCandidate.v;
+								}
+							}
+						}
 					}
 				}
 			}
 
+
 			//Did we find anything?
-			if (minDist<0) {
+			if ((minDist<0) || error) {
 				//For now it's not an error.
 				std::cout <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
 				continue;
@@ -623,70 +706,6 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 }
 
 
-namespace {
-
-//Helper function: Retrieve a set of sidewalk lane pairs (fromLane, toLane) given two RoadSegments.
-//If both inputs are non-null, then from/to *must* exist (e.g., UniNodes).
-//TODO: Right now, this function is quite hackish, and only checks the outer and inner lanes.
-//      We need to improve it to work for any number of sidewalk lanes (e.g., median sidewalks), but
-//      for now we don't even have the data.
-//TODO: The proper way to do this is with an improved version of UniNode lane connectors.
-vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, const RoadSegment* after) {
-	//Error check: at least one segment must exist
-	if (!before && !after) { throw std::runtime_error("Can't GetSidewalkLanePairs on two null segments."); }
-
-	//Store two partial lists
-	vector<int> beforeLanes;
-	vector<int> afterLanes;
-	vector< std::pair<int, int> > res;
-
-	//Build up before
-	if (before) {
-		for (size_t i=0; i<before->getLanes().size(); i++) {
-			if (before->getLanes().at(i)->is_pedestrian_lane()) {
-				beforeLanes.push_back(i);
-			}
-		}
-	}
-
-	//Build up after
-	if (after) {
-		for (size_t i=0; i<after->getLanes().size(); i++) {
-			if (after->getLanes().at(i)->is_pedestrian_lane()) {
-				afterLanes.push_back(i);
-			}
-		}
-	}
-
-	//It's possible that we have no results
-	if ((before&&beforeLanes.empty()) || (after&&afterLanes.empty())) {
-		return res;
-	}
-
-	//If we have both before and after, only pairs can be added (no null values).
-	// We can manage this implicitly by either counting up or down, and stopping when we have no more values.
-	// For now, we just ensure they're equal or add NONE
-	if (before && after) {
-		if (beforeLanes.size()==afterLanes.size()) {
-			for (size_t i=0; i<beforeLanes.size(); i++) {
-				res.push_back(std::make_pair(beforeLanes.at(i), afterLanes.at(i)));
-			}
-		}
-		return res;
-	}
-
-	//Otherwise, just build a partial list
-	for (size_t i=0; i<beforeLanes.size() || i<afterLanes.size(); i++) {
-		if (before) {
-			res.push_back(std::make_pair(beforeLanes.at(i), -1));
-		} else {
-			res.push_back(std::make_pair(-1, afterLanes.at(i)));
-		}
-	}
-	return res;
-}
-
-} //End un-named namespace
 
 
 void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, map<const Node*, VertexLookup>& nodeLookup, map<const Node*, VertexLookup>& tempNodes)
@@ -725,8 +744,6 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 				newNd.v = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 				nodeLookup[origNode].vertices.push_back(newNd);
 
-				//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
-				//  new algorithm, we'll have to switch this to a value-based type; using "new" will leak memory.
 				Point2D newPos;
 				//TODO: re-enable const after fixing RoadNetwork's sidewalks.
 				if (!nd.before && nd.after) {

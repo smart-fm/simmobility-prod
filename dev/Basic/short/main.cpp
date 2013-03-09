@@ -227,34 +227,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	ParitionDebugOutput debug;
 
-	///START DEBUG
-	const StreetDirectory& stdir = StreetDirectory::instance();
-
-	//TODO: Find the two Bus Stops closest to node 58950 (two different sides of Victoria Street)
-	//      and plan a path from one to the other (will ensure they walk around the long way).
-
-	//TODO: It seems that *all* paths are reversed.
-	const BusStop* from = stdir.getBusStop(Point2D(37290071,14390219));
-	//const Node* from = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37241080,14362955)); //61688
-	const Node* to = ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959)); //45666
-
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*from), stdir.DrivingVertex(*to));
-	LogOut("PATH:" <<std::endl);
-	for (vector<WayPoint>::const_iterator it=path.begin(); it!=path.end(); it++) {
-		if (it->type_ == WayPoint::BUS_STOP) {
-			LogOut("BUS_STOP: " <<it->busStop_->xPos <<"," <<it->busStop_->yPos <<std::endl);
-		} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			LogOut("ROAD_SEGMENT: " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<"," <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
-		} else if (it->type_== WayPoint::NODE) {
-			LogOut("NODE: " <<it->node_->location <<std::endl);
-		} else {
-			LogOut("OTHER" <<std::endl);
-		}
-	}
-
-
-
-	///END DEBUG
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {

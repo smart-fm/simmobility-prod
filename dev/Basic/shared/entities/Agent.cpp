@@ -98,7 +98,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -107,8 +107,6 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
 		profile->logAgentCreated(*this);
-	} else {
-		profile = nullptr;
 	}
 }
 
@@ -199,7 +197,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, frameNumber);
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -234,7 +232,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		setToBeRemoved();
 	}
 
-	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, frameNumber);
+	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
 	return retVal;
 }
 

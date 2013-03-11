@@ -18,7 +18,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) \
-		  profile.logAgentUpdateBegin(agent, frameNumber);
+		  (profile)->logAgentUpdateBegin(agent, frameNumber);
 #else
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) ;
 #endif
@@ -27,7 +27,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) \
-		  profile.logAgentUpdateEnd(agent, frameNumber);
+		  (profile)->logAgentUpdateEnd(agent, frameNumber);
 #else
   #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) ;
 #endif
@@ -36,7 +36,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) \
-		  profile.logAgentException(agent, frameNumber, ex);
+		  (profile)->logAgentException(agent, frameNumber, ex);
 #else
   #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) ;
 #endif

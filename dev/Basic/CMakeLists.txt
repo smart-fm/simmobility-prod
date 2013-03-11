@@ -250,6 +250,11 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
+#Real-time library needed for "clock_gettime"
+IF (${SIMMOB_PROFILE_ON} MATCHES "ON")
+  LIST(APPEND LibraryList "rt")
+ENDIF (${SIMMOB_PROFILE_ON} MATCHES "ON")
+
 
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)

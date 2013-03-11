@@ -125,11 +125,10 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 	ProfileBuilder* prof = nullptr;
-#ifdef SIMMOB_PROFILE_ON
-	ProfileBuilder::InitLogFile("profile_trace.txt");
-	ProfileBuilder prof_i;
-	prof = &prof_i;
-#endif
+	if (ConfigParams::GetInstance().ProfileOn()) {
+		ProfileBuilder::InitLogFile("profile_trace.txt");
+		prof = new ProfileBuilder();
+	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -341,6 +340,9 @@ bool performMainMed(const std::string& configFileName) {
 	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
+
+	//Delete our profile pointer (if it exists)
+	safe_delete_item(prof);
 	return true;
 }
 

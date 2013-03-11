@@ -111,8 +111,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
-		ProfileBuilder prof_i;
-		prof = &prof_i;
+		prof = new ProfileBuilder();
 	}
 
 	//Register our Role types.
@@ -341,6 +340,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
+
+	//Delete our profiler, if it exists.
+	safe_delete_item(prof);
 	return true;
 }
 

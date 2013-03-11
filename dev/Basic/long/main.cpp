@@ -17,15 +17,15 @@
 #include "GenConfig.h"
 #include "tinyxml.h"
 
-#include "agent/TestAgent.hpp"
-#include "entities/roles/Household.hpp"
-#include "entities/roles/Individual.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/AuraManager.hpp"
 #include "event/EventDispatcher.hpp"
+#include "entities/HousingMarket.hpp"
+#include "entities/Unit.hpp"
+#include "agent/Seller.hpp"
 
 using std::cout;
 using std::endl;
@@ -52,9 +52,18 @@ bool do_a_something() {
  */
 void SetupRoles() {
     //Register our Role types.
-    RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-    rf.registerRole(Individual::ROLE_NAME, new Individual(nullptr));
-    rf.registerRole(Household::ROLE_NAME, new Household(nullptr));
+    //RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+    //rf.registerRole(Individual::ROLE_NAME, new Individual(nullptr));
+    //rf.registerRole(Household::ROLE_NAME, new Household(nullptr));
+}
+
+void Test() {
+    EventDispatcher* dispatcher = new EventDispatcher();
+    HousingMarket* market = new HousingMarket(dispatcher);
+    Seller* seller = new Seller(ConfigParams::GetInstance().mutexStategy, 1);
+    market->Subscribe(LTID_HM_UNIT_STATE_CHANGED, seller);
+    market->RegisterUnit(new Unit(99));
+    market->UnRegisterUnit(new Unit(99));
 }
 
 int main(int argc, char* argv[]) {
@@ -67,10 +76,12 @@ int main(int argc, char* argv[]) {
 
     SetupRoles();
 
-    RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+    Test();
+
+    /*RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
     cout << "Exists Individual: " << rf.isKnownRole(Individual::ROLE_NAME) << endl;
     cout << "Exists Household: " << rf.isKnownRole(Household::ROLE_NAME) << endl;
-    cout << "BASE GRAN MS: " << ConfigParams::GetInstance().baseGranMS << endl;
+    cout << "BASE GRAN MS: " << ConfigParams::GetInstance().baseGranMS << endl;*/
 
     //Work Group specifications
     WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(10, 100, 1);
@@ -78,16 +89,16 @@ int main(int argc, char* argv[]) {
     agentWorkers->initWorkers(nullptr);
 
     for (int i = 1; i < 10; i++) {
-        TestAgent* testagent = new TestAgent(new EventDispatcher(),NULL, ConfigParams::GetInstance().mutexStategy, i);
+        /*TestAgent* testagent = new TestAgent(new EventDispatcher(),NULL, ConfigParams::GetInstance().mutexStategy, i);
         agentWorkers->assignAWorker(testagent);
         EventListenerPtr ptr = ((i % 2 == 0) ? static_cast<EventListener*> (new Household(testagent)) : static_cast<EventListener*> (new Individual(testagent)));
         testagent->SetRole(dynamic_cast<Role*> (ptr));
         testagent->Subscribe(1, ptr);
         testagent->Subscribe(2, ptr);
         testagent->Subscribe(3, ptr);
-        testagent->Subscribe(4, ptr);
+        testagent->Subscribe(4, ptr);*/
     }
-    
+
     //Start work groups and all threads.
     WorkGroup::StartAllWorkGroups();
     cout << "Started all workgroups." << endl;

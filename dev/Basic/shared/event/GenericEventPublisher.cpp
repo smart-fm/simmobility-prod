@@ -22,10 +22,10 @@ GenericEventPublisher::~GenericEventPublisher() {
 }
 
 void GenericEventPublisher::Notify(EventId id, const EventArgs& args) {
-    map<EventId, list<EventListenerPtr> >::iterator mapItr = listeners.find(id);
+    ListenersMap::iterator mapItr = listeners.find(id);
     if (mapItr != listeners.end()) { // Event ID is registered.
-        list<EventListenerPtr> lst = mapItr->second;
-        list<EventListenerPtr>::iterator lstItr = lst.begin();
+        ListenersList lst = mapItr->second;
+        ListenersList::iterator lstItr = lst.begin();
         while (lstItr != lst.end()) {
             // notify listener
             (*lstItr)->OnEvent(this, id, args);
@@ -66,7 +66,7 @@ bool GenericEventPublisher::IsEventRegistered(EventId id) const {
     return (listeners.find(id) != listeners.end());
 }
 
-bool GenericEventPublisher::Contains(const list<EventListenerPtr>& listData, EventListenerPtr ptr) const {
+bool GenericEventPublisher::Contains(const ListenersList& listData, EventListenerPtr ptr) const {
     //@TODO: linear search change the data structure to a Linked Hash Map.
     return !(find(listData.begin(), listData.end(), ptr) == listData.end());
 }

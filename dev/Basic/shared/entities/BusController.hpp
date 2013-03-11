@@ -82,10 +82,15 @@ public:
 	virtual Link* getCurrLink();
 	virtual void setCurrLink(Link* link);
 
+	virtual void unregisteredChild(Entity* child);
+
 private:
 	//Note: For now, we have to store pointers, since the all_agents array is cleared and deleted on exit.
 	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
+
+	// keep all children agents to communicate with it
+	std::vector<Entity*> all_children;
 
 protected:
 	virtual bool frame_init(timeslice now);

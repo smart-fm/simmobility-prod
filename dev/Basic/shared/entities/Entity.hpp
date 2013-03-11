@@ -93,6 +93,9 @@ public:
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
 
+	// inform parent to cut off connection with it if necessary
+	virtual void unregisteredChild(Entity* child = nullptr) {;}
+
 
 protected:
 	/**
@@ -110,11 +113,16 @@ protected:
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
+
+
 	// Link* currLink;
 
 public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;
+
+	// parent may create children.
+	Entity* parentEntity;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)

@@ -47,6 +47,8 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
 		(*it)->assignBusTripChainWithPerson(agents_list);
 	}
+
+
 }
 
 
@@ -115,6 +117,11 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 				addOrStashBuses(currAg, active_agents);
 			}
 		}
+	}
+
+	all_children.clear();
+	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
+		all_children.push_back( (*it) );
 	}
 }
 
@@ -475,13 +482,25 @@ void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rP
 
 void sim_mob::BusController::handleDriverRequest()
 {
-	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (vector<Entity*>::iterator it = all_children.begin(); it != all_children.end(); it++) {
+	//for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		Person* person = dynamic_cast<sim_mob::Person*>(*it);
 		if(person){
 			Role* role = person->getRole();
 			if(role){
 				handleRequestParams(role->getDriverRequestParams());
 			}
+		}
+	}
+}
+
+void sim_mob::BusController::unregisteredChild(Entity* child)
+{
+	if(child)
+	{
+		std::vector<Entity*>::iterator it = std::find(all_children.begin(), all_children.end(), child);
+		if (it != all_children.end() ) {
+			all_children.erase(it);
 		}
 	}
 }
@@ -509,8 +528,14 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		//       when it knows it's safe to. ~Seth
 		//
 		///////////////////////////////////////////////////////////////////
-		currWorker->getParent()->scheduleEntity(pending_buses.top());
+		//currWorker->getParent()->scheduleEntity(pending_buses.top());
+		//pending_buses.pop();
+		// use new method to schedule child agent
+		Agent* child = pending_buses.top();
 		pending_buses.pop();
+		child->parentEntity = this;
+		currWorker->scheduleForBred(child);
+		all_children.push_back(child);
 	}
 
 	handleDriverRequest();

@@ -1737,7 +1737,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		}
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
-    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
@@ -1750,6 +1749,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		 ***************************************************/
 #ifndef SIMMOB_XML_READER
     		//Load the AIMSUM network details
+    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
     			return "Unable to load database connection settings....";

@@ -115,6 +115,7 @@ sim_mob::Agent::~Agent()
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}
+	safe_delete_item(profile);
 }
 
 

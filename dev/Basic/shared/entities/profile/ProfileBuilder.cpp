@@ -1,7 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "entities/Agent.hpp"
 #include "ProfileBuilder.hpp"
+
+#include "entities/Agent.hpp"
 
 //Somewhat hackish way of getting "timespec" defined.
 #ifdef SIMMOB_PROFILE_ON

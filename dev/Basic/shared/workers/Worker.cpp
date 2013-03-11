@@ -31,13 +31,19 @@ sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrie
       tickStep(tickStep),
       parent(parent),
       entityRemovalList(entityRemovalList),
-      debugMsg(std::stringstream::out)
+      debugMsg(std::stringstream::out),
+      profile(nullptr)
 
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
 	if (!frame_tick || !buff_flip) {
 		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
+	}
+
+	//Initialize our profile builder, if applicable.
+	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
+		profile = new ProfileBuilder();
 	}
 }
 
@@ -53,6 +59,9 @@ sim_mob::Worker::~Worker()
 	while (!managedData.empty()) {
 		stopManaging(managedData[0]);
 	}
+
+	//Clear/write our Profile log data
+	safe_delete_item(profile);
 }
 
 
@@ -178,12 +187,11 @@ void sim_mob::Worker::barrier_mgmt()
 	int i = 0;
 	std::ostringstream out;
 	for (bool active=true; active;) {
+		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick);
+
 		//Add Agents as required.
 		addPendingEntities();
-//		out << "Worker["  << this  <<"]::barrier_mgmt->Iteration  " << i << " Aftre calling addPendingEntities() ,  has " << getAgentSize() << " agents\n";
 
-//		out << "\nCalling Worker(" << this << ")::barrier_mgmt::perform_main at  " << timeslice(currTick, currTick*msPerFrame).ms() << std::endl;
-//		std::cout << out.str();
 		//Perform all our Agent updates, etc.
 		perform_main(timeslice(currTick, currTick*msPerFrame));
 
@@ -193,6 +201,8 @@ void sim_mob::Worker::barrier_mgmt()
 		//Advance local time-step.
 		currTick += tickStep;
 		active = (endTick==0 || currTick<endTick);
+
+		PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
 
 		//First barrier
 		if (frame_tick_barr) {

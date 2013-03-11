@@ -14,33 +14,51 @@
 #include "util/LangHelpers.hpp"
 
 
-///Helper macro: call profie.logAgentUpdateBegin(agent, frameNumber)
+///Helper macro: call profie.logAgentUpdateBegin(agent, now)
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) \
-		  (profile)->logAgentUpdateBegin(agent, frameNumber);
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) \
+		  (profile)->logAgentUpdateBegin(agent, now);
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) ;
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) ;
 #endif
 
-///Helper macro: call profie.logAgentUpdateEnd(agent, frameNumber)
+///Helper macro: call profie.logAgentUpdateEnd(agent, now)
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) \
-		  (profile)->logAgentUpdateEnd(agent, frameNumber);
+  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) \
+		  (profile)->logAgentUpdateEnd(agent, now);
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) ;
+  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) ;
 #endif
 
-///Helper macro: call profile.logAgentException(agent, frameNumber, ex);
+///Helper macro: call profile.logAgentException(agent, now, ex);
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) \
-		  (profile)->logAgentException(agent, frameNumber, ex);
+  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) \
+		  (profile)->logAgentException(agent, now, ex);
 #else
-  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) ;
+  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) ;
 #endif
 
+///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame)
+///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
+  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame) \
+		  (profile)->logWorkerUpdateBegin(wrk, currFrame);
+#else
+  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame) ;
+#endif
+
+
+///Helper macro: call profie.logWorkerUpdateEnd(wrk, currFrame)
+///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
+  #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) \
+		  (profile)->logWorkerUpdateEnd(wrk, currFrame);
+#else
+  #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) ;
+#endif
 
 
 
@@ -48,7 +66,7 @@ namespace sim_mob
 {
 
 class Agent;
-
+class Worker;
 
 
 /**
@@ -74,6 +92,8 @@ public:
 	///  written.
 	static void InitLogFile(const std::string& path);
 
+	void logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame);
+	void logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame);
 
 	void logAgentUpdateBegin(const Agent& ag, timeslice now);
 	void logAgentUpdateEnd(const Agent& ag, timeslice now);
@@ -93,6 +113,7 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
+	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="");
 	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 

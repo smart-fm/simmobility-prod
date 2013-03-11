@@ -36,6 +36,7 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 
 namespace sim_mob
 {
@@ -139,6 +140,9 @@ private:
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
 	std::set<Conflux*> managedConfluxes;
+
+	///If non-null, used for profiling.
+	sim_mob::ProfileBuilder* profile;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

@@ -3,6 +3,7 @@
 #include "ProfileBuilder.hpp"
 
 #include "entities/Agent.hpp"
+#include "workers/Worker.hpp"
 
 //Somewhat hackish way of getting "timespec" defined.
 #ifdef SIMMOB_PROFILE_ON
@@ -106,6 +107,16 @@ string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
 
+void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame)
+{
+	logWorkerUpdateGeneric(wrk, "worker-update-begin", currFrame);
+}
+
+void ProfileBuilder::logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame)
+{
+	logWorkerUpdateGeneric(wrk, "worker-update-end", currFrame);
+}
+
 void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, timeslice now)
 {
 	logAgentUpdateGeneric(ag, "update-begin", &now);
@@ -142,6 +153,20 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame() <<"\"" <<",";
 	}
 	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+	if (!message.empty()) {
+		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
+	}
+	currLog <<"}\n";
+}
+
+
+void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message)
+{
+	currLog <<"{"
+			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
+			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<(&wrk) <<"\"" <<","
+			<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<currFrame <<"\"" <<","
+			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
 	if (!message.empty()) {
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}

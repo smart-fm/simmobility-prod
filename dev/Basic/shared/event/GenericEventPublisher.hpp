@@ -25,7 +25,7 @@ namespace sim_mob {
      * 
      * This implementation is not thread-safe. 
      */
-    class GenericEventPublisher : EventPublisher {
+    class GenericEventPublisher : public EventPublisher {
     public:
         GenericEventPublisher();
         virtual ~GenericEventPublisher();
@@ -41,7 +41,6 @@ namespace sim_mob {
         virtual void RegisterEvent(EventId id);
         virtual void UnRegisterEvent(EventId id);
         virtual bool IsEventRegistered(EventId id) const;
-
     private:
         /**
          * Verifies if given EventPublisher pointer already exists on list.

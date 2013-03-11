@@ -28,7 +28,7 @@ void GenericEventPublisher::Notify(EventId id, const EventArgs& args) {
         list<EventListenerPtr>::iterator lstItr = lst.begin();
         while (lstItr != lst.end()) {
             // notify listener
-            (*lstItr)->OnEvent(id, args);
+            (*lstItr)->OnEvent(this, id, args);
             lstItr++;
         }
     }

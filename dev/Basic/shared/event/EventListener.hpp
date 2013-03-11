@@ -13,7 +13,9 @@
 #pragma once
 
 namespace sim_mob {
-    
+
+    class EventPublisher;
+
     // @TODO: put this in a global header.
     typedef const unsigned int EventId;
 
@@ -23,9 +25,12 @@ namespace sim_mob {
     class EventListener {
     public:
         /**
-         * Handles the received event 
+         * Handles the received event.
+         * @param sender pointer for the event producer.
+         * @param id event identifier.
+         * @param args event arguments.
          */
-        virtual void OnEvent(EventId id, const EventArgs& args) = 0;
+        virtual void OnEvent(EventPublisher* sender, EventId id, const EventArgs& args) = 0;
     };
 }
 

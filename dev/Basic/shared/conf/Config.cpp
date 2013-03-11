@@ -230,9 +230,33 @@ bool sim_mob::CMakeConfig::StrictAgentErrors() const
 #endif
 }
 
-bool sim_mob::CMakeConfig::GenerateAgentUpdateProfile() const
+bool sim_mob::CMakeConfig::ProfileOn() const
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfig::ProfileAgentUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_AGENT_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfig::ProfileWorkerUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_WORKER_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
 	return true;
 #else
 	return false;

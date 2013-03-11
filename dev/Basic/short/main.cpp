@@ -109,11 +109,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 	
 	ProfileBuilder* prof = nullptr;
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	ProfileBuilder::InitLogFile("agent_update_trace.txt");
-	ProfileBuilder prof_i;
-	prof = &prof_i;
-#endif
+	if (ConfigParams::GetInstance().ProfileOn()) {
+		ProfileBuilder::InitLogFile("profile_trace.txt");
+		ProfileBuilder prof_i;
+		prof = &prof_i;
+	}
 
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we

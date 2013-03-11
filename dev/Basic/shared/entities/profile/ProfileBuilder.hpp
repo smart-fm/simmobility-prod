@@ -8,13 +8,15 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 
+#include "conf/settings/ProfileOptions.h"
+
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
 
 
 ///Helper macro: call profie.logAgentUpdateBegin(agent, frameNumber)
-///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, frameNumber) \
 		  profile.logAgentUpdateBegin(agent, frameNumber);
 #else
@@ -22,8 +24,8 @@
 #endif
 
 ///Helper macro: call profie.logAgentUpdateEnd(agent, frameNumber)
-///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, frameNumber) \
 		  profile.logAgentUpdateEnd(agent, frameNumber);
 #else
@@ -31,8 +33,8 @@
 #endif
 
 ///Helper macro: call profile.logAgentException(agent, frameNumber, ex);
-///Performs no processing if SIMMOB_AGENT_UPDATE_PROFILE is undefined.
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, frameNumber, ex) \
 		  profile.logAgentException(agent, frameNumber, ex);
 #else

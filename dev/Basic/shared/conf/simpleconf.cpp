@@ -2044,10 +2044,34 @@ bool sim_mob::ConfigParams::StrictAgentErrors() const
 #endif
 }
 
-///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-bool sim_mob::ConfigParams::GenerateAgentUpdateProfile() const
+bool sim_mob::ConfigParams::ProfileOn() const
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
+{
+
+#ifdef SIMMOB_PROFILE_AGENT_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_WORKER_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
 	return true;
 #else
 	return false;

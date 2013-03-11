@@ -86,8 +86,10 @@ option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code seg
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
 
-#Option: generate parallel profile. Use the cmake gui to change this on a per-user basis.
-option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+#Option: profiling flags. Use the cmake gui to change this on a per-user basis.
+option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
+option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
 
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)

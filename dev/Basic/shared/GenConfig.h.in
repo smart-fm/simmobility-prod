@@ -29,7 +29,6 @@
 
 
 //Miscellaneous cmake flags; define "temporary" flags here.
-#cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
 #cmakedefine SIMMOB_USE_CONFLUXES

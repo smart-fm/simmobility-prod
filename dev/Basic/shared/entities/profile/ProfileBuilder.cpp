@@ -4,7 +4,7 @@
 #include "ProfileBuilder.hpp"
 
 //Somewhat hackish way of getting "timespec" defined.
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
 #define _XOPEN_SOURCE 700
 #include <time.h>
 #undef _XOPEN_SOURCE
@@ -76,7 +76,7 @@ void ProfileBuilder::flushLogFile()
 }
 
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
 string ProfileBuilder::GetCurrentTime()
 {
 	timespec timeres;

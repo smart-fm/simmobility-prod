@@ -125,8 +125,8 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 	ProfileBuilder* prof = nullptr;
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	ProfileBuilder::InitLogFile("agent_update_trace.txt");
+#ifdef SIMMOB_PROFILE_ON
+	ProfileBuilder::InitLogFile("profile_trace.txt");
 	ProfileBuilder prof_i;
 	prof = &prof_i;
 #endif

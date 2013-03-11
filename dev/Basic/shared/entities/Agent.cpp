@@ -2,8 +2,7 @@
 
 #include "Agent.hpp"
 
-//GenConfig is still needed for SIMMOB_AGENT_UPDATE_PROFILE
-#include "GenConfig.h"
+#include "conf/settings/ProfileOptions.h"
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/StrictAgentErrors.h"
 
@@ -105,19 +104,19 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	nextPathPlanned = false;
 	dynamic_seed = id;
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile = new ProfileBuilder();
-	profile->logAgentCreated(*this);
-#else
-	profile = nullptr;
-#endif
+	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+		profile = new ProfileBuilder();
+		profile->logAgentCreated(*this);
+	} else {
+		profile = nullptr;
+	}
 }
 
 sim_mob::Agent::~Agent()
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile->logAgentDeleted(*this);
-#endif
+	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+		profile->logAgentDeleted(*this);
+	}
 }
 
 

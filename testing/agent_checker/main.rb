@@ -1,5 +1,5 @@
 require 'Qt4'
-require 'mainwindow_ui'
+require_relative 'mainwindow_ui'
 
 #Determines how many ticks we load in at once when viewing agent updates.
 # Anything much over 500 will probably hang the system.
@@ -711,6 +711,10 @@ class MyWindow < Qt::MainWindow
     @miscDrawings = []
     agOffsets = [] #"EndPos" for each row. New rows are added as needed
     @maxEndTime = nil
+
+    #Sanity check.
+    #TODO: Shouldn't be an error; an empty canvas is fine. (Also, Worker ticks are ok.
+    raise 'No agent ticks.' if @simRes.agents.empty?
      
     #Now, add components. (Note that we can't add them earlier, since they may be specified out of order)
     #Sort by start time, so that we end up with fewer rows.

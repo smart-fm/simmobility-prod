@@ -73,8 +73,8 @@ vector<BufferedBase*> Household::getSubscriptionParams() {
 	return subcriptionParams;
 }
 
-void Household::OnEvent(EventId id, const EventArgs& args){
-  cout << "Household::OnEvent fired:: " << id << endl;  
+void Household::OnEvent(EventPublisher* sender, EventId id, const EventArgs& args){
+  cout << "Household::OnEvent fired id: " << id << " agentId: " << getParent()->getId() <<endl;  
 }
 
 #ifndef SIMMOB_DISABLE_MPI

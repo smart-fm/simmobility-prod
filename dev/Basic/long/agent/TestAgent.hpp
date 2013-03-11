@@ -8,8 +8,8 @@
 
 #include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
-#include "event/EventPublisher.hpp"
 #include "event/GenericEventPublisher.hpp"
+#include "event/EventDispatcher.hpp"
 
 namespace sim_mob {
 
@@ -29,7 +29,7 @@ namespace long_term {
  */
 class TestAgent: public sim_mob::Agent, public sim_mob::GenericEventPublisher {
 public:
-	explicit TestAgent(Role* newRole, const MutexStrategy& mtxStrat, int id = -1);
+	explicit TestAgent(EventDispatcher* dispatcher, Role* newRole, const MutexStrategy& mtxStrat, int id = -1);
 	virtual ~TestAgent();
 
 	/// requested.
@@ -54,6 +54,7 @@ protected:
 private:
 	Role* currRole;
 	UpdateParams* params;
+        EventDispatcher* dispatcher;
 };
 
 }

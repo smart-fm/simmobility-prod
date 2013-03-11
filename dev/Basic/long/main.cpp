@@ -25,6 +25,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/AuraManager.hpp"
+#include "event/EventDispatcher.hpp"
 
 using std::cout;
 using std::endl;
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]) {
     agentWorkers->initWorkers(nullptr);
 
     for (int i = 1; i < 10; i++) {
-        TestAgent* testagent = new TestAgent(NULL, ConfigParams::GetInstance().mutexStategy, i);
+        TestAgent* testagent = new TestAgent(new EventDispatcher(),NULL, ConfigParams::GetInstance().mutexStategy, i);
         agentWorkers->assignAWorker(testagent);
         EventListenerPtr ptr = ((i % 2 == 0) ? static_cast<EventListener*> (new Household(testagent)) : static_cast<EventListener*> (new Individual(testagent)));
         testagent->SetRole(dynamic_cast<Role*> (ptr));
@@ -85,9 +86,8 @@ int main(int argc, char* argv[]) {
         testagent->Subscribe(2, ptr);
         testagent->Subscribe(3, ptr);
         testagent->Subscribe(4, ptr);
-
     }
-
+    
     //Start work groups and all threads.
     WorkGroup::StartAllWorkGroups();
     cout << "Started all workgroups." << endl;

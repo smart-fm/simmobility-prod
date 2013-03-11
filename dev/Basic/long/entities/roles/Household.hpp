@@ -50,7 +50,7 @@ public:
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-        virtual void OnEvent(EventId id, const EventArgs& args);
+        virtual void OnEvent(EventPublisher* sender, EventId id, const EventArgs& args);
 #ifndef SIMMOB_DISABLE_MPI
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);

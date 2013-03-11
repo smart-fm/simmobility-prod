@@ -73,8 +73,8 @@ vector<BufferedBase*> Individual::getSubscriptionParams() {
 	return subcriptionParams;
 }
 
-void Individual::OnEvent(EventId id, const EventArgs& args){
-        cout << "Individual::OnEvent fired:: " << id << endl; 
+void Individual::OnEvent(EventPublisher* sender, EventId id, const EventArgs& args){
+        cout << "Individual::OnEvent fired id: " << id << " agentId: " << getParent()->getId() <<endl;
 }
 #ifndef SIMMOB_DISABLE_MPI
 void Individual::pack(PackageUtils& packageUtil) {}

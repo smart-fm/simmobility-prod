@@ -26,15 +26,17 @@ namespace sim_mob {
 
     namespace long_term {
 
-        TestAgent::TestAgent(Role* role, const MutexStrategy& mtxStrat, int id) :
-        Agent(mtxStrat, id), currRole(role), params(NULL) {
+        TestAgent::TestAgent(EventDispatcher* dispatcher, Role* role, const MutexStrategy& mtxStrat, int id) :
+        Agent(mtxStrat, id), currRole(role), params(NULL), dispatcher(dispatcher) {
             RegisterEvent(1);
             RegisterEvent(2);
             RegisterEvent(3);
             RegisterEvent(4);
+            dispatcher->RegisterPublisher(this);
         }
 
         TestAgent::~TestAgent() {
+            dispatcher->UnRegisterPublisher(this);
             safe_delete_item(currRole);
             params = NULL; // only leave the pointer
         }
@@ -50,7 +52,8 @@ namespace sim_mob {
             }
             params = &currRole->make_frame_tick_params(now);
             currRole->frame_init(*params);
-            Notify(1, EventArgs());
+            dispatcher->Dispatch(this, 1, EventArgs());
+            //Notify(1, EventArgs());
             return true;
         }
 
@@ -58,10 +61,12 @@ namespace sim_mob {
             if (!params) {
                 params = &currRole->make_frame_tick_params(now);
             }
-            Notify(2, EventArgs());
+            dispatcher->Dispatch(this, 2, EventArgs());
+            //Notify(2, EventArgs());
             Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
             if (!isToBeRemoved()) {
-                Notify(3, EventArgs());
+                dispatcher->Dispatch(this, 3, EventArgs());
+                //Notify(3, EventArgs());
                 //Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
                 setStartTime(now.ms() + ConfigParams::GetInstance().baseGranMS);
                 currRole->frame_tick(*params);
@@ -70,7 +75,8 @@ namespace sim_mob {
         }
 
         void TestAgent::frame_output(timeslice now) {
-            Notify(4, EventArgs());
+            dispatcher->Dispatch(this, 4, EventArgs());
+            //Notify(4, EventArgs());
             //Save the output
             if (!isToBeRemoved()) {
                 currRole->frame_tick_output(*params);

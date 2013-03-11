@@ -303,6 +303,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 void sim_mob::Worker::perform_main(timeslice currTime)
 {
 #ifndef SIMMOB_USE_CONFLUXES
+
 	 //All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 //		std::cout<< "calling a worker(" << this <<")::perform_main at frame " << currTime.frame() << std::endl;

@@ -1185,10 +1185,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
-			int x = 0;
-			x = path.size();
-			//std::cout << "Driver path has " << path.size() << "  elements\n";
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1197,12 +1195,17 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
-				int x = path.size();
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+		}
+
+		//For now, empty paths aren't supported.
+		if (path.empty()) {
+			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
 
 		//TODO: Start in lane 0?
@@ -1242,7 +1245,8 @@ void sim_mob::Driver::initializePathMed() {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1251,12 +1255,18 @@ void sim_mob::Driver::initializePathMed() {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				int x = path.size();
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+		}
+
+		//For now, empty paths aren't supported.
+		if (path.empty()) {
+			throw std::runtime_error("Can't initializePathMed(); path is empty.");
 		}
 	}
 
@@ -1269,7 +1279,13 @@ void sim_mob::Driver::initializePathMed() {
 void sim_mob::Driver::resetPath(DriverUpdateParams& p) {
 	const Node * node = vehicle->getCurrSegment()->getEnd();
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	vector<WayPoint> path = StreetDirectory::instance().SearchShortestDrivingPath(*node, *goal.node);
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*goal.node));
+
+	//For now, empty paths aren't supported.
+	if (path.empty()) {
+		throw std::runtime_error("Can't resetPath(); path is empty.");
+	}
 
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(vehicle->getCurrSegment()));

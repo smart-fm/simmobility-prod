@@ -201,8 +201,8 @@ void sim_mob::Pedestrian2::frame_tick_output_mpi(timeslice now)
 /*---------------------Perception-related functions----------------------*/
 
 void sim_mob::Pedestrian2::setSubPath() {
-
-	vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
 
 	//Used to debug pedestrian walking paths.
 	/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);

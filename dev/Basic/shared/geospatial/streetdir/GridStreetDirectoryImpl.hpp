@@ -23,6 +23,8 @@ public:
 	virtual ~GridStreetDirectoryImpl() {}
 
 protected:
+	virtual const BusStop* getBusStop(const Point2D& position) const;
+
 	virtual StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
 
     virtual const MultiNode* GetCrossingNode(const Crossing* cross) const;
@@ -81,6 +83,7 @@ private:
 
     GridType grid_;
     std::map<std::string, const RoadSegment*> roadSegments_;
+    std::set<const BusStop*> busStops_;
 
 };
 

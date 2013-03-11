@@ -252,7 +252,13 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
+		}
+
+		//For now, empty paths aren't supported.
+		if (path.empty()) {
+			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
 
 		//TODO: Start in lane 0?

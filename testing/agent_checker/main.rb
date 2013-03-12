@@ -512,8 +512,7 @@ class MyWindow < Qt::MainWindow
 
     #Update minTime
     time = agents[agID].constTime
-    @minStartTime = time unless @minStartTime
-    @minStartTime = time if time < @minStartTime
+    @minStartTime = [time, @minStartTime].compact.min
   end
 
   def dispatch_destruction(agents, properties, agID, time)
@@ -562,6 +561,7 @@ class MyWindow < Qt::MainWindow
     worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
     worker.minStartTime = [time, worker.minStartTime].compact.min
     worker.maxEndTime = [time, worker.maxEndTime].compact.max
+    @minStartTime = [time, @minStartTime].compact.min
   end
 
   def dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)

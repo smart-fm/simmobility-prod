@@ -227,12 +227,11 @@ void sim_mob::Worker::barrier_mgmt()
 		// breed new children entities from parent
 		breedPendingEntities();
 
+		PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
 
 		//Advance local time-step.
 		currTick += tickStep;
 		active = (endTick==0 || currTick<endTick);
-
-		PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
 
 		//First barrier
 		if (frame_tick_barr) {

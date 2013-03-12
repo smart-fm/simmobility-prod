@@ -540,7 +540,7 @@ class MyWindow < Qt::MainWindow
 
     #Update the Worker's time boundaries too.
     worker.minStartTime = [time, worker.minStartTime].compact.min
-    worker.maxEndTime = [time, worker.minStartTime].compact.max
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
@@ -554,21 +554,21 @@ class MyWindow < Qt::MainWindow
 
     #Update the Worker's time boundaries too.
     worker.minStartTime = [time, worker.minStartTime].compact.min
-    worker.maxEndTime = [time, worker.minStartTime].compact.max
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def dispatch_worker_startupdate(timeticks, properties, time, knownWorkerIDs)
     time = parse_time(time)
     worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
     worker.minStartTime = [time, worker.minStartTime].compact.min
-    worker.maxEndTime = [time, worker.minStartTime].compact.max
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)
     time = parse_time(time)
     worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
     worker.minStartTime = [time, worker.minStartTime].compact.min
-    worker.maxEndTime = [time, worker.minStartTime].compact.max
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
@@ -582,7 +582,7 @@ class MyWindow < Qt::MainWindow
     timeticks[tick] = FrameTick.new(tick) unless timeticks.has_key? tick
     tick = timeticks[tick]
     tick.minStartTime = [time, tick.minStartTime].compact.min
-    tick.maxEndTime = [time, tick.minStartTime].compact.max
+    tick.maxEndTime = [time, tick.maxEndTime].compact.max
 
     #Add worker, return
     tick.workers[worker] = Worker.new(worker) unless tick.workers.has_key? worker

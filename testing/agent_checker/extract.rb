@@ -148,7 +148,7 @@ end
     timeticks[tick] = FrameTick.new(tick) unless timeticks.has_key? tick
     tick = timeticks[tick]
     tick.minStartTime = [time, tick.minStartTime].compact.min
-    tick.maxEndTime = [time, tick.minStartTime].compact.max
+    tick.maxEndTime = [time, tick.maxEndTime].compact.max
 
     #Add worker, return
     tick.workers[worker] = Worker.new(worker) unless tick.workers.has_key? worker

@@ -107,9 +107,9 @@ string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
 
-void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame)
+void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents)
 {
-	logWorkerUpdateGeneric(wrk, "worker-update-begin", currFrame);
+	logWorkerUpdateGeneric(wrk, "worker-update-begin", currFrame, "", numAgents);
 }
 
 void ProfileBuilder::logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame)
@@ -160,13 +160,14 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 }
 
 
-void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message)
+void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message, size_t numAgents)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
 			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<(&wrk) <<"\"" <<","
 			<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<currFrame <<"\"" <<","
-			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<","
+			<<"\"" <<"num-agents" <<"\"" <<":" <<"\"" <<numAgents <<"\"" <<",";
 	if (!message.empty()) {
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}

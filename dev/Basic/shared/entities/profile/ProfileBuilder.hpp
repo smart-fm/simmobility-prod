@@ -44,8 +44,8 @@
 ///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame)
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
-  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame) \
-		  (profile)->logWorkerUpdateBegin(wrk, currFrame);
+  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) \
+		  (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents);
 #else
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame) ;
 #endif
@@ -92,7 +92,7 @@ public:
 	///  written.
 	static void InitLogFile(const std::string& path);
 
-	void logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame);
+	void logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents);
 	void logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame);
 
 	void logAgentUpdateBegin(const Agent& ag, timeslice now);
@@ -113,7 +113,7 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
-	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="");
+	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
 	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 

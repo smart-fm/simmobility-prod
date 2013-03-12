@@ -19,7 +19,8 @@
 #  Added together, the pre_tick and post_tick represent the total "internal" waiting time.
 #
 #For each time tick (consisting of the "tick" and the "wait" immediately following it), we ouput the following (in a file)
-#   tick_id   num_workers   tick_length(ms)   total_work_time(ms)   internal_waiting_time(ms)   external_waiting_time(ms)
+#   tick_id   num_workers   total_agents   tick_length(ms)   total_work_time(ms)   pre_tick_waiting(ms)   post_tick_waiting(ms)   external_waiting_time(ms)
+#Note that internal_waiting_time = pre_tick_wait + post_tick_wait
 #Ideally, (total_work+internal_waiting) / num_workers == tick_length, and external_waiting == 0
 #
 #For each worker in each tick, we output the following (in a different file), organized like so:
@@ -69,11 +70,13 @@ class Worker
   attr_reader   :workerID
   attr_accessor :startTime
   attr_accessor :endTime
+  attr_accessor :numAgents
 
   def initialize(id)
     @workerID = id
     @startTime = nil
     @endTime = nil
+    @numAgents = nil
   end
 end
 
@@ -129,9 +132,11 @@ end
   end
 
   def dispatch_worker_startupdate(timeticks, properties, time)
+    numAgents = get_property(properties, "num-agents", true)  #Note that num-agents would be "0" if you loaded it anywhere else.
     time = parse_time(time)
     worker = create_path_to_worker_and_update_bounds(properties, timeticks, time)
     worker.startTime = time
+    worker.numAgents = numAgents.to_i
   end
 
   def dispatch_worker_endupdate(timeticks, properties, time)
@@ -187,7 +192,7 @@ end
 def write_tick_file(outFileName, ticks)
   File.open(outFileName, 'w') {|f|
     #Write the header.
-    f.write("tick_id\tnum_workers\ttick_length(ms)\ttotal_work_time(ms)\tinternal_waiting_time(ms)\texternal_waiting_time(ms)\n")
+    f.write("tick_id\tnum_workers\ttotal_agents\ttick_length(ms)\ttotal_work_time(ms)\tpre_tick_waiting(ms)\tpost_tick_waiting(ms)\texternal_waiting_time(ms)\n")
 
     #Now, accumulate (be careful of low-latency time ticks, like for signals).
     sorted_keys = ticks.keys.sort{|t1, t2| t1.to_i <=> t2.to_i }  #to_i needed to avoid "12" > "100"
@@ -198,8 +203,9 @@ def write_tick_file(outFileName, ticks)
       #Aggregate some statistics
       numWorkers = 0
       totalWorkTime = 0
-      internalWaitTime = 0
-      externalWaitTime = 0
+      preTickWaiting = 0
+      postTickWaiting = 0
+      totalAgents = 0
       tick.workers.each{|id,wrk|
         #An easy way to check for low-latency workers is to see if they appear in the next tick.
         next unless ticks[(tickI.to_i+1).to_s].workers.has_key?(wrk.workerID)
@@ -207,13 +213,15 @@ def write_tick_file(outFileName, ticks)
 
         #Just add it up (make sure to use our accurate "diff" functions)
         totalWorkTime += time_diff_ms(wrk.startTime, wrk.endTime)
-        internalWaitTime += time_diff_ms(tick.minStartTime, wrk.startTime)
-        externalWaitTime += time_diff_ms(wrk.endTime, tick.maxEndTime)
+        preTickWaiting += time_diff_ms(tick.minStartTime, wrk.startTime)
+        postTickWaiting += time_diff_ms(wrk.endTime, tick.maxEndTime)
+        totalAgents += wrk.numAgents
       }
 
       #Output
       tickLength = time_diff_ms(tick.minStartTime, tick.maxEndTime)
-      f.write("#{tickI}\t#{numWorkers}\t#{tickLength}\t#{totalWorkTime}\t#{internalWaitTime}\t#{externalWaitTime}\n")
+      externalWaitTime = time_diff_ms(tick.maxEndTime, ticks[(tickI.to_i+1).to_s].minStartTime)
+      f.write("#{tickI}\t#{numWorkers}\t#{totalAgents}\t#{tickLength}\t#{totalWorkTime}\t#{preTickWaiting}\t#{postTickWaiting}\t#{externalWaitTime}\n")
     }
   }
 end

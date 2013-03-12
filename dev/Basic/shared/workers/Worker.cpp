@@ -213,7 +213,7 @@ void sim_mob::Worker::barrier_mgmt()
 	int i = 0;
 	std::ostringstream out;
 	for (bool active=true; active;) {
-		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick);
+		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
 
 		//Add Agents as required.
 		addPendingEntities();

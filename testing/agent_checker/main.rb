@@ -349,7 +349,7 @@ end
 
 #Update of a Worker, but in absolute time coordinates.
 class WorkerRealTimeItem < Qt::GraphicsItem
-  @@SecondsW =  1000*20  #1 second is X pixels
+  @@SecondsW =  1000*10  #1 second is X pixels
   @@SecondsH =  40    #Each agent (recorded in seconds) is X pixels in height
   def self.getSecondsW()
     return @@SecondsW

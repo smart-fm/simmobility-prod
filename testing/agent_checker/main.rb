@@ -347,6 +347,50 @@ class GenericMessageItem < Qt::GraphicsItem
 end
 
 
+#Update of a Worker, but in absolute time coordinates.
+class WorkerRealTimeItem < Qt::GraphicsItem
+  @@SecondsW =  1000*20  #1 second is X pixels
+  @@SecondsH =  40    #Each agent (recorded in seconds) is X pixels in height
+  def self.getSecondsW()
+    return @@SecondsW
+  end
+  def self.getSecondsH()
+    return @@SecondsH
+  end
+
+  def initialize(tick, worker, minTime, workerRow)
+    super()
+
+    @worker = worker.workerID  #TODO: Display this.
+    @caption = "#{tick.tickID}"
+    @color = Qt::Color.new(0x50, 0x70, 0xB0)
+
+    #Convert start/end times to offsets (s)
+    @startTime = time_diff_ms(minTime, worker.minStartTime)
+    @liveDuration = time_diff_ms(worker.minStartTime, worker.maxEndTime)
+
+    #Set its initial position
+    setPos((@startTime*@@SecondsW)/1000, workerRow*@@SecondsH)
+  end
+
+  def boundingRect()
+    #Local (0,0) is centered on the start time
+    return Qt::RectF.new(0, 0, (@liveDuration*@@SecondsW)/1000, @@SecondsH)
+  end
+
+  def paint(painter, option, widget)
+    painter.brush = Qt::Brush.new(@color)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x33, 0x33, 0x33))
+    painter.drawRoundedRect(boundingRect(), 5, 5)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x00, 0x00, 0x00))
+    painter.font = Qt::Font.new("Arial", 12)
+    painter.drawText(5, 5+painter.fontMetrics.ascent(), @caption)
+  end
+
+end
+
 
 
 #A custom MainWindow class for holding all our components.
@@ -370,6 +414,7 @@ class MyWindow < Qt::MainWindow
     @toolbarGroup.addButton(@ui.viewCreateDestroy)
     @toolbarGroup.addButton(@ui.viewUpdates)
     @toolbarGroup.addButton(@ui.viewGeneral)
+    @toolbarGroup.addButton(@ui.viewWorkers)
 
     #More component/variable initialization
     @ui.fileProgress.setVisible(false)
@@ -655,6 +700,11 @@ class MyWindow < Qt::MainWindow
       end
     elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
       make_generic_objects() if @simRes
+    elsif @toolbarGroup.checkedButton() == @ui.viewWorkers
+      if @simRes
+        @ui.agTicksCmb.enabled = true
+        make_worker_update_objects()
+      end
     end
 
     #Take the focus, for key events
@@ -677,6 +727,12 @@ class MyWindow < Qt::MainWindow
       end
     elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
       #Nothing to update
+    elsif @toolbarGroup.checkedButton() == @ui.viewWorkers
+      if @simRes
+        @scene = Qt::GraphicsScene.new()
+        @ui.agViewCanvas.scene = @scene
+        make_worker_update_objects()
+      end
     end
   end
 
@@ -797,11 +853,12 @@ class MyWindow < Qt::MainWindow
 
       workerRow = 0
       @simRes.knownWorkerIDs.each{|workerID|
-        next unless tick.workers.has_key? workerID #Some ticks don't perform any processing
-        worker = tick.workers[workerID]
-        wrk = WorkerFrameTickItem.new(tick, worker, @minStartTime, tickColumn, workerRow)
-        @miscDrawings.push(wrk)
-        @ui.agViewCanvas.scene().addItem(wrk)
+        if tick.workers.has_key? workerID #Some ticks don't perform any processing
+          worker = tick.workers[workerID]
+          wrk = WorkerFrameTickItem.new(tick, worker, @minStartTime, tickColumn, workerRow)
+          @miscDrawings.push(wrk)
+          @ui.agViewCanvas.scene().addItem(wrk)
+        end
 
         workerRow += 1
       }
@@ -810,6 +867,44 @@ class MyWindow < Qt::MainWindow
     puts 'Tick update objects added.'
 
     #Step 2: TODO: For each Agent, if there's an Exception, add a dotted red box around the potential area.
+  end
+
+
+  #Create timing updates *specifically* for Worker threads.
+  def make_worker_update_objects()
+    @miscDrawings = []
+
+    #Determine our min/max ticks. This is a little hackish at the moment, since 
+    # it seems QtRuby doesn't preserve the "userData" field of "addItem"
+    return unless m = @ui.agTicksCmb.currentText.match(/[(]([0-9]+)[-]+([0-9]+)[)]/)
+    minVal = m[1]
+    maxVal = m[2]
+
+    #Figure out the minimum *time* from the minimium tick value.
+    minTime = nil
+    tempTick = @simRes.ticks[minVal.to_s]
+    @simRes.knownWorkerIDs.each{|workerID|
+      next unless tempTick.workers.has_key? workerID
+      minTime = [minTime, tempTick.workers[workerID].minStartTime].compact.min
+    }
+
+    #Now, we need to create objects which show *absolute* time, unlike the other visualizations which only show relative time.
+    (minVal..maxVal).each {|tickI|
+      tick = @simRes.ticks[tickI.to_s]
+
+      workerRow = 0
+      @simRes.knownWorkerIDs.each{|workerID|
+        if tick.workers.has_key? workerID #Some ticks don't perform any processing
+          worker = tick.workers[workerID]
+          wrk = WorkerRealTimeItem.new(tick, worker, minTime, workerRow)
+          @miscDrawings.push(wrk)
+          @ui.agViewCanvas.scene().addItem(wrk)
+        end
+
+        workerRow += 1
+      }
+    }
+    puts 'Worker real-time update objects added.'
   end
 
 

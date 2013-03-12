@@ -1442,10 +1442,15 @@ void printRoadNetwork_console()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
-	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
-	//std::string XML_OutPutFileName = "NetworkCopy.xml";
-	//std::string XML_OutPutFileName = "../tools/sumo-convert/simmob.network.xml";
-
+	//NOTE: You can set "SIMMOB_XML_IN_FILE" (without quotes) in your CMakeCache file to override this.
+	//For example, the default CMakeCache.txt file contains:
+	//   SIMMOB_XML_IN_FILE:STRING=
+	//...which you might change to, e.g.,
+	//   SIMMOB_XML_IN_FILE:STRING=../tools/sumo-convert/simmob.network.xml
+	std::string XML_OutPutFileName = SIMMOB_XML_IN_FILE;
+	if (XML_OutPutFileName.empty()) {
+		XML_OutPutFileName = "data/SimMobilityInput.xml"; //Default
+	}
 
 	//Save granularities: system
 	TiXmlHandle handle(&document);

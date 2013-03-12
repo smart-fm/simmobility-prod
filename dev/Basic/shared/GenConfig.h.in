@@ -27,6 +27,8 @@
 #define SIMMOB_VERSION_MAJOR "@Basic_VERSION_MAJOR@"
 #define SIMMOB_VERSION_MINOR "@Basic_VERSION_MINOR@"
 
+//Our workaround flag
+#define SIMMOB_XML_IN_FILE "@SIMMOB_XML_IN_FILE@" 
 
 //Miscellaneous cmake flags; define "temporary" flags here.
 #cmakedefine SIMMOB_XML_WRITER

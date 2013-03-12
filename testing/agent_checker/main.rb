@@ -89,10 +89,14 @@ end
 
 class Worker
   attr_reader   :workerID
+  attr_accessor :minStartTime
+  attr_accessor :maxEndTime
   attr_accessor :agentUpdates
 
   def initialize(id)
     @workerID = id
+    @minStartTime = nil   #A Worker's min/max start/end time can extend past its Agents' updates, but Agents cannot go outside these bounds.
+    @maxEndTime = nil
     @agentUpdates = {}  #agentID => AgentUpdate
   end
 end
@@ -412,6 +416,10 @@ class MyWindow < Qt::MainWindow
       dispatch_startupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
     elsif type=="update-end"
       dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
+    elsif type=="worker-update-begin"
+      dispatch_worker_startupdate(timeticks, properties, time, knownWorkerIDs)
+    elsif type=="worker-update-end"
+      dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)
     elsif type=="generic-start"
       dispatch_generic_start(generics, properties, time)
     elsif type=="generic-end"
@@ -484,6 +492,10 @@ class MyWindow < Qt::MainWindow
     raise "Double-startup on Agent: #{agID}" if worker.agentUpdates.has_key? agID
     worker.agentUpdates[agID] = AgentUpdate.new(agents[agID])
     worker.agentUpdates[agID].updateStartTime = time
+
+    #Update the Worker's time boundaries too.
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.minStartTime].compact.max
   end
 
   def dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
@@ -494,6 +506,24 @@ class MyWindow < Qt::MainWindow
     #Update agent
     raise "Non-existent Agent Update for Agent: #{agID}" unless worker.agentUpdates.has_key? agID
     worker.agentUpdates[agID].updateEndTime = time
+
+    #Update the Worker's time boundaries too.
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.minStartTime].compact.max
+  end
+
+  def dispatch_worker_startupdate(timeticks, properties, time, knownWorkerIDs)
+    time = parse_time(time)
+    worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.minStartTime].compact.max
+  end
+
+  def dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)
+    time = parse_time(time)
+    worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.minStartTime].compact.max
   end
 
   def create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
@@ -506,10 +536,8 @@ class MyWindow < Qt::MainWindow
     #Expand the bounds of the timetick (also, add it)
     timeticks[tick] = FrameTick.new(tick) unless timeticks.has_key? tick
     tick = timeticks[tick]
-    tick.minStartTime = time unless tick.minStartTime
-    tick.minStartTime = [time, tick.minStartTime].min
-    tick.maxEndTime = time unless tick.maxEndTime
-    tick.maxEndTime = [time, tick.maxEndTime].max
+    tick.minStartTime = [time, tick.minStartTime].compact.min
+    tick.maxEndTime = [time, tick.minStartTime].compact.max
 
     #Add worker, return
     tick.workers[worker] = Worker.new(worker) unless tick.workers.has_key? worker
@@ -683,6 +711,9 @@ class MyWindow < Qt::MainWindow
       currRow += 1
     }
 
+    #"No data" is still valid.
+    return unless @maxEndTime
+
     #Add seconds markers
     (0...(@maxEndTime-@minGenericTime)).step(1){|secs|
       xPos = secs*GenericMessageItem.getSecondsW
@@ -711,10 +742,6 @@ class MyWindow < Qt::MainWindow
     @miscDrawings = []
     agOffsets = [] #"EndPos" for each row. New rows are added as needed
     @maxEndTime = nil
-
-    #Sanity check.
-    #TODO: Shouldn't be an error; an empty canvas is fine. (Also, Worker ticks are ok.
-    raise 'No agent ticks.' if @simRes.agents.empty?
      
     #Now, add components. (Note that we can't add them earlier, since they may be specified out of order)
     #Sort by start time, so that we end up with fewer rows.
@@ -729,6 +756,9 @@ class MyWindow < Qt::MainWindow
         puts "Warning: Skipping agent #{agID}; no construction/destruction time."
       end
     }
+
+    #"No data" is still valid.
+    return unless @maxEndTime
 
     #Add seconds markers
     (0...(@maxEndTime-@minStartTime)).step(5){|secs|

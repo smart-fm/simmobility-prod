@@ -16,6 +16,8 @@
 #
 #Files:
 #   in.txt => normal sim mobility output file (normally called out.txt)
+#   all_trips.txt => This is a generated file; it will contain a <drivers> section, which can be copied verbatim over the <drivers> section
+#                    in the current config file (e.g., test_road_network.xml)
 
 
 class Trip

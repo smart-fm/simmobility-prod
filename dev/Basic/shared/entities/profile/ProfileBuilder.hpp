@@ -47,7 +47,7 @@
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) \
 		  (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents);
 #else
-  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame) ;
+  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) ;
 #endif
 
 

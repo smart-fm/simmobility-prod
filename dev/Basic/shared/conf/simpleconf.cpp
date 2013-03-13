@@ -24,7 +24,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "entities/communicationAgent/CommunicationAgent.hpp"
+#include "entities/communicator/Communicator.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -1441,9 +1441,12 @@ void printRoadNetwork_console()
 	std::cout << "Testing Road Network Done\n";
 }
 
-bool createCommunicationAgent()
+bool createCommunicator()
 {
-//	sim_mob::Agent *agent = new sim_mob::CommunicationAgent(ConfigParams::GetInstance().mutexStategy);
+//	sim_mob::NS3_Communicator::all_NS3_cummunication_agents.push_back(new sim_mob::NS3_Communicator(ConfigParams::GetInstance().mutexStategy));
+	//since at present communicator is a singleton, we just enable it :)
+		NS3_Communicator::GetInstance().enable();
+		return true;
 }
 
 //Returns the error message, or an empty string if no error.
@@ -1554,6 +1557,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
 	int agentWgSize = ReadValue(handle, "agent");
 	int signalWgSize = ReadValue(handle, "signal");
+	int commWgSize = ReadValue(handle, "NS3_Communication");
 
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
@@ -1601,7 +1605,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	if (node) {
 		const char* commSimYesNo = node->Attribute("value");
 		if (commSimYesNo == "yes") {
-			createCommunicationAgent();
+			createCommunicator();
 
 		}
 	}
@@ -1706,6 +1710,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.granDecompTicks = granDecomp/baseGran;
     	config.agentWorkGroupSize = agentWgSize;
     	config.signalWorkGroupSize = signalWgSize;
+    	config.commWorkGroupSize = commWgSize;
     	config.simStartTime = DailyTime(simStartStr);
     	config.mutexStategy = mtStrat;
     	config.signalTimingMode = signalTimingMode;

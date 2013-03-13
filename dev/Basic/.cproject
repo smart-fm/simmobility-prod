@@ -45,11 +45,11 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="long"/>
+						<entry excluding="Debug|Release|medium|short|long|cmake*|shared" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="shared"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="short"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="medium"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="long"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="shared"/>
-						<entry excluding="Debug|medium|Release|short|long|cmake*|shared" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

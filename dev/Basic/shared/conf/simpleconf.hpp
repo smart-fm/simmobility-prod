@@ -86,6 +86,7 @@ public:
 
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
 
 	DAY_OF_WEEK day_of_week;
 

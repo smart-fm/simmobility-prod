@@ -31,6 +31,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/communicator/Communicator.hpp"
 
 
 #include "conf/simpleconf.hpp"
@@ -182,6 +183,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* communicationWorkers = WorkGroup::NewWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	//membership to various clubs
+	WorkGroup::addWorkGroupMembership(agentWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
+	WorkGroup::addWorkGroupMembership(signalStatusWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
@@ -201,6 +206,15 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 //		std::cout << "performmain() Signal " << (*it)->getId() << "  Has " <<  (*it)->getPhases().size()/* << "  " << (*it)->getNOF_Phases()*/ <<  " phases\n";
 		signalStatusWorkers->assignAWorker(*it);
 	}
+
+	//..and Assign communication agent(currently a singleton
+
+
+//	//..and Assign all communication agents
+//	sim_mob::All_NS3_Communicators & comm = sim_mob::NS3_Communicator::all_NS3_cummunication_agents;
+//	for (sim_mob::All_NS3_Communicators::iterator it = comm.begin(); it != comm.end(); it++) {
+//		communicationWorkers->assignAWorker(*it);
+//	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

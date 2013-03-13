@@ -13,6 +13,9 @@
 #    1) Number of Agents to generate
 #    2,3) Start time, end time of Agent trip generation (note: for now, start time must be the same as the simulation's start time)
 #    4) Random seed (optional, uses current system time otherwise)
+#
+#Files:
+#   in.txt => normal sim mobility output file (normally called out.txt)
 
 
 class Trip

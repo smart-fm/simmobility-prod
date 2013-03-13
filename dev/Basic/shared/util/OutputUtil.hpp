@@ -87,9 +87,9 @@ private:
 #ifdef SIMMOB_DISABLE_OUTPUT
 
 //Simply destroy this text; no logging; no locking
-#define LogOutNotSync( strm )  ;
-#define LogOut( strm )  ;
-#define SyncCout( strm )  ;
+#define LogOutNotSync( strm )      DO_NOTHING
+#define LogOut( strm )  DO_NOTHING
+#define SyncCout( strm )  DO_NOTHING
 
 
 #else

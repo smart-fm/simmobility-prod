@@ -95,10 +95,13 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 	   DisplayOffset.setY(value+1);
 	}
 
-	if((BoardedBus.get()==false) && (AlightedBus.get()==false))//output passenger on visualizer only if passenger on road
-		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
-	else if((BoardedBus.get()==false) && (AlightedBus.get()==true))//output passenger on visualizer only if passenger on road
-		  LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);
+	if((BoardedBus.get()==false) && (AlightedBus.get()==false))
+		//output passenger on visualizer only if passenger on road
+		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
+	else if((BoardedBus.get()==false) && (AlightedBus.get()==true))
+		//output passenger on visualizer only if passenger on road
+		 LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);
+
 }
 
 void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)

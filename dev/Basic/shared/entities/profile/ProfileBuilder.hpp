@@ -18,36 +18,36 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) \
-		  (profile)->logAgentUpdateBegin(agent, now);
+		  (profile)->logAgentUpdateBegin(agent, now)
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) ;
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) DO_NOTHING
 #endif
 
 ///Helper macro: call profie.logAgentUpdateEnd(agent, now)
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) \
-		  (profile)->logAgentUpdateEnd(agent, now);
+		  (profile)->logAgentUpdateEnd(agent, now)
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) ;
+  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) DO_NOTHING
 #endif
 
 ///Helper macro: call profile.logAgentException(agent, now, ex);
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) \
-		  (profile)->logAgentException(agent, now, ex);
+		  (profile)->logAgentException(agent, now, ex)
 #else
-  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) ;
+  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) DO_NOTHING
 #endif
 
 ///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame)
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) \
-		  (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents);
+		  (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents)
 #else
-  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) ;
+  #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) DO_NOTHING
 #endif
 
 
@@ -55,9 +55,9 @@
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
   #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) \
-		  (profile)->logWorkerUpdateEnd(wrk, currFrame);
+		  (profile)->logWorkerUpdateEnd(wrk, currFrame)
 #else
-  #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) ;
+  #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) DO_NOTHING
 #endif
 
 

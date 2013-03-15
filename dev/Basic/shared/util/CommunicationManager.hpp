@@ -17,16 +17,17 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+
 namespace sim_mob {
 
 class ConfigParams;
 class ControlManager;
 
-using boost::asio::ip::tcp;
-enum COMM_COMMAND{
+enum COMM_COMMAND {
 	RECEIVED=1,
 	SHUTDOWN=2
 };
+
 class CommunicationDataManager
 {
 public:
@@ -93,7 +94,7 @@ public:
     return pointer(new tcp_connection(io_service));
   }
 
-  tcp::socket& socket()
+  boost::asio::ip::tcp::socket& socket()
   {
     return socket_;
   }
@@ -231,8 +232,7 @@ public:
 private:
   tcp_connection(boost::asio::io_service& io_service)
     : socket_(io_service)
-  {
-  }
+  {}
 
 //  void handle_write(const boost::system::error_code& error,
 //      size_t bytes_transferred)
@@ -251,18 +251,13 @@ private:
 //	  }
 //  }
 
-  tcp::socket socket_;
+  boost::asio::ip::tcp::socket socket_;
 };
 
 class tcp_server
 {
 public:
-  tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
-    : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
-  {
-	 myPort=port;
-    start_accept();
-  }
+  tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
   tcp_connection::pointer new_connection;
   bool isClientConnect() { return new_connection->socket().is_open();}
 private:
@@ -306,7 +301,7 @@ private:
     start_accept();
   }
 
-  tcp::acceptor acceptor_;
+  boost::asio::ip::tcp::acceptor acceptor_;
 };
 
 }

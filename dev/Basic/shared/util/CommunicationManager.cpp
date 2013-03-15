@@ -9,8 +9,19 @@
 #include <boost/thread.hpp>
 #include "ControlManager.hpp"
 
-sim_mob::CommunicationDataManager::CommunicationDataManager() {
+using boost::asio::ip::tcp;
+
+sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
+  : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr),
+    myPort(port)
+{
+	start_accept();
 }
+
+sim_mob::CommunicationDataManager::CommunicationDataManager()
+{
+}
+
 void sim_mob::CommunicationDataManager::sendTrafficData(std::string &s)
 {
 		boost::mutex::scoped_lock lock(trafficDataGuard);

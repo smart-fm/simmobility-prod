@@ -202,7 +202,7 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
-#Find boost-mpi
+#Find boost-regex
 find_package(Boost COMPONENTS regex REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 

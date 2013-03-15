@@ -29,7 +29,6 @@ class FlexiBarrier {
 public:
 	///Create a FlexiBarrier that requires *count* to be accumulated before it passes.
 	FlexiBarrier(unsigned int count);
-	~FlexiBarrier();
 
 	///Add *amount* to the total count and wait. If this call to wait caused the count to reach zero,
 	///  then return (true) immediately and unlock all others waiting on this barrier. Otherwise, wait

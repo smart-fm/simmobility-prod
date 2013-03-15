@@ -23,11 +23,6 @@ namespace sim_mob {
 class ConfigParams;
 class ControlManager;
 
-enum COMM_COMMAND {
-	RECEIVED=1,
-	SHUTDOWN=2
-};
-
 class CommunicationDataManager
 {
 public:
@@ -162,69 +157,6 @@ public:
 		 return true;
   }
   bool receiveData(std::string &cmd,std::string &data);
-//  {
-//	  // after send data , lets expect the response from visualizer
-//		int head_len=12;
-//		boost::array<char, 12> buf;
-//		socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
-//		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
-//		std::string head_data(buf.begin(), buf.end());
-////		file_output<<data<<"\n";
-//		boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
-//		boost::smatch what;
-//		int body_len=0;
-//		if( regex_match( head_data, what,head_regex ) )
-//		{
-//			  std::string s=what[1];
-//			  body_len= atoi(s.c_str());
-////			if (RECEIVED != atoi(s.c_str()))
-////			{
-//////						std::cout<<"unknown res "<<std::endl;
-//////				file_output<<"unknown res "<<"\n";
-//////						socket_.close();
-////				commDone();
-////				return false;
-////			}
-//		}
-//		else
-//		{
-//			std::cout<<"bad head: "<<head_data<<std::endl;
-////			file_output<<"bad res "<<"\n";
-////					socket_.close();
-////			commDone();
-//			return false;
-//		}
-//		// read body
-//		  if (body_len == 0)
-//		  {
-//			  std::cout<< " body len zero "<<std::endl;
-//	//		  break;
-////			  commDone();
-//			  return false;
-//		   }
-//		  char buf_body[2048]="\0";
-//		  socket_.set_option(boost::asio::socket_base::receive_buffer_size(body_len));
-//		//    	  len = socket.read_some(boost::asio::buffer(buf_body), error);
-//		  len = boost::asio::read(socket_,boost::asio::buffer(buf_body,body_len),boost::asio::transfer_at_least(body_len));
-//		//    	  std::cout<<" read body len: "<<len<<std::endl;
-//		  std::string data_body_str(buf_body,body_len);
-////		  boost::regex body_regex("^\\{\\=(.*)\\=\\}$",boost::regex::perl);
-//		  boost::regex body_regex("^\\{\\=(.*)\\=\\}\\{\\@\\=(.*)\\=\\@\\}$",boost::regex::perl);
-//	//	  file_output<<data_body_str<<"\n";
-//		  if( regex_match( data_body_str, what,body_regex ) )
-//		  {
-//			  cmd = what[1];
-//			  data =what[2];
-//		//		  file_output<<s<<"\n";
-//		  }
-//		  else
-//		  {
-//			  std::cout<<"not good body: "<<data_body_str<<std::endl;
-//	//		  break;
-//			  return false;
-//		  }
-//		return true;
-//  }
   void trafficDataStart(CommunicationDataManager& comDataMgr);
   void cmdDataStart(CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
   void roadNetworkDataStart(CommunicationDataManager& comDataMgr);

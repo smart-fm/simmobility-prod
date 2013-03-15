@@ -11,6 +11,8 @@
 
 using boost::asio::ip::tcp;
 
+namespace {
+
 sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
   : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr),
     myPort(port)
@@ -105,14 +107,6 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
 		{
 			  std::string s=what[1];
 			  body_len= atoi(s.c_str());
-//			if (RECEIVED != atoi(s.c_str()))
-//			{
-////						std::cout<<"unknown res "<<std::endl;
-////				file_output<<"unknown res "<<"\n";
-////						socket_.close();
-//				commDone();
-//				return false;
-//			}
 		}
 		else
 		{

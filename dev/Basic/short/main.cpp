@@ -28,8 +28,8 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
-#include "util/CommunicationManager.h"
-#include "util/ControlManager.h"
+#include "util/CommunicationManager.hpp"
+#include "util/ControlManager.hpp"
 #ifdef SIMMOB_NEW_SIGNAL
 	#include "entities/signal/Signal.hpp"
 #else
@@ -1167,11 +1167,11 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef SIMMOB_REALTIME
-	CommunicationManager *dataServer = new CommunicationManager(13333);
+	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr());
 	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
-	CommunicationManager *cmdServer = new CommunicationManager(13334);
+	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr());
 	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
-	CommunicationManager *roadNetworkServer = new CommunicationManager(13335);
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr());
 	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
 	boost::thread workerThread2(boost::bind(&ControlManager::start, ControlManager::GetInstance()));
 #endif

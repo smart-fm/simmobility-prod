@@ -14,6 +14,8 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
+#include "conf/simpleconf.hpp"
+
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else
@@ -38,8 +40,6 @@
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"
-
-#include "util/CommunicationManager.h"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -351,7 +351,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
             <<","<<vehicle->getCurrSegment()
             <<","<<vehicle->getCurrentSegmentLength()/100.0;
 	std::string s=stream.str();
-	CommunicationDataManager::GetInstance()->sendTrafficData(s);
+	ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
 
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()

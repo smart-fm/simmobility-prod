@@ -5,8 +5,7 @@
  *      Author: redheli
  */
 
-#ifndef COMMUNICATIONMANAGER_H_
-#define COMMUNICATIONMANAGER_H_
+#pragma once
 
 #include <queue>
 #include <boost/bind.hpp>
@@ -20,6 +19,8 @@
 #include <ctime>
 namespace sim_mob {
 
+class ConfigParams;
+
 using boost::asio::ip::tcp;
 enum COMM_COMMAND{
 	RECEIVED=1,
@@ -28,7 +29,7 @@ enum COMM_COMMAND{
 class CommunicationDataManager
 {
 public:
-	static CommunicationDataManager* GetInstance();
+	//static CommunicationDataManager* GetInstance();
 	void sendTrafficData(std::string &s);
 	void sendRoadNetworkData(std::string &s);
 	bool getTrafficData(std::string &s);
@@ -37,19 +38,24 @@ public:
 	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
 private:
 	CommunicationDataManager();
-	static CommunicationDataManager *instance;
+	//static CommunicationDataManager *instance;
 	std::queue<std::string> trafficDataQueue;
 	std::queue<std::string> cmdDataQueue;
 	std::queue<std::string> roadNetworkDataQueue;
 	boost::mutex trafficDataGuard;
 	boost::mutex cmdDataGuard;
 	boost::mutex roadNetworkDataGuard;
+
+	//The CommunicationDataManager should be shared for *all* communication, but we want to avoid
+	// making it a singleton. For now, that means we put it in ConfigParams, so ConfigParams needs
+	// friend access.
+	friend class sim_mob::ConfigParams;
 };
 class CommunicationManager {
 
 public:
 //	static CommunicationManager* GetInstance();
-	CommunicationManager(int port);
+	CommunicationManager(int port, CommunicationDataManager& comDataMgr);
 	~CommunicationManager();
 	void start();
 //	void sendTrafficData(std::string &s);
@@ -64,6 +70,7 @@ public:
 private:
 //	CommunicationManager();
 //	static CommunicationManager *instance;
+	CommunicationDataManager* comDataMgr;
 	boost::asio::io_service io_service;
 	int listenPort;
 private:
@@ -223,9 +230,9 @@ public:
 //		  }
 //		return true;
 //  }
-  void trafficDataStart();
-  void cmdDataStart();
-  void roadNetworkDataStart();
+  void trafficDataStart(CommunicationDataManager& comDataMgr);
+  void cmdDataStart(CommunicationDataManager& comDataMgr);
+  void roadNetworkDataStart(CommunicationDataManager& comDataMgr);
 
 private:
   tcp_connection(boost::asio::io_service& io_service)
@@ -256,8 +263,8 @@ private:
 class tcp_server
 {
 public:
-  tcp_server(boost::asio::io_service& io_service,int port)
-    : acceptor_(io_service, tcp::endpoint(tcp::v4(), port))
+  tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr)
+    : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr)
   {
 	 myPort=port;
     start_accept();
@@ -265,6 +272,7 @@ public:
   tcp_connection::pointer new_connection;
   bool isClientConnect() { return new_connection->socket().is_open();}
 private:
+  CommunicationDataManager* comDataMgr;
   int myPort;
   void start_accept()
   {
@@ -283,15 +291,15 @@ private:
     {
     	if(myPort==13333)
     	{
-    		new_connection->trafficDataStart();
+    		new_connection->trafficDataStart(*comDataMgr);
     	}
     	else if(myPort==13334)
 		{
-			new_connection->cmdDataStart();
+			new_connection->cmdDataStart(*comDataMgr);
 		}
     	else if(myPort==13335)
 		{
-			new_connection->roadNetworkDataStart();
+			new_connection->roadNetworkDataStart(*comDataMgr);
 		}
     	else
     	{
@@ -307,4 +315,3 @@ private:
 };
 
 }
-#endif /* COMMUNICATIONMANAGER_H_ */

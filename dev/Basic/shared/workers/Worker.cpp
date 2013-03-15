@@ -15,7 +15,7 @@ using boost::function;
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
-#include "util/ControlManager.h"
+#include "util/ControlManager.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;

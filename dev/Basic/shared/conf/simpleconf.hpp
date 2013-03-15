@@ -38,6 +38,7 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/CommunicationManager.hpp"
 
 
 namespace sim_mob
@@ -236,6 +237,10 @@ public:
 		sealedNetwork = true;
 	}
 
+	sim_mob::CommunicationDataManager&  getCommDataMgr() {
+		return commDataMgr;
+	}
+
 	///Retrieve a reference to the list of trip chains.
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
@@ -262,6 +267,8 @@ private:
 	sim_mob::RoleFactory roleFact;
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
+
+	CommunicationDataManager commDataMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

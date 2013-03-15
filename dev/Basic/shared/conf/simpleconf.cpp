@@ -41,10 +41,6 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
-//#include "../short/xmlWriter/xmlWriter.hpp"
-#ifdef SIMMOB_NEW_SIGNAL
-#include "util/CommunicationManager.h"
-#endif
 
 using std::cout;
 using std::endl;
@@ -989,7 +985,7 @@ void PrintDB_Network_ptrBased()
 				}
 		stream<<"})";
 		std::string s=stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
@@ -1017,7 +1013,7 @@ void PrintDB_Network_ptrBased()
 				}
 		stream<<"})";
 		std::string s=stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -1075,7 +1071,7 @@ void PrintDB_Network_ptrBased()
 		stream<<"]\",";
 		stream<<"})";
 		std::string s=stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 	}
 
@@ -1121,7 +1117,7 @@ void PrintDB_Network_ptrBased()
 		}
 		stream<<"})";
 		std::string s1=stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s1);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s1);
 
 		std::ostringstream stream2;
 		if (!(*it)->polyline.empty()) {
@@ -1135,7 +1131,7 @@ void PrintDB_Network_ptrBased()
 			stream2<<"})";
 		}
 		std::string ss=stream2.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(ss);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(ss);
 #endif
 		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
 		for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); ++obsIt) {
@@ -1191,7 +1187,7 @@ void PrintDB_Network_ptrBased()
 		}
 		stream1<<"})";
 		string s = stream1.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
@@ -1216,7 +1212,7 @@ void PrintDB_Network_ptrBased()
 		stream<<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
 		stream<<"})";
 		string s = stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 	}
 
@@ -1257,7 +1253,7 @@ void PrintDB_Network_ptrBased()
 		stream<<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
 		stream<<"})";
 		string s = stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 	}
 
@@ -1287,12 +1283,12 @@ void PrintDB_Network_ptrBased()
 		stream<<"\"to-lane\":\"" <<toLane <<"\",";
 		stream<<"})";
 		string s = stream.str();
-		CommunicationDataManager::GetInstance()->sendRoadNetworkData(s);
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
 #endif
 	}
 #ifdef SIMMOB_REALTIME
 	string end = "END";
-	CommunicationDataManager::GetInstance()->sendRoadNetworkData(end);
+	ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(end);
 #endif
 
 	//Print the StreetDirectory graphs.

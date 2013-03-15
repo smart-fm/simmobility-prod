@@ -1,12 +1,11 @@
 /*
- * ControlManager.h
+ * ControlManager.hpp
  *
  *  Created on: Nov 24, 2012
  *      Author: redheli
  */
 
-#ifndef CONTROLMANAGER_H_
-#define CONTROLMANAGER_H_
+#pragma once
 
 #include <sys/poll.h>
 #include <stdio.h>
@@ -54,4 +53,3 @@ private:
 };
 
 }
-#endif /* CONTROLMANAGER_H_ */

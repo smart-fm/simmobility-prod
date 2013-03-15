@@ -24,7 +24,6 @@
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/CommunicationManager.h"
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #else

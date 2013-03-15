@@ -5,7 +5,7 @@
  *      Author: redheli
  */
 
-#include "ControlManager.h"
+#include "ControlManager.hpp"
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>

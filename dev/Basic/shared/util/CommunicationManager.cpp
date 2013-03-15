@@ -5,20 +5,20 @@
  *      Author: redheli
  */
 
-#include "CommunicationManager.h"
+#include "CommunicationManager.hpp"
 #include <boost/thread.hpp>
-#include "ControlManager.h"
+#include "ControlManager.hpp"
 
 //sim_mob::CommunicationManager* sim_mob::CommunicationManager::instance = NULL;
-sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::instance = NULL;
+//sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::instance = NULL;
 //std::queue<std::string> sim_mob::CommunicationManager::dataQueue = NULL;
 
-sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::GetInstance() {
+/*sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::GetInstance() {
      if (!instance) {
           instance = new CommunicationDataManager();
      }
      return instance;
-}
+}*/
 
 sim_mob::CommunicationDataManager::CommunicationDataManager() {
 }
@@ -65,7 +65,8 @@ bool sim_mob::CommunicationDataManager::getRoadNetworkData(std::string &s) {
 		}
 		return false;
 }
-sim_mob::CommunicationManager::CommunicationManager(int port) {
+sim_mob::CommunicationManager::CommunicationManager(int port, CommunicationDataManager& comDataMgr) : comDataMgr(&comDataMgr)
+{
 	listenPort = port;
 	simulationDone = false;
 	CommDone = true;
@@ -75,7 +76,7 @@ void sim_mob::CommunicationManager::start()
 {
 	try
   {
-	tcp_server server(io_service,listenPort);
+	tcp_server server(io_service,listenPort, *comDataMgr);
 	io_service.run();
   }
   catch (std::exception& e)
@@ -151,7 +152,7 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
 		  }
 		return true;
   }
-void sim_mob::tcp_connection::trafficDataStart()
+void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comDataMgr)
 {
 	std::cout<<std::endl;
 	std::cout<<"visualizer connected"<<std::endl;
@@ -159,7 +160,7 @@ void sim_mob::tcp_connection::trafficDataStart()
 //	  std::ofstream file_output;
 //	  file_output.open("./logSimmobTrafficData.txt");
 	std::fstream file_output("./log_SimmobTrafficData.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
-	  CommunicationDataManager *com = CommunicationDataManager::GetInstance() ;
+	  CommunicationDataManager *com = &comDataMgr;
 //	  com->GetInstance()->setCommDone(false);
 	  std::string cmd_;
 	  std::string message_;
@@ -231,14 +232,14 @@ void sim_mob::tcp_connection::trafficDataStart()
 	  file_output.flush();
 	  file_output.close();
   }
-void sim_mob::tcp_connection::cmdDataStart()
+void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr)
 {
 //	  std::ofstream file_output2;
 //	  file_output2.open("./logSimmobCmdData2.txt");
 	std::fstream file_output2("./logSimmobCmdData2.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 	file_output2<<"asdfasdfasfdasdf"<<"\n";
 	file_output2.flush();
-	  CommunicationDataManager *com = CommunicationDataManager::GetInstance() ;
+	  CommunicationDataManager *com = &comDataMgr;
 //	  com->GetInstance()->setCommDone(false);
 	  //
 	  fd_set fileDescriptorSet;
@@ -350,11 +351,11 @@ void sim_mob::tcp_connection::commDone()
 	  socket_.close();
 //	  CommunicationManager::GetInstance()->setCommDone(true);
 }
-void sim_mob::tcp_connection::roadNetworkDataStart()
+void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& comDataMgr)
 {
 	  std::ofstream file_output;
 	  file_output.open("./logSimmobRoadNetworkData.txt");
-	  CommunicationDataManager *com = CommunicationDataManager::GetInstance() ;
+	  CommunicationDataManager *com = &comDataMgr;
 //	  com->GetInstance()->setCommDone(false);
 	  std::string send_cmd = "ROADNETWORK";
 	  std::string message_;

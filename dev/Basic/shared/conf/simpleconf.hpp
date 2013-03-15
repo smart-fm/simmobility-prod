@@ -39,6 +39,7 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/CommunicationManager.hpp"
+#include "util/ControlManager.hpp"
 
 
 namespace sim_mob
@@ -238,7 +239,23 @@ public:
 	}
 
 	sim_mob::CommunicationDataManager&  getCommDataMgr() {
+#ifdef SIMMOB_REALTIME
 		return commDataMgr;
+#else
+		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_REALTIME is off.");
+#endif
+	}
+
+	sim_mob::ControlManager* getControlMgr() {
+#ifdef SIMMOB_REALTIME
+		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+		if (!controlMgr) {
+			controlMgr = new ControlManager();
+		}
+		return controlMgr;
+#else
+		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_REALTIME is off.");
+#endif
 	}
 
 	///Retrieve a reference to the list of trip chains.
@@ -258,7 +275,7 @@ private:
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr)
 	{}
 
 	static ConfigParams instance;
@@ -269,6 +286,7 @@ private:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
 	CommunicationDataManager commDataMgr;
+	ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

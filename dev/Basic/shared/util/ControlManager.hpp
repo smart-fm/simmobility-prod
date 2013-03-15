@@ -15,6 +15,9 @@
 #include <boost/thread.hpp>
 
 namespace sim_mob {
+
+class ConfigParams;
+
 enum SIMSTATE
 {
 	IDLE=0,
@@ -28,9 +31,7 @@ enum SIMSTATE
 };
 class ControlManager {
 public:
-	static ControlManager* GetInstance();
 	void start();
-	~ControlManager();
 	void setSimState(int s) { boost::mutex::scoped_lock local_lock(lock); simState = s; std::cout<<"simmob"<<">"<<std::flush;}
 	int getSimState() { return simState; }
 	void getLoadScenarioParas(std::map<std::string,std::string> &para) { para=loadScenarioParas; }
@@ -43,13 +44,16 @@ public:
 	int getEndTick() { return endTick;}
 private:
 	ControlManager();
-	static ControlManager *instance;
 	struct pollfd fds;
 	int simState;
 	std::map<std::string,std::string> loadScenarioParas;
 	boost::mutex lock;
 	boost::mutex lockEndTick;
 	int endTick;
+
+	//Again, ControlManager's constructor is private for now (since we need to guarantee only one of these),
+	//  but to avoid the singleton pattern, we place the global ControlManager object into ConfigParams.
+	friend class sim_mob::ConfigParams;
 };
 
 }

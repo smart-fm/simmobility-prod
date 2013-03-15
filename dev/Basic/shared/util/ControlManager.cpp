@@ -11,14 +11,6 @@
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 
-sim_mob::ControlManager* sim_mob::ControlManager::instance = NULL;
-
-sim_mob::ControlManager* sim_mob::ControlManager::GetInstance() {
-     if (!instance) {
-          instance = new ControlManager();
-     }
-     return instance;
-}
 
 sim_mob::ControlManager::ControlManager()
 	:simState(NOTREADY)
@@ -134,8 +126,5 @@ bool sim_mob::ControlManager::handleInput(std::string& input)
 //	std::cout<<"simmob"<<">"<<std::flush;
 	return true;
 }
-sim_mob::ControlManager::~ControlManager() {
-	if(instance)
-		delete instance;
-}
+
 

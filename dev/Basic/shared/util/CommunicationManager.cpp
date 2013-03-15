@@ -9,17 +9,6 @@
 #include <boost/thread.hpp>
 #include "ControlManager.hpp"
 
-//sim_mob::CommunicationManager* sim_mob::CommunicationManager::instance = NULL;
-//sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::instance = NULL;
-//std::queue<std::string> sim_mob::CommunicationManager::dataQueue = NULL;
-
-/*sim_mob::CommunicationDataManager* sim_mob::CommunicationDataManager::GetInstance() {
-     if (!instance) {
-          instance = new CommunicationDataManager();
-     }
-     return instance;
-}*/
-
 sim_mob::CommunicationDataManager::CommunicationDataManager() {
 }
 void sim_mob::CommunicationDataManager::sendTrafficData(std::string &s)
@@ -65,7 +54,8 @@ bool sim_mob::CommunicationDataManager::getRoadNetworkData(std::string &s) {
 		}
 		return false;
 }
-sim_mob::CommunicationManager::CommunicationManager(int port, CommunicationDataManager& comDataMgr) : comDataMgr(&comDataMgr)
+sim_mob::CommunicationManager::CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr) :
+		comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
 {
 	listenPort = port;
 	simulationDone = false;
@@ -76,7 +66,7 @@ void sim_mob::CommunicationManager::start()
 {
 	try
   {
-	tcp_server server(io_service,listenPort, *comDataMgr);
+	tcp_server server(io_service,listenPort, *comDataMgr, *ctrlMgr);
 	io_service.run();
   }
   catch (std::exception& e)
@@ -232,7 +222,7 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 	  file_output.flush();
 	  file_output.close();
   }
-void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr)
+void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
 {
 //	  std::ofstream file_output2;
 //	  file_output2.open("./logSimmobCmdData2.txt");
@@ -271,7 +261,7 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr)
 			{
 				  file_output2<<recv_cmd<<" "<<recv_data<<"\n";
 				  file_output2.flush();
-				ControlManager::GetInstance()->handleInput(recv_data);
+				ctrlMgr.handleInput(recv_data);
 				std::string fk_cmd = "FEEDBACK";
 				std::string fk_msg="RECEIVED";
 				if(!sendData(fk_cmd,fk_msg))

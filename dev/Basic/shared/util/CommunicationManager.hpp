@@ -1,5 +1,5 @@
 /*
- * CommunicationManager.h
+ * CommunicationManager.hpp
  *
  *  Created on: Nov 21, 2012
  *      Author: redheli
@@ -20,6 +20,7 @@
 namespace sim_mob {
 
 class ConfigParams;
+class ControlManager;
 
 using boost::asio::ip::tcp;
 enum COMM_COMMAND{
@@ -29,7 +30,6 @@ enum COMM_COMMAND{
 class CommunicationDataManager
 {
 public:
-	//static CommunicationDataManager* GetInstance();
 	void sendTrafficData(std::string &s);
 	void sendRoadNetworkData(std::string &s);
 	bool getTrafficData(std::string &s);
@@ -38,7 +38,6 @@ public:
 	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
 private:
 	CommunicationDataManager();
-	//static CommunicationDataManager *instance;
 	std::queue<std::string> trafficDataQueue;
 	std::queue<std::string> cmdDataQueue;
 	std::queue<std::string> roadNetworkDataQueue;
@@ -54,8 +53,7 @@ private:
 class CommunicationManager {
 
 public:
-//	static CommunicationManager* GetInstance();
-	CommunicationManager(int port, CommunicationDataManager& comDataMgr);
+	CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
 	~CommunicationManager();
 	void start();
 //	void sendTrafficData(std::string &s);
@@ -69,8 +67,8 @@ public:
 	bool isSimulationDone() { return simulationDone; }
 private:
 //	CommunicationManager();
-//	static CommunicationManager *instance;
 	CommunicationDataManager* comDataMgr;
+	ControlManager* ctrlMgr;
 	boost::asio::io_service io_service;
 	int listenPort;
 private:
@@ -112,10 +110,6 @@ public:
     return std::ctime(&now);
   }
   void commDone();
-//  {
-//	  socket_.close();
-//	  CommunicationManager::GetInstance()->setCommDone(true);
-//  }
   bool sendData(std::string &cmd,std::string data)
   {
 //	  std::ostringstream stream;
@@ -231,7 +225,7 @@ public:
 //		return true;
 //  }
   void trafficDataStart(CommunicationDataManager& comDataMgr);
-  void cmdDataStart(CommunicationDataManager& comDataMgr);
+  void cmdDataStart(CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
   void roadNetworkDataStart(CommunicationDataManager& comDataMgr);
 
 private:
@@ -263,8 +257,8 @@ private:
 class tcp_server
 {
 public:
-  tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr)
-    : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr)
+  tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
+    : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
   {
 	 myPort=port;
     start_accept();
@@ -273,6 +267,7 @@ public:
   bool isClientConnect() { return new_connection->socket().is_open();}
 private:
   CommunicationDataManager* comDataMgr;
+  ControlManager* ctrlMgr;
   int myPort;
   void start_accept()
   {
@@ -295,7 +290,7 @@ private:
     	}
     	else if(myPort==13334)
 		{
-			new_connection->cmdDataStart(*comDataMgr);
+			new_connection->cmdDataStart(*comDataMgr, *ctrlMgr);
 		}
     	else if(myPort==13335)
 		{

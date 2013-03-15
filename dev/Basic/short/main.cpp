@@ -907,7 +907,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}
 #ifdef SIMMOB_REALTIME
 	std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
-	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	ctrlMgr->setSimState(IDLE);
 	while(ctrlMgr->getSimState() == IDLE)
 	{
@@ -1135,7 +1135,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 #ifdef SIMMOB_REALTIME
 void start()
 {
-	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	while(1)
 	{
 		if(ctrlMgr->getSimState() == LOADSCENARIO)
@@ -1167,13 +1167,13 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef SIMMOB_REALTIME
-	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr());
+	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
 	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
-	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr());
+	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
 	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
-	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr());
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
 	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
-	boost::thread workerThread2(boost::bind(&ControlManager::start, ControlManager::GetInstance()));
+	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigParams::GetInstance().getControlMgr()));
 #endif
 //	workerThread.join();
 //	CommunicationManager::GetInstance()->start();

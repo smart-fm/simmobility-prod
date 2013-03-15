@@ -15,7 +15,6 @@ using boost::function;
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
-#include "util/ControlManager.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -161,7 +160,7 @@ void sim_mob::Worker::barrier_mgmt()
 
 	uint32_t currTick = 0;
 #ifdef SIMMOB_REALTIME
-	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
+	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	for (bool active=true; active;) {
 
 		if (ctrlMgr->getSimState() == PAUSE)  //

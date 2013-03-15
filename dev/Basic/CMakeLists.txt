@@ -76,6 +76,9 @@ option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest
 #Option: generate parallel profile. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
 
+#Option: real-time flag (for the GUI)
+option(SIMMOB_REALTIME "Force Sim Mobility to synchronize in real-time." OFF)
+
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)
 

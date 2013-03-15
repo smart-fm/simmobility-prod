@@ -119,7 +119,7 @@ public:
 
 		char msg[20]="\0";
 		//head size 12
-		sprintf(msg,"{=%08d=}",body.size());
+		sprintf(msg,"{=%08d=}",body.size());  //NOTE: May want to change "d" to "zu", for unsigned, size type.
 		std::string head=msg;
 
 		message_=head+body;

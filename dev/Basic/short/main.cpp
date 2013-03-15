@@ -1009,6 +1009,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	bool active=true;
 	int totalTick = config.totalRuntimeTicks;
 	for (unsigned int currTick = 0; currTick < totalTick && active; currTick++) {
+#ifdef SIMMOB_REALTIME
 		if(ctrlMgr->getSimState() == STOP)
 		{
 			while (ctrlMgr->getEndTick() < 0)
@@ -1018,6 +1019,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			}
 			totalTick = ctrlMgr->getEndTick();
 		}
+#endif
+
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 

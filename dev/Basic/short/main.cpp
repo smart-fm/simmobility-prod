@@ -1121,21 +1121,30 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
 	WorkGroup::FinalizeAllWorkGroups();
 
-	//Test: At this point, it should be possible to delete all Signals and Agents.
-		Signal::all_signals_.clear();
-		Agent::all_agents.clear();
-//	clear_delete_vector(Signal::all_signals_);
-//	clear_delete_vector(Agent::all_agents);
+	//At this point, it should be possible to delete all Signals and Agents.
+	//TODO: For some reason, clear_delete_vector() does (may?) not work in REALTIME mode.
+	//      We can address this later, but it should *definitely* be possible to cleanly
+	//      exit (even early) from the simulation.
+	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
+	//      them from the main loop, in the event that the simulator is shutting down early. This is
+	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
+#ifdef SIMMOB_REALTIME
+	Signal::all_signals_.clear();
+	Agent::all_agents.clear();
+#else
+	clear_delete_vector(Signal::all_signals_);
+	clear_delete_vector(Agent::all_agents);
+#endif
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;
 }
 
 #ifdef SIMMOB_REALTIME
-void start()
+void run_simmob_realtime_loop()
 {
 	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
-	while(1)
+	for (;;)
 	{
 		if(ctrlMgr->getSimState() == LOADSCENARIO)
 		{
@@ -1174,8 +1183,7 @@ int main(int argc, char* argv[])
 	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
 	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigParams::GetInstance().getControlMgr()));
 #endif
-//	workerThread.join();
-//	CommunicationManager::GetInstance()->start();
+
 	//Save start time
 	gettimeofday(&start_time, nullptr);
 
@@ -1228,7 +1236,7 @@ int main(int argc, char* argv[])
 	}
 	cout << "Using config file: " << configFileName << endl;
 
-	//Argument 2: Log file
+	//Argument 2: Log file. Defaults to out.txt
 	string logFileName = argc>2 ? argv[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
@@ -1236,7 +1244,7 @@ int main(int argc, char* argv[])
 		}
 	}
 #ifdef SIMMOB_REALTIME
-	start();
+	run_simmob_realtime_loop();
 	int returnVal=0;
 #else
 	//Perform main loop

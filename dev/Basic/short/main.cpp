@@ -1005,12 +1005,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	ParitionDebugOutput debug;
 
-//	sim_mob::ControlManager *ctrlMgr = sim_mob::ControlManager::GetInstance();
-
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-	bool active=true;
-	int totalTick = config.totalRuntimeTicks;
-	for (unsigned int currTick = 0; currTick < totalTick && active; currTick++) {
+	int endTick = config.totalRuntimeTicks;
+	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
 #ifdef SIMMOB_REALTIME
 		if(ctrlMgr->getSimState() == STOP)
 		{
@@ -1019,7 +1016,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 				int t=currTick+2;
 				ctrlMgr->setEndTick(t);
 			}
-			totalTick = ctrlMgr->getEndTick();
+			endTick = ctrlMgr->getEndTick();
 		}
 #endif
 

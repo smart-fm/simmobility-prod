@@ -164,6 +164,15 @@ public:
 		return !OutputDisabled();
 	}
 
+	///Synced to the value of SIMMOB_REALTIME; used for to detect if we're running in realtime mode.
+	bool RealtimeMode() const {
+#ifdef SIMMOB_REALTIME
+		return true;
+#else
+		return false;
+#endif
+	}
+
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const {

@@ -10,6 +10,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
 
 
 sim_mob::ControlManager::ControlManager()
@@ -61,7 +63,7 @@ void sim_mob::ControlManager::start()
 //				simState=RUNNING;
 			std::cout<<"simmob"<<">"<<std::flush;
 		}
-		sleep(0.01);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	 } // end of while
 }
 bool sim_mob::ControlManager::handleInput(std::string& input)

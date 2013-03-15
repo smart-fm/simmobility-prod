@@ -204,20 +204,6 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 				return;
 			}
 		  }//end of if
-//		  else
-//		  {
-//			  if(com->isSimulationDone())
-//			  {
-//				  std::cout<<"start: simulation done and all data out"<<std::endl;
-//				  std::string str="SHUTDOWN";
-//				  file_output<<str<<"\n";
-//				  sendData(str);
-//				  sleep(1);
-//				  commDone();
-//				  return;
-//			  }
-//		  }
-//		  sleep(0.001);
 	  }
 	  file_output.flush();
 	  file_output.close();
@@ -318,20 +304,6 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr,
 				return;
 			}
 		  }//end of if
-//		  else
-//		  {
-//			  if(com->isSimulationDone())
-//			  {
-//				  std::cout<<"start: simulation done and all data out"<<std::endl;
-//				  std::string str="SHUTDOWN";
-//				  file_output<<str<<"\n";
-//				  sendData(str);
-//				  sleep(1);
-//				  commDone();
-//				  return;
-//			  }
-//		  }
-//		  sleep(0.001);
 	  }
 	  file_output2.flush();
 	  file_output2.close();
@@ -397,20 +369,6 @@ void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& com
 				return;
 			}
 		  }//end of if
-//		  else
-//		  {
-//			  if(com->isSimulationDone())
-//			  {
-//				  std::cout<<"start: simulation done and all data out"<<std::endl;
-//				  std::string str="SHUTDOWN";
-//				  file_output<<str<<"\n";
-//				  sendData(str);
-//				  sleep(1);
-//				  commDone();
-//				  return;
-//			  }
-//		  }
-//		  sleep(0.001);
 	  }
 	  file_output.flush();
 	  file_output.close();

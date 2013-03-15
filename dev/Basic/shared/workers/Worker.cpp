@@ -5,6 +5,8 @@
 #include <queue>
 #include <sstream>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 
 using std::set;
 using std::vector;
@@ -166,11 +168,11 @@ void sim_mob::Worker::barrier_mgmt()
 		if (ctrlMgr->getSimState() == PAUSE)  //
 		{
 			// we in pause loop
-			sleep(0.01);
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
 		else /*if (ctrlMgr->getSimState() == RUNNING)*/
 		{
-			sleep(0.1);
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 			//Add Agents as required.
 			addPendingEntities();
 

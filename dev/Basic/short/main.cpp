@@ -14,6 +14,9 @@
 #include <string>
 #include <ctime>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
+
 #include "GenConfig.h"
 
 #include "workers/Worker.hpp"
@@ -909,9 +912,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
 	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	ctrlMgr->setSimState(IDLE);
-	while(ctrlMgr->getSimState() == IDLE)
-	{
-		sleep(0.01);
+	while(ctrlMgr->getSimState() == IDLE) {
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	}
 #endif
 
@@ -1248,14 +1250,7 @@ int main(int argc, char* argv[])
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
-#ifdef SIMMOB_REALTIME
 
-//	CommunicationManager::GetInstance()->setSimulationDone(true);
-//	while(!CommunicationManager::GetInstance()->isCommDone())
-//	{
-//		sleep(1);
-//	}
-#endif
 	cout << "Done" << endl;
 	return returnVal;
 }

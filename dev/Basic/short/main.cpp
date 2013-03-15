@@ -1128,6 +1128,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
 	//      them from the main loop, in the event that the simulator is shutting down early. This is
 	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
+	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
+	//      loop should propagate this value down. ~Seth
 	if (ConfigParams::GetInstance().RealtimeMode()) {
 		Signal::all_signals_.clear();
 		Agent::all_agents.clear();

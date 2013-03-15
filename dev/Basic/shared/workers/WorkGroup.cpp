@@ -189,7 +189,6 @@ sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks,
 
 sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are wait()-ing. But it prevents undefined behavior in boost.
 {
-//	safe_delete_item(macro_tick_barr);
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
 		wk->interrupt();
@@ -201,7 +200,9 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
-//	safe_delete_item(macro_tick_barr);
+#ifndef SIMMOB_REALTIME
+	safe_delete_item(macro_tick_barr);
+#endif
 }
 
 

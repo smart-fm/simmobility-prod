@@ -1013,12 +1013,7 @@ void PrintDB_Network_ptrBased()
 			stream<<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
 			stream<<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
 			stream<<"\"fwd-path\":\"[";
-			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
-				stream<<*segIt <<",";
-			}
-			stream<<"]\",";
-			stream<<"\"rev-path\":\"[";
-			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
+			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
 				stream<<*segIt <<",";
 			}
 			stream<<"]\",";

@@ -55,7 +55,7 @@ public:
 
 	void clear() { prototypes.clear(); }
 
-private:
+public:
 	//Helper
 	const sim_mob::Role* getPrototype(const std::string& name) const;
 

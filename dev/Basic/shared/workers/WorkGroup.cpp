@@ -575,8 +575,6 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-//	std::stringstream debugMsgs(std::stringstream::out);
-
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {

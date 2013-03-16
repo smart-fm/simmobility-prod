@@ -167,7 +167,20 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 	safe_delete_item(WorkGroup::BuffFlipBarr);
 	safe_delete_item(WorkGroup::AuraMgrBarr);
 }
+void sim_mob::WorkGroup::clear()
+{
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
+	}
+	workers.clear();
 
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
 
 ////////////////////////////////////////////////////////////////////
 // Normal methods (non-static)
@@ -186,6 +199,7 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 {
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
+		wk->interrupt();
 		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
 		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
 		delete wk;
@@ -194,7 +208,9 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+#ifndef SIMMOB_REALTIME
 	safe_delete_item(macro_tick_barr);
+#endif
 }
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)

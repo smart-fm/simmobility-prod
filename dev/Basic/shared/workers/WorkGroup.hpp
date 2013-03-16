@@ -77,6 +77,7 @@ public:  //Static methods
 	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
 	///  for the next simulation.
 	static void FinalizeAllWorkGroups();
+	void clear();
 
 
 private: //Static fields
@@ -212,8 +213,6 @@ private:
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
 
-public:
-	std::stringstream debugMsg;
 };
 
 

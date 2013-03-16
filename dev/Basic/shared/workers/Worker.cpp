@@ -7,6 +7,8 @@
 #include <queue>
 #include <sstream>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 
 using std::set;
 using std::vector;
@@ -209,9 +211,80 @@ void sim_mob::Worker::barrier_mgmt()
 	///      this will be a major cleanup effort anyway.
 	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
 
+	sim_mob::ControlManager* ctrlMgr = nullptr;
+	if (ConfigParams::GetInstance().RealtimeMode()) {
+		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+	}
+
 	uint32_t currTick = 0;
-	int i = 0;
-	std::ostringstream out;
+#ifdef SIMMOB_REALTIME
+	for (bool active=true; active;) {
+		//Short-circuit if we're in "pause" mode.
+		if (ctrlMgr->getSimState() == PAUSE) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+			continue;
+		}
+
+		//Sleep again. (Why? ~Seth)
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+
+		//Add Agents as required.
+		addPendingEntities();
+
+		//Perform all our Agent updates, etc.
+		perform_main(timeslice(currTick, currTick*msPerFrame));
+
+		//Remove Agents as requires
+		removePendingEntities();
+
+		//Advance local time-step.
+		currTick += tickStep;
+
+		//get stop cmd, stop loop
+		if (ctrlMgr->getSimState() == STOP) {
+			while (ctrlMgr->getEndTick() < 0) {
+				ctrlMgr->setEndTick(currTick+2);
+			}
+			endTick = ctrlMgr->getEndTick();
+		}
+		active = (endTick==0 || currTick<endTick);
+
+		//NOTE: Is catching an exception actually a good idea, or should we just rely
+		//      on STRICT_AGENT_ERRORS?
+		try {
+			//First barrier
+			if (frame_tick_barr) {
+				frame_tick_barr->wait();
+			}
+
+			//Now flip all remaining data.
+			perform_flip();
+
+			//Second barrier
+			if (buff_flip_barr) {
+				buff_flip_barr->wait();
+			}
+
+			// Wait for the AuraManager
+			if (aura_mgr_barr) {
+				aura_mgr_barr->wait();
+			}
+
+			//If we have a macro barrier, we must wait exactly once more.
+			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+			//  once more at the end of tick 9.
+			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+			bool extraActive = (endTick==0 || (currTick-1)<endTick);
+			if (macro_tick_barr && extraActive) {
+				macro_tick_barr->wait();
+			}
+		} catch(...) {
+			std::cout<<"thread out"<<std::endl;
+			return;
+		}
+
+	}
+#else
 	for (bool active=true; active;) {
 		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
 
@@ -249,7 +322,7 @@ void sim_mob::Worker::barrier_mgmt()
 			buff_flip_barr->wait();
 		}
 
-        // Wait for the AuraManager
+		// Wait for the AuraManager
 		if (aura_mgr_barr) {
 			aura_mgr_barr->wait();
 		}
@@ -263,6 +336,7 @@ void sim_mob::Worker::barrier_mgmt()
 			macro_tick_barr->wait();
 		}
 	}
+#endif
 }
 
 

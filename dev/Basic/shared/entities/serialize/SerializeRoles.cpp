@@ -588,15 +588,9 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> latMovement_buffer;
 	latMovement.force(latMovement_buffer);
 
-//	debug.outputToConsole("test_6");
-//	debug.outputToConsole("received latMovement");
-//	debug.outputToConsole(latMovement_buffer);
-
 	double fwdVelocity_buffer = 0;
 	unpackageUtil >> fwdVelocity_buffer;
 	fwdVelocity.force(fwdVelocity_buffer);
-
-//	std::cout << "fwdVelocity_buffer:" << fwdVelocity_buffer << std::endl;
 
 	double latVelocity_buffer = 0;
 	unpackageUtil >> latVelocity_buffer;
@@ -606,45 +600,22 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> fwdAccel_buffer;
 	fwdAccel.force(fwdAccel_buffer);
 
-//	double test_6 = 1;
-//	unpackageUtil >> (test_6);
-//
-//	debug.outputToConsole("test_6");
-//	debug.outputToConsole(test_6);
-
-//	debug.outputToConsole("test_7");
-	//currTimeMS = unpackageUtil.unpackBasicData<int> ();
 	vehicle = Vehicle::unpack(unpackageUtil);
-//	std::cout << "Step 4.2.7.5:" << std::endl;
-
-//	double test_7 = 1;
-//	unpackageUtil >> (test_7);
-//
-//	debug.outputToConsole("test_7");
-//	debug.outputToConsole(test_7);
-
-//	debug.outputToConsole("test_8");
 
 	bool hasSomething = false;
 	unpackageUtil >> hasSomething;
 	if(hasSomething)
 	{
 		intModel = new SimpleIntDrivingModel();
-//		debug.outputToConsole("test_8.5");
-
 		SimpleIntDrivingModel::unpack(unpackageUtil, dynamic_cast<SimpleIntDrivingModel *>(intModel));
-//		debug.outputToConsole("test_8.6");
 	}
 
 	unpackageUtil >> currLinkOffset;
-
-//	debug.outputToConsole("test_9");
 
 	int buffer;
 	unpackageUtil >> buffer;
 	targetLaneIndex = buffer;
 
-//	debug.outputToConsole("test_10");
 }
 
 }

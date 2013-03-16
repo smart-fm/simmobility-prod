@@ -38,6 +38,8 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
+#include "util/CommunicationManager.hpp"
+#include "util/ControlManager.hpp"
 
 #include "Config.hpp"
 
@@ -166,6 +168,15 @@ public:
 		return !OutputDisabled();
 	}
 
+	///Synced to the value of SIMMOB_REALTIME; used for to detect if we're running in realtime mode.
+	bool RealtimeMode() const {
+#ifdef SIMMOB_REALTIME
+		return true;
+#else
+		return false;
+#endif
+	}
+
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const;
@@ -186,7 +197,13 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
+	void reset()
+	{
+		sealedNetwork=false;
+		roleFact.clear();
+	}
 	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
+
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
@@ -219,6 +236,26 @@ public:
 		sealedNetwork = true;
 	}
 
+	sim_mob::CommunicationDataManager&  getCommDataMgr() {
+#ifdef SIMMOB_REALTIME
+		return commDataMgr;
+#else
+		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_REALTIME is off.");
+#endif
+	}
+
+	sim_mob::ControlManager* getControlMgr() {
+#ifdef SIMMOB_REALTIME
+		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+		if (!controlMgr) {
+			controlMgr = new ControlManager();
+		}
+		return controlMgr;
+#else
+		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_REALTIME is off.");
+#endif
+	}
+
 	///Retrieve a reference to the list of trip chains.
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
@@ -246,8 +283,8 @@ private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalTimingMode(0), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
+		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr)
 	{}
 
 	static ConfigParams instance;
@@ -256,6 +293,9 @@ private:
 	sim_mob::RoleFactory roleFact;
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
+
+	CommunicationDataManager commDataMgr;
+	ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

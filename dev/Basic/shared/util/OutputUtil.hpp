@@ -20,7 +20,6 @@
 #include <iostream>
 #include <fstream>
 
-
 namespace sim_mob {
 
 /**
@@ -142,7 +141,7 @@ private:
         boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
         sim_mob::Logger::log_file() << strm; \
     } \
-    while (0)
+    while (0);
 
 /**
  * Write a message to cout, thread-safe.

@@ -16,6 +16,9 @@
 #include <string>
 #include <ctime>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
+
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
@@ -31,9 +34,9 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/CommunicationManager.hpp"
+#include "util/ControlManager.hpp"
 #include "entities/signal/Signal.hpp"
-
-
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -107,7 +110,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  */
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
-	
+
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -147,6 +150,17 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Load our user config file
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+
+	//Initialize the control manager and wait for an IDLE state (realtime mode only).
+	sim_mob::ControlManager* ctrlMgr = nullptr;
+	if (ConfigParams::GetInstance().RealtimeMode()) {
+		std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
+		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+		ctrlMgr->setSimState(IDLE);
+		while(ctrlMgr->getSimState() == IDLE) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+		}
+	}
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
@@ -228,7 +242,17 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
+	int endTick = config.totalRuntimeTicks;
+	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
+		if (ConfigParams::GetInstance().RealtimeMode()) {
+			if(ctrlMgr->getSimState() == STOP) {
+				while (ctrlMgr->getEndTick() < 0) {
+					ctrlMgr->setEndTick(currTick+2);
+				}
+				endTick = ctrlMgr->getEndTick();
+			}
+		}
+
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -335,15 +359,57 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
 	WorkGroup::FinalizeAllWorkGroups();
 
-	//Test: At this point, it should be possible to delete all Signals and Agents.
-	clear_delete_vector(Signal::all_signals_);
-	clear_delete_vector(Agent::all_agents);
+	//At this point, it should be possible to delete all Signals and Agents.
+	//TODO: For some reason, clear_delete_vector() does (may?) not work in REALTIME mode.
+	//      We can address this later, but it should *definitely* be possible to cleanly
+	//      exit (even early) from the simulation.
+	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
+	//      them from the main loop, in the event that the simulator is shutting down early. This is
+	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
+	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
+	//      loop should propagate this value down. ~Seth
+	if (ConfigParams::GetInstance().RealtimeMode()) {
+		Signal::all_signals_.clear();
+		Agent::all_agents.clear();
+	} else {
+		clear_delete_vector(Signal::all_signals_);
+		clear_delete_vector(Agent::all_agents);
+	}
 
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);
 	return true;
+}
+
+/**
+ * Run the main loop of Sim Mobility, using command-line input.
+ * Returns the value of the last completed run of performMain().
+ */
+int run_simmob_realtime_loop() {
+	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+	int retVal = 1;
+	for (;;)
+	{
+		if(ctrlMgr->getSimState() == LOADSCENARIO)
+		{
+			ctrlMgr->setSimState(RUNNING);
+			std::map<std::string,std::string> paras;
+			ctrlMgr->getLoadScenarioParas(paras);
+			std::string configFileName = paras["configFileName"];
+			retVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+			ctrlMgr->setSimState(STOP);
+			ConfigParams::GetInstance().reset();
+			std::cout<<"scenario finished"<<std::cout;
+		}
+		if(ctrlMgr->getSimState() == QUIT)
+		{
+			std::cout<<"Thank you for using SIMMOB. Have a good day!"<<std::endl;
+			break;
+		}
+	}
+	return retVal;
 }
 
 int main(int argc, char* argv[])
@@ -353,6 +419,18 @@ int main(int argc, char* argv[])
 #if 0
 	std::cout << "Not Using New Signal Model" << std::endl;
 #endif
+
+	//Currently needs the #ifdef because of the way threads initialize.
+#ifdef SIMMOB_REALTIME
+	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
+	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
+	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigParams::GetInstance().getControlMgr()));
+#endif
+
 	//Save start time
 	gettimeofday(&start_time, nullptr);
 
@@ -405,21 +483,27 @@ int main(int argc, char* argv[])
 	}
 	cout << "Using config file: " << configFileName << endl;
 
-	//Argument 2: Log file
-	string logFileName = argc>2 ? argv[2] : "";
+	//Argument 2: Log file. Defaults to out.txt
+	string logFileName = argc>2 ? argv[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}
 
-	//Perform main loop
-	int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+	//Perform main loop (this differs for realtime mode)
+	int returnVal = 1;
+	if (ConfigParams::GetInstance().RealtimeMode()) {
+		returnVal = run_simmob_realtime_loop();
+	} else {
+		returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+	}
 
 	//Close log file, return.
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
+
 	cout << "Done" << endl;
 	return returnVal;
 }

@@ -329,8 +329,8 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-	//Inform the GUI if real-time mode is active.
-	if (ConfigParams::GetInstance().RealtimeMode()) {
+	//Inform the GUI if interactive mode is active.
+	if (ConfigParams::GetInstance().InteractiveMode()) {
 		std::ostringstream stream;
 		stream<<"DriverSegment"
 				<<","<<p.now.frame()

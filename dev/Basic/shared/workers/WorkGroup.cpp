@@ -208,7 +208,7 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
-#ifndef SIMMOB_REALTIME
+#ifndef SIMMOB_INTERACTIVE_MODE
 	safe_delete_item(macro_tick_barr);
 #endif
 }

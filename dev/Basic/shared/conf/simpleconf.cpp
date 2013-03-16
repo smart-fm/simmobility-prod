@@ -926,7 +926,7 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("})" <<endl);
 
 		//
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"uni-node\", 0, " <<*it <<", {";
 			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
@@ -955,7 +955,7 @@ void PrintDB_Network_ptrBased()
 		}
 		LogOutNotSync("})" <<endl);
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"multi-node\", 0, " <<*it <<", {";
 			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
@@ -1006,7 +1006,7 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("]\",");*/
 		LogOutNotSync("})" <<endl);
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"link\", 0, " <<*it <<", {";
 			stream<<"\"road-name\":\"" <<(*it)->roadName <<"\",";
@@ -1050,7 +1050,7 @@ void PrintDB_Network_ptrBased()
 			LogOutNotSync("})" <<endl);
 		}
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"road-segment\", 0, " <<*it <<", {";
 			stream<<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
@@ -1125,7 +1125,7 @@ void PrintDB_Network_ptrBased()
 
 		}
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::stringstream stream1;
 			stream1 <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 			stream1 <<"\"parent-segment\":\"" <<*it <<"\",";
@@ -1160,7 +1160,7 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
 		LogOutNotSync("})" <<endl);
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"crossing\", 0, " <<*it <<", {";
 			stream<<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
@@ -1200,7 +1200,7 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
 		LogOutNotSync("})" <<endl);
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"busstop\", 0, " <<*it <<", {";
 			stream<<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
@@ -1230,7 +1230,7 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
 
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"lane-connector\", 0, " <<*it <<", {";
 			stream<<"\"from-segment\":\"" <<fromSeg <<"\",";
@@ -1243,7 +1243,7 @@ void PrintDB_Network_ptrBased()
 		}
 	}
 
-	if (ConfigParams::GetInstance().RealtimeMode()) {
+	if (ConfigParams::GetInstance().InteractiveMode()) {
 		string end = "END";
 		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(end);
 	}

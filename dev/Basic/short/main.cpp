@@ -34,8 +34,6 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
-#include "util/CommunicationManager.hpp"
-#include "util/ControlManager.hpp"
 #include "entities/signal/Signal.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
@@ -58,6 +56,8 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
 #include "buffering/Shared.hpp"
+#include "network/CommunicationManager.hpp"
+#include "network/ControlManager.hpp"
 
 
 //add by xuyan
@@ -151,9 +151,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Load our user config file
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
 
-	//Initialize the control manager and wait for an IDLE state (realtime mode only).
+	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
-	if (ConfigParams::GetInstance().RealtimeMode()) {
+	if (ConfigParams::GetInstance().InteractiveMode()) {
 		std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
 		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 		ctrlMgr->setSimState(IDLE);
@@ -244,7 +244,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	int endTick = config.totalRuntimeTicks;
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
-		if (ConfigParams::GetInstance().RealtimeMode()) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
 			if(ctrlMgr->getSimState() == STOP) {
 				while (ctrlMgr->getEndTick() < 0) {
 					ctrlMgr->setEndTick(currTick+2);
@@ -360,7 +360,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup::FinalizeAllWorkGroups();
 
 	//At this point, it should be possible to delete all Signals and Agents.
-	//TODO: For some reason, clear_delete_vector() does (may?) not work in REALTIME mode.
+	//TODO: For some reason, clear_delete_vector() does (may?) not work in INTERACTIVE mode.
 	//      We can address this later, but it should *definitely* be possible to cleanly
 	//      exit (even early) from the simulation.
 	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
@@ -368,7 +368,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
 	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
 	//      loop should propagate this value down. ~Seth
-	if (ConfigParams::GetInstance().RealtimeMode()) {
+	if (ConfigParams::GetInstance().InteractiveMode()) {
 		Signal::all_signals_.clear();
 		Agent::all_agents.clear();
 	} else {
@@ -387,7 +387,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
  * Run the main loop of Sim Mobility, using command-line input.
  * Returns the value of the last completed run of performMain().
  */
-int run_simmob_realtime_loop() {
+int run_simmob_interactive_loop() {
 	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	int retVal = 1;
 	for (;;)
@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
 #endif
 
 	//Currently needs the #ifdef because of the way threads initialize.
-#ifdef SIMMOB_REALTIME
+#ifdef SIMMOB_INTERACTIVE_MODE
 	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
 	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
 	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
@@ -491,10 +491,10 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	//Perform main loop (this differs for realtime mode)
+	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
-	if (ConfigParams::GetInstance().RealtimeMode()) {
-		returnVal = run_simmob_realtime_loop();
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		returnVal = run_simmob_interactive_loop();
 	} else {
 		returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
 	}

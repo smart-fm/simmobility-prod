@@ -212,12 +212,12 @@ void sim_mob::Worker::barrier_mgmt()
 	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
 
 	sim_mob::ControlManager* ctrlMgr = nullptr;
-	if (ConfigParams::GetInstance().RealtimeMode()) {
+	if (ConfigParams::GetInstance().InteractiveMode()) {
 		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	}
 
 	uint32_t currTick = 0;
-#ifdef SIMMOB_REALTIME
+#ifdef SIMMOB_INTERACTIVE_MODE
 	for (bool active=true; active;) {
 		//Short-circuit if we're in "pause" mode.
 		if (ctrlMgr->getSimState() == PAUSE) {

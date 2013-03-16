@@ -38,8 +38,8 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
-#include "util/CommunicationManager.hpp"
-#include "util/ControlManager.hpp"
+#include "network/CommunicationManager.hpp"
+#include "network/ControlManager.hpp"
 
 #include "Config.hpp"
 
@@ -168,9 +168,10 @@ public:
 		return !OutputDisabled();
 	}
 
-	///Synced to the value of SIMMOB_REALTIME; used for to detect if we're running in realtime mode.
-	bool RealtimeMode() const {
-#ifdef SIMMOB_REALTIME
+	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
+	/// with the GUI or console.
+	bool InteractiveMode() const {
+#ifdef SIMMOB_INTERACTIVE_MODE
 		return true;
 #else
 		return false;
@@ -237,22 +238,22 @@ public:
 	}
 
 	sim_mob::CommunicationDataManager&  getCommDataMgr() {
-#ifdef SIMMOB_REALTIME
+#ifdef SIMMOB_INTERACTIVE_MODE
 		return commDataMgr;
 #else
-		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_REALTIME is off.");
+		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
 #endif
 	}
 
 	sim_mob::ControlManager* getControlMgr() {
-#ifdef SIMMOB_REALTIME
+#ifdef SIMMOB_INTERACTIVE_MODE
 		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
 		if (!controlMgr) {
 			controlMgr = new ControlManager();
 		}
 		return controlMgr;
 #else
-		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_REALTIME is off.");
+		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
 #endif
 	}
 

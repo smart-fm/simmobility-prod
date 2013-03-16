@@ -94,8 +94,8 @@ option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PRO
 option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
 option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
 
-#Option: real-time flag (for the GUI)
-option(SIMMOB_REALTIME "Force Sim Mobility to synchronize in real-time." OFF)
+#Option: interactive mode flag (for the GUI)
+option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)

@@ -7,6 +7,11 @@
 
 #include "tcp_connection.hpp"
 
+#include <fstream>
+#include <iostream>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
+
 #include "CommunicationDataManager.hpp"
 #include "ControlManager.hpp"
 
@@ -15,20 +20,25 @@ using namespace sim_mob;
 
 
 bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
-  {
-	  // after send data , lets expect the response from visualizer
-		int head_len=12;
-		boost::array<char, 12> buf;
-		socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
-		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
+{
+	//Set our receive size to 12 character; read that data.
+	//TODO: Is this large enough? What's the penalty for a larger receive buffer?
+	const int HeadLen = 12;
+	boost::array<char, HeadLen> buf;
+	socket_.set_option(boost::asio::socket_base::receive_buffer_size(HeadLen));
+
+		//Read the next message from the GUI.
+		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,HeadLen),boost::asio::transfer_at_least(HeadLen));
 		std::string head_data(buf.begin(), buf.end());
+
+		//Match the received data against our input regex.
 		boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
 		boost::smatch what;
 		int body_len=0;
 		if( regex_match( head_data, what,head_regex ) )
 		{
 			  std::string s=what[1];
-			  body_len= atoi(s.c_str());
+			  body_len = boost::lexical_cast<int>(s);
 		}
 		else
 		{

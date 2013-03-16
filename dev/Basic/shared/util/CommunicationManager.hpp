@@ -7,24 +7,24 @@
 
 #pragma once
 
+#include <iostream>
+#include <fstream>
+#include <ctime>
 #include <queue>
+
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/regex.hpp>
-#include <iostream>
-#include <fstream>
-#include <ctime>
 
 namespace sim_mob {
 
 class ConfigParams;
 class ControlManager;
 
-class CommunicationDataManager
-{
+class CommunicationDataManager {
 public:
 	void sendTrafficData(std::string &s);
 	void sendRoadNetworkData(std::string &s);
@@ -32,6 +32,7 @@ public:
 	bool getCmdData(std::string &s);
 	bool getRoadNetworkData(std::string &s);
 	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
+
 private:
 	CommunicationDataManager();
 	std::queue<std::string> trafficDataQueue;
@@ -50,43 +51,28 @@ class CommunicationManager {
 
 public:
 	CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
-	~CommunicationManager();
 	void start();
-//	void sendTrafficData(std::string &s);
-//	bool getTrafficData(std::string &s);
-//	bool getCmdData(std::string &s);
-//	bool getRoadNetworkData(std::string &s);
-//	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
 	bool isCommDone() { return CommDone; }
 	void setCommDone(bool b) { CommDone = b; }
 	void setSimulationDone(bool b) { simulationDone = b; }
 	bool isSimulationDone() { return simulationDone; }
+
 private:
-//	CommunicationManager();
 	CommunicationDataManager* comDataMgr;
 	ControlManager* ctrlMgr;
 	boost::asio::io_service io_service;
 	int listenPort;
+
 private:
-//	std::queue<std::string> trafficDataQueue;
-//	std::queue<std::string> cmdDataQueue;
-//	std::queue<std::string> roadNetworkDataQueue;
-//	boost::mutex trafficDataGuard;
-//	boost::mutex cmdDataGuard;
-//	boost::mutex roadNetworkDataGuard;
 	bool simulationDone;
 	bool CommDone;
 };
 
-class tcp_connection
-  : public boost::enable_shared_from_this<tcp_connection>
-{
+class tcp_connection : public boost::enable_shared_from_this<tcp_connection> {
 public:
-  typedef boost::shared_ptr<tcp_connection> pointer;
-
-  static pointer create(boost::asio::io_service& io_service)
+  static boost::shared_ptr<tcp_connection> create(boost::asio::io_service& io_service)
   {
-    return pointer(new tcp_connection(io_service));
+    return boost::shared_ptr<tcp_connection>(new tcp_connection(io_service));
   }
 
   boost::asio::ip::tcp::socket& socket()
@@ -94,28 +80,23 @@ public:
     return socket_;
   }
 
-  void handle_write(const boost::system::error_code& /*error*/,
-        size_t /*bytes_transferred*/)
+  void handle_write(const boost::system::error_code& error, size_t bytesTransferred)
     {
-//	  std::cout<<"write: "<<std::endl;
     }
   std::string make_daytime_string()
   {
-    using namespace std; // For time_t, time and ctime;
-    time_t now = std::time(0);
+    std::time_t now = std::time(0);
     return std::ctime(&now);
   }
   void commDone();
   bool sendData(std::string &cmd,std::string data)
   {
-//	  std::ostringstream stream;
-//		stream<< data;
 	  std::string message_;
 		std::string body = "{=" + cmd+"=}{@="+data+"=@}";
 
 
-		char msg[20]="\0";
 		//head size 12
+		char msg[20]="\0";
 
 		//TODO: Need to test that this works:
 		//sprintf(msg,"{=%08d=}",body.size());
@@ -124,33 +105,21 @@ public:
 		std::string head=msg;
 
 		message_=head+body;
-	//				std::cout<<"send message: "<<message_<<std::endl;
-//		file_output<<"send begin: "<<make_daytime_string();
-//		file_output<<message_;
-//		file_output<<"\n";
 		boost::system::error_code err;
 		 try
 		 {
-	//					 size_t iBytesWrit = boost::asio::write(socket_, boost::asio::buffer(message_),boost::asio::transfer_all(),err);
 			 boost::asio::async_write(socket_, boost::asio::buffer(message_),
 									  boost::bind(&tcp_connection::handle_write,shared_from_this(),
 									  boost::asio::placeholders::error,
 									  boost::asio::placeholders::bytes_transferred));
-	//					 std::cout<<"start: send byte "<<iBytesWrit<<std::endl;
-//			 file_output<<"send over: "<<make_daytime_string();
-			 if(err)
-			 {
+			 if(err) {
 				 std::cerr<<"start: send error "<<err.message()<<std::endl;
-	//						 socket_.close();
-//				 commDone();
 				 return false;
 			 }
 		 }
 		 catch (std::exception& e)
 		 {
 			 std::cerr <<"start: "<< e.what() << std::endl;
-	//					 socket_.close();
-//			 commDone();
 			 return false;
 		 }
 
@@ -165,34 +134,16 @@ private:
   tcp_connection(boost::asio::io_service& io_service)
     : socket_(io_service)
   {}
-
-//  void handle_write(const boost::system::error_code& error,
-//      size_t bytes_transferred)
-//  {
-//	  if (error)
-//		  std::cout<<"handle_write: "<<error.message()<<" "<<error.value()<<" "<<" send bytes: "<<bytes_transferred<<std::endl;
-//	  else
-//	  {
-//		  std::cout<<"handle_write: "<<error.message()<<" "<<" send bytes: "<<bytes_transferred<<std::endl;
-//		  boost::system::error_code ec;
-//		  socket_.close(ec);
-//		  if (ec)
-//		  {
-//		    std::cout<<"socket close error: "<<ec.message()<<std::endl;
-//		  }
-//	  }
-//  }
-
   boost::asio::ip::tcp::socket socket_;
 };
 
-class tcp_server
-{
+class tcp_server {
 public:
   tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
-  tcp_connection::pointer new_connection;
   bool isClientConnect() { return new_connection->socket().is_open();}
+
 private:
+  boost::shared_ptr<tcp_connection> new_connection;
   CommunicationDataManager* comDataMgr;
   ControlManager* ctrlMgr;
   int myPort;
@@ -206,8 +157,7 @@ private:
           boost::asio::placeholders::error));
   }
 
-  void handle_accept(tcp_connection::pointer new_connection,
-      const boost::system::error_code& error)
+  void handle_accept(boost::shared_ptr<tcp_connection> new_connection, const boost::system::error_code& error)
   {
     if (!error)
     {

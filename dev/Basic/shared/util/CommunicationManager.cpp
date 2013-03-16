@@ -11,7 +11,6 @@
 
 using boost::asio::ip::tcp;
 
-namespace {
 
 sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
   : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr),
@@ -35,7 +34,6 @@ void sim_mob::CommunicationDataManager::sendRoadNetworkData(std::string &s)
 		roadNetworkDataQueue.push(s);
 }
 bool sim_mob::CommunicationDataManager::getTrafficData(std::string &s) {
-//		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
 		if(!trafficDataQueue.empty())
 		{
 			boost::mutex::scoped_lock lock(trafficDataGuard);
@@ -46,7 +44,6 @@ bool sim_mob::CommunicationDataManager::getTrafficData(std::string &s) {
 		return false;
 }
 bool sim_mob::CommunicationDataManager::getCmdData(std::string &s) {
-//		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
 		if(!cmdDataQueue.empty())
 		{
 			boost::mutex::scoped_lock lock(cmdDataGuard);
@@ -57,7 +54,6 @@ bool sim_mob::CommunicationDataManager::getCmdData(std::string &s) {
 		return false;
 }
 bool sim_mob::CommunicationDataManager::getRoadNetworkData(std::string &s) {
-//		std::cout<<"queue size: "<<dataQueue.size()<<std::endl;
 		if(!roadNetworkDataQueue.empty())
 		{
 			boost::mutex::scoped_lock lock(roadNetworkDataGuard);
@@ -88,9 +84,7 @@ void sim_mob::CommunicationManager::start()
   }
 }
 
-sim_mob::CommunicationManager::~CommunicationManager() {
-	// TODO Auto-generated destructor stub
-}
+
 bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
   {
 	  // after send data , lets expect the response from visualizer
@@ -99,7 +93,6 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
 		socket_.set_option(boost::asio::socket_base::receive_buffer_size(head_len));
 		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,head_len),boost::asio::transfer_at_least(head_len));
 		std::string head_data(buf.begin(), buf.end());
-//		file_output<<data<<"\n";
 		boost::regex head_regex("^\\{\\=(\\d+)\\=\\}$",boost::regex::perl);
 		boost::smatch what;
 		int body_len=0;
@@ -111,38 +104,27 @@ bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
 		else
 		{
 			std::cout<<"bad head: "<<head_data<<std::endl;
-//			file_output<<"bad res "<<"\n";
-//					socket_.close();
-//			commDone();
 			return false;
 		}
 		// read body
 		  if (body_len == 0)
 		  {
 			  std::cout<< " body len zero "<<std::endl;
-	//		  break;
-//			  commDone();
 			  return false;
 		   }
 		  char buf_body[2048]="\0";
 		  socket_.set_option(boost::asio::socket_base::receive_buffer_size(body_len));
-		//    	  len = socket.read_some(boost::asio::buffer(buf_body), error);
 		  len = boost::asio::read(socket_,boost::asio::buffer(buf_body,body_len),boost::asio::transfer_at_least(body_len));
-		//    	  std::cout<<" read body len: "<<len<<std::endl;
 		  std::string data_body_str(buf_body,body_len);
-//		  boost::regex body_regex("^\\{\\=(.*)\\=\\}$",boost::regex::perl);
 		  boost::regex body_regex("^\\{\\=(.*)\\=\\}\\{\\@\\=(.*)\\=\\@\\}$",boost::regex::perl);
-	//	  file_output<<data_body_str<<"\n";
 		  if( regex_match( data_body_str, what,body_regex ) )
 		  {
 			  cmd = what[1];
 			  data =what[2];
-		//		  file_output<<s<<"\n";
 		  }
 		  else
 		  {
 			  std::cout<<"not good body: "<<data_body_str<<std::endl;
-	//		  break;
 			  return false;
 		  }
 		return true;
@@ -152,16 +134,12 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 	std::cout<<std::endl;
 	std::cout<<"visualizer connected"<<std::endl;
 	std::cout<<"simmob"<<">"<<std::flush;
-//	  std::ofstream file_output;
-//	  file_output.open("./logSimmobTrafficData.txt");
 	std::fstream file_output("./log_SimmobTrafficData.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 	  CommunicationDataManager *com = &comDataMgr;
-//	  com->GetInstance()->setCommDone(false);
 	  std::string cmd_;
 	  std::string message_;
 	  for(;;)
 	  {
-//		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
 		  if(com->getTrafficData(message_))
 		  {
 			if(socket_.is_open())
@@ -174,7 +152,6 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 					file_output<<message_;
 					file_output<<"\n";
 					file_output<<"send over: "<<make_daytime_string();
-//					file_output.flush();
 					std::string recv_cmd;
 					std::string recv_data;
 					if(!receiveData(recv_cmd,recv_data))
@@ -186,7 +163,6 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 					else
 					{
 						file_output<<recv_cmd<<" "<<recv_data<<"\n";
-//						file_output.flush();
 						if(recv_data != "RECEIVED")
 						{
 							commDone();
@@ -204,7 +180,6 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
 			else
 			{
 				std::cout<<"start: socket broken"<<std::endl;
-//				socket_.close();
 				commDone();
 				return;
 			}
@@ -215,13 +190,11 @@ void sim_mob::tcp_connection::trafficDataStart(CommunicationDataManager& comData
   }
 void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
 {
-//	  std::ofstream file_output2;
-//	  file_output2.open("./logSimmobCmdData2.txt");
 	std::fstream file_output2("./logSimmobCmdData2.txt",std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 	file_output2<<"asdfasdfasfdasdf"<<"\n";
 	file_output2.flush();
 	  CommunicationDataManager *com = &comDataMgr;
-//	  com->GetInstance()->setCommDone(false);
+
 	  //
 	  fd_set fileDescriptorSet;
 	  struct timeval timeStruct;
@@ -234,7 +207,6 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr,
 	  std::string message_;
 	  for(;;)
 	  {
-//		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
 		  // receive cmd from client
 		  FD_SET(nativeSocket,&fileDescriptorSet);
 		  select(nativeSocket+1,&fileDescriptorSet,NULL,NULL,&timeStruct);
@@ -304,7 +276,6 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr,
 			else
 			{
 				std::cout<<"start: socket broken"<<std::endl;
-//				socket_.close();
 				commDone();
 				return;
 			}
@@ -316,19 +287,16 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr,
 void sim_mob::tcp_connection::commDone()
 {
 	  socket_.close();
-//	  CommunicationManager::GetInstance()->setCommDone(true);
 }
 void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& comDataMgr)
 {
 	  std::ofstream file_output;
 	  file_output.open("./logSimmobRoadNetworkData.txt");
 	  CommunicationDataManager *com = &comDataMgr;
-//	  com->GetInstance()->setCommDone(false);
 	  std::string send_cmd = "ROADNETWORK";
 	  std::string message_;
 	  for(;;)
 	  {
-//		  std::cout<<"queue size: "<<dataQueue->size()<<std::endl;
 		  if(com->getRoadNetworkData(message_))
 		  {
 			if(socket_.is_open())
@@ -369,7 +337,6 @@ void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& com
 			else
 			{
 				std::cout<<"roadNetworkDataStart: socket broken"<<std::endl;
-//				socket_.close();
 				commDone();
 				return;
 			}
@@ -377,4 +344,4 @@ void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& com
 	  }
 	  file_output.flush();
 	  file_output.close();
-  }
+}

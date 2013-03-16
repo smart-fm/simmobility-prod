@@ -121,6 +121,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 
 	all_children.clear();
 	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
+		(*it)->parentEntity = this;
 		all_children.push_back( (*it) );
 	}
 }

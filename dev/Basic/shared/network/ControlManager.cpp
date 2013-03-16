@@ -21,23 +21,11 @@ sim_mob::ControlManager::ControlManager()
 	 int flags;
 	 fds.fd = 0; /* this is STDIN */
 	 fds.events = POLLIN;
-	 if ((flags = fcntl(fds.fd, F_GETFL)) == -1)
+	 if ((flags = fcntl(fds.fd, F_GETFL)) == -1) {
 		  std::cout<<"first fcntl() failed"<<std::endl;
-	else if (fcntl(fds.fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	 } else if (fcntl(fds.fd, F_SETFL, flags | O_NONBLOCK) == -1) {
 		std::cout<<"second fcntl() failed"<<std::endl;
-//	 while(1)
-//	 {
-//		ret = poll(&fds, 1, 0);
-//		if(ret == 1)
-//		{
-//				printf("Yep get input: ");
-//				char buff[255] = "\0";
-//				read(fds.fd, buff, 255);
-//				std::cout<<buff;
-//				cout<<"simmob"<<">"<<flush;
-//		}
-//	 } // end of while
-
+	 }
 }
 void sim_mob::ControlManager::start()
 {
@@ -48,24 +36,24 @@ void sim_mob::ControlManager::start()
 		ret = poll(&fds, 1, 0);
 		if(ret == 1)
 		{
-//			std::cout<<"Yep get input: ";
 			char buff[255] = "\0";
 			read(fds.fd, buff, 255);
 			std::string cmd = buff;
 			handleInput(cmd);
-//			std::cout<<cmd;
-//			boost::erase_all(cmd, "\n");
-//			if(cmd == "pause")
-//			{
-//				simState=PAUSE;
-//			}
-//			if(cmd == "run")
-//				simState=RUNNING;
 			std::cout<<"simmob"<<">"<<std::flush;
 		}
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	 } // end of while
 }
+
+void sim_mob::ControlManager::setEndTick(int t)
+{
+	boost::mutex::scoped_lock local_lock(lockEndTick);
+	if (endTick<0) {
+		endTick = t;
+	}
+}
+
 bool sim_mob::ControlManager::handleInput(std::string& input)
 {
 	boost::erase_all(input, "\n");
@@ -76,20 +64,16 @@ bool sim_mob::ControlManager::handleInput(std::string& input)
 	std::cout<<input<<std::endl;
 	boost::char_separator<char> sep(" ");
 	boost::tokenizer<boost::char_separator<char> > tokens(input, sep);
-	//for(boost::tokenizer<boost::char_separator<char> >::iterator beg=tokens.begin(); beg!=tokens.end();++beg)
-//	{
 	boost::tokenizer<boost::char_separator<char> >::iterator beg=tokens.begin();
 	std::string cmd = *beg;
 	std::cout<<cmd<< std::endl;
 	if(cmd == "pause")
 	{
-//		simState=PAUSE;
 		setSimState(PAUSE);
 		return true;
 	}
 	else if(cmd == "run")
 	{
-//		simState=RUNNING;
 		setSimState(RUNNING);
 		return true;
 	}
@@ -104,7 +88,6 @@ bool sim_mob::ControlManager::handleInput(std::string& input)
 		std::string configFileName = *beg;
 		loadScenarioParas.clear();
 		loadScenarioParas["configFileName"] = configFileName;
-//		simState=LOADSCENARIO;
 		setSimState(LOADSCENARIO);
 		return true;
 	}
@@ -123,9 +106,7 @@ bool sim_mob::ControlManager::handleInput(std::string& input)
 		std::cout<<"unknow command"<<std::endl;
 		return false;
 	}
-//	}
 
-//	std::cout<<"simmob"<<">"<<std::flush;
 	return true;
 }
 

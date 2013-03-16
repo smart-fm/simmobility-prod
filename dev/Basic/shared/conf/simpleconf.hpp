@@ -38,6 +38,8 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
+
+#include "network/CommunicationDataManager.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
 

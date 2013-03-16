@@ -10,6 +10,12 @@
 #include "ControlManager.hpp"
 
 using boost::asio::ip::tcp;
+using namespace sim_mob;
+
+
+//////////////////////////////////////////////////////////////////
+// tcp_server
+//////////////////////////////////////////////////////////////////
 
 
 sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr)
@@ -18,6 +24,48 @@ sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, Co
 {
 	start_accept();
 }
+
+void sim_mob::tcp_server::start_accept()
+{
+  new_connection =
+    tcp_connection::create(acceptor_.get_io_service());
+
+  acceptor_.async_accept(new_connection->socket(),
+      boost::bind(&tcp_server::handle_accept, this, new_connection,
+        boost::asio::placeholders::error));
+}
+
+void sim_mob::tcp_server::handle_accept(boost::shared_ptr<tcp_connection> new_connection, const boost::system::error_code& error)
+{
+  if (!error)
+  {
+  	if(myPort==13333)
+  	{
+  		new_connection->trafficDataStart(*comDataMgr);
+  	}
+  	else if(myPort==13334)
+		{
+			new_connection->cmdDataStart(*comDataMgr, *ctrlMgr);
+		}
+  	else if(myPort==13335)
+		{
+			new_connection->roadNetworkDataStart(*comDataMgr);
+		}
+  	else
+  	{
+  		std::cout<<"handle_accept: what port it is? "<<myPort<<std::endl;
+  	}
+
+  }
+
+  start_accept();
+}
+
+
+
+//////////////////////////////////////////////////////////////////
+// Communication data manager.
+//////////////////////////////////////////////////////////////////
 
 sim_mob::CommunicationDataManager::CommunicationDataManager()
 {
@@ -63,6 +111,11 @@ bool sim_mob::CommunicationDataManager::getRoadNetworkData(std::string &s) {
 		}
 		return false;
 }
+
+//////////////////////////////////////////////////////////////////
+// Communication manager.
+//////////////////////////////////////////////////////////////////
+
 sim_mob::CommunicationManager::CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr) :
 		comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
 {
@@ -84,6 +137,10 @@ void sim_mob::CommunicationManager::start()
   }
 }
 
+
+//////////////////////////////////////////////////////////////////
+// tcp_connection
+//////////////////////////////////////////////////////////////////
 
 bool sim_mob::tcp_connection::receiveData(std::string &cmd,std::string &data)
   {
@@ -345,3 +402,63 @@ void sim_mob::tcp_connection::roadNetworkDataStart(CommunicationDataManager& com
 	  file_output.flush();
 	  file_output.close();
 }
+
+
+boost::shared_ptr<tcp_connection> sim_mob::tcp_connection::create(boost::asio::io_service& io_service)
+ {
+   return boost::shared_ptr<tcp_connection>(new tcp_connection(io_service));
+ }
+
+ boost::asio::ip::tcp::socket& sim_mob::tcp_connection::socket()
+ {
+   return socket_;
+ }
+
+ void sim_mob::tcp_connection::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
+ {
+ }
+
+ std::string sim_mob::tcp_connection::make_daytime_string()
+ {
+   std::time_t now = std::time(0);
+   return std::ctime(&now);
+ }
+
+ bool sim_mob::tcp_connection::sendData(std::string &cmd,std::string data)
+ {
+	  std::string message_;
+		std::string body = "{=" + cmd+"=}{@="+data+"=@}";
+
+
+		//head size 12
+		char msg[20]="\0";
+
+		//TODO: Need to test that this works:
+		//sprintf(msg,"{=%08d=}",body.size());
+		sprintf(msg,"{=%08zu=}",body.size());
+
+		std::string head=msg;
+
+		message_=head+body;
+		boost::system::error_code err;
+		 try
+		 {
+			 boost::asio::async_write(socket_, boost::asio::buffer(message_),
+									  boost::bind(&tcp_connection::handle_write,shared_from_this(),
+									  boost::asio::placeholders::error,
+									  boost::asio::placeholders::bytes_transferred));
+			 if(err) {
+				 std::cerr<<"start: send error "<<err.message()<<std::endl;
+				 return false;
+			 }
+		 }
+		 catch (std::exception& e)
+		 {
+			 std::cerr <<"start: "<< e.what() << std::endl;
+			 return false;
+		 }
+
+		 return true;
+ }
+
+

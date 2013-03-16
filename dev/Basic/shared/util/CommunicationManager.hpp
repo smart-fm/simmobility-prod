@@ -70,61 +70,14 @@ private:
 
 class tcp_connection : public boost::enable_shared_from_this<tcp_connection> {
 public:
-  static boost::shared_ptr<tcp_connection> create(boost::asio::io_service& io_service)
-  {
-    return boost::shared_ptr<tcp_connection>(new tcp_connection(io_service));
-  }
+  static boost::shared_ptr<tcp_connection> create(boost::asio::io_service& io_service);
+  boost::asio::ip::tcp::socket& socket();
 
-  boost::asio::ip::tcp::socket& socket()
-  {
-    return socket_;
-  }
-
-  void handle_write(const boost::system::error_code& error, size_t bytesTransferred)
-    {
-    }
-  std::string make_daytime_string()
-  {
-    std::time_t now = std::time(0);
-    return std::ctime(&now);
-  }
+  void handle_write(const boost::system::error_code& error, size_t bytesTransferred);
+  static std::string make_daytime_string();
   void commDone();
-  bool sendData(std::string &cmd,std::string data)
-  {
-	  std::string message_;
-		std::string body = "{=" + cmd+"=}{@="+data+"=@}";
+  bool sendData(std::string &cmd,std::string data);
 
-
-		//head size 12
-		char msg[20]="\0";
-
-		//TODO: Need to test that this works:
-		//sprintf(msg,"{=%08d=}",body.size());
-		sprintf(msg,"{=%08zu=}",body.size());
-
-		std::string head=msg;
-
-		message_=head+body;
-		boost::system::error_code err;
-		 try
-		 {
-			 boost::asio::async_write(socket_, boost::asio::buffer(message_),
-									  boost::bind(&tcp_connection::handle_write,shared_from_this(),
-									  boost::asio::placeholders::error,
-									  boost::asio::placeholders::bytes_transferred));
-			 if(err) {
-				 std::cerr<<"start: send error "<<err.message()<<std::endl;
-				 return false;
-			 }
-		 }
-		 catch (std::exception& e)
-		 {
-			 std::cerr <<"start: "<< e.what() << std::endl;
-			 return false;
-		 }
-
-		 return true;
-  }
   bool receiveData(std::string &cmd,std::string &data);
   void trafficDataStart(CommunicationDataManager& comDataMgr);
   void cmdDataStart(CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
@@ -147,41 +100,9 @@ private:
   CommunicationDataManager* comDataMgr;
   ControlManager* ctrlMgr;
   int myPort;
-  void start_accept()
-  {
-    new_connection =
-      tcp_connection::create(acceptor_.get_io_service());
+  void start_accept();
 
-    acceptor_.async_accept(new_connection->socket(),
-        boost::bind(&tcp_server::handle_accept, this, new_connection,
-          boost::asio::placeholders::error));
-  }
-
-  void handle_accept(boost::shared_ptr<tcp_connection> new_connection, const boost::system::error_code& error)
-  {
-    if (!error)
-    {
-    	if(myPort==13333)
-    	{
-    		new_connection->trafficDataStart(*comDataMgr);
-    	}
-    	else if(myPort==13334)
-		{
-			new_connection->cmdDataStart(*comDataMgr, *ctrlMgr);
-		}
-    	else if(myPort==13335)
-		{
-			new_connection->roadNetworkDataStart(*comDataMgr);
-		}
-    	else
-    	{
-    		std::cout<<"handle_accept: what port it is? "<<myPort<<std::endl;
-    	}
-
-    }
-
-    start_accept();
-  }
+  void handle_accept(boost::shared_ptr<tcp_connection> new_connection, const boost::system::error_code& error);
 
   boost::asio::ip::tcp::acceptor acceptor_;
 };

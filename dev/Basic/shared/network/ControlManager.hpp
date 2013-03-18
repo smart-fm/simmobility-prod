@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <boost/thread.hpp>
+#include <iostream>
 
 namespace sim_mob {
 

@@ -121,6 +121,9 @@ public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;
 
+	//xuyan:only used by Sim-Tree
+	bool can_remove_by_RTREE;
+
 	// parent may create children.
 	Entity* parentEntity;
 

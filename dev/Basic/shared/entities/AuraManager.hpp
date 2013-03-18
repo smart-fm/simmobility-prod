@@ -11,6 +11,11 @@
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
 
+#include "util/PerformanceProfile.hpp"
+#include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
+#include "spatial_trees/simtree/SimAuraManager.hpp"
+#include "spatial_trees/rdu_tree/RDUAuraManager.hpp"
+
 namespace sim_mob
 {
 
@@ -18,6 +23,8 @@ class Agent;
 class Point2D;
 class Lane;
 class SegmentStats;
+
+enum Aura_Manager_Tree { RSTAR, SIMTREE, RDU };
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -107,12 +114,16 @@ public:
     void
     printStatistics() const;
 
+	/**
+	 * register new agents to AuraManager each time step
+	 */
+	void registerNewAgent(Agent const* one_agent);
+
 private:
-    AuraManager()
-      : pimpl_(0)
-      , stats_(0)
-    {
-    }
+	AuraManager() :
+			pimpl_rstar(0), pimpl_sim(0), pimpl_du(0), stats_(0), choose_tree(SIMTREE)
+	{
+	}
 
     /*Map to store the vehicle counts of each road segment. */
     //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
@@ -120,6 +131,17 @@ private:
     // No need to define the dtor.
 
     static AuraManager instance_;
+
+    /**
+     * xuyan:
+     * this parameter decide which spatial index to use.
+     */
+    Aura_Manager_Tree choose_tree;
+
+    //xuyan:choose between
+    RStarAuraManager* pimpl_rstar;
+    RDUAuraManager* pimpl_du;
+	SimAuraManager* pimpl_sim;
 
     // Using the pimple design pattern.  Impl is defined in the source file.
     class Impl;

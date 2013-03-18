@@ -95,8 +95,6 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0)
-	//communication simulator
-	,incoming(mtxStrat, 0),outgoing(mtxStrat, 0)
 {
 	toRemoved = false;
 	nextPathPlanned = false;

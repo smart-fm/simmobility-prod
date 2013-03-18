@@ -1,11 +1,6 @@
-//#pragma once
-#include <boost/archive/tmpdir.hpp>
-
-
+#pragma once
 #include "buffering/Shared.hpp"
-#include "entities/Entity.hpp"
 #include "MessageFormat.hpp"
-//#include "Communication_util.hpp"
 
 ////this file provides some of the communication
 ////1-tools required for agent "communication subsystem"
@@ -49,10 +44,7 @@ class NS3_Communication: public Communication<std::set<DATA_MSG_PTR>&, commResul
 	    std::string sendFile;
 	    std::string receiveFile;
 	public:
-	    FileBasedImpl(std::string sendFile_ = "./send.txt"): sendFile(sendFile_)
-	    {
-
-	    }
+	    FileBasedImpl(std::string sendFile_ = "./send.txt", std::string receiveFile_ = "receive.txt");
 		commResult send(std::set<DATA_MSG_PTR>& value);
 		commResult receive(std::set<DATA_MSG_PTR>&value);
 	};

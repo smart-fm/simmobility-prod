@@ -1,26 +1,6 @@
-//#include <cstddef> // NULL
-//#include <iomanip>
-//#include <iostream>
-//#include <fstream>
-#include <string>
-//#include <typeinfo>
+#include<fstream>
 
 #include "Communication.hpp"
-//class FileBasedCommunication : public Communication<commArguments,retutrnValue>
-//{
-//	retutrnValue send(commArguments args)
-//	{
-//
-//
-//	}
-//	retutrnValue receive(commArguments args)
-//	{
-//
-//	}
-//
-//
-//};
-///
 namespace sim_mob {
 
 commResult NS3_Communication::FileBasedImpl::send(std::set<DATA_MSG_PTR>& value) {
@@ -28,7 +8,7 @@ commResult NS3_Communication::FileBasedImpl::send(std::set<DATA_MSG_PTR>& value)
 	//hence I need to declare it in every send operation.
 	//similar problem goes to registration of type. it occurs every time send is called.
 	//none of the above is a serious issue.
-    std::ofstream ofs(sendFile.c_str());
+    std::ofstream ofs(sendFile.c_str(), std::ios::ate); //std::ios::ate : since the data from agents is written batch-by-batch
     boost::archive::text_oarchive oa(ofs);
 	//todo, see if there is any way to avoid repetition of this registration
     for(std::set<DATA_MSG_PTR>::iterator it = value.begin(); it != value.end(); it++)
@@ -39,7 +19,7 @@ commResult NS3_Communication::FileBasedImpl::send(std::set<DATA_MSG_PTR>& value)
 };
 commResult NS3_Communication::FileBasedImpl::receive(std::set<DATA_MSG_PTR>& value){
 
-    std::ifstream ifs(receiveFile.c_str());
+    std::ifstream ifs(receiveFile.c_str(), std::ios::trunc);//so far, the assumption is
     boost::archive::text_iarchive ia(ifs);
 	//todo, see if there is any way to avoid repetition of this registration
     for(std::set<DATA_MSG_PTR>::iterator it = value.begin(); it != value.end(); it++)
@@ -49,6 +29,17 @@ commResult NS3_Communication::FileBasedImpl::receive(std::set<DATA_MSG_PTR>& val
     ia & value;
 };
 
+NS3_Communication::FileBasedImpl::FileBasedImpl(std::string sendFile_, std::string receiveFile_)
+{
+	sendFile = sendFile_;
+	receiveFile = receiveFile_;
+	//reset files
+	std::ofstream ofs;
+	ofs.open(sendFile_.c_str(), std::ios::trunc);
+	ofs.close();
+	ofs.open(receiveFile_.c_str(), std::ios::trunc);
+	ofs.close();
+}
 }
 ;
 //namespace sim_mob

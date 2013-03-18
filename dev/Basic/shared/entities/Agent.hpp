@@ -20,11 +20,13 @@
 #include "geospatial/Point2D.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/Entity.hpp"
+
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
 
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
+#include "entities/communicator/Communication_util.hpp"
 namespace sim_mob
 {
 
@@ -63,7 +65,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity {
+class Agent : public sim_mob::Entity/*, public sim_mob::AgentCommunicationSupport*/ {
 public:
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
@@ -192,8 +194,8 @@ public:
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
-	sim_mob::Shared<std::string> outgoing;  //data to be sent to other agents through communication simulator
-	sim_mob::Shared<std::string> incoming; //data received from other agents
+//	sim_mob::Shared<std::string> outgoing;  //data to be sent to other agents through communication simulator
+//	sim_mob::Shared<std::string> incoming; //data received from other agents
 
 
 	///Agents can access all other agents (although they usually do not access by ID)

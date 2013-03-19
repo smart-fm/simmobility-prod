@@ -1,7 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "RDUAuraManager.hpp"
+
 #include "spatial_trees/shared_funcs.hpp"
+#include "entities/Agent.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "entities/Person.hpp"
 
 
 using namespace sim_mob;

@@ -1,8 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "RStarAuraManager.hpp"
+
 #include "spatial_trees/shared_funcs.hpp"
 #include "entities/Person.hpp"
+#include "entities/Agent.hpp"
+#include "geospatial/Lane.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;

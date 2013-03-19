@@ -1,6 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "R_tree.hpp"
+
+#include "entities/Agent.hpp"
 #include "spatial_trees/rstar_tree/RStarTree.h"
 
 using namespace sim_mob;

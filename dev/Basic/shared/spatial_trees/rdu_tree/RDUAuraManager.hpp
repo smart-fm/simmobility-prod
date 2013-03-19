@@ -1,16 +1,21 @@
 #pragma once
 
-#include "R_tree_DU.h"
-#include "entities/Entity.hpp"
-#include "entities/Agent.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "buffering/Vector2D.hpp"
-#include "entities/Person.hpp"
 #include <vector>
+
+#include "R_tree_DU.h"
+#include "metrics/Length.hpp"
+
 
 namespace sim_mob
 {
+
+//Forward declarations.
+class Point2D;
+class RoadSegment;
+class Agent;
+class Lane;
+
+
 
 class RDUAuraManager
 {

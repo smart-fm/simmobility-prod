@@ -1,26 +1,15 @@
 #pragma once
 
-////#define USE_R_DU_TREE
-//
-//#ifdef USE_R_DU_TREE
-
-#include <map>
-#include <list>
 #include <vector>
-#include <limits>
 #include <algorithm>
-#include <cassert>
-#include <functional>
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
 
 #include "RStarTreeDownUp.h"
-#include "entities/Agent.hpp"
 
 namespace sim_mob
 {
+
+//Forward declarations.
+class Agent;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // R*-Tree
@@ -53,7 +42,5 @@ public:
 	std::vector<Agent  const*>
 	query(R_tree_DU::BoundingBox const & box) const;
 };
-
-//#endif
 
 }

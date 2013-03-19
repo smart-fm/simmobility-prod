@@ -1,11 +1,16 @@
 #pragma once
 
 #include "R_tree.hpp"
-#include "entities/Entity.hpp"
-#include "entities/Agent.hpp"
+#include "metrics/Length.hpp"
 
 namespace sim_mob
 {
+
+//Forward declarations.
+class Point2D;
+class Agent;
+class Lane;
+
 
 class RStarAuraManager
 {

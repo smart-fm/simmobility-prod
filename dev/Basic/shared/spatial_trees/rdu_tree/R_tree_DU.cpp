@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "R_tree_DU.h"
+
 #include "entities/Agent.hpp"
 
 using namespace sim_mob;

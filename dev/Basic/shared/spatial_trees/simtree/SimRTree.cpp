@@ -1,11 +1,14 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "SimRTree.h"
-#include <string.h>
-#include <limits>
-#include <math.h>
 
+#include <string>
+#include <limits>
+#include <cmath>
+
+#include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 using namespace sim_mob;
 
@@ -24,13 +27,7 @@ int SimRTree::division_y_unit_ = 0;
 
 int SimRTree::bigtable[1000][1000];
 
-//NOTE: Should this be zero if USE_REBALANCE is off? If it doesn't matter, set it to 3 either way.
-const int sim_mob::SimRTree::checking_frequency =
-#ifdef USE_REBALANCE
-	3;
-#else
-	0;
-#endif
+const int sim_mob::SimRTree::checking_frequency = 3;
 
 struct BigTableUpdate: std::unary_function<const Entity *, void>
 {
@@ -58,9 +55,9 @@ struct Collecting_Visitor_sim
 {
 	const bool ContinueVisiting;
 	std::vector<Agent const *> & array; // must be a reference.
-	BoundingBox & box;
+	SimRTree::BoundingBox & box;
 
-	explicit Collecting_Visitor_sim(std::vector<Agent const *> & array_, BoundingBox & box_) :
+	explicit Collecting_Visitor_sim(std::vector<Agent const *> & array_, SimRTree::BoundingBox & box_) :
 			ContinueVisiting(true), array(array_), box(box_)
 	{
 	}
@@ -88,8 +85,8 @@ struct Collecting_Visitor_sim
 
 struct AcceptEnclosing
 {
-	const BoundingBox &m_bound;
-	explicit AcceptEnclosing(const BoundingBox &bound) :
+	const SimRTree::BoundingBox &m_bound;
+	explicit AcceptEnclosing(const SimRTree::BoundingBox &bound) :
 			m_bound(bound)
 	{
 	}
@@ -505,9 +502,9 @@ struct RebuildSimTreeNodeFunctor
  * Implement
  */
 
-void sim_mob::SimRTree::build_tree_structure(const char* filename)
+void sim_mob::SimRTree::build_tree_structure(const std::string& filename)
 {
-	std::ifstream fin(filename);
+	std::ifstream fin(filename.c_str());
 	if (!fin) {
 		std::cerr << "Cannot open Density Pattern file: " << filename << " " << std::endl;
 		return;
@@ -548,7 +545,7 @@ void sim_mob::SimRTree::build_tree_structure(const char* filename)
 #endif
 
 		//used by both node and leaf
-		BoundingBox box;
+		SimRTree::BoundingBox box;
 		box.edges[0].first = start_x;
 		box.edges[0].second = end_x;
 		box.edges[1].first = start_y;
@@ -730,9 +727,9 @@ void sim_mob::SimRTree::addNodeToFather(std::size_t father_id, TreeNode * from_n
 /**
  *
  */
-inline BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent)
+SimRTree::BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent)
 {
-	BoundingBox box;
+	SimRTree::BoundingBox box;
 	box.edges[0].first = box.edges[0].second = agent->xPos.get();
 	box.edges[1].first = box.edges[1].second = agent->yPos.get();
 
@@ -742,9 +739,9 @@ inline BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent)
 	return box;
 }
 
-inline BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent)
+SimRTree::BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent)
 {
-	BoundingBox box;
+	SimRTree::BoundingBox box;
 	box.edges[0].first = box.edges[0].second = agent->originNode->location.getX();
 	box.edges[1].first = box.edges[1].second = agent->originNode->location.getY();
 
@@ -756,17 +753,17 @@ inline BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent)
 
 void sim_mob::SimRTree::insertAgent(Agent* agent)
 {
-	BoundingBox agent_box = location_bounding_box(agent);
+	SimRTree::BoundingBox agent_box = location_bounding_box(agent);
 	insertAgentEncloseBox(agent, agent_box, (m_root));
 }
 
 void sim_mob::SimRTree::insertAgentBasedOnOD(Agent* agent)
 {
-	BoundingBox agent_box = OD_bounding_box(agent);
+	SimRTree::BoundingBox agent_box = OD_bounding_box(agent);
 	insertAgentEncloseBox(agent, agent_box, (m_root));
 }
 
-void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, BoundingBox & agent_box, TreeItem* item)
+void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBox & agent_box, TreeItem* item)
 {
 	std::queue<TreeItem*> items;
 
@@ -798,7 +795,7 @@ void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, BoundingBox & agent_
  * Query
  */
 
-std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(BoundingBox & box) const
+std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & box) const
 {
 	std::vector<Agent const*> result;
 
@@ -819,7 +816,7 @@ void sim_mob::SimRTree::updateAllInternalAgents()
 
 	while (one_leaf) {
 		std::vector<Agent *>& list = one_leaf->agent_buffer;
-		BoundingBox box = one_leaf->bound;
+		SimRTree::BoundingBox box = one_leaf->bound;
 
 		unsigned int offset = 0;
 		while (offset < list.size()) {
@@ -833,7 +830,7 @@ void sim_mob::SimRTree::updateAllInternalAgents()
 				continue;
 			}
 
-			BoundingBox agent_box = location_bounding_box((list)[offset]);
+			SimRTree::BoundingBox agent_box = location_bounding_box((list)[offset]);
 
 			//Case 2: the agent should be in the same box
 			//Case 2: It should be the most happen case.

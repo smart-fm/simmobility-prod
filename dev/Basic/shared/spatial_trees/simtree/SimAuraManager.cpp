@@ -87,7 +87,7 @@ void sim_mob::SimAuraManager::registerNewAgent_sim(Agent const* one_agent)
 
 std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect_sim(Point2D const & lowerLeft, Point2D const & upperRight) const
 {
-	BoundingBox box;
+	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();

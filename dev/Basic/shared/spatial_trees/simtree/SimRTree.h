@@ -2,24 +2,9 @@
 
 #pragma once
 
-#include <list>
 #include <vector>
-#include <queue>
-#include <limits>
-#include <algorithm>
-#include <cassert>
-#include <functional>
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-#include <math.h>
-
-#include "entities/Agent.hpp"
-#include "entities/Entity.hpp"
-#include "entities/Person.hpp"
+#include "util/LangHelpers.hpp"
 #include "spatial_trees/rstar_tree/RStarBoundingBox.h"
 
 //it is very important, if no need for REBALANCE, change it to
@@ -36,32 +21,20 @@
 namespace sim_mob
 {
 
-typedef RStarBoundingBox<2> BoundingBox;
+//Forward declarations.
+class Agent;
 
-struct TreeItem
-{
-	BoundingBox bound;
-	bool is_leaf;
-	std::size_t item_id;
-};
+//Forward declare structs used in this class.
+struct TreeItem;
+struct TreeLeaf;
+struct TreeNode;
 
-struct TreeLeaf: TreeItem
-{
-	std::vector<Agent*> agent_buffer;
-	TreeLeaf* next;
-};
-
-struct TreeNode: TreeItem
-{
-	std::vector<TreeItem*> items;
-};
 
 /**
  * Tree Definition
  */
 
-class SimRTree
-{
+class SimRTree {
 private:
 	TreeNode* m_root;
 	TreeLeaf* first_leaf;
@@ -97,23 +70,15 @@ public:
 #endif
 
 public:
-	SimRTree() :
-			m_root(NULL), first_leaf(NULL)
-	{
-		leaf_counts = 0;
-		leaf_agents_sum = 0;
-		unbalance_ratio = 0;
-
+	SimRTree() : m_root(nullptr), first_leaf(nullptr), leaf_counts(0), leaf_agents_sum(0), unbalance_ratio(0)
 #ifdef USE_REBALANCE
-		rebalance_counts = 0;
-		//temp setting: 2
-		rebalance_threshold = 2;
+		,rebalance_counts(0), rebalance_threshold(2)
 #endif
-	}
+{}
 
-	~SimRTree()
-	{
-	}
+	//Typedef to refer to our Bounding boxes.
+	typedef RStarBoundingBox<2> BoundingBox;
+
 
 public:
 	/*
@@ -121,7 +86,7 @@ public:
 	 *File Line Format:
 	 *(Parent-Item-ID, Own-ID, BOX_X1, BOX_Y1, BOX_X2, BOX_Y2)
 	 */
-	void build_tree_structure(const char* filename);
+	void build_tree_structure(const std::string& filename);
 
 	/**
 	 * Assumption:
@@ -206,10 +171,10 @@ private:
 	TreeLeaf* get_leftest_leaf(TreeItem* item);
 
 	//
-	inline BoundingBox location_bounding_box(Agent * agent);
+	BoundingBox location_bounding_box(Agent * agent);
 
 	//
-	inline BoundingBox OD_bounding_box(Agent * agent);
+	BoundingBox OD_bounding_box(Agent * agent);
 
 	//
 	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item);
@@ -220,5 +185,24 @@ private:
 	//
 	void display(TreeItem* item, int level);
 };
+
+
+
+struct TreeItem {
+	SimRTree::BoundingBox bound;
+	bool is_leaf;
+	std::size_t item_id;
+};
+
+struct TreeLeaf: TreeItem {
+	std::vector<Agent*> agent_buffer;
+	TreeLeaf* next;
+};
+
+struct TreeNode: TreeItem {
+	std::vector<TreeItem*> items;
+};
+
+
 
 }

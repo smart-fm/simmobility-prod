@@ -11,7 +11,6 @@
 #include <boost/asio.hpp>
 
 #include "tcp_connection.hpp"
-#include <iostream>
 
 namespace sim_mob {
 

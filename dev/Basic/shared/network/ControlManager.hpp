@@ -13,7 +13,6 @@
 #include <map>
 #include <string>
 #include <boost/thread.hpp>
-#include <iostream>
 
 namespace sim_mob {
 
@@ -33,7 +32,7 @@ enum SIMSTATE
 class ControlManager {
 public:
 	void start();
-	void setSimState(int s) { boost::mutex::scoped_lock local_lock(lock); simState = s; std::cout<<"simmob"<<">"<<std::flush;}
+	void setSimState(int s);
 	int getSimState() { return simState; }
 	void getLoadScenarioParas(std::map<std::string,std::string> &para) { para=loadScenarioParas; }
 	bool handleInput(std::string& input);

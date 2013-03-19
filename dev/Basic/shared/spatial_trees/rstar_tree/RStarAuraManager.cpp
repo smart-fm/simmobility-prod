@@ -2,6 +2,7 @@
 
 #include "RStarAuraManager.hpp"
 #include "spatial_trees/shared_funcs.hpp"
+#include "entities/Person.hpp"
 
 using namespace sim_mob;
 

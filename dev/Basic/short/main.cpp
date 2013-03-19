@@ -207,6 +207,56 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Initialize the aura manager
 	AuraManager::instance().init();
 
+
+
+	//////////////////////////////DEBUG CODE START
+#if 0
+	StreetDirectory& stdir = StreetDirectory::instance();
+	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+
+	//First test: longer route on a 2-way street.
+	MultiNode* aim91218  = dynamic_cast<MultiNode*>(rn.locateNode(37227139,14327875, false));
+	Node* aim66508  = rn.locateNode(37250760,14355120, false);
+	Node* aim103046 = rn.locateNode(37236345,14337301, true); //Part of the blacklisted segment.
+	RoadSegment* blacklistSeg = nullptr;
+	for (std::set<sim_mob::RoadSegment*>::const_iterator segIt=aim91218->getRoadSegments().begin(); segIt!=aim91218->getRoadSegments().end(); segIt++) {
+		if ((*segIt)->getEnd()==aim91218 && (*segIt)->getStart()==aim103046) {
+			blacklistSeg = *segIt;
+			break;
+		}
+	}
+	if (!blacklistSeg) { throw 1; }
+
+	//Subtest 1: basic route
+	vector<WayPoint> route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218));
+	LogOut("ROUTE 1:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+
+	//Subtest 2: blacklist the easiest route.
+	vector<const RoadSegment*> blacklistV; blacklistV.push_back(blacklistSeg);
+	route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218), blacklistV);
+	LogOut("ROUTE 2:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+#endif
+
+
+
+	//////////////////////////////DEBUG CODE END
+
+
+
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
 	///        ~Seth

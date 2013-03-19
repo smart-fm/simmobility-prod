@@ -313,7 +313,7 @@ public:
     	virtual VertexDesc WalkingVertex(const BusStop& b) const = 0;
 
     	//Meant to be used with the "DrivingVertex/WalkingVertex" functions.
-        virtual std::vector<WayPoint> GetShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>()) const = 0;
+        virtual std::vector<WayPoint> GetShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist) const = 0;
         virtual std::vector<WayPoint> GetShortestWalkingPath(VertexDesc from, VertexDesc to) const = 0;
 
         virtual void updateEdgeProperty() = 0;
@@ -389,7 +389,7 @@ public:
      *   a lot of drivers asking for the same path information. This is trickier than one might think, since the
      *   StreetDirectory is used in parallel, so a shared structure will need to be designed carefully. ~Seth
      */
-    std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to) const;
+    std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>()) const;
 
 
     /**

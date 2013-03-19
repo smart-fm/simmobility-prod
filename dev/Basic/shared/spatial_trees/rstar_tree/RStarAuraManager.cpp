@@ -5,6 +5,7 @@
 #include "entities/Person.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::temp_spatial;
 
 void RStarAuraManager::update_rstar()
 {

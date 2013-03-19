@@ -5,6 +5,7 @@
 
 
 using namespace sim_mob;
+using namespace sim_mob::temp_spatial;
 
 bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 {

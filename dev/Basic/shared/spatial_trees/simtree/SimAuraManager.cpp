@@ -4,6 +4,7 @@
 #include "spatial_trees/shared_funcs.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::temp_spatial;
 
 void sim_mob::SimAuraManager::update_sim(int time_step)
 {

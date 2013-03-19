@@ -3,6 +3,7 @@
 #include "SimRTree.h"
 
 #include "metrics/Length.hpp"
+#include "spatial_trees/TreeImpl.hpp"
 
 namespace sim_mob
 {
@@ -12,24 +13,22 @@ class Point2D;
 class Lane;
 class Agent;
 
-class SimAuraManager
+class SimAuraManager : public TreeImpl
 {
 public:
 	// No need to define the ctor and dtor.
 
-	void update_sim(int time_step);
+	virtual void update(int time_step);
 
 	//xuyan: Build the Tree in the very beginning
-	void init_sim();
+	virtual void init();
 
 	//xuyan:
-	void registerNewAgent_sim(Agent const* one_agent);
+	virtual void registerNewAgent(const Agent* ag);
 
-	std::vector<Agent const *>
-	agentsInRect_sim(Point2D const & lowerLeft, Point2D const & upperRight) const;
+	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight) const;
 
-	std::vector<Agent const *>
-	nearbyAgents_sim(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
+	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
 public:
 	//	long sum_counts;

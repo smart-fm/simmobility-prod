@@ -17,7 +17,7 @@ bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 	return tree_du.has_one_agent(agent_id);
 }
 
-void sim_mob::RDUAuraManager::update_du()
+void sim_mob::RDUAuraManager::update(int time_step)
 {
 //	std::cout << "S:" << std::endl;
 
@@ -50,15 +50,7 @@ void sim_mob::RDUAuraManager::update_du()
 //	std::cout << "Finished:" << std::endl;
 }
 
-/**
- *Build the R* Tree Structure
- */
-void sim_mob::RDUAuraManager::init_du(const char* file_url)
-{
-
-}
-
-std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect_du(Point2D const & lowerLeft, Point2D const & upperRight) const
+std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const
 {
 	R_tree_DU::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
@@ -69,7 +61,7 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect_du(Point2D cons
 	return tree_du.query(box);
 }
 
-std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents_du(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
+std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
@@ -114,7 +106,7 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents_du(Point2D cons
 
 //	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
-	return agentsInRect_du(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight);
 
 }
 

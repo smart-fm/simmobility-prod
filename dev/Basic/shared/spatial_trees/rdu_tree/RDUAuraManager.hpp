@@ -4,6 +4,7 @@
 
 #include "R_tree_DU.h"
 #include "metrics/Length.hpp"
+#include "spatial_trees/TreeImpl.hpp"
 
 
 namespace sim_mob
@@ -17,24 +18,22 @@ class Lane;
 
 
 
-class RDUAuraManager
+class RDUAuraManager : public TreeImpl
 {
 public:
-	//xuyan: Build the Tree in the very beginning
-	void init_du(const char* file_url);
+	//No initialization required.
+	virtual void init() {}
 
-	void update_du();
+	virtual void update(int time_step);
 
 	bool has_one_agent_du(int agent_id);
 
-//	std::vector<Agent const*>
-//	agentsInRect(double from_x, double from_y, double to_x, double to_y) const;
+	//Not used.
+	virtual void registerNewAgent(const Agent* ag) {}
 
-	std::vector<Agent const *>
-	agentsInRect_du(Point2D const & lowerLeft, Point2D const & upperRight) const;
+	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight) const;
 
-	std::vector<Agent const *>
-	nearbyAgents_du(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
+	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
 private:
 

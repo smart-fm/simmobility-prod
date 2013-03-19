@@ -12,6 +12,10 @@
 #include "buffering/Vector2D.hpp"
 #include "entities/Person.hpp"
 
+#include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
+#include "spatial_trees/simtree/SimAuraManager.hpp"
+#include "spatial_trees/rdu_tree/RDUAuraManager.hpp"
+
 namespace sim_mob
 {
 /* static */ AuraManager AuraManager::instance_;
@@ -54,14 +58,18 @@ AuraManager::init(bool keepStats /* = false */)
 
 	if (choose_tree == RSTAR) {
 		std::cout << "RSTAR" << std::endl;
-		pimpl_rstar = new RStarAuraManager();
+		impl_ = new RStarAuraManager();
+		impl_->init();
 	} else if (choose_tree == SIMTREE) {
 		std::cout << "SIMTREE" << std::endl;
-		pimpl_sim = new SimAuraManager();
-		pimpl_sim->init_sim();
+		impl_ = new SimAuraManager();
+		impl_->init();
 	} else if (choose_tree == RDU) {
 		std::cout << "RDU" << std::endl;
-		pimpl_du = new RDUAuraManager();
+		impl_ = new RDUAuraManager();
+		impl_->init();
+	} else {
+		throw std::runtime_error("Unknown tree type.");
 	}
 }
 
@@ -69,15 +77,8 @@ AuraManager::init(bool keepStats /* = false */)
 AuraManager::update()
 {
 	PerformanceProfile::instance().markStartUpdate();
-	if (choose_tree == RSTAR) {
-		if (pimpl_rstar)
-			pimpl_rstar->update_rstar();
-	} else if (choose_tree == SIMTREE) {
-		if (pimpl_sim)
-			pimpl_sim->update_sim(time_step);
-	} else if (choose_tree == RDU) {
-		if (pimpl_du)
-			pimpl_du->update_du();
+	if (impl_) {
+		impl_->update(time_step);
 	}
 
 	time_step++;
@@ -92,26 +93,13 @@ const
 {
 	PerformanceProfile::instance().markStartQuery(1);
 
-	if (choose_tree == RSTAR) {
-		std::vector<Agent const *> results = pimpl_rstar->agentsInRect_rstar(lowerLeft, upperRight);
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->agentsInRect(lowerLeft, upperRight);
 		PerformanceProfile::instance().markEndQuery(1);
-		return results;
-	} else if (choose_tree == SIMTREE) {
-		std::vector<Agent const *> results = pimpl_sim->agentsInRect_sim(lowerLeft, upperRight);
-		PerformanceProfile::instance().markEndQuery(1);
-		return results;
-	} else {
-		std::vector<Agent const *> results = pimpl_du->agentsInRect_du(lowerLeft, upperRight);
-		PerformanceProfile::instance().markEndQuery(1);
-		return results;
 	}
+	return results;
 
-	//	if (results.size() != results_2.size())
-	//		std::cout << "agentsInRect:" << results.size() << "," << results_2.size() << std::endl;
-
-	//	std::cout << "BBB2" << std::endl;
-
-	//	PerformanceProfile::instance().markEndQuery(thread_id);
 }
 
 std::vector<Agent const *>
@@ -121,45 +109,15 @@ const
 {
 	PerformanceProfile::instance().markStartQuery(1);
 
-	if (choose_tree == RSTAR) {
-		std::vector<Agent const *> results = pimpl_rstar->nearbyAgents_rstar(position, lane, distanceInFront, distanceBehind);
+
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind);
 		PerformanceProfile::instance().markEndQuery(1);
-		return results;
-	} else if (choose_tree == SIMTREE) {
-		std::vector<Agent const *> results = pimpl_sim->nearbyAgents_sim(position, lane, distanceInFront, distanceBehind);
-		PerformanceProfile::instance().markEndQuery(1);
-		return results;
-	} else {
-		std::vector<Agent const *> results = pimpl_du->nearbyAgents_du(position, lane, distanceInFront, distanceBehind);
-		PerformanceProfile::instance().markEndQuery(1);
-		return results;
 	}
 
-	//	std::cout << "Size:" << results.size() << "," << results_2.size() << std::endl;
+	return results;
 
-	//	if (results.size() != results_2.size()) {
-	//
-	////		pimpl_sim->tree_sim.display();
-	//
-	//		std::cout << "Size:" << results.size() << "," << results_2.size() << std::endl;
-	//
-	//		std::vector<Agent const *>::iterator ite = results.begin();
-	//		while (ite != results.end()) {
-	//			std::cout << "results:" << (*ite)->xPos << "," << (*ite)->yPos << "," << (*ite)->getId() << std::endl;
-	//			ite++;
-	//		}
-	//
-	//		std::vector<Agent const *>::iterator ite2 = results_2.begin();
-	//		while (ite2 != results_2.end()) {
-	//			std::cout << "results_2:" << (*ite2)->xPos << "," << (*ite2)->yPos << "," << (*ite2)->getId() << std::endl;
-	//			ite2++;
-	//		}
-	//	}
-
-	//	std::cout << "AAA2" << std::endl;
-	//	return pimpl_ ? pimpl_->nearbyAgents(position, lane, distanceInFront, distanceBehind) : std::vector<Agent const *>();
-
-	//	return NULL;
 }
 
 void
@@ -183,13 +141,9 @@ void AuraManager::registerNewAgent(Agent const* one_agent)
 //	std::cout << "Add 1." << std::endl;
 	PerformanceProfile::instance().markStartUpdate();
 
-	if (choose_tree == SIMTREE) {
-		Person const* person = dynamic_cast<Person const*>(one_agent);
-		if (person) {
-//		std::cout << "Agent:xPos" << one_agent->xPos.get();
-//		std::cout << ",Agent:yPos" << one_agent->yPos.get() << std::endl;
-
-			pimpl_sim->registerNewAgent_sim(one_agent);
+	if (impl_) {
+		if (dynamic_cast<Person const*>(one_agent)) {
+			impl_->registerNewAgent(one_agent);
 		}
 	}
 

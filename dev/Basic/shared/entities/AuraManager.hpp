@@ -12,9 +12,7 @@
 #include "workers/Worker.hpp"
 
 #include "util/PerformanceProfile.hpp"
-#include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
-#include "spatial_trees/simtree/SimAuraManager.hpp"
-#include "spatial_trees/rdu_tree/RDUAuraManager.hpp"
+#include "spatial_trees/TreeImpl.hpp"
 
 namespace sim_mob
 {
@@ -120,7 +118,7 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : pimpl_rstar(0), pimpl_sim(0), pimpl_du(0), pimpl_(nullptr),
+	AuraManager() : impl_(nullptr),
 				    stats_(0), time_step(0), choose_tree(SIMTREE)
 	{
 	}
@@ -138,15 +136,18 @@ private:
      */
     Aura_Manager_Tree choose_tree;
 
+    //Current implementation being used (via inheritance).
+    TreeImpl* impl_;
+
     //xuyan:choose between
-    RStarAuraManager* pimpl_rstar;
+    /*RStarAuraManager* pimpl_rstar;
     RDUAuraManager* pimpl_du;
-	SimAuraManager* pimpl_sim;
+	SimAuraManager* pimpl_sim;*/
 
     // Using the pimple design pattern.  Impl is defined in the source file.
-    class Impl;
+    /*class Impl;
     Impl* pimpl_;
-    friend class Impl;  // allow access to stats_.
+    friend class Impl;  // allow access to stats_.*/
 
     //Current time step.
     int time_step;

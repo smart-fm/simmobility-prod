@@ -10,7 +10,7 @@
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void sim_mob::SimAuraManager::update_sim(int time_step)
+void sim_mob::SimAuraManager::update(int time_step)
 {
 	//	static int count;
 	tree_sim.updateAllInternalAgents();
@@ -66,7 +66,7 @@ void sim_mob::SimAuraManager::update_sim(int time_step)
 /**
  *Build the Sim-Tree Structure
  */
-void sim_mob::SimAuraManager::init_sim()
+void sim_mob::SimAuraManager::init()
 {
 #ifdef USE_REBALANCE
 	//nothing
@@ -82,14 +82,12 @@ void sim_mob::SimAuraManager::init_sim()
 //	first_update = 0;
 }
 
-void sim_mob::SimAuraManager::registerNewAgent_sim(Agent const* one_agent)
+void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag)
 {
-	new_agents.push_back(one_agent);
-
-//	std::cout << "New Agent:" << one_agent->xPos << "," << one_agent->yPos << "," << one_agent->getId() << std::endl;
+	new_agents.push_back(ag);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect_sim(Point2D const & lowerLeft, Point2D const & upperRight) const
+std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const
 {
 	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
@@ -100,7 +98,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect_sim(Point2D con
 	return tree_sim.rangeQuery(box);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents_sim(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
+std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
@@ -145,7 +143,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents_sim(Point2D con
 
 //	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
-	return agentsInRect_sim(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight);
 }
 
 void sim_mob::SimAuraManager::checkLeaf()

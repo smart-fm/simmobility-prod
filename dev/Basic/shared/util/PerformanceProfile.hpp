@@ -8,6 +8,10 @@
 #include <iostream>
 #include <sys/time.h>
 
+#include "util/LangHelpers.hpp"
+
+//NOTE: I am undefining this at the end of the header file to
+//      avoid polluting the namespace. ~seth
 #define PARALLEL_MEASURE
 
 namespace sim_mob {
@@ -50,7 +54,9 @@ private:
 
 public:
 
-	PerformanceProfile()
+	PerformanceProfile() : start_query_time(nullptr), end_query_time(nullptr), measured_query_cost_array(nullptr),
+						   buffer_sum(0), total_update_cost(0), total_query_cost(0), total_simulation_cost(0),
+						   start_measure(0), thread_size(0)
 	{
 	}
 	~PerformanceProfile()
@@ -252,3 +258,8 @@ private:
 };
 
 }
+
+//Keep the global namespace clean.
+#ifdef PARALLEL_MEASURE
+#undef PARALLEL_MEASURE
+#endif

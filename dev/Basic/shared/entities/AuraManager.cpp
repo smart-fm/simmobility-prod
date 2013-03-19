@@ -49,6 +49,9 @@ AuraManager::init(bool keepStats /* = false */)
     if (keepStats)
         stats_ = new Stats;
 
+    //Reset time tick.
+    time_step = 0;
+
 	if (choose_tree == RSTAR) {
 		std::cout << "RSTAR" << std::endl;
 		pimpl_rstar = new RStarAuraManager();
@@ -65,8 +68,6 @@ AuraManager::init(bool keepStats /* = false */)
 /* virtual */ void
 AuraManager::update()
 {
-	static int time_step = 0;
-
 	PerformanceProfile::instance().markStartUpdate();
 	if (choose_tree == RSTAR) {
 		if (pimpl_rstar)

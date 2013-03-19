@@ -11,18 +11,26 @@ using namespace sim_mob;
 
 #ifdef USE_REBALANCE
 
-long SimRTree::network_minimum_x;
-long SimRTree::network_minimum_y;
-long SimRTree::network_maximum_x;
-long SimRTree::network_maximum_y;
+long SimRTree::network_minimum_x = 0;
+long SimRTree::network_minimum_y = 0;
+long SimRTree::network_maximum_x = 0;
+long SimRTree::network_maximum_y = 0;
 
-int SimRTree::division_x_unit_;
-int SimRTree::division_y_unit_;
+int SimRTree::division_x_unit_ = 0;
+int SimRTree::division_y_unit_ = 0;
 
 //int SimRTree::map_division_x_max = 1000;
 //int SimRTree::map_division_y_max = 1000;
 
 int SimRTree::bigtable[1000][1000];
+
+//NOTE: Should this be zero if USE_REBALANCE is off? If it doesn't matter, set it to 3 either way.
+const int sim_mob::SimRTree::checking_frequency =
+#ifdef USE_REBALANCE
+	3;
+#else
+	0;
+#endif
 
 struct BigTableUpdate: std::unary_function<const Entity *, void>
 {

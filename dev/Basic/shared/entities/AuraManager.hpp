@@ -120,8 +120,8 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() :
-			pimpl_rstar(0), pimpl_sim(0), pimpl_du(0), stats_(0), choose_tree(SIMTREE)
+	AuraManager() : pimpl_rstar(0), pimpl_sim(0), pimpl_du(0), pimpl_(nullptr),
+				    stats_(0), time_step(0), choose_tree(SIMTREE)
 	{
 	}
 
@@ -147,6 +147,9 @@ private:
     class Impl;
     Impl* pimpl_;
     friend class Impl;  // allow access to stats_.
+
+    //Current time step.
+    int time_step;
 
     class Stats;
     Stats* stats_;

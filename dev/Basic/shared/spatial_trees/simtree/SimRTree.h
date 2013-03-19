@@ -91,7 +91,7 @@ public:
 
 	//if re-balance happens %rebalance_threshold times continuously, then need to rebuild the tree
 	int rebalance_threshold;
-	int checking_frequency;
+	static const int checking_frequency;
 
 	int rebalance_counts;
 #endif
@@ -108,7 +108,6 @@ public:
 		rebalance_counts = 0;
 		//temp setting: 2
 		rebalance_threshold = 2;
-		checking_frequency = 3;
 #endif
 	}
 

@@ -1,6 +1,10 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "SimAuraManager.hpp"
+
+#include "entities/Agent.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/Lane.hpp"
 #include "spatial_trees/shared_funcs.hpp"
 
 using namespace sim_mob;

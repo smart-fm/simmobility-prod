@@ -211,7 +211,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl);
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp

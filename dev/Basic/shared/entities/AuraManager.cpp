@@ -8,7 +8,6 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
 #include "util/PerformanceProfile.hpp"
@@ -50,23 +49,24 @@ AuraManager::Stats::printStatistics() const
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 void
-AuraManager::init(bool keepStats /* = false */)
+AuraManager::init(AuraManagerImplementation implType, bool keepStats)
 {
-    if (keepStats)
+    if (keepStats) {
         stats_ = new Stats;
+    }
 
     //Reset time tick.
     time_step = 0;
 
-	if (choose_tree == RSTAR) {
+	if (implType == IMPL_RSTAR) {
 		std::cout << "RSTAR" << std::endl;
 		impl_ = new RStarAuraManager();
 		impl_->init();
-	} else if (choose_tree == SIMTREE) {
+	} else if (implType == IMPL_SIMTREE) {
 		std::cout << "SIMTREE" << std::endl;
 		impl_ = new SimAuraManager();
 		impl_->init();
-	} else if (choose_tree == RDU) {
+	} else if (implType == IMPL_RDU) {
 		std::cout << "RDU" << std::endl;
 		impl_ = new RDUAuraManager();
 		impl_->init();

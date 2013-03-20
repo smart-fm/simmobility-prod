@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <boost/utility.hpp>
+
 #include "metrics/Length.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -15,7 +16,6 @@ class Point2D;
 class Lane;
 class TreeImpl;
 
-enum Aura_Manager_Tree { RSTAR, SIMTREE, RDU };
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -40,6 +40,13 @@ enum Aura_Manager_Tree { RSTAR, SIMTREE, RDU };
 class AuraManager : private boost::noncopyable
 {
 public:
+	///Types of implementations supported.
+	enum AuraManagerImplementation {
+		IMPL_RSTAR,    ///< R-Star tree
+		IMPL_SIMTREE,  ///< Sim Tree
+		IMPL_RDU       ///< RDU tree
+	};
+
 
     static AuraManager &
     instance()
@@ -96,7 +103,7 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(bool keepStats = false);
+    init(AuraManagerImplementation implType, bool keepStats = false);
 
     /**
      * Print statistics collected on internal operationss.
@@ -111,10 +118,8 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : impl_(nullptr),
-				    stats_(0), time_step(0), choose_tree(SIMTREE)
-	{
-	}
+	AuraManager() : impl_(nullptr), stats_(0), time_step(0)
+	{}
 
     /*Map to store the vehicle counts of each road segment. */
     //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
@@ -122,12 +127,6 @@ private:
     // No need to define the dtor.
 
     static AuraManager instance_;
-
-    /**
-     * xuyan:
-     * this parameter decide which spatial index to use.
-     */
-    Aura_Manager_Tree choose_tree;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;

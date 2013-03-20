@@ -63,6 +63,7 @@
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -149,7 +150,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
+	std::cout << "start to Load our user config file." << std::endl;
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "finish to Load our user config file." << std::endl;
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
@@ -184,6 +187,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
+	std::cout << "start to Load our user config file." << std::endl;
+	PerformanceProfile::instance().init(config.agentWorkGroupSize);
+
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
 
@@ -205,7 +211,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl);
 
 
 
@@ -303,6 +309,18 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			}
 		}
 
+		//xuyan:measure simulation time
+		if (currTick == 600 * 5 + 1)
+		{ // mins
+			PerformanceProfile::instance().startMeasure();
+			PerformanceProfile::instance().markStartSimulation();
+		}
+		if (currTick == 600 * 30 - 1)
+		{ // mins
+			PerformanceProfile::instance().markEndSimulation();
+			PerformanceProfile::instance().endMeasure();
+		}
+
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -361,6 +379,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		cout <<numPendingAgents;
 	}
 	cout << endl;
+
+	//xuyan:show measure time
+	PerformanceProfile::instance().showPerformanceProfile();
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";

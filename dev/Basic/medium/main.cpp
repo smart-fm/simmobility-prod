@@ -199,7 +199,7 @@ bool performMainMed(const std::string& configFileName) {
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl);
 
 	//Start work groups and all threads.
 	WorkGroup::StartAllWorkGroups();

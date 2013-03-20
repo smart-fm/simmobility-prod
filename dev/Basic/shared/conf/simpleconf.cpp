@@ -1669,6 +1669,28 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		node->Attribute("value", &signalTimingMode);
 	}
 
+	//Save Aura Manager Implementation
+	AuraManager::AuraManagerImplementation aura_mgr_impl = AuraManager::IMPL_RSTAR;
+	node = handle.FirstChild("aura_manager_impl").ToElement();
+	if(node) {
+		const char* valC = node->Attribute("value");
+		if (!valC) {
+			throw std::runtime_error("Aura manager implementation requires a \"value\" tag.");
+		} else {
+			string val = string(valC);
+			if (val=="simtree") {
+				aura_mgr_impl = AuraManager::IMPL_SIMTREE;
+			} else  if (val=="rdu") {
+				aura_mgr_impl = AuraManager::IMPL_RDU;
+			} else if (val=="rstar") {
+				aura_mgr_impl = AuraManager::IMPL_RSTAR;
+			} else {
+				throw std::runtime_error("Unknown aura manager implementation type.");
+			}
+		}
+	}
+
+
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
 	node = handle.FirstChild("partitioning_solution_id").ToElement();
@@ -1829,6 +1851,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.simStartTime = DailyTime(simStartStr);
     	config.mutexStategy = mtStrat;
     	config.signalTimingMode = signalTimingMode;
+
+    	//Save the Aura Manager implementation type.
+    	config.aura_manager_impl = aura_mgr_impl;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI

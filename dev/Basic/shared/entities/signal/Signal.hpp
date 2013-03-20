@@ -96,6 +96,9 @@ public:
 
    virtual unsigned int getSignalId(){ return -1;}
    
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
@@ -104,7 +107,7 @@ public:
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
    bool frame_init(timeslice){}
-   sim_mob::Entity::UpdateStatus frame_tick(timeslice){}
+   sim_mob::Entity::UpdateStatus frame_tick(timeslice){ return UpdateStatus::Continue; }
    void frame_output(timeslice){}
 
    typedef std::vector<Signal *> All_Signals;

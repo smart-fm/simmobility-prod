@@ -2,17 +2,10 @@
 
 #pragma once
 
-#include <map>
+#include <vector>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
-#include "metrics/Frame.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "conflux/SegmentStats.hpp"
-#include "workers/WorkGroup.hpp"
-#include "workers/Worker.hpp"
-
-#include "util/PerformanceProfile.hpp"
-#include "spatial_trees/TreeImpl.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
@@ -20,7 +13,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
-class SegmentStats;
+class TreeImpl;
 
 enum Aura_Manager_Tree { RSTAR, SIMTREE, RDU };
 

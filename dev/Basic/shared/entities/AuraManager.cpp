@@ -1,17 +1,19 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include <limits>
-#include <algorithm>
-#include <boost/unordered_set.hpp>
-
-#include "Entity.hpp"
-#include "Agent.hpp"
 #include "AuraManager.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
+
+#include <algorithm>
+
 #include "buffering/Vector2D.hpp"
+#include "entities/Entity.hpp"
+#include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 
+#include "geospatial/Lane.hpp"
+#include "geospatial/Point2D.hpp"
+#include "util/PerformanceProfile.hpp"
+
+#include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
 #include "spatial_trees/simtree/SimAuraManager.hpp"
 #include "spatial_trees/rdu_tree/RDUAuraManager.hpp"

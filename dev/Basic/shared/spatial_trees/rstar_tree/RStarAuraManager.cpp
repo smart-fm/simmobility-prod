@@ -2,6 +2,8 @@
 
 #include "RStarAuraManager.hpp"
 
+#include <cassert>
+
 #include "spatial_trees/shared_funcs.hpp"
 #include "entities/Person.hpp"
 #include "entities/Agent.hpp"
@@ -16,23 +18,18 @@ void RStarAuraManager::update(int time_step)
 	tree_rstar.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
 	assert(tree_rstar.GetSize() == 0);
 
-//	sim_mob::AuraManager::instance().densityMap.clear();
-
-	if (Agent::all_agents.empty())
-	return;
+	if (Agent::all_agents.empty()) {
+		return;
+	}
 
 	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Person* an_agent = dynamic_cast<Person*>(*itr);
-		if (!an_agent)
-		continue;
-
-//		Driver* test = dynamic_cast<Driver*> (an_agent->getRole());
-//		if (!test)
-//			continue;
+		if (!an_agent) {
+			continue;
+		}
 
 		if (an_agent->can_remove_by_RTREE == false) {
 			tree_rstar.insert(an_agent);
-//			updateDensity(an_agent);
 		}
 	}
 

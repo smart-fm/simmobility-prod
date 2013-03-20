@@ -22,9 +22,10 @@ void sim_mob::RDUAuraManager::update(int time_step)
 //	std::cout << "S:" << std::endl;
 
 	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
-		Person* an_agent = dynamic_cast<Person*>(*itr);
-		if (!an_agent)
-		continue;
+		Agent* an_agent = dynamic_cast<Agent*>(*itr);
+		if ((!an_agent) || an_agent->isNonspatial()) {
+			continue;
+		}
 
 		if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE) {
 //			std::cout << "start 1:" << std::endl;

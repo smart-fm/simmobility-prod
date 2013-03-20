@@ -23,13 +23,13 @@ void RStarAuraManager::update(int time_step)
 	}
 
 	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
-		Person* an_agent = dynamic_cast<Person*>(*itr);
-		if (!an_agent) {
+		Agent* ag = dynamic_cast<Agent*>(*itr);
+		if ((!ag) || ag->isNonspatial()) {
 			continue;
 		}
 
-		if (an_agent->can_remove_by_RTREE == false) {
-			tree_rstar.insert(an_agent);
+		if (ag->can_remove_by_RTREE == false) {
+			tree_rstar.insert(ag);
 		}
 	}
 

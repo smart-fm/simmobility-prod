@@ -87,6 +87,17 @@ public:
 	 */
 	virtual UpdateStatus update(timeslice now) = 0;
 
+	/**
+	 * Returns true if the Agent is "non-spatial" in nature  --i.e., it should not be added to our
+	 * spatial index. A non-spatial Agent cannot be identified by its location, which will usually
+	 * be (0,0) (but this is not guaranteed).
+	 *
+	 * Subclasses should override this function to indicate that they should not be considered as part
+	 * of the spatial index. Note that they *may* still have a geospatial location (e.g., Signals), but
+	 * this location should not be searchable.
+	 */
+	virtual bool isNonspatial() = 0;
+
 	//virtual Link* getCurrLink() = 0;
 	//virtual void setCurrLink(Link* link)= 0;
 

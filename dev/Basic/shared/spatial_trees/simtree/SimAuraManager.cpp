@@ -19,6 +19,9 @@ void sim_mob::SimAuraManager::update(int time_step)
 
 	for (std::vector<Agent const*>::iterator it = new_agents.begin(); it != new_agents.end(); ++it) {
 		Agent* one_ = const_cast<Agent*>(*it);
+		if (one_->isNonspatial()) {
+			continue;
+		}
 
 		if (one_->can_remove_by_RTREE == false)
 			tree_sim.insertAgentBasedOnOD(one_);

@@ -1,18 +1,24 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+/*
+ * RoleFacet.h
+ *
+ *  Created on: Mar 21, 2013
+ *      Author: harish
+ */
+
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
-
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
 #include <boost/random.hpp>
-#include "DriverRequestParams.hpp"
 
 namespace sim_mob {
 
@@ -22,55 +28,21 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-/**
- * Role that a person may fulfill.
- *
- * \author Seth N. Hetu
- * \author Xu Yan
- *
- *
- * Allows Person agents to swap out roles easily,
- * without re-creating themselves or maintaining temporarily irrelevant data.
- *
- * \note
- * For now, this class is very simplistic.
- */
-class Role
-{
-public:
-	//todo: use this to register roles
-	enum type
-	{
-		RL_DRIVER,
-		RL_PEDESTRIAN,
-		RL_BUSDRIVER,
-		RL_ACTIVITY,
-		RL_PASSENGER
-	};
+namespace {
 
-	//todo: use this to identify the type of request
-	enum request
-	{
-		REQUEST_NONE=0,
-		REQUEST_DECISION_TIME,
-		REQUEST_STORE_ARRIVING_TIME
-	};
-
-	const std::string name;
+class RoleFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
-		parent(parent), currResource(nullptr),name(roleName)
-	{
-		//todo consider putting a runtime error for empty or zero length rolename
-	}
+	explicit RoleFacet(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
+		parent(parent), currResource(nullptr), name(roleName), dynamic_seed(0) { }
 
 	//Allow propagating destructors
-	virtual ~Role() {}
+	virtual ~RoleFacet() {}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
+
 	std::string getRoleName()const {return name;}
 
 	///Called the first time an Agent's update() method is successfully called.
@@ -152,6 +124,7 @@ public:
 		return one_try;
 	}
 
+	const std::string name;
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
@@ -183,4 +156,4 @@ public:
 
 };
 
-}
+} /* namespace sim_mob */

@@ -188,7 +188,16 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	std::cout << "start to Load our user config file." << std::endl;
-	PerformanceProfile::instance().init(config.agentWorkGroupSize);
+
+	//NOTE: I moved this from an #ifdef into a local variable.
+	//      Recompiling main.cpp is much faster than recompiling everything which relies on
+	//      PerformanceProfile.hpp   ~Seth
+	bool doPerformanceMeasurement = false; //TODO: From config file.
+	bool measureInParallel = true;
+	PerformanceProfile perfProfile;
+	if (doPerformanceMeasurement) {
+		perfProfile.init(config.agentWorkGroupSize, measureInParallel);
+	}
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
@@ -211,7 +220,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl);
+	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
 
 
 
@@ -312,13 +321,17 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		//xuyan:measure simulation time
 		if (currTick == 600 * 5 + 1)
 		{ // mins
-			PerformanceProfile::instance().startMeasure();
-			PerformanceProfile::instance().markStartSimulation();
+			if (doPerformanceMeasurement) {
+				perfProfile.startMeasure();
+				perfProfile.markStartSimulation();
+			}
 		}
 		if (currTick == 600 * 30 - 1)
 		{ // mins
-			PerformanceProfile::instance().markEndSimulation();
-			PerformanceProfile::instance().endMeasure();
+			if (doPerformanceMeasurement) {
+				perfProfile.markEndSimulation();
+				perfProfile.endMeasure();
+			}
 		}
 
 		//Flag
@@ -381,7 +394,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << endl;
 
 	//xuyan:show measure time
-	PerformanceProfile::instance().showPerformanceProfile();
+	if (doPerformanceMeasurement) {
+		perfProfile.showPerformanceProfile();
+	}
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";

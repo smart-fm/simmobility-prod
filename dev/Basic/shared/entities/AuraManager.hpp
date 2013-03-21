@@ -15,6 +15,7 @@ class Agent;
 class Point2D;
 class Lane;
 class TreeImpl;
+class PerformanceProfile;
 
 
 /**
@@ -103,7 +104,7 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(AuraManagerImplementation implType, bool keepStats = false);
+    init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats = false);
 
     /**
      * Print statistics collected on internal operationss.
@@ -118,7 +119,7 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : impl_(nullptr), stats_(0), time_step(0)
+	AuraManager() : impl_(nullptr), stats_(0), time_step(0), perfProfile(nullptr)
 	{}
 
     /*Map to store the vehicle counts of each road segment. */
@@ -140,6 +141,8 @@ private:
     /*class Impl;
     Impl* pimpl_;
     friend class Impl;  // allow access to stats_.*/
+
+    PerformanceProfile* perfProfile;
 
     //Current time step.
     int time_step;

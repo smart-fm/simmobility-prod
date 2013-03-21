@@ -49,11 +49,13 @@ AuraManager::Stats::printStatistics() const
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 void
-AuraManager::init(AuraManagerImplementation implType, bool keepStats)
+AuraManager::init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats)
 {
     if (keepStats) {
         stats_ = new Stats;
     }
+
+    this->perfProfile = perfProfile;
 
     //Reset time tick.
     time_step = 0;
@@ -78,27 +80,35 @@ AuraManager::init(AuraManagerImplementation implType, bool keepStats)
 /* virtual */ void
 AuraManager::update()
 {
-	PerformanceProfile::instance().markStartUpdate();
+	if (perfProfile) {
+		perfProfile->markStartUpdate();
+	}
 	if (impl_) {
 		impl_->update(time_step);
 	}
 
 	time_step++;
-	PerformanceProfile::instance().markEndUpdate();
 
-	PerformanceProfile::instance().update();
+	if (perfProfile) {
+		perfProfile->markEndUpdate();
+		perfProfile->update();
+	}
 }
 
 std::vector<Agent const *>
 AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight)
 const
 {
-	PerformanceProfile::instance().markStartQuery(1);
+	if (perfProfile) {
+		perfProfile->markStartQuery(1);
+	}
 
 	std::vector<Agent const *> results;
 	if (impl_) {
 		results = impl_->agentsInRect(lowerLeft, upperRight);
-		PerformanceProfile::instance().markEndQuery(1);
+		if (perfProfile) {
+			perfProfile->markEndQuery(1);
+		}
 	}
 	return results;
 
@@ -109,13 +119,17 @@ AuraManager::nearbyAgents(Point2D const & position, Lane const & lane,
                           centimeter_t distanceInFront, centimeter_t distanceBehind)
 const
 {
-	PerformanceProfile::instance().markStartQuery(1);
+	if (perfProfile) {
+		perfProfile->markStartQuery(1);
+	}
 
 
 	std::vector<Agent const *> results;
 	if (impl_) {
 		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind);
-		PerformanceProfile::instance().markEndQuery(1);
+		if (perfProfile) {
+			perfProfile->markEndQuery(1);
+		}
 	}
 
 	return results;
@@ -141,7 +155,9 @@ AuraManager::printStatistics() const
 void AuraManager::registerNewAgent(Agent const* one_agent)
 {
 //	std::cout << "Add 1." << std::endl;
-	PerformanceProfile::instance().markStartUpdate();
+	if (perfProfile) {
+		perfProfile->markStartUpdate();
+	}
 
 	if (impl_) {
 		if (dynamic_cast<Person const*>(one_agent)) {
@@ -149,7 +165,9 @@ void AuraManager::registerNewAgent(Agent const* one_agent)
 		}
 	}
 
-	PerformanceProfile::instance().markEndUpdate();
+	if (perfProfile) {
+		perfProfile->markEndUpdate();
+	}
 }
 
 } // end of sim_mob

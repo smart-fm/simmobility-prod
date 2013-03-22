@@ -157,6 +157,10 @@ protected:
 
 	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
+	BehaviorFacet* behaviorFacet;
+
+	MovementFacet* movementFacet;
+
 	//add by xuyan
 protected:
 	int dynamic_seed;

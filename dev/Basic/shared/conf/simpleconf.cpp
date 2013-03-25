@@ -1690,6 +1690,26 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+	//Save the WorkGroup assignment strategy
+	WorkGroup::ASSIGNMENT_STRATEGY wg_assign_strat = WorkGroup::ASSIGN_SMALLEST;
+	node = handle.FirstChild("workgroup_assignment").ToElement();
+	if(node) {
+		const char* valC = node->Attribute("value");
+		if (!valC) {
+			throw std::runtime_error("Workgroup assignment strategy requires a \"value\" tag.");
+		} else {
+			string val = string(valC);
+			if (val=="roundrobin") {
+				wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
+			} else  if (val=="smallest") {
+				wg_assign_strat = WorkGroup::ASSIGN_SMALLEST;
+			} else {
+				throw std::runtime_error("Unknown workgroup assignment strategy type.");
+			}
+		}
+	}
+
+
 
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
@@ -1854,6 +1874,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     	//Save the Aura Manager implementation type.
     	config.aura_manager_impl = aura_mgr_impl;
+
+    	//Save the WorkGroup strategy.
+    	config.defaultWrkGrpAssignment = wg_assign_strat;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
@@ -2081,6 +2104,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+	//Print the WorkGroup strategy.
+	std::cout <<"WorkGroup assignment: ";
+	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
+		std::cout <<"roundrobin" <<std::endl;
+	} else if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_SMALLEST) {
+		std::cout <<"smallest" <<std::endl;
+	} else {
+		std::cout <<"<unknown>" <<std::endl;
+	}
     std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";

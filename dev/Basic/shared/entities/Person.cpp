@@ -501,6 +501,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 		}
 	}
 
+//	std::cout << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 	currRole = newRole;
 
 	if (currRole) {

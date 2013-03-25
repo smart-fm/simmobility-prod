@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Entity.hpp"
+#include "conf/simpleconf.hpp"
 
 using std::string;
 using std::vector;
@@ -10,8 +11,9 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Entity::Entity(unsigned int id)
-	: id(id),  startTime(0), currWorker(nullptr), isFake(false)
+	: id(id),  startTime(0), currWorker(nullptr), isFake(false)/*,comm(sim_mob::ConfigParams::GetInstance().mutexStategy,false)*/
 {
+
 
 }
 

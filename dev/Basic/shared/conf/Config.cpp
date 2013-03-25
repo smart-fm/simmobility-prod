@@ -188,6 +188,7 @@ void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAg
 	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains;
 
+	//    		todo: this is commented to speed up compilations. enable before pushing the code[XMLCOMMENT]
 	//Use code similar to our XML loading code to retrieve our TripChains.
 	sim_mob::xml::InitAndLoadTripChainsFromXML(fileName, rootNode, tripChains);
 

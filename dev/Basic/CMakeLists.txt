@@ -256,8 +256,11 @@ FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*
 LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 
 #Remove geospatial/xmlreader
-#FILE(GLOB_RECURSE SharedCode_xmlLoader "shared/geospatial/xmlLoader/*.cpp")
-#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_xmlLoader})
+FILE(GLOB_RECURSE SharedCode_geo_xmlLoader "shared/geospatial/xmlLoader/*.cpp")
+#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_geo_xmlLoader})
+#Remove shared/conf/xmlreader
+FILE(GLOB_RECURSE SharedCode_conf_xmlLoader "shared/conf/xmlLoader/*.cpp")
+#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_conf_xmlLoader})
 
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")

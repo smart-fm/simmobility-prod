@@ -43,6 +43,7 @@
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/driverCommunication/DriverComm.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -106,17 +107,17 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
 
-////for communication simulator -vahid
-std::ostream& operator <<(std::ostream& out, timeval const& tv)
-{
-    return out << tv.tv_sec << " " << tv.tv_usec;
-}
-
-std::istream& operator >>(std::istream& is, timeval& tv)
-{
-    return is >> tv.tv_sec >> tv.tv_usec;
-}
-////....
+//////for communication simulator -vahid
+//std::ostream& operator <<(std::ostream& out, timeval const& tv)
+//{
+//    return out << tv.tv_sec << " " << tv.tv_usec;
+//}
+//
+//std::istream& operator >>(std::istream& is, timeval& tv)
+//{
+//    return is >> tv.tv_sec >> tv.tv_usec;
+//}
+//////....
 
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
@@ -136,7 +137,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
-		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+//		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 
@@ -185,8 +187,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 	WorkGroup* communicationWorkers = WorkGroup::NewWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	//membership to various clubs
-	WorkGroup::addWorkGroupMembership(agentWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
-	WorkGroup::addWorkGroupMembership(signalStatusWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
+//	WorkGroup::addWorkGroupMembership(agentWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
+//	WorkGroup::addWorkGroupMembership(signalStatusWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
@@ -194,6 +196,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
+	communicationWorkers->initWorkers(nullptr);
 
 
 	//Anything in all_agents is starting on time 0, and should be added now.
@@ -210,11 +213,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//..and Assign communication agent(currently a singleton
 
 
-//	//..and Assign all communication agents
-//	sim_mob::All_NS3_Communicators & comm = sim_mob::NS3_Communicator::all_NS3_cummunication_agents;
-//	for (sim_mob::All_NS3_Communicators::iterator it = comm.begin(); it != comm.end(); it++) {
-//		communicationWorkers->assignAWorker(*it);
-//	}
+//	//..and Assign all communication agents(we have one ns3 communicator for now)
+	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
@@ -264,23 +264,23 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		//Save the maximum number of agents at any given time
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
-
+//todo, uncomment output
 		//Output
-		if (ConfigParams::GetInstance().OutputEnabled()) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			cout << "Approximate Tick Boundary: " << currTick << ", ";
-			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone) {
-				cout << "  Warmup; output ignored." << endl;
-			}
-		} else {
-			//We don't need to lock this output if general output is disabled, since Agents won't
-			//  perform any output (and hence there will be no contention)
-			if (currTickPercent-lastTickPercent>9) {
-				lastTickPercent = currTickPercent;
-				cout <<currTickPercent <<"%" <<endl;
-			}
-		}
+//		if (ConfigParams::GetInstance().OutputEnabled()) {
+//			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+//			cout << "Approximate Tick Boundary: " << currTick << ", ";
+//			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+//			if (!warmupDone) {
+//				cout << "  Warmup; output ignored." << endl;
+//			}
+//		} else {
+//			//We don't need to lock this output if general output is disabled, since Agents won't
+//			//  perform any output (and hence there will be no contention)
+//			if (currTickPercent-lastTickPercent>9) {
+//				lastTickPercent = currTickPercent;
+//				cout <<currTickPercent <<"%" <<endl;
+//			}
+//		}
 
 		///
 		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
 #endif
 	//Save start time
 	gettimeofday(&start_time, nullptr);
-	ConfigParams::GetInstance().realSimStartTime = start_time;
+//	ConfigParams::GetInstance().realSimStartTime = start_time;
 
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI

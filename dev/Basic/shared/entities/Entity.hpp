@@ -114,6 +114,8 @@ protected:
 public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;
+	//	your communication support
+//	sim_mob::CommunicationSupport comm;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)

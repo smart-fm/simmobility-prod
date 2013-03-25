@@ -26,7 +26,7 @@
 
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
-#include "entities/communicator/Communication_util.hpp"
+
 namespace sim_mob
 {
 
@@ -65,7 +65,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity/*, public sim_mob::AgentCommunicationSupport*/ {
+class Agent : public sim_mob::Entity/*, public sim_mob::CommunicationSupport*/ {
 public:
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred

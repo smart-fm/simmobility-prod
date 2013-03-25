@@ -1,6 +1,6 @@
 #pragma once
 #include "buffering/Shared.hpp"
-#include "MessageFormat.hpp"
+#include "CommunicationData.hpp"
 
 ////this file provides some of the communication
 ////1-tools required for agent "communication subsystem"
@@ -40,17 +40,18 @@ public:
 class NS3_Communication: public Communication<std::set<DATA_MSG_PTR>&, commResult> {
 
 	//nested class
-	class FileBasedImpl: public Communication<commArguments&, commResult> {
+	class FileBasedImpl: public Communication<std::set<DATA_MSG_PTR>&, commResult> {
 	    std::string sendFile;
 	    std::string receiveFile;
 	public:
-	    FileBasedImpl(std::string sendFile_ = "./send.txt", std::string receiveFile_ = "receive.txt");
+	    FileBasedImpl(std::string sendFile_ = "./send.txt", std::string receiveFile_ = "send.txt");//for test purpose, send & receive are same
 		commResult send(std::set<DATA_MSG_PTR>& value);
 		commResult receive(std::set<DATA_MSG_PTR>&value);
 	};
 	//end of nested class
 
 public:
+	NS3_Communication() ;
 	commResult send(std::set<DATA_MSG_PTR> &value) {
 
 		return SR_Impl->send(value);

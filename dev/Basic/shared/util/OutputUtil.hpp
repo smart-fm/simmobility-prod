@@ -58,31 +58,16 @@ public:
 		log_file_or_cout = &std::cout;
 		return false;
 	}
-	
-	static bool log_init1(const std::string& path) {
-		if (!path.empty()) {
-			file_output1.open(path.c_str());
-			if (file_output1.good()) {
-				log_file_or_cout1 = &file_output1;
-				return true;
-			}
-		}
 
-		log_file_or_cout1 = &std::cout;
-		return false;
-	}
 	static void log_done() {
 		if (file_output.is_open()) {
 			file_output.close();
 		}
 	}
 	static std::ostream& log_file() { return *log_file_or_cout; }
-    static std::ostream& log_file1() { return *log_file_or_cout1; }
 private:
 	static std::ostream* log_file_or_cout;
-	static std::ostream* log_file_or_cout1;
 	static std::ofstream file_output;
-	static std::ofstream file_output1;
 };
 
 } //End sim_mob namespace

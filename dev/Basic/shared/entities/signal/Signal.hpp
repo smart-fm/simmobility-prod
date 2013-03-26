@@ -102,7 +102,7 @@ public:
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
-   virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
+   //virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }

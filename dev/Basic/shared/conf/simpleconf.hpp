@@ -295,7 +295,7 @@ private:
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_SMALLEST)
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
 	{}
 
 	static ConfigParams instance;

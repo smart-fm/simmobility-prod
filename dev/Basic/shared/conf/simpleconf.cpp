@@ -1691,7 +1691,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 
 	//Save the WorkGroup assignment strategy
-	WorkGroup::ASSIGNMENT_STRATEGY wg_assign_strat = WorkGroup::ASSIGN_SMALLEST;
+	WorkGroup::ASSIGNMENT_STRATEGY wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
 	node = handle.FirstChild("workgroup_assignment").ToElement();
 	if(node) {
 		const char* valC = node->Attribute("value");

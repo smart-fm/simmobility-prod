@@ -75,7 +75,7 @@ protected:
 
 
 ///Sample Log subclass for handling warnings
-class Warn : public Log {
+class Warn : private Log {
 public:
 	Warn();
 

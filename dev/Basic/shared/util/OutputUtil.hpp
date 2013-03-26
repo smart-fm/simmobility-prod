@@ -4,7 +4,8 @@
 
 /**
  * \file OutputUtil.hpp
- * Contains functions which are helpful for formatting output on stdout.
+ *
+ * Contains functions which are helpful for synchronized output to cout and log files.
  */
 
 
@@ -23,18 +24,22 @@
 namespace sim_mob {
 
 /**
- * Print an array of integers with separators and automatic line-breaks.
+ * Print an array of basic types with separators and automatic line-breaks.
+ * This function buffers output to the stream so that it is all sent at once.
+ *
  * \author Seth N. Hetu
  * \author LIM Fung Chai
  *
- * \param ids Integer values we are printing.
+ * \param arr Integer values we are printing.
+ * \param out Output stream to receive the output. Defaults to cout.
  * \param label Label for the entire output string.
  * \param brL Left bracket character.
  * \param brL Right bracket character.
  * \param comma Character to be used as a comma separator between items.
  * \param lineIndent Number of spaces to be used on each new line.
  */
-void PrintArray(const std::vector<int>& ids, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
+template <typename T>
+void PrintArray(const std::vector<T>& arr, std::ostream& out=std::cout, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
 class Logger
 {
@@ -170,3 +175,43 @@ private:
 
 
 #endif
+
+
+
+////////////////////////////////////////////////
+// Template implementation
+////////////////////////////////////////////////
+
+
+template <typename T>
+void sim_mob::PrintArray(const std::vector<T>& ids, std::ostream& out, const std::string& label, const std::string& brL, const std::string& brR, const std::string& comma, int lineIndent)
+{
+	//Easy
+	if (ids.empty()) {
+		return;
+	}
+
+	//Buffer in a stringstream
+	std::stringstream buff;
+	int lastSize = 0;
+	buff <<label <<brL;
+	for (size_t i=0; i<ids.size(); i++) {
+		//Output the number
+		buff <<ids[i];
+
+		//Output a comma, or the closing brace.
+		if (i<ids.size()-1) {
+			buff <<comma;
+
+			//Avoid getting anyway near default terminal limits
+			if (buff.str().size()-lastSize>75) {
+				buff <<"\n" <<std::string(lineIndent, ' ');
+				lastSize += (buff.str().size()-lastSize)-1;
+			}
+		} else {
+			buff <<brR <<"\n";
+		}
+	}
+	out <<buff.str();
+}
+

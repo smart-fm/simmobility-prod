@@ -103,7 +103,7 @@ void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, v
 	}
 
 	//Print all skipped lane-crossing IDs:
-	sim_mob::PrintArray(skippedCrossingLaneIDs, "Skipped \"crossing\" laneIDs: ", "[", "]", ", ", 4);
+	sim_mob::PrintArray(skippedCrossingLaneIDs, std::cout, "Skipped \"crossing\" laneIDs: ", "[", "]", ", ", 4);
 }
 
 

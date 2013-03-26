@@ -341,7 +341,7 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 	}
 
 	//Print skipped turnings all at once.
-	sim_mob::PrintArray(skippedTurningIDs, "Turnings skipped: ", "[", "]", ", ", 4);
+	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -1034,7 +1034,7 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	}
 
 	//Print all node mismatches at once
-	sim_mob::PrintArray(nodeMismatchIDs, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
+	sim_mob::PrintArray(nodeMismatchIDs, std::cout, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
 
 	//Step 3: Tag all Sections with Turnings that apply to that Section
 	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {

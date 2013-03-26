@@ -74,7 +74,7 @@ void sim_mob::Worker::remEntity(Entity* entity)
 }
 
 
-std::vector<Entity*>& sim_mob::Worker::getEntities() {
+const std::vector<Entity*>& sim_mob::Worker::getEntities() const {
 	return managedEntities;
 }
 

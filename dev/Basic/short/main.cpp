@@ -497,9 +497,6 @@ int run_simmob_interactive_loop() {
 		}
 	}
 
-	//Shut off logging.
-	Log::Done();
-
 	return retVal;
 }
 
@@ -594,6 +591,9 @@ int main(int argc, char* argv[])
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
+
+	//Shut off logging.
+	Log::Done();
 
 	cout << "Done" << endl;
 	return returnVal;

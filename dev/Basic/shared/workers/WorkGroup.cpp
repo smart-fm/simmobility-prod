@@ -45,7 +45,7 @@ namespace {
 Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
 	Worker* res = nullptr;
 	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
-		if ((!res) || ((*it)->getAgentSize() < res->getAgentSize())) {
+		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
 			res = *it;
 		}
 	}

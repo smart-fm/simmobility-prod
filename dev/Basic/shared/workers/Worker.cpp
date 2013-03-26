@@ -148,6 +148,11 @@ void sim_mob::Worker::interrupt()
 	}
 }
 
+int sim_mob::Worker::getAgentSize(bool includeToBeAdded) 
+{ 
+	return managedEntities.size() + (includeToBeAdded?toBeAdded.size():0);
+}
+
 
 void sim_mob::Worker::addPendingEntities()
 {

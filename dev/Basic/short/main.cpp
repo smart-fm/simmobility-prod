@@ -58,6 +58,7 @@
 #include "buffering/Shared.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
+#include "logging/Log.hpp"
 
 
 //add by xuyan
@@ -495,6 +496,10 @@ int run_simmob_interactive_loop() {
 			break;
 		}
 	}
+
+	//Shut off logging.
+	Log::Done();
+
 	return retVal;
 }
 

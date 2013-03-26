@@ -34,6 +34,7 @@
 #include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "logging/Log.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -426,6 +427,10 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
+
+	//Shut off logging.
+	Log::Done();
+
 	return returnVal;
 }
 

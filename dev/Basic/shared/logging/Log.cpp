@@ -34,11 +34,8 @@ std::ostream* sim_mob::Log::OpenStream(const string& path, std::ofstream& file)
 	if (path=="<stdout>") { return &std::cout; }
 	if (path=="<stderr>") { return &std::cerr; }
 	file.open(path.c_str());
-	if (file.fail()) {
-		return &file;
-	} else {
-		return &std::cout;
-	}
+	if (file.fail()) { return &std::cout; }
+	return &file;
 }
 
 sim_mob::Warn::Warn() : local_lock(nullptr)

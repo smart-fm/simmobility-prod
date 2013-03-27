@@ -11,32 +11,32 @@ sim_mob::Entity* subscriptionInfo::getEntity()
 	return agent;
 }
 //we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-std::vector<DATA_MSG_PTR>& subscriptionInfo::getIncoming() {
+DataContainer& subscriptionInfo::getIncoming() {
 	ReadLock Lock(*myLock);
 	return incoming;
 }
-std::vector<DATA_MSG_PTR>& subscriptionInfo::getOutgoing() {
+DataContainer& subscriptionInfo::getOutgoing() {
 	ReadLock Lock(*myLock);
 	return outgoing;
 }
-void subscriptionInfo::setIncoming(std::vector<DATA_MSG_PTR> values) {
+void subscriptionInfo::setIncoming(DataContainer values) {
 	WriteLock(*myLock);
 	incoming = values;
 	incomingIsDirty = true;
 }
-void subscriptionInfo::setOutgoing(std::vector<DATA_MSG_PTR> values) {
+void subscriptionInfo::setOutgoing(DataContainer values) {
 	WriteLock(*myLock);
 	outgoing = values;
 	outgoingIsDirty = true;}
 
 void subscriptionInfo::addIncoming(DATA_MSG_PTR value) {
 	WriteLock(myLock);
-	incoming.push_back(value);
+	incoming.add(value);
 	incomingIsDirty = true;
 }
 void subscriptionInfo::addOutgoing(DATA_MSG_PTR value) { std::cout << "pushing data to " << &outgoing << std::endl;
 WriteLock(*myLock);
-outgoing.push_back(value);
+outgoing.add(value);
 outgoingIsDirty = true;
 }
 
@@ -82,17 +82,8 @@ void subscriptionInfo::reset()
 	agentUpdateDone = false ;
 	readOutgoingDone = false ;
 	writeIncomingDone = false ;
-	  DATA_MSG_PTR it;
-	  BOOST_FOREACH(it,outgoing)
-	  {
-		  delete it;
-	  }
-	  BOOST_FOREACH(it,incoming)
-	  {
-		  delete it;
-	  }
-	outgoing.clear();
-	incoming.clear();
+	incoming.reset();
+	outgoing.reset();
 	cnt_1 = cnt_2 = 0;
 }
 }

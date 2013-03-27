@@ -71,7 +71,7 @@ public:
 		str = "";
 	}
 	//uncomment after debugging
-//	void setDataClassType();
+	void setDataClassType();
 	virtual void registerType(boost::archive::text_oarchive &oa)
     {
     	oa.register_type(static_cast<dataMessage *>(NULL));
@@ -101,17 +101,18 @@ typedef DATA_MSG& DATA_MSG_REF;
 class sample_DataMessage_Class : public DATA_MSG
 {
 
+//	YOUR_DATA your_data;
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version)
     {
     	ar & boost::serialization::base_object<DATA_MSG>(*this);//in this case the direct parent of sample_DataMessage_Class is DATA_MSG.
+    	//serialize your data here
 //        ar & your_data;
     }
 
-//    void *your_data;
 public:
-
+    //copy paste the following 2 methods in YOUR data class and replace 'sample_DataMessage_Class' with the name of your class
     virtual void registerType(boost::archive::text_oarchive &oa)
     {
     	oa.register_type(static_cast<sample_DataMessage_Class *>(NULL));
@@ -135,8 +136,56 @@ public:
 
 
 
+/*********************************************************************************
 
+  container classes acting as incoming , outgoing and(possibly) temporary buffers
+  these so called buffers will have diverse data whose types are already defined by
+  you (above)
 
+ *********************************************************************************/
+
+class DataContainer
+{
+public:
+	std::vector<DATA_MSG_PTR> buffer;
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+    	DATA_MSG_PTR value;
+    	BOOST_FOREACH(value, buffer)
+    	//takes ar to your class and gives him the information about your class
+    		value->registerType(ar);
+    	ar & buffer;
+    }
+    void add(DATA_MSG_PTR value)
+    {
+    	buffer.push_back(value);
+    }
+    void add(std::vector<DATA_MSG_PTR> values)
+    {
+    	buffer.insert(buffer.end(), values.begin(), values.end());
+    }
+
+    void add(DataContainer & value)
+    {
+    	add(value.get());
+    }
+    void reset()
+    {
+    	DATA_MSG_PTR value;
+    	BOOST_FOREACH(value, buffer)
+    		delete value;
+    	buffer.clear();
+
+    }
+    std::vector<DATA_MSG_PTR>& get()
+	{
+    	return buffer;
+	}
+
+};
 
 
 /*********************************************************************************
@@ -166,8 +215,8 @@ class subscriptionInfo
 	bool& readOutgoingDone;      //the 'communicator' agent  read the outgoing buffer of the 'communicating' agent
 
 
-	std::vector<DATA_MSG_PTR> &incoming;
-	std::vector<DATA_MSG_PTR> &outgoing;
+	DataContainer &incoming;
+	DataContainer &outgoing;
 	bool goodForProcessing;
 
 public:
@@ -183,8 +232,8 @@ public:
 			bool& writeIncomingDone_,
 			bool& readOutgoingDone_ ,
 			bool& agentUpdateDone_,
-			std::vector<DATA_MSG_PTR>& incoming_,
-			std::vector<DATA_MSG_PTR>& outgoing_
+			DataContainer& incoming_,
+			DataContainer& outgoing_
 
 			)
 	:
@@ -205,10 +254,10 @@ public:
 
 	void setEntity(sim_mob::Entity*);
 	sim_mob::Entity* getEntity();
-	std::vector<DATA_MSG_PTR>& getIncoming();
-	std::vector<DATA_MSG_PTR>& getOutgoing();
-	void setIncoming(std::vector<DATA_MSG_PTR> value);
-	void setOutgoing(std::vector<DATA_MSG_PTR> value);
+	DataContainer& getIncoming();
+	DataContainer& getOutgoing();
+	void setIncoming(DataContainer value);
+	void setOutgoing(DataContainer value);
 	void addIncoming(DATA_MSG_PTR value);
 	void addOutgoing(DATA_MSG_PTR value);
 

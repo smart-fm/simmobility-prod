@@ -31,28 +31,28 @@ namespace sim_mob
 	}
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-	std::vector<DATA_MSG_PTR>& CommunicationSupport::getIncoming() {
+	DataContainer& CommunicationSupport::getIncoming() {
 		ReadLock Lock(myLock);
 		return incoming;
 	}
-	std::vector<DATA_MSG_PTR>& CommunicationSupport::getOutgoing() {
+	DataContainer& CommunicationSupport::getOutgoing() {
 		ReadLock Lock(myLock);
 		return outgoing;
 	}
-	void CommunicationSupport::setIncoming(std::vector<DATA_MSG_PTR> values) {
+	void CommunicationSupport::setIncoming(DataContainer values) {
 		WriteLock(myLock);
 		incoming = values; }
-	void CommunicationSupport::setOutgoing(std::vector<DATA_MSG_PTR> values) {
+	void CommunicationSupport::setOutgoing(DataContainer values) {
 		WriteLock(myLock);
 		outgoing = values;
 		outgoingIsDirty = true;}
 
 	void CommunicationSupport::addIncoming(DATA_MSG_PTR value) {
 		WriteLock(myLock);
-		incoming.push_back(value); }
+		incoming.add(value); }
 	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) { std::cout << "pushing data to " << &outgoing << std::endl;
 	WriteLock(myLock);
-	outgoing.push_back(value); outgoingIsDirty = true;}
+	outgoing.add(value); outgoingIsDirty = true;}
 
 	void CommunicationSupport::setwriteIncomingDone(bool value) {
 		WriteLock(myLock);

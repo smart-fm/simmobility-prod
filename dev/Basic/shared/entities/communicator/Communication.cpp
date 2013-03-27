@@ -1,7 +1,7 @@
 #include "Communication.hpp"
 namespace sim_mob {
 
-commResult NS3_Communication::FileBasedImpl::send(std::set<DATA_MSG_PTR>& values) {
+commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
 	std::cout << "Inside FileBasedImpl::send\n";
 	//todo, i couldn't find a way to declare text_oarchive without a parameterized constructor,
 	//hence I need to declare it in every send operation.
@@ -22,16 +22,17 @@ commResult NS3_Communication::FileBasedImpl::send(std::set<DATA_MSG_PTR>& values
 
     DATA_MSG_PTR value;
     //todo this causes seg fault during split load process
-    BOOST_FOREACH(value, values)
+    BOOST_FOREACH(value, values.get())
     {
-    	value->registerType_Output(oa);
+    	//todo this causes seg fault during split load process
+//    	value->registerType(oa); no need anymore
     	std::cout << "Serializing '" << value->str << "'" << std::endl;
 //    	oa & value;
     }
     oa & values;
 
 };
-commResult NS3_Communication::FileBasedImpl::receive(std::set<DATA_MSG_PTR>& value){
+commResult NS3_Communication::FileBasedImpl::receive(DataContainer& value){
 	std::cout << "Inside NS3_Communication::FileBasedImpl::receive[" << receiveFile << "]" << std::endl;
 	if(!ifs.is_open())
 	{
@@ -47,7 +48,7 @@ commResult NS3_Communication::FileBasedImpl::receive(std::set<DATA_MSG_PTR>& val
 		{
 			boost::archive::text_iarchive ia(ifs);
 			ia & value;
-			for(std::set<DATA_MSG_PTR>::iterator it = value.begin(); it != value.end(); it++)
+			for(std::vector<DATA_MSG_PTR>::iterator it = value.get().begin(); it != value.get().end(); it++)
 			{
 				std::cout << "de-Serializing to '" << (*it)->str << "'" << std::endl;
 			}

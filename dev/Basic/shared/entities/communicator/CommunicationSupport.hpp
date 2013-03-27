@@ -44,8 +44,8 @@ class NS3_Communicator;
 class CommunicationSupport
 {
 
-	std::vector<DATA_MSG_PTR> incoming;
-	std::vector<DATA_MSG_PTR> outgoing;
+	DataContainer incoming;
+	DataContainer outgoing;
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
 	bool outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
@@ -61,10 +61,10 @@ public:
 	subscriptionInfo getSubscriptionInfo();
 	CommunicationSupport();
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-	std::vector<DATA_MSG_PTR>& getIncoming();
-	std::vector<DATA_MSG_PTR>& getOutgoing();
-	void setIncoming(std::vector<DATA_MSG_PTR> value);
-	void setOutgoing(std::vector<DATA_MSG_PTR> value);
+	DataContainer& getIncoming();
+	DataContainer& getOutgoing();
+	void setIncoming(DataContainer value);
+	void setOutgoing(DataContainer value);
 	void addIncoming(DATA_MSG_PTR value);
 	void addOutgoing(DATA_MSG_PTR value);
 

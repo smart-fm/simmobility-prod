@@ -16,7 +16,7 @@ map<const std::ostream*, boost::mutex*> sim_mob::Log::stream_locks;
 
 //Warn
 boost::mutex*   sim_mob::Warn::log_mutex = nullptr;
-std::ostream*   sim_mob::Warn::default_log_location = &std::cout;
+std::ostream*   sim_mob::Warn::log_handle = &std::cout;
 std::ofstream   sim_mob::Warn::log_file;
 
 
@@ -49,7 +49,7 @@ std::ostream* sim_mob::Log::OpenStream(const string& path, std::ofstream& file)
 	}
 }
 
-sim_mob::Warn::Warn() : log_handle(default_log_location), local_lock(nullptr)
+sim_mob::Warn::Warn() : local_lock(nullptr)
 {
 	if (log_mutex) {
 		local_lock = new boost::mutex::scoped_lock(*log_mutex);
@@ -59,17 +59,28 @@ sim_mob::Warn::Warn() : log_handle(default_log_location), local_lock(nullptr)
 
 sim_mob::Warn::~Warn()
 {
+	//Flush any pending output to stdout.
+	if (log_handle) {
+		(*log_handle) <<std::flush;
+	}
+
 	//Deleting will free the lock (if it exists in the first place).
 	safe_delete_item(local_lock);
 }
 
-void sim_mob::Warn::Init(bool enabled, const string& path)
+void sim_mob::Warn::Init(const string& path)
 {
-	if (enabled) {
-		default_log_location = OpenStream(path, log_file);
-		log_mutex = RegisterStream(default_log_location);
-	} else {
-		default_log_location = nullptr;
-		log_mutex = nullptr;
-	}
+	log_handle = OpenStream(path, log_file);
+	log_mutex = RegisterStream(log_handle);
+}
+
+void sim_mob::Warn::Ignore()
+{
+	log_handle = nullptr;
+	log_mutex = nullptr;
+}
+
+bool sim_mob::Warn::IsEnabled()
+{
+	return log_handle;
 }

@@ -67,6 +67,7 @@
 #include "entities/conflux/Conflux.hpp"
 
 #include "entities/signal/Signal.hpp"
+#include "entities/BusStopAgent.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -164,6 +165,7 @@ private:
 	void createSignals();
     void createPlans(sim_mob::Signal_SCATS & signal);
     void createPhases(sim_mob::Signal_SCATS & signal);
+    void createBusStopAgents();
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
@@ -1208,6 +1210,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigParams::GetInstance().mutexStategy);
 //		if(100001500 == busstop->parentSegment_->getSegmentID())
 //		{
 //			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
@@ -1395,6 +1398,14 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 }
 } //End anon namespace
 
+void DatabaseLoader::createBusStopAgents()
+{
+	//int j = 0；
+	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
+    {
+
+    }
+}
 
 //Another temporary function
 void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const DynamicVector& cutLine, bool trimStart)

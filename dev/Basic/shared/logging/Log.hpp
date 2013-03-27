@@ -23,6 +23,7 @@
 #include <map>
 
 #include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
 
@@ -95,16 +96,16 @@ public:
 	 * If we rewrite to use a boost::shared_ptr, we can avoid the need for "Done", *and* potentially allow
 	 * for changing stream locations at runtime.
 	 */
-	static void Done();
+	//static void Done();  //Not needed any more.
 
 protected:
 	///Used for reference; each stream has one associated mutex. The keys (ostream pointers) are not allocated;
 	/// they are just pointers to existing statically-scoped objects (or cout/cerr).
-	static std::map<const std::ostream*, boost::mutex*> stream_locks;
+	static std::map<const std::ostream*, boost::shared_ptr<boost::mutex> > stream_locks;
 
 	///Helper function for subclasses: registers an ostream with stream_locks, skipping if it's already been
 	///  registered. Returns the associated mutex regardless.
-	static boost::mutex* RegisterStream(const std::ostream* str);
+	static boost::shared_ptr<boost::mutex> RegisterStream(const std::ostream* str);
 
 	///Helper function for subclasses: If the associated filename is not "<stdout>" or "<stderr>", then
 	///  open the ofstream object passed by reference and return a pointer to it. Else, return
@@ -162,7 +163,7 @@ public:
 
 private:
 	///A pointer to the mutex (managed in Log::stream_locks) used for locking the output stream.
-	static boost::mutex* log_mutex;
+	static boost::shared_ptr<boost::mutex> log_mutex;
 
 	///Where to send logging events. May point to std::cout, std::cerr,
 	/// or a file stream located in a subclass.

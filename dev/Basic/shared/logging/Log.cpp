@@ -12,26 +12,18 @@ using std::map;
 
 
 //Log
-map<const std::ostream*, boost::mutex*> sim_mob::Log::stream_locks;
+map<const std::ostream*, boost::shared_ptr<boost::mutex> > sim_mob::Log::stream_locks;
 
 //Warn
-boost::mutex*   sim_mob::Warn::log_mutex = nullptr;
+boost::shared_ptr<boost::mutex>   sim_mob::Warn::log_mutex;
 std::ostream*   sim_mob::Warn::log_handle = &std::cout;
 std::ofstream   sim_mob::Warn::log_file;
 
 
-void sim_mob::Log::Done()
-{
-	for (map<const std::ostream*, boost::mutex*>::iterator it=stream_locks.begin(); it!=stream_locks.end(); it++) {
-		delete it->second;
-	}
-	stream_locks.clear();
-}
-
-boost::mutex* sim_mob::Log::RegisterStream(const std::ostream* str)
+boost::shared_ptr<boost::mutex> sim_mob::Log::RegisterStream(const std::ostream* str)
 {
 	if (stream_locks.count(str)==0) {
-		stream_locks[str] = new boost::mutex();
+		stream_locks[str] = boost::shared_ptr<boost::mutex>(new boost::mutex());
 	}
 	return stream_locks[str];
 }
@@ -77,7 +69,7 @@ void sim_mob::Warn::Init(const string& path)
 void sim_mob::Warn::Ignore()
 {
 	log_handle = nullptr;
-	log_mutex = nullptr;
+	log_mutex.reset();
 }
 
 bool sim_mob::Warn::IsEnabled()

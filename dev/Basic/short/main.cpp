@@ -592,9 +592,6 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 
-	//Shut off logging.
-	Log::Done();
-
 	cout << "Done" << endl;
 	return returnVal;
 }

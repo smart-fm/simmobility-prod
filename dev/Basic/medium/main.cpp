@@ -428,9 +428,6 @@ int main(int argc, char* argv[])
 	}
 	cout << "Done" << endl;
 
-	//Shut off logging.
-	Log::Done();
-
 	return returnVal;
 }
 

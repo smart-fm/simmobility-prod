@@ -20,3 +20,7 @@ EventArgs::EventArgs(const EventArgs& source) {
 EventArgs::~EventArgs() {
 }
 
+EventArgs& EventArgs::operator=(const EventArgs& source) {
+    return *this;
+}
+

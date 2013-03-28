@@ -19,6 +19,7 @@ namespace sim_mob {
         EventArgs();
         EventArgs(const EventArgs& source);
         virtual ~EventArgs();
+        virtual EventArgs& operator=(const EventArgs& source);
     };
 }
 

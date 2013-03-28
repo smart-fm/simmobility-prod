@@ -9,60 +9,181 @@
 
 #pragma once
 
+#include <map>
+#include <list>
 #include "EventListener.hpp"
-#include "EventArgs.hpp"
-#include "boost/shared_ptr.hpp"
-#include "boost/weak_ptr.hpp"
-
 
 namespace sim_mob {
 
+    using std::map;
+    using std::list;
+
     typedef EventListener* EventListenerPtr;
-    
+    typedef EventListener::EventCallback ListenerCallback;
+    typedef EventListener::EventContextCallback ListenerContextCallback;
+
+    union Callback {
+        ListenerCallback callback;
+        ListenerContextCallback contextCallback;
+    };
+
+    /**
+     * Struct to store a Listener entries.
+     */
+    typedef struct ListenerEntry {
+        ListenerEntry(EventListenerPtr listener, Callback callback);
+        EventListenerPtr listener;
+        Callback callback;
+    } Entry;
+
+    // map for global listeners.
+    typedef list<Entry*> ListenersList;
+    typedef map<EventId, ListenersList> ListenersMap;
+    // maps for listeners with context.
+    typedef map<ContextId, ListenersList> ContextMap;
+    typedef map<EventId, ContextMap> ContextListenersMap;
+
     /*
-     * Interface for all event publisher implementations.
-     *
+     * Generic implementation of event publisher.
+     * 
+     * This implementation is not thread-safe. 
      */
     class EventPublisher {
     public:
+        EventPublisher();
+        virtual ~EventPublisher();
 
         /**
-         * Notifies all subscribers.
-         * @param id of the event.
-         * @param args with event data.
+         * Registers a new event id on publisher.
+         * @param id EventId to register.
          */
-        virtual void Notify(EventId id, const EventArgs& args) = 0;
+        virtual void RegisterEvent(EventId id);
         /**
-         * Subscribes a new EventListener instance.
-         * @param id of the event. 
-         * @param Pointer to the EventListener instance. 
+         * UnRegisters the given event from the publisher. 
+         * @param id EventId to un-register.
          */
-        virtual void Subscribe(EventId id, EventListenerPtr ptr) = 0;
-        /**
-         * UnSubscribes a existing EventListener instance.
-         * @param id of the event.
-         * @param Pointer to the EventListener instance. 
-         */
-        virtual void UnSubscribe(EventId id, EventListenerPtr ptr) = 0;
+        virtual void UnRegisterEvent(EventId id);
 
         /**
-         * Registers a new event type to handle.
-         * @param id of the event.
+         * Verifies if register exists.
+         * @param id
+         * @return 
          */
-        virtual void RegisterEvent(EventId id) = 0;
+        virtual bool IsEventRegistered(EventId id) const;
 
         /**
-         * UnRegisters the given event type.
-         * @param id of the event.
+         * Publishes an event with given EventId.
+         * @param id to publish.
+         * @param args of the event.
          */
-        virtual void UnRegisterEvent(EventId id) = 0;
+        virtual void Publish(EventId id, const EventArgs& args);
 
         /**
-         * Verifies if event is registered on this publisher.
-         * @param id of the event.
-         * @return true if is registered, false otherwise.
+         * Publishes an event with given EventId and ContextId.
+         * @param id to publish.
+         * @param ctxId Id of the context.
+         * @param args of the event.
          */
-        virtual bool IsEventRegistered(EventId id) const = 0;
+        virtual void Publish(EventId id, ContextId ctxId, const EventArgs& args);
+
+        /**
+         * 
+         * Subscribes the given global listener to the given EventId.
+         * This listener will receive all events of the given EventId.
+         * 
+         * @param id
+         * @param listener to subscribe.
+         */
+        virtual void Subscribe(EventId id, EventListenerPtr listener);
+
+        /**
+         * Subscribes the given global listener to the given EventId.
+         * This listener will receive all events of the given EventId.
+         * 
+         * The given callback that called will be called instead of normal OnEvent
+         * 
+         * @param id
+         * @param listener to subscribe.
+         */
+        virtual void Subscribe(EventId id, EventListenerPtr listener, ListenerCallback eventFunction);
+
+        /**
+         * Subscribes the given listener to the given EventId and ContextId.
+         * This listener will receive only the events with given EventId and
+         * fired for the given contextId.
+         * @param id of the event.
+         * @param ctxId Id of the context.
+         * @param listener to subscribe.
+         */
+        virtual void Subscribe(EventId id, ContextId ctxId, EventListenerPtr listener);
+
+        /**
+         * Subscribes the given listener to the given EventId and ContextId.
+         * This listener will receive only the events with given EventId and
+         * fired for the given contextId.
+         * 
+         * The given callback that called will be called instead of normal OnEvent
+         * 
+         * @param id of the event.
+         * @param ctxId Id of the context.
+         * @param listener to subscribe.
+         */
+        virtual void Subscribe(EventId id, ContextId ctxId, EventListenerPtr listener, ListenerContextCallback eventFunction);
+
+        /**
+         * UnSubscribes the given listener to the given EventId
+         * 
+         * ATTENTION: the listener instance will not be deleted.
+         * 
+         * @param id of the event.
+         * @param listener to UnSubscribe.
+         */
+        virtual void UnSubscribe(EventId id, EventListenerPtr listener);
+
+        /**
+         * UnSubscribes the given listener to the given EventId and ContextId.
+         * 
+         * ATTENTION: the listener instance will not be deleted.
+         * 
+         * @param id of the event.
+         * @param ctxId Id of the context.
+         * @param listener to UnSubscribe.
+         */
+        virtual void UnSubscribe(EventId id, ContextId ctxId, EventListenerPtr listener);
+
+    private:
+        /**
+         * Removes listeners from given list.
+         * @param listenersList of listeners to update.
+         * @param listener to remove. 
+         */
+        void Remove(ListenersList& listenersList, EventListenerPtr listener);
+
+        /**
+         * Removes all listeners from given list.
+         * @param listenersList of listeners to update.
+         * @param listener to remove. 
+         */
+        void RemoveAll(ListenersList& listenersList);
+
+        /**
+         * Removes listeners from given map.
+         * @param map of listeners to remove.
+         */
+        void RemoveAll(ListenersMap& listeners);
+
+        /**
+         * Removes all listeners from given context map.
+         * @param map of listeners to remove.
+         */
+        void RemoveAll(ContextListenersMap& map);
+
+    private:
+
+
+    private:
+        ContextListenersMap contextListeners;
+        ListenersMap globalListeners;
     };
 }
 

@@ -17,6 +17,8 @@
 #include "soci.h"
 #include "soci-postgresql.h"
 
+#include "logging/Log.hpp"
+
 #include "CrossingLoader.hpp"
 #include "LaneLoader.hpp"
 
@@ -435,7 +437,7 @@ void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
     if (storedProcedure.empty()) {
-        std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
+        sim_mob::Warn() << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
@@ -475,7 +477,7 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 {
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_dispatch_freq> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -497,7 +499,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_routes> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -521,7 +523,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_stops> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -542,10 +544,9 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
 {
-    if (storedProc.empty())
-    {
-        std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
-                  << "will not lookup the database to create any signal found in there" << std::endl;
+    if (storedProc.empty()) {
+    	sim_mob::Warn() << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
+               << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
     soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -1119,7 +1120,7 @@ void DatabaseLoader::saveTripChains(std::map<std::string, std::vector<sim_mob::T
 void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
-	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
+	sim_mob::Warn() <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
@@ -1146,7 +1147,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		}
 	}
 	//Next, Turnings. These generally match up.
-	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
+	sim_mob::Warn() <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
 	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
 	}

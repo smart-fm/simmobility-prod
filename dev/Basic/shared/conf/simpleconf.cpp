@@ -1849,11 +1849,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
     if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
     if (totalRuntime%baseGran != 0) {
-    	std::cout <<"  Warning! Total Runtime will be truncated.\n";
+    	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
     if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
     if (totalWarmup%baseGran != 0) {
-    	std::cout <<"  Warning! Total Warmup will be truncated.\n";
+    	Warn() <<"Total warmup (" <<totalWarmup <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
 
     //Save params

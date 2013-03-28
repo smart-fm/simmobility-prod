@@ -73,8 +73,6 @@ public:
 
 	void setParentData();			///<set next data to parent buffer data
 
-	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const sim_mob::Vehicle* getVehicle() const {return vehicle;}
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	void stepFwdInTime(DriverUpdateParams& p, double time);
 	bool advance(DriverUpdateParams& p);
@@ -95,14 +93,6 @@ public:
 	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
 
 private:
-	//void chooseNextLaneForNextLink(DriverUpdateParams& p);
-	//bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	//bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
-	//void intersectionDriving(DriverUpdateParams& p);
-	//void justLeftIntersection(DriverUpdateParams& p);
-	//void syncCurrLaneCachedInfo(DriverUpdateParams& p);
-	//void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	//double speed_density_function(unsigned int numVehicles); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	bool isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg);
 
 	void addToQueue(const Lane* lane);
@@ -141,4 +131,5 @@ protected:
 };
 
 
-}}
+} // namespace medium
+} // namespace sim_mob

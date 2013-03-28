@@ -13,6 +13,7 @@
 #include "util/OutputUtil.hpp"
 #include <boost/random.hpp>
 #include "DriverRequestParams.hpp"
+#include "RoleFacets.hpp"
 
 namespace sim_mob {
 
@@ -60,8 +61,8 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
-		parent(parent), currResource(nullptr),name(roleName)
+	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
+		parent(parent), currResource(nullptr),name(roleName), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -73,28 +74,11 @@ public:
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}
 
-	///Called the first time an Agent's update() method is successfully called.
-	/// This will be the tick of its startTime, rounded down(?).
-	virtual void frame_init(UpdateParams& p) = 0;
-
-	///Perform each frame's update tick for this Agent.
-	virtual void frame_tick(UpdateParams& p) = 0;
-
-	///Generate output for this frame's tick for this Agent.
-	virtual void frame_tick_output(const UpdateParams& p) = 0;
-
-	//generate output with fake attributes for MPI
-	virtual void frame_tick_output_mpi(timeslice now) = 0;
-
-	///Create the UpdateParams (or, more likely, sub-class) which will hold all
-	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
-
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
-
+	
 	///Return a request list for asychronous communication.
 	///  Subclasses of Role should override this method if they want to enable
 	///  asynchronous communication.
@@ -152,13 +136,20 @@ public:
 		return one_try;
 	}
 
+	BehaviorFacet* Behavior() {
+		return behaviorFacet;
+	}
+
+	MovementFacet* Movement() {
+		return movementFacet;
+	}
+
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	BehaviorFacet* behaviorFacet;
-
 	MovementFacet* movementFacet;
 
 	//add by xuyan

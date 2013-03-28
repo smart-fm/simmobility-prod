@@ -37,14 +37,11 @@ class BehaviorFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit BehaviorFacet(sim_mob::Agent* parentAgent = nullptr, sim_mob::Role* parentRole = nullptr, std::string roleName = std::string()) :
-	parentAgent(parentAgent), parentRole(parentRole), name(roleName), dynamic_seed(0) { }
+	explicit BehaviorFacet(sim_mob::Agent* parentAgent = nullptr, std::string roleName = std::string()) :
+	parentAgent(parentAgent), name(roleName), dynamic_seed(0) { }
 
 	//Allow propagating destructors
 	virtual ~BehaviorFacet() {}
-
-	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
-	virtual Role* clone(Person* parent) const = 0;
 
 	std::string getRoleName()const {return name;}
 
@@ -65,22 +62,11 @@ public:
 	///  the temporary information for this time tick.
 	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
 
-	///Return a list of parameters that expect their subscriptions to be managed.
-	/// Agents can append/remove this list to their own subscription list each time
-	/// they change their Role.
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
 
-	///Return a request list for asychronous communication.
-	///  Subclasses of Role should override this method if they want to enable
-	///  asynchronous communication.
-	///NOTE: This function is only used by the Driver class, but it's required here
-	///      due to the way we split Driver into the short-term folder.
-	virtual sim_mob::DriverRequestParams getDriverRequestParams() {
-		return sim_mob::DriverRequestParams();
-	}
-
-	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
-	virtual Vehicle* getResource() { return parentRole->getResource(); }
+	/* NOTE: There is no resource defined in the base class BehaviorFacet. For role facets of drivers, the vehicle of the parent Role could be
+	 * shared between behavior and movement facets. This getter must be overridden in the derived classes to return appropriate resource.
+	 */
+	virtual Vehicle* getResource() { return nullptr; }
 
 	Agent* getParent()
 	{
@@ -130,8 +116,6 @@ public:
 	const std::string name;
 protected:
 	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
-
-	Role* parentRole; ///<The role container which contains this facet. The role container may contain useful information (like current resource) required by this facet.
 
 	//add by xuyan
 protected:
@@ -161,14 +145,11 @@ class MovementFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit MovementFacet(sim_mob::Agent* parentAgent = nullptr, sim_mob::Role* parentRole = nullptr, std::string roleName = std::string()) :
-		parentAgent(parentAgent), parentRole(parentRole), name(roleName), dynamic_seed(0) { }
+	explicit MovementFacet(sim_mob::Agent* parentAgent = nullptr, std::string roleName = std::string()) :
+		parentAgent(parentAgent), name(roleName), dynamic_seed(0) { }
 
 	//Allow propagating destructors
 	virtual ~MovementFacet() {}
-
-	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
-	virtual Role* clone(Person* parent) const = 0;
 
 	std::string getRoleName()const {return name;}
 
@@ -189,22 +170,11 @@ public:
 	///  the temporary information for this time tick.
 	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
 
-	///Return a list of parameters that expect their subscriptions to be managed.
-	/// Agents can append/remove this list to their own subscription list each time
-	/// they change their Role.
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
-
-	///Return a request list for asychronous communication.
-	///  Subclasses of Role should override this method if they want to enable
-	///  asynchronous communication.
-	///NOTE: This function is only used by the Driver class, but it's required here
-	///      due to the way we split Driver into the short-term folder.
-	virtual sim_mob::DriverRequestParams getDriverRequestParams() {
-		return sim_mob::DriverRequestParams();
-	}
-
-	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
-	virtual Vehicle* getResource() { return parentRole->getResource(); }
+	/* NOTE: There is no resource defined in the base class BehaviorFacet. This is kept virtual to be consistent with the Role.
+	 * For role facets of drivers, the vehicle of the parent Role could be shared between behavior and movement facets.
+	 * This getter must be overridden in the derived classes to return appropriate resource.
+	 */
+	virtual Vehicle* getResource() { return nullptr; }
 
 	Agent* getParent()
 	{
@@ -254,8 +224,6 @@ public:
 	const std::string name;
 protected:
 	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
-
-	Role* parentRole; ///<The role container which contains this facet. The role container may contain useful information (like current resource) required by this facet.
 
 	//added by xuyan in Role.hpp. Copied here by Harish.
 protected:

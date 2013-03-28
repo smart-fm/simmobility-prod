@@ -19,6 +19,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Node.hpp"
+#include "entities/roles/RoleFacets.hpp"
 
 namespace sim_mob
 {
@@ -57,8 +58,6 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 #endif
 };
 
-
-
 /**
  * A Person in the ActivityPerformer role basically does nothing
  */
@@ -79,27 +78,17 @@ public:
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	sim_mob::DailyTime getActivityEndTime() const;
-	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
-	sim_mob::DailyTime getActivityStartTime() const;
-	void setActivityStartTime(sim_mob::DailyTime activityStartTime);
-	sim_mob::Node* getLocation() const;
-	void setLocation(sim_mob::Node* location);
-	void initializeRemainingTime();
-	void updateRemainingTime();
 
 private:
-	sim_mob::DailyTime activityStartTime;
-	sim_mob::DailyTime activityEndTime;
-	sim_mob::Node* location;
-
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	ActivityPerformerUpdateParams params;
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-};
 
+	friend class ActivityPerformerBehavior;
+	friend class ActivityPerformerMovement;
+};
 
 }

@@ -227,11 +227,11 @@ bool sim_mob::Person::frame_init(timeslice now)
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	curr_params = &currRole->make_frame_tick_params(now);
+	curr_params = &currRole->Behavior()->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
-		currRole->frame_init(*curr_params);
+		currRole->Behavior()->frame_init(*curr_params);
 	}
 
 	return true;
@@ -242,13 +242,13 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	//TODO: Here is where it gets risky.
 	if (!curr_params) {
-		curr_params = &currRole->make_frame_tick_params(now);
+		curr_params = &currRole->Behavior()->make_frame_tick_params(now);
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->frame_tick(*curr_params);
+		currRole->Behavior()->frame_tick(*curr_params);
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -270,7 +270,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		//we have to make adjustments so that it waits for exact amount of time
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
+				sim_mob::ActivityPerformerBehavior *ap = dynamic_cast<sim_mob::ActivityPerformerBehavior *>(currRole->Behavior());
 				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
 				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
 				ap->initializeRemainingTime();
@@ -287,7 +287,7 @@ void sim_mob::Person::frame_output(timeslice now)
 {
 	//Save the output
 	if (!isToBeRemoved()) {
-		currRole->frame_tick_output(*curr_params);
+		currRole->Behavior()->frame_tick_output(*curr_params);
 	}
 
 	//TODO: Still risky.

@@ -546,7 +546,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 		if (Debug::Drivers && !DebugStream.str().empty()) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -1386,7 +1386,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 			}
 		}
 
@@ -1956,7 +1956,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 				if (Debug::Drivers) {
 					if (ConfigParams::GetInstance().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-						SyncCout(DebugStream.str());
+						PrintOut(DebugStream.str());
 					}
 				}
 

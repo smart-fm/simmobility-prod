@@ -2,9 +2,6 @@
 
 #include "Log.hpp"
 
-#include "util/LangHelpers.hpp"
-
-
 using namespace sim_mob;
 
 using std::string;

@@ -12,7 +12,6 @@
 #include "conf/settings/DisableOutput.h"
 
 
-
 #include <vector>
 #include <string>
 
@@ -20,6 +19,9 @@
 
 #include <iostream>
 #include <fstream>
+
+//TEMP: Chain to our new "Log" class.
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 
@@ -76,10 +78,10 @@ private:
 #ifdef SIMMOB_DISABLE_OUTPUT
 
 //Simply destroy this text; no logging; no locking
-#define LogOutNotSync( strm )      DO_NOTHING
+/*#define LogOutNotSync( strm )      DO_NOTHING
 #define LogOut( strm )  DO_NOTHING
 #define SyncCout( strm )  DO_NOTHING
-
+*/
 
 #else
 
@@ -100,12 +102,12 @@ private:
  * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
  * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
-#define LogOutNotSync( strm ) \
+/*#define LogOutNotSync( strm ) \
     do \
     { \
         sim_mob::Logger::log_file() << strm; \
     } \
-    while (0)
+    while (0)*/
 
 /**
  * Write a message to the log file, thread-safe.
@@ -125,13 +127,13 @@ private:
  * an output std::stringstream. However, in this case you should call ConfigParams::GetInstance().OutputEnabled().
  */
  
-#define LogOut( strm ) \
+/*#define LogOut( strm ) \
     do \
     { \
         boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
         sim_mob::Logger::log_file() << strm; \
     } \
-    while (0)
+    while (0)*/
 
 /**
  * Write a message to cout, thread-safe.
@@ -150,13 +152,13 @@ private:
  * (as SIMMOB_DISABLE_OUTPUT exists for performance purposes).
  */
 
-#define SyncCout( strm ) \
+/*#define SyncCout( strm ) \
     do \
     { \
         boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); \
         std::cout << strm; \
     } \
-    while (0)
+    while (0)*/
 
 
 #endif

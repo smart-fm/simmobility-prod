@@ -26,6 +26,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
+#include "util/LangHelpers.hpp"
+
 
 namespace sim_mob {
 
@@ -112,6 +114,12 @@ protected:
 	///  a pointer to std::cout or std::cerr. On error (if the file can't be created), silently
 	///  return a pointer to cout.
 	static std::ostream* OpenStream(const std::string& path, std::ofstream& file);
+
+	//Type of cout.
+	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+
+	//Type of std::endl and some other manipulators.
+	typedef CoutType& (*StandardEndLine)(CoutType&);
 };
 
 
@@ -128,7 +136,7 @@ protected:
  * ...or, if performance is critical:
  *
  *   \code
- *   LogLine("Agent is at: " <<pt <<std::endl);
+ *   LogOut("Agent is at: " <<pt <<std::endl);
  *   \endcode
  *
  * Don't forget to call Log::Init() or Log::Ignore() at the beginning of main().
@@ -150,6 +158,15 @@ public:
 
 	//Multiple calls to Init() *might* work, and the system should default to cout
 	// if Init() has not been called. Either way, you should plan to call Init() once.
+
+    ///Hack to get manipulators (std::endl) to work.
+	///NOTE: I have *no* idea if this is extremely stupid or not. ~Seth
+	Log& operator<<(StandardEndLine manip) {
+		if (log_handle) {
+			manip(*log_handle);
+		}
+		return *this;
+	}
 
 	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
 	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
@@ -194,7 +211,7 @@ private:
  * ...or, if performance is critical:
  *
  *   \code
- *   WarnLine("There was a warning: " <<str <<std::endl);
+ *   WarnOut("There was a warning: " <<str <<std::endl);
  *   \endcode
  *
  * Don't forget to call Warn::Init() or Warn::Ignore() at the beginning of main().
@@ -216,6 +233,15 @@ public:
 
 	//Multiple calls to Init() *might* work, and the system should default to cout
 	// if Init() has not been called. Either way, you should plan to call Init() once.
+
+    ///Hack to get manipulators (std::endl) to work.
+	///NOTE: I have *no* idea if this is extremely stupid or not. ~Seth
+	Warn& operator<<(StandardEndLine manip) {
+		if (log_handle) {
+			manip(*log_handle);
+		}
+		return *this;
+	}
 
 	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
 	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
@@ -260,7 +286,7 @@ private:
  * ...or, if performance is critical:
  *
  *   \code
- *   PrintLine("Simulation is " <<x <<"% done.\n");
+ *   PrintOut("Simulation is " <<x <<"% done.\n");
  *   \endcode
  *
  * Don't forget to call Print::Init() or Print::Ignore() at the beginning of main().
@@ -282,6 +308,15 @@ public:
 
 	//Multiple calls to Init() *might* work, and the system should default to cout
 	// if Init() has not been called. Either way, you should plan to call Init() once.
+
+    ///Hack to get manipulators (std::endl) to work.
+	///NOTE: I have *no* idea if this is extremely stupid or not. ~Seth
+	Print& operator<<(StandardEndLine manip) {
+		if (log_handle) {
+			manip(*log_handle);
+		}
+		return *this;
+	}
 
 	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
 	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
@@ -320,7 +355,64 @@ private:
 // Macros for each StaticLogManager subclass.
 //////////////////////////////////////////////////////////////
 
-//TODO
+#ifdef SIMMOB_DISABLE_OUTPUT
+
+//Simply destroy this text; no logging; no locking
+#define LogOut( strm )  DO_NOTHING
+#define WarnOut( strm )  DO_NOTHING
+#define PrintOut( strm )  DO_NOTHING
+
+
+#else
+
+
+/**
+ * Write a message (statement_list) using "Log() <<statement_list"; Compiles to nothing if output is disabled.
+ *
+ * Usage:
+ *   \code
+ *   //This:
+ *   LogOut("The total cost of " << count << " apples is " << count * unit_price);
+ *
+ *   //Is equivalent to this:
+ *   Log() <<"The total cost of " << count << " apples is " << count * unit_price;
+ *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call Log::IsEnabled().
+ */
+#define LogOut( strm ) \
+    do \
+    { \
+        sim_mob::Log() << strm; \
+    } \
+    while (0)
+
+/**
+ * Exactly the same as LogOut(), but for Warnings.
+ */
+#define WarnOut( strm ) \
+    do \
+    { \
+        sim_mob::Warn() << strm; \
+    } \
+    while (0)
+
+/**
+ * Exactly the same as LogOut(), but for Print statements.
+ */
+#define PrintOut( strm ) \
+    do \
+    { \
+        sim_mob::Print() << strm; \
+    } \
+    while (0)
+
+
+#endif //SIMMOB_DISABLE_OUTPUT
 
 
 
@@ -355,6 +447,5 @@ sim_mob::Print& sim_mob::Print::operator<< (const T& val)
 	}
 	return *this;
 }
-
 
 

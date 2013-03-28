@@ -43,13 +43,13 @@ void sim_mob::PerformanceProfile::init(int threads_, bool measureParallel)
 void sim_mob::PerformanceProfile::startMeasure()
 {
 	start_measure = true;
-	SyncCout("start_measure is true" <<std::endl);
+	PrintOut("start_measure is true" <<std::endl);
 }
 
 void sim_mob::PerformanceProfile::endMeasure()
 {
 	start_measure = false;
-	SyncCout("start_measure is false" <<std::endl);
+	PrintOut("start_measure is false" <<std::endl);
 }
 
 

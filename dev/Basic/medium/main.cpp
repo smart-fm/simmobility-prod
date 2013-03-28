@@ -121,6 +121,20 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 #ifdef SIMMOB_USE_CONFLUXES
 	std::cout << "Confluxes ON!" << std::endl;
 #endif
@@ -151,17 +165,6 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
-
-	//Enable or disable logging (all together, for now).
-	if (config.OutputEnabled()) {
-		Log::Init("out.txt");
-		Warn::Init("warn.log");
-		Print::Init("<stdout>");
-	} else {
-		Log::Ignore();
-		Warn::Ignore();
-		Print::Ignore();
-	}
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -256,7 +259,7 @@ bool performMainMed(const std::string& configFileName) {
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
-			SyncCout(msg.str());
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)

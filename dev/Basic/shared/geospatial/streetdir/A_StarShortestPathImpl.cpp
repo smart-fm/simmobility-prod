@@ -1477,7 +1477,7 @@ void sim_mob::A_StarShortestPathImpl::printWalkingGraph() const
 void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
 	//Print an identifier
-	LogOutNotSync("(\"sd-graph\""
+	LogOut("(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
@@ -1492,7 +1492,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
     	const Point2D pt = boost::get(boost::vertex_name, graph, v);
-    	LogOutNotSync("(\"sd-vertex\""
+    	LogOut("(\"sd-vertex\""
     		<<","<<0
     		<<","<<v
     		<<",{"
@@ -1513,7 +1513,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     	StreetDirectory::Edge ed = *iter;
     	StreetDirectory::Vertex srcV = boost::source(ed, graph);
     	StreetDirectory::Vertex destV = boost::target(ed, graph);
-    	LogOutNotSync("(\"sd-edge\""
+    	LogOut("(\"sd-edge\""
     		<<","<<0
     		<<","<<id++
     		<<",{"

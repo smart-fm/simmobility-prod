@@ -165,7 +165,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	}
 	else
 	{
-		SyncCout("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
+		PrintOut("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
 	}
 }
 
@@ -485,7 +485,7 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	}
 
 	if( !minQueueLengthLane){
-		SyncCout("ERROR: best target lane was not set!" <<std::endl);
+		PrintOut("ERROR: best target lane was not set!" <<std::endl);
 	}
 	return minQueueLengthLane;
 }
@@ -522,7 +522,7 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 			}
 		}
 

@@ -37,10 +37,10 @@ namespace sim_mob {
  * \author Seth N. Hetu
  *
  * The general usage pattern for this class is as follows. We use the subclass "Warn"
- *   as an example, since Log() cannot be used directly.
+ *   as an example, since StaticLogManager() cannot be used directly.
  *
  *   \code
- *   //Do this once for each subclass of Log, at the top of Main:
+ *   //Do this once for each subclass of StaticLogManager, at the top of Main:
  *   if ( someConfigCheck() ) { //Should logging be enabled?
  *     Warn::Init("warnings.log")
  *   } else {
@@ -52,7 +52,7 @@ namespace sim_mob {
  *   Warn() <<"Using a newline instead of endl is fine too.\n";
  *
  *   //Do this once, at the end of Main:
- *   Log::Done();
+ *   //StaticLogManager::Done();  //NOTE: This is not needed any more.
  *   \endcode
  *
  * If Init() or Ignore() have not been called on a particular subclass, a default, non-synchronized stream
@@ -62,30 +62,30 @@ namespace sim_mob {
  * such as Warn::IsEnabled() can be used to check if logging on a particular subclass has been Ignored.
  *
  * Once Init() has been called with reasonable input (either a file name or "<stdout>" or "<stderr>" to
- * redirect to the standard streams), then the Log subclasses function as follows. First, a mutex is
- * seized during construction of the temporary Log object. Calls to operator<< are redirected to
- * the stream's operator of the same name. Finally, when the Log temporary is destructed, the output
+ * redirect to the standard streams), then the StaticLogManager subclasses function as follows. First, a mutex is
+ * seized during construction of the temporary StaticLogManager object. Calls to operator<< are redirected to
+ * the stream's operator of the same name. Finally, when the StaticLogManager temporary is destructed, the output
  * buffer is flushed and the mutex is released.
  *
- * It is functionally possible to create a Log object that does not lock, but this is considered useless,
+ * It is functionally possible to create a StaticLogManager object that does not lock, but this is considered useless,
  * since the user would have to know that locking is not required to use that function, and mutexes which
  * are only seized by one entity incur almost no overhead. If overhead is a proble, it is likely that one
  * actually intended to disable output entirely anyway.
  *
- * Logs which access the same stream are locked with the same mutex. As a result, it is not currently
+ * StaticLogManagers which access the same stream are locked with the same mutex. As a result, it is not currently
  * possible to change the log location at runtime (calling Init() multiple times is risky, although it
  * is not explicitly wrong).
  *
  * \note
- * The Log class provides only basic (static) functionality; you should use objects of its subclass
+ * The StaticLogManager class provides only basic (static) functionality; you should use objects of its subclass
  * to accomplish your logging needs. Note that all subclasses should inherit \b privately, to
- * prevent the possibility of calling Log::Done() from a subclass.
+ * prevent the possibility of calling StaticLogManager::Done() from a subclass.
  */
-class Log : private boost::noncopyable {
+class StaticLogManager : private boost::noncopyable {
 public:
 	/**
 	 * Informs the Logging subsystem that all logging has completed, and all mutexes should be destroyed.
-	 * Any calls to logging functions after this point will likely throw exceptions, as the Log subclasses
+	 * Any calls to logging functions after this point will likely throw exceptions, as the StaticLogManager subclasses
 	 * will still be holding a (now invalid) pointer to the mutex.
 	 *
 	 * \note
@@ -116,53 +116,54 @@ protected:
 
 
 /**
- * Logging functionality for Warnings. See the Log class for general details about how logging works.
+ * Logging functionality for "Log" items. See the StaticLogManager class for general details about how logging works.
+ * An "Log" item usually includes simulation output.
  *
  * To be used like so:
  *
  *   \code
- *   Warn() <<"There was a warning: " <<str <<std::endl;
+ *   Log() <<"Agent is at: " <<pt <<std::endl;
  *   \endcode
  *
  * ...or, if performance is critical:
  *
  *   \code
- *   WarnLine("There was a warning: " <<str <<std::endl);
+ *   LogLine("Agent is at: " <<pt <<std::endl);
  *   \endcode
  *
- * Don't forget to call Warn::Init() at the beginning of main(), and Log::Done() at the end.
+ * Don't forget to call Log::Init() or Log::Ignore() at the beginning of main().
  */
-class Warn : private Log {
+class Log : private StaticLogManager {
 public:
-	///Construct a new Warn() object. It is best to use this object immediately, by chaining to calls of operator<<.
-	Warn();
+	///Construct a new Log() object. It is best to use this object immediately, by chaining to calls of operator<<.
+	Log();
 
-	///Destroy a Warn() object. Logging is mutually exclusive on a given output stream until the Warn object
+	///Destroy a Log() object. Logging is mutually exclusive on a given output stream until the Warn object
 	/// has been destroyed.
-	~Warn();
+	~Log();
 
 	///Log a given item; this simply forwards the call to operator<< of the given logger.
 	///NOTE: I am assuming that return-by-reference keeps the object alive until all chained
 	///      operator<<'s are done. Should check the standard on this. ~Seth
 	template <typename T>
-	Warn& operator<< (const T& val);
+	Log& operator<< (const T& val);
 
 	//Multiple calls to Init() *might* work, and the system should default to cout
 	// if Init() has not been called. Either way, you should plan to call Init() once.
 
-	///Ininitialize this Log subclass. If "path" is "<stdout>" or "<stderr>", then bind to
+	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
 	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
 	///On failure, bind to std::cout.
 	static void Init(const std::string& path);
 
-	///Disable logging for this Log subclass.
+	///Disable logging for this StaticLogManager subclass.
 	static void Ignore();
 
-	///Is this Log subclass enabled for writing? If not, calls to operator<< will be ignored.
+	///Is this StaticLogManager subclass enabled for writing? If not, calls to operator<< will be ignored.
 	static bool IsEnabled();
 
 private:
-	///A pointer to the mutex (managed in Log::stream_locks) used for locking the output stream.
+	///A pointer to the mutex (managed in StaticLogManager::stream_locks) used for locking the output stream.
 	static boost::shared_ptr<boost::mutex> log_mutex;
 
 	///Where to send logging events. May point to std::cout, std::cerr,
@@ -180,12 +181,143 @@ private:
 
 
 
+/**
+ * Logging functionality for Warnings. See the StaticLogManager class for general details about how logging works.
+ * A "Warn" item includes non-fatal items that may threaten the validity of the simulation (but will not cause it to crash).
+ *
+ * To be used like so:
+ *
+ *   \code
+ *   Warn() <<"There was a warning: " <<str <<std::endl;
+ *   \endcode
+ *
+ * ...or, if performance is critical:
+ *
+ *   \code
+ *   WarnLine("There was a warning: " <<str <<std::endl);
+ *   \endcode
+ *
+ * Don't forget to call Warn::Init() or Warn::Ignore() at the beginning of main().
+ */
+class Warn : private StaticLogManager {
+public:
+	///Construct a new Warn() object. It is best to use this object immediately, by chaining to calls of operator<<.
+	Warn();
+
+	///Destroy a Warn() object. Logging is mutually exclusive on a given output stream until the Warn object
+	/// has been destroyed.
+	~Warn();
+
+	///Log a given item; this simply forwards the call to operator<< of the given logger.
+	///NOTE: I am assuming that return-by-reference keeps the object alive until all chained
+	///      operator<<'s are done. Should check the standard on this. ~Seth
+	template <typename T>
+	Warn& operator<< (const T& val);
+
+	//Multiple calls to Init() *might* work, and the system should default to cout
+	// if Init() has not been called. Either way, you should plan to call Init() once.
+
+	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
+	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
+	///On failure, bind to std::cout.
+	static void Init(const std::string& path);
+
+	///Disable logging for this StaticLogManager subclass.
+	static void Ignore();
+
+	///Is this StaticLogManager subclass enabled for writing? If not, calls to operator<< will be ignored.
+	static bool IsEnabled();
+
+private:
+	///A pointer to the mutex (managed in StaticLogManager::stream_locks) used for locking the output stream.
+	static boost::shared_ptr<boost::mutex> log_mutex;
+
+	///Where to send logging events. May point to std::cout, std::cerr,
+	/// or a file stream located in a subclass.
+	static std::ostream* log_handle;
+
+	///The actual file used for logging. If stdout or stderr are used for logging, this
+	/// file will be un-opened. After main() terminates, this file will be destroyed and
+	/// closed automatically.
+	static std::ofstream log_file;
+
+	///A scoped lock on the log_mutex. May be null, in which case output is not locked.
+	boost::mutex::scoped_lock* local_lock;
+};
+
+
+/**
+ * Logging functionality for Printed output. See the StaticLogManager class for general details about how logging works.
+ * A "Print" item includes console (cout) output, and is used to inform the user of the state of the simulation.
+ * This should (almost always) point to cout.
+ *
+ * To be used like so:
+ *
+ *   \code
+ *   Print() <<"Simulation is " <<x <<"% done.\n";
+ *   \endcode
+ *
+ * ...or, if performance is critical:
+ *
+ *   \code
+ *   PrintLine("Simulation is " <<x <<"% done.\n");
+ *   \endcode
+ *
+ * Don't forget to call Print::Init() or Print::Ignore() at the beginning of main().
+ */
+class Print : private StaticLogManager {
+public:
+	///Construct a new Print() object. It is best to use this object immediately, by chaining to calls of operator<<.
+	Print();
+
+	///Destroy a Print() object. Logging is mutually exclusive on a given output stream until the Warn object
+	/// has been destroyed.
+	~Print();
+
+	///Log a given item; this simply forwards the call to operator<< of the given logger.
+	///NOTE: I am assuming that return-by-reference keeps the object alive until all chained
+	///      operator<<'s are done. Should check the standard on this. ~Seth
+	template <typename T>
+	Print& operator<< (const T& val);
+
+	//Multiple calls to Init() *might* work, and the system should default to cout
+	// if Init() has not been called. Either way, you should plan to call Init() once.
+
+	///Ininitialize this StaticLogManager subclass. If "path" is "<stdout>" or "<stderr>", then bind to
+	///std::cout or std::cerr. Else, attempt to open the file pointed to by "path".
+	///On failure, bind to std::cout.
+	static void Init(const std::string& path);
+
+	///Disable logging for this StaticLogManager subclass.
+	static void Ignore();
+
+	///Is this StaticLogManager subclass enabled for writing? If not, calls to operator<< will be ignored.
+	static bool IsEnabled();
+
+private:
+	///A pointer to the mutex (managed in StaticLogManager::stream_locks) used for locking the output stream.
+	static boost::shared_ptr<boost::mutex> log_mutex;
+
+	///Where to send logging events. May point to std::cout, std::cerr,
+	/// or a file stream located in a subclass.
+	static std::ostream* log_handle;
+
+	///The actual file used for logging. If stdout or stderr are used for logging, this
+	/// file will be un-opened. After main() terminates, this file will be destroyed and
+	/// closed automatically.
+	static std::ofstream log_file;
+
+	///A scoped lock on the log_mutex. May be null, in which case output is not locked.
+	boost::mutex::scoped_lock* local_lock;
+};
+
+
 } //End sim_mob namespace
 
 
 
 //////////////////////////////////////////////////////////////
-// Macros for each Log subclass.
+// Macros for each StaticLogManager subclass.
 //////////////////////////////////////////////////////////////
 
 //TODO
@@ -198,7 +330,25 @@ private:
 //////////////////////////////////////////////////////////////
 
 template <typename T>
+sim_mob::Log& sim_mob::Log::operator<< (const T& val)
+{
+	if (log_handle) {
+		(*log_handle) <<val;
+	}
+	return *this;
+}
+
+template <typename T>
 sim_mob::Warn& sim_mob::Warn::operator<< (const T& val)
+{
+	if (log_handle) {
+		(*log_handle) <<val;
+	}
+	return *this;
+}
+
+template <typename T>
+sim_mob::Print& sim_mob::Print::operator<< (const T& val)
 {
 	if (log_handle) {
 		(*log_handle) <<val;

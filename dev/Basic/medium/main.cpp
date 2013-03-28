@@ -152,6 +152,16 @@ bool performMainMed(const std::string& configFileName) {
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
+	//Enable or disable logging (all together, for now).
+	if (config.OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI

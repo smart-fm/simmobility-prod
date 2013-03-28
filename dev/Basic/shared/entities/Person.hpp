@@ -50,6 +50,9 @@ public:
 	void initTripChain();
 
 
+	//Person objects are spatial in nature
+	virtual bool isNonspatial() { return false; }
+
 	//Update Person behavior (old)
 	//virtual Entity::UpdateStatus update(timeslice now);
 

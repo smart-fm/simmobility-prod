@@ -1,8 +1,8 @@
 =begin
 ** Form generated from reading ui file 'mainwindow.ui'
 **
-** Created: Mon May 7 15:52:39 2012
-**      by: Qt User Interface Compiler version 4.7.4
+** Created: Tue Mar 12 14:16:56 2013
+**      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
 =end
@@ -20,6 +20,7 @@ class Ui_Main_window
     attr_reader :viewGeneral
     attr_reader :viewCreateDestroy
     attr_reader :viewUpdates
+    attr_reader :viewWorkers
     attr_reader :agTicksCmb
     attr_reader :horizontalSpacer
     attr_reader :menubar
@@ -70,6 +71,12 @@ class Ui_Main_window
 
     @horizontalLayout.addWidget(@viewUpdates)
 
+    @viewWorkers = Qt::PushButton.new(@centralwidget)
+    @viewWorkers.objectName = "viewWorkers"
+    @viewWorkers.checkable = true
+
+    @horizontalLayout.addWidget(@viewWorkers)
+
     @agTicksCmb = Qt::ComboBox.new(@centralwidget)
     @agTicksCmb.objectName = "agTicksCmb"
     @agTicksCmb.enabled = false
@@ -86,7 +93,7 @@ class Ui_Main_window
     main_window.centralWidget = @centralwidget
     @menubar = Qt::MenuBar.new(main_window)
     @menubar.objectName = "menubar"
-    @menubar.geometry = Qt::Rect.new(0, 0, 741, 26)
+    @menubar.geometry = Qt::Rect.new(0, 0, 741, 25)
     @menuFile = Qt::Menu.new(@menubar)
     @menuFile.objectName = "menuFile"
     main_window.setMenuBar(@menubar)
@@ -112,9 +119,10 @@ class Ui_Main_window
     main_window.windowTitle = Qt::Application.translate("main_window", "Agent Concurrency Checker", nil, Qt::Application::UnicodeUTF8)
     @menuOpenTraceFile.text = Qt::Application.translate("main_window", "Open Trace File", nil, Qt::Application::UnicodeUTF8)
     @menuItemQuit.text = Qt::Application.translate("main_window", "Quit", nil, Qt::Application::UnicodeUTF8)
-    @viewGeneral.text = Qt::Application.translate("main_window", "Show Generic Messages", nil, Qt::Application::UnicodeUTF8)
-    @viewCreateDestroy.text = Qt::Application.translate("main_window", "Show Create/Destroy", nil, Qt::Application::UnicodeUTF8)
-    @viewUpdates.text = Qt::Application.translate("main_window", "Show Agent Updates", nil, Qt::Application::UnicodeUTF8)
+    @viewGeneral.text = Qt::Application.translate("main_window", "Generic Messages", nil, Qt::Application::UnicodeUTF8)
+    @viewCreateDestroy.text = Qt::Application.translate("main_window", "Create/Destroy", nil, Qt::Application::UnicodeUTF8)
+    @viewUpdates.text = Qt::Application.translate("main_window", "Agent Updates", nil, Qt::Application::UnicodeUTF8)
+    @viewWorkers.text = Qt::Application.translate("main_window", "Worker Updates", nil, Qt::Application::UnicodeUTF8)
     @agTicksCmb.insertItems(0, [Qt::Application.translate("main_window", "(Update Ticks)", nil, Qt::Application::UnicodeUTF8)])
     @menuFile.title = Qt::Application.translate("main_window", "File", nil, Qt::Application::UnicodeUTF8)
     end # retranslateUi

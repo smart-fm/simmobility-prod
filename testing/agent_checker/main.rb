@@ -1,5 +1,5 @@
 require 'Qt4'
-require 'mainwindow_ui'
+require_relative 'mainwindow_ui'
 
 #Determines how many ticks we load in at once when viewing agent updates.
 # Anything much over 500 will probably hang the system.
@@ -89,10 +89,14 @@ end
 
 class Worker
   attr_reader   :workerID
+  attr_accessor :minStartTime
+  attr_accessor :maxEndTime
   attr_accessor :agentUpdates
 
   def initialize(id)
     @workerID = id
+    @minStartTime = nil   #A Worker's min/max start/end time can extend past its Agents' updates, but Agents cannot go outside these bounds.
+    @maxEndTime = nil
     @agentUpdates = {}  #agentID => AgentUpdate
   end
 end
@@ -343,6 +347,50 @@ class GenericMessageItem < Qt::GraphicsItem
 end
 
 
+#Update of a Worker, but in absolute time coordinates.
+class WorkerRealTimeItem < Qt::GraphicsItem
+  @@SecondsW =  1000*10  #1 second is X pixels
+  @@SecondsH =  40    #Each agent (recorded in seconds) is X pixels in height
+  def self.getSecondsW()
+    return @@SecondsW
+  end
+  def self.getSecondsH()
+    return @@SecondsH
+  end
+
+  def initialize(tick, worker, minTime, workerRow)
+    super()
+
+    @worker = worker.workerID  #TODO: Display this.
+    @caption = "#{tick.tickID}"
+    @color = Qt::Color.new(0x50, 0x70, 0xB0)
+
+    #Convert start/end times to offsets (s)
+    @startTime = time_diff_ms(minTime, worker.minStartTime)
+    @liveDuration = time_diff_ms(worker.minStartTime, worker.maxEndTime)
+
+    #Set its initial position
+    setPos((@startTime*@@SecondsW)/1000, workerRow*@@SecondsH)
+  end
+
+  def boundingRect()
+    #Local (0,0) is centered on the start time
+    return Qt::RectF.new(0, 0, (@liveDuration*@@SecondsW)/1000, @@SecondsH)
+  end
+
+  def paint(painter, option, widget)
+    painter.brush = Qt::Brush.new(@color)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x33, 0x33, 0x33))
+    painter.drawRoundedRect(boundingRect(), 5, 5)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x00, 0x00, 0x00))
+    painter.font = Qt::Font.new("Arial", 12)
+    painter.drawText(5, 5+painter.fontMetrics.ascent(), @caption)
+  end
+
+end
+
 
 
 #A custom MainWindow class for holding all our components.
@@ -366,6 +414,7 @@ class MyWindow < Qt::MainWindow
     @toolbarGroup.addButton(@ui.viewCreateDestroy)
     @toolbarGroup.addButton(@ui.viewUpdates)
     @toolbarGroup.addButton(@ui.viewGeneral)
+    @toolbarGroup.addButton(@ui.viewWorkers)
 
     #More component/variable initialization
     @ui.fileProgress.setVisible(false)
@@ -412,6 +461,10 @@ class MyWindow < Qt::MainWindow
       dispatch_startupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
     elsif type=="update-end"
       dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
+    elsif type=="worker-update-begin"
+      dispatch_worker_startupdate(timeticks, properties, time, knownWorkerIDs)
+    elsif type=="worker-update-end"
+      dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)
     elsif type=="generic-start"
       dispatch_generic_start(generics, properties, time)
     elsif type=="generic-end"
@@ -459,8 +512,7 @@ class MyWindow < Qt::MainWindow
 
     #Update minTime
     time = agents[agID].constTime
-    @minStartTime = time unless @minStartTime
-    @minStartTime = time if time < @minStartTime
+    @minStartTime = [time, @minStartTime].compact.min
   end
 
   def dispatch_destruction(agents, properties, agID, time)
@@ -484,6 +536,10 @@ class MyWindow < Qt::MainWindow
     raise "Double-startup on Agent: #{agID}" if worker.agentUpdates.has_key? agID
     worker.agentUpdates[agID] = AgentUpdate.new(agents[agID])
     worker.agentUpdates[agID].updateStartTime = time
+
+    #Update the Worker's time boundaries too.
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
@@ -494,6 +550,25 @@ class MyWindow < Qt::MainWindow
     #Update agent
     raise "Non-existent Agent Update for Agent: #{agID}" unless worker.agentUpdates.has_key? agID
     worker.agentUpdates[agID].updateEndTime = time
+
+    #Update the Worker's time boundaries too.
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
+  end
+
+  def dispatch_worker_startupdate(timeticks, properties, time, knownWorkerIDs)
+    time = parse_time(time)
+    worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
+    @minStartTime = [time, @minStartTime].compact.min
+  end
+
+  def dispatch_worker_endupdate(timeticks, properties, time, knownWorkerIDs)
+    time = parse_time(time)
+    worker = create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
+    worker.minStartTime = [time, worker.minStartTime].compact.min
+    worker.maxEndTime = [time, worker.maxEndTime].compact.max
   end
 
   def create_path_to_worker_and_update_bounds(properties, timeticks, time, knownWorkerIDs)
@@ -506,10 +581,8 @@ class MyWindow < Qt::MainWindow
     #Expand the bounds of the timetick (also, add it)
     timeticks[tick] = FrameTick.new(tick) unless timeticks.has_key? tick
     tick = timeticks[tick]
-    tick.minStartTime = time unless tick.minStartTime
-    tick.minStartTime = [time, tick.minStartTime].min
-    tick.maxEndTime = time unless tick.maxEndTime
-    tick.maxEndTime = [time, tick.maxEndTime].max
+    tick.minStartTime = [time, tick.minStartTime].compact.min
+    tick.maxEndTime = [time, tick.maxEndTime].compact.max
 
     #Add worker, return
     tick.workers[worker] = Worker.new(worker) unless tick.workers.has_key? worker
@@ -627,6 +700,11 @@ class MyWindow < Qt::MainWindow
       end
     elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
       make_generic_objects() if @simRes
+    elsif @toolbarGroup.checkedButton() == @ui.viewWorkers
+      if @simRes
+        @ui.agTicksCmb.enabled = true
+        make_worker_update_objects()
+      end
     end
 
     #Take the focus, for key events
@@ -649,6 +727,12 @@ class MyWindow < Qt::MainWindow
       end
     elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
       #Nothing to update
+    elsif @toolbarGroup.checkedButton() == @ui.viewWorkers
+      if @simRes
+        @scene = Qt::GraphicsScene.new()
+        @ui.agViewCanvas.scene = @scene
+        make_worker_update_objects()
+      end
     end
   end
 
@@ -682,6 +766,9 @@ class MyWindow < Qt::MainWindow
       }
       currRow += 1
     }
+
+    #"No data" is still valid.
+    return unless @maxEndTime
 
     #Add seconds markers
     (0...(@maxEndTime-@minGenericTime)).step(1){|secs|
@@ -726,6 +813,9 @@ class MyWindow < Qt::MainWindow
       end
     }
 
+    #"No data" is still valid.
+    return unless @maxEndTime
+
     #Add seconds markers
     (0...(@maxEndTime-@minStartTime)).step(5){|secs|
       xPos = secs*AgentLifecycleItem.getSecondsW
@@ -763,11 +853,12 @@ class MyWindow < Qt::MainWindow
 
       workerRow = 0
       @simRes.knownWorkerIDs.each{|workerID|
-        next unless tick.workers.has_key? workerID #Some ticks don't perform any processing
-        worker = tick.workers[workerID]
-        wrk = WorkerFrameTickItem.new(tick, worker, @minStartTime, tickColumn, workerRow)
-        @miscDrawings.push(wrk)
-        @ui.agViewCanvas.scene().addItem(wrk)
+        if tick.workers.has_key? workerID #Some ticks don't perform any processing
+          worker = tick.workers[workerID]
+          wrk = WorkerFrameTickItem.new(tick, worker, @minStartTime, tickColumn, workerRow)
+          @miscDrawings.push(wrk)
+          @ui.agViewCanvas.scene().addItem(wrk)
+        end
 
         workerRow += 1
       }
@@ -776,6 +867,44 @@ class MyWindow < Qt::MainWindow
     puts 'Tick update objects added.'
 
     #Step 2: TODO: For each Agent, if there's an Exception, add a dotted red box around the potential area.
+  end
+
+
+  #Create timing updates *specifically* for Worker threads.
+  def make_worker_update_objects()
+    @miscDrawings = []
+
+    #Determine our min/max ticks. This is a little hackish at the moment, since 
+    # it seems QtRuby doesn't preserve the "userData" field of "addItem"
+    return unless m = @ui.agTicksCmb.currentText.match(/[(]([0-9]+)[-]+([0-9]+)[)]/)
+    minVal = m[1]
+    maxVal = m[2]
+
+    #Figure out the minimum *time* from the minimium tick value.
+    minTime = nil
+    tempTick = @simRes.ticks[minVal.to_s]
+    @simRes.knownWorkerIDs.each{|workerID|
+      next unless tempTick.workers.has_key? workerID
+      minTime = [minTime, tempTick.workers[workerID].minStartTime].compact.min
+    }
+
+    #Now, we need to create objects which show *absolute* time, unlike the other visualizations which only show relative time.
+    (minVal..maxVal).each {|tickI|
+      tick = @simRes.ticks[tickI.to_s]
+
+      workerRow = 0
+      @simRes.knownWorkerIDs.each{|workerID|
+        if tick.workers.has_key? workerID #Some ticks don't perform any processing
+          worker = tick.workers[workerID]
+          wrk = WorkerRealTimeItem.new(tick, worker, minTime, workerRow)
+          @miscDrawings.push(wrk)
+          @ui.agViewCanvas.scene().addItem(wrk)
+        end
+
+        workerRow += 1
+      }
+    }
+    puts 'Worker real-time update objects added.'
   end
 
 

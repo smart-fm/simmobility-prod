@@ -74,6 +74,9 @@ option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 #Option: Our new (new) XML classes. This option will disappear as soon as possible.
 #option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
 
+#String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
+set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
+
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
 
@@ -86,8 +89,13 @@ option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code seg
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
 
-#Option: generate parallel profile. Use the cmake gui to change this on a per-user basis.
-option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+#Option: profiling flags. Use the cmake gui to change this on a per-user basis.
+option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
+option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
+
+#Option: interactive mode flag (for the GUI)
+option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)
@@ -226,6 +234,10 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
+#Find boost-regex
+find_package(Boost COMPONENTS regex REQUIRED)
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
@@ -247,6 +259,11 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
   MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+
+#Real-time library needed for "clock_gettime"
+IF (${SIMMOB_PROFILE_ON} MATCHES "ON")
+  LIST(APPEND LibraryList "rt")
+ENDIF (${SIMMOB_PROFILE_ON} MATCHES "ON")
 
 
 #Remove duplicates, just in case

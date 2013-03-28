@@ -7,12 +7,17 @@
 #   ./permute.rb in.txt >all_trips.txt
 #   #Manually convert all_trips.txt into all_trips.xml
 #   ./SimMobility all_trips.xml /dev/null >blacklist.txt
-#   ./generate.rb all_trips.txt blacklist.txt 4000 8:00 10:00 0
+#   ./generate.rb all_trips.txt blacklist.txt 4000 8:30 9:00 0
 #
 #Arguments after "blacklist" are:
 #    1) Number of Agents to generate
 #    2,3) Start time, end time of Agent trip generation (note: for now, start time must be the same as the simulation's start time)
 #    4) Random seed (optional, uses current system time otherwise)
+#
+#Files:
+#   in.txt => normal sim mobility output file (normally called out.txt)
+#   all_trips.txt => This is a generated file; it will contain a <drivers> section, which can be copied verbatim over the <drivers> section
+#                    in the current config file (e.g., test_road_network.xml)
 
 
 class Trip
@@ -64,8 +69,8 @@ def run_main()
 
   #Stop early?
   if blacklist.empty?
-    puts 'Empty blacklist file.'
-    return
+    puts 'Note: Empty blacklist file.'
+    #return
   end
 
   #Build our list of allowed routes, skipping blacklisted entry.

@@ -15,19 +15,23 @@
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
 
-//Needed for ActionFunction
-#include "workers/Worker.hpp"
-
 
 namespace sim_mob
 {
 
+class RoadSegment;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class Agent;
+class Person;
+class Entity;
 class PartitionManager;
 class AuraManager;
 class Conflux;
+class Worker;
+
+
+
 
 /*
  * Worker wrapper, similar to thread_group but using barriers.
@@ -42,6 +46,18 @@ class Conflux;
  */
 class WorkGroup {
 public:  //Static methods
+
+	/**
+	 * Type of Worker assignment strategy. Determines how a newly-dispatched Agent
+	 * will be distributed among the various Worker threads.
+	 */
+	enum ASSIGNMENT_STRATEGY {
+		ASSIGN_ROUNDROBIN,  ///< Assign an Agent to Worker 1, then Worker 2, etc.
+		ASSIGN_SMALLEST,    ///< Assign an Agent to the Worker with the smallest number of Agents.
+		//TODO: Something like "ASSIGN_TIMEBASED", based on actual time tick length.
+	};
+
+
 
 	/**
 	 * Create a new WorkGroup and start tracking it. All WorkGroups must be created using this method so that their
@@ -77,6 +93,7 @@ public:  //Static methods
 	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
 	///  for the next simulation.
 	static void FinalizeAllWorkGroups();
+	void clear();
 
 
 private: //Static fields
@@ -129,6 +146,7 @@ public:
 	void stageEntities();
 	void collectRemovedEntities();
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
+	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorker(Entity* ag);
 
@@ -212,7 +230,9 @@ private:
 	boost::barrier* macro_tick_barr;
 
 public:
+	//Temp
 	std::stringstream debugMsg;
+
 };
 
 

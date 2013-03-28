@@ -556,8 +556,18 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 								vehicle->getY(),
 								rs->getStart()->location.getX(),
 								rs->getStart()->location.getY());
-						distance = stopPoint
-								- vehicle->getDistanceMovedInSegment();
+//						distance = stopPoint
+//								- vehicle->getDistanceMovedInSegment();
+						// Buses not stopping near the busstop at few places.
+						// one easy way to fix it
+						double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
+
+						std::cout<<vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
+
+						distance = actualDistance
+								- BusDistfromStart.getMagnitude();
+
+
 						break;
 
 					}

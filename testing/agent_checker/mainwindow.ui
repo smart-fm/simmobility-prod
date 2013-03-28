@@ -30,7 +30,7 @@
       <item>
        <widget class="QPushButton" name="viewGeneral">
         <property name="text">
-         <string>Show Generic Messages</string>
+         <string>Generic Messages</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -40,7 +40,7 @@
       <item>
        <widget class="QPushButton" name="viewCreateDestroy">
         <property name="text">
-         <string>Show Create/Destroy</string>
+         <string>Create/Destroy</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -50,7 +50,17 @@
       <item>
        <widget class="QPushButton" name="viewUpdates">
         <property name="text">
-         <string>Show Agent Updates</string>
+         <string>Agent Updates</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="viewWorkers">
+        <property name="text">
+         <string>Worker Updates</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -92,7 +102,7 @@
      <x>0</x>
      <y>0</y>
      <width>741</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

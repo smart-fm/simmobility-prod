@@ -1,0 +1,3 @@
+#NOTE: Do NOT delete this file; it is used to add an "empty" Debug/Release directory to the sim mobility project, 
+#      so that our CMake targets from within Eclipse don't complain.
+*

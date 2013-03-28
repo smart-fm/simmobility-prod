@@ -56,7 +56,6 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
-//#include "../short/xmlWriter/xmlWriter.hpp"
 
 using std::cout;
 using std::endl;
@@ -926,6 +925,20 @@ void PrintDB_Network_ptrBased()
 		}
 		LogOutNotSync("})" <<endl);
 
+		//
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"uni-node\", 0, " <<*it <<", {";
+			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+			stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
+			if (!(*it)->originalDB_ID.getLogItem().empty()) {
+				stream<<(*it)->originalDB_ID.getLogItem();
+					}
+			stream<<"})";
+			std::string s=stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
+
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
 		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
@@ -941,6 +954,19 @@ void PrintDB_Network_ptrBased()
 			LogOutNotSync((*it)->originalDB_ID.getLogItem());
 		}
 		LogOutNotSync("})" <<endl);
+
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"multi-node\", 0, " <<*it <<", {";
+			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+			stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
+			if (!(*it)->originalDB_ID.getLogItem().empty()) {
+				stream<<(*it)->originalDB_ID.getLogItem();
+					}
+			stream<<"})";
+			std::string s=stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -979,8 +1005,23 @@ void PrintDB_Network_ptrBased()
 		}
 		LogOutNotSync("]\",");*/
 		LogOutNotSync("})" <<endl);
-	}
 
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"link\", 0, " <<*it <<", {";
+			stream<<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+			stream<<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+			stream<<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+			stream<<"\"fwd-path\":\"[";
+			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
+				stream<<*segIt <<",";
+			}
+			stream<<"]\",";
+			stream<<"})";
+			std::string s=stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
+	}
 
 	//Now print all Segments
 	std::set<const Crossing*,Sorter> cachedCrossings;
@@ -1009,6 +1050,36 @@ void PrintDB_Network_ptrBased()
 			LogOutNotSync("})" <<endl);
 		}
 
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"road-segment\", 0, " <<*it <<", {";
+			stream<<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
+			stream<<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
+			stream<<"\"width\":\"" <<(*it)->width <<"\",";
+			stream<<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+			stream<<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
+			stream<<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
+			if (!(*it)->originalDB_ID.getLogItem().empty()) {
+				stream<<(*it)->originalDB_ID.getLogItem();
+			}
+			stream<<"})";
+			std::string s1=stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s1);
+
+			std::ostringstream stream2;
+			if (!(*it)->polyline.empty()) {
+				stream2<<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+				stream2<<"\"parent-segment\":\"" <<*it <<"\",";
+				stream2<<"\"points\":\"[";
+				for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
+					stream2<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+				}
+				stream2<<"]\",";
+				stream2<<"})";
+			}
+			std::string ss=stream2.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(ss);
+		}
 
 		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
 		for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); ++obsIt) {
@@ -1054,8 +1125,30 @@ void PrintDB_Network_ptrBased()
 
 		}
 
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::stringstream stream1;
+			stream1 <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
+			stream1 <<"\"parent-segment\":\"" <<*it <<"\",";
+			for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
+				const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
+				stream1 <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
+				for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
+					stream1 <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+				}
+				stream1 <<"]\",";
+
+				if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
+					stream1 <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+				}
+			}
+			stream1<<"})";
+			string s = stream1.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
+
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
+
 	}
 
 	//Crossings are part of Segments
@@ -1066,6 +1159,18 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
 		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
 		LogOutNotSync("})" <<endl);
+
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"crossing\", 0, " <<*it <<", {";
+			stream<<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
+			stream<<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
+			stream<<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
+			stream<<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
+			stream<<"})";
+			string s = stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
 	}
 
 	//Bus Stops are part of Segments
@@ -1094,6 +1199,18 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
 		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
 		LogOutNotSync("})" <<endl);
+
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"busstop\", 0, " <<*it <<", {";
+			stream<<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
+			stream<<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
+			stream<<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
+			stream<<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
+			stream<<"})";
+			string s = stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
 	}
 
 
@@ -1112,6 +1229,23 @@ void PrintDB_Network_ptrBased()
 		LogOutNotSync("\"to-segment\":\"" <<toSeg <<"\",");
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
+
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			std::ostringstream stream;
+			stream<<"(\"lane-connector\", 0, " <<*it <<", {";
+			stream<<"\"from-segment\":\"" <<fromSeg <<"\",";
+			stream<<"\"from-lane\":\"" <<fromLane <<"\",";
+			stream<<"\"to-segment\":\"" <<toSeg <<"\",";
+			stream<<"\"to-lane\":\"" <<toLane <<"\",";
+			stream<<"})";
+			string s = stream.str();
+			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
+		}
+	}
+
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		string end = "END";
+		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(end);
 	}
 
 	//Print the StreetDirectory graphs.
@@ -1442,10 +1576,15 @@ void printRoadNetwork_console()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
-	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
-	//std::string XML_OutPutFileName = "NetworkCopy.xml";
-	//std::string XML_OutPutFileName = "../tools/sumo-convert/simmob.network.xml";
-
+	//NOTE: You can set "SIMMOB_XML_IN_FILE" (without quotes) in your CMakeCache file to override this.
+	//For example, the default CMakeCache.txt file contains:
+	//   SIMMOB_XML_IN_FILE:STRING=
+	//...which you might change to, e.g.,
+	//   SIMMOB_XML_IN_FILE:STRING=../tools/sumo-convert/simmob.network.xml
+	std::string XML_OutPutFileName = SIMMOB_XML_IN_FILE;
+	if (XML_OutPutFileName.empty()) {
+		XML_OutPutFileName = "data/SimMobilityInput.xml"; //Default
+	}
 
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -1529,6 +1668,48 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	{
 		node->Attribute("value", &signalTimingMode);
 	}
+
+	//Save Aura Manager Implementation
+	AuraManager::AuraManagerImplementation aura_mgr_impl = AuraManager::IMPL_RSTAR;
+	node = handle.FirstChild("aura_manager_impl").ToElement();
+	if(node) {
+		const char* valC = node->Attribute("value");
+		if (!valC) {
+			throw std::runtime_error("Aura manager implementation requires a \"value\" tag.");
+		} else {
+			string val = string(valC);
+			if (val=="simtree") {
+				aura_mgr_impl = AuraManager::IMPL_SIMTREE;
+			} else  if (val=="rdu") {
+				aura_mgr_impl = AuraManager::IMPL_RDU;
+			} else if (val=="rstar") {
+				aura_mgr_impl = AuraManager::IMPL_RSTAR;
+			} else {
+				throw std::runtime_error("Unknown aura manager implementation type.");
+			}
+		}
+	}
+
+	//Save the WorkGroup assignment strategy
+	WorkGroup::ASSIGNMENT_STRATEGY wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
+	node = handle.FirstChild("workgroup_assignment").ToElement();
+	if(node) {
+		const char* valC = node->Attribute("value");
+		if (!valC) {
+			throw std::runtime_error("Workgroup assignment strategy requires a \"value\" tag.");
+		} else {
+			string val = string(valC);
+			if (val=="roundrobin") {
+				wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
+			} else  if (val=="smallest") {
+				wg_assign_strat = WorkGroup::ASSIGN_SMALLEST;
+			} else {
+				throw std::runtime_error("Unknown workgroup assignment strategy type.");
+			}
+		}
+	}
+
+
 
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
@@ -1691,6 +1872,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.mutexStategy = mtStrat;
     	config.signalTimingMode = signalTimingMode;
 
+    	//Save the Aura Manager implementation type.
+    	config.aura_manager_impl = aura_mgr_impl;
+
+    	//Save the WorkGroup strategy.
+    	config.defaultWrkGrpAssignment = wg_assign_strat;
+
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
     	if (config.is_run_on_many_computers) {
@@ -1737,7 +1924,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		}
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
-    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
@@ -1750,6 +1936,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		 ***************************************************/
 #ifndef SIMMOB_XML_READER
     		//Load the AIMSUM network details
+    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
     			return "Unable to load database connection settings....";
@@ -1917,6 +2104,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+	//Print the WorkGroup strategy.
+	std::cout <<"WorkGroup assignment: ";
+	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
+		std::cout <<"roundrobin" <<std::endl;
+	} else if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_SMALLEST) {
+		std::cout <<"smallest" <<std::endl;
+	} else {
+		std::cout <<"<unknown>" <<std::endl;
+	}
     std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
@@ -2044,10 +2240,34 @@ bool sim_mob::ConfigParams::StrictAgentErrors() const
 #endif
 }
 
-///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-bool sim_mob::ConfigParams::GenerateAgentUpdateProfile() const
+bool sim_mob::ConfigParams::ProfileOn() const
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
+{
+
+#ifdef SIMMOB_PROFILE_AGENT_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_WORKER_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
 	return true;
 #else
 	return false;

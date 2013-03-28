@@ -34,6 +34,7 @@
 #include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "logging/Log.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -125,11 +126,10 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 	ProfileBuilder* prof = nullptr;
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	ProfileBuilder::InitLogFile("agent_update_trace.txt");
-	ProfileBuilder prof_i;
-	prof = &prof_i;
-#endif
+	if (ConfigParams::GetInstance().ProfileOn()) {
+		ProfileBuilder::InitLogFile("profile_trace.txt");
+		prof = new ProfileBuilder();
+	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -200,7 +200,7 @@ bool performMainMed(const std::string& configFileName) {
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl, nullptr);
 
 	//Start work groups and all threads.
 	WorkGroup::StartAllWorkGroups();
@@ -341,6 +341,9 @@ bool performMainMed(const std::string& configFileName) {
 	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
+
+	//Delete our profile pointer (if it exists)
+	safe_delete_item(prof);
 	return true;
 }
 
@@ -424,6 +427,7 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
+
 	return returnVal;
 }
 

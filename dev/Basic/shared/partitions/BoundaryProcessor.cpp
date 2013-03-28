@@ -120,7 +120,6 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 {
 	//step 1, update fake agents (received in previous time step)
 	ParitionDebugOutput debug;
-//	debug.outputToConsole("111");
 	clearFakeAgentFlag();
 
 	//step 2, check the agents that should be send to downstream partitions
@@ -142,8 +141,6 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 	}
 
 	checkBoundaryAgents(sendout_package);
-//	debug.outputToConsole("222");
-//	debug.outputToConsole(neighbor_size);
 
 	//Step 3, commmunicate with downstream
 	mpi::communicator world;
@@ -167,31 +164,16 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
 		string data = getDataInPackage(sendout_package[index]);
-//		debug.outputToConsole(data);
-//		debug.outputToConsole("233");
-
 		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
 		index = 0;
 	}
-
-	for(int i=0;i<neighbor_size;i++)
-	{
-//		debug.outputToConsole(all_received_package_data[i]);
-//		std::cout << all_received_package_data[] << std::endl;
-	}
-
-//	debug.outputToConsole("255");
 
 	//waiting for the end of sending and recving
 	mpi::wait_all(recvs, recvs + neighbor_size);
 	mpi::wait_all(sends, sends + neighbor_size);
 
-//	debug.outputToConsole("333");
-
 	//Step 4
 	processBoundaryPackages(all_received_package_data, neighbor_size);
-//	debug.outputToConsole("444");
-
 	return "";
 }
 

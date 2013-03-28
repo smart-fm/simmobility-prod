@@ -8,7 +8,6 @@ sim_mob::FlexiBarrier::FlexiBarrier(unsigned int count) : m_threshold(count), m_
 	}
 }
 
-
 bool sim_mob::FlexiBarrier::wait(unsigned int amount)
 {
 	//Can't wait more than the amount that would get us to zero.

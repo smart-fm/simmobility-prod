@@ -49,6 +49,9 @@ public:
 	//May implement later
 	virtual void load(const std::map<std::string, std::string>& configProps){}
 
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//virtual Entity::UpdateStatus update(timeslice now);
@@ -82,10 +85,15 @@ public:
 	virtual Link* getCurrLink();
 	virtual void setCurrLink(Link* link);
 
+	virtual void unregisteredChild(Entity* child);
+
 private:
 	//Note: For now, we have to store pointers, since the all_agents array is cleared and deleted on exit.
 	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
+
+	// keep all children agents to communicate with it
+	std::vector<Entity*> all_children;
 
 protected:
 	virtual bool frame_init(timeslice now);

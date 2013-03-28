@@ -42,15 +42,15 @@
 #include "RStarBoundingBox.h"
 
 namespace {  //R* tree parameters, unique to this translational unit.
+
 const double RTREE_REINSERT_P = 0.30;
 const size_t RTREE_CHOOSE_SUBTREE_P = 32;
 }
 
-
 // definition of an leaf
 template <typename BoundedItem, typename LeafType>
 struct RStarLeaf : BoundedItem {
-	
+
 	typedef LeafType leaf_type;
 	LeafType leaf;
 };
@@ -710,6 +710,6 @@ private:
 	std::size_t m_size;
 };
 
-
+//#endif
 
 

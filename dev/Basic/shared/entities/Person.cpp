@@ -306,7 +306,9 @@ bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTr
 	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) return false;
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
+		return false;
+	}
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }

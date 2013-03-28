@@ -17,6 +17,20 @@ void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop const & busstop, con
 	all_BusstopAgents_.push_back(sig_ag);
 }
 
+bool sim_mob::BusStopAgent::HasBusStopAgents()
+{
+	return !all_BusstopAgents_.empty();
+}
+
+void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list)
+{
+	std::cout << "all_BusStopAgents size: " << all_BusstopAgents_.size() << std::endl;
+	//Push every BusStopAgent on the list into the agents array as an active agent
+	for (vector<BusStopAgent*>::iterator it=all_BusstopAgents_.begin(); it!=all_BusstopAgents_.end(); it++) {
+		agents_list.push_back(*it);
+	}
+}
+
 void sim_mob::BusStopAgent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
 	Agent::buildSubscriptionList(subsList);

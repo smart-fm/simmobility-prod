@@ -28,7 +28,16 @@ class BusStopAgent  : public sim_mob::Agent
 public:
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
 		  : Agent(mtxStrat, id), busstop_(busstop){};
+	///Initialize a new BusStopAgent with the given busstop and MutexStrategy.
 	static void RegisterNewBusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat);
+
+	///Returns true if we have at least one BusStopAgent.
+	static bool HasBusStopAgents();
+
+	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads
+	static void PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list);
+
+	///get the basic BusStop
 	BusStop const & getBusStop() const { return busstop_; }
 
 	virtual ~BusStopAgent(){}

@@ -12,7 +12,7 @@
 namespace sim_mob {
 
     /**
-     * Represents an event arguments.
+     * Represents an event data.
      */
     class EventArgs {
     public:

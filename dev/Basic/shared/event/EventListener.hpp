@@ -7,7 +7,7 @@
  * Created on March 7, 2013, 11:37 AM
  */
 
-#include "EventArgs.hpp"
+#include "args/EventArgs.hpp"
 
 
 #pragma once
@@ -16,7 +16,7 @@ namespace sim_mob {
 
     class EventPublisher;
     typedef unsigned int EventId;
-    typedef unsigned int ContextId;
+    typedef void* Context;
 
     /**
      * Interface for all event listener implementation.
@@ -39,14 +39,14 @@ namespace sim_mob {
          * @param id event identifier.
          * @param args event arguments.
          */
-        virtual void OnEvent(EventId id, ContextId ctxId, EventPublisher* sender, const EventArgs& args) {
+        virtual void OnEvent(EventId id, Context ctxId, EventPublisher* sender, const EventArgs& args) {
         };
 
         /**
          * Functions for calls.
          */
         typedef void (EventListener::*EventCallback)(EventId id, EventPublisher* sender, const EventArgs& args);
-        typedef void (EventListener::*EventContextCallback)(EventId id, ContextId ctxId, EventPublisher* sender, const EventArgs& args);
+        typedef void (EventListener::*EventContextCallback)(EventId id, Context ctxId, EventPublisher* sender, const EventArgs& args);
     };
 
     /**
@@ -54,7 +54,7 @@ namespace sim_mob {
      */
 #define DECLARE_CUSTOM_CALLBACK_TYPE(type) class type; \
         typedef void (EventListener::*type##Callback)(EventId id, EventPublisher* sender, const type& args); \
-        typedef void (EventListener::*type##ContextCallback)(EventId id, ContextId ctxId, EventPublisher* sender, const type& args); 
+        typedef void (EventListener::*type##ContextCallback)(EventId id, Context ctxId, EventPublisher* sender, const type& args); 
 
     /**
      * Call to pass your handler to the Publisher.

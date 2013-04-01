@@ -28,7 +28,7 @@ namespace sim_mob {
     };
 
     /**
-     * Struct to store a Listener entries.
+     * Struct to store a Listener entry.
      */
     typedef struct ListenerEntry {
         ListenerEntry(EventListenerPtr listener, Callback callback);
@@ -37,13 +37,13 @@ namespace sim_mob {
     } Entry;
 
     // map for global listeners.
-    typedef list<Entry*> ListenersList;
+    typedef list<Entry> ListenersList;
     typedef map<EventId, ListenersList> ListenersMap;
     // maps for listeners with context.
-    typedef map<ContextId, ListenersList> ContextMap;
+    typedef map<Context, ListenersList> ContextMap;
     typedef map<EventId, ContextMap> ContextListenersMap;
 
-    /*
+    /**
      * Generic implementation of event publisher.
      * 
      * This implementation is not thread-safe. 
@@ -84,7 +84,7 @@ namespace sim_mob {
          * @param ctxId Id of the context.
          * @param args of the event.
          */
-        virtual void Publish(EventId id, ContextId ctxId, const EventArgs& args);
+        virtual void Publish(EventId id, Context ctxId, const EventArgs& args);
 
         /**
          * 
@@ -105,7 +105,8 @@ namespace sim_mob {
          * @param id
          * @param listener to subscribe.
          */
-        virtual void Subscribe(EventId id, EventListenerPtr listener, ListenerCallback eventFunction);
+        virtual void Subscribe(EventId id, EventListenerPtr listener,
+                ListenerCallback eventFunction);
 
         /**
          * Subscribes the given listener to the given EventId and ContextId.
@@ -115,7 +116,7 @@ namespace sim_mob {
          * @param ctxId Id of the context.
          * @param listener to subscribe.
          */
-        virtual void Subscribe(EventId id, ContextId ctxId, EventListenerPtr listener);
+        virtual void Subscribe(EventId id, Context ctxId, EventListenerPtr listener);
 
         /**
          * Subscribes the given listener to the given EventId and ContextId.
@@ -128,7 +129,8 @@ namespace sim_mob {
          * @param ctxId Id of the context.
          * @param listener to subscribe.
          */
-        virtual void Subscribe(EventId id, ContextId ctxId, EventListenerPtr listener, ListenerContextCallback eventFunction);
+        virtual void Subscribe(EventId id, Context ctxId,
+                EventListenerPtr listener, ListenerContextCallback eventFunction);
 
         /**
          * UnSubscribes the given listener to the given EventId
@@ -149,7 +151,20 @@ namespace sim_mob {
          * @param ctxId Id of the context.
          * @param listener to UnSubscribe.
          */
-        virtual void UnSubscribe(EventId id, ContextId ctxId, EventListenerPtr listener);
+        virtual void UnSubscribe(EventId id, Context ctxId,
+                EventListenerPtr listener);
+
+        /**
+         * UnSubscribes all global subscribers for the given event id.  
+         * @param id of the global event.
+         */
+        void UnSubscribeAll(EventId id);
+        /**
+         * UnSubscribes all context subscribers for the given event id and context.  
+         * @param id of the event.
+         * @param ctx context.
+         */
+        void UnSubscribeAll(EventId id, Context ctx);
 
     private:
         /**
@@ -173,13 +188,16 @@ namespace sim_mob {
         void RemoveAll(ListenersMap& listeners);
 
         /**
+         * Removes listeners from given map.
+         * @param map of listeners to remove.
+         */
+        void RemoveAll(ContextMap& listeners);
+
+        /**
          * Removes all listeners from given context map.
          * @param map of listeners to remove.
          */
         void RemoveAll(ContextListenersMap& map);
-
-    private:
-
 
     private:
         ContextListenersMap contextListeners;

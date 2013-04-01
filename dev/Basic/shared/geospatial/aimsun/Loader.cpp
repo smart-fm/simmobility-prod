@@ -288,7 +288,8 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 	for (soci::rowset<Lane>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
 		if(sections_.count(it->TMP_AtSectionID)==0) {
-			throw std::runtime_error("Lane at Invalid Section");
+			sim_mob::Warn() <<"Lane at Invalid Section\n";
+			continue;
 		}
 
 		//Convert meters to cm

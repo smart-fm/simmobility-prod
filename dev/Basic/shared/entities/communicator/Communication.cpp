@@ -25,7 +25,7 @@ commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
     BOOST_FOREACH(value, values.get())
     {
     	//todo this causes seg fault during split load process
-//    	value->registerType(oa); no need anymore
+//    	value->registerType(oa); //no need anymore
     	std::cout << "Serializing '" << value->str << "'" << std::endl;
 //    	oa & value;
     }
@@ -47,6 +47,7 @@ commResult NS3_Communication::FileBasedImpl::receive(DataContainer& value){
 		if(ifs.good())
 		{
 			boost::archive::text_iarchive ia(ifs);
+//			ia.register_type(static_cast<dataMessage *>(NULL));
 			ia & value;
 			for(std::vector<DATA_MSG_PTR>::iterator it = value.get().begin(); it != value.get().end(); it++)
 			{

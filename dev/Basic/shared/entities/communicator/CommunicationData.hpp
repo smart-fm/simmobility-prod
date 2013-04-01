@@ -154,9 +154,10 @@ public:
     void serialize(Archive &ar, const unsigned int version)
     {
     	DATA_MSG_PTR value;
-    	BOOST_FOREACH(value, buffer)
-    	//takes ar to your class and gives him the information about your class
-    		value->registerType(ar);
+    	ar.register_type(static_cast<dataMessage *>(NULL));
+//    	BOOST_FOREACH(value, buffer)
+//    	//takes ar to your class and gives him the information about your class
+//    		value->registerType(ar);
     	ar & buffer;
     }
     void add(DATA_MSG_PTR value)

@@ -374,6 +374,12 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
+	//Avoid errors
+	tripchains_.clear();
+	if (storedProc.empty()) {
+		return;
+	}
+
 	//Our SQL statement
 	std::string sql_str = "select * from " + storedProc;
 
@@ -399,7 +405,6 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 #endif
 
 	//Retrieve a rowset for this set of trip chains.
-	tripchains_.clear();
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
 //	std::cout << " Found "
 	//Execute as a rowset to avoid repeatedly building the query.
@@ -644,7 +649,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
-	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));

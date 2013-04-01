@@ -485,7 +485,7 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	}
 
 	if( !minQueueLengthLane){
-		PrintOut("ERROR: best target lane was not set!" <<std::endl);
+		Warn() <<"ERROR: best target lane was not set!" <<std::endl;
 	}
 	return minQueueLengthLane;
 }
@@ -555,7 +555,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 			setOrigin(params);
 		}
 	} else {
-		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
+		Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
 	}
 
 	//Are we done already?

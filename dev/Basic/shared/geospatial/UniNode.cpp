@@ -63,7 +63,7 @@ const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 	}
 
 	if (cachedSegmentsList.empty()) {
-		LogOut("Warning: UniNode segment list still empty after call to \"set\"" <<std::endl);
+		Warn() <<"Warning: UniNode segment list still empty after call to \"set\"" <<std::endl;
 	}
 
 	return cachedSegmentsList;

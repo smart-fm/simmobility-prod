@@ -738,7 +738,7 @@ Section& GetSection(Node& start, Node& end)
 			return **it;
 		}
 	}
-	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
+	sim_mob::Warn() <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
 	throw std::runtime_error("Can't find section in temporary cleanup function.");
 }
 void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
@@ -818,7 +818,7 @@ bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t r
 			resCrossing.back()->yPos = vec.getY();
 		}
 	} catch (std::exception& ex) {
-		std::cout <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
+		sim_mob::Warn() <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
 		baseCrossing.clear();
 		resCrossing.clear();
 		return false;
@@ -1722,9 +1722,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			}
 		}
 		if (!nextSection) {
-			std::cout <<"PATH ERROR:\n";
-			std::cout <<"  Starting at Node: " <<src.fromNode->id <<"\n";
-			std::cout <<"  Currently at Node: " <<currSec->toNode->id <<"\n";
+			sim_mob::Warn() <<"PATH ERROR:\n"
+							<<"  Starting at Node: " <<src.fromNode->id <<"\n"
+							<<"  Currently at Node: " <<currSec->toNode->id <<"\n";
 			throw std::runtime_error("No path reachable from RoadSegment.");
 		}
 		currSec = nextSection;

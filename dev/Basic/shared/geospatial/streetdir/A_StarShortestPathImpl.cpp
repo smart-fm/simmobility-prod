@@ -441,7 +441,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 				throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 			}
 			if (fromIt->second.vertices.empty() || toIt->second.vertices.empty()) {
-				std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (3)." <<std::endl;
+				Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (3)." <<std::endl;
 				continue;
 			}
 
@@ -561,7 +561,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
+			Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
 			continue;
 		}
 
@@ -899,7 +899,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (2)." <<std::endl;
+			Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (2)." <<std::endl;
 			continue;
 		}
 
@@ -1334,7 +1334,7 @@ std::vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPathWithBla
 				//This shouldn't fail.
 				std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
 				if (!edge.second) {
-					LogOut("ERROR: Boost can't find an edge that it should know about." <<std::endl);
+					Warn() <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
 					return std::vector<WayPoint>();
 				}
 
@@ -1397,7 +1397,7 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPath(const Stree
 				//This shouldn't fail.
 				std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, graph);
 				if (!edge.second) {
-					LogOut("ERROR: Boost can't find an edge that it should know about." <<std::endl);
+					Warn() <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
 					return std::vector<WayPoint>();
 				}
 

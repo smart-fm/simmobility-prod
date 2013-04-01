@@ -379,8 +379,8 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
-        	std::cout << "catch the loop error try!" << std::endl;
-            std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
+        	Warn() << "catch the loop error try!\n"
+        		   << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
 	}
@@ -467,8 +467,8 @@ bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
             }
             catch (boost::bad_lexical_cast &)
             {
-            	std::cout << "catch the loop error try!" << std::endl;
-                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
+            	Warn() << "catch the loop error try!\n"
+            		   << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
                 return false;
             }
 	}
@@ -1851,7 +1851,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if (totalRuntime%baseGran != 0) {
     	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
-    if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
+    if (totalWarmup != 0 && totalWarmup < baseGran) {
+    	Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
+    }
     if (totalWarmup%baseGran != 0) {
     	Warn() <<"Total warmup (" <<totalWarmup <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }

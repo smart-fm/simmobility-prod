@@ -564,7 +564,7 @@ int main(int argc, char* argv[])
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
 		if (mpi_result.compare("") != 0)
 		{
-			cout << "Error:" << mpi_result << endl;
+			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
 	}

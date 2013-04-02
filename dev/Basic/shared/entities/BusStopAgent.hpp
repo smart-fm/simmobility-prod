@@ -13,6 +13,7 @@
 
 #include <vector>
 #include "entities/Agent.hpp"
+#include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
 
 namespace sim_mob
@@ -37,8 +38,16 @@ public:
 	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads
 	static void PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list);
 
+	//find one BusStopAgent by BusStop
+	static BusStopAgent* findBusStopAgentByBusStop(const BusStop* busstop);
+
+	//find one BusStopAgent by busstop_
+	static BusStopAgent* findBusStopAgentByBusStopNo(const std::string& busstopno);
+
 	///get the basic BusStop
 	BusStop const & getBusStop() const { return busstop_; }
+	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
+	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
@@ -52,6 +61,7 @@ public:
 	static All_BusStopAgents all_BusstopAgents_;
 private:
 	sim_mob::BusStop const & busstop_;
+	std::string busstopAgentno_; //currently is equal to busstopno_
 
 
 #ifndef SIMMOB_DISABLE_MPI

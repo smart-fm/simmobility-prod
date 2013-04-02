@@ -14,6 +14,7 @@ void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop const & busstop, con
 {
 	//BusController* busctrller = new sim_mob::BusController(-1, mtxStrat);
 	BusStopAgent * sig_ag = new BusStopAgent(busstop, mtxStrat);
+	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
 	all_BusstopAgents_.push_back(sig_ag);
 }
 
@@ -29,6 +30,28 @@ void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>&
 	for (vector<BusStopAgent*>::iterator it=all_BusstopAgents_.begin(); it!=all_BusstopAgents_.end(); it++) {
 		agents_list.push_back(*it);
 	}
+}
+
+BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
+{
+	for (int i=0; i<all_BusstopAgents_.size(); i++) {
+		if(all_BusstopAgents_[i]->getBusStop().getBusstopno_() == busstop->getBusstopno_()) {
+			return all_BusstopAgents_[i];
+		}
+	}
+
+	return nullptr;
+}
+
+BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStopNo(const std::string& busstopno)
+{
+	for (int i=0; i<all_BusstopAgents_.size(); i++) {
+		if(all_BusstopAgents_[i]->getBusStop().getBusstopno_() == busstopno) {
+			return all_BusstopAgents_[i];
+		}
+	}
+
+	return nullptr;
 }
 
 void sim_mob::BusStopAgent::buildSubscriptionList(vector<BufferedBase*>& subsList)

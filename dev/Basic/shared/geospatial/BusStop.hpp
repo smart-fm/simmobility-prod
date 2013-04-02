@@ -30,6 +30,7 @@ namespace sim_mob
 class Lane;
 class BusRoute;
 class Busline;
+class BusStopAgent;
 
    //
 /**
@@ -45,6 +46,7 @@ public:
 	explicit BusStop() : RoadItem() {lane_location = 0;
 	busCapacityAsLength = 0;
 	parentSegment_ = 0;
+	generatedBusStopAgent = nullptr;
 //	xPos = yPos = 0;
 	}
 
@@ -85,7 +87,6 @@ public:
         return parentSegment_;
     }
     void setParentSegment(RoadSegment *rs) { parentSegment_ = rs;} //virtual from RoadItem
-
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
 
@@ -93,6 +94,7 @@ public:
 public:
     std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
 	sim_mob::RoadSegment* parentSegment_;
+	BusStopAgent* generatedBusStopAgent;// pointer to the generated BusStopAgent
 	std::string busstopno_;
 		double xPos;
 		double yPos;

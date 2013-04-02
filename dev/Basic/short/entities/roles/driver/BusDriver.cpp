@@ -534,8 +534,8 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 					isFound = true;
 					busstop_sequence_no.set(i);
 					lastVisited_BusStop.set(busStops[i]);
-//					BusStopAgent* busstopAg = BusStopAgent::findBusStopAgentByBusStop(busStops[i]);
-//					std::cout << "bs->getBusstopno_(): " << bs->getBusstopno_() << " busstopAg no: " <<  busstopAg->getBusStopAgentNo() << std::endl;
+					BusStopAgent* busstopAg = busStops[i]->generatedBusStopAgent;
+					std::cout << "bs->getBusstopno_(): " << bs->getBusstopno_() << " busstopAg no: " <<  busstopAg->getBusStopAgentNo() << std::endl;
 					break;
 				}
 			}

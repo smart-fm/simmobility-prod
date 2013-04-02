@@ -30,7 +30,7 @@ public:
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
 		  : Agent(mtxStrat, id), busstop_(busstop){};
 	///Initialize a new BusStopAgent with the given busstop and MutexStrategy.
-	static void RegisterNewBusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat);
+	static void RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat);
 
 	///Returns true if we have at least one BusStopAgent.
 	static bool HasBusStopAgents();

@@ -61,8 +61,7 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
     } else {
         listPtr = &itr->second;
     }
-    TemporalWindow tw(currTime, timeslice(currTime.ms() + target.ms(),
-            currTime.frame() + target.frame()));
+    TemporalWindow tw(currTime, target);
     TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
     if (callback) {
         Subscribe(EM_WND_EXPIRED, &(*litr), listener, callback);

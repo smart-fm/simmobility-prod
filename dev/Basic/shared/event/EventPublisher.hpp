@@ -38,7 +38,6 @@ namespace sim_mob {
 
     // map for global listeners.
     typedef list<Entry> ListenersList;
-    typedef map<EventId, ListenersList> ListenersMap;
     // maps for listeners with context.
     typedef map<Context, ListenersList> ContextMap;
     typedef map<EventId, ContextMap> ContextListenersMap;
@@ -155,53 +154,27 @@ namespace sim_mob {
                 EventListenerPtr listener);
 
         /**
-         * UnSubscribes all global subscribers for the given event id.  
+         * UnSubscribes all global subscribers for the given event id. 
+         * 
+         * ATTENTION: the listener instances will not be deleted.
+         *  
          * @param id of the global event.
+         * 
          */
         void UnSubscribeAll(EventId id);
+
         /**
-         * UnSubscribes all context subscribers for the given event id and context.  
+         * UnSubscribes all context subscribers for the given event id and context.
+         *
+         * ATTENTION: the listener instances will not be deleted.
+         * 
          * @param id of the event.
          * @param ctx context.
          */
         void UnSubscribeAll(EventId id, Context ctx);
 
     private:
-        /**
-         * Removes listeners from given list.
-         * @param listenersList of listeners to update.
-         * @param listener to remove. 
-         */
-        void Remove(ListenersList& listenersList, EventListenerPtr listener);
-
-        /**
-         * Removes all listeners from given list.
-         * @param listenersList of listeners to update.
-         * @param listener to remove. 
-         */
-        void RemoveAll(ListenersList& listenersList);
-
-        /**
-         * Removes listeners from given map.
-         * @param map of listeners to remove.
-         */
-        void RemoveAll(ListenersMap& listeners);
-
-        /**
-         * Removes listeners from given map.
-         * @param map of listeners to remove.
-         */
-        void RemoveAll(ContextMap& listeners);
-
-        /**
-         * Removes all listeners from given context map.
-         * @param map of listeners to remove.
-         */
-        void RemoveAll(ContextListenersMap& map);
-
-    private:
-        ContextListenersMap contextListeners;
-        ListenersMap globalListeners;
+        ContextListenersMap listeners;
     };
 }
 

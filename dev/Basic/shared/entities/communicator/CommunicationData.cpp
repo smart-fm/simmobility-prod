@@ -1,6 +1,75 @@
 #include "CommunicationData.hpp"
 namespace sim_mob
 {
+///////////////////////////////////
+void DataContainer::serialize(Archive &ar, const unsigned int version) {
+	DATA_MSG_PTR value;
+	ar.register_type(static_cast<dataMessage *>(NULL));
+//    	BOOST_FOREACH(value, buffer)
+//    	//takes ar to your class and gives him the information about your class
+//    		value->registerType(ar);
+	ar & buffer;
+}
+void DataContainer::add(DATA_MSG_PTR value) {
+	buffer.push_back(value);
+}
+
+void DataContainer::add(std::vector<DATA_MSG_PTR> values) {
+	buffer.insert(buffer.end(), values.begin(), values.end());
+}
+
+void DataContainer::add(DataContainer & value) {
+	add(value.get());
+}
+
+void DataContainer::reset() {
+	DATA_MSG_PTR value;
+	BOOST_FOREACH(value, buffer)
+		delete value;
+	buffer.clear();
+
+}
+
+std::vector<DATA_MSG_PTR>& DataContainer::get() {
+	return buffer;
+}
+
+bool DataContainer::pop(DATA_MSG_PTR & var) {
+	if (buffer.size() < 1)
+		return false;
+	var = buffer.front();
+	buffer.erase(buffer.begin());
+}
+
+///////////////////////////////////
+subscriptionInfo::subscriptionInfo(
+		sim_mob::Entity *  agent_ ,
+		bool& incomingIsDirty_ ,
+		bool& outgoingIsDirty_ ,
+		bool& writeIncomingDone_,
+		bool& readOutgoingDone_ ,
+		bool& agentUpdateDone_,
+		DataContainer& incoming_,
+		DataContainer& outgoing_
+
+		)
+:
+	agent(agent_),
+	incomingIsDirty(incomingIsDirty_),
+	outgoingIsDirty(outgoingIsDirty_),
+	writeIncomingDone(writeIncomingDone_),
+	readOutgoingDone(readOutgoingDone_),
+	agentUpdateDone(agentUpdateDone_),
+	incoming(incoming_),
+	outgoing(outgoing_)
+{
+	cnt_1 = cnt_2 = 0;
+	myLock = boost::shared_ptr<Lock>(new Lock);//will be deleted itself :)
+}
+
+subscriptionInfo & subscriptionInfo::operator=(const subscriptionInfo&) {
+	return *this;
+}
 
 void subscriptionInfo::setEntity(sim_mob::Entity* value)
 {
@@ -30,7 +99,7 @@ void subscriptionInfo::setOutgoing(DataContainer values) {
 	outgoingIsDirty = true;}
 
 void subscriptionInfo::addIncoming(DATA_MSG_PTR value) {
-	WriteLock(myLock);
+	WriteLock(*myLock);
 	incoming.add(value);
 	incomingIsDirty = true;
 }

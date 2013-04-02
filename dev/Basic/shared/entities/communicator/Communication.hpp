@@ -42,7 +42,7 @@ public:
 
 class NS3_Communication: public Communication<DataContainer&, commResult> {
 
-	//nested class
+	//begin nested class FileBasedImpl
 	class FileBasedImpl: public Communication<DataContainer&, commResult> {
 	    std::string sendFile;
 	    std::string receiveFile;
@@ -55,6 +55,17 @@ class NS3_Communication: public Communication<DataContainer&, commResult> {
 		void shortCircuit(std::string sendFile_ = sendFile_temp, std::string receiveFile_ = sendFile_temp);
 	};
 	//end of nested class
+
+	//begin nested class ASIOImpl
+	class ASIO_Impl: public Communication<DataContainer&, commResult>
+	{
+
+	public:
+		ASIO_Impl();
+		bool init();
+		commResult send(DataContainer& value);
+		commResult receive(DataContainer&value);
+	};
 
 public:
 	NS3_Communication() ;

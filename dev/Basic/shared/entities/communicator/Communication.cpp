@@ -1,6 +1,10 @@
 #include "Communication.hpp"
 namespace sim_mob {
-
+/*
+ * *************************************************************
+ * 						FileBasedImpl
+ * * ***********************************************************
+ */
 commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
 	std::cout << "Inside FileBasedImpl::send\n";
 	//todo, i couldn't find a way to declare text_oarchive without a parameterized constructor,
@@ -86,7 +90,16 @@ NS3_Communication::FileBasedImpl::FileBasedImpl(std::string sendFile_, std::stri
 	ofs.open(sendFile_.c_str(), std::ios::app);
 //	ifs.open(receiveFile_.c_str(), std::ifstream::in);
 }
-NS3_Communication::NS3_Communication() { SR_Impl = new FileBasedImpl(); }
+NS3_Communication::NS3_Communication() {
+	//todo: configuration based
+	SR_Impl = new FileBasedImpl();
+}
+/*
+ * *************************************************************
+ * 						ASIO_Impl
+ * * ***********************************************************
+ */
+
 }
 ;
 //namespace sim_mob

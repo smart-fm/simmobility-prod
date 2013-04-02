@@ -45,7 +45,7 @@ class CommunicationSupport
 {
 
 	DataContainer incoming;
-	DataContainer outgoing;
+	DataContainer &outgoing;
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
 	bool outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
@@ -55,16 +55,18 @@ class CommunicationSupport
 	bool agentUpdateDone;
 	//todo make this an enum-vahid
 	std::string agentIdentification;
+	sim_mob::NS3_Communicator & communicator;
 public:
 
-	Lock myLock;
+	boost::shared_ptr<Lock> myLock;
 	subscriptionInfo getSubscriptionInfo();
 	CommunicationSupport();
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& getIncoming();
 	DataContainer& getOutgoing();
 	void setIncoming(DataContainer value);
-	void setOutgoing(DataContainer value);
+	bool popIncoming(DATA_MSG_PTR &var);
+//	void setOutgoing(DataContainer value); we are now writing directly to communicator buffer so this function is dangerous
 	void addIncoming(DATA_MSG_PTR value);
 	void addOutgoing(DATA_MSG_PTR value);
 

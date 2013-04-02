@@ -151,40 +151,13 @@ public:
 
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive &ar, const unsigned int version)
-    {
-    	DATA_MSG_PTR value;
-    	ar.register_type(static_cast<dataMessage *>(NULL));
-//    	BOOST_FOREACH(value, buffer)
-//    	//takes ar to your class and gives him the information about your class
-//    		value->registerType(ar);
-    	ar & buffer;
-    }
-    void add(DATA_MSG_PTR value)
-    {
-    	buffer.push_back(value);
-    }
-    void add(std::vector<DATA_MSG_PTR> values)
-    {
-    	buffer.insert(buffer.end(), values.begin(), values.end());
-    }
-
-    void add(DataContainer & value)
-    {
-    	add(value.get());
-    }
-    void reset()
-    {
-    	DATA_MSG_PTR value;
-    	BOOST_FOREACH(value, buffer)
-    		delete value;
-    	buffer.clear();
-
-    }
-    std::vector<DATA_MSG_PTR>& get()
-	{
-    	return buffer;
-	}
+    void serialize(Archive &ar, const unsigned int version);
+    void add(DATA_MSG_PTR value);
+    void add(std::vector<DATA_MSG_PTR> values);
+    void add(DataContainer & value);
+    void reset();
+    std::vector<DATA_MSG_PTR>& get();
+    bool pop(DATA_MSG_PTR & var);
 
 };
 
@@ -198,8 +171,8 @@ public:
  *
  *********************************************************************************/
 typedef boost::shared_mutex Lock;
-typedef boost::unique_lock< Lock > WriteLock;
-typedef boost::shared_lock< Lock > ReadLock;
+typedef boost::lock_guard  < Lock > WriteLock;
+typedef boost::shared_lock < Lock > ReadLock;
 
 class subscriptionInfo
 {
@@ -236,22 +209,7 @@ public:
 			DataContainer& incoming_,
 			DataContainer& outgoing_
 
-			)
-	:
-		agent(agent_),
-		incomingIsDirty(incomingIsDirty_),
-		outgoingIsDirty(outgoingIsDirty_),
-		writeIncomingDone(writeIncomingDone_),
-		readOutgoingDone(readOutgoingDone_),
-		agentUpdateDone(agentUpdateDone_),
-		incoming(incoming_),
-		outgoing(outgoing_)
-	{
-		cnt_1 = cnt_2 = 0;
-		myLock = boost::shared_ptr<Lock>(new Lock);//will be deleted itself :)
-	}
-
-
+			);
 
 	void setEntity(sim_mob::Entity*);
 	sim_mob::Entity* getEntity();
@@ -272,7 +230,6 @@ public:
 	bool isIncomingDirty();
 	void reset();
 
-	subscriptionInfo & operator=(const subscriptionInfo&) { return *this;}
 };
 
 

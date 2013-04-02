@@ -6,7 +6,8 @@ using namespace sim_mob;
 namespace sim_mob
 {
 	CommunicationSupport::CommunicationSupport()
-	:
+	:	communicator(sim_mob::NS3_Communicator::GetInstance()),
+	 	outgoing(communicator.getSendBuffer()),
 		incomingIsDirty(false),
 		outgoingIsDirty(false),
 		writeIncomingDone(false),
@@ -32,65 +33,75 @@ namespace sim_mob
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& CommunicationSupport::getIncoming() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return incoming;
 	}
 	DataContainer& CommunicationSupport::getOutgoing() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return outgoing;
 	}
 	void CommunicationSupport::setIncoming(DataContainer values) {
-		WriteLock(myLock);
-		incoming = values; }
-	void CommunicationSupport::setOutgoing(DataContainer values) {
-		WriteLock(myLock);
-		outgoing = values;
-		outgoingIsDirty = true;}
+		WriteLock(*myLock);
+		incoming = values;
+	}
+	bool CommunicationSupport::popIncoming(DATA_MSG_PTR &var)
+	{
+		WriteLock(*myLock);
+		return incoming.pop(var);
+	}
+//	void CommunicationSupport::setOutgoing(DataContainer values) {
+//		WriteLock(*myLock);
+//		outgoing = values;
+//		outgoingIsDirty = true;
+//	}
 
 	void CommunicationSupport::addIncoming(DATA_MSG_PTR value) {
-		WriteLock(myLock);
-		incoming.add(value); }
+		WriteLock(*myLock);
+		incoming.add(value);
+	}
 	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) { std::cout << "pushing data to " << &outgoing << std::endl;
-	WriteLock(myLock);
-	outgoing.add(value); outgoingIsDirty = true;}
+	WriteLock(*myLock);
+	outgoing.add(value);
+	outgoingIsDirty = true;
+	}
 
 	void CommunicationSupport::setwriteIncomingDone(bool value) {
-		WriteLock(myLock);
+		WriteLock(*myLock);
 		writeIncomingDone = value;
 	}
 	void CommunicationSupport::setWriteOutgoingDone(bool value) {
-		WriteLock(myLock);
+		WriteLock(*myLock);
 		readOutgoingDone = value;
 	}
 	void CommunicationSupport::setAgentUpdateDone(bool value) {
-		WriteLock(myLock);
+		WriteLock(*myLock);
 		agentUpdateDone = value;
 	}
 	bool &CommunicationSupport::iswriteIncomingDone() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return writeIncomingDone;
 	}
 	bool &CommunicationSupport::isreadOutgoingDone() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return readOutgoingDone;
 	}
 	bool &CommunicationSupport::isAgentUpdateDone() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return agentUpdateDone;
 	}
 
 	bool &CommunicationSupport::isOutgoingDirty() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return outgoingIsDirty;
 	}
 	bool &CommunicationSupport::isIncomingDirty() {
-		ReadLock Lock(myLock);
+		ReadLock Lock(*myLock);
 		return incomingIsDirty;
 	}
 
 //todo
 	void CommunicationSupport::clear(){
-		WriteLock Lock(myLock);
+		WriteLock Lock(*myLock);
 		outgoingIsDirty = false ;
 		incomingIsDirty = false ;
 		agentUpdateDone = false ;

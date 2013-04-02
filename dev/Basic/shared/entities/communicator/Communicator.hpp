@@ -12,8 +12,12 @@ namespace sim_mob {
 class CommunicationSupport;
 class NS3_Communicator : public sim_mob::Agent
 {
+
 	bool enabled;
+	boost::shared_ptr<Lock> myLock;
 	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo> subscriptionList;
+	sim_mob::DataContainer sendBuffer;
+	sim_mob::DataContainer receiveBuffer;
 	sim_mob::NS3_Communication commImpl;
 	static NS3_Communicator instance;
 
@@ -36,6 +40,16 @@ public:
 	void enable() { enabled = true; }
 	void disable() { enabled = false; }
 	bool isEnabled() { return enabled; }
+
+	sim_mob::DataContainer &getSendBuffer();
+	sim_mob::DataContainer &getReceiveBuffer();
+	void popReceiveBuffer(DATA_MSG_PTR & value);
+	// I think agents dont need to use addSendBuffer() as long as
+	//they set their outgoing buffer to point to communicator's sendbuffer
+	//still addSendBuffer() will be used for control messages sent by the communicator itself
+	void addSendBuffer(sim_mob::DATA_MSG_PTR&);
+	void addSendBuffer(sim_mob::DataContainer &value);
+	void addSendBuffer(std::vector<DATA_MSG_PTR> &value);
 
 	void subscribeEntity(sim_mob::subscriptionInfo);//do not make it as reference coz a copy IS required here
 	bool unSubscribeEntity(sim_mob::subscriptionInfo);

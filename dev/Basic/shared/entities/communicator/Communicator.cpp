@@ -1,6 +1,8 @@
 #include "Communicator.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
+#include <boost/thread/mutex.hpp>
+
 
 ///
 namespace sim_mob {
@@ -218,6 +220,36 @@ bool  NS3_Communicator::unSubscribeEntity(subscriptionInfo value)
 bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)
 {
 	return subscriptionList.erase(agent);
+}
+
+sim_mob::DataContainer &NS3_Communicator::getSendBuffer()
+{
+	return sendBuffer;
+}
+
+void NS3_Communicator::popReceiveBuffer(DATA_MSG_PTR & value)
+{
+	sim_mob::WriteLock Lock(*myLock);
+	value = receiveBuffer.get().front();
+	receiveBuffer.get().erase(receiveBuffer.get().begin());
+}
+
+sim_mob::DataContainer &NS3_Communicator::getReceiveBuffer()
+{
+	sim_mob::ReadLock Lock(*myLock);
+	return receiveBuffer;
+}
+//void NS3_Communicator::addSendBuffer(sim_mob::DATA_MSG_PTR &value){
+//	sim_mob::WriteLock Lock(*myLock);
+//	sendBuffer.add(value);
+//}
+void NS3_Communicator::addSendBuffer(sim_mob::DataContainer &value){
+	sim_mob::WriteLock Lock(*myLock);
+	sendBuffer.add(value);
+}
+void NS3_Communicator::addSendBuffer(std::vector<DATA_MSG_PTR> &value){
+	sim_mob::WriteLock Lock(*myLock);
+	sendBuffer.add(value);
 }
 
 void NS3_Communicator::load(const std::map<std::string, std::string>& configProps)

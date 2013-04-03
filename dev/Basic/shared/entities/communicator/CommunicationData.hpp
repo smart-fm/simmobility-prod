@@ -151,7 +151,14 @@ public:
 
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive &ar, const unsigned int version);
+    void serialize(Archive &ar, const unsigned int version) {
+    	DATA_MSG_PTR value;
+    	ar.register_type(static_cast<dataMessage *>(NULL));
+    //    	BOOST_FOREACH(value, buffer)
+    //    	//takes ar to your class and gives him the information about your class
+    //    		value->registerType(ar);
+    	ar & buffer;
+    };
     void add(DATA_MSG_PTR value);
     void add(std::vector<DATA_MSG_PTR> values);
     void add(DataContainer & value);

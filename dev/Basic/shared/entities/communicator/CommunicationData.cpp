@@ -2,14 +2,15 @@
 namespace sim_mob
 {
 ///////////////////////////////////
-void DataContainer::serialize(Archive &ar, const unsigned int version) {
-	DATA_MSG_PTR value;
-	ar.register_type(static_cast<dataMessage *>(NULL));
-//    	BOOST_FOREACH(value, buffer)
-//    	//takes ar to your class and gives him the information about your class
-//    		value->registerType(ar);
-	ar & buffer;
-}
+//template<class Archive>
+//void DataContainer::serialize(Archive &ar, const unsigned int version) {
+//	DATA_MSG_PTR value;
+//	ar.register_type(static_cast<dataMessage *>(NULL));
+////    	BOOST_FOREACH(value, buffer)
+////    	//takes ar to your class and gives him the information about your class
+////    		value->registerType(ar);
+//	ar & buffer;
+//}
 void DataContainer::add(DATA_MSG_PTR value) {
 	buffer.push_back(value);
 }
@@ -67,9 +68,9 @@ subscriptionInfo::subscriptionInfo(
 	myLock = boost::shared_ptr<Lock>(new Lock);//will be deleted itself :)
 }
 
-subscriptionInfo & subscriptionInfo::operator=(const subscriptionInfo&) {
-	return *this;
-}
+//subscriptionInfo & subscriptionInfo::operator=(const subscriptionInfo&) {
+//	return *this;
+//}
 
 void subscriptionInfo::setEntity(sim_mob::Entity* value)
 {

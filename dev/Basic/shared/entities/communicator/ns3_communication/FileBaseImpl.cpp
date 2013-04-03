@@ -1,11 +1,11 @@
-#include "Communication.hpp"
+#include "FileBasedImpl.hpp"
 namespace sim_mob {
 /*
  * *************************************************************
  * 						FileBasedImpl
  * * ***********************************************************
  */
-commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
+commResult FileBasedImpl::send(DataContainer& values) {
 	std::cout << "Inside FileBasedImpl::send\n";
 	//todo, i couldn't find a way to declare text_oarchive without a parameterized constructor,
 	//hence I need to declare it in every send operation.
@@ -18,7 +18,7 @@ commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
 		ofs.open(sendFile.c_str() , std::ios::app);
 	}
 	if(!ofs.is_open()) {
-	    std::cout << "NS3_Communication::FileBasedImpl::Send=> " << sendFile << "  is empty\n";
+	    std::cout << "FileBasedImpl::Send=> " << sendFile << "  is empty\n";
 	    return commResult(commResult::failure);
 	}
 
@@ -36,8 +36,8 @@ commResult NS3_Communication::FileBasedImpl::send(DataContainer& values) {
     oa & values;
 
 };
-commResult NS3_Communication::FileBasedImpl::receive(DataContainer& value){
-	std::cout << "Inside NS3_Communication::FileBasedImpl::receive[" << receiveFile << "]" << std::endl;
+commResult FileBasedImpl::receive(DataContainer& value){
+	std::cout << "Inside FileBasedImpl::receive[" << receiveFile << "]" << std::endl;
 	if(!ifs.is_open())
 	{
 		ifs.open(receiveFile.c_str(), std::fstream::in);
@@ -71,13 +71,13 @@ commResult NS3_Communication::FileBasedImpl::receive(DataContainer& value){
 
 
 };
-void NS3_Communication::FileBasedImpl::shortCircuit(std::string sendFile_ , std::string receiveFile_)
+void FileBasedImpl::shortCircuit(std::string sendFile_ , std::string receiveFile_)
 {
 	std::ostringstream out("");
 	out << "cp " + sendFile_ + " " + receiveFile_;
 	std::system(out.str().c_str());
 }
-NS3_Communication::FileBasedImpl::FileBasedImpl(std::string sendFile_, std::string receiveFile_)
+FileBasedImpl::FileBasedImpl(std::string sendFile_, std::string receiveFile_)
 {
 	sendFile = sendFile_;
 	receiveFile = receiveFile_;
@@ -90,16 +90,4 @@ NS3_Communication::FileBasedImpl::FileBasedImpl(std::string sendFile_, std::stri
 	ofs.open(sendFile_.c_str(), std::ios::app);
 //	ifs.open(receiveFile_.c_str(), std::ifstream::in);
 }
-NS3_Communication::NS3_Communication() {
-	//todo: configuration based
-	SR_Impl = new FileBasedImpl();
 }
-/*
- * *************************************************************
- * 						ASIO_Impl
- * * ***********************************************************
- */
-
-}
-;
-//namespace sim_mob

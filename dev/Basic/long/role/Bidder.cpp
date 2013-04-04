@@ -1,0 +1,59 @@
+/* 
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ * 
+ * File:   Seller.cpp
+ * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 
+ * Created on April 4, 2013, 5:13 PM
+ */
+
+#include <iostream>
+#include "agent/UnitHolder.hpp"
+#include "Bidder.hpp"
+#include "event/EventPublisher.hpp"
+
+using std::cout;
+using std::endl;
+using namespace sim_mob;
+using namespace sim_mob::long_term;
+
+Bidder::Bidder(UnitHolder* parent) : Role(parent), cParent(parent){
+    cParent->GetEventManager().RegisterEvent(LTID_BID_RSP);
+    cParent->GetEventManager().Subscribe(LTID_BID_RSP, &UnitHolder::unitX, this, 
+            CONTEXT_CALLBACK_HANDLER(BidEventArgs, Bidder::OnBidResponse));
+}
+
+Bidder::~Bidder() {
+}
+
+void Bidder::Update(timeslice now) {
+    if (isActive()) {
+        cParent->GetEventManager().Publish(LTID_BID, &UnitHolder::unitX, BidEventArgs(10));
+        cParent->GetEventManager().Schedule(timeslice(now.ms()+10,now.frame()+10), this, 
+                CONTEXT_CALLBACK_HANDLER(EM_EventArgs, Bidder::OnWakeUp));
+        SetActive(false);
+    }
+}
+
+void Bidder::OnBidResponse(EventId id, Context ctx, EventPublisher* sender, const BidEventArgs& args) {
+    switch (id) {
+        case LTID_BID_RSP:// Bid received 
+        {
+            cout << "Id: " << GetParent()->getId() << " Received a response " << args.GetResponse() << endl;
+            //take a decision.
+            break;
+        }
+        default:break;
+    }
+}
+
+void Bidder::OnWakeUp(EventId id, Context ctx, EventPublisher* sender, const EM_EventArgs& args) {
+    switch (id) {
+        case EM_WND_EXPIRED:// Bid received 
+        {
+            SetActive(true);
+            break;
+        }
+        default:break;
+    }
+}

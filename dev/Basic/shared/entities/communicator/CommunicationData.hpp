@@ -18,6 +18,10 @@ namespace sim_mob
 class Entity;
 //THIS ENUM IDENTIFIES THE CLASSES TYPES
 
+typedef boost::shared_mutex Lock;
+typedef boost::lock_guard  < Lock > WriteLock;
+typedef boost::shared_lock < Lock > ReadLock;
+
 enum DataClassType
 {
 	DT_STRING = 1
@@ -146,7 +150,10 @@ public:
 
 class DataContainer
 {
+	boost::shared_ptr<Lock> myLock;
 public:
+	DataContainer();
+	//todo make this private later
 	std::vector<DATA_MSG_PTR> buffer;
 
     friend class boost::serialization::access;
@@ -165,6 +172,7 @@ public:
     void reset();
     std::vector<DATA_MSG_PTR>& get();
     bool pop(DATA_MSG_PTR & var);
+    bool empty();
 
 };
 
@@ -177,9 +185,6 @@ public:
  * of common agents who are willing to have communication ability)
  *
  *********************************************************************************/
-typedef boost::shared_mutex Lock;
-typedef boost::lock_guard  < Lock > WriteLock;
-typedef boost::shared_lock < Lock > ReadLock;
 
 class subscriptionInfo
 {

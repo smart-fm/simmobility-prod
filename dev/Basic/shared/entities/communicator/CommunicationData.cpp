@@ -1,4 +1,5 @@
 #include "CommunicationData.hpp"
+#include<cstdio>
 namespace sim_mob
 {
 ///////////////////////////////////
@@ -11,24 +12,33 @@ namespace sim_mob
 ////    		value->registerType(ar);
 //	ar & buffer;
 //}
+DataContainer::DataContainer():myLock(new Lock){}
+
 void DataContainer::add(DATA_MSG_PTR value) {
+	WriteLock(*myLock);
 	buffer.push_back(value);
 }
 
 void DataContainer::add(std::vector<DATA_MSG_PTR> values) {
+	WriteLock(*myLock);
 	buffer.insert(buffer.end(), values.begin(), values.end());
 }
 
 void DataContainer::add(DataContainer & value) {
+	WriteLock(*myLock);
 	add(value.get());
 }
 
 void DataContainer::reset() {
+	WriteLock(*myLock);
 	DATA_MSG_PTR value;
+	std::cout << "resetting a buffer of size " << buffer.size() << std::endl;
+
 	BOOST_FOREACH(value, buffer)
 		delete value;
+	std::cout << "resetting " << std::endl;
 	buffer.clear();
-
+	std::cout << " done" << std::endl;
 }
 
 std::vector<DATA_MSG_PTR>& DataContainer::get() {
@@ -36,12 +46,16 @@ std::vector<DATA_MSG_PTR>& DataContainer::get() {
 }
 
 bool DataContainer::pop(DATA_MSG_PTR & var) {
+	WriteLock(*myLock);
 	if (buffer.size() < 1)
 		return false;
 	var = buffer.front();
 	buffer.erase(buffer.begin());
 }
 
+bool DataContainer::empty(){
+	return buffer.empty();
+}
 ///////////////////////////////////
 subscriptionInfo::subscriptionInfo(
 		sim_mob::Entity *  agent_ ,
@@ -104,7 +118,8 @@ void subscriptionInfo::addIncoming(DATA_MSG_PTR value) {
 	incoming.add(value);
 	incomingIsDirty = true;
 }
-void subscriptionInfo::addOutgoing(DATA_MSG_PTR value) { std::cout << "pushing data to " << &outgoing << std::endl;
+void subscriptionInfo::addOutgoing(DATA_MSG_PTR value) {
+std::cout << this << " : subscriptionInfo::addOutgoing=>pushing data to " << &outgoing << std::endl;
 WriteLock(*myLock);
 outgoing.add(value);
 outgoingIsDirty = true;
@@ -152,8 +167,8 @@ void subscriptionInfo::reset()
 	agentUpdateDone = false ;
 	readOutgoingDone = false ;
 	writeIncomingDone = false ;
-	incoming.reset();
-	outgoing.reset();
+//	incoming.reset();
+//	outgoing.reset();
 	cnt_1 = cnt_2 = 0;
 }
 }

@@ -3,14 +3,16 @@
 #include "workers/Worker.hpp"
 #include <boost/thread/mutex.hpp>
 
+#include <boost/thread.hpp>
 
 ///
 namespace sim_mob {
 
 //sim_mob::All_NS3_Communicators sim_mob::NS3_Communicator::all_NS3_cummunication_agents;
 NS3_Communicator::NS3_Communicator(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id)
+: Agent(mtxStrat, id), commImpl(&sendBuffer)
 {
+	std::cout << " Communicator's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
 
 }
 //////////////////////////////////////////
@@ -27,14 +29,13 @@ sim_mob::NS3_Communicator sim_mob::NS3_Communicator::instance(MtxStrat_Locked, 0
  */
 Entity::UpdateStatus NS3_Communicator::update(timeslice now)
 {
+	//	commImpl.shortCircuit();
 	std::cout << "communicator tick:"<< now.frame() << " ================================================\n";
 	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it_1;
-	//thread-1 (send):
-	processOutgoingData(now);
-//	commImpl.shortCircuit();
-//	thread-2 (receive):
-	processIncomingData(now);
-//	thread.join()
+	boost::thread outGoing_thread(boost::bind(&sim_mob::NS3_Communicator::processOutgoingData,this,now));
+	boost::thread inComing_thread(boost::bind(&sim_mob::NS3_Communicator::processIncomingData,this,now));
+	outGoing_thread.join();
+	inComing_thread.join();
 	reset();
 	std::cout <<"------------------------------------------------------\n";
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
@@ -71,103 +72,179 @@ bool NS3_Communicator::deadEntityCheck(sim_mob::subscriptionInfo & info) {
 	const std::vector<sim_mob::Entity*> & managedEntities_ = info.getEntity()->currWorker->getEntities();
 	std::vector<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
 	for (std::vector<sim_mob::Entity*>::const_iterator it =	managedEntities_.begin(); it != managedEntities_.end(); it++)
-		if (*it == info.getEntity()) 	return true;
+	{
+		//agent is still being managed, so it is not dead
+		if (*it == info.getEntity())
+			return false;
+	}
 
-	return false;
+	return true;
 }
+
+//iterate the entire subscription list looking for
+//those who are not done with their update and check if they are dead.
+//you better hope they are dead otherwise you have to hold the simulation
+//tick waiting for them to finish
+void NS3_Communicator::refineSubscriptionList() {
+	WriteLock(*myLock);
+	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it, it_end(subscriptionList.end());
+	for(it = subscriptionList.begin(); it != it_end; it++)
+	{
+		const sim_mob::Entity * target = (*it).first;
+		if(duplicateEntityDoneChecker.find(target) == duplicateEntityDoneChecker.end() ) continue;
+		//you or your worker are probably dead already. you just don't know it
+		if (!target->currWorker)
+			{
+//				boost::upgrade_to_unique_lock< Lock > ulock(lock);
+				subscriptionList.erase(target);
+				continue;
+			}
+		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
+		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
+		if(it_entity == managedEntities_.end())
+		{
+//			boost::upgrade_to_unique_lock< Lock > ulock(lock);
+			subscriptionList.erase(target);
+			continue;
+		}
+	}
+}
+
+void NS3_Communicator::bufferSend()
+{
+	WriteLock(*myLock);
+	std::cout << "Sending the buffer\n";
+	commImpl.send(sendBuffer);
+	sendBuffer.reset();
+}
+bool NS3_Communicator::allAgentUpdatesDone()
+{
+	ReadLock(*myLock);
+	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::const_iterator it, it_end(subscriptionList.end());
+
+	for(it = subscriptionList.begin(); it != it_end; it++)
+	{
+		sim_mob::subscriptionInfo & info = subscriptionList.at(it->first);//easy read
+		if (info.isAgentUpdateDone())
+		{
+			duplicateEntityDoneChecker.insert(it->first);
+		}
+	}
+	std::cout << "subscriptionList size = " << subscriptionList.size() << std::endl;
+	std::cout << "duplicateEntityDoneChecker size = " << duplicateEntityDoneChecker.size() << std::endl;
+	return(duplicateEntityDoneChecker.size() == subscriptionList.size());
+}
+
 //todo: think of a better return value than just void
 bool NS3_Communicator::processOutgoingData(timeslice now)
 {
-	int totalPackets = 0;
-	printSubscriptionList(now);
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
-	bool allUpdatesAreDone = true; //used to get out this loop
-	bool nothingToSend = true;
-	DataContainer sendBatch;
-	//following container are just to avoid unneseccary searches
-	std::set<const sim_mob::Entity*> duplicateEntityDoneChecker ;
-	nothingToSend = true;
-	sendBatch.reset();
-	while(1)
+	do
 	{
-		std::cout << "\nWhile\n";
-		if(subscriptionList.size() < 1) {
-			std::cout << "\nWhile-break-1\n";
-			break;
+
+		boost::thread thread_rifineSubscriptionList(boost::bind(&NS3_Communicator::refineSubscriptionList,this));
+		if(!sendBuffer.empty())
+		{
+			boost::thread thread_send(boost::bind(&NS3_Communicator::bufferSend,this));
+			thread_send.join();
+			std::cout << now.frame() << " Threads  thread_send Joined\n";
 		}
-
-
-		//inner iteration find those who have something to send, batch them up and send them
-		for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
-		{
-			//if you see the agent is removed from the simulation, it is best to remove it from the list and break the inner loop
-			sim_mob::subscriptionInfo & info = subscriptionList.at(it->first);//easy read
-
-			//filter the iteration
-			if (duplicateEntityDoneChecker.count(it->first) > 0)//already done
-			{
-				std::cout << "[" << info.getEntity() << "] 1:duplicate entry\n";
-				continue;
-			}
-
-			//you don't do anything untill agent's update is done
-			if (info.isAgentUpdateDone() == false)
-				{
-					if(deadEntityCheck(info))
-					{
-						subscriptionList.erase(info.getEntity());
-						break; //u just messed up the subscriptionList's irerator so get out of this loop and come back later
-					}
-					std::cout << "[" << info.getEntity() << "] 2: agentUpdate not Done \n";
-					continue;
-				} //update not completed
-			else
-				duplicateEntityDoneChecker.insert(it->first); //already done
-
-			//now that agent update is done, see if it has anything to send
-			if (info.isOutgoingDirty() == false)
-			{
-				std::cout << "[" << info.getEntity() << "] 3:outgoing Is Not Dirty\n";
-				continue;
-			} //no data
-
-			//if your program raches this point in this inner loop,, it means some data is available for sending
-			{
-				std::cout <<"\n outgoing=>Tick:" << now.frame() << "agent[" << info.getEntity() << "] update[" << info.isAgentUpdateDone() << "] dirty[" << info.isOutgoingDirty() <<"]\n";
-				nothingToSend = false;
-				sendBatch.add(info.getOutgoing());
-			}
-
-		}//for
-
-		if(duplicateEntityDoneChecker.size() >= subscriptionList.size())  //used >= to be safe. coz you might have inserted the agent into duplicatechecker and agent is killed immediately....
-		{
-			std::cout << "\nWhile-break-(All updates are done)\n";
-			break;
-		};//todo what if an entity is set for removal? then no updatDone->infinite loop
-
-	}//while: when you get out of this loop that this tick is over wrt outgoing
-	std::cout << "\nWhile--done\n";
-
-	if(!nothingToSend)
-		{
-			totalPackets += sendBatch.get().size();
-			std::cout << "Sending batch of size " << sendBatch.get().size() << " to commImpl.send(sendBatch)" << std::endl;
-			commImpl.send(sendBatch);
-		}
-		else
-			std::cout << "Nothing to send\n";
-	//todo remove or modify this later
-	reset();
+		thread_rifineSubscriptionList.join();
+		std::cout << now.frame() << " Threads  thread_rifineSubscriptionList Joined\n";
+	}while(!allAgentUpdatesDone());
 }
+
+//bool NS3_Communicator::processOutgoingData(timeslice now)
+//{
+//	int totalPackets = 0;
+//	printSubscriptionList(now);
+//	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
+//	bool allUpdatesAreDone = true; //used to get out this loop
+//	bool nothingToSend = true;
+//	DataContainer sendBatch;
+//	//following container are just to avoid unneseccary searches
+//	std::set<const sim_mob::Entity*> duplicateEntityDoneChecker ;
+//	nothingToSend = true;
+//	sendBatch.reset();
+//	while(1)
+//	{
+//		std::cout << "\nWhile\n";
+//		if(subscriptionList.size() < 1) {
+//			std::cout << "\nWhile-break-1\n";
+//			break;
+//		}
+//
+//
+//		//inner iteration find those who have something to send, batch them up and send them
+//		for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
+//		{
+//			//if you see the agent is removed from the simulation, it is best to remove it from the list and break the inner loop
+//			sim_mob::subscriptionInfo & info = subscriptionList.at(it->first);//easy read
+//
+//			//filter the iteration
+//			if (duplicateEntityDoneChecker.count(it->first) > 0)//already done
+//			{
+//				std::cout << "[" << info.getEntity() << "] 1:duplicate entry\n";
+//				continue;
+//			}
+//
+//			//you don't do anything untill agent's update is done
+//			if (info.isAgentUpdateDone() == false)
+//				{
+//					if(deadEntityCheck(info))
+//					{
+//						subscriptionList.erase(info.getEntity());
+//						break; //u just messed up the subscriptionList's irerator so get out of this loop and come back later
+//					}
+//					std::cout << "[" << info.getEntity() << "] 2: agentUpdate not Done \n";
+//					continue;
+//				} //update not completed
+//			else
+//				duplicateEntityDoneChecker.insert(it->first); //already done
+//
+//			//now that agent update is done, see if it has anything to send
+//			if (info.isOutgoingDirty() == false)
+//			{
+//				std::cout << "[" << info.getEntity() << "] 3:outgoing Is Not Dirty\n";
+//				continue;
+//			} //no data
+//
+//			//if your program raches this point in this inner loop,, it means some data is available for sending
+//			{
+//				std::cout <<"\n outgoing=>Tick:" << now.frame() << "agent[" << info.getEntity() << "] update[" << info.isAgentUpdateDone() << "] dirty[" << info.isOutgoingDirty() <<"]\n";
+//				nothingToSend = false;
+//				sendBatch.add(info.getOutgoing());
+//			}
+//
+//		}//for
+//
+//		if(duplicateEntityDoneChecker.size() >= subscriptionList.size())  //used >= to be safe. coz you might have inserted the agent into duplicatechecker and agent is killed immediately....
+//		{
+//			std::cout << "\nWhile-break-(All updates are done)\n";
+//			break;
+//		};//todo what if an entity is set for removal? then no updatDone->infinite loop
+//
+//	}//while: when you get out of this loop that this tick is over wrt outgoing
+//	std::cout << "\nWhile--done\n";
+//
+//	if(!nothingToSend)
+//		{
+//			totalPackets += sendBatch.get().size();
+//			std::cout << "Sending batch of size " << sendBatch.get().size() << " to commImpl.send(sendBatch)" << std::endl;
+//			commImpl.send(sendBatch);
+//		}
+//		else
+//			std::cout << "Nothing to send\n";
+//	//todo remove or modify this later
+//	reset();
+//}
 //todo: think of a better return value than just void
 void NS3_Communicator::processIncomingData(timeslice now)
 {
-	if(now.frame() != 4)
-	{
-		return;
-		std::cout << std::endl;
-	}
+//	if(now.frame() != 4)
+//	{
+//		return;
+//		std::cout << std::endl;
+//	}
   DataContainer receiveBatch; //will contain data belonging to many agents
   const commResult &res = commImpl.receive(receiveBatch);
   if(res.getResult() != commResult::success) return;
@@ -186,6 +263,7 @@ void NS3_Communicator::processIncomingData(timeslice now)
 
 void NS3_Communicator::reset()
 {
+	WriteLock(*myLock);
 	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
 	for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
 	{
@@ -193,6 +271,8 @@ void NS3_Communicator::reset()
 		info.reset();
 
 	}
+	sendBuffer.reset();
+	receiveBuffer.reset();
 
 }
 void NS3_Communicator::reset(subscriptionInfo &info)
@@ -224,6 +304,7 @@ bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)
 
 sim_mob::DataContainer &NS3_Communicator::getSendBuffer()
 {
+	std::cout << "NS3_Communicator::getSendBuffer => sending buffer[" << &sendBuffer << "]" << std::endl;
 	return sendBuffer;
 }
 

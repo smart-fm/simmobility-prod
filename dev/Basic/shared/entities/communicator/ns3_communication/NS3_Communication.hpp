@@ -1,9 +1,8 @@
 #pragma once
-#include "buffering/Shared.hpp"
+//#include "buffering/Shared.hpp"
 #include "../Communication_Base.hpp"
-#include "../CommunicationData.hpp"
+//#include "../CommunicationData.hpp"
 
-//#include "serialized_asio/ASIO_Impl.hpp"
 #include<fstream>
 ////this file provides some of the communication
 ////1-tools required for agent "communication subsystem"
@@ -25,18 +24,23 @@ namespace sim_mob
 class FileBasedImpl;
 class ASIO_Impl;
 
-class NS3_Communication: public Communication<DataContainer&, commResult> {
+class NS3_Communication: public sim_mob::Communication<DataContainer&, commResult> {
+	//ASIO implementation needs these variables for its operations
+	 DataContainer& sendBuffer;
+	 DataContainer& receiveBuffer;
 
 public:
-	NS3_Communication() ;
+	NS3_Communication(DataContainer *sedBuffer_ = 0, DataContainer* receiveBuffer_ = 0);
+	void init();
 	commResult send(DataContainer &value);
 	commResult receive(DataContainer& value);
 	void shortCircuit(std::string sendFile_ = "./send.txt", std::string receiveFile_ = "./receive.txt");
 
 private:
 	//Send & Receive implementations
-	FileBasedImpl *SR_Impl;
-	ASIO_Impl *SR_Impl_1;//testing
+//	FileBasedImpl *SR_Impl;
+//	sim_mob::Communication<DataContainer&, commResult> *SR_Impl;//testing
+	sim_mob::ASIO_Impl *SR_Impl;//testing
 };
 
 

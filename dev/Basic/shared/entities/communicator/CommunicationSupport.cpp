@@ -6,8 +6,9 @@ using namespace sim_mob;
 namespace sim_mob
 {
 	CommunicationSupport::CommunicationSupport()
-	:	communicator(sim_mob::NS3_Communicator::GetInstance()),
-	 	outgoing(communicator.getSendBuffer()),
+	:	myLock(new Lock),
+		communicator(sim_mob::NS3_Communicator::GetInstance()),
+	 	outgoing(sim_mob::NS3_Communicator::GetInstance().getSendBuffer()),
 		incomingIsDirty(false),
 		outgoingIsDirty(false),
 		writeIncomingDone(false),
@@ -59,9 +60,11 @@ namespace sim_mob
 		WriteLock(*myLock);
 		incoming.add(value);
 	}
-	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) { std::cout << "pushing data to " << &outgoing << std::endl;
+	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) {
+		std::cout << this << " : CommunicationSupport::addOutgoing=>pushing data[" << value << "] to outgoing[" << &outgoing << "]" <<  std::endl;
 	WriteLock(*myLock);
 	outgoing.add(value);
+	std::cout << "push done "  <<  std::endl;
 	outgoingIsDirty = true;
 	}
 

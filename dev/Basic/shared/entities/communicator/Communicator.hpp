@@ -20,6 +20,8 @@ class NS3_Communicator : public sim_mob::Agent
 	sim_mob::DataContainer receiveBuffer;
 	sim_mob::NS3_Communication commImpl;
 	static NS3_Communicator instance;
+	//for internal use (yeah, other variables are for external use 'only'! ...pinhead)
+	std::set<const sim_mob::Entity*> duplicateEntityDoneChecker ;
 
     //serialize, deserialize, send, receive
 	bool processOutgoingData(timeslice now);
@@ -28,6 +30,10 @@ class NS3_Communicator : public sim_mob::Agent
 	void reset(subscriptionInfo &info);
 	void printSubscriptionList(timeslice now);
 	bool deadEntityCheck(sim_mob::subscriptionInfo & info);
+	void refineSubscriptionList();
+	//threadfunctions
+	void bufferSend();
+	bool allAgentUpdatesDone();
 
 public:
 	explicit NS3_Communicator(const MutexStrategy& mtxStrat, int id=-1);

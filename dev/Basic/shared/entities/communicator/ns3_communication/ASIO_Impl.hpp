@@ -30,9 +30,12 @@ class ASIO_Impl: public Communication<DataContainer&, commResult> {
 	std::string port_receive;
 
 	DataContainer temporaryReceiveBuffer;
+	DataContainer *temporarySendBuffer;
 
 	DataContainer &mainReceiveBuffer;
 	boost::thread thread_receive;
+
+	bool sendConnectionEstablished;
 
 	enum ASIOConnectionType {
 		asio_receive, asio_send
@@ -49,10 +52,16 @@ public:
 	/// Handle completion of a connect operation.
 	void handle_connect_receive(const boost::system::error_code& e,
 			boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
+	void handle_send(const boost::system::error_code& e/*, DataContainer &value*/);
 	bool init();
 	bool thread_receive_function();
 	/// Handle completion of a read operation.
 	void handle_read_receive(const boost::system::error_code& e);
+
+	//the polymorphism thing
+
+	commResult send(DataContainer &value);
+	commResult receive(DataContainer& value);
 
 };
 

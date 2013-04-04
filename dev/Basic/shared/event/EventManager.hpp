@@ -83,13 +83,8 @@ namespace sim_mob {
         struct TimesliceComparator {
 
             bool operator()(const timeslice& val1, const timeslice& val2) const {
-                if (val1.ms() == val2.ms() && val1.frame() == val2.frame()) {
-                    return 0;
-                } else if (val1.ms() > val2.ms() || (val1.ms() == val2.ms()
-                        && val1.frame() > val2.frame())) {
-                    return 1;
-                }
-                return -1;
+                return (val1.ms() < val2.ms() || 
+                        (val1.ms() == val2.ms() && val1.frame() < val2.frame()));
             }
         };
 

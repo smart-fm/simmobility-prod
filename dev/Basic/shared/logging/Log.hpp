@@ -193,7 +193,7 @@ private:
 	static std::ofstream log_file;
 
 	///A scoped lock on the log_mutex. May be null, in which case output is not locked.
-	boost::mutex::scoped_lock* local_lock;
+	boost::mutex::scoped_lock local_lock;
 };
 
 
@@ -268,7 +268,7 @@ private:
 	static std::ofstream log_file;
 
 	///A scoped lock on the log_mutex. May be null, in which case output is not locked.
-	boost::mutex::scoped_lock* local_lock;
+	boost::mutex::scoped_lock local_lock;
 };
 
 
@@ -343,7 +343,7 @@ private:
 	static std::ofstream log_file;
 
 	///A scoped lock on the log_mutex. May be null, in which case output is not locked.
-	boost::mutex::scoped_lock* local_lock;
+	boost::mutex::scoped_lock local_lock;
 };
 
 

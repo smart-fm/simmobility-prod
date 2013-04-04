@@ -50,10 +50,10 @@ std::ostream* sim_mob::StaticLogManager::OpenStream(const string& path, std::ofs
 // Log implementation
 //////////////////////////////////////////////////////////////
 
-sim_mob::Log::Log() : local_lock(nullptr)
+sim_mob::Log::Log()
 {
 	if (log_mutex) {
-		local_lock = new boost::mutex::scoped_lock(*log_mutex);
+		local_lock = boost::mutex::scoped_lock(*log_mutex);
 	}
 }
 
@@ -64,9 +64,6 @@ sim_mob::Log::~Log()
 	if (log_handle) {
 		(*log_handle) <<std::flush;
 	}
-
-	//Deleting will free the lock (if it exists in the first place).
-	safe_delete_item(local_lock);
 }
 
 void sim_mob::Log::Init(const string& path)
@@ -92,10 +89,10 @@ bool sim_mob::Log::IsEnabled()
 // Warn implementation
 //////////////////////////////////////////////////////////////
 
-sim_mob::Warn::Warn() : local_lock(nullptr)
+sim_mob::Warn::Warn()
 {
 	if (log_mutex) {
-		local_lock = new boost::mutex::scoped_lock(*log_mutex);
+		local_lock = boost::mutex::scoped_lock(*log_mutex);
 	}
 }
 
@@ -106,9 +103,6 @@ sim_mob::Warn::~Warn()
 	if (log_handle) {
 		(*log_handle) <<std::flush;
 	}
-
-	//Deleting will free the lock (if it exists in the first place).
-	safe_delete_item(local_lock);
 }
 
 void sim_mob::Warn::Init(const string& path)
@@ -133,10 +127,10 @@ bool sim_mob::Warn::IsEnabled()
 // Print implementation
 //////////////////////////////////////////////////////////////
 
-sim_mob::Print::Print() : local_lock(nullptr)
+sim_mob::Print::Print()
 {
 	if (log_mutex) {
-		local_lock = new boost::mutex::scoped_lock(*log_mutex);
+		local_lock = boost::mutex::scoped_lock(*log_mutex);
 	}
 }
 
@@ -147,9 +141,6 @@ sim_mob::Print::~Print()
 	if (log_handle) {
 		(*log_handle) <<std::flush;
 	}
-
-	//Deleting will free the lock (if it exists in the first place).
-	safe_delete_item(local_lock);
 }
 
 void sim_mob::Print::Init(const string& path)

@@ -179,10 +179,12 @@ int main(int argc, char* argv[]) {
     WorkGroup::InitAllGroups();
     agentWorkers->initWorkers(nullptr);
     UnitHolder holder1(1);
-    UnitHolder holder2(2);
+    UnitHolder holder2(4);
+    UnitHolder holder3(10);
     
     agentWorkers->assignAWorker(&holder1);
     agentWorkers->assignAWorker(&holder2);
+    agentWorkers->assignAWorker(&holder3);
     //Start work groups and all threads.
     WorkGroup::StartAllWorkGroups();
      

@@ -17,9 +17,9 @@ using std::endl;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Bidder::Bidder(UnitHolder* parent) : Role(parent), cParent(parent){
+Bidder::Bidder(UnitHolder* parent) : Role(parent), cParent(parent) {
     cParent->GetEventManager().RegisterEvent(LTID_BID_RSP);
-    cParent->GetEventManager().Subscribe(LTID_BID_RSP, &UnitHolder::unitX, this, 
+    cParent->GetEventManager().Subscribe(LTID_BID_RSP, &UnitHolder::unitX, this,
             CONTEXT_CALLBACK_HANDLER(BidEventArgs, Bidder::OnBidResponse));
 }
 
@@ -28,8 +28,9 @@ Bidder::~Bidder() {
 
 void Bidder::Update(timeslice now) {
     if (isActive()) {
-        cParent->GetEventManager().Publish(LTID_BID, &UnitHolder::unitX, BidEventArgs(10));
-        cParent->GetEventManager().Schedule(timeslice(now.ms()+10,now.frame()+10), this, 
+        int id = GetParent()->getId();
+        cParent->GetEventManager().Publish(LTID_BID, &UnitHolder::unitX, BidEventArgs(id, 10 + id));
+        cParent->GetEventManager().Schedule(timeslice(now.ms() + id, now.frame() + id), this,
                 CONTEXT_CALLBACK_HANDLER(EM_EventArgs, Bidder::OnWakeUp));
         SetActive(false);
     }
@@ -39,7 +40,9 @@ void Bidder::OnBidResponse(EventId id, Context ctx, EventPublisher* sender, cons
     switch (id) {
         case LTID_BID_RSP:// Bid received 
         {
-            cout << "Id: " << GetParent()->getId() << " Received a response " << args.GetResponse() << endl;
+            if (GetParent()->getId() == args.GetBidderId()) {
+                cout << "Id: " << GetParent()->getId() << " Received a response " << args.GetResponse() << endl;
+            }
             //take a decision.
             break;
         }

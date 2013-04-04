@@ -37,7 +37,7 @@ void Seller::OnBidReceived(EventId id, Context ctx, EventPublisher* sender, cons
         {
             //take a decision.
             cout << "Id: " << GetParent()->getId() << " Received a bid " << args.GetBid() << endl;
-            cParent->GetEventManager().Publish(LTID_BID_RSP, &UnitHolder::unitX, BidEventArgs(ACCEPTED));
+            cParent->GetEventManager().Publish(LTID_BID_RSP, &UnitHolder::unitX, BidEventArgs(args.GetBidderId(), ACCEPTED));
             break;
         }
         default:break;

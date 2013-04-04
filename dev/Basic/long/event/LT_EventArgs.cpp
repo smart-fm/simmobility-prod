@@ -12,28 +12,29 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-BidEventArgs::BidEventArgs(double bid) {
-    BidArgsValue val;
-    val.bid = bid;
-    value = val;
+BidEventArgs::BidEventArgs(int bidderId, double bid) : bidValue(bid),
+bidderId(bidderId), response(NOT_AVAILABLE) {
 }
 
-BidEventArgs::BidEventArgs(BidResponse response){
-    BidArgsValue val;
-    val.response = response;
-    value = val;
+BidEventArgs::BidEventArgs(int bidderId, BidResponse response) : bidValue(0),
+bidderId(bidderId), response(response) {
 }
 
-BidEventArgs::BidEventArgs(const BidEventArgs& orig) : value(orig.value) {
+BidEventArgs::BidEventArgs(const BidEventArgs& orig) : bidValue(orig.bidValue),
+bidderId(orig.bidderId), response(orig.response) {
 }
 
 BidEventArgs::~BidEventArgs() {
 }
 
-const BidResponse BidEventArgs::GetResponse() const{
-    return value.response;
+const BidResponse BidEventArgs::GetResponse() const {
+    return response;
 }
 
-const double BidEventArgs::GetBid() const{
-    return value.bid;
+const double BidEventArgs::GetBid() const {
+    return bidValue;
+}
+
+const int BidEventArgs::GetBidderId()const {
+    return bidderId;
 }

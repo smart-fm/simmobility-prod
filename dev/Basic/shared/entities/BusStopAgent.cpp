@@ -2,6 +2,10 @@
 
 #include "BusStopAgent.hpp"
 
+#include "entities/Person.hpp"
+#include "entities/AuraManager.hpp"
+#include "../short/entities/roles/waitBusActivityRole/WaitBusActivity.hpp"
+
 using std::vector;
 
 using namespace sim_mob;
@@ -72,5 +76,16 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
+ 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3000),(busstop_.yPos - 3000)),Point2D((busstop_.xPos + 3000),(busstop_.yPos + 3000)));
+ 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+ 	{
+ 		//Retrieve only Passenger agents.
+ 		const Person* person = dynamic_cast<const Person *>(*it);
+ 		Person* p = const_cast<Person *>(person);
+ 		WaitBusActivity* waitbusactivity = p ? dynamic_cast<WaitBusActivity*>(p->getRole()) : nullptr;
+ 		if(waitbusactivity) {
+ 			std::cout << "WaitBusActivity: " << waitbusactivity->getParent()->getId() << std::endl;
+ 		}
+ 	}
 	return Entity::UpdateStatus::Continue;
 }

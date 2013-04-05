@@ -37,13 +37,11 @@ class BehaviorFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit BehaviorFacet(sim_mob::Agent* parentAgent = nullptr, std::string roleName = std::string()) :
-	parentAgent(parentAgent), name(roleName), dynamic_seed(0) { }
+	explicit BehaviorFacet(sim_mob::Agent* parentAgent = nullptr) :
+		parentAgent(parentAgent) { }
 
 	//Allow propagating destructors
 	virtual ~BehaviorFacet() {}
-
-	std::string getRoleName()const {return name;}
 
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).
@@ -57,11 +55,6 @@ public:
 
 	//generate output with fake attributes for MPI
 	virtual void frame_tick_output_mpi(timeslice now) = 0;
-
-	///Create the UpdateParams (or, more likely, sub-class) which will hold all
-	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
-
 
 	/* NOTE: There is no resource defined in the base class BehaviorFacet. For role facets of drivers, the vehicle of the parent Role could be
 	 * shared between behavior and movement facets. This getter must be overridden in the derived classes to return appropriate resource.
@@ -78,52 +71,8 @@ public:
 		this->parentAgent = parent;
 	}
 
-	int getOwnRandomNumber(boost::mt19937& gen)
-	{
-		int one_try = -1;
-		int second_try = -2;
-		int third_try = -3;
-		//		int forth_try = -4;
-
-		while (one_try != second_try || third_try != second_try)
-		{
-			//TODO: I've replaced your calls to srand() and rand() (which are not
-			//      thread-safe) with boost::random.
-			//      This is likely to not work the way you want it to.
-			//      Please read the boost::random docs. ~Seth
-			boost::uniform_int<> dist(0, RAND_MAX);
-
-			one_try = dist(gen);
-
-			second_try = dist(gen);
-
-			third_try = dist(gen);
-
-//			if (one_try != second_try || third_try != second_try)
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << "," << one_try << "," << second_try << "," << third_try << "\n");
-//			}
-//			else
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << ",Use Seed:" << dynamic_seed << ", Get:" << one_try << "," << second_try<< "," << third_try<< "\n");
-//			}
-		}
-
-		dynamic_seed = one_try;
-		return one_try;
-	}
-
-	const std::string name;
 protected:
 	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
-
-	//add by xuyan
-protected:
-	int dynamic_seed;
-
-	//Random number generator
-	//TODO: We need a policy on who can get a generator and why.
-	//boost::mt19937 gen;
 
 public:
 #ifndef SIMMOB_DISABLE_MPI
@@ -145,13 +94,11 @@ class MovementFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit MovementFacet(sim_mob::Agent* parentAgent = nullptr, std::string roleName = std::string()) :
-		parentAgent(parentAgent), name(roleName), dynamic_seed(0) { }
+	explicit MovementFacet(sim_mob::Agent* parentAgent = nullptr) :
+		parentAgent(parentAgent) { }
 
 	//Allow propagating destructors
 	virtual ~MovementFacet() {}
-
-	std::string getRoleName()const {return name;}
 
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).
@@ -166,16 +113,6 @@ public:
 	//generate output with fake attributes for MPI
 	virtual void frame_tick_output_mpi(timeslice now) = 0;
 
-	///Create the UpdateParams (or, more likely, sub-class) which will hold all
-	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
-
-	/* NOTE: There is no resource defined in the base class BehaviorFacet. This is kept virtual to be consistent with the Role.
-	 * For role facets of drivers, the vehicle of the parent Role could be shared between behavior and movement facets.
-	 * This getter must be overridden in the derived classes to return appropriate resource.
-	 */
-	virtual Vehicle* getResource() { return nullptr; }
-
 	Agent* getParent()
 	{
 		return parentAgent;
@@ -186,52 +123,8 @@ public:
 		this->parentAgent = parent;
 	}
 
-	int getOwnRandomNumber(boost::mt19937& gen)
-	{
-		int one_try = -1;
-		int second_try = -2;
-		int third_try = -3;
-		//		int forth_try = -4;
-
-		while (one_try != second_try || third_try != second_try)
-		{
-			//TODO: I've replaced your calls to srand() and rand() (which are not
-			//      thread-safe) with boost::random.
-			//      This is likely to not work the way you want it to.
-			//      Please read the boost::random docs. ~Seth
-			boost::uniform_int<> dist(0, RAND_MAX);
-
-			one_try = dist(gen);
-
-			second_try = dist(gen);
-
-			third_try = dist(gen);
-
-//			if (one_try != second_try || third_try != second_try)
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << "," << one_try << "," << second_try << "," << third_try << "\n");
-//			}
-//			else
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << ",Use Seed:" << dynamic_seed << ", Get:" << one_try << "," << second_try<< "," << third_try<< "\n");
-//			}
-		}
-
-		dynamic_seed = one_try;
-		return one_try;
-	}
-
-	const std::string name;
 protected:
 	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
-
-	//added by xuyan in Role.hpp. Copied here by Harish.
-protected:
-	int dynamic_seed;
-
-	//Random number generator
-	//TODO: We need a policy on who can get a generator and why.
-	//boost::mt19937 gen;
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

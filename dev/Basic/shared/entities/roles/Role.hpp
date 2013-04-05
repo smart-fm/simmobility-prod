@@ -61,6 +61,12 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
+	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
+		parent(parent), currResource(nullptr),name(roleName), dynamic_seed(0), behaviorFacet(nullptr), movementFacet(nullptr)
+	{
+		//todo consider putting a runtime error for empty or zero length rolename
+	}
+
 	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
 		parent(parent), currResource(nullptr),name(roleName), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
 	{
@@ -78,7 +84,11 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
-	
+
+	///Create the UpdateParams (or, more likely, sub-class) which will hold all
+	///  the temporary information for this time tick.
+	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
+
 	///Return a request list for asychronous communication.
 	///  Subclasses of Role should override this method if they want to enable
 	///  asynchronous communication.
@@ -89,7 +99,8 @@ public:
 	}
 
 	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
-	virtual Vehicle* getResource() { return currResource; }
+	Vehicle* getResource() { return currResource; }
+	void setResource(Vehicle* currResource) { this->currResource = currResource; }
 
 	Agent* getParent()
 	{

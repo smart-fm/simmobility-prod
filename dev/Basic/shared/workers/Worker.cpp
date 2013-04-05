@@ -445,8 +445,24 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		UpdateStatus res = (*it)->update(currTime);
-	}
 
+		if (res.status == UpdateStatus::RS_DONE) {
+			//This Entity is done; schedule for deletion.
+			scheduleForRemoval(*it);
+		}
+		else if (res.status == UpdateStatus::RS_CONTINUE) {
+			//Still going, but we may have properties to start/stop managing
+			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+				stopManaging(*it);
+			}
+			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+				beginManaging(*it);
+			}
+		}
+		else {
+			throw std::runtime_error("Unknown/unexpected update() return status.");
+		}
+	}
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		(*it)->updateAndReportSupplyStats(currTime);
@@ -454,6 +470,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		(*it)->resetSegmentFlows();
 		(*it)->resetLinkTravelTimes(currTime);
 	}
+
 #endif
 }
 

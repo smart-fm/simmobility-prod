@@ -138,8 +138,8 @@ bool performMainMed(const std::string& configFileName) {
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
 
 	//No built-in models available to the medium term (yet).
 	Config::BuiltInModels builtIn;

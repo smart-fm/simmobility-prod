@@ -1981,10 +1981,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	BusController::DispatchAllControllers(active_agents);
     }
 
-    if(BusStopAgent::HasBusStopAgents()) {
-    	BusStopAgent::PlaceAllBusStopAgents(active_agents);
-    }
-
     std::vector<Signal*>& all_signals = Signal::all_signals_;
 
 #if 0

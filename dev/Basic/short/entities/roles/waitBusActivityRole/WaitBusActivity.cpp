@@ -23,7 +23,7 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 
 sim_mob::WaitBusActivity::WaitBusActivity(Agent* parent, std::string roleName) :
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
-		busStop(nullptr), TimeOfReachingBusStop(0) {
+		busStop(nullptr), registered(false), TimeOfReachingBusStop(0) {
 
 }
 
@@ -56,6 +56,9 @@ void sim_mob::WaitBusActivity::frame_tick(UpdateParams& p) {
 //				std::cout << "WaitBusActivity has a passenger flag! " << std::endl;
 //			}
 //		}
+		if(p.now.frame() % 3 == 0 && (!registered)) {
+
+		}
 	}
 }
 

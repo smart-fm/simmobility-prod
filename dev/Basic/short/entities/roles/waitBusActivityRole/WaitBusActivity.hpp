@@ -66,6 +66,7 @@ public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
 private:
 	int remainingTime;
+	bool registered;// indicate whether it is registered or not
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::BusStop* busStop;

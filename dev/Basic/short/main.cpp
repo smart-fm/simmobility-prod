@@ -38,6 +38,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -184,6 +185,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		agentWorkers->assignAWorker(*it);
 	}
 
+	for (vector<BusStopAgent*>::iterator it = BusStopAgent::all_BusstopAgents_.begin(); it != BusStopAgent::all_BusstopAgents_.end(); it++) {
+		agentWorkers->assignAWorker(*it);
+	}
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
 //		std::cout << "performmain() Signal " << (*it)->getId() << "  Has " <<  (*it)->getPhases().size()/* << "  " << (*it)->getNOF_Phases()*/ <<  " phases\n";

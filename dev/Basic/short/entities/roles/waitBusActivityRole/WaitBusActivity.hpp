@@ -59,14 +59,19 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	void initializeRemainingTime();
 	void updateRemainingTime();
+	///finds the nearest busstop for the given node,As passenger origin and destination is given in terms of nodes
+	BusStop* setBusStopPos(const Node* node);
 
+//public:
+//	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
 private:
-	int remainingTimeToComplete;
+	int remainingTime;
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::BusStop* busStop;
+	uint32_t TimeOfReachingBusStop;
+	Point2D DisplayOffset;
 
-	sim_mob::Passenger* passengerFlag;// indicate whether it can be a passenger or not
 	WaitBusActivityUpdateParams params;
 	friend class PackageUtils;
 	friend class UnPackageUtils;

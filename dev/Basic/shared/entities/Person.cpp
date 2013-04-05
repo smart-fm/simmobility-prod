@@ -7,6 +7,7 @@
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "../short/entities/roles/waitBusActivityRole/WaitBusActivity.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
@@ -224,6 +225,17 @@ bool sim_mob::Person::frame_init(timeslice now)
 		throw std::runtime_error(txt.str());
 	}
 
+	if(currRole->getRoleName() == "passenger") {
+		safe_delete_item(prevRole);
+		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+		prevRole = currRole;
+		sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", this);// if it is a passenger role, just change to waitBusActivity role
+//		WaitBusActivity* waitbusactivity = dynamic_cast<WaitBusActivity*> (newRole);
+//		if(waitbusactivity) {
+//			waitbusactivity->roleFlag = prevRole;
+//		}
+		changeRole(newRole);
+	}
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).

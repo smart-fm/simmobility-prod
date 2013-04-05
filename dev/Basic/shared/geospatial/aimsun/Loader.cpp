@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <boost/multi_index_container.hpp>
+#include "entities/AuraManager.hpp"
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
@@ -898,6 +899,107 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
+}
+
+bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop* & sourceStop, sim_mob::BusStop* & destStop)
+{
+	bool result = false;
+	sim_mob::AuraManager::instance2();
+	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+	std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2);
+
+	std::vector<sim_mob::BusStop*> source_stops;
+	std::vector<sim_mob::BusStop*> dest_stops;
+	typedef std::pair<sim_mob::Busline*, sim_mob::BusStop*> LineToStop;
+	typedef std::pair<LineToStop, LineToStop> LineToStopPair;
+	std::vector< LineToStop > source_lines;
+	std::vector< LineToStop > dest_lines;
+	std::vector< LineToStopPair > selected_lines;
+	std::vector<sim_mob::BusStop*>::iterator it;
+
+	//find bus lines in source stop
+	for(it = source_stops.begin(); it != source_stops.end(); it++)
+	{
+		std::vector<sim_mob::Busline*> buslines = (*it)->BusLines;
+		std::vector<sim_mob::Busline*>::iterator itLines;
+		for(itLines = buslines.begin(); itLines!=buslines.end(); itLines++)
+		{
+			source_lines.push_back(std::make_pair((*itLines), (*it)));
+		}
+	}
+
+	//find bus lines in destination stop
+	for(it = dest_stops.begin(); it != dest_stops.end(); it++)
+	{
+		std::vector<sim_mob::Busline*> buslines = (*it)->BusLines;
+		std::vector<sim_mob::Busline*>::iterator itLines;
+		for(itLines = buslines.begin(); itLines!=buslines.end(); itLines++)
+		{
+			dest_lines.push_back(std::make_pair((*itLines), (*it)));
+		}
+	}
+
+	//find bus line which connect between source stop and destination stop with least number of stops
+	std::vector<LineToStop>::iterator itSourceLineToStop, itDestLineToStop;
+	for(itSourceLineToStop=source_lines.begin(); itSourceLineToStop!=source_lines.end(); itSourceLineToStop++)
+	{
+		sim_mob::Busline* source_line = itSourceLineToStop->first;
+		for(itDestLineToStop=dest_lines.begin(); itDestLineToStop!=dest_lines.end(); itDestLineToStop++)
+		{
+			sim_mob::Busline* dest_line = itDestLineToStop->first;
+			if( source_line->getBusLineID() == dest_line->getBusLineID() )
+			{
+				selected_lines.push_back(std::make_pair((*itSourceLineToStop), (*itDestLineToStop)));
+			}
+		}
+	}
+
+	//select bus line with least number of bus stops
+	std::vector<LineToStopPair>::iterator itSelectedPair;
+	sim_mob::BusStop* selSourceStop=0;
+	sim_mob::BusStop* selDestStop=0;
+	LineToStopPair selBusline;
+	int minStops = 1000;
+	for(itSelectedPair=selected_lines.begin(); itSelectedPair!=selected_lines.end(); itSelectedPair++)
+	{
+		LineToStop lineStopOne = itSelectedPair->first;
+		LineToStop lineStopTwo = itSelectedPair->second;
+		const std::vector<sim_mob::BusTrip>& BusTrips = (lineStopOne.first)->queryBusTrips();
+
+		//bus stops has the info about the list of bus stops a particular bus line goes to
+		std::vector<const sim_mob::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
+		std::vector<const sim_mob::BusStop*>::iterator it;
+		int numStops = 0;
+		for(it=busstops.begin(); it!=busstops.end(); it++)
+		{
+			if(numStops==0 && (*it)!=lineStopOne.second)
+				continue;
+			else if(numStops==0 && (*it)==lineStopOne.second)
+				numStops++;
+			else if(numStops>0 && (*it)!=lineStopTwo.second)
+				numStops++;
+			else if(numStops>0 && (*it)==lineStopTwo.second)
+				break;
+		}
+
+		if(numStops < minStops)
+		{
+			minStops = numStops;
+			selBusline = (*itSelectedPair);
+			selSourceStop = lineStopOne.second;
+			selDestStop = lineStopTwo.second;
+			result = true;
+		}
+	}
+
+	if(result)
+	{
+		sourceStop = selSourceStop;
+		destStop = selDestStop ;
+	}
+
+	return result;
 }
 
 sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::string, std::vector<const sim_mob::BusStop*> >& route_BusStops,

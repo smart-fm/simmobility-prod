@@ -48,6 +48,7 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
+	void registerToBusStopAgent(Person* p);// for WaitBusActivity role
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
@@ -59,6 +60,9 @@ public:
 
 	typedef std::vector<BusStopAgent *> All_BusStopAgents;
 	static All_BusStopAgents all_BusstopAgents_;
+
+public:
+	std::vector<sim_mob::Person*> active_WaitingPersons;
 private:
 	sim_mob::BusStop const & busstop_;
 	std::string busstopAgentno_; //currently is equal to busstopno_

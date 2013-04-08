@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
 
@@ -60,6 +61,9 @@ public:
 	void initializeRemainingTime();
 	void updateRemainingTime();
 	///finds the nearest busstop for the given node,As passenger origin and destination is given in terms of nodes
+	bool getRegisteredFlag() { return registered; }
+	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
+	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopPos(const Node* node);
 
 //public:
@@ -69,7 +73,7 @@ private:
 	bool registered;// indicate whether it is registered or not
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
-	sim_mob::BusStop* busStop;
+	sim_mob::BusStopAgent* busStopAgent;
 	uint32_t TimeOfReachingBusStop;
 	Point2D DisplayOffset;
 

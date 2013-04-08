@@ -23,7 +23,7 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 
 sim_mob::WaitBusActivity::WaitBusActivity(Agent* parent, std::string roleName) :
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
-		busStop(nullptr), registered(false), TimeOfReachingBusStop(0) {
+		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0) {
 
 }
 
@@ -37,7 +37,8 @@ Role* sim_mob::WaitBusActivity::clone(Person* parent) const
 }
 
 void sim_mob::WaitBusActivity::frame_init(UpdateParams& p) {
-	busStop=setBusStopPos(parent->originNode);
+	sim_mob::BusStop* busStop = setBusStopPos(parent->originNode);
+	busStopAgent = busStop->generatedBusStopAgent;
 	parent->xPos.set(busStop->xPos);
 	parent->yPos.set(busStop->yPos);
 	TimeOfReachingBusStop = p.now.ms();

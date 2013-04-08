@@ -22,6 +22,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
@@ -2171,6 +2172,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //they should be handled with in the signal constructor, not here
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
+    }
+
+    if(BusStopAgent::HasBusStopAgents()) {
+    	BusStopAgent::PlaceAllBusStopAgents(active_agents);
     }
 
     std::vector<Signal*>& all_signals = Signal::all_signals_;

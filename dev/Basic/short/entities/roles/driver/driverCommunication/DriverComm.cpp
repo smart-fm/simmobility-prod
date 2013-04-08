@@ -71,7 +71,7 @@ void DriverComm::frame_init(UpdateParams& p) {
 }
 ;
 void DriverComm::frame_tick(UpdateParams& p) {
-	std::cout << "DriverComm::frame_tick(" << p.now.frame() << ")\n";
+	std::cout << "[" << this->parent << "]:DriverComm::frame_tick(" << p.now.frame() << ")" << std::endl;
 	Driver::frame_tick(p);
 	if(p.now.frame() == 4)
 	{
@@ -82,6 +82,7 @@ void DriverComm::frame_tick(UpdateParams& p) {
 		receiveModule(p.now);
 	}
 	setAgentUpdateDone(true);
+	std::cout << "[" << this->parent << "]: AdentUpdate Done" << std::endl;
 
 }
 ;

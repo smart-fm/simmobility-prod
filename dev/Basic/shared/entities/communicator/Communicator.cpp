@@ -55,8 +55,8 @@ void NS3_Communicator::printSubscriptionList(timeslice now)
 		DATA_MSG_PTR out_it;
 		BOOST_FOREACH(out_it, it->second.getOutgoing().get())
 			out << " " << out_it->str ;
-		out << std::endl;
-		std::cout << out.str();
+
+		std::cout << out.str() << std::endl;
 	}
 }
 bool NS3_Communicator::deadEntityCheck(sim_mob::subscriptionInfo & info) {
@@ -91,12 +91,17 @@ void NS3_Communicator::refineSubscriptionList() {
 	for(it = subscriptionList.begin(); it != it_end; it++)
 	{
 		const sim_mob::Entity * target = (*it).first;
-		if(duplicateEntityDoneChecker.find(target) == duplicateEntityDoneChecker.end() ) continue;
+		std::cout<< "rfn checking agent [" << target << "]" << std::endl;
+		if(duplicateEntityDoneChecker.find(target) == duplicateEntityDoneChecker.end() ) {
+			std::cout << "aget[" << target << "] is already Done" << std::endl;
+			continue;
+		}
 		//you or your worker are probably dead already. you just don't know it
 		if (!target->currWorker)
 			{
 //				boost::upgrade_to_unique_lock< Lock > ulock(lock);
 				subscriptionList.erase(target);
+				std::cout << "worker " << target->currWorker << " is dead so Agent " << target << " is removed from the list" << std::endl;
 				continue;
 			}
 		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
@@ -104,8 +109,13 @@ void NS3_Communicator::refineSubscriptionList() {
 		if(it_entity == managedEntities_.end())
 		{
 //			boost::upgrade_to_unique_lock< Lock > ulock(lock);
+			std::cout << "_Agent " << target << " is removed from the list" << std::endl;
 			subscriptionList.erase(target);
 			continue;
+		}
+		else
+		{
+			std::cout << "_Agent [" << target << ":" << *it_entity << "] is still among " << (target->currWorker)->getEntities().size() << " entities of worker[" << target->currWorker << "]" << std::endl;
 		}
 	}
 }
@@ -132,7 +142,7 @@ bool NS3_Communicator::allAgentUpdatesDone()
 	}
 	std::cout << "subscriptionList size = " << subscriptionList.size() << std::endl;
 	std::cout << "duplicateEntityDoneChecker size = " << duplicateEntityDoneChecker.size() << std::endl;
-	return(duplicateEntityDoneChecker.size() == subscriptionList.size());
+	return(duplicateEntityDoneChecker.size() >= subscriptionList.size());
 }
 
 //todo: think of a better return value than just void
@@ -146,10 +156,11 @@ bool NS3_Communicator::processOutgoingData(timeslice now)
 		{
 			boost::thread thread_send(boost::bind(&NS3_Communicator::bufferSend,this));
 			thread_send.join();
-			std::cout << now.frame() << " Threads  thread_send Joined\n";
+			std::cout << now.frame() << " Thread_send Joined\n";
 		}
 		thread_rifineSubscriptionList.join();
-		std::cout << now.frame() << " Threads  thread_rifineSubscriptionList Joined\n";
+		std::cout << now.frame() << "Thread_rifineSubscriptionList Joined\n";
+		printSubscriptionList(now);
 	}while(!allAgentUpdatesDone());
 }
 

@@ -48,7 +48,7 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
-	void registerToBusStopAgent(Person* p);// for WaitBusActivity role
+	void registerWaitingPersonsToBusStopAgent(Person* p);// for WaitBusActivity role
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}

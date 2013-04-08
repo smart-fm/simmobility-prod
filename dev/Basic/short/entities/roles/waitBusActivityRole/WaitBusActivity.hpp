@@ -65,6 +65,7 @@ public:
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopPos(const Node* node);
+	uint32_t getTimeOfReachingBusStop() { return TimeOfReachingBusStop; }
 
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not

@@ -76,7 +76,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
-	if(now.frame() % 3 == 0) {
+	if(now.frame() % 3 == 0) {// only the frame_no % 3 ==0 , use AuraManager to find the nearby Persons
 	 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3500),(busstop_.yPos - 3500)),Point2D((busstop_.xPos + 3500),(busstop_.yPos + 3500)));
 	 	std::cout << "nearby_agents size: " << nearby_agents.size() << std::endl;
 	 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
@@ -87,7 +87,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 	 		WaitBusActivity* waitbusactivity = p ? dynamic_cast<WaitBusActivity*>(p->getRole()) : nullptr;
 	 		if(waitbusactivity) {
 	 			if((!waitbusactivity->getRegisteredFlag()) && (waitbusactivity->getBusStopAgent() == this)) {
-	 				registerToBusStopAgent(p);
+	 				registerWaitingPersonsToBusStopAgent(p);
 	 				waitbusactivity->setRegisteredFlag(true);// set this person's role to be registered
 	 			}
 	 			//std::cout << "WaitBusActivity: " << waitbusactivity->getParent()->getId() << std::endl;
@@ -98,7 +98,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-void sim_mob::BusStopAgent::registerToBusStopAgent(Person* p)// for WaitBusActivity role
+void sim_mob::BusStopAgent::registerWaitingPersonsToBusStopAgent(Person* p)// for WaitBusActivity role
 {
 	active_WaitingPersons.push_back(p);
 }

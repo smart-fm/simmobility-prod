@@ -1,0 +1,254 @@
+#pragma once
+#include "../serialized_asio/connection.hpp" // Must come before boost/serialization headers.
+#include <boost/serialization/vector.hpp>
+//#include "../CommunicationData.hpp"
+#include <boost/asio.hpp>
+#include <boost/archive/tmpdir.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/assume_abstract.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/foreach.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/thread.hpp>
+
+typedef boost::shared_mutex Lock;
+typedef boost::unique_lock< Lock > WriteLock;
+typedef boost::shared_lock< Lock > ReadLock;
+
+namespace sim_mob
+{
+class dataMessage
+{
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+//        ar & type;
+        ar & str;
+        ar & sender;
+        ar & receiver;
+    }
+public:
+
+
+//	DataClassType type;
+	std::string str;
+	//a proper size of integer is used coz in case of the normal pointer,
+	//the serilizer serializes the object that the pointer is pointing to
+	//whereas we just need to save the 'pointer' to object so that we
+	//can use it as a refernce at the other end. so instead of storing 'sim_mob::Entity *'
+	//we store:
+#if __x86_64__
+	unsigned long sender;
+	unsigned long receiver;
+#else
+	unsigned int sender;
+	unsigned int receiver;
+
+#endif
+
+
+	dataMessage(){
+		sender = receiver = 0;
+		str = "";
+	}
+	//uncomment after debugging
+	void setDataClassType();
+	virtual void registerType(boost::archive::text_oarchive &oa)
+    {
+		std::cout << "dataMessage::serialize=>outgoing registered" << std::endl;
+    	oa.register_type(static_cast<dataMessage *>(NULL));
+    }
+
+	virtual void registerType(boost::archive::text_iarchive &ia)
+    {
+		std::cout << "dataMessage::serialize=>incoming registered" << std::endl;
+		ia.register_type(static_cast<dataMessage *>(NULL));
+    }
+};
+
+/**************************************************
+ * MSG_DATA and its derivatives will be the data type used for
+ * incoming and outgoing data messages
+ ***************************************************/
+typedef dataMessage DATA_MSG;
+typedef DATA_MSG* DATA_MSG_PTR;
+typedef DATA_MSG& DATA_MSG_REF;
+
+class DataContainer
+{
+	boost::shared_ptr<Lock> myLock;
+public:
+	//todo make it private
+	std::vector<DATA_MSG_PTR> buffer;
+	DataContainer();
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+//    	DATA_MSG_PTR value;
+//    	std::cout << "starting to register: " << std::endl;
+//    	BOOST_FOREACH(value, buffer)
+//    		value->registerType(ar);
+//    	ar.register_type(static_cast<dataMessage *>(NULL));
+//    	std::cout << "DataContainer::serialize=>dataMessage registered" << std::endl;
+//    	BOOST_FOREACH(value, buffer)
+//    	//takes ar to your class and gives him the information about your class
+//    		value->registerType(ar);
+    	ar & buffer;
+    }
+    void add(DATA_MSG_PTR value);
+    void add(std::vector<DATA_MSG_PTR> values);
+
+    void add(DataContainer & value);
+    void reset();
+    std::vector<DATA_MSG_PTR>& get();
+    bool pop(DATA_MSG_PTR & var);
+    bool empty();
+
+};
+ class Sendserver
+ {
+ public:
+   /// Constructor opens the acceptor and starts waiting for the first incoming
+   /// connection.
+
+ 	Sendserver(boost::asio::io_service& io_service, unsigned short port,boost::shared_ptr<Lock> myLock_,sim_mob::DataContainer MainReceiveBuffer_)
+     : acceptor_(io_service,
+         boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+ 	, connection_(io_service)
+ 	,myLock(myLock_)
+ 	,MainReceiveBuffer(MainReceiveBuffer_)
+   {
+ 		accept();
+ //		boost::thread(boost::bind(&Sendserver::send, this));
+   }
+
+ 	void accept()
+ 	{    // Start an accept operation for a new connection.
+ 		std::cout << "Test::SendServer::accept()=>NS3 accepting connections for its sendServer..." << std::endl;
+ 	    acceptor_.async_accept(connection_.socket(), boost::bind(&Sendserver::handle_accept, this,boost::asio::placeholders::error));
+ 	}
+   /// Handle completion of a accept operation.
+   void handle_accept(const boost::system::error_code& e)
+   {
+     if (!e)
+     {
+    	 std::cout << "Test::SendServer::handle_accept()=>NS3 accepted connections for its sendServer..." << std::endl;
+     	accept();
+     }
+     else
+     {
+       std::cerr << "Test::SendServer::handle_accept()=> " << e.message() << std::endl;
+     }
+   }
+
+//   void handle_read(const boost::system::error_code& e)
+//   {
+//
+// 	    if (!e)
+// 	    {
+// 	    	std::cout << "Test::SendServer::handle_read()=>Read Successfull" << std::endl;
+// 	        accept();
+// 	    }
+// 	    else
+// 	    {
+// 	      std::cerr << e.message() << std::endl;
+// 	    }
+//   }
+
+   void send()
+   {
+	   std::cout << "Test::SendServer::send()=>NS3 Sending Data..." << std::endl;
+ 	  ReadLock(*myLock);
+ 	  connection_.async_write(MainReceiveBuffer,boost::bind(&Sendserver::handle_send, this, boost::asio::placeholders::error));
+
+   }
+   void handle_send(const boost::system::error_code &e)
+   {
+	   std::cout << "Test::SendServer::send()=>NS3 data Sent." << std::endl;
+ 	  WriteLock(*myLock);
+ 	  MainReceiveBuffer.reset();
+   }
+
+ private:
+   /// The acceptor object used to accept incoming socket connections.
+   boost::asio::ip::tcp::acceptor acceptor_;
+   sim_mob::connection connection_;
+   boost::shared_ptr<Lock> myLock;
+   sim_mob::DataContainer &MainReceiveBuffer;
+
+ };
+
+class Receiveserver
+{
+public:
+  /// Constructor opens the acceptor and starts waiting for the first incoming
+  /// connection.
+	Receiveserver(boost::asio::io_service& io_service, unsigned short port, Sendserver &sender_,boost::shared_ptr<Lock> myLock_,sim_mob::DataContainer MainReceiveBuffer_)
+    : acceptor_(io_service,
+        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+	, connection_(io_service)
+	,sender(sender_)
+ 	,myLock(myLock_)
+ 	,MainReceiveBuffer(MainReceiveBuffer_)
+  {
+		std::cout <<  "Test::Receiveserver::Receiveserver::NS3 accepting connections for its receiveserver..." << std::endl;
+		acceptor_.async_accept(connection_.socket(),boost::bind(&Receiveserver::handle_accept, this,boost::asio::placeholders::error));
+  }
+
+void read()
+{
+	{
+		std::cout << "Test::Receiveserver::read()::NS3 reading from its receiveserver..." << std::endl;
+		WriteLock(*myLock);
+		connection_.async_read(receiveBuffer,boost::bind(&Receiveserver::handle_read, this,boost::asio::placeholders::error));
+		MainReceiveBuffer.add(receiveBuffer);
+		receiveBuffer.reset();
+	}
+}
+
+  /// Handle completion of a accept operation.
+  void handle_accept(const boost::system::error_code& e)
+  {
+    if (!e)
+    {
+    	read();
+    }
+    else
+    {
+      std::cerr << "Test::Receiveserver::handle_accept()=>" << e.message() << std::endl;
+    }
+  }
+
+	void handle_read(const boost::system::error_code& e) {
+		if (!e) {
+			sender.send();
+			read();
+		} else {
+			std::cerr << "Test::Receiveserver::handle_read()=>" << e.message() << std::endl;
+		}
+	}
+
+private:
+  /// The acceptor object used to accept incoming socket connections.
+  boost::asio::ip::tcp::acceptor acceptor_;
+  sim_mob::connection connection_;
+  Sendserver &sender;
+
+  /// The data to be sent to each client.
+  sim_mob::DataContainer receiveBuffer;
+  boost::shared_ptr<Lock> myLock;
+  sim_mob::DataContainer &MainReceiveBuffer;
+};
+
+int fakeNS3();
+
+}

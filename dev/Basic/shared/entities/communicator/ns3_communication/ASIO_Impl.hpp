@@ -18,7 +18,7 @@
 
 namespace sim_mob {
 
-class ASIO_Impl: public Communication<DataContainer&, commResult> {
+class ASIO_Impl: public Communication<DataContainer*, commResult> {
 	boost::asio::io_service io_service_send, io_service_receive;
 //	boost::asio::ip::tcp::socket socket_send, socket_receive;
 	connection connection_send, connection_receive;
@@ -31,9 +31,12 @@ class ASIO_Impl: public Communication<DataContainer&, commResult> {
 
 	DataContainer temporaryReceiveBuffer;
 	DataContainer *temporarySendBuffer;
+	DataContainer fakeReceiveBuffer; //to be used by connection_send to keep the socket alive
 
+//	DataContainer &mainSendBuffer;
 	DataContainer &mainReceiveBuffer;
-	boost::thread thread_receive;
+	boost::thread thread_send_asio;
+	boost::thread thread_receive_asio;
 
 	bool sendConnectionEstablished;
 
@@ -41,7 +44,7 @@ class ASIO_Impl: public Communication<DataContainer&, commResult> {
 		asio_receive, asio_send
 	};
 public:
-	ASIO_Impl(DataContainer &mainReceiveBuffer_);
+	ASIO_Impl( DataContainer &mainReceiveBuffer_);
 	bool connect(boost::asio::io_service &io_service_, connection &connection_,
 			const std::string& host, const std::string& service,
 			ASIOConnectionType cnnType);
@@ -53,15 +56,17 @@ public:
 	void handle_connect_receive(const boost::system::error_code& e,
 			boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
 	void handle_send(const boost::system::error_code& e/*, DataContainer &value*/);
+	void handle_read_fake(const boost::system::error_code& e/*, DataContainer &value*/);
 	bool init();
-	bool thread_receive_function();
+	bool thread_receive_asio_function();
+	bool thread_send_asio_function();
 	/// Handle completion of a read operation.
 	void handle_read_receive(const boost::system::error_code& e);
 
 	//the polymorphism thing
 
-	commResult send(DataContainer &value);
-	commResult receive(DataContainer& value);
+	commResult send(DataContainer *value);
+	commResult receive(DataContainer* value);
 
 };
 

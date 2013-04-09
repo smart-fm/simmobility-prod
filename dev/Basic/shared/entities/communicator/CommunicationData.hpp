@@ -17,10 +17,9 @@ namespace sim_mob
 {
 class Entity;
 //THIS ENUM IDENTIFIES THE CLASSES TYPES
-
 typedef boost::shared_mutex Lock;
-typedef boost::lock_guard  < Lock > WriteLock;
-typedef boost::shared_lock < Lock > ReadLock;
+typedef boost::unique_lock< Lock > WriteLock;
+typedef boost::shared_lock< Lock > ReadLock;
 
 enum DataClassType
 {
@@ -78,11 +77,13 @@ public:
 	void setDataClassType();
 	virtual void registerType(boost::archive::text_oarchive &oa)
     {
+		std::cout << "dataMessage::serialize=>outgoing registered" << std::endl;
     	oa.register_type(static_cast<dataMessage *>(NULL));
     }
 
 	virtual void registerType(boost::archive::text_iarchive &ia)
     {
+		std::cout << "dataMessage::serialize=>incoming registered" << std::endl;
 		ia.register_type(static_cast<dataMessage *>(NULL));
     }
 };
@@ -152,22 +153,27 @@ class DataContainer
 {
 	boost::shared_ptr<Lock> myLock;
 public:
-	DataContainer();
-	//todo make this private later
+	//todo make it private
 	std::vector<DATA_MSG_PTR> buffer;
-
+	DataContainer();
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive &ar, const unsigned int version) {
-    	DATA_MSG_PTR value;
-    	ar.register_type(static_cast<dataMessage *>(NULL));
-    //    	BOOST_FOREACH(value, buffer)
-    //    	//takes ar to your class and gives him the information about your class
-    //    		value->registerType(ar);
+    void serialize(Archive &ar, const unsigned int version)
+    {
+//    	DATA_MSG_PTR value;
+//    	std::cout << "starting to register: " << std::endl;
+//    	BOOST_FOREACH(value, buffer)
+//    		value->registerType(ar);
+//    	ar.register_type(static_cast<dataMessage *>(NULL));
+//    	std::cout << "DataContainer::serialize=>dataMessage registered" << std::endl;
+//    	BOOST_FOREACH(value, buffer)
+//    	//takes ar to your class and gives him the information about your class
+//    		value->registerType(ar);
     	ar & buffer;
-    };
+    }
     void add(DATA_MSG_PTR value);
     void add(std::vector<DATA_MSG_PTR> values);
+
     void add(DataContainer & value);
     void reset();
     std::vector<DATA_MSG_PTR>& get();
@@ -185,6 +191,7 @@ public:
  * of common agents who are willing to have communication ability)
  *
  *********************************************************************************/
+
 
 class subscriptionInfo
 {
@@ -223,6 +230,7 @@ public:
 
 			);
 
+
 	void setEntity(sim_mob::Entity*);
 	sim_mob::Entity* getEntity();
 	DataContainer& getIncoming();
@@ -242,6 +250,7 @@ public:
 	bool isIncomingDirty();
 	void reset();
 
+	subscriptionInfo & operator=(const subscriptionInfo&) { return *this;}
 };
 
 

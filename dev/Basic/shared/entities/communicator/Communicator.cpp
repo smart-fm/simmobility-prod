@@ -10,10 +10,9 @@ namespace sim_mob {
 
 //sim_mob::All_NS3_Communicators sim_mob::NS3_Communicator::all_NS3_cummunication_agents;
 NS3_Communicator::NS3_Communicator(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id), commImpl(&sendBuffer)
+: Agent(mtxStrat, id), commImpl(&sendBuffer, &receiveBuffer)
 {
-	std::cout << " Communicator's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
-
+//	std::cout << " Communicator's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
 }
 //////////////////////////////////////////
 // Simple singleton implementation
@@ -50,7 +49,7 @@ void NS3_Communicator::printSubscriptionList(timeslice now)
 	{
 		out.str("");
 		out << "communicator tick:" << now.frame() << ": [" << it->first <<"]";
-		out << "[" << it->second.isAgentUpdateDone() <<  ":" << it->second.isOutgoingDirty() << "] out[" << &(it->second.getOutgoing()) << " : size " << it->second.getOutgoing().get().size() << "]";
+		out << "[" << (it->second.isAgentUpdateDone()? "UPDO" : "UPND") <<  ":" << (it->second.isOutgoingDirty()? "DRT" : "NDT") << "] out[" << &(it->second.getOutgoing()) << " : size " << it->second.getOutgoing().get().size() << "]";
 		//outgoing
 		DATA_MSG_PTR out_it;
 		BOOST_FOREACH(out_it, it->second.getOutgoing().get())
@@ -115,7 +114,7 @@ void NS3_Communicator::refineSubscriptionList() {
 		}
 		else
 		{
-			std::cout << "_Agent [" << target << ":" << *it_entity << "] is still among " << (target->currWorker)->getEntities().size() << " entities of worker[" << target->currWorker << "]" << std::endl;
+			std::cout << std::dec << "_Agent [" << target << ":" << *it_entity << "] is still among " << (int)((target->currWorker)->getEntities().size()) << " entities of worker[" << target->currWorker << "]" << std::endl;
 		}
 	}
 }
@@ -124,7 +123,7 @@ void NS3_Communicator::bufferSend()
 {
 	WriteLock(*myLock);
 	std::cout << "Sending the buffer\n";
-	commImpl.send(sendBuffer);
+	commImpl.send(&sendBuffer);
 	sendBuffer.reset();
 }
 bool NS3_Communicator::allAgentUpdatesDone()
@@ -164,90 +163,6 @@ bool NS3_Communicator::processOutgoingData(timeslice now)
 	}while(!allAgentUpdatesDone());
 }
 
-//bool NS3_Communicator::processOutgoingData(timeslice now)
-//{
-//	int totalPackets = 0;
-//	printSubscriptionList(now);
-//	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
-//	bool allUpdatesAreDone = true; //used to get out this loop
-//	bool nothingToSend = true;
-//	DataContainer sendBatch;
-//	//following container are just to avoid unneseccary searches
-//	std::set<const sim_mob::Entity*> duplicateEntityDoneChecker ;
-//	nothingToSend = true;
-//	sendBatch.reset();
-//	while(1)
-//	{
-//		std::cout << "\nWhile\n";
-//		if(subscriptionList.size() < 1) {
-//			std::cout << "\nWhile-break-1\n";
-//			break;
-//		}
-//
-//
-//		//inner iteration find those who have something to send, batch them up and send them
-//		for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
-//		{
-//			//if you see the agent is removed from the simulation, it is best to remove it from the list and break the inner loop
-//			sim_mob::subscriptionInfo & info = subscriptionList.at(it->first);//easy read
-//
-//			//filter the iteration
-//			if (duplicateEntityDoneChecker.count(it->first) > 0)//already done
-//			{
-//				std::cout << "[" << info.getEntity() << "] 1:duplicate entry\n";
-//				continue;
-//			}
-//
-//			//you don't do anything untill agent's update is done
-//			if (info.isAgentUpdateDone() == false)
-//				{
-//					if(deadEntityCheck(info))
-//					{
-//						subscriptionList.erase(info.getEntity());
-//						break; //u just messed up the subscriptionList's irerator so get out of this loop and come back later
-//					}
-//					std::cout << "[" << info.getEntity() << "] 2: agentUpdate not Done \n";
-//					continue;
-//				} //update not completed
-//			else
-//				duplicateEntityDoneChecker.insert(it->first); //already done
-//
-//			//now that agent update is done, see if it has anything to send
-//			if (info.isOutgoingDirty() == false)
-//			{
-//				std::cout << "[" << info.getEntity() << "] 3:outgoing Is Not Dirty\n";
-//				continue;
-//			} //no data
-//
-//			//if your program raches this point in this inner loop,, it means some data is available for sending
-//			{
-//				std::cout <<"\n outgoing=>Tick:" << now.frame() << "agent[" << info.getEntity() << "] update[" << info.isAgentUpdateDone() << "] dirty[" << info.isOutgoingDirty() <<"]\n";
-//				nothingToSend = false;
-//				sendBatch.add(info.getOutgoing());
-//			}
-//
-//		}//for
-//
-//		if(duplicateEntityDoneChecker.size() >= subscriptionList.size())  //used >= to be safe. coz you might have inserted the agent into duplicatechecker and agent is killed immediately....
-//		{
-//			std::cout << "\nWhile-break-(All updates are done)\n";
-//			break;
-//		};//todo what if an entity is set for removal? then no updatDone->infinite loop
-//
-//	}//while: when you get out of this loop that this tick is over wrt outgoing
-//	std::cout << "\nWhile--done\n";
-//
-//	if(!nothingToSend)
-//		{
-//			totalPackets += sendBatch.get().size();
-//			std::cout << "Sending batch of size " << sendBatch.get().size() << " to commImpl.send(sendBatch)" << std::endl;
-//			commImpl.send(sendBatch);
-//		}
-//		else
-//			std::cout << "Nothing to send\n";
-//	//todo remove or modify this later
-//	reset();
-//}
 //todo: think of a better return value than just void
 void NS3_Communicator::processIncomingData(timeslice now)
 {
@@ -256,12 +171,12 @@ void NS3_Communicator::processIncomingData(timeslice now)
 //		return;
 //		std::cout << std::endl;
 //	}
-  DataContainer receiveBatch; //will contain data belonging to many agents
+  DataContainer *receiveBatch; //will contain data belonging to many agents
   const commResult &res = commImpl.receive(receiveBatch);
   if(res.getResult() != commResult::success) return;
   DATA_MSG_PTR it;
   //distribute among agents
-  BOOST_FOREACH(it,receiveBatch.get())
+  BOOST_FOREACH(it,receiveBatch->get())
   {
 	  //get the reference to the receiving agent's subscription record
 	  sim_mob::Entity * receiver = (sim_mob::Entity *) (it->receiver);
@@ -315,7 +230,7 @@ bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)
 
 sim_mob::DataContainer &NS3_Communicator::getSendBuffer()
 {
-	std::cout << "NS3_Communicator::getSendBuffer => sending buffer[" << &sendBuffer << "]" << std::endl;
+//	std::cout << "NS3_Communicator::getSendBuffer => sending buffer[" << &sendBuffer << "]" << std::endl;
 	return sendBuffer;
 }
 

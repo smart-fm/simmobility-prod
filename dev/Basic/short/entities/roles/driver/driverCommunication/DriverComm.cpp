@@ -6,7 +6,8 @@
 namespace sim_mob
 {
 
-sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat){ dataSent = false;}
+sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), CommunicationSupport(*parent)
+{ dataSent = false;}
 sim_mob::DriverComm::~DriverComm(){
 }
 
@@ -56,7 +57,7 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 		}
 		data->receiver = (unsigned long)(*it);
 		addOutgoing(data);
-		std::cout << "\ntick" << now.frame() << " :: Agent [" << *it << "] pushed into outgoing\n";
+		std::cout << "\ntick" << now.frame() << " :: Agent [" << *it << "] pushed into outgoing[" << &getOutgoing() << "]" << std::endl;
 		dataSent = true;
 	}
 	//sorry for the hack.

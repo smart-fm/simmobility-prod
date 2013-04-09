@@ -193,65 +193,65 @@ public:
  *********************************************************************************/
 
 
-class subscriptionInfo
-{
-
-	 sim_mob::Entity * agent;
-
-	//good for avoiding unnecessary writes
-	bool& agentUpdateDone;      //All the operations inside the update method of the 'communicating' agent were done
-	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
-	bool& incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
-	bool& outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
-	//------------------------------------
-	bool& writeIncomingDone;     //the 'communicator' agent updated/write_to the incoming buffer of the 'communicating' agent
-	bool& readOutgoingDone;      //the 'communicator' agent  read the outgoing buffer of the 'communicating' agent
-
-
-	DataContainer &incoming;
-	DataContainer &outgoing;
-	bool goodForProcessing;
-
-public:
-	boost::shared_ptr<Lock> myLock;//this class is not copy constructible. so we need to use sort of a pointer(i use boost shared pointer)
-	//general purpose counter
-	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
-	int cnt_2;
-
-	subscriptionInfo(
-			sim_mob::Entity *  agent_ ,
-			bool& incomingIsDirty_ ,
-			bool& outgoingIsDirty_ ,
-			bool& writeIncomingDone_,
-			bool& readOutgoingDone_ ,
-			bool& agentUpdateDone_,
-			DataContainer& incoming_,
-			DataContainer& outgoing_
-
-			);
-
-
-	void setEntity(sim_mob::Entity*);
-	sim_mob::Entity* getEntity();
-	DataContainer& getIncoming();
-	DataContainer& getOutgoing();
-	void setIncoming(DataContainer value);
-	void setOutgoing(DataContainer value);
-	void addIncoming(DATA_MSG_PTR value);
-	void addOutgoing(DATA_MSG_PTR value);
-
-	void setwriteIncomingDone(bool value);
-	void setWriteOutgoingDone(bool value);
-	void setAgentUpdateDone(bool value);
-	bool iswriteIncomingDone();
-	bool isreadOutgoingDone();
-	bool isAgentUpdateDone();
-	bool isOutgoingDirty();
-	bool isIncomingDirty();
-	void reset();
-
-	subscriptionInfo & operator=(const subscriptionInfo&) { return *this;}
-};
+//class subscriptionInfo
+//{
+//
+//	 sim_mob::Entity * agent;
+//
+//	//good for avoiding unnecessary writes
+//	bool& agentUpdateDone;      //All the operations inside the update method of the 'communicating' agent were done
+//	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
+//	bool& incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
+//	bool& outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
+//	//------------------------------------
+//	bool& writeIncomingDone;     //the 'communicator' agent updated/write_to the incoming buffer of the 'communicating' agent
+//	bool& readOutgoingDone;      //the 'communicator' agent  read the outgoing buffer of the 'communicating' agent
+//
+//
+//	DataContainer &incoming;
+//	DataContainer &outgoing;
+//	bool goodForProcessing;
+//
+//public:
+//	boost::shared_ptr<Lock> myLock;//this class is not copy constructible. so we need to use sort of a pointer(i use boost shared pointer)
+//	//general purpose counter
+//	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
+//	int cnt_2;
+//
+//	subscriptionInfo(
+//			sim_mob::Entity *  agent_ ,
+//			bool& incomingIsDirty_ ,
+//			bool& outgoingIsDirty_ ,
+//			bool& writeIncomingDone_,
+//			bool& readOutgoingDone_ ,
+//			bool& agentUpdateDone_,
+//			DataContainer& incoming_,
+//			DataContainer& outgoing_
+//
+//			);
+//
+//
+//	void setEntity(sim_mob::Entity*);
+//	sim_mob::Entity* getEntity();
+//	DataContainer& getIncoming();
+//	DataContainer& getOutgoing();
+//	void setIncoming(DataContainer value);
+//	void setOutgoing(DataContainer value);
+//	void addIncoming(DATA_MSG_PTR value);
+//	void addOutgoing(DATA_MSG_PTR value);
+//
+//	void setwriteIncomingDone(bool value);
+//	void setWriteOutgoingDone(bool value);
+//	void setAgentUpdateDone(bool value);
+//	bool iswriteIncomingDone();
+//	bool isreadOutgoingDone();
+//	bool isAgentUpdateDone();
+//	bool isOutgoingDirty();
+//	bool isIncomingDirty();
+//	void reset();
+//
+//	subscriptionInfo & operator=(const subscriptionInfo&) { return *this;}
+//};
 
 
 /*********************************************************************************

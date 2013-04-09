@@ -116,7 +116,7 @@ bool ASIO_Impl::thread_send_asio_function() {
 					boost::bind(&ASIO_Impl::handle_read_receive, this,
 							boost::asio::placeholders::error));
 		} else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
-			std::cout << "TRYING THE NEXT END POINT\n";
+			std::cout << "TRYING THE NEXT END POINT" << std::endl;
 		} else {
 			std::cerr << "ASIO_Impl::handle_connect_receive error =>" << e.message() << std::endl;
 			connect(io_service_receive, connection_receive, host_receive,port_receive, asio_receive);

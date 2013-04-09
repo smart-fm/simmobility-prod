@@ -56,11 +56,16 @@ class CommunicationSupport
 	//todo make this an enum-vahid
 	std::string agentIdentification;
 	sim_mob::NS3_Communicator & communicator;
+	sim_mob::Entity &entity;//the entity this class is actually referring to
+
 public:
+	//general purpose counter
+	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
+	int cnt_2;
 
 	boost::shared_ptr<Lock> myLock;
-	subscriptionInfo getSubscriptionInfo();
-	CommunicationSupport();
+//	subscriptionInfo getSubscriptionInfo();
+	CommunicationSupport(sim_mob::Entity& entity_);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& getIncoming();
 	DataContainer& getOutgoing();
@@ -81,10 +86,11 @@ public:
 
 
 	void init();
-	void clear();
+	void reset();
 	//this is used to subscribe the drived class
 	//(which is also an agent) to the communicator agent
 	virtual bool subscribe(sim_mob::Entity* subscriber,sim_mob::NS3_Communicator &communicator);
+	virtual const sim_mob::Entity& getEntity();
 };
 
 };//namespace

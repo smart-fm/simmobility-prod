@@ -5,8 +5,9 @@
 using namespace sim_mob;
 namespace sim_mob
 {
-	CommunicationSupport::CommunicationSupport()
+	CommunicationSupport::CommunicationSupport(sim_mob::Entity& entity_)
 	:	myLock(new Lock),
+	 	entity(entity_),
 		communicator(sim_mob::NS3_Communicator::GetInstance()),
 	 	outgoing(sim_mob::NS3_Communicator::GetInstance().getSendBuffer()),
 		incomingIsDirty(false),
@@ -18,19 +19,19 @@ namespace sim_mob
 
 	}
 
-	subscriptionInfo CommunicationSupport::getSubscriptionInfo(){
-		subscriptionInfo info(
-				(sim_mob::Entity*)0,
-				isIncomingDirty(),
-				isOutgoingDirty(),
-				iswriteIncomingDone(),
-				isreadOutgoingDone(),
-				isAgentUpdateDone(),
-				getIncoming(),
-				getOutgoing()
-				);
-		return info;
-	}
+//	subscriptionInfo CommunicationSupport::getSubscriptionInfo(){
+//		subscriptionInfo info(
+//				(sim_mob::Entity*)0,
+//				isIncomingDirty(),
+//				isOutgoingDirty(),
+//				iswriteIncomingDone(),
+//				isreadOutgoingDone(),
+//				isAgentUpdateDone(),
+//				getIncoming(),
+//				getOutgoing()
+//				);
+//		return info;
+//	}
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& CommunicationSupport::getIncoming() {
@@ -103,13 +104,14 @@ namespace sim_mob
 	}
 
 //todo
-	void CommunicationSupport::clear(){
+	void CommunicationSupport::reset(){
 		WriteLock Lock(*myLock);
 		outgoingIsDirty = false ;
 		incomingIsDirty = false ;
 		agentUpdateDone = false ;
 		writeIncomingDone = false ;
 		readOutgoingDone = false ;
+		cnt_1 = cnt_2 = 0;
 	}
 	void CommunicationSupport::init(){
 
@@ -118,12 +120,16 @@ namespace sim_mob
 	//(which is also an agent) to the communicator agent
 	bool CommunicationSupport::subscribe(sim_mob::Entity* subscriber, sim_mob::NS3_Communicator &communicator = sim_mob::NS3_Communicator::GetInstance())
 	{
-		//todo here you are copying twice while once is possibl, I guess.
-		subscriptionInfo info = getSubscriptionInfo();
-		info.setEntity(subscriber);
-		std::cout << "Reguesting to  agent[" << info.getEntity() << "] with outgoing[" << &(info.getOutgoing()) << "]" << std::endl;
+//		//todo here you are copying twice while once is possibl, I guess.
+//		subscriptionInfo info = getSubscriptionInfo();
+//		info.setEntity(subscriber);
 
-		communicator.subscribeEntity(info);
+		communicator.subscribeEntity(*this);
+		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+	}
+	const sim_mob::Entity& CommunicationSupport::getEntity()
+	{
+		return entity;
 	}
 
 };

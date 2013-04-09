@@ -1,12 +1,3 @@
-//
-// connection.hpp
-// ~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
 
 #ifndef SERIALIZATION_CONNECTION_HPP
 #define SERIALIZATION_CONNECTION_HPP
@@ -27,9 +18,8 @@ namespace sim_mob {
 /// The connection class provides serialization primitives on top of a socket.
 /**
  * Each message sent using this class consists of:
- * @li An 8-byte header containing the length of the serialized data in
- * hexadecimal.
- * @li The serialized data.
+ * 8-byte header containing the length of the serialized data in hexadecimal.
+ * and then The serialized data.
  */
 class connection
 {

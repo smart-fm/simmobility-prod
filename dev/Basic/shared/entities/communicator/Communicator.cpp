@@ -1,4 +1,5 @@
 #include "Communicator.hpp"
+#include "CommunicationSupport.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include <boost/thread/mutex.hpp>
@@ -30,7 +31,6 @@ Entity::UpdateStatus NS3_Communicator::update(timeslice now)
 {
 	//	commImpl.shortCircuit();
 	std::cout << "communicator tick:"<< now.frame() << " ================================================\n";
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it_1;
 	boost::thread outGoing_thread(boost::bind(&sim_mob::NS3_Communicator::processOutgoingData,this,now));
 	boost::thread inComing_thread(boost::bind(&sim_mob::NS3_Communicator::processIncomingData,this,now));
 	outGoing_thread.join();
@@ -44,7 +44,7 @@ void NS3_Communicator::printSubscriptionList(timeslice now)
 {
 	std::ostringstream out("");
 	out << "printSubscriptionList\n" ;
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
+	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::iterator it;
 	for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
 	{
 		out.str("");
@@ -58,22 +58,22 @@ void NS3_Communicator::printSubscriptionList(timeslice now)
 		std::cout << out.str() << std::endl;
 	}
 }
-bool NS3_Communicator::deadEntityCheck(sim_mob::subscriptionInfo & info) {
+bool NS3_Communicator::deadEntityCheck(sim_mob::CommunicationSupport & info) {
 	//some top notch optimizasion! to check if the agent is alive at all?
 	info.cnt_1++;
 	if (info.cnt_1 < 1000)
 		return false;
 
 	//you or your worker are probably dead already. you just don't know it
-	if (!(info.getEntity()->currWorker))
+	if (!(info.getEntity().currWorker))
 		return true;
 	//one more check to see if the entity is deleted
-	const std::vector<sim_mob::Entity*> & managedEntities_ = info.getEntity()->currWorker->getEntities();
+	const std::vector<sim_mob::Entity*> & managedEntities_ = info.getEntity().currWorker->getEntities();
 	std::vector<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
 	for (std::vector<sim_mob::Entity*>::const_iterator it =	managedEntities_.begin(); it != managedEntities_.end(); it++)
 	{
 		//agent is still being managed, so it is not dead
-		if (*it == info.getEntity())
+		if (*it == &(info.getEntity()))
 			return false;
 	}
 
@@ -86,7 +86,7 @@ bool NS3_Communicator::deadEntityCheck(sim_mob::subscriptionInfo & info) {
 //tick waiting for them to finish
 void NS3_Communicator::refineSubscriptionList() {
 	WriteLock(*myLock);
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it, it_end(subscriptionList.end());
+	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::iterator it, it_end(subscriptionList.end());
 	for(it = subscriptionList.begin(); it != it_end; it++)
 	{
 		const sim_mob::Entity * target = (*it).first;
@@ -129,11 +129,11 @@ void NS3_Communicator::bufferSend()
 bool NS3_Communicator::allAgentUpdatesDone()
 {
 	ReadLock(*myLock);
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::const_iterator it, it_end(subscriptionList.end());
+	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::const_iterator it, it_end(subscriptionList.end());
 
 	for(it = subscriptionList.begin(); it != it_end; it++)
 	{
-		sim_mob::subscriptionInfo & info = subscriptionList.at(it->first);//easy read
+		sim_mob::CommunicationSupport & info = subscriptionList.at(it->first);//easy read
 		if (info.isAgentUpdateDone())
 		{
 			duplicateEntityDoneChecker.insert(it->first);
@@ -180,7 +180,7 @@ void NS3_Communicator::processIncomingData(timeslice now)
   {
 	  //get the reference to the receiving agent's subscription record
 	  sim_mob::Entity * receiver = (sim_mob::Entity *) (it->receiver);
-	  sim_mob::subscriptionInfo & info = subscriptionList.at(receiver);
+	  sim_mob::CommunicationSupport & info = subscriptionList.at(receiver);
 	  //the receiving agent's subscription record has a reference to its incoming buffer
 	  info.addIncoming(it);
   }
@@ -190,10 +190,10 @@ void NS3_Communicator::processIncomingData(timeslice now)
 void NS3_Communicator::reset()
 {
 	WriteLock(*myLock);
-	std::map<const sim_mob::Entity*,sim_mob::subscriptionInfo>::iterator it;
+	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::iterator it;
 	for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
 	{
-		subscriptionInfo &info = it->second;
+		sim_mob::CommunicationSupport &info = it->second;
 		info.reset();
 
 	}
@@ -201,26 +201,19 @@ void NS3_Communicator::reset()
 	receiveBuffer.reset();
 
 }
-void NS3_Communicator::reset(subscriptionInfo &info)
+void NS3_Communicator::reset(sim_mob::CommunicationSupport &info)
 {
 	info.reset();
 }
 
-void  NS3_Communicator::subscribeEntity(subscriptionInfo value)
+void  NS3_Communicator::subscribeEntity(sim_mob::CommunicationSupport & value)
 {
-	//a simple check before adding
-	if(!value.getEntity())
-		{
-			throw std::runtime_error("Agent data is essential\n");
-		}
-
-	subscriptionList.insert(std::make_pair(value.getEntity(), value));
-	std::cout << "Subscribed agent[" << value.getEntity() << "] with outgoing[" << &(subscriptionList.at(value.getEntity()).getOutgoing()) << "]" << std::endl;
+	subscriptionList.insert(std::pair<const sim_mob::Entity*, sim_mob::CommunicationSupport &>(&(value.getEntity()),value));
+	std::cout << "Subscribed agent[" << &value.getEntity() << "] with outgoing[" << &(subscriptionList.at(&value.getEntity()).getOutgoing()) << ":" << &sendBuffer << "]" << std::endl;
 }
-
-bool  NS3_Communicator::unSubscribeEntity(subscriptionInfo value)
+bool  NS3_Communicator::unSubscribeEntity(sim_mob::CommunicationSupport &value)
 {
-	return subscriptionList.erase(value.getEntity());
+	return subscriptionList.erase(&value.getEntity());
 }
 
 bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)

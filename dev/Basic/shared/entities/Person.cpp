@@ -32,9 +32,9 @@ namespace {
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
-	if (!(ag.originNode && ag.destNode)) {
+	if (!(ag.originNode .node_&& ag.destNode.node_)) {
 		std::stringstream msg;
-		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode <<" , " <<ag.destNode;
+		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode.node_ <<" , " <<ag.destNode.node_;
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -46,9 +46,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
 	res->endTime = res->startTime; //No estimated end time.
 	res->tripID = "";
-	res->fromLocation = ag.originNode;
+	res->fromLocation = WayPoint(ag.originNode);
 	res->fromLocationType = TripChainItem::getLocationType("node");
-	res->toLocation = ag.destNode;
+	res->toLocation = WayPoint(ag.destNode);
 	res->toLocationType = res->fromLocationType;
 
 	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
@@ -161,13 +161,13 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
-		if (this->originNode || this->destNode) {
+		if (this->originNode .node_|| this->destNode.node_) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
-		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
+		this->originNode = WayPoint( ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true) );
+		this->destNode = WayPoint( ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true) );
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");

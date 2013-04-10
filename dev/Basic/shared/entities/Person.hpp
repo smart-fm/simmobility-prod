@@ -35,6 +35,7 @@ class UnPackageUtils;
  * \author Li Zhemin
  * \author Xu Yan
  * \author Harish Loganathan
+ * \author zhang huai peng
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are

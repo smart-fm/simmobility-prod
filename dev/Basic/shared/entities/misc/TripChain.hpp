@@ -11,6 +11,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -93,6 +94,7 @@ public:
 /**
  * \author Seth N. Hetu
  * \author Harish
+ * \author zhang huai peng
  */
 class Trip: public sim_mob::TripChainItem {
 
@@ -101,15 +103,15 @@ class Trip: public sim_mob::TripChainItem {
 
 public:
 	std::string tripID;
-	const sim_mob::Node* fromLocation;
+	WayPoint fromLocation;
 	TripChainItem::LocationType fromLocationType;
-	const sim_mob::Node* toLocation;
+	WayPoint toLocation;
 	TripChainItem::LocationType toLocationType;
 
 	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
-			Node* to=nullptr, std::string toLocType="node");
+			std::string tripId = "", void* from=nullptr, std::string fromLocType="node",
+			void* to=nullptr, std::string toLocType="node");
 	virtual ~Trip() {}
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -134,6 +136,7 @@ private:
 
 /**
  * \author Harish
+ * \author zhang huai peng
  */
 class SubTrip: public sim_mob::Trip {
 public:
@@ -143,8 +146,8 @@ public:
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
-			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), void* from=nullptr,
+			std::string fromLocType="node", void* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	const std::string getMode() const ;
 //	{

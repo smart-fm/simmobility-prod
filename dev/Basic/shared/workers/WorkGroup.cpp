@@ -398,8 +398,8 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 	Agent* agent = dynamic_cast<Agent*>(ag);
 	if(agent){
-		if(agent->originNode){
-			const Link* link = StreetDirectory::instance().getLinkLoc(agent->originNode);
+		if(agent->originNode.node_){
+			const Link* link = StreetDirectory::instance().getLinkLoc(agent->originNode.node_);
 			link->getCurrWorker()->scheduleForAddition(ag);
 		}
 		else{
@@ -709,11 +709,11 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	if (role == "driver") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation), stdir.DrivingVertex(*firstSubTrip.toLocation));
+		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
 	}
 	else if (role == "pedestrian") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation), stdir.WalkingVertex(*firstSubTrip.toLocation));
+		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
 	}
 	else if (role == "busdriver") {
 		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");

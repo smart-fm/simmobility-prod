@@ -1,4 +1,5 @@
 #include "geo10-pimpl.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace sim_mob::xml;
 
@@ -55,7 +56,7 @@ void sim_mob::xml::Trip_t_pimpl::tripID (long long value)
 
 void sim_mob::xml::Trip_t_pimpl::fromLocation (unsigned int value)
 {
-	model.fromLocation = book.getNode(value);
+	model.fromLocation = sim_mob::WayPoint( book.getNode(value) );
 }
 
 void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
@@ -65,7 +66,7 @@ void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
 
 void sim_mob::xml::Trip_t_pimpl::toLocation (unsigned int value)
 {
-	model.toLocation = book.getNode(value);
+	model.toLocation = sim_mob::WayPoint(book.getNode(value));
 }
 
 void sim_mob::xml::Trip_t_pimpl::toLocationType (std::string value)

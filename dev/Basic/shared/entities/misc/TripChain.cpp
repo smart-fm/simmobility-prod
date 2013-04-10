@@ -19,17 +19,34 @@ sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""), 
 }
 
 sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, std::string tripId, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType) :
-		TripChainItem(entId, type, start, end, seqNumber), tripID(tripId), fromLocation(
-				from), fromLocationType(getLocationType(fromLocType)), toLocation(to), toLocationType(getLocationType(toLocType))
+		DailyTime start, DailyTime end, std::string tripId, void* from,
+		std::string fromLocType, void* to, std::string toLocType) :
+		TripChainItem(entId, type, start, end, seqNumber), tripID(tripId), fromLocation(),
+		fromLocationType(getLocationType(fromLocType)), toLocation(), toLocationType(getLocationType(toLocType))
 {
+	if( fromLocationType == TripChainItem::LT_NODE )
+	{
+		fromLocation = WayPoint( (Node*)from );
+	}
+	else if( fromLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		fromLocation = WayPoint( (BusStop*)from );
+	}
+
+	if( toLocationType == TripChainItem::LT_NODE )
+	{
+		toLocation = WayPoint( (Node*)to );
+	}
+	else if( toLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		toLocation = WayPoint( (BusStop*)to );
+	}
 }
 
 
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
+		DailyTime start, DailyTime end, void* from,
+		std::string fromLocType, void* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, "", from, fromLocType, to, toLocType),
 		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
@@ -74,7 +91,7 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	}
 }
 bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
-	person->originNode = person->destNode = location;
+	person->originNode = person->destNode = WayPoint(location);
 	return true;
 }
 

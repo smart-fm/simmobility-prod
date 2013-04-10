@@ -39,6 +39,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -897,7 +898,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->personID = tcItem.personID;
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	tripToSave->fromLocation = tcItem.fromLocation->generatedNode;
+	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
@@ -1042,9 +1043,9 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	aSubTripInTrip.personID = tcItem.personID;
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
-	aSubTripInTrip.fromLocation = tcItem.fromLocation->generatedNode;
+	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
-	aSubTripInTrip.toLocation = tcItem.toLocation->generatedNode;
+	aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
 	aSubTripInTrip.toLocationType = tcItem.toLocationType;
 	aSubTripInTrip.mode = tcItem.mode;
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;

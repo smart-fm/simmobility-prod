@@ -13,6 +13,7 @@
 
 #include <vector>
 #include "entities/Agent.hpp"
+#include "../short/entities/roles/waitBusActivityRole/WaitBusActivity.hpp"
 #include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
 
@@ -48,7 +49,8 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
-	void registerWaitingPersonsToBusStopAgent(Person* p);// for WaitBusActivity role
+	void registerWaitingBusActivityToBusStopAgent(WaitBusActivity* wba);// for WaitBusActivity role
+	void collectWaitingAgents();
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
@@ -61,11 +63,11 @@ public:
 	typedef std::vector<BusStopAgent *> All_BusStopAgents;
 	static All_BusStopAgents all_BusstopAgents_;
 
-public:
-	std::vector<sim_mob::Person*> active_WaitingPersons;
 private:
 	sim_mob::BusStop const & busstop_;
 	std::string busstopAgentno_; //currently is equal to busstopno_
+	TimeOfReachingBusStopPriorityQueue active_waitingBusActivities;// role sorting by time reaching at the busStopAgent
+	std::vector<sim_mob::Agent*> active_WaitingAgents;// possible boarding persons
 
 
 #ifndef SIMMOB_DISABLE_MPI

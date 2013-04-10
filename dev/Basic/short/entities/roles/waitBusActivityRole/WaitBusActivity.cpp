@@ -6,6 +6,17 @@
 using std::vector;
 using namespace sim_mob;
 
+//Implementation of our comparison function for Agents by start time.
+bool sim_mob::cmp_waitbusactivity_start::operator()(const WaitBusActivity* x, const WaitBusActivity* y) const {
+	//TODO: Not sure what to do in this case...
+	if ((!x) || (!y)) {
+		return 0;
+	}
+
+	//We want a lower start time to translate into a higher priority.
+	return x->getTimeOfReachingBusStop() > y->getTimeOfReachingBusStop();
+}
+
 BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 {
  	 std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;

@@ -8,21 +8,31 @@
 
 #pragma once
 
-#include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
 
 namespace sim_mob
 {
 
+class BusStopAgent;
 class Passenger;
 class PackageUtils;
 class UnPackageUtils;
+class WaitBusActivity;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
 #endif
+
+//Comparison for our priority queue
+struct cmp_waitbusactivity_start : public std::less<WaitBusActivity*> {
+  bool operator() (const WaitBusActivity* x, const WaitBusActivity* y) const;
+};
+
+//C++ static constructors...
+class TimeOfReachingBusStopPriorityQueue : public std::priority_queue<WaitBusActivity*, std::vector<WaitBusActivity*>, cmp_waitbusactivity_start> {
+};
 
 //Helper struct
 struct WaitBusActivityUpdateParams : public sim_mob::UpdateParams {
@@ -65,7 +75,7 @@ public:
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopPos(const Node* node);
-	uint32_t getTimeOfReachingBusStop() { return TimeOfReachingBusStop; }
+	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
 
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not

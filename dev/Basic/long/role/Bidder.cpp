@@ -7,20 +7,19 @@
  * Created on April 4, 2013, 5:13 PM
  */
 
-#include <iostream>
-#include "agent/UnitHolder.hpp"
+#include <math.h>
 #include "Bidder.hpp"
+#include "model/UnitHolder.hpp"
+#include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
 
-using std::cout;
-using std::endl;
+
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Bidder::Bidder(UnitHolder* parent) : Role(parent), cParent(parent) {
-    cParent->GetEventManager().RegisterEvent(LTID_BID_RSP);
-    cParent->GetEventManager().Subscribe(LTID_BID_RSP, &UnitHolder::unitX, this,
-            CONTEXT_CALLBACK_HANDLER(BidEventArgs, Bidder::OnBidResponse));
+Bidder::Bidder(LT_Agent* parent, HousingMarket* market)
+: LT_Role(parent), market(market), MessageReceiver(),
+waitingForResponse(false), lastTime(0, 0) {
 }
 
 Bidder::~Bidder() {
@@ -28,35 +27,108 @@ Bidder::~Bidder() {
 
 void Bidder::Update(timeslice now) {
     if (isActive()) {
-        int id = GetParent()->getId();
-        cParent->GetEventManager().Publish(LTID_BID, &UnitHolder::unitX, BidEventArgs(id, 10 + id));
-        cParent->GetEventManager().Schedule(timeslice(now.ms() + id, now.frame() + id), this,
-                CONTEXT_CALLBACK_HANDLER(EM_EventArgs, Bidder::OnWakeUp));
-        SetActive(false);
-    }
-}
-
-void Bidder::OnBidResponse(EventId id, Context ctx, EventPublisher* sender, const BidEventArgs& args) {
-    switch (id) {
-        case LTID_BID_RSP:// Bid received 
-        {
-            if (GetParent()->getId() == args.GetBidderId()) {
-                cout << "Id: " << GetParent()->getId() << " Received a response " << args.GetResponse() << endl;
-            }
-            //take a decision.
-            break;
+        if (!waitingForResponse && BidUnit()) {
+            waitingForResponse = true;
         }
-        default:break;
     }
+    lastTime = now;
 }
 
-void Bidder::OnWakeUp(EventId id, Context ctx, EventPublisher* sender, const EM_EventArgs& args) {
+void Bidder::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
+        const EM_EventArgs& args) {
     switch (id) {
-        case EM_WND_EXPIRED:// Bid received 
+        case EM_WND_EXPIRED:
         {
+            LogOut("Agent: " << GetParent()->getId() << " AWOKE." << endl);
             SetActive(true);
             break;
         }
         default:break;
     }
+}
+
+void Bidder::HandleMessage(MessageType type, MessageReceiver& sender,
+        const Message& message) {
+    switch (type) {
+        case LTID_BID_RSP:// Bid response received 
+        {
+            BidMessage* msg = MSG_CAST(BidMessage, message);
+            switch (msg->GetResponse()) {
+                case ACCEPTED:// Bid accepted 
+                {
+                    //remove unit from the market.
+                    Unit* unit = market->RemoveUnit(msg->GetBid().GetUnitId());
+                    if (unit) { // assign unit.
+                        GetParent()->AddUnit(unit);
+                        SetActive(false);
+                        LogOut("Agent: " << GetParent()->getId() <<
+                                " bought the unit: " << msg->GetBid().GetUnitId()
+                                << endl);
+                        //sleep for N ticks.
+                        timeslice wakeUpTime(lastTime.ms() + 10,
+                                lastTime.frame() + 10);
+                        GetParent()->GetEventManager().Schedule(wakeUpTime, this,
+                                CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
+                                Bidder::OnWakeUp));
+                    }
+                    break;
+                }
+                case NOT_ACCEPTED:
+                {
+                    LogOut("Agent: " << GetParent()->getId() <<
+                            " bid to unit: " << msg->GetBid().GetUnitId() <<
+                            " was not accepted." << endl);
+                    break;
+                }
+                default:break;
+            }
+            waitingForResponse = false;
+            break;
+        }
+        default:break;
+    }
+}
+
+bool Bidder::BidUnit() {
+    list<Unit*> units;
+    market->GetUnits(units);
+    if (!units.empty()) {
+        // choose the unit to bid with max surplus.
+        Unit* unit = nullptr;
+        float maxSurplus = -1;
+        for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
+                itr++) {
+            if ((*itr)->IsAvailable()) {
+                float surplus = CalculateSurplus(*(*itr));
+                if (surplus > maxSurplus) {
+                    maxSurplus = surplus;
+                    unit = (*itr);
+                }
+            }
+        }
+        // Exists some unit to bid.
+        if (unit) {
+            MessageReceiver* owner = unit->GetOwner();
+            float bidValue = maxSurplus + CalculateWP();
+            if (owner && bidValue > 0.0f && unit->IsAvailable()) {
+                owner->Post(LTID_BID, GetParent(),
+                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
+                        bidValue)));
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+float Bidder::CalculateSurplus(const Unit& unit) {
+    float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
+    float wp = CalculateWP();
+    float b = (askingPrice + (float) pow(askingPrice - wp, 0.5));
+    return (float) ((pow(b, 2) - wp * b) / (-askingPrice + b));
+}
+
+float Bidder::CalculateWP() {
+    return (float) ((GetParent()->GetIncome() * 1.0f) +
+            (GetParent()->GetNumberOfMembers() * 2.0f));
 }

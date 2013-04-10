@@ -7,34 +7,26 @@
  * Created on April 4, 2013, 5:42 PM
  */
 
-#include "LT_EventArgs.h"
+#include "LT_EventArgs.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-BidEventArgs::BidEventArgs(int bidderId, double bid) : bidValue(bid),
-bidderId(bidderId), response(NOT_AVAILABLE) {
+HM_ActionEventArgs::HM_ActionEventArgs(HM_Action action, UnitId unitId)
+: action(action), unitId(unitId) {
 }
 
-BidEventArgs::BidEventArgs(int bidderId, BidResponse response) : bidValue(0),
-bidderId(bidderId), response(response) {
+HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
+: action(source.action), unitId(source.unitId) {
 }
 
-BidEventArgs::BidEventArgs(const BidEventArgs& orig) : bidValue(orig.bidValue),
-bidderId(orig.bidderId), response(orig.response) {
+HM_ActionEventArgs::~HM_ActionEventArgs() {
 }
 
-BidEventArgs::~BidEventArgs() {
+const HM_Action HM_ActionEventArgs::GetAction() const {
+    return action;
 }
 
-const BidResponse BidEventArgs::GetResponse() const {
-    return response;
-}
-
-const double BidEventArgs::GetBid() const {
-    return bidValue;
-}
-
-const int BidEventArgs::GetBidderId()const {
-    return bidderId;
+const UnitId HM_ActionEventArgs::GetUnitId() const {
+    return unitId;
 }

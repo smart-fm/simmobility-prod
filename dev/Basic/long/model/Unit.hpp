@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Common.h"
+#include "message/MessageReceiver.hpp"
 
 namespace sim_mob {
 
@@ -17,7 +18,7 @@ namespace sim_mob {
         class UnitHolder;
 
         /**
-         * Represents a unit to buy/rent.
+         * Represents a unit to buy/rent/hold.
          * It can be the following:
          *  - Apartment
          *  - House
@@ -25,7 +26,10 @@ namespace sim_mob {
          */
         class Unit {
         public:
-            Unit(UnitId id);
+
+            Unit(UnitId id, bool available,
+                    float fixedCost, float distanceToCDB,
+                    float size);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -43,15 +47,89 @@ namespace sim_mob {
             UnitId GetId() const;
 
             /**
+             * Gets the size of the unit.
+             * @return value with size.
+             */
+            float GetSize() const;
+
+            /**
+             * Gets the distance to CDB.
+             * @return value with distance.
+             */
+            float GetDistanceToCDB() const;
+
+            /**
              * Verifies if home is available.
              * @return true if unit is available, false otherwise.
              */
             bool IsAvailable() const;
 
+            /**
+             * Sets if unit is avaliable or not.
+             * @param avaliable value. 
+             */
+            void SetAvailable(bool avaliable);
+
+            /**
+             * Gets the reservation price.
+             * @return the reservation price of the unit.
+             */
+            float GetReservationPrice() const;
+
+            /**
+             * Sets the reservation price.
+             * @param price of the new reservation price of the unit.
+             */
+            void SetReservationPrice(float price);
+
+            /**
+             * Gets the hedonic price.
+             * @return the hedonic price of the unit.
+             */
+            float GetHedonicPrice() const;
+
+            /**
+             * Sets the hedonic price.
+             * @param price of the new hedonic price of the unit.
+             */
+            void SetHedonicPrice(float price);
+
+            /**
+             * Gets the fixed cost.
+             * @return the fixed cost of the unit.
+             */
+            float GetFixedCost() const;
+
+            /**
+             * Sets the fixed cost.
+             * @param cost of the new fixed cost of the unit.
+             */
+            void SetFixedCost(float cost);
+
+            /**
+             * Gets the owner endpoint for communication.
+             * @return owner endpoint.
+             */
+            MessageReceiver* GetOwner();
         private:
+
+            /**
+             * Gets the owner endpoint for communication.
+             * @return owner endpoint.
+             */
+            void SetOwner(MessageReceiver* receiver);
+
+        private:
+            friend class UnitHolder;
             UnitId id;
             bool available;
+            float reservationPrice;
+            float fixedCost;
+            float hedonicPrice;
+            float distanceToCDB;
+            float size;
+            MessageReceiver* owner;
+            mutable shared_mutex mutex;
         };
     }
 }
-

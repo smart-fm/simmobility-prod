@@ -7,8 +7,13 @@
 
 #pragma once
 
+#include <iostream>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
+#include "util/OutputUtil.hpp"
+
+using std::cout;
+using std::endl;
 
 /**
  * Types

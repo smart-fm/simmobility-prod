@@ -8,20 +8,27 @@
  */
 #pragma once
 
-#include "entities/Agent.hpp"
 #include "event/EventListener.hpp"
+#include "agent/LT_Agent.hpp"
+
 
 namespace sim_mob {
 
     namespace long_term {
-
+        
         /**
-         * Represents a generic Role that can be updated calling the method Update. 
+         * Represents a generic Role that can be updated during the simulation.
+         * 
+         * Each Long-Term agent can have N roles and act using 
+         * each one for different things like:
+         * - Selling Units
+         * - Bid new Units
+         * 
          */
-        class Role : public EventListener{
+        class LT_Role : public EventListener{
         public:
-            Role(Agent* parent);
-            virtual ~Role();
+            LT_Role(LT_Agent* parent);
+            virtual ~LT_Role();
 
             /**
              * Method to implement the role behavior.
@@ -41,15 +48,25 @@ namespace sim_mob {
             void SetActive(bool active);
         
         protected:
+            
+            /**
+             * Handle messages.
+             * @param type of the message.
+             * @param sender of the message.
+             * @param message data.
+             */
+            virtual void HandleMessage(MessageType type, 
+                    MessageReceiver& sender, const Message& message);
             /**
              * Gets the role's parent.
              * @return Parent pointer.
              */
-            Agent* GetParent() const;
+            LT_Agent* GetParent() const;
             
         private:
+            friend class LT_Agent;
             bool active;
-            Agent* parent;
+            LT_Agent* parent;
         };
     }
 }

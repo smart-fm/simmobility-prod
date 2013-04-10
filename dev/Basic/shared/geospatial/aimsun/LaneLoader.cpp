@@ -11,6 +11,7 @@
 #include "util/DynamicVector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
+#include "logging/Log.hpp"
 
 
 using std::pair;
@@ -67,7 +68,7 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	//Check
 	laneLine.clear();
 	if (oldSize != res.size()) {
-		std::cout <<"ERROR: Couldn't sort Lanes array, zeroing out. " << oldSize <<"," <<res.size() <<std::endl;
+		sim_mob::Warn() <<"ERROR: Couldn't sort Lanes array, zeroing out. " << oldSize <<"," <<res.size() <<std::endl;
 	}
 
 
@@ -800,7 +801,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 		if (maxLoops-- == 0) {
 			//std::cout <<"ERROR_2903" <<std::endl; break;
 			//throw std::runtime_error("Error: Network contains RoadSegment loop."); // Loops are present in the entire Singapore network. So Commenting this line. ~Harish
-			std::cout << "Error: Network contains RoadSegment loop. " << std::endl;
+			sim_mob::Warn() << "Error: Network contains RoadSegment loop. " << std::endl;
 			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
 			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
 			break;

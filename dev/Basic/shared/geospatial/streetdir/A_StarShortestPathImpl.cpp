@@ -441,7 +441,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 				throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 			}
 			if (fromIt->second.vertices.empty() || toIt->second.vertices.empty()) {
-				std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (3)." <<std::endl;
+				Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (3)." <<std::endl;
 				continue;
 			}
 
@@ -504,7 +504,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 			//Did we find anything?
 			if ((minDist<0) || error) {
 				//For now it's not an error.
-				std::cout <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
+				Warn() <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
 				continue;
 			}
 
@@ -561,7 +561,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
+			Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
 			continue;
 		}
 
@@ -899,7 +899,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
 		if (from->second.vertices.empty() || to->second.vertices.empty()) {
-			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices (2)." <<std::endl;
+			Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (2)." <<std::endl;
 			continue;
 		}
 
@@ -982,7 +982,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 			const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
 			if (!atNode) {
 				//TODO: We have a UniNode with a crossing; we should really add this later.
-				std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
+				Warn() <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
 				continue;
 			}
 
@@ -1334,7 +1334,7 @@ std::vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPathWithBla
 				//This shouldn't fail.
 				std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
 				if (!edge.second) {
-					LogOut("ERROR: Boost can't find an edge that it should know about." <<std::endl);
+					Warn() <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
 					return std::vector<WayPoint>();
 				}
 
@@ -1397,7 +1397,7 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPath(const Stree
 				//This shouldn't fail.
 				std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, graph);
 				if (!edge.second) {
-					LogOut("ERROR: Boost can't find an edge that it should know about." <<std::endl);
+					Warn() <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
 					return std::vector<WayPoint>();
 				}
 
@@ -1477,7 +1477,7 @@ void sim_mob::A_StarShortestPathImpl::printWalkingGraph() const
 void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
 	//Print an identifier
-	LogOutNotSync("(\"sd-graph\""
+	LogOut("(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
@@ -1492,7 +1492,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
     	const Point2D pt = boost::get(boost::vertex_name, graph, v);
-    	LogOutNotSync("(\"sd-vertex\""
+    	LogOut("(\"sd-vertex\""
     		<<","<<0
     		<<","<<v
     		<<",{"
@@ -1513,7 +1513,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     	StreetDirectory::Edge ed = *iter;
     	StreetDirectory::Vertex srcV = boost::source(ed, graph);
     	StreetDirectory::Vertex destV = boost::target(ed, graph);
-    	LogOutNotSync("(\"sd-edge\""
+    	LogOut("(\"sd-edge\""
     		<<","<<0
     		<<","<<id++
     		<<",{"

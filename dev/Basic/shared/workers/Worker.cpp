@@ -410,7 +410,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<std::endl);
+		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
 	}
 }
 

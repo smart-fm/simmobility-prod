@@ -12,6 +12,7 @@
 #include "entities/vehicle/Bus.hpp"
 #include "entities/BusController.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "logging/Log.hpp"
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/BusStop.hpp"
@@ -164,7 +165,7 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p) {
 				if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
 					if (busStops.empty()) {
-						std::cout<< "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
+						Warn() << "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
 						// This case can be true, so use the BusStops found by Path instead
 						busStops = findBusStopInPath(vehicle->getCompletePath());
 					}

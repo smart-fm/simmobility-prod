@@ -11,6 +11,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
+#include "logging/Log.hpp"
 
 #include "Section.hpp"
 
@@ -117,7 +118,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 	//Check errors
 	if (laneIDs.size()!=2) {
 		//TODO: Later, we can probably reduce the number of "Lanes" by automatically merging them.
-		std::cout <<"ERROR: Crossing contains " <<laneIDs.size() <<" lane(s) instead of 2\n";
+		sim_mob::Warn() <<"ERROR: Crossing contains " <<laneIDs.size() <<" lane(s) instead of 2\n";
 		return;
 	}
 
@@ -131,7 +132,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 		//Quick check
 		/*std::vector<Crossing*>*/ candidates = origin.crossingsAtNode.find(*it)->second;
 		if (candidates.empty() || candidates.size()==1){
-			std::cout <<"ERROR: Unexpected Crossing candidates size.\n";
+			sim_mob::Warn() <<"ERROR: Unexpected Crossing candidates size.\n";
 			return;
 		}
 
@@ -145,7 +146,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			dists.push_back(sim_mob::dist(candidates[2], candidates[0]) + sim_mob::dist(candidates[2], candidates[1]));
 			int pMin = minID(dists);
 			if (pMin==-1) {
-				std::cout <<"ERROR: No minimum point.\n";
+				sim_mob::Warn() <<"ERROR: No minimum point.\n";
 				return;
 			}
 
@@ -197,10 +198,10 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 				//TODO: Why would the reported distance ever be shorter? (It'd be longer if polylines were involved...)
 				double euclideanCheck = dist((*it)->toNode->xPos, (*it)->toNode->yPos, (*it)->fromNode->xPos, (*it)->fromNode->yPos);
 				if (distOrigin > euclideanCheck) {
-					std::cout <<"ERROR: Crossing appears after the maximum length of its parent Segment.\n";
-					std::cout <<"  Requested offset is: " <<distOrigin/100000 <<"\n";
-					std::cout <<"  Segment reports its length as: " <<(*it)->length/100000 <<"\n";
-					std::cout <<"  Euclidean check: " <<euclideanCheck/100000 <<"\n";
+					sim_mob::Warn() <<"ERROR: Crossing appears after the maximum length of its parent Segment.\n"
+									<<"  Requested offset is: " <<distOrigin/100000 <<"\n"
+									<<"  Segment reports its length as: " <<(*it)->length/100000 <<"\n"
+									<<"  Euclidean check: " <<euclideanCheck/100000 <<"\n";
 					return;
 				}
 			}

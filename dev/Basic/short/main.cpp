@@ -113,6 +113,20 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -352,7 +366,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
-			SyncCout(msg.str());
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
@@ -550,7 +564,7 @@ int main(int argc, char* argv[])
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
 		if (mpi_result.compare("") != 0)
 		{
-			cout << "Error:" << mpi_result << endl;
+			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
 	}

@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "geospatial/BusStop.hpp"
+#include "logging/Log.hpp"
 
 
 using namespace sim_mob;
@@ -96,11 +97,11 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop
 bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec)
 {
 	if(roadSegment_vec.empty()) {
-		std::cout << "Error: no roadSegments!!!" << std::endl;
+		Warn() << "Error: no roadSegments!!!" << std::endl;
 		return false;
 	}
 	if(busStop_vec.empty()) {
-		std::cout << "Error: no busStops!!!" << std::endl;
+		Warn() << "Error: no busStops!!!" << std::endl;
 		// can be, not return
 		//return false;
 	}

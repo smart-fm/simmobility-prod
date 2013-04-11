@@ -12,19 +12,15 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-HM_ActionEventArgs::HM_ActionEventArgs(HM_Action action, UnitId unitId)
-: action(action), unitId(unitId) {
+HM_ActionEventArgs::HM_ActionEventArgs(UnitId unitId)
+: unitId(unitId) {
 }
 
 HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
-: action(source.action), unitId(source.unitId) {
+: unitId(source.unitId) {
 }
 
 HM_ActionEventArgs::~HM_ActionEventArgs() {
-}
-
-const HM_Action HM_ActionEventArgs::GetAction() const {
-    return action;
 }
 
 const UnitId HM_ActionEventArgs::GetUnitId() const {

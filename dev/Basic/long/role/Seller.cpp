@@ -38,7 +38,7 @@ void Seller::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
 
     switch (type) {
-        case LTID_BID:// Bid received 
+        case LTMID_BID:// Bid received 
         {
             BidMessage* msg = MSG_CAST(BidMessage, message);
             Unit* unit = GetParent()->GetUnitById(msg->GetBid().GetUnitId());
@@ -58,7 +58,7 @@ void Seller::HandleMessage(MessageType type, MessageReceiver& sender,
                 }
             }
             //reply to sender.
-            sender.Post(LTID_BID_RSP, GetParent(),
+            sender.Post(LTMID_BID_RSP, GetParent(),
                     new BidMessage(Bid(msg->GetBid()),
                     ((decision) ? ACCEPTED : NOT_ACCEPTED)));
             break;

@@ -16,26 +16,12 @@ namespace sim_mob {
 
     namespace long_term {
 
-        /**
-         * Represents an action of the market.
-         */
-        enum HM_Action {
-            UNIT_ADDED,
-            UNIT_REMOVED
-        };
-
-        DECLARE_CUSTOM_CALLBACK_TYPE(HM_EventArgs)
+        DECLARE_CUSTOM_CALLBACK_TYPE(HM_ActionEventArgs)
         class HM_ActionEventArgs : public EventArgs {
         public:
-            HM_ActionEventArgs(HM_Action action, UnitId unitId);
+            HM_ActionEventArgs(UnitId unitId);
             HM_ActionEventArgs(const HM_ActionEventArgs& orig);
             virtual ~HM_ActionEventArgs();
-
-            /**
-             * Gets the action that was performed by the market.
-             * @return 
-             */
-            const HM_Action GetAction() const;
 
             /**
              * Gets the unit affected by the action.
@@ -43,7 +29,6 @@ namespace sim_mob {
              */
             const UnitId GetUnitId()const;
         private:
-            HM_Action action;
             UnitId unitId;
         };
     }

@@ -9,6 +9,7 @@
 #pragma once
 #include "role/LT_Role.hpp"
 #include "entity/HousingMarket.hpp"
+#include "event/LT_EventArgs.hpp"
 
 namespace sim_mob {
 
@@ -44,8 +45,27 @@ namespace sim_mob {
              * @param sender EVentManager responsible for the fired event.
              * @param args {@link EM_EventArgs} instance.
              */
-            virtual void OnWakeUp(EventId id, Context ctx, 
+            void OnWakeUp(EventId id, Context ctx, 
                 EventPublisher* sender, const EM_EventArgs& args);
+            
+            /**
+             * Handler for Market action event.
+             * @param id of the event.
+             * @param sender of the event.
+             * @param args of the event.
+             */
+            void OnMarketAction(EventId id, EventPublisher* sender, 
+                const HM_ActionEventArgs& args);
+            
+            /**
+             * Subscribes the role to all market generic events.
+             */
+            void FollowMarket();
+            
+            /**
+             * UnSubscribes the role to all market generic events.
+             */
+            void UnFollowMarket();
             
        private:
             bool BidUnit();

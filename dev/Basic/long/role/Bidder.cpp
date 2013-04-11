@@ -20,6 +20,7 @@ using namespace sim_mob::long_term;
 Bidder::Bidder(LT_Agent* parent, HousingMarket* market)
 : LT_Role(parent), market(market), MessageReceiver(),
 waitingForResponse(false), lastTime(0, 0) {
+    FollowMarket();
 }
 
 Bidder::~Bidder() {
@@ -40,6 +41,7 @@ void Bidder::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
         case EM_WND_EXPIRED:
         {
             LogOut("Agent: " << GetParent()->getId() << " AWOKE." << endl);
+            FollowMarket();
             SetActive(true);
             break;
         }
@@ -50,7 +52,7 @@ void Bidder::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
 void Bidder::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
     switch (type) {
-        case LTID_BID_RSP:// Bid response received 
+        case LTMID_BID_RSP:// Bid response received 
         {
             BidMessage* msg = MSG_CAST(BidMessage, message);
             switch (msg->GetResponse()) {
@@ -70,6 +72,7 @@ void Bidder::HandleMessage(MessageType type, MessageReceiver& sender,
                         GetParent()->GetEventManager().Schedule(wakeUpTime, this,
                                 CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
                                 Bidder::OnWakeUp));
+                        UnFollowMarket();
                     }
                     break;
                 }
@@ -83,6 +86,25 @@ void Bidder::HandleMessage(MessageType type, MessageReceiver& sender,
                 default:break;
             }
             waitingForResponse = false;
+            break;
+        }
+        default:break;
+    }
+}
+
+void Bidder::OnMarketAction(EventId id, EventPublisher* sender,
+        const HM_ActionEventArgs& args) {
+    switch (id) {
+        case LTEID_HM_UNIT_ADDED:// Bid response received 
+        {
+            LogOut("Agent: " << GetParent()->getId() <<
+                    " notified about the unit added." << endl);
+            break;
+        }
+        case LTEID_HM_UNIT_REMOVED:
+        {
+            LogOut("Agent: " << GetParent()->getId() <<
+                    " notified about the unit removed." << endl);
             break;
         }
         default:break;
@@ -111,7 +133,7 @@ bool Bidder::BidUnit() {
             MessageReceiver* owner = unit->GetOwner();
             float bidValue = maxSurplus + CalculateWP();
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
-                owner->Post(LTID_BID, GetParent(),
+                owner->Post(LTMID_BID, GetParent(),
                         new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
                         bidValue)));
                 return true;
@@ -131,4 +153,16 @@ float Bidder::CalculateSurplus(const Unit& unit) {
 float Bidder::CalculateWP() {
     return (float) ((GetParent()->GetIncome() * 1.0f) +
             (GetParent()->GetNumberOfMembers() * 2.0f));
+}
+
+void Bidder::FollowMarket() {
+    market->Subscribe(LTEID_HM_UNIT_ADDED, this,
+            CALLBACK_HANDLER(HM_ActionEventArgs, Bidder::OnMarketAction));
+    market->Subscribe(LTEID_HM_UNIT_REMOVED, this,
+            CALLBACK_HANDLER(HM_ActionEventArgs, Bidder::OnMarketAction));
+}
+
+void Bidder::UnFollowMarket() {
+    market->UnSubscribe(LTEID_HM_UNIT_ADDED, this);
+    market->UnSubscribe(LTEID_HM_UNIT_REMOVED, this);
 }

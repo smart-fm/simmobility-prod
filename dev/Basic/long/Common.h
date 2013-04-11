@@ -20,12 +20,27 @@ using std::endl;
  */
 typedef int UnitId;
 
+
+
 /**
  * Events IDs
  */
-#define LTID_START 1000000
+#define LTEID_START 1000000
 
 // Events for HousingMarket
-#define LTID_BID         LTID_START + 1
-#define LTID_BID_RSP     LTID_START + 2
+// housing market action (unit was ADDED, REMOVED or UPDATED ) 
+#define LTEID_HM_UNIT_ADDED     LTEID_START + 1
+#define LTEID_HM_UNIT_REMOVED   LTEID_START + 2
+
+
+/**
+ * Message Types
+ */
+#define LTMID_START 2000000
+
+// Messages for biding process
+#define LTMID_BID         LTMID_START + 1
+#define LTMID_BID_RSP     LTMID_START + 2
+
+
 

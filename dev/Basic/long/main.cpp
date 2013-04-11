@@ -110,7 +110,7 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 1.0f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 5000
+#define MAX_ITERATIONS 100
 #define TICK_STEP 1
 #define DAYS 365
 #define WORKERS 4

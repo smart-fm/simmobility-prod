@@ -9,7 +9,10 @@
 #pragma once
 
 #include "model/UnitHolder.hpp"
+#include "entities/Entity.hpp"
+#include "event/EventPublisher.hpp"
 
+using std::vector;
 namespace sim_mob {
 
     namespace long_term {
@@ -19,17 +22,39 @@ namespace sim_mob {
          * Th main responsibility is the management of: 
          *  - avaliable units
          */
-        class HousingMarket : public UnitHolder {
+        class HousingMarket : public UnitHolder, public Entity, 
+                public EventPublisher {
         public:
             HousingMarket();
             virtual ~HousingMarket();
 
+            /**
+             * Inherited from Entity
+             */
+            virtual UpdateStatus update(timeslice now);
+
         protected:
+
             /**
              * Inherited from UnitHolder.
              */
             bool Add(Unit* unit, bool reOwner);
             Unit* Remove(UnitId id, bool reOwner);
+
+            /**
+             * Inherited from Entity
+             */
+            virtual bool isNonspatial();
+            virtual void buildSubscriptionList(vector<BufferedBase*>& subsList);
+            
+        private:
+            /**
+             * Initializes the market.
+             */
+            void Setup();
+            
+        private:
+            volatile bool firstTime;
         };
     }
 }

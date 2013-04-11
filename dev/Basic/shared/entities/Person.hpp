@@ -13,6 +13,7 @@
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 namespace sim_mob
 {
@@ -155,6 +156,8 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 
 #endif
+
+	friend class Conflux;
 };
 
 }

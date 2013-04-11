@@ -1,7 +1,7 @@
 #include "ActivityFacets.hpp"
 #include "util/OutputUtil.hpp"
 
-sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Agent* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName) :
+sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName) :
 BehaviorFacet(parentAgent), parentActivity(parentRole)  {}
 
 
@@ -42,7 +42,7 @@ void sim_mob::ActivityPerformerMovement::frame_tick_output(const UpdateParams& p
 	throw std::runtime_error("ActivityPerformerMovement::frame_tick_output() shouldn't have been called. Activity works only with behavior facet.");
 }
 
-sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Agent* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName):
+sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName):
 	MovementFacet(parentAgent), parentActivity(parentRole) {
 }
 

@@ -47,7 +47,7 @@ using std::endl;
 namespace sim_mob {
 namespace medium {
 
-DriverBehavior::DriverBehavior(sim_mob::Agent* parentAgent):
+DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent):
 	BehaviorFacet(parentAgent), parentDriver(nullptr) {}
 
 DriverBehavior::~DriverBehavior() {}
@@ -68,7 +68,7 @@ void DriverBehavior::frame_tick_output_mpi(timeslice now) {
 	throw std::runtime_error("DriverBehavior::frame_tick_output_mpi is not implemented yet");
 }
 
-sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Agent* parentAgent):
+sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicle(nullptr), currLane(nullptr), nextLaneInNextSegment(nullptr) {}
 
 sim_mob::medium::DriverMovement::~DriverMovement() {}
@@ -192,8 +192,7 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
-		Person* parentP = dynamic_cast<Person*> (parentAgent);
-		if (!parentP || parentP->specialStr.empty()) {
+		if (!parentAgent || parentAgent->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
 			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
 		}
@@ -222,22 +221,15 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 }
 
 void DriverMovement::setParentData() {
-	Person* parentP = dynamic_cast<Person*> (parentAgent);
 		if(!vehicle->isDone()) {
-			if (parentP){
-			//	parentP->isQueuing = vehicle->isQueuing;
-				parentP->distanceToEndOfSegment = vehicle->getPositionInSegment();
-				parentP->movingVelocity = vehicle->getVelocity();
-			}
+			parentAgent->distanceToEndOfSegment = vehicle->getPositionInSegment();
+			parentAgent->movingVelocity = vehicle->getVelocity();
 			parentAgent->setCurrLane(currLane);
 			parentAgent->setCurrSegment(vehicle->getCurrSegment());
 		}
 		else {
-			if (parentP){
-				//	parentP->isQueuing = vehicle->isQueuing;
-				parentP->distanceToEndOfSegment = 0.0;
-				parentP->movingVelocity = 0.0;
-			}
+			parentAgent->distanceToEndOfSegment = 0.0;
+			parentAgent->movingVelocity = 0.0;
 			parentAgent->setCurrLane(nullptr);
 			parentAgent->setCurrSegment(nullptr);
 		}

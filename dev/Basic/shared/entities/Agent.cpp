@@ -97,7 +97,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(mtxStrat, -1), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
 {
 	toRemoved = false;
@@ -247,6 +247,7 @@ void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 	subsList.push_back(&latVel);
 	subsList.push_back(&xAcc);
 	subsList.push_back(&yAcc);
+	subsList.push_back(&lastUpdatedFrame);
 	//subscriptionList_cached.push_back(&currentLink);
 	//subscriptionList_cached.push_back(&currentCrossing);
 }

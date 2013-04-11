@@ -3,13 +3,14 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/UpdateParams.hpp"
 #include "ActivityPerformer.hpp"
+#include "entities/Person.hpp"
 
 namespace sim_mob {
 class ActivityPerformer;
 
 class ActivityPerformerBehavior : public sim_mob::BehaviorFacet {
 public:
-	explicit ActivityPerformerBehavior(sim_mob::Agent* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
+	explicit ActivityPerformerBehavior(sim_mob::Person* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
 	virtual ~ActivityPerformerBehavior() {}
 
 	//Virtual overrides
@@ -30,7 +31,7 @@ private:
 
 class ActivityPerformerMovement : public sim_mob::MovementFacet {
 public:
-	explicit ActivityPerformerMovement(sim_mob::Agent* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
+	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
 	virtual ~ActivityPerformerMovement() {}
 
 	//Virtual overrides

@@ -187,6 +187,8 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
+
+	sim_mob::Shared<long> lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -295,6 +297,14 @@ protected:
 public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
+
+	bool isCallFrameInit() const {
+		return call_frame_init;
+	}
+
+	void setCallFrameInit(bool callFrameInit) {
+		call_frame_init = callFrameInit;
+	}
 
 	friend class BoundaryProcessor;
 

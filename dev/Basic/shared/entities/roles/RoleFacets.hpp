@@ -37,7 +37,7 @@ class BehaviorFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit BehaviorFacet(sim_mob::Agent* parentAgent = nullptr) :
+	explicit BehaviorFacet(sim_mob::Person* parentAgent = nullptr) :
 		parentAgent(parentAgent) { }
 
 	//Allow propagating destructors
@@ -61,18 +61,18 @@ public:
 	 */
 	virtual Vehicle* getResource() { return nullptr; }
 
-	Agent* getParent()
+	Person* getParent()
 	{
 		return parentAgent;
 	}
 
-	void setParent(Agent* parent)
+	void setParent(Person* parent)
 	{
 		this->parentAgent = parent;
 	}
 
 protected:
-	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+	Person* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 public:
 #ifndef SIMMOB_DISABLE_MPI
@@ -94,7 +94,7 @@ class MovementFacet {
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit MovementFacet(sim_mob::Agent* parentAgent = nullptr) :
+	explicit MovementFacet(sim_mob::Person* parentAgent = nullptr) :
 		parentAgent(parentAgent) { }
 
 	//Allow propagating destructors
@@ -113,18 +113,18 @@ public:
 	//generate output with fake attributes for MPI
 	virtual void frame_tick_output_mpi(timeslice now) = 0;
 
-	Agent* getParent()
+	Person* getParent()
 	{
 		return parentAgent;
 	}
 
-	void setParent(Agent* parent)
+	void setParent(Person* parent)
 	{
 		this->parentAgent = parent;
 	}
 
 protected:
-	Agent* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+	Person* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

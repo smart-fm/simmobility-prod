@@ -89,8 +89,10 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
 	DriverMovement* movement = new DriverMovement(parent);
-	Role* role = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
-	return role;
+	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
+	behavior->setParentDriver(driver);
+	movement->setParentDriver(driver);
+	return driver;
 }
 
 void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& owner)

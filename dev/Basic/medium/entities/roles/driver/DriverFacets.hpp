@@ -17,7 +17,7 @@ namespace medium {
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
 public:
-	explicit DriverBehavior(sim_mob::Agent* parentAgent = nullptr);
+	explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverBehavior();
 
 	//Virtual overrides
@@ -26,6 +26,14 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 
+	sim_mob::medium::Driver* getParentDriver() const {
+		return parentDriver;
+	}
+
+	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
+		this->parentDriver = parentDriver;
+	}
+
 private:
 	sim_mob::medium::Driver* parentDriver;
 
@@ -33,7 +41,7 @@ private:
 
 class DriverMovement: public sim_mob::MovementFacet {
 public:
-	explicit DriverMovement(sim_mob::Agent* parentAgent = nullptr);
+	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
 
 	//Virtual overrides
@@ -63,6 +71,14 @@ public:
 	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
 	Vehicle* initializePath(bool allocateVehicle);
 	void setOrigin(DriverUpdateParams& p);
+
+	sim_mob::medium::Driver* getParentDriver() const {
+		return parentDriver;
+	}
+
+	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
+		this->parentDriver = parentDriver;
+	}
 
 private:
 	sim_mob::medium::Driver* parentDriver;

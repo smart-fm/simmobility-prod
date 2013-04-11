@@ -32,9 +32,9 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
  	 return nullptr;
 }
 
-sim_mob::WaitBusActivity::WaitBusActivity(Agent* parent, std::string roleName) :
+sim_mob::WaitBusActivity::WaitBusActivity(Agent* parent, std::string buslineid, std::string roleName) :
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
-		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0) {
+		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
 
 }
 
@@ -53,25 +53,26 @@ void sim_mob::WaitBusActivity::frame_init(UpdateParams& p) {
 	parent->xPos.set(busStop->xPos);
 	parent->yPos.set(busStop->yPos);
 	TimeOfReachingBusStop = p.now.ms();
+	buslineid = "7_2";// hardcoded now, later change
 	initializeRemainingTime();
 }
 
 void sim_mob::WaitBusActivity::frame_tick(UpdateParams& p) {
-	updateRemainingTime();
-	if(remainingTime <= 0){
-		parent->setToBeRemoved();
-	}
-	else
-	{
-//		if(roleFlag) {
-//			if(roleFlag->getRoleName() == "passenger") {
-//				std::cout << "WaitBusActivity has a passenger flag! " << std::endl;
-//			}
+//	updateRemainingTime();
+//	if(remainingTime <= 0){
+//		parent->setToBeRemoved();
+//	}
+//	else
+//	{
+////		if(roleFlag) {
+////			if(roleFlag->getRoleName() == "passenger") {
+////				std::cout << "WaitBusActivity has a passenger flag! " << std::endl;
+////			}
+////		}
+//		if(p.now.frame() % 3 == 0 && (!registered)) {
+//
 //		}
-		if(p.now.frame() % 3 == 0 && (!registered)) {
-
-		}
-	}
+//	}
 }
 
 void sim_mob::WaitBusActivity::frame_tick_output(const UpdateParams& p) {

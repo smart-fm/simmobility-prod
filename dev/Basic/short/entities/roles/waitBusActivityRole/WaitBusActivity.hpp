@@ -56,7 +56,7 @@ struct WaitBusActivityUpdateParams : public sim_mob::UpdateParams {
 
 class WaitBusActivity : public sim_mob::Role {
 public:
-	WaitBusActivity(Agent* parent, std::string roleName = "waitBusActivityRole");
+	WaitBusActivity(Agent* parent, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivity();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -76,6 +76,7 @@ public:
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopPos(const Node* node);
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
+	std::string getBuslineID() { return buslineid; }
 
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
@@ -86,6 +87,7 @@ private:
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::BusStopAgent* busStopAgent;
 	uint32_t TimeOfReachingBusStop;
+	std::string buslineid;
 	Point2D DisplayOffset;
 
 	WaitBusActivityUpdateParams params;

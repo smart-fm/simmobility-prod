@@ -66,7 +66,8 @@ public:
 private:
 	sim_mob::BusStop const & busstop_;
 	std::string busstopAgentno_; //currently is equal to busstopno_
-	TimeOfReachingBusStopPriorityQueue active_waitingBusActivities;// role sorting by time reaching at the busStopAgent
+	//TimeOfReachingBusStopPriorityQueue active_waitingBusActivities;// role sorting by time reaching at the busStopAgent
+	std::map<std::string, TimeOfReachingBusStopPriorityQueue> buslineid_waitingBusActivities;// priorityqueues grouped by buslineid
 	std::vector<sim_mob::Agent*> active_WaitingAgents;// possible boarding persons
 
 

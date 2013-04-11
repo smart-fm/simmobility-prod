@@ -73,8 +73,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 		LogOut("(\"BusStopAgent\""
 			<<","<<now.frame()
 			<<","<<getId()
-			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_
-			<<"\",\"waitingPersons size\":\""<<(active_waitingBusActivities.size()) <<"\"})"<<std::endl);
+			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_<<"\"})"<<std::endl);
 	}
 }
 
@@ -105,13 +104,12 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 //		}
 	}
 
-	std::cout << "active_waitingBusActivities.size(): " << active_waitingBusActivities.size() << std::endl;
 	return Entity::UpdateStatus::Continue;
 }
 
 void sim_mob::BusStopAgent::registerWaitingBusActivityToBusStopAgent(WaitBusActivity* wba)// for WaitBusActivity role
 {
-	active_waitingBusActivities.push(wba);
+	buslineid_waitingBusActivities[wba->getBuslineID()].push(wba);
 }
 
 void sim_mob::BusStopAgent::collectWaitingAgents()

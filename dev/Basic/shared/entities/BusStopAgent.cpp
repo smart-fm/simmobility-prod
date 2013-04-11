@@ -69,11 +69,13 @@ bool sim_mob::BusStopAgent::frame_init(timeslice now)
 
 void sim_mob::BusStopAgent::frame_output(timeslice now)
 {
-	LogOut("(\"BusStopAgent\""
+	if(now.frame() % 100 == 0) {// every 100 frames(10000ms-->10s) output
+		LogOut("(\"BusStopAgent\""
 			<<","<<now.frame()
 			<<","<<getId()
 			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_
 			<<"\",\"waitingPersons size\":\""<<(active_waitingBusActivities.size()) <<"\"})"<<std::endl);
+	}
 }
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)

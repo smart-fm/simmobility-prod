@@ -7,6 +7,8 @@
  * Created on March 7, 2013, 11:30 AM
  */
 
+#include <boost/property_map/property_map.hpp>
+
 #include "EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -48,7 +50,7 @@ void EventPublisher::RegisterEvent(EventId id) {
     {// thread-safe scope
         SharedWriteLock(listenersMutex);
         if (!ExitsEvent(listeners, id)) {
-            listeners.insert(pair<EventId, ContextMap>(id, ContextMap()));
+            listeners.insert(pair<EventId, ContextMap*>(id, new ContextMap()));
         }
     }
 }
@@ -60,7 +62,9 @@ void EventPublisher::UnRegisterEvent(EventId id) {
             // remove all context listeners.
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
             if (ctxMapItr != listeners.end()) {
-                RemoveAll(ctxMapItr->second);
+                ContextMap* cm = ctxMapItr->second;
+                RemoveAll(*cm);
+                safe_delete_item(cm);
             }
             //erase entries in 
             listeners.erase(id);
@@ -75,7 +79,7 @@ bool EventPublisher::IsEventRegistered(EventId id) const {
 
 void EventPublisher::Publish(EventId id, const EventArgs& args) {
     {// thread-safe scope
-        SharedReadLock(listenersMutex);
+        SharedWriteLock(listenersMutex);
         // publish using the global context.    
         PublishEvent(listeners, true, this, id, this, args);
     }
@@ -83,7 +87,7 @@ void EventPublisher::Publish(EventId id, const EventArgs& args) {
 
 void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
     {// thread-safe scope
-        SharedReadLock(listenersMutex);
+        SharedWriteLock(listenersMutex);
         // first notify global listeners.
         PublishEvent(listeners, true, this, id, this, args);
         //notify context listeners.
@@ -116,7 +120,7 @@ void EventPublisher::Subscribe(EventId id, Context ctx,
         EventListenerPtr listener, ListenerContextCallback callback) {
     {// thread-safe scope
         SharedWriteLock(listenersMutex);
-        if (IsEventRegistered(id) && listener && callback) {
+        if (ExitsEvent(listeners, id) && listener && callback) {
             Callback cb;
             cb.contextCallback = callback;
             SubscribeListener(listeners, id, ctx, listener, cb);
@@ -132,15 +136,18 @@ void EventPublisher::UnSubscribe(EventId id, Context ctx,
         EventListenerPtr listener) {
     {// thread-safe scope
         SharedWriteLock(listenersMutex);
-        if (IsEventRegistered(id) && listener) {
+        if (ExitsEvent(listeners, id) && listener) {
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
             if (ctxMapItr != listeners.end()) {
-                ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
-                if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
-                    Remove(mapItr->second, listener);
+                ContextMap::iterator mapItr = ctxMapItr->second->find(ctx);
+                if (mapItr != ctxMapItr->second->end()) { //Context Id does exists
+                    ListenersList* ll = mapItr->second;
+                    Remove(*ll, listener);
                     //if list is empty then remove the context.
-                    if (mapItr->second.empty()) {
-                        ctxMapItr->second.erase(ctx);
+                    if (ll->empty()) {
+                        //remove the list
+                        safe_delete_item(ll);
+                        ctxMapItr->second->erase(ctx);
                     }
                 }
             }
@@ -158,10 +165,12 @@ void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
         if (ExitsEvent(listeners, id)) {
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
             if (ctxMapItr != listeners.end()) {
-                ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
-                if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
-                    RemoveAll(mapItr->second);
-                    ctxMapItr->second.erase(ctx);
+                ContextMap::iterator mapItr = ctxMapItr->second->find(ctx);
+                if (mapItr != ctxMapItr->second->end()) { //Context Id does exists
+                    ListenersList* ll = mapItr->second;
+                    RemoveAll(*ll);
+                    safe_delete_item(ll);
+                    ctxMapItr->second->erase(ctx);
                 }
             }
         }
@@ -173,7 +182,7 @@ void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
  * HELPER FUNCTIONS
  *
  **********************/
-bool ExitsEvent(const ContextListenersMap& map, EventId id){
+bool ExitsEvent(const ContextListenersMap& map, EventId id) {
     return (map.find(id) != map.end());
 }
 
@@ -181,17 +190,17 @@ void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
         EventListenerPtr listener, Callback callback) {
     ContextListenersMap::iterator ctxMapItr = map.find(id);
     if (ctxMapItr != map.end()) {
-        ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
+        ContextMap::iterator mapItr = ctxMapItr->second->find(ctx);
         ListenersList* ctxList = 0;
-        if (mapItr == ctxMapItr->second.end()) { //Context Id does not exists
+        if (mapItr == ctxMapItr->second->end()) { //Context Id does not exists
             std::pair < ContextMap::iterator, bool> ret;
-            ret = ctxMapItr->second.insert(
-                    pair<Context, ListenersList>(ctx, ListenersList()));
-            ctxList = &ret.first->second;
+            ret = ctxMapItr->second->insert(
+                    pair<Context, ListenersList*>(ctx, new ListenersList()));
+            ctxList = ret.first->second;
         } else {
-            ctxList = &mapItr->second;
+            ctxList = mapItr->second;
         }
-        ctxList->push_back(Entry(listener, callback));
+        ctxList->push_back(new Entry(listener, callback));
     }
 }
 
@@ -200,17 +209,17 @@ void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* send
     //notify context listeners.
     ContextListenersMap::iterator ctxMapItr = map.find(id);
     if (ctxMapItr != map.end()) {
-        ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
-        if (mapItr != ctxMapItr->second.end()) { // Event ID is registered.
-            ListenersList lst = mapItr->second;
-            ListenersList::iterator lstItr = lst.begin();
-            while (lstItr != lst.end()) {
+        ContextMap::iterator mapItr = ctxMapItr->second->find(ctx);
+        if (mapItr != ctxMapItr->second->end()) { // Event ID is registered.
+            ListenersList* lst = mapItr->second;
+            ListenersList::iterator lstItr = lst->begin();
+            while (lstItr != lst->end()) {
                 // notify listener
                 if (globalCtx) {
-                    (((&*lstItr)->listener)->*((&*lstItr)->callback.callback))
+                    (((*lstItr)->listener)->*((*lstItr)->callback.callback))
                             (id, sender, args);
                 } else {
-                    (((&*lstItr)->listener)->*((&*lstItr)->callback.contextCallback))
+                    (((*lstItr)->listener)->*((*lstItr)->callback.contextCallback))
                             (id, ctx, sender, args);
                 }
                 lstItr++;
@@ -222,8 +231,9 @@ void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* send
 void RemoveAll(ContextMap& listeners) {
     for (ContextMap::iterator itr = listeners.begin(); itr != listeners.end();
             itr++) {
-        RemoveAll(itr->second);
-        itr->second.clear();
+        ListenersList* ll = itr->second;
+        RemoveAll(*ll);
+        safe_delete_item(ll);
     }
     listeners.clear();
 }
@@ -231,12 +241,19 @@ void RemoveAll(ContextMap& listeners) {
 void RemoveAll(ContextListenersMap& map) {
     for (ContextListenersMap::iterator itr = map.begin(); itr != map.end();
             itr++) {
-        RemoveAll(itr->second);
+        ContextMap* cm = itr->second;
+        RemoveAll(*cm);
+        safe_delete_item(cm);
     }
     map.clear();
 }
 
 void RemoveAll(ListenersList& listenersList) {
+    for (ListenersList::iterator itr = listenersList.begin();
+            itr != listenersList.end(); itr++) {
+        Entry* entry = *itr;
+        safe_delete_item(entry);
+    }
     listenersList.clear();
 }
 
@@ -244,7 +261,9 @@ void Remove(ListenersList& listenersList, EventListenerPtr listener) {
     if (listener) {
         ListenersList::iterator lstItr = listenersList.begin();
         while (lstItr != listenersList.end()) {
-            if ((&*lstItr)->listener == listener) {
+            if ((*lstItr)->listener == listener) {
+                Entry* entry = *lstItr;
+                safe_delete_item(entry);
                 listenersList.erase(lstItr);
                 return;
             }

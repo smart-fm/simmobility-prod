@@ -38,10 +38,10 @@ namespace sim_mob {
     } Entry;
 
     // map for global listeners.
-    typedef list<Entry> ListenersList;
+    typedef list<Entry*> ListenersList;
     // maps for listeners with context.
-    typedef map<Context, ListenersList> ContextMap;
-    typedef map<EventId, ContextMap> ContextListenersMap;
+    typedef map<Context, ListenersList*> ContextMap;
+    typedef map<EventId, ContextMap*> ContextListenersMap;
 
     /**
      * Generic implementation of event publisher.

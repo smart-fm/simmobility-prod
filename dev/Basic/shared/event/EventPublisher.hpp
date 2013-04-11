@@ -12,6 +12,7 @@
 #include <map>
 #include <list>
 #include "EventListener.hpp"
+#include "ThreadHelper.h"
 
 namespace sim_mob {
 
@@ -175,6 +176,6 @@ namespace sim_mob {
 
     private:
         ContextListenersMap listeners;
+        mutable shared_mutex listenersMutex;
     };
 }
-

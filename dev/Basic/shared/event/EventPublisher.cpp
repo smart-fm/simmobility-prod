@@ -15,6 +15,7 @@ using std::list;
 using std::pair;
 
 //Helper functions declaration.
+bool ExitsEvent(const ContextListenersMap& map, EventId id);
 void RemoveAll(ListenersList& listenersList);
 void RemoveAll(ContextMap& listeners);
 void RemoveAll(ContextListenersMap& map);
@@ -44,37 +45,50 @@ EventPublisher::~EventPublisher() {
 }
 
 void EventPublisher::RegisterEvent(EventId id) {
-    if (!IsEventRegistered(id)) {
-        listeners.insert(pair<EventId, ContextMap>(id, ContextMap()));
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (!ExitsEvent(listeners, id)) {
+            listeners.insert(pair<EventId, ContextMap>(id, ContextMap()));
+        }
     }
 }
 
 void EventPublisher::UnRegisterEvent(EventId id) {
-    if (IsEventRegistered(id)) {
-        // remove all context listeners.
-        ContextListenersMap::iterator ctxMapItr = listeners.find(id);
-        if (ctxMapItr != listeners.end()) {
-            RemoveAll(ctxMapItr->second);
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (ExitsEvent(listeners, id)) {
+            // remove all context listeners.
+            ContextListenersMap::iterator ctxMapItr = listeners.find(id);
+            if (ctxMapItr != listeners.end()) {
+                RemoveAll(ctxMapItr->second);
+            }
+            //erase entries in 
+            listeners.erase(id);
         }
-        //erase entries in 
-        listeners.erase(id);
     }
 }
 
 bool EventPublisher::IsEventRegistered(EventId id) const {
-    return (listeners.find(id) != listeners.end());
+    SharedReadLock(listenersMutex);
+    return ExitsEvent(listeners, id);
 }
 
 void EventPublisher::Publish(EventId id, const EventArgs& args) {
-    // publish using the global context.    
-    PublishEvent(listeners, true, this, id, this, args);
+    {// thread-safe scope
+        SharedReadLock(listenersMutex);
+        // publish using the global context.    
+        PublishEvent(listeners, true, this, id, this, args);
+    }
 }
 
 void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
-    // first notify global listeners.
-    Publish(id, args);
-    //notify context listeners.
-    PublishEvent(listeners, false, this, id, ctx, args);
+    {// thread-safe scope
+        SharedReadLock(listenersMutex);
+        // first notify global listeners.
+        PublishEvent(listeners, true, this, id, this, args);
+        //notify context listeners.
+        PublishEvent(listeners, false, this, id, ctx, args);
+    }
 }
 
 void EventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
@@ -83,10 +97,13 @@ void EventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
 
 void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
         ListenerCallback callback) {
-    if (IsEventRegistered(id) && listener && callback) {
-        Callback cb;
-        cb.callback = callback;
-        SubscribeListener(listeners, id, this, listener, cb);
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (ExitsEvent(listeners, id) && listener && callback) {
+            Callback cb;
+            cb.callback = callback;
+            SubscribeListener(listeners, id, this, listener, cb);
+        }
     }
 }
 
@@ -97,10 +114,13 @@ void EventPublisher::Subscribe(EventId id, Context ctx,
 
 void EventPublisher::Subscribe(EventId id, Context ctx,
         EventListenerPtr listener, ListenerContextCallback callback) {
-    if (IsEventRegistered(id) && listener && callback) {
-        Callback cb;
-        cb.contextCallback = callback;
-        SubscribeListener(listeners, id, ctx, listener, cb);
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (IsEventRegistered(id) && listener && callback) {
+            Callback cb;
+            cb.contextCallback = callback;
+            SubscribeListener(listeners, id, ctx, listener, cb);
+        }
     }
 }
 
@@ -110,15 +130,18 @@ void EventPublisher::UnSubscribe(EventId id, EventListenerPtr listener) {
 
 void EventPublisher::UnSubscribe(EventId id, Context ctx,
         EventListenerPtr listener) {
-    if (IsEventRegistered(id) && listener) {
-        ContextListenersMap::iterator ctxMapItr = listeners.find(id);
-        if (ctxMapItr != listeners.end()) {
-            ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
-            if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
-                Remove(mapItr->second, listener);
-                //if list is empty then remove the context.
-                if (mapItr->second.empty()) {
-                    ctxMapItr->second.erase(ctx);
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (IsEventRegistered(id) && listener) {
+            ContextListenersMap::iterator ctxMapItr = listeners.find(id);
+            if (ctxMapItr != listeners.end()) {
+                ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
+                if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
+                    Remove(mapItr->second, listener);
+                    //if list is empty then remove the context.
+                    if (mapItr->second.empty()) {
+                        ctxMapItr->second.erase(ctx);
+                    }
                 }
             }
         }
@@ -126,19 +149,20 @@ void EventPublisher::UnSubscribe(EventId id, Context ctx,
 }
 
 void EventPublisher::UnSubscribeAll(EventId id) {
-    if (IsEventRegistered(id)) {
-        UnSubscribeAll(id, this);
-    }
+    UnSubscribeAll(id, this);
 }
 
 void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
-    if (IsEventRegistered(id)) {
-        ContextListenersMap::iterator ctxMapItr = listeners.find(id);
-        if (ctxMapItr != listeners.end()) {
-            ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
-            if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
-                RemoveAll(mapItr->second);
-                ctxMapItr->second.erase(ctx);
+    {// thread-safe scope
+        SharedWriteLock(listenersMutex);
+        if (ExitsEvent(listeners, id)) {
+            ContextListenersMap::iterator ctxMapItr = listeners.find(id);
+            if (ctxMapItr != listeners.end()) {
+                ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
+                if (mapItr != ctxMapItr->second.end()) { //Context Id does exists
+                    RemoveAll(mapItr->second);
+                    ctxMapItr->second.erase(ctx);
+                }
             }
         }
     }
@@ -149,6 +173,10 @@ void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
  * HELPER FUNCTIONS
  *
  **********************/
+bool ExitsEvent(const ContextListenersMap& map, EventId id){
+    return (map.find(id) != map.end());
+}
+
 void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
         EventListenerPtr listener, Callback callback) {
     ContextListenersMap::iterator ctxMapItr = map.find(id);

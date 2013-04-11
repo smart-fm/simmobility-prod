@@ -127,7 +127,6 @@ namespace sim_mob {
     private:
         timeslice currTime;
         TemporalWindowMap temporalWindows;
-
     };
 }
 

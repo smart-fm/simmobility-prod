@@ -23,6 +23,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
 #include "entities/signal/Signal.hpp"
+#include "password/password.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -492,9 +493,11 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		if (!name || !value) {
 			return false;
 		}
+		if(strcmp(name,"password") == 0) continue;
 		string pair = (connectionString.empty()?"":" ") + string(name) + "=" + string(value);
 		connectionString += pair;
 	}
+	connectionString += (connectionString.empty()?"":" ") + string("password = ") + sim_mob::simple_password::load(string());
 
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();

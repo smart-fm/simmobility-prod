@@ -64,6 +64,11 @@ public:
     ///Update a Person's subscription list.
     virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
+    //interfaces dynamically to modify the trip chain
+    bool insertATripChainItem(TripChainItem* before, TripChainItem* newone);
+    bool deleteATripChainItem(TripChainItem* del);
+    bool replaceATripChainItem(TripChainItem* rep, TripChainItem* newone);
+
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;

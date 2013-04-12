@@ -54,6 +54,20 @@ Point2D WayPoint::location()
 	return pnt;
 }
 
+int WayPoint::getID()
+{
+	int id = -1;
+	if(type_==NODE )
+	{
+		id = node_->getID();
+	}
+	else if(type_==BUS_STOP)
+	{
+		id = busStop_->id;
+	}
+	return id;
+}
+
 StreetDirectory sim_mob::StreetDirectory::instance_;
 
 

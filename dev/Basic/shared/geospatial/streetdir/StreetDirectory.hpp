@@ -119,6 +119,8 @@ struct WayPoint
 
     Point2D location();
 
+    int getID();
+
     ///If true, this indicates the the current WayPoint represents a reverse traversal of the given type.
     ///  This usually means that a RoadSegment should be traversed in reverse. Note that this only has meaning
     ///   in the walking graph.

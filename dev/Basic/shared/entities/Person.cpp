@@ -418,6 +418,47 @@ std::vector<sim_mob::SubTrip>::const_iterator sim_mob::Person::resetCurrSubTrip(
 	return trip->getSubTrips().begin();
 }
 
+//only affect items after current trip chain item
+bool sim_mob::Person::insertATripChainItem(TripChainItem* before, TripChainItem* newone)
+{
+	bool ret = false;
+	std::vector<TripChainItem*>::iterator itfinder;
+	itfinder = std::find(currTripChainItem, tripChain.end(), before);
+	if(itfinder!=currTripChainItem && itfinder!=tripChain.end())
+	{
+		tripChain.insert(itfinder, newone );
+		ret = true;
+	}
+	return ret;
+}
+
+bool sim_mob::Person::deleteATripChainItem(TripChainItem* del)
+{
+	bool ret = false;
+	std::vector<TripChainItem*>::iterator itfinder;
+	itfinder = std::find(currTripChainItem, tripChain.end(), del);
+	if(itfinder!=currTripChainItem && itfinder!=tripChain.end())
+	{
+		tripChain.erase(itfinder);
+		ret = true;
+	}
+	return ret;
+}
+
+bool sim_mob::Person::replaceATripChainItem(TripChainItem* rep, TripChainItem* newone)
+{
+	bool ret = false;
+	std::vector<TripChainItem*>::iterator itfinder;
+	itfinder = std::find(currTripChainItem, tripChain.end(), rep);
+	if(itfinder!=currTripChainItem && itfinder!=tripChain.end())
+	{
+		(*itfinder) = newone;
+		ret = true;
+	}
+	return ret;
+
+}
+
 //advance to the next subtrip inside the current TripChainItem
 bool sim_mob::Person::advanceCurrentSubTrip()
 {

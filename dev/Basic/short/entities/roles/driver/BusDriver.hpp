@@ -62,6 +62,8 @@ public:
 	///here passenger makes decision to board bus when bus reaches bus stop
 	///if the bus goes to the destination passenger decides to board
 	void BoardingPassengers_Normal(Bus* bus);
+	// new boarding method
+	void BoardingPassengers_New(Bus* bus);// Yao Jin
 
     void AlightingPassengers(Bus* bus);
 
@@ -111,6 +113,9 @@ public:
 	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
+
+	uint32_t boarding_frame;// to record the boarding_frame for each individual person
+	bool allowboarding_flag;// flag to advance the frame
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);

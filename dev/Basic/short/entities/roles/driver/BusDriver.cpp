@@ -42,6 +42,8 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(pa
 	xpos_approachingbusstop=-1;
 	ypos_approachingbusstop=-1;
 	demo_passenger_increase = false;
+	boarding_frame = 0;
+	allowboarding_flag = false;
 
 	if(parent) {
 		if(parent->getAgentSrc() == "BusController") {
@@ -770,6 +772,68 @@ void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
  		}
  	}
  }
+
+void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
+{
+	uint32_t curr_frame = params.now.frame();
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
+	Person* person = dynamic_cast<Person*>(parent);
+	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if(!allowboarding_flag) {
+		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
+			const Busline* busline = bustrip->getBusline();
+			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+			TimeOfReachingBusStopPriorityQueue waitBusActivity_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
+			if(!waitBusActivity_Queue.empty()) {
+				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
+				if(busOccupancy >= 1) {// then allow boarding
+					WaitBusActivity* waitbusActivity = waitBusActivity_Queue.top();
+					Person* p = dynamic_cast<Person*>(waitbusActivity->getParent());
+					boarding_frame = curr_frame + 50;// each person 5s boarding time, calculate boarding_frame
+					allowboarding_flag = true;
+				}
+			}
+		}
+	}
+	if((boarding_frame == curr_frame) && allowboarding_flag) {
+		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
+			const Busline* busline = bustrip->getBusline();
+			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+			TimeOfReachingBusStopPriorityQueue waitBusActivity_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
+			if(!waitBusActivity_Queue.empty()) {
+				WaitBusActivity* waitbusActivity = waitBusActivity_Queue.top();
+				Person* p = dynamic_cast<Person*>(waitbusActivity->getParent());
+				sim_mob::Role* newRole = rf.createRole("passenger", p);
+				p->changeRole(newRole);
+		 		bus->passengers_inside_bus.push_back(p);
+		 		bus->setPassengerCount(bus->getPassengerCount()+1);
+				waitBusActivity_Queue.pop();
+				allowboarding_flag = false;// reset after individual boarding finished
+				boarding_frame = 0;// reset after individual boarding finished
+			}
+		}
+	}
+
+
+//		BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
+//		Person* person = dynamic_cast<Person*>(parent);
+//		const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+//		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
+//			const Busline* busline = bustrip->getBusline();
+//			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+//			TimeOfReachingBusStopPriorityQueue waitBusActivity_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
+//			if(!waitBusActivity_Queue.empty()) {
+//				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
+//				if(busOccupancy >= 1) {
+//					WaitBusActivity* waitbusActivity = waitBusActivity_Queue.top();
+//					Person* p = dynamic_cast<Person*>(waitbusActivity->getParent());
+//					boarding_frame = curr_frame + 50;// 5s boarding time
+//				}
+//			}
+//		}
+
+}
 
 /*void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
 {

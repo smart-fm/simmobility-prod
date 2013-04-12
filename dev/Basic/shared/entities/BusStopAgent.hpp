@@ -49,6 +49,7 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
+	std::map<std::string, TimeOfReachingBusStopPriorityQueue>& getBuslineID_WaitBusActivitiesMap() { return buslineid_waitingBusActivities; }
 	void registerWaitingBusActivityToBusStopAgent(WaitBusActivity* wba);// for WaitBusActivity role
 	void collectWaitingAgents();
 

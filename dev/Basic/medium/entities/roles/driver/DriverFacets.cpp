@@ -368,13 +368,13 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		}
 		laneIt++;
 	}
-	/*	std::cout << "nextRdSeg: "<<nextRdSeg->getStart()->getID()
+		std::cout << "nextRdSeg: "<<nextRdSeg->getStart()->getID()
 				<<" queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
 				<<" movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 				<<" | numLanes: " << nextRdSeg->getLanes().size()
 				<<" | physical cap: " << vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length - total
 				<<" | length: " << nextRdSeg->computeLaneZeroLength()
-				<< std::endl;*/
+				<< std::endl;
 
 	//	return total < (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
 	return vehicle->length <= (vehLaneCount * nextRdSeg->computeLaneZeroLength())

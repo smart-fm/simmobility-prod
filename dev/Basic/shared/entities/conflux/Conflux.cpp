@@ -367,6 +367,9 @@ sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.find(rdSeg);
 	if(it == segmentAgents.end()){
 		it = segmentAgentsDownstream.find(rdSeg);
+		if (it == segmentAgentsDownstream.end()){
+			return nullptr;
+		}
 	}
 	return it->second;
 }

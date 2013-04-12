@@ -156,6 +156,7 @@ namespace sim_mob {
 				if(laneStatsIt != laneStatsMap.end()) {
 					if(isDownstreamCopy()) {
 						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount() + prevTickLaneCountsFromOriginal.at(laneStatsIt->first).second;
+						std::cout<<"prevTickLaneCounts"<<prevTickLaneCountsFromOriginal.at(laneStatsIt->first).second<<std::endl;
 					}
 					else {
 						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
@@ -169,6 +170,13 @@ namespace sim_mob {
 		}
 		if(movingCounts > roadSegment->getLanes().size()*roadSegment->computeLaneZeroLength()/400.0){
 			std::cout<<"large moving count "<< roadSegment->getStart()->getID()<<std::endl;
+		}
+		if(roadSegment->getStart()->getID()==66508 && roadSegment->getEnd()->getID()==93730){
+			std::cout<<"||||||counts||||||"<< roadSegment->getStart()->getID()
+					<<"->"<<roadSegment->getEnd()->getID()
+					<<" isD: "<<isDownstreamCopy()
+					<<" movingCount: "<<movingCounts
+					<<std::endl;
 		}
 		return movingCounts;
 	}

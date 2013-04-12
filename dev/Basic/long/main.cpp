@@ -110,7 +110,7 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 1.0f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 100
+#define MAX_ITERATIONS 1000
 #define TICK_STEP 1
 #define DAYS 365
 #define WORKERS 4
@@ -133,6 +133,7 @@ void perform_main() {
     agentWorkers->initWorkers(nullptr);
     
     HousingMarket market;
+    agentWorkers->assignAWorker(&market);
     //create all units.
     list<LT_Agent*> agents;
     //create all households.

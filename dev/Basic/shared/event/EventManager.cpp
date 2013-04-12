@@ -8,6 +8,7 @@
  */
 
 #include "EventManager.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 using std::map;
@@ -25,48 +26,77 @@ currTime(timeslice(0, 0)) {
 }
 
 EventManager::~EventManager() {
+    //Delete all waiting window
+    SharedWriteLock(windowsMutex);
+    for (TemporalWindowMap::iterator itr = temporalWindows.begin();
+            itr != temporalWindows.end(); itr++) {
+        TemporalWindowList* wList = itr->second;
+        for (TemporalWindowList::iterator litr = wList->begin();
+                litr != wList->end(); litr++) {
+            TemporalWindow* window = *litr;
+            safe_delete_item(window);
+        }
+        //clears the entry. 
+        wList->clear();
+        safe_delete_item(wList);
+    }
     temporalWindows.clear();
 }
 
 void EventManager::Update(const timeslice& currTime) {
+    
     this->currTime = currTime;
-    TemporalWindowMap::iterator itr = temporalWindows.find(currTime);
-    if (itr != temporalWindows.end()) { //we have windows to update.
-        for (TemporalWindowList::iterator litr = itr->second.begin();
-                litr != itr->second.end(); litr++) {
-            if (litr->IsExpired(currTime)) {//only to confirm
-                Publish(EM_WND_EXPIRED, &(*litr), EventArgs());
-                // remove all subscribers for this window and event.
-                UnSubscribeAll(EM_WND_EXPIRED, &(*litr));
+    
+    {// synchronized scope
+        SharedWriteLock(windowsMutex);
+        TemporalWindowMap::iterator itr = temporalWindows.find(currTime);
+        if (itr != temporalWindows.end()) { //we have windows to update.
+            TemporalWindowList* wList = itr->second;
+            if (wList) {
+                for (TemporalWindowList::iterator litr = wList->begin();
+                        litr != wList->end(); litr++) {
+                    TemporalWindow* window = *litr;
+                    if (window && window->IsExpired(currTime)) {//only to confirm
+                        Publish(EM_WND_EXPIRED, window, EventArgs());
+                        // remove all subscribers for this window and event.
+                        UnSubscribeAll(EM_WND_EXPIRED, window);
+                        safe_delete_item(window);
+                    }
+                }
+                //clears the entry. 
+                wList->clear();
+                temporalWindows.erase(currTime);
+                safe_delete_item(wList);
             }
         }
-        //clears the entry. 
-        itr->second.clear();
-        temporalWindows.erase(currTime);
     }
 }
 
 void EventManager::Schedule(const timeslice& target, EventListenerPtr listener) {
-    Schedule(target, listener, 0);
+    Schedule(target, listener, nullptr);
 }
 
 void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
         ListenerContextCallback callback) {
-    TemporalWindowMap::iterator itr = temporalWindows.find(target);
-    TemporalWindowList* listPtr = 0;
-    if (itr == temporalWindows.end()) { // is not registered
-        std::pair < TemporalWindowMap::iterator, bool> ret = temporalWindows.insert(
-                pair<timeslice, TemporalWindowList>(target, TemporalWindowList()));
-        listPtr = &ret.first->second;
-    } else {
-        listPtr = &itr->second;
-    }
-    TemporalWindow tw(currTime, target);
-    TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
-    if (callback) {
-        Subscribe(EM_WND_EXPIRED, &(*litr), listener, callback);
-    } else {
-        Subscribe(EM_WND_EXPIRED, &(*litr), listener);
+
+    {// synchronized scope
+        SharedWriteLock(windowsMutex);
+        TemporalWindowMap::iterator itr = temporalWindows.find(target);
+        TemporalWindowList* listPtr = nullptr;
+        if (itr == temporalWindows.end()) { // is not registered
+            std::pair < TemporalWindowMap::iterator, bool> ret = temporalWindows.insert(
+                    pair<timeslice, TemporalWindowList*>(target, new TemporalWindowList()));
+            listPtr = ret.first->second;
+        } else {
+            listPtr = itr->second;
+        }
+        TemporalWindow* tw = new TemporalWindow(currTime, target);
+        TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
+        if (callback) {
+            Subscribe(EM_WND_EXPIRED, *litr, listener, callback);
+        } else {
+            Subscribe(EM_WND_EXPIRED, *litr, listener);
+        }
     }
 }
 

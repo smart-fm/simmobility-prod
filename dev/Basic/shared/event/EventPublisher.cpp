@@ -43,6 +43,7 @@ EventPublisher::EventPublisher() {
 
 EventPublisher::~EventPublisher() {
     // deletes all global listeners.
+    SharedWriteLock(listenersMutex);
     RemoveAll(listeners);
 }
 

@@ -121,12 +121,13 @@ namespace sim_mob {
             timeslice to;
         };
 
-        typedef list<TemporalWindow> TemporalWindowList;
-        typedef map<timeslice, TemporalWindowList, TimesliceComparator> TemporalWindowMap;
+        typedef list<TemporalWindow*> TemporalWindowList;
+        typedef map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
 
     private:
         timeslice currTime;
         TemporalWindowMap temporalWindows;
+        mutable shared_mutex windowsMutex;
     };
 }
 

@@ -18,7 +18,7 @@
 
 namespace sim_mob {
 
-class ASIO_Impl: public Communication<DataContainer*, commResult> {
+class ASIO_Impl: public Communication<DataContainer&, commResult> {
 	boost::asio::io_service io_service_send, io_service_receive;
 //	boost::asio::ip::tcp::socket socket_send, socket_receive;
 	connection connection_send, connection_receive;
@@ -65,8 +65,8 @@ public:
 
 	//the polymorphism thing
 
-	commResult send(DataContainer *value);
-	commResult receive(DataContainer* value);
+	commResult send(DataContainer &value);
+	commResult receive(DataContainer& value);
 
 };
 

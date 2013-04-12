@@ -7,7 +7,7 @@ namespace sim_mob
 {
 
 sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), CommunicationSupport(*parent)
-{ dataSent = false;}
+{ }
 sim_mob::DriverComm::~DriverComm(){
 }
 
@@ -21,25 +21,36 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 void sim_mob::DriverComm::receiveModule(timeslice now)
 {
 	//check if you have received anything in the incoming buffer
-	if(!isIncomingDirty()) return;
-	std::cout << "tick " << now.frame() << " [" << this->parent << "] icoming is dirty";
-	if(getIncoming().get().size() < 0) { std::cout << " Bu there are no data\n"; return; }
+	if(!isIncomingDirty())
+		{
+			std::cout << "DriverComm::receiveModule=>Nothing to receive( " << getIncoming().get().size() << ")" << std::endl;
+			return;
+		}
+	std::cout << "tick " << now.frame() << " [" << this->parent << "] incoming is dirty" << std::endl;
+	if(getIncoming().get().size() < 0) { std::cout << " But there are no data" << std::endl; return; }
 	for(std::vector<DATA_MSG_PTR>::iterator it = getIncoming().get().begin(); it != getIncoming().get().end(); it++)
 	{
-		std::cout  << "tick " << now.frame() << " [" << this->parent << "]" << " Received[" << (*it)->str << std::endl;
+//		std::ostringstream out("");
+		std::cout  << "tick " << now.frame() << " [" ;
+		std::cout << this->parent << "]" ;
+		{
+			WriteLock(Communicator_Mutex);
+			std::cout << " Received[" << (*it)->str << "]" << std::endl;
+		}
 	}
+	getIncoming().reset();
 
 
 }
 void sim_mob::DriverComm::sendModule(timeslice now)
 {
-
-	sim_mob::dataMessage *data = new sim_mob::dataMessage();
-	data->str = "Hi man how are you";
+	//		WriteLock(Communicator_Mutex);
 	std::vector<Entity*> &agents = sim_mob::Agent::all_agents;
 	std::vector<Entity*>::iterator  it , it_end(agents.end());
 	for(it = agents.begin(); it != it_end; it++)
 	{
+		sim_mob::dataMessage *data = new sim_mob::dataMessage();
+		data->str = "Hi man how are you\n\0";
 		//small filter
 		//1.send only to drivers
 		sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(*it);
@@ -47,18 +58,14 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 		if(person)
 			role = dynamic_cast<sim_mob::DriverComm*>((person)->getRole());
 		if(!role) {
-//			std::cout << "Agent [" << *it << "] is not a driver \n" ;
 			continue;
 		}
 		//2.dont send to yourseld(for some reason, this is bigger than normal pointers
 		if(person == this->parent) {
-//			std::cout << "Agent [" << *it << "]  is the same as me \n" ;
 			continue;
 		}
 		data->receiver = (unsigned long)(*it);
 		addOutgoing(data);
-		std::cout << "\ntick" << now.frame() << " :: Agent [" << *it << "] pushed into outgoing[" << &getOutgoing() << "]" << std::endl;
-		dataSent = true;
 	}
 	//sorry for the hack.
 	//Seriously! you don't wnat to put this in the person/agent 's update method, you dont want to put it in the perform_main function
@@ -78,10 +85,10 @@ void DriverComm::frame_tick(UpdateParams& p) {
 	{
 		sendModule(p.now);
 	}
-	else if(p.now.frame() > 4)//todo, just to test, just put else without if
-	{
+//	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
+//	{
 		receiveModule(p.now);
-	}
+//	}
 	setAgentUpdateDone(true);
 	std::cout << "[" << this->parent << "]: AdentUpdate Done" << std::endl;
 

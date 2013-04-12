@@ -26,20 +26,42 @@ class connection
 public:
   /// Constructor.
   connection(boost::asio::io_service& io_service)
-    : socket_(io_service)
+    : my_io_service(io_service)
   {
+	  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(io_service);
+	  socket_.reset(tempSocket);
+	  socket_s.push_back(socket_);
+//	  socket_->open(boost::asio::ip::tcp::v4());
   }
 
   /// Get the underlying socket. Used for making a connection or for accepting
   /// an incoming connection.
-  boost::asio::ip::tcp::socket& socket()
+  boost::asio::ip::tcp::socket& socket(/*bool reNew = false*/)
   {
-    return socket_;
+//	  if(reNew){
+//		  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(my_io_service);
+//		  socket_s.push_back(socket_);
+//		  socket_.reset(tempSocket);
+//
+////		  socket_->open(boost::asio::ip::tcp::v4());
+//	  }
+    return *(socket_s.back());
+  }
+  boost::asio::ip::tcp::socket& acceptSocket()
+  {
+	  /*if(reNew)*/{
+		  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(my_io_service);
+		  socket_s.push_back(socket_);
+		  socket_.reset(tempSocket);
+
+//		  socket_->open(boost::asio::ip::tcp::v4());
+	  }
+    return *socket_;
   }
 
   /// Asynchronously write a data structure to the socket.
   template <typename T, typename Handler>
-  void async_write(const T& t, Handler handler)
+  void write(const T& t, Handler handler, bool async)
   {
     // Serialize the data first so we know how large it is.
     std::ostringstream archive_stream;
@@ -54,7 +76,8 @@ public:
     {
       // Something went wrong, inform the caller.
       boost::system::error_code error(boost::asio::error::invalid_argument);
-      socket_.get_io_service().post(boost::bind(handler, error));
+      socket().get_io_service().post(boost::bind(handler, error));
+      std::cout << "ERROR in CONNECTION-Write" << std::endl;
       return;
     }
     outbound_header_ = header_stream.str();
@@ -64,7 +87,14 @@ public:
     std::vector<boost::asio::const_buffer> buffers;
     buffers.push_back(boost::asio::buffer(outbound_header_));
     buffers.push_back(boost::asio::buffer(outbound_data_));
-    boost::asio::async_write(socket_, buffers, handler);
+    if(async)
+    	boost::asio::async_write(socket(), buffers, handler);
+    else
+    {
+    	int i = 0;
+    	i = boost::asio::write(socket(), buffers);
+    	std::cout << i << " Bytes written" << std::endl;
+    }
   }
 
   /// Asynchronously read a data structure from the socket.
@@ -76,7 +106,7 @@ public:
       = &connection::handle_read_header<T, Handler>;
 
     boost::asio::async_read(
-    		socket_,
+    		socket(),
     		boost::asio::buffer(inbound_header_),
     		boost::bind(f,this, boost::asio::placeholders::error, boost::ref(t),boost::make_tuple(handler))
     );
@@ -102,6 +132,7 @@ public:
         // Header doesn't seem to be valid. Inform the caller.
         boost::system::error_code error(boost::asio::error::invalid_argument);
         boost::get<0>(handler)(error);
+        std::cout << "ERROR in CONNECTION-Handle_read_header" << std::endl;
         return;
       }
 
@@ -110,7 +141,7 @@ public:
       void (connection::*f)(const boost::system::error_code&,T&, boost::tuple<Handler>)
         = &connection::handle_read_data<T, Handler>;
       boost::asio::async_read(
-    		  socket_,
+    		  socket(),
     		  boost::asio::buffer(inbound_data_),
     		  boost::bind(f, this, boost::asio::placeholders::error, boost::ref(t), handler)
       );
@@ -130,6 +161,10 @@ public:
       // Extract the data structure from the data just received.
       try
       {
+
+//          for(std::vector<char>::iterator it_ = inbound_data_.begin(); it_ != inbound_data_.end(); it_++)
+//        	  std::cout << *it_ ;
+//          std::cout << "]" << std::endl;
         std::string archive_data(&inbound_data_[0], inbound_data_.size());
         std::istringstream archive_stream(archive_data);
         boost::archive::text_iarchive archive(archive_stream);
@@ -150,7 +185,10 @@ public:
 
 private:
   /// The underlying socket.
-  boost::asio::ip::tcp::socket socket_;
+  boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+  std::vector<boost::shared_ptr<boost::asio::ip::tcp::socket> > socket_s;
+
+  boost::asio::io_service& my_io_service;
 
   /// The size of a fixed length header.
   enum { header_length = 8 };

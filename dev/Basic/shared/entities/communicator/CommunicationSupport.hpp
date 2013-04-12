@@ -63,7 +63,8 @@ public:
 	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
 	int cnt_2;
 
-	boost::shared_ptr<Lock> myLock;
+	boost::shared_ptr<Lock> CommSupp_Mutex;
+	boost::shared_ptr<Lock> Communicator_Mutex;
 //	subscriptionInfo getSubscriptionInfo();
 	CommunicationSupport(sim_mob::Entity& entity_);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write

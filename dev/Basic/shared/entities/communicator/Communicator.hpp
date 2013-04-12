@@ -14,7 +14,8 @@ class NS3_Communicator : public sim_mob::Agent
 {
 
 	bool enabled;
-	boost::shared_ptr<Lock> myLock;
+	boost::shared_ptr<Lock> NS3_Communicator_Mutex;
+	boost::shared_ptr<Lock> myLocalLock;;
 	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&> subscriptionList;
 	sim_mob::DataContainer sendBuffer;
 	sim_mob::DataContainer receiveBuffer;
@@ -24,6 +25,7 @@ class NS3_Communicator : public sim_mob::Agent
 	std::set<const sim_mob::Entity*> duplicateEntityDoneChecker ;
 
     //serialize, deserialize, send, receive
+	void trySend(timeslice);
 	bool processOutgoingData(timeslice now);
 	void processIncomingData(timeslice now);
 	void reset(); //clear buffers and reset flags
@@ -32,7 +34,7 @@ class NS3_Communicator : public sim_mob::Agent
 	bool deadEntityCheck(sim_mob::CommunicationSupport & info);
 	void refineSubscriptionList();
 	//threadfunctions
-	void bufferSend();
+	void bufferSend(DataContainer &tempSendBuffer);
 	bool allAgentUpdatesDone();
 
 public:
@@ -57,7 +59,7 @@ public:
 	void addSendBuffer(sim_mob::DataContainer &value);
 	void addSendBuffer(std::vector<DATA_MSG_PTR> &value);
 
-	void subscribeEntity(sim_mob::CommunicationSupport&);//do not make it as reference coz a copy IS required here
+	boost::shared_ptr<Lock>  subscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(const sim_mob::Entity * agent);
 	static NS3_Communicator& GetInstance() { return NS3_Communicator::instance; }

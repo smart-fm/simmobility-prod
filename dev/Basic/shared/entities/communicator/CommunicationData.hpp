@@ -6,6 +6,7 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/assume_abstract.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/shared_ptr.hpp>
@@ -151,11 +152,14 @@ public:
 
 class DataContainer
 {
-	boost::shared_ptr<Lock> myLock;
+
 public:
+	boost::shared_ptr<Lock> DataContainer_Mutex;
+	boost::shared_ptr<Lock> Owner_Mutex;
 	//todo make it private
 	std::vector<DATA_MSG_PTR> buffer;
 	DataContainer();
+	DataContainer( const DataContainer& other );
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version)
@@ -164,7 +168,7 @@ public:
 //    	std::cout << "starting to register: " << std::endl;
 //    	BOOST_FOREACH(value, buffer)
 //    		value->registerType(ar);
-//    	ar.register_type(static_cast<dataMessage *>(NULL));
+    	ar.register_type(static_cast<DATA_MSG_PTR>(NULL));
 //    	std::cout << "DataContainer::serialize=>dataMessage registered" << std::endl;
 //    	BOOST_FOREACH(value, buffer)
 //    	//takes ar to your class and gives him the information about your class
@@ -176,9 +180,13 @@ public:
 
     void add(DataContainer & value);
     void reset();
+    void clear();//clear the buffer but do not delete the referenced elements buffer was pointing to
     std::vector<DATA_MSG_PTR>& get();
     bool pop(DATA_MSG_PTR & var);
     bool empty();
+
+    ////////////////////////////////
+    void setOwnerMutex(boost::shared_ptr<Lock>);
 
 };
 

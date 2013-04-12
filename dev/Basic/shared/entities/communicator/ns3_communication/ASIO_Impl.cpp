@@ -40,8 +40,8 @@ bool ASIO_Impl::init() {
 	//I know it is preferred to have a single connection to send data for all ticks as and when required
 	//but there are issues to that. until I get to solve them, we stick to one send connection per tick.
 	//todo solve the above mentioned issue.
+
 	connect(io_service_send, connection_send, host_send, port_send,asio_send);
-//		std::cout << " ASIO's SendBuffer address " << &mainReceiveBuffer << std::endl;
 	connect(io_service_receive, connection_receive, host_receive,port_receive, asio_receive);
 
 	//fire of the thread used for receiving data from NS3
@@ -57,9 +57,7 @@ bool ASIO_Impl::thread_send_asio_function() {
 	io_service_send.run();
 }
 
-	bool ASIO_Impl::connect(boost::asio::io_service &io_service_, connection &connection_,
-			const std::string& host, const std::string& service,
-			ASIOConnectionType cnnType) {
+	bool ASIO_Impl::connect(boost::asio::io_service &io_service_, connection &connection_,const std::string& host, const std::string& service,ASIOConnectionType cnnType) {
 		// Resolve the host name into an IP address.
 		boost::asio::ip::tcp::resolver resolver(io_service_);
 		boost::asio::ip::tcp::resolver::query query(host, service);
@@ -69,10 +67,10 @@ bool ASIO_Impl::thread_send_asio_function() {
 
 		// Start an asynchronous connect operation.
 		if (cnnType == asio_receive) {
-			std::cout << "ASIO_Impl::connect=>Start Async Connect to NS3[recv]" << std::endl;
+			std::cout << "ASIO_Impl::connect=>[recv]Connect to [" << host << ":" << service << "]" << std::endl;
 			connection_.socket().async_connect(endpoint,boost::bind(&ASIO_Impl::handle_connect_receive, this,boost::asio::placeholders::error,++endpoint_iterator));
 		} else if (cnnType == asio_send) {
-			std::cout << "ASIO_Impl::connect=>Start Async Connect to NS3[send]" << std::endl;
+			std::cout << "ASIO_Impl::connect=>[send]Connect to [" << host << ":" << service << "]" << std::endl;
 			connection_.socket().async_connect(endpoint,boost::bind(&ASIO_Impl::handle_connect_send, this,boost::asio::placeholders::error,++endpoint_iterator));
 		}
 	}
@@ -81,7 +79,7 @@ bool ASIO_Impl::thread_send_asio_function() {
 	void ASIO_Impl::handle_connect_send(const boost::system::error_code& e, boost::asio::ip::tcp::resolver::iterator endpoint_iterator) {
 
 		if (!e) {
-			std::cout << "ASIO_Impl::handle_connect_send=>handle_connect_send Request for connection accepted"  << std::endl;
+			std::cout << "ASIO_Impl::handle_connect_send=>success" << std::endl;
 			sendConnectionEstablished = true;
 //			//connect (for send) makes a loop that halt on a request to coonect.
 			//So be careful the other side doesnt accept connections in a loop in the same way :)
@@ -92,7 +90,7 @@ bool ASIO_Impl::thread_send_asio_function() {
 
 		} else {
 			sendConnectionEstablished = false;
-			std::cerr << "ASIO_Impl::handle_connect_send error =>" << e.message() << " try to connect again" << std::endl;
+			std::cerr << "ASIO_Impl::handle_connect_send Failed =>'" << e.message() << "' on socket[" <<  &connection_send.socket() << "] try to connect again" << std::endl;
 			connect(io_service_send, connection_send, host_send, port_send,asio_send);
 		}
 	}
@@ -109,16 +107,14 @@ bool ASIO_Impl::thread_send_asio_function() {
 	}
 	/// Handle completion of a connect operation.
 	void ASIO_Impl::handle_connect_receive(const boost::system::error_code& e,boost::asio::ip::tcp::resolver::iterator endpoint_iterator) {
+		std::cout << "ASIO_Impl::handle_connect_receive" << std::endl;
 		if (!e) {
-
-			std::cout << "ASIO_Impl::handle_connect_receive=>handle_connect_receive Request for connection accepted, as.read started"  << std::endl;
-			connection_receive.async_read(temporaryReceiveBuffer,
-					boost::bind(&ASIO_Impl::handle_read_receive, this,
-							boost::asio::placeholders::error));
+			std::cout << "ASIO_Impl::handle_connect_receive success" << std::endl;
+			connection_receive.async_read(temporaryReceiveBuffer,boost::bind(&ASIO_Impl::handle_read_receive, this,boost::asio::placeholders::error));
 		} else if (endpoint_iterator != boost::asio::ip::tcp::resolver::iterator()) {
-			std::cout << "TRYING THE NEXT END POINT" << std::endl;
+			std::cout << "ASIO_Impl::handle_connect_receive tryNext" << std::endl;
 		} else {
-			std::cerr << "ASIO_Impl::handle_connect_receive error =>" << e.message() << std::endl;
+			std::cerr << "ASIO_Impl::handle_connect_receive  Failed =>'" << e.message() << "'" <<   std::endl;
 			connect(io_service_receive, connection_receive, host_receive,port_receive, asio_receive);
 		}
 	}
@@ -126,9 +122,9 @@ bool ASIO_Impl::thread_send_asio_function() {
 	/// Handle completion of a read operation.
 	void ASIO_Impl::handle_read_receive(const boost::system::error_code& e) {
 		if (!e) {
-			std::cout << "inside ASIO_Impl::handle_read_receive()" << std::endl;
+			std::cout << "inside ASIO_Impl::handle_read_receive successfull" << std::endl;
 			mainReceiveBuffer.add(temporaryReceiveBuffer);
-			temporaryReceiveBuffer.reset();
+			temporaryReceiveBuffer.clear();
 			connection_receive.async_read(temporaryReceiveBuffer,
 					boost::bind(&ASIO_Impl::handle_read_receive, this,
 							boost::asio::placeholders::error));
@@ -139,7 +135,7 @@ bool ASIO_Impl::thread_send_asio_function() {
 
 
 	//argument not used
-	commResult ASIO_Impl::send(DataContainer *value)
+	commResult ASIO_Impl::send(DataContainer& value)
 	{
 //		if(value != &mainReceiveBuffer)
 //		{
@@ -147,19 +143,16 @@ bool ASIO_Impl::thread_send_asio_function() {
 //			out << "ASIO::send=>source/ destination mismatch in sending buffer address[" << &mainReceiveBuffer << ":" << value << "]";
 //			throw std::runtime_error(out.str());
 //		}
-		std::cout << "inside ASIO_Impl::send=> starting async_write" << std::endl;
-		connection_send.async_write(*value, boost::bind(&ASIO_Impl::handle_send, this,boost::asio::placeholders::error/*, value*/));
-
+		std::cout << "inside ASIO_Impl::send()=> starting async_write for a container of size[" << value.get().size() << "]" <<  std::endl;
+		connection_send.write(value, boost::bind(&ASIO_Impl::handle_send, this,boost::asio::placeholders::error), false);
 	}
 	//argument not used
-	commResult ASIO_Impl::receive(DataContainer* value){
+	commResult ASIO_Impl::receive(DataContainer &value){
 		//and reference to communicator's receive buffer (here called mainReceiveBuffer)
 		//which had passed through ASIO_Impl(()'s constructor,had been already being updated
 		//by the a thread handling the receive operasions:)\
 		//so just call it with any argument but data will be given at its correct place
 
-		//still for the sake of simplicity and compatibility we will supply the same buffer again:
-		value = &mainReceiveBuffer;//ok?
 	}
 
 

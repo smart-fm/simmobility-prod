@@ -24,11 +24,11 @@ void NS3_Communication::init()
 //		boost::thread FakeNS3(fakeNS3);
 
 }
-commResult NS3_Communication::send(DataContainer *value) {
-	WriteLock(*myLock);
+commResult NS3_Communication::send(DataContainer &value) {
+	std::cout << "Inside inside ASIO_Impl::send()" << std::endl;
 	return SR_Impl->send(value);
 }
-commResult NS3_Communication::receive(DataContainer* value) {
+commResult NS3_Communication::receive(DataContainer& value) {
 	return SR_Impl->receive(value);
 }
 //void NS3_Communication::shortCircuit(std::string sendFile_, std::string receiveFile_){

@@ -6,7 +6,7 @@ using namespace sim_mob;
 namespace sim_mob
 {
 	CommunicationSupport::CommunicationSupport(sim_mob::Entity& entity_)
-	:	myLock(new Lock),
+	:	CommSupp_Mutex(new Lock),
 	 	entity(entity_),
 		communicator(sim_mob::NS3_Communicator::GetInstance()),
 	 	outgoing(sim_mob::NS3_Communicator::GetInstance().getSendBuffer()),
@@ -35,77 +35,79 @@ namespace sim_mob
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& CommunicationSupport::getIncoming() {
-		ReadLock Lock(*myLock);
+//		WriteLock Lock(*Communicator_Mutex);
 		return incoming;
 	}
 	DataContainer& CommunicationSupport::getOutgoing() {
-		ReadLock Lock(*myLock);
+//		WriteLock Lock(*Communicator_Mutex);
 		return outgoing;
 	}
 	void CommunicationSupport::setIncoming(DataContainer values) {
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		incoming = values;
 	}
 	bool CommunicationSupport::popIncoming(DATA_MSG_PTR &var)
 	{
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		return incoming.pop(var);
 	}
 //	void CommunicationSupport::setOutgoing(DataContainer values) {
-//		WriteLock(*myLock);
+//		//WriteLock(*CommSupp_Mutex);
 //		outgoing = values;
 //		outgoingIsDirty = true;
 //	}
 
 	void CommunicationSupport::addIncoming(DATA_MSG_PTR value) {
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
+		std::cout << this << " : CommunicationSupport::addIncoming=>storing incoming data" <<  std::endl;
 		incoming.add(value);
+		incomingIsDirty = true;
 	}
 	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) {
-		std::cout << this << " : CommunicationSupport::addOutgoing=>pushing data[" << value << "] to outgoing[" << &outgoing << "]" <<  std::endl;
-	WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
+		std::cout << this << " : CommunicationSupport::addOutgoing=>pushing data[" << value << "]" <<  std::endl;
 	outgoing.add(value);
-	std::cout << "push done "  <<  std::endl;
+//	std::cout << "push done "  <<  std::endl;
 	outgoingIsDirty = true;
 	}
 
 	void CommunicationSupport::setwriteIncomingDone(bool value) {
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		writeIncomingDone = value;
 	}
 	void CommunicationSupport::setWriteOutgoingDone(bool value) {
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		readOutgoingDone = value;
 	}
 	void CommunicationSupport::setAgentUpdateDone(bool value) {
-		WriteLock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		agentUpdateDone = value;
 	}
 	bool &CommunicationSupport::iswriteIncomingDone() {
-		ReadLock Lock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		return writeIncomingDone;
 	}
 	bool &CommunicationSupport::isreadOutgoingDone() {
-		ReadLock Lock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		return readOutgoingDone;
 	}
 	bool &CommunicationSupport::isAgentUpdateDone() {
-		ReadLock Lock(*myLock);
-		return agentUpdateDone;
+		WriteLock Lock(*Communicator_Mutex);
+			return agentUpdateDone;
 	}
 
 	bool &CommunicationSupport::isOutgoingDirty() {
-		ReadLock Lock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		return outgoingIsDirty;
 	}
 	bool &CommunicationSupport::isIncomingDirty() {
-		ReadLock Lock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		return incomingIsDirty;
 	}
 
 //todo
 	void CommunicationSupport::reset(){
-		WriteLock Lock(*myLock);
+		WriteLock Lock(*Communicator_Mutex);
 		outgoingIsDirty = false ;
 		incomingIsDirty = false ;
 		agentUpdateDone = false ;
@@ -124,7 +126,7 @@ namespace sim_mob
 //		subscriptionInfo info = getSubscriptionInfo();
 //		info.setEntity(subscriber);
 
-		communicator.subscribeEntity(*this);
+		Communicator_Mutex = communicator.subscribeEntity(*this);
 		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 	}
 	const sim_mob::Entity& CommunicationSupport::getEntity()

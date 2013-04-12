@@ -5,7 +5,6 @@ namespace sim_mob
 {
 class DriverComm : public Driver, public CommunicationSupport
 {
-	bool dataSent;
 public:
 
 	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat);

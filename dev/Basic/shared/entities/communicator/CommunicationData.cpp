@@ -2,51 +2,56 @@
 #include<cstdio>
 namespace sim_mob
 {
-///////////////////////////////////
-//template<class Archive>
-//void DataContainer::serialize(Archive &ar, const unsigned int version) {
-//	DATA_MSG_PTR value;
-//	ar.register_type(static_cast<dataMessage *>(NULL));
-////    	BOOST_FOREACH(value, buffer)
-////    	//takes ar to your class and gives him the information about your class
-////    		value->registerType(ar);
-//	ar & buffer;
-//}
-DataContainer::DataContainer():myLock(new Lock){}
+DataContainer::DataContainer(){
+
+}
+DataContainer::DataContainer( const DataContainer& other ) :
+    buffer( other.buffer ),Owner_Mutex(other.Owner_Mutex)
+ {
+ }
 
 void DataContainer::add(DATA_MSG_PTR value) {
-	WriteLock(*myLock);
+	//WriteLock(DataContainer_Mutex);
 	buffer.push_back(value);
 }
 
 void DataContainer::add(std::vector<DATA_MSG_PTR> values) {
-	WriteLock(*myLock);
+	//WriteLock(DataContainer_Mutex);
 	buffer.insert(buffer.end(), values.begin(), values.end());
 }
 
 void DataContainer::add(DataContainer & value) {
-	WriteLock(*myLock);
+	//WriteLock(DataContainer_Mutex);
 	add(value.get());
 }
 
 void DataContainer::reset() {
-	WriteLock(*myLock);
+	//WriteLock(DataContainer_Mutex);
+//	todo comment the line below
+//	return;
 	DATA_MSG_PTR value;
-	std::cout << "resetting a buffer of size " << buffer.size() << std::endl;
+//	std::cout << "resetting a buffer of size " << buffer.size() << std::endl;
 
 	BOOST_FOREACH(value, buffer)
 		delete value;
-	std::cout << "resetting " << std::endl;
+//	std::cout << "resetting " << std::endl;
 	buffer.clear();
-	std::cout << " done" << std::endl;
+//	std::cout << " done" << std::endl;
+}
+
+void DataContainer::clear()
+{
+	//WriteLock(DataContainer_Mutex);
+	buffer.clear();
 }
 
 std::vector<DATA_MSG_PTR>& DataContainer::get() {
+	//WriteLock(DataContainer_Mutex);
 	return buffer;
 }
 
 bool DataContainer::pop(DATA_MSG_PTR & var) {
-	WriteLock(*myLock);
+	//WriteLock(DataContainer_Mutex);
 	if (buffer.size() < 1)
 		return false;
 	var = buffer.front();
@@ -54,7 +59,14 @@ bool DataContainer::pop(DATA_MSG_PTR & var) {
 }
 
 bool DataContainer::empty(){
+	WriteLock(*Owner_Mutex);
 	return buffer.empty();
+}
+
+////////////////////////////////
+void DataContainer::setOwnerMutex(boost::shared_ptr<Lock> value)
+{
+	Owner_Mutex = value;
 }
 /////////////////////////////////////
 //subscriptionInfo::subscriptionInfo(
@@ -104,37 +116,37 @@ bool DataContainer::empty(){
 //	return outgoing;
 //}
 //void subscriptionInfo::setIncoming(DataContainer values) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	incoming = values;
 //	incomingIsDirty = true;
 //}
 //void subscriptionInfo::setOutgoing(DataContainer values) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	outgoing = values;
 //	outgoingIsDirty = true;}
 //
 //void subscriptionInfo::addIncoming(DATA_MSG_PTR value) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	incoming.add(value);
 //	incomingIsDirty = true;
 //}
 //void subscriptionInfo::addOutgoing(DATA_MSG_PTR value) {
 //std::cout << this << " : subscriptionInfo::addOutgoing=>pushing data to " << &outgoing << std::endl;
-//WriteLock(*myLock);
+////WriteLock(*myLock);
 //outgoing.add(value);
 //outgoingIsDirty = true;
 //}
 //
 //void subscriptionInfo::setwriteIncomingDone(bool value) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	writeIncomingDone = value;
 //}
 //void subscriptionInfo::setWriteOutgoingDone(bool value) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	readOutgoingDone = value;
 //}
 //void subscriptionInfo::setAgentUpdateDone(bool value) {
-//	WriteLock(*myLock);
+//	//WriteLock(*myLock);
 //	agentUpdateDone = value;
 //}
 //bool subscriptionInfo::iswriteIncomingDone() {
@@ -161,7 +173,7 @@ bool DataContainer::empty(){
 //
 //void subscriptionInfo::reset()
 //{
-//	WriteLock Lock(*myLock);
+//	//WriteLock Lock(*myLock);
 //	incomingIsDirty = false ;
 //	outgoingIsDirty = false ;
 //	agentUpdateDone = false ;

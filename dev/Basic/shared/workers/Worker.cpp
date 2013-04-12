@@ -148,6 +148,11 @@ void sim_mob::Worker::interrupt()
 	}
 }
 
+int sim_mob::Worker::getAgentSize(bool includeToBeAdded) 
+{ 
+	return managedEntities.size() + (includeToBeAdded?toBeAdded.size():0);
+}
+
 
 void sim_mob::Worker::addPendingEntities()
 {
@@ -405,7 +410,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<std::endl);
+		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
 	}
 }
 
@@ -424,6 +429,9 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
 			scheduleForRemoval(*it);
+
+			//xuyan:it can be removed from Sim-Tree
+			(*it)->can_remove_by_RTREE = true;
 		} else if (res.status == UpdateStatus::RS_CONTINUE) {
 			//Still going, but we may have properties to start/stop managing
 			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {

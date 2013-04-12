@@ -12,6 +12,7 @@
 #include "entities/vehicle/Bus.hpp"
 #include "entities/BusController.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "logging/Log.hpp"
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/BusStop.hpp"
@@ -164,7 +165,7 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p) {
 				if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
 					if (busStops.empty()) {
-						std::cout<< "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
+						Warn() << "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
 						// This case can be true, so use the BusStops found by Path instead
 						busStops = findBusStopInPath(vehicle->getCompletePath());
 					}
@@ -556,8 +557,18 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 								vehicle->getY(),
 								rs->getStart()->location.getX(),
 								rs->getStart()->location.getY());
-						distance = stopPoint
-								- vehicle->getDistanceMovedInSegment();
+//						distance = stopPoint
+//								- vehicle->getDistanceMovedInSegment();
+						// Buses not stopping near the busstop at few places.
+						// one easy way to fix it
+						double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
+
+						std::cout<<vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
+
+						distance = actualDistance
+								- BusDistfromStart.getMagnitude();
+
+
 						break;
 
 					}

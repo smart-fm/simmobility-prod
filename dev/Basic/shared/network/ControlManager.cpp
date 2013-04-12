@@ -6,7 +6,9 @@
  */
 
 #include "ControlManager.hpp"
+
 #include <iostream>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -44,6 +46,13 @@ void sim_mob::ControlManager::start()
 		}
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	 } // end of while
+}
+
+void sim_mob::ControlManager::setSimState(int s)
+{
+	boost::mutex::scoped_lock local_lock(lock);
+	simState = s;
+	std::cout<<"simmob"<<">"<<std::flush;
 }
 
 void sim_mob::ControlManager::setEndTick(int t)

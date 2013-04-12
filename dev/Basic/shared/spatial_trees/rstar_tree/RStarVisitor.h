@@ -161,5 +161,5 @@ struct RStarRemoveSpecificLeaf
 		return false;
 	}
 	
-	private: RStarRemoveSpecificLeaf(){}
+//	private: RStarRemoveSpecificLeaf(){}
 };

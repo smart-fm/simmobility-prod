@@ -112,6 +112,10 @@ public:
 		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {};
 	virtual ~Conflux() {};
 
+	//Confluxes are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
+
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
 	virtual Entity::UpdateStatus update(timeslice frameNumber);

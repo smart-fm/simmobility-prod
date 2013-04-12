@@ -32,12 +32,14 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
+#include "entities/AuraManager.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
+#include "workers/WorkGroup.hpp"
 
 #include "network/CommunicationDataManager.hpp"
 #include "network/CommunicationManager.hpp"
@@ -97,6 +99,9 @@ public:
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
 
+	///What type of Aura Manager we're using.
+	AuraManager::AuraManagerImplementation aura_manager_impl;
+
 
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
@@ -111,6 +116,8 @@ public:
 	int percent_alighting;
 //	PassengerDist* passengerDist_alighting;
 
+	//Defautl assignment strategy for Workgroups.
+	WorkGroup::ASSIGNMENT_STRATEGY defaultWrkGrpAssignment;
 
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
@@ -285,9 +292,10 @@ public:
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
-		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
+		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr)
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
 	{}
 
 	static ConfigParams instance;

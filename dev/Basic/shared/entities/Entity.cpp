@@ -2,6 +2,8 @@
 
 #include "Entity.hpp"
 
+#include "logging/Log.hpp"
+
 using std::string;
 using std::vector;
 
@@ -10,7 +12,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Entity::Entity(unsigned int id)
-	: id(id),  startTime(0), currWorker(nullptr), isFake(false), parentEntity(nullptr)
+	: id(id),  startTime(0), currWorker(nullptr), isFake(false), parentEntity(nullptr), can_remove_by_RTREE(false)
 {
 
 }
@@ -23,7 +25,7 @@ sim_mob::Entity::~Entity()
 		//      we can't throw an exception since that may lead to a call of terminate().
 		//      So we'll output a message and terminate manually, since throwing exceptions from
 		//      a destructor is iffy at best.
-		std::cout <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
+		Warn() <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
 		abort();
 	}
 }

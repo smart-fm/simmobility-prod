@@ -58,11 +58,13 @@
 #include "buffering/Shared.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
+#include "logging/Log.hpp"
 
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -111,6 +113,20 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -149,7 +165,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
+	std::cout << "start to Load our user config file." << std::endl;
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "finish to Load our user config file." << std::endl;
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
@@ -184,6 +202,18 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
+	std::cout << "start to Load our user config file." << std::endl;
+
+	//NOTE: I moved this from an #ifdef into a local variable.
+	//      Recompiling main.cpp is much faster than recompiling everything which relies on
+	//      PerformanceProfile.hpp   ~Seth
+	bool doPerformanceMeasurement = false; //TODO: From config file.
+	bool measureInParallel = true;
+	PerformanceProfile perfProfile;
+	if (doPerformanceMeasurement) {
+		perfProfile.init(config.agentWorkGroupSize, measureInParallel);
+	}
+
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
 
@@ -205,7 +235,57 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
+
+
+
+	//////////////////////////////DEBUG CODE START
+#if 0
+	StreetDirectory& stdir = StreetDirectory::instance();
+	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+
+	//First test: longer route on a 2-way street.
+	MultiNode* aim91218  = dynamic_cast<MultiNode*>(rn.locateNode(37227139,14327875, false));
+	Node* aim66508  = rn.locateNode(37250760,14355120, false);
+	Node* aim103046 = rn.locateNode(37236345,14337301, true); //Part of the blacklisted segment.
+	RoadSegment* blacklistSeg = nullptr;
+	for (std::set<sim_mob::RoadSegment*>::const_iterator segIt=aim91218->getRoadSegments().begin(); segIt!=aim91218->getRoadSegments().end(); segIt++) {
+		if ((*segIt)->getEnd()==aim91218 && (*segIt)->getStart()==aim103046) {
+			blacklistSeg = *segIt;
+			break;
+		}
+	}
+	if (!blacklistSeg) { throw 1; }
+
+	//Subtest 1: basic route
+	vector<WayPoint> route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218));
+	LogOut("ROUTE 1:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+
+	//Subtest 2: blacklist the easiest route.
+	vector<const RoadSegment*> blacklistV; blacklistV.push_back(blacklistSeg);
+	route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218), blacklistV);
+	LogOut("ROUTE 2:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+#endif
+
+
+
+	//////////////////////////////DEBUG CODE END
+
+
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -253,6 +333,22 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			}
 		}
 
+		//xuyan:measure simulation time
+		if (currTick == 600 * 5 + 1)
+		{ // mins
+			if (doPerformanceMeasurement) {
+				perfProfile.startMeasure();
+				perfProfile.markStartSimulation();
+			}
+		}
+		if (currTick == 600 * 30 - 1)
+		{ // mins
+			if (doPerformanceMeasurement) {
+				perfProfile.markEndSimulation();
+				perfProfile.endMeasure();
+			}
+		}
+
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -270,7 +366,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
-			SyncCout(msg.str());
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
@@ -311,6 +407,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		cout <<numPendingAgents;
 	}
 	cout << endl;
+
+	//xuyan:show measure time
+	if (doPerformanceMeasurement) {
+		perfProfile.showPerformanceProfile();
+	}
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";
@@ -409,6 +510,7 @@ int run_simmob_interactive_loop() {
 			break;
 		}
 	}
+
 	return retVal;
 }
 
@@ -462,7 +564,7 @@ int main(int argc, char* argv[])
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
 		if (mpi_result.compare("") != 0)
 		{
-			cout << "Error:" << mpi_result << endl;
+			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
 	}

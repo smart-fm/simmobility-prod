@@ -21,6 +21,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
+#include "workers/Worker.hpp"
+
 
 using std::map;
 using std::vector;
@@ -37,6 +39,22 @@ bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
 FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
+
+
+namespace {
+Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
+	Worker* res = nullptr;
+	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
+		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
+			res = *it;
+		}
+	}
+	return res;
+}
+
+} //End unnamed namespace
+
+
 
 ////////////////////////////////////////////////////////////////////
 // Static methods
@@ -408,8 +426,17 @@ sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-	workers.at(nextWorkerID++)->scheduleForAddition(ag);
-	nextWorkerID %= workers.size();
+	//For now, just rely on static access to ConfigParams.
+	// (We can allow per-workgroup configuration later).
+	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
+	if (strat == ASSIGN_ROUNDROBIN) {
+		workers.at(nextWorkerID++)->scheduleForAddition(ag);
+	} else {
+		getLeastCongestedWorker(workers)->scheduleForAddition(ag);
+	}
+
+	//Increase "nextWorkID", even if we're not using it.
+	nextWorkerID = (nextWorkerID+1)%workers.size();
 }
 
 

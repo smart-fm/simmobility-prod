@@ -63,6 +63,9 @@ public:
     void setCurrLink(const sim_mob::Link* link){currLink = link;}
     const sim_mob::Link* getCurrLink() {return currLink;}
 
+	//Loop detectors are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
     void init(Signal const & signal);
 
     //May want to implement later.

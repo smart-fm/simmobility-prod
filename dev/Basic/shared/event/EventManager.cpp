@@ -26,8 +26,6 @@ currTime(timeslice(0, 0)) {
 }
 
 EventManager::~EventManager() {
-    //Delete all waiting window
-    SharedWriteLock(windowsMutex);
     for (TemporalWindowMap::iterator itr = temporalWindows.begin();
             itr != temporalWindows.end(); itr++) {
         TemporalWindowList* wList = itr->second;

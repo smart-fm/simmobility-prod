@@ -823,7 +823,7 @@ void sim_mob::BusDriver::AlightingPassengers_New(Bus* bus)
 	uint32_t curr_frame = params.now.frame();
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
-	vector<sim_mob::Person*> alighted_Persons = busstopAgent->getAlighted_Persons();
+	vector<sim_mob::Person*> alighted_Persons = busstopAgent->getAlighted_Persons();// get alighted_Persons in the BusStopAgent
 	Person* person = dynamic_cast<Person*>(parent);
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if(!allowalighting_flag) {
@@ -835,7 +835,10 @@ void sim_mob::BusDriver::AlightingPassengers_New(Bus* bus)
 	}
 	if((alighting_frame == curr_frame) && allowalighting_flag) {// enable range: curr_frame - alighting_frame < = 10; 1s cache range time
 		if(!bus->passengers_inside_bus.empty()) {
-			alighted_Persons.push_back(bus->passengers_inside_bus.front());
+			Person* p = bus->passengers_inside_bus.front();
+			sim_mob::Role* newRole = rf.createRole("pedestrian", p);// change to pedestrian role
+			p->changeRole(newRole);
+			alighted_Persons.push_back(p);
 			bus->passengers_inside_bus.erase(bus->passengers_inside_bus.begin());
 			allowalighting_flag = false;// reset after individual boarding finished
 			alighting_frame = 0;// reset after individual boarding finished

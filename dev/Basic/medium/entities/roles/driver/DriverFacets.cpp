@@ -93,10 +93,8 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	const Lane* laneInfinity = nullptr;
-	if(vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().find(vehicle->getCurrSegment())
-			!= vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().end()){
-		laneInfinity = vehicle->getCurrSegment()->getParentConflux()->
-			getSegmentAgents().at(vehicle->getCurrSegment())->laneInfinity;
+	if(vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().find(vehicle->getCurrSegment()) != vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().end()){
+		laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().at(vehicle->getCurrSegment())->laneInfinity;
 	}
 	if (vehicle && vehicle->hasPath() && laneInfinity !=nullptr) {
 		//at start vehicle will be in lane infinity. set origin will move it to the correct lane
@@ -276,12 +274,17 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 			//vehicle is done
 			vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 			if (vehicle->isDone()) {
+				currLane = nullptr;
 				parentAgent->setToBeRemoved();
 			}
 			return false;
 		}
 
 	//	std::cout<<"Driver "<<parent->getId()<<" moveToNextSegment to "<< nextRdSeg->getStart()->getID()<<std::endl;
+		if(isNewLinkNext) {
+			currLane = nullptr;
+			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
+		}
 
 		const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 

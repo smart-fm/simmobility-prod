@@ -188,7 +188,6 @@ public:
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
 
-	sim_mob::Shared<long> lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -251,6 +250,7 @@ public:
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
+	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;

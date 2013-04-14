@@ -50,14 +50,15 @@ void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTim
 } //End un-named namespace
 
 
-void sim_mob::Conflux::addAgent(sim_mob::Person* ag) {
+void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg) {
 	/**
 	 * The agents always start at a node (for now).
 	 * we will always add the Person to the road segment in "lane infinity".
 	 */
-	sim_mob::SegmentStats* rdSegStats = segmentAgents.find(ag->getCurrSegment())->second;
+	sim_mob::SegmentStats* rdSegStats = segmentAgents.find(rdSeg)->second;
+	ag->setCurrSegment(rdSeg);
 	ag->setCurrLane(rdSegStats->laneInfinity);
-	ag->distanceToEndOfSegment = ag->getCurrSegment()->computeLaneZeroLength();
+	ag->distanceToEndOfSegment = rdSeg->computeLaneZeroLength();
 	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
 
@@ -365,11 +366,8 @@ void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
 
 sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment* rdSeg) {
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.find(rdSeg);
-	if(it == segmentAgents.end()){
-		it = segmentAgentsDownstream.find(rdSeg);
-		if (it == segmentAgentsDownstream.end()){
-			return nullptr;
-		}
+	if(it == segmentAgents.end()){ // if not found, search in downstreamSegments
+		return rdSeg->getParentConflux()->findSegStats(rdSeg);
 	}
 	return it->second;
 }

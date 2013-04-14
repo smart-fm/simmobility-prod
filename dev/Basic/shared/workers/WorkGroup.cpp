@@ -660,8 +660,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	if(person) {
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		if(rdSeg) {
-			person->setCurrSegment(rdSeg);
-			rdSeg->getParentConflux()->addAgent(person);
+			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
 		else {
 			std::cout << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";

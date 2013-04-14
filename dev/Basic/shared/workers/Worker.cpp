@@ -314,9 +314,6 @@ void sim_mob::Worker::barrier_mgmt()
 		 //Now flip all remaining data.
 		perform_flip();
 
-		// handover agents which have crossed conflux boundaries
-		perform_handover();
-
 		//Second barrier
 		if (buff_flip_barr) {
 			buff_flip_barr->wait();
@@ -463,6 +460,10 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
 	}
+
+	// handover agents which have crossed conflux boundaries
+	perform_handover();
+
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		(*it)->updateAndReportSupplyStats(currTime);

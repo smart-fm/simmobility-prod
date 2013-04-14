@@ -78,7 +78,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
+	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),remainingTimeThisTick(0.0),
     databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
@@ -86,7 +86,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), remainingTimeThisTick(0.0), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	prevRole = 0;
 	currRole = 0;
@@ -402,11 +402,11 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
 
 	//setStartTime(nextValidTimeMS); done out side this function
-//	call_frame_init = true;//what a hack! -vahid
+	//call_frame_init = true;//what a hack! -vahid
 
-		//Null out our trip chain, remove the "removed" flag, and return
-		clearToBeRemoved();
-		return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
+	//Null out our trip chain, remove the "removed" flag, and return
+	clearToBeRemoved();
+	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
 }
 
@@ -441,7 +441,6 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 //}
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {
-
 	bool res = false;
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
 //	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
@@ -468,8 +467,6 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//Also set the currSubTrip to the beginning of trip , just in case
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		currSubTrip = resetCurrSubTrip();
-
-
 
 	return true;
 }

@@ -141,6 +141,9 @@ private:
     //to mark the first call to update function
     bool first_update_tick;
 
+    //Used by confluxes to move the person for his tick duration across link and sub-trip boundaries
+    double remainingTimeThisTick;
+
     ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;

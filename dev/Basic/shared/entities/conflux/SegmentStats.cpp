@@ -317,10 +317,8 @@ namespace sim_mob {
 
 	unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
 		if(laneAgents.size() < queueCount){
-			std::cout<<"queueCount: "<<queueCount << " |laneAgents count: "<<laneAgents.size()
-					<<"moving: "<< laneAgents.size()-queueCount<<std::endl;
-		//	throw std::runtime_error("number of lane agents cannot be less than the number of "
-		//			"queuing agents");
+			debugMsgs <<"number of lane agents cannot be less than the number of queuing agents.\nlane" << getLane()->getLaneID() << "queueCount: "<<queueCount << " |laneAgents count: "<<laneAgents.size() <<"moving: "<< laneAgents.size()-queueCount<<std::endl;
+			throw std::runtime_error(debugMsgs.str());
 		}
 		return (laneAgents.size() - queueCount);
 	}

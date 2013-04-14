@@ -55,7 +55,7 @@ private:
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
 	/* segments on downstream links
-	 * These half-links conceptually belong to another conflux.
+	 * These half-links conceptually belong to an adjacent conflux.
 	 */
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
@@ -77,6 +77,7 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
+	/*holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
 
 	std::vector<Entity*> toBeRemoved;
@@ -114,9 +115,6 @@ private:
 	sim_mob::Person* agentClosestToIntersection();
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
-
-	/*Searches segmentAgents and segmentAgentsDownstream to get the segmentStats for a road segment in this conflux*/
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 public:
 	//constructors and destructor
@@ -170,7 +168,7 @@ public:
 	}
 
 	// adds the agent into this conflux
-	void addAgent(sim_mob::Person* ag);
+	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 
 	// get agent counts in a segment
 	// lanewise
@@ -182,6 +180,9 @@ public:
 
 	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats);
 	void handoverDownstreamAgents();
+
+	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);

@@ -50,6 +50,7 @@ public:
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
 	std::map<std::string, TimeOfReachingBusStopPriorityQueue>& getBuslineID_WaitBusActivitiesMap() { return buslineid_waitingBusActivities; }
+	std::vector<sim_mob::Person*> & getAlighted_Persons() { return alighted_Persons; }
 	void registerWaitingBusActivityToBusStopAgent(WaitBusActivity* wba);// for WaitBusActivity role
 	void collectWaitingAgents();
 
@@ -70,6 +71,7 @@ private:
 	//TimeOfReachingBusStopPriorityQueue active_waitingBusActivities;// role sorting by time reaching at the busStopAgent
 	std::map<std::string, TimeOfReachingBusStopPriorityQueue> buslineid_waitingBusActivities;// priorityqueues grouped by buslineid
 	std::vector<sim_mob::Agent*> active_WaitingAgents;// possible boarding persons
+	std::vector<sim_mob::Person*> alighted_Persons;// alighted persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
 
 
 #ifndef SIMMOB_DISABLE_MPI

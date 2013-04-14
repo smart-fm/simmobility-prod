@@ -64,6 +64,7 @@ public:
 	void BoardingPassengers_Normal(Bus* bus);
 	// new boarding method
 	void BoardingPassengers_New(Bus* bus);// Yao Jin
+	void AlightingPassengers_New(Bus* bus);// Yao Jin
 
     void AlightingPassengers(Bus* bus);
 
@@ -115,7 +116,9 @@ public:
 	size_t no_passengers_alighting;
 
 	uint32_t boarding_frame;// to record the boarding_frame for each individual person
+	uint32_t alighting_frame;// to record the alighting_frame for each individual person
 	bool allowboarding_flag;// flag to advance the frame
+	bool allowalighting_flag;// flag to advance the frame
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);

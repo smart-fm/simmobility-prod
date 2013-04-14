@@ -43,7 +43,9 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(pa
 	ypos_approachingbusstop=-1;
 	demo_passenger_increase = false;
 	boarding_frame = 0;
+	alighting_frame = 0;
 	allowboarding_flag = false;
+	allowalighting_flag = false;
 
 	if(parent) {
 		if(parent->getAgentSrc() == "BusController") {
@@ -796,7 +798,7 @@ void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 			}
 		}
 	}
-	if((boarding_frame == curr_frame) && allowboarding_flag) {
+	if((boarding_frame == curr_frame) && allowboarding_flag) {// enable range: curr_frame - boarding_frame < = 10; 1s cache range time
 		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 			const Busline* busline = bustrip->getBusline();
 			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
@@ -814,25 +816,31 @@ void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 			}
 		}
 	}
+}
 
-
-//		BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
-//		Person* person = dynamic_cast<Person*>(parent);
-//		const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-//		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
-//			const Busline* busline = bustrip->getBusline();
-//			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
-//			TimeOfReachingBusStopPriorityQueue waitBusActivity_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
-//			if(!waitBusActivity_Queue.empty()) {
-//				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
-//				if(busOccupancy >= 1) {
-//					WaitBusActivity* waitbusActivity = waitBusActivity_Queue.top();
-//					Person* p = dynamic_cast<Person*>(waitbusActivity->getParent());
-//					boarding_frame = curr_frame + 50;// 5s boarding time
-//				}
-//			}
-//		}
-
+void sim_mob::BusDriver::AlightingPassengers_New(Bus* bus)
+{
+	uint32_t curr_frame = params.now.frame();
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
+	vector<sim_mob::Person*> alighted_Persons = busstopAgent->getAlighted_Persons();
+	Person* person = dynamic_cast<Person*>(parent);
+	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if(!allowalighting_flag) {
+		if(!bus->passengers_inside_bus.empty()) {
+			Person* p = bus->passengers_inside_bus.front();// check the first alighting person
+			alighting_frame = curr_frame + 50;// each person 5s alighting time, calculate alighting_frame
+			allowalighting_flag = true;
+		}
+	}
+	if((alighting_frame == curr_frame) && allowalighting_flag) {// enable range: curr_frame - alighting_frame < = 10; 1s cache range time
+		if(!bus->passengers_inside_bus.empty()) {
+			alighted_Persons.push_back(bus->passengers_inside_bus.front());
+			bus->passengers_inside_bus.erase(bus->passengers_inside_bus.begin());
+			allowalighting_flag = false;// reset after individual boarding finished
+			alighting_frame = 0;// reset after individual boarding finished
+		}
+	}
 }
 
 /*void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
@@ -862,88 +870,3 @@ void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 		}
 	}
 }*/
-/*double sim_mob::BusDriver::passengerGeneration(Bus* bus)//random passenger distribution(not used now)
-{
-	double DTijk = 0.0;
-	size_t no_passengers_bus = 0;
-	size_t no_passengers_busstop = 0;
-	ConfigParams& config = ConfigParams::GetInstance();
-	PassengerDist* passenger_dist = config.passengerDist_busstop;
-	//create the passenger objects at the bus stop=random no-boarding passengers
-	if (bus && passenger_dist)
-	{
-		no_passengers_busstop = passenger_dist->getnopassengers();
-		no_passengers_bus = bus->getPassengerCount();
-		bus->setPassengerCountOld(no_passengers_bus); // record the old passenger number
-		//if last busstop,only alighting
-		if (last_busstop == true)
-		{
-			no_passengers_alighting = no_passengers_bus; // last bus stop, all alighting
-			no_passengers_boarding = 0; // reset boarding passengers to be zero at the last bus stop(for dwell time)
-			Alight_passengerGeneration(bus); //alight the bus
-			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			last_busstop = false;
-		}
-		//if first busstop,only boarding
-		else if(first_busstop ==true)
-		{
-			no_passengers_boarding = (config.percent_boarding * 0.01)*no_passengers_busstop;
-			if(no_passengers_boarding > bus->getBusCapacity() - no_passengers_bus)
-				no_passengers_boarding = bus->getBusCapacity() - no_passengers_bus;
-			Board_passengerGeneration(bus);//board the bus
-			bus->setPassengerCount(no_passengers_bus+no_passengers_boarding);
-			first_busstop= false;
-		}
-
-		//normal busstop,both boarding and alighting
-		else {
-			no_passengers_alighting = (config.percent_alighting * 0.01)* no_passengers_bus;
-			Alight_passengerGeneration(bus); //alight the bus
-			no_passengers_bus = no_passengers_bus - no_passengers_alighting;
-			bus->setPassengerCount(no_passengers_bus);
-			no_passengers_boarding = (config.percent_boarding * 0.01)* no_passengers_busstop;
-			if (no_passengers_boarding> bus->getBusCapacity() - no_passengers_bus)
-				no_passengers_boarding = bus->getBusCapacity()- no_passengers_bus;
-			Board_passengerGeneration(bus); //board the bus
-			bus->setPassengerCount(no_passengers_bus + no_passengers_boarding);
-		}
-		DTijk = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding, 0, 0, 0, bus->getPassengerCount());
-		return DTijk;
-	} else {
-		throw std::runtime_error("Passenger distributions have not been initialized yet.");
-		return -1;
-	}
-}
-void sim_mob::BusDriver::Board_passengerGeneration(Bus* bus)//for generating random passenger distribution at the bus stop
-{
-	ConfigParams& config = ConfigParams::GetInstance();
-	if (bus) {
-		int manualID = -1;
-		map<string, string> props;
-		props["#mode"] = "BusTravel";
-		props["#time"] = "0";
-		for (int no = 0; no < no_passengers_boarding; no++) {
-			//create passenger objects in the bus,bus has a list of passenger objects
-			//Create the Person agent with that given ID (or an auto-generated one)
-			Person* agent = new Person("XML_Def", config.mutexStategy,
-					manualID);
-			agent->setConfigProperties(props);
-			agent->setStartTime(0);
-			bus->passengers_distribition.push_back(agent);
-		}
-	}
-
-}
-void sim_mob::BusDriver::Alight_passengerGeneration(Bus* bus)//alighting passenger function if random distribution is used
-{
-	//delete passenger objects in the bus
-	if (bus) {
-		for (int no = 0; no < no_passengers_alighting; no++) {
-			//delete passenger objects from the bus
-			bus->passengers_distribition.pop_back();
-		}
-	}
-}*/
-
-

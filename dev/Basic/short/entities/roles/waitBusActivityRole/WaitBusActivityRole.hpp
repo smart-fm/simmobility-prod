@@ -18,7 +18,7 @@ class BusStopAgent;
 class Passenger;
 class PackageUtils;
 class UnPackageUtils;
-class WaitBusActivity;
+class WaitBusActivityRole;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -26,18 +26,18 @@ class UnPackageUtils;
 #endif
 
 //Comparison for our priority queue
-struct cmp_waitbusactivity_start : public std::less<WaitBusActivity*> {
-  bool operator() (const WaitBusActivity* x, const WaitBusActivity* y) const;
+struct cmp_waitbusactivity_start : public std::less<WaitBusActivityRole*> {
+  bool operator() (const WaitBusActivityRole* x, const WaitBusActivityRole* y) const;
 };
 
 //C++ static constructors...
-class TimeOfReachingBusStopPriorityQueue : public std::priority_queue<WaitBusActivity*, std::vector<WaitBusActivity*>, cmp_waitbusactivity_start> {
+class TimeOfReachingBusStopPriorityQueue : public std::priority_queue<WaitBusActivityRole*, std::vector<WaitBusActivityRole*>, cmp_waitbusactivity_start> {
 };
 
 //Helper struct
-struct WaitBusActivityUpdateParams : public sim_mob::UpdateParams {
-	explicit WaitBusActivityUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
-	virtual ~WaitBusActivityUpdateParams() {}
+struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
+	explicit WaitBusActivityRoleUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
+	virtual ~WaitBusActivityRoleUpdateParams() {}
 
 	virtual void reset(timeslice now)
 	{
@@ -54,10 +54,10 @@ struct WaitBusActivityUpdateParams : public sim_mob::UpdateParams {
 #endif
 };
 
-class WaitBusActivity : public sim_mob::Role {
+class WaitBusActivityRole : public sim_mob::Role {
 public:
-	WaitBusActivity(Agent* parent, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
-	virtual ~WaitBusActivity();
+	WaitBusActivityRole(Agent* parent, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
+	virtual ~WaitBusActivityRole();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
@@ -80,6 +80,9 @@ public:
 
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
+public:
+	uint32_t boarding_frame;// to record the boarding_frame for each individual person
+
 private:
 	int remainingTime;
 	bool registered;// indicate whether it is registered or not
@@ -90,7 +93,7 @@ private:
 	std::string buslineid;
 	Point2D DisplayOffset;
 
-	WaitBusActivityUpdateParams params;
+	WaitBusActivityRoleUpdateParams params;
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 

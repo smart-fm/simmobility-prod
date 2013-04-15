@@ -1,4 +1,4 @@
-#include "WaitBusActivity.hpp"
+#include "WaitBusActivityRole.hpp"
 
 #include "entities/Person.hpp"
 #include "entities/vehicle/Bus.hpp"
@@ -7,7 +7,7 @@ using std::vector;
 using namespace sim_mob;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_waitbusactivity_start::operator()(const WaitBusActivity* x, const WaitBusActivity* y) const {
+bool sim_mob::cmp_waitbusactivity_start::operator()(const WaitBusActivityRole* x, const WaitBusActivityRole* y) const {
 	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y)) {
 		return 0;
@@ -32,22 +32,22 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
  	 return nullptr;
 }
 
-sim_mob::WaitBusActivity::WaitBusActivity(Agent* parent, std::string buslineid, std::string roleName) :
+sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, std::string buslineid, std::string roleName) :
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
 		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
+	boarding_frame = 0;
+}
+
+sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {
 
 }
 
-sim_mob::WaitBusActivity::~WaitBusActivity() {
-
-}
-
-Role* sim_mob::WaitBusActivity::clone(Person* parent) const
+Role* sim_mob::WaitBusActivityRole::clone(Person* parent) const
 {
-	return new WaitBusActivity(parent);
+	return new WaitBusActivityRole(parent);
 }
 
-void sim_mob::WaitBusActivity::frame_init(UpdateParams& p) {
+void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 	sim_mob::BusStop* busStop = setBusStopPos(parent->originNode);
 	busStopAgent = busStop->generatedBusStopAgent;
 	parent->xPos.set(busStop->xPos);
@@ -57,7 +57,12 @@ void sim_mob::WaitBusActivity::frame_init(UpdateParams& p) {
 	initializeRemainingTime();
 }
 
-void sim_mob::WaitBusActivity::frame_tick(UpdateParams& p) {
+void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
+	if(0!=boarding_frame) {
+		if(boarding_frame == p.now.frame()) {
+			parent->setToBeRemoved();
+		}
+	}
 //	updateRemainingTime();
 //	if(remainingTime <= 0){
 //		parent->setToBeRemoved();
@@ -75,7 +80,7 @@ void sim_mob::WaitBusActivity::frame_tick(UpdateParams& p) {
 //	}
 }
 
-void sim_mob::WaitBusActivity::frame_tick_output(const UpdateParams& p) {
+void sim_mob::WaitBusActivityRole::frame_tick_output(const UpdateParams& p) {
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
@@ -103,33 +108,33 @@ void sim_mob::WaitBusActivity::frame_tick_output(const UpdateParams& p) {
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }
 
-void sim_mob::WaitBusActivity::frame_tick_output_mpi(timeslice now) {
+void sim_mob::WaitBusActivityRole::frame_tick_output_mpi(timeslice now) {
 
 }
 
-UpdateParams& sim_mob::WaitBusActivity::make_frame_tick_params(timeslice now) {
+UpdateParams& sim_mob::WaitBusActivityRole::make_frame_tick_params(timeslice now) {
 	params.reset(now);
 	return params;
 }
 
-std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivity::getSubscriptionParams() {
+std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptionParams() {
 	vector<BufferedBase*> res;
 	return res;
 }
 
-void sim_mob::WaitBusActivity::initializeRemainingTime()
+void sim_mob::WaitBusActivityRole::initializeRemainingTime()
 {
 //	remainingTime = activityEndTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 //			- activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 	remainingTime = 3000000;
 }
 
-void sim_mob::WaitBusActivity::updateRemainingTime()
+void sim_mob::WaitBusActivityRole::updateRemainingTime()
 {
 	remainingTime = std::max(0, remainingTime - int(ConfigParams::GetInstance().baseGranMS));
 }
 
-BusStop* sim_mob::WaitBusActivity::setBusStopPos(const Node* node)//to find the nearest busstop to a node
+BusStop* sim_mob::WaitBusActivityRole::setBusStopPos(const Node* node)//to find the nearest busstop to a node
 {
  	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
  	 double dist=0;

@@ -7,7 +7,7 @@
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "../short/entities/roles/waitBusActivityRole/WaitBusActivity.hpp"
+#include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"

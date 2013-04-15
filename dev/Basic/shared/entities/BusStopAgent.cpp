@@ -109,7 +109,14 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 
 void sim_mob::BusStopAgent::registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role)// for WaitBusActivity role
 {
-	buslineid_waitingBusActivities[wba_role->getBuslineID()].push(wba_role);
+	if(!buslineid_waitingBusActivities[wba_role->getBuslineID()]) {
+		TimeOfReachingBusStopPriorityQueue* priority_queue = new TimeOfReachingBusStopPriorityQueue();
+		buslineid_waitingBusActivities[wba_role->getBuslineID()] = priority_queue;
+		buslineid_waitingBusActivities[wba_role->getBuslineID()]->push(wba_role);
+	} else {
+		buslineid_waitingBusActivities[wba_role->getBuslineID()]->push(wba_role);
+	}
+
 }
 
 void sim_mob::BusStopAgent::collectWaitingAgents()

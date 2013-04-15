@@ -70,6 +70,7 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	void initializeRemainingTime();
 	void updateRemainingTime();
+	void updateBoardingTime();
 	///finds the nearest busstop for the given node,As passenger origin and destination is given in terms of nodes
 	bool getRegisteredFlag() { return registered; }
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
@@ -81,7 +82,7 @@ public:
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
 public:
-	uint32_t boarding_frame;// to record the boarding_frame for each individual person
+	int boarding_Time;// to record the boarding_frame for each individual person
 
 private:
 	int remainingTime;

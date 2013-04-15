@@ -49,7 +49,7 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
-	std::map<std::string, TimeOfReachingBusStopPriorityQueue>& getBuslineID_WaitBusActivitiesMap() { return buslineid_waitingBusActivities; }
+	std::map<std::string, TimeOfReachingBusStopPriorityQueue*>& getBuslineID_WaitBusActivitiesMap() { return buslineid_waitingBusActivities; }
 	std::vector<sim_mob::Person*> & getAlighted_Persons() { return alighted_Persons; }
 	void registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role);// for WaitBusActivity role
 	void collectWaitingAgents();
@@ -69,7 +69,7 @@ private:
 	sim_mob::BusStop const & busstop_;
 	std::string busstopAgentno_; //currently is equal to busstopno_
 	//TimeOfReachingBusStopPriorityQueue active_waitingBusActivities;// role sorting by time reaching at the busStopAgent
-	std::map<std::string, TimeOfReachingBusStopPriorityQueue> buslineid_waitingBusActivities;// priorityqueues grouped by buslineid
+	std::map<std::string, TimeOfReachingBusStopPriorityQueue*> buslineid_waitingBusActivities;// priorityqueues grouped by buslineid
 	std::vector<sim_mob::Agent*> active_WaitingAgents;// possible boarding persons
 	std::vector<sim_mob::Person*> alighted_Persons;// alighted persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
 

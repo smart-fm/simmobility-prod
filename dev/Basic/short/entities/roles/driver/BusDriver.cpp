@@ -36,6 +36,7 @@ namespace {
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1), lastTickDistanceToBusStop(-1), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0), lastVisited_Busline(mtxStrat, "0"), lastVisited_BusTrip_SequenceNo(mtxStrat, 0), lastVisited_BusStop(mtxStrat, nullptr), lastVisited_BusStopSequenceNum(mtxStrat, 0), real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0), busstop_sequence_no(mtxStrat, 0), first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
 	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
+	BUS_STOP_WAIT_BOARDING_ALIGHTING = 2;
 	dwellTime_record = 0;
 	passengerCountOld_display_flag = false;
 	last_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
@@ -298,38 +299,40 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	}
 
 
-	if (isBusArriveBusStop() && (waitAtStopMS >= 0)&& (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
+	if (isBusArriveBusStop() && (waitAtStopMS >= 0)&& (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
 
 //		if ((vehicle->getVelocity()/100) > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity()/100 < 1)
 			vehicle->setVelocity(0);
 
-		if ((vehicle->getVelocity()/100 < 0.1) && (waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
+		if ((vehicle->getVelocity()/100 < 0.1) && (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
 
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
-			if ((waitAtStopMS == p.elapsedSeconds) && bus)
+
+			std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
+			real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
+			bus->TimeOfBusreachingBusstop=p.now.ms();
+
+			//From Meenu's branch; enable if needed.
+			//dwellTime_record = passengerGeneration(bus);//if random distribution is to be used,uncomment4
+
+			no_passengers_alighting=0;
+			no_passengers_boarding=0;
+			bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
+			//AlightingPassengers(bus);//first alight passengers inside the bus
+			//BoardingPassengers_Choice(bus);//then board passengers waiting at the bus stop
+			BoardingPassengers_New(bus);
+			//BoardingPassengers_Normal(bus);
+			dwellTime_record = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
+
+			//Back to both branches:
+			DwellTime_ijk.set(dwellTime_record);
+
+			if ((waitAtStopMS == p.elapsedSeconds) && bus)// 0.1s
 			{
-				std::cout << "real_ArrivalTime value: " << real_ArrivalTime.get() << "  DwellTime_ijk: " << DwellTime_ijk.get() << std::endl;
-				real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
-				bus->TimeOfBusreachingBusstop=p.now.ms();
-
-				//From Meenu's branch; enable if needed.
-				//dwellTime_record = passengerGeneration(bus);//if random distribution is to be used,uncomment4
-
-				no_passengers_alighting=0;
-				no_passengers_boarding=0;
-				bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
-				AlightingPassengers(bus);//first alight passengers inside the bus
-				BoardingPassengers_Choice(bus);//then board passengers waiting at the bus stop
-				//BoardingPassengers_Normal(bus);
-				dwellTime_record = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
-
-				//Back to both branches:
-				DwellTime_ijk.set(dwellTime_record);
-
 				//create request for communication with bus controller
 				existed_Request_Mode.set( Role::REQUEST_NONE );
 				Person* person = dynamic_cast<Person*>(parent);
@@ -375,11 +378,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		}
 	}
 	if (isBusLeavingBusStop()
-			|| (waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC)) {
+			|| (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 				<< std::endl;
 		waitAtStopMS = -1;
-		BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;// reset when leaving bus stop
+		BUS_STOP_WAIT_BOARDING_ALIGHTING = 2;// reset when leaving bus stop
 		vehicle->setAcceleration(busAccelerating(p) * 100);
 	}
 
@@ -785,14 +788,17 @@ void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 	if(!allowboarding_flag) {
 		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 			const Busline* busline = bustrip->getBusline();
-			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
-			TimeOfReachingBusStopPriorityQueue waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
-			if(!waitBusActivityRole_Queue.empty()) {
+			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
+			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
 				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
 				if(busOccupancy >= 1) {// then allow boarding
-					WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue.top();
+					WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
 					Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
-					waitbusActivityRole->boarding_frame = curr_frame + 50;// each person 5s boarding time, calculate boarding_frame
+					std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
+					waitbusActivityRole->boarding_Time = 5000;// each person 5000ms boarding time, from agent characteristics
+					BUS_STOP_WAIT_BOARDING_ALIGHTING = 5;
+					boarding_frame = curr_frame + 50;
 					allowboarding_flag = true;
 				}
 			}
@@ -801,16 +807,18 @@ void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 	if((boarding_frame == curr_frame) && allowboarding_flag) {// enable range: curr_frame - boarding_frame < = 10; 1s cache range time
 		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 			const Busline* busline = bustrip->getBusline();
-			map<std::string, TimeOfReachingBusStopPriorityQueue>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
-			TimeOfReachingBusStopPriorityQueue waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? TimeOfReachingBusStopPriorityQueue() : buslineid_queueIt->second;
-			if(!waitBusActivityRole_Queue.empty()) {
-				WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue.top();
+			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
+			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
+				WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
 				Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
 				sim_mob::Role* newRole = rf.createRole("passenger", p);
 				p->changeRole(newRole);
 		 		bus->passengers_inside_bus.push_back(p);
 		 		bus->setPassengerCount(bus->getPassengerCount()+1);
-		 		waitBusActivityRole_Queue.pop();
+		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
+		 		waitBusActivityRole_Queue->pop();
+		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
 				allowboarding_flag = false;// reset after individual boarding finished
 				boarding_frame = 0;// reset after individual boarding finished
 			}

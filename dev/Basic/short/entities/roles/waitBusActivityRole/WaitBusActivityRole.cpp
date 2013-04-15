@@ -35,7 +35,7 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, std::string buslineid, std::string roleName) :
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
 		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
-	boarding_frame = 0;
+	boarding_Time = 0;
 }
 
 sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {
@@ -58,9 +58,11 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
-	if(0!=boarding_frame) {
-		if(boarding_frame == p.now.frame()) {
+	if(0!=boarding_Time) {
+		updateBoardingTime();
+		if(boarding_Time <= 0) {
 			parent->setToBeRemoved();
+			boarding_Time = 0;
 		}
 	}
 //	updateRemainingTime();
@@ -132,6 +134,11 @@ void sim_mob::WaitBusActivityRole::initializeRemainingTime()
 void sim_mob::WaitBusActivityRole::updateRemainingTime()
 {
 	remainingTime = std::max(0, remainingTime - int(ConfigParams::GetInstance().baseGranMS));
+}
+
+void sim_mob::WaitBusActivityRole::updateBoardingTime()
+{
+	boarding_Time = std::max(0, boarding_Time - int(ConfigParams::GetInstance().baseGranMS));
 }
 
 BusStop* sim_mob::WaitBusActivityRole::setBusStopPos(const Node* node)//to find the nearest busstop to a node

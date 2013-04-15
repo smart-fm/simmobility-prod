@@ -51,7 +51,7 @@ public:
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
 	std::map<std::string, TimeOfReachingBusStopPriorityQueue>& getBuslineID_WaitBusActivitiesMap() { return buslineid_waitingBusActivities; }
 	std::vector<sim_mob::Person*> & getAlighted_Persons() { return alighted_Persons; }
-	void registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_Role);// for WaitBusActivity role
+	void registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role);// for WaitBusActivity role
 	void collectWaitingAgents();
 
 	virtual ~BusStopAgent(){}

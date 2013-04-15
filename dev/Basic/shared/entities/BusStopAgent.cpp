@@ -107,9 +107,9 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-void sim_mob::BusStopAgent::registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_Role)// for WaitBusActivity role
+void sim_mob::BusStopAgent::registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role)// for WaitBusActivity role
 {
-	buslineid_waitingBusActivities[wba_Role->getBuslineID()].push(wba_Role);
+	buslineid_waitingBusActivities[wba_role->getBuslineID()].push(wba_role);
 }
 
 void sim_mob::BusStopAgent::collectWaitingAgents()

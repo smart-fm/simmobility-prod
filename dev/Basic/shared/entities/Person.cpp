@@ -102,7 +102,7 @@ void sim_mob::Person::initTripChain(){
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
-		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();
+		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
 		//consider putting this in IT_TRIP clause
 		if(!updateOD(*currTripChainItem)){ //Offer some protection
 				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
@@ -411,24 +411,44 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 }
 
 //sets the current subtrip to the first subtrip of the provided trip(provided trip is usually the current tripChianItem)
-std::vector<sim_mob::SubTrip>::const_iterator sim_mob::Person::resetCurrSubTrip()
+std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
 		if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
-	return trip->getSubTrips().begin();
+	return trip->getSubTripsRW().begin();
 }
 
 //only affect items after current trip chain item
 bool sim_mob::Person::insertATripChainItem(TripChainItem* before, TripChainItem* newone)
 {
 	bool ret = false;
-	std::vector<TripChainItem*>::iterator itfinder;
-	itfinder = std::find(currTripChainItem, tripChain.end(), before);
-	if(itfinder!=currTripChainItem && itfinder!=tripChain.end())
+	if((dynamic_cast<SubTrip*>(newone)))
 	{
-		tripChain.insert(itfinder, newone );
-		ret = true;
+		sim_mob::SubTrip* before2 = dynamic_cast<sim_mob::SubTrip*> (before);
+		if(before2)
+		{
+			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW();
+			std::vector<SubTrip>::iterator itfinder2 = currSubTrip++;
+			itfinder2 = std::find(currSubTrip, subtrip.end(), *before2);
+			if( itfinder2 != subtrip.end())
+			{
+				sim_mob::SubTrip* newone2 = dynamic_cast<sim_mob::SubTrip*> (newone);
+				subtrip.insert(itfinder2, *newone2);
+			}
+
+		}
 	}
+	else if((dynamic_cast<Trip*>(newone)))
+	{
+		std::vector<TripChainItem*>::iterator itfinder;
+		itfinder = std::find(currTripChainItem, tripChain.end(), before);
+		if(itfinder!=currTripChainItem && itfinder!=tripChain.end())
+		{
+			tripChain.insert(itfinder, newone );
+			ret = true;
+		}
+	}
+
 	return ret;
 }
 
@@ -464,12 +484,12 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
 	if(!trip) return false;
-	if (currSubTrip == trip->getSubTrips().end())//just a routine check
+	if (currSubTrip == trip->getSubTripsRW().end())//just a routine check
 		return false;
 
 	currSubTrip++;
 
-	if (currSubTrip == trip->getSubTrips().end())
+	if (currSubTrip == trip->getSubTripsRW().end())
 		return false;
 
 	return true;

@@ -112,7 +112,7 @@ public:
 	}
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
-    std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+    std::vector<SubTrip>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -131,7 +131,7 @@ private:
 
 	bool advanceCurrentTripChainItem();
 	bool advanceCurrentSubTrip();
-	std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
+	std::vector<sim_mob::SubTrip>::iterator resetCurrSubTrip();
 
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.

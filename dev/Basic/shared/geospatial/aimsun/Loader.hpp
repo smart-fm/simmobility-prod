@@ -68,7 +68,34 @@ public:
 	static void ProcessConfluxes(const sim_mob::RoadNetwork& rdnw);
 };
 
-
-
 }
+
+/**
+ * Class for find the bus line from source destination nodes.
+ * \author meenu
+ * \author zhang huai peng
+  */
+class BusStop;
+class Busline;
+class Node;
+class RoadSegment;
+class BusStopFinder
+{
+public:
+	BusStopFinder(const Node* src, const Node* dest);
+	Busline* getBusLineToTake(){ return BusLineToTake; }
+	BusStop* getSourceBusStop(){ return OriginBusStop; }
+	BusStop* getDestinationBusStop(){ return DestBusStop;}
+
+private:
+	BusStop* findNearbyBusStop(const Node* src);
+	Busline* findBusLineToTaken();
+	BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment);
+
+private:
+	BusStop* OriginBusStop;
+    BusStop* DestBusStop;
+    Busline* BusLineToTake;
+};
+
 }

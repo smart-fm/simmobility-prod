@@ -6,7 +6,7 @@ using namespace sim_mob;
 namespace sim_mob
 {
 	CommunicationSupport::CommunicationSupport(sim_mob::Entity& entity_)
-	:	CommSupp_Mutex(new Lock),
+	:	/*CommSupp_Mutex(new boost::shared_mutex),*/
 	 	entity(entity_),
 		communicator(sim_mob::NS3_Communicator::GetInstance()),
 	 	outgoing(sim_mob::NS3_Communicator::GetInstance().getSendBuffer()),
@@ -35,85 +35,92 @@ namespace sim_mob
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& CommunicationSupport::getIncoming() {
-//		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		return incoming;
 	}
 	DataContainer& CommunicationSupport::getOutgoing() {
-//		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
 		return outgoing;
 	}
 	void CommunicationSupport::setIncoming(DataContainer values) {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		incoming = values;
 	}
 	bool CommunicationSupport::popIncoming(DATA_MSG_PTR &var)
 	{
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		return incoming.pop(var);
 	}
 //	void CommunicationSupport::setOutgoing(DataContainer values) {
-//		//WriteLock(*CommSupp_Mutex);
+//		//boost::unique_lock< boost::shared_mutex > lock(*CommSupp_Mutex);
 //		outgoing = values;
 //		outgoingIsDirty = true;
 //	}
 
 	void CommunicationSupport::addIncoming(DATA_MSG_PTR value) {
-		WriteLock Lock(*Communicator_Mutex);
-		std::cout << this << " : CommunicationSupport::addIncoming=>storing incoming data" <<  std::endl;
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		incoming.add(value);
 		incomingIsDirty = true;
 	}
 	void CommunicationSupport::addOutgoing(DATA_MSG_PTR value) {
-		WriteLock Lock(*Communicator_Mutex);
-		std::cout << this << " : CommunicationSupport::addOutgoing=>pushing data[" << value << "]" <<  std::endl;
-	outgoing.add(value);
-//	std::cout << "push done "  <<  std::endl;
-	outgoingIsDirty = true;
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
+		std::cout << "outgoingsize-before[" << outgoing.get().size() << "]" << std::endl;
+		outgoing.add(value);
+		std::cout << "outgoingsize-after[" << outgoing.get().size() << "]" << std::endl;
+		outgoingIsDirty = true;
 	}
 
 	void CommunicationSupport::setwriteIncomingDone(bool value) {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		writeIncomingDone = value;
 	}
 	void CommunicationSupport::setWriteOutgoingDone(bool value) {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
 		readOutgoingDone = value;
 	}
 	void CommunicationSupport::setAgentUpdateDone(bool value) {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[0]));
 		agentUpdateDone = value;
 	}
 	bool &CommunicationSupport::iswriteIncomingDone() {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		return writeIncomingDone;
 	}
 	bool &CommunicationSupport::isreadOutgoingDone() {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
 		return readOutgoingDone;
 	}
 	bool &CommunicationSupport::isAgentUpdateDone() {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[0]));
 			return agentUpdateDone;
 	}
 
 	bool &CommunicationSupport::isOutgoingDirty() {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
 		return outgoingIsDirty;
 	}
 	bool &CommunicationSupport::isIncomingDirty() {
-		WriteLock Lock(*Communicator_Mutex);
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		return incomingIsDirty;
 	}
 
 //todo
 	void CommunicationSupport::reset(){
-		WriteLock Lock(*Communicator_Mutex);
-		outgoingIsDirty = false ;
-		incomingIsDirty = false ;
-		agentUpdateDone = false ;
-		writeIncomingDone = false ;
-		readOutgoingDone = false ;
-		cnt_1 = cnt_2 = 0;
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Communicator_Mutexes[0]);
+			agentUpdateDone = false ;
+			cnt_1 = cnt_2 = 0;
+		}
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Communicator_Mutexes[1]);
+			outgoingIsDirty = false ;
+			readOutgoingDone = false ;
+		}
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Communicator_Mutexes[2]);
+			incomingIsDirty = false ;
+			writeIncomingDone = false ;
+		}
 	}
 	void CommunicationSupport::init(){
 
@@ -126,8 +133,8 @@ namespace sim_mob
 //		subscriptionInfo info = getSubscriptionInfo();
 //		info.setEntity(subscriber);
 
-		Communicator_Mutex = communicator.subscribeEntity(*this);
-		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+		Communicator_Mutexes = communicator.subscribeEntity(*this);
+//		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 	}
 	const sim_mob::Entity& CommunicationSupport::getEntity()
 	{

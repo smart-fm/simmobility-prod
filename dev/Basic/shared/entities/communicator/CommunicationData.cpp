@@ -3,55 +3,67 @@
 namespace sim_mob
 {
 DataContainer::DataContainer(){
-
+work_in_progress = false;
 }
 DataContainer::DataContainer( const DataContainer& other ) :
-    buffer( other.buffer ),Owner_Mutex(other.Owner_Mutex)
+    buffer( other.buffer )
  {
+
  }
+DataContainer& DataContainer::operator=(DataContainer& other)
+{
+	buffer = other.buffer;
+}
 
 void DataContainer::add(DATA_MSG_PTR value) {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	buffer.push_back(value);
 }
 
 void DataContainer::add(std::vector<DATA_MSG_PTR> values) {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	buffer.insert(buffer.end(), values.begin(), values.end());
 }
 
 void DataContainer::add(DataContainer & value) {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	add(value.get());
+	std::cout << "added\n";
 }
 
 void DataContainer::reset() {
-	//WriteLock(DataContainer_Mutex);
-//	todo comment the line below
-//	return;
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	DATA_MSG_PTR value;
-//	std::cout << "resetting a buffer of size " << buffer.size() << std::endl;
-
 	BOOST_FOREACH(value, buffer)
 		delete value;
-//	std::cout << "resetting " << std::endl;
 	buffer.clear();
-//	std::cout << " done" << std::endl;
+	work_in_progress = false;
 }
 
 void DataContainer::clear()
 {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	buffer.clear();
 }
 
+void DataContainer::set_work_in_progress(bool value)
+{
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
+	work_in_progress = value;
+}
+
+bool DataContainer::get_work_in_progress()
+{
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
+	return work_in_progress;
+}
 std::vector<DATA_MSG_PTR>& DataContainer::get() {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	return buffer;
 }
 
 bool DataContainer::pop(DATA_MSG_PTR & var) {
-	//WriteLock(DataContainer_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	if (buffer.size() < 1)
 		return false;
 	var = buffer.front();
@@ -59,12 +71,12 @@ bool DataContainer::pop(DATA_MSG_PTR & var) {
 }
 
 bool DataContainer::empty(){
-	WriteLock(*Owner_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(DataContainer_Mutex);
 	return buffer.empty();
 }
 
 ////////////////////////////////
-void DataContainer::setOwnerMutex(boost::shared_ptr<Lock> value)
+void DataContainer::setOwnerMutex(boost::shared_mutex *value)
 {
 	Owner_Mutex = value;
 }
@@ -116,37 +128,37 @@ void DataContainer::setOwnerMutex(boost::shared_ptr<Lock> value)
 //	return outgoing;
 //}
 //void subscriptionInfo::setIncoming(DataContainer values) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	incoming = values;
 //	incomingIsDirty = true;
 //}
 //void subscriptionInfo::setOutgoing(DataContainer values) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	outgoing = values;
 //	outgoingIsDirty = true;}
 //
 //void subscriptionInfo::addIncoming(DATA_MSG_PTR value) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	incoming.add(value);
 //	incomingIsDirty = true;
 //}
 //void subscriptionInfo::addOutgoing(DATA_MSG_PTR value) {
 //std::cout << this << " : subscriptionInfo::addOutgoing=>pushing data to " << &outgoing << std::endl;
-////WriteLock(*myLock);
+////boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //outgoing.add(value);
 //outgoingIsDirty = true;
 //}
 //
 //void subscriptionInfo::setwriteIncomingDone(bool value) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	writeIncomingDone = value;
 //}
 //void subscriptionInfo::setWriteOutgoingDone(bool value) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	readOutgoingDone = value;
 //}
 //void subscriptionInfo::setAgentUpdateDone(bool value) {
-//	//WriteLock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock(*myLock);
 //	agentUpdateDone = value;
 //}
 //bool subscriptionInfo::iswriteIncomingDone() {
@@ -173,7 +185,7 @@ void DataContainer::setOwnerMutex(boost::shared_ptr<Lock> value)
 //
 //void subscriptionInfo::reset()
 //{
-//	//WriteLock Lock(*myLock);
+//	//boost::unique_lock< boost::shared_mutex > lock Lock(*myLock);
 //	incomingIsDirty = false ;
 //	outgoingIsDirty = false ;
 //	agentUpdateDone = false ;

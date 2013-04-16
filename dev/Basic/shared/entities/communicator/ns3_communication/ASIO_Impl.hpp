@@ -19,55 +19,45 @@
 namespace sim_mob {
 
 class ASIO_Impl: public Communication<DataContainer&, commResult> {
-	boost::asio::io_service io_service_send, io_service_receive;
+	boost::asio::io_service io_service_send, io_service_receive ,io_service_;
 //	boost::asio::ip::tcp::socket socket_send, socket_receive;
-	connection connection_send, connection_receive;
+	connection connection_;
 
 	//todo: make them constant reference
-	std::string host_send;
-	std::string port_send;
-	std::string host_receive;
-	std::string port_receive;
+	std::string port_;
+	std::string host_;
 
 	DataContainer temporaryReceiveBuffer;
 	DataContainer *temporarySendBuffer;
 	DataContainer fakeReceiveBuffer; //to be used by connection_send to keep the socket alive
-
 //	DataContainer &mainSendBuffer;
-	DataContainer &mainReceiveBuffer;
+	DataContainer &mainReceiveBuffer_;
 	boost::thread thread_send_asio;
 	boost::thread thread_receive_asio;
-
+	boost::thread thread_asio;
 	bool sendConnectionEstablished;
 
 	enum ASIOConnectionType {
 		asio_receive, asio_send
 	};
 public:
-	ASIO_Impl( DataContainer &mainReceiveBuffer_);
-	bool connect(boost::asio::io_service &io_service_, connection &connection_,
-			const std::string& host, const std::string& service,
-			ASIOConnectionType cnnType);
+	ASIO_Impl( std::string host,std::string port,DataContainer &mainReceiveBuffer_);
+	bool connect();
 
 	/// Handle completion of a connect operation.
-	void handle_connect_send(const boost::system::error_code& e,
-			boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
-	/// Handle completion of a connect operation.
-	void handle_connect_receive(const boost::system::error_code& e,
-			boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
-	void handle_send(const boost::system::error_code& e/*, DataContainer &value*/);
-	void handle_read_fake(const boost::system::error_code& e/*, DataContainer &value*/);
+	void handle_connect(const boost::system::error_code& e);
+	void handle_read(const boost::system::error_code& error);
+	void handle_send(const boost::system::error_code& e, DataContainer &value);
 	bool init();
-	bool thread_receive_asio_function();
-	bool thread_send_asio_function();
-	/// Handle completion of a read operation.
-	void handle_read_receive(const boost::system::error_code& e);
+	bool thread_asio_function();
+	void close();
+	void do_close();
 
 	//the polymorphism thing
 
 	commResult send(DataContainer &value);
 	commResult receive(DataContainer& value);
-
+	~ASIO_Impl();
 };
 
 }

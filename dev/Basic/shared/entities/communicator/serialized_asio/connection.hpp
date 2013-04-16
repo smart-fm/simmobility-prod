@@ -26,42 +26,20 @@ class connection
 public:
   /// Constructor.
   connection(boost::asio::io_service& io_service)
-    : my_io_service(io_service)
+    : socket_(io_service)
   {
-	  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(io_service);
-	  socket_.reset(tempSocket);
-	  socket_s.push_back(socket_);
-//	  socket_->open(boost::asio::ip::tcp::v4());
   }
 
   /// Get the underlying socket. Used for making a connection or for accepting
   /// an incoming connection.
-  boost::asio::ip::tcp::socket& socket(/*bool reNew = false*/)
+  boost::asio::ip::tcp::socket& socket()
   {
-//	  if(reNew){
-//		  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(my_io_service);
-//		  socket_s.push_back(socket_);
-//		  socket_.reset(tempSocket);
-//
-////		  socket_->open(boost::asio::ip::tcp::v4());
-//	  }
-    return *(socket_s.back());
-  }
-  boost::asio::ip::tcp::socket& acceptSocket()
-  {
-	  /*if(reNew)*/{
-		  boost::asio::ip::tcp::socket *tempSocket = new boost::asio::ip::tcp::socket(my_io_service);
-		  socket_s.push_back(socket_);
-		  socket_.reset(tempSocket);
-
-//		  socket_->open(boost::asio::ip::tcp::v4());
-	  }
-    return *socket_;
+    return socket_;
   }
 
   /// Asynchronously write a data structure to the socket.
   template <typename T, typename Handler>
-  void write(const T& t, Handler handler, bool async)
+  void async_write(const T& t, Handler handler)
   {
     // Serialize the data first so we know how large it is.
     std::ostringstream archive_stream;
@@ -71,13 +49,13 @@ public:
 
     // Format the header.
     std::ostringstream header_stream;
-    header_stream << std::setw(header_length)  << std::hex << outbound_data_.size();
+    header_stream << std::setw(header_length)
+      << std::hex << outbound_data_.size();
     if (!header_stream || header_stream.str().size() != header_length)
     {
       // Something went wrong, inform the caller.
       boost::system::error_code error(boost::asio::error::invalid_argument);
-      socket().get_io_service().post(boost::bind(handler, error));
-      std::cout << "ERROR in CONNECTION-Write" << std::endl;
+      socket_.get_io_service().post(boost::bind(handler, error));
       return;
     }
     outbound_header_ = header_stream.str();
@@ -87,14 +65,7 @@ public:
     std::vector<boost::asio::const_buffer> buffers;
     buffers.push_back(boost::asio::buffer(outbound_header_));
     buffers.push_back(boost::asio::buffer(outbound_data_));
-    if(async)
-    	boost::asio::async_write(socket(), buffers, handler);
-    else
-    {
-    	int i = 0;
-    	i = boost::asio::write(socket(), buffers);
-    	std::cout << i << " Bytes written" << std::endl;
-    }
+    boost::asio::async_write(socket_, buffers, handler);
   }
 
   /// Asynchronously read a data structure from the socket.
@@ -102,21 +73,22 @@ public:
   void async_read(T& t, Handler handler)
   {
     // Issue a read operation to read exactly the number of bytes in a header.
-    void (connection::*f)(const boost::system::error_code&,T&, boost::tuple<Handler>)
+    void (connection::*f)(
+        const boost::system::error_code&,
+        T&, boost::tuple<Handler>)
       = &connection::handle_read_header<T, Handler>;
-
-    boost::asio::async_read(
-    		socket(),
-    		boost::asio::buffer(inbound_header_),
-    		boost::bind(f,this, boost::asio::placeholders::error, boost::ref(t),boost::make_tuple(handler))
-    );
+    boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),
+        boost::bind(f,
+          this, boost::asio::placeholders::error, boost::ref(t),
+          boost::make_tuple(handler)));
   }
 
   /// Handle a completed read of a message header. The handler is passed using
   /// a tuple since boost::bind seems to have trouble binding a function object
   /// created using boost::bind as a parameter.
   template <typename T, typename Handler>
-  void handle_read_header(const boost::system::error_code& e, T& t, boost::tuple<Handler> handler)
+  void handle_read_header(const boost::system::error_code& e,
+      T& t, boost::tuple<Handler> handler)
   {
     if (e)
     {
@@ -138,19 +110,19 @@ public:
 
       // Start an asynchronous call to receive the data.
       inbound_data_.resize(inbound_data_size);
+
       void (connection::*f)(const boost::system::error_code&,T&, boost::tuple<Handler>)
         = &connection::handle_read_data<T, Handler>;
-      boost::asio::async_read(
-    		  socket(),
-    		  boost::asio::buffer(inbound_data_),
-    		  boost::bind(f, this, boost::asio::placeholders::error, boost::ref(t), handler)
-      );
+
+      boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),
+        boost::bind(f, this,boost::asio::placeholders::error, boost::ref(t), handler));
     }
   }
 
   /// Handle a completed read of message data.
   template <typename T, typename Handler>
-  void handle_read_data(const boost::system::error_code& e, T& t, boost::tuple<Handler> handler)
+  void handle_read_data(const boost::system::error_code& e,
+      T& t, boost::tuple<Handler> handler)
   {
     if (e)
     {
@@ -161,10 +133,6 @@ public:
       // Extract the data structure from the data just received.
       try
       {
-
-//          for(std::vector<char>::iterator it_ = inbound_data_.begin(); it_ != inbound_data_.end(); it_++)
-//        	  std::cout << *it_ ;
-//          std::cout << "]" << std::endl;
         std::string archive_data(&inbound_data_[0], inbound_data_.size());
         std::istringstream archive_stream(archive_data);
         boost::archive::text_iarchive archive(archive_stream);
@@ -185,10 +153,7 @@ public:
 
 private:
   /// The underlying socket.
-  boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
-  std::vector<boost::shared_ptr<boost::asio::ip::tcp::socket> > socket_s;
-
-  boost::asio::io_service& my_io_service;
+  boost::asio::ip::tcp::socket socket_;
 
   /// The size of a fixed length header.
   enum { header_length = 8 };

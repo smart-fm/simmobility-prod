@@ -14,18 +14,21 @@ NS3_Communication::NS3_Communication(DataContainer *sedBuffer_, DataContainer* r
 	sendBuffer(*sedBuffer_), receiveBuffer(*receiveBuffer_)
 {
 	init();
+
 	};
 void NS3_Communication::init()
-{	//todo: configuration based
+{
+	work_in_progress = false;
+	//todo: configuration based
 	//	SR_Impl = new FileBasedImpl();
 
 //	std::cout << " NS3_Communication's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
-		SR_Impl = new ASIO_Impl(receiveBuffer);
+		SR_Impl = new ASIO_Impl("localhost","2013",receiveBuffer);
+
 //		boost::thread FakeNS3(fakeNS3);
 
 }
 commResult NS3_Communication::send(DataContainer &value) {
-	std::cout << "Inside inside ASIO_Impl::send()" << std::endl;
 	return SR_Impl->send(value);
 }
 commResult NS3_Communication::receive(DataContainer& value) {

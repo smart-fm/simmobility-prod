@@ -11,16 +11,18 @@
 #include <boost/thread/locks.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
-#include "buffering/Shared.hpp"
+//#include "buffering/Shared.hpp"
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 
 namespace sim_mob
 {
 class Entity;
 //THIS ENUM IDENTIFIES THE CLASSES TYPES
-typedef boost::shared_mutex Lock;
-typedef boost::unique_lock< Lock > WriteLock;
-typedef boost::shared_lock< Lock > ReadLock;
+//typedef boost::shared_mutex boost::shared_mutex;
+//typedef boost::unique_lock< boost::shared_mutex > writeboost::shared_mutex;
+//typedef boost::shared_lock< boost::shared_mutex > Readboost::shared_mutex;
 
 enum DataClassType
 {
@@ -49,12 +51,14 @@ class dataMessage
         ar & str;
         ar & sender;
         ar & receiver;
+        ar & serial;
     }
 public:
 
 
 //	DataClassType type;
 	std::string str;
+	int serial;
 	//a proper size of integer is used coz in case of the normal pointer,
 	//the serilizer serializes the object that the pointer is pointing to
 	//whereas we just need to save the 'pointer' to object so that we
@@ -71,7 +75,7 @@ public:
 
 
 	dataMessage(){
-		sender = receiver = 0;
+		sender = receiver = serial = 0;
 		str = "";
 	}
 	//uncomment after debugging
@@ -154,25 +158,19 @@ class DataContainer
 {
 
 public:
-	boost::shared_ptr<Lock> DataContainer_Mutex;
-	boost::shared_ptr<Lock> Owner_Mutex;
+	boost::shared_mutex DataContainer_Mutex;
+	boost::shared_mutex * Owner_Mutex;//this buffer may belong to someone who might need its own lock when others are operating on this data
 	//todo make it private
 	std::vector<DATA_MSG_PTR> buffer;
+	bool work_in_progress;
 	DataContainer();
 	DataContainer( const DataContainer& other );
+	DataContainer& operator=(DataContainer& other);
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version)
     {
-//    	DATA_MSG_PTR value;
-//    	std::cout << "starting to register: " << std::endl;
-//    	BOOST_FOREACH(value, buffer)
-//    		value->registerType(ar);
     	ar.register_type(static_cast<DATA_MSG_PTR>(NULL));
-//    	std::cout << "DataContainer::serialize=>dataMessage registered" << std::endl;
-//    	BOOST_FOREACH(value, buffer)
-//    	//takes ar to your class and gives him the information about your class
-//    		value->registerType(ar);
     	ar & buffer;
     }
     void add(DATA_MSG_PTR value);
@@ -181,12 +179,14 @@ public:
     void add(DataContainer & value);
     void reset();
     void clear();//clear the buffer but do not delete the referenced elements buffer was pointing to
+    void set_work_in_progress(bool);
+    bool get_work_in_progress();
     std::vector<DATA_MSG_PTR>& get();
     bool pop(DATA_MSG_PTR & var);
     bool empty();
 
     ////////////////////////////////
-    void setOwnerMutex(boost::shared_ptr<Lock>);
+    void setOwnerMutex(boost::shared_mutex*);
 
 };
 
@@ -221,7 +221,7 @@ public:
 //	bool goodForProcessing;
 //
 //public:
-//	boost::shared_ptr<Lock> myLock;//this class is not copy constructible. so we need to use sort of a pointer(i use boost shared pointer)
+//	boost::shared_ptr<boost::shared_mutex> myboost::shared_mutex;//this class is not copy constructible. so we need to use sort of a pointer(i use boost shared pointer)
 //	//general purpose counter
 //	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
 //	int cnt_2;
@@ -271,16 +271,16 @@ class commArguments
 {
 private:
 	std::string fileName;
-	std::set<DATA_MSG_PTR> data;
+	DataContainer data;
 public:
-	commArguments(std::string &fileName_,std::set<DATA_MSG_PTR> &data_):fileName(fileName_), data(data_){}
+	commArguments(std::string &fileName_,DataContainer &data_):fileName(fileName_), data(data_){}
 	commArguments(){}
 
-	std::set<DATA_MSG_PTR> &getData() {
+	DataContainer &getData() {
 		return data;
 	}
 
-	void setData(std::set<DATA_MSG_PTR> & value) {
+	void setData(DataContainer & value) {
 		this->data = value;
 	}
 

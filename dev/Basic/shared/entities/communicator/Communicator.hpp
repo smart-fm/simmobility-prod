@@ -14,10 +14,10 @@ class NS3_Communicator : public sim_mob::Agent
 {
 
 	bool enabled;
-	boost::shared_ptr<Lock> NS3_Communicator_Mutex;
-	boost::shared_ptr<Lock> myLocalLock;;
+
 	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&> subscriptionList;
 	sim_mob::DataContainer sendBuffer;
+	sim_mob::DataContainer trySendBuffer;//send the buffers in batches
 	sim_mob::DataContainer receiveBuffer;
 	sim_mob::NS3_Communication commImpl;
 	static NS3_Communicator instance;
@@ -38,6 +38,10 @@ class NS3_Communicator : public sim_mob::Agent
 	bool allAgentUpdatesDone();
 
 public:
+	boost::shared_mutex *NS3_Communicator_Mutex;
+	boost::shared_mutex *NS3_Communicator_Mutex_Send;
+	boost::shared_mutex *NS3_Communicator_Mutex_Receive;
+	std::vector<boost::shared_mutex*> mutex_collection;
 	explicit NS3_Communicator(const MutexStrategy& mtxStrat, int id=-1);
 	Entity::UpdateStatus update(timeslice now);
 	void load(const std::map<std::string, std::string>& configProps);
@@ -59,7 +63,7 @@ public:
 	void addSendBuffer(sim_mob::DataContainer &value);
 	void addSendBuffer(std::vector<DATA_MSG_PTR> &value);
 
-	boost::shared_ptr<Lock>  subscribeEntity(sim_mob::CommunicationSupport&);
+	std::vector<boost::shared_mutex *> subscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(const sim_mob::Entity * agent);
 	static NS3_Communicator& GetInstance() { return NS3_Communicator::instance; }

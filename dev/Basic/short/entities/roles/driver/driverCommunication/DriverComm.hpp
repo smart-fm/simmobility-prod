@@ -5,6 +5,9 @@ namespace sim_mob
 {
 class DriverComm : public Driver, public CommunicationSupport
 {
+	static int totalSendCnt;
+	static int totalReceiveCnt;
+	int sendCnt,receiveCnt;
 public:
 
 	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat);

@@ -13,9 +13,18 @@ namespace sim_mob {
 NS3_Communicator::NS3_Communicator(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), commImpl(&sendBuffer, &receiveBuffer)
 {
-	NS3_Communicator_Mutex.reset(new Lock);
-	myLocalLock.reset(new Lock);
-//	std::cout << " Communicator's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
+	//mutexes
+	NS3_Communicator_Mutex = new boost::shared_mutex();
+	NS3_Communicator_Mutex_Send = new boost::shared_mutex();
+	NS3_Communicator_Mutex_Receive = new boost::shared_mutex();
+
+	sendBuffer.setOwnerMutex(NS3_Communicator_Mutex_Send);
+	receiveBuffer.setOwnerMutex(NS3_Communicator_Mutex_Receive);
+	trySendBuffer.setOwnerMutex(NS3_Communicator_Mutex_Send);
+
+	mutex_collection.push_back(NS3_Communicator_Mutex);
+	mutex_collection.push_back(NS3_Communicator_Mutex_Send);
+	mutex_collection.push_back(NS3_Communicator_Mutex_Receive);
 }
 //////////////////////////////////////////
 // Simple singleton implementation
@@ -47,7 +56,7 @@ Entity::UpdateStatus NS3_Communicator::update(timeslice now)
 }
 void NS3_Communicator::printSubscriptionList(timeslice now)
 {
-	WriteLock(*NS3_Communicator_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	std::ostringstream out("");
 	out << "printSubscriptionList\n" ;
 	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::iterator it;
@@ -123,15 +132,14 @@ void NS3_Communicator::refineSubscriptionList() {
 }
 //send the buffer, when done, release the elements of the buffer.
 //this is safe coz the datacontainer in the argument list is 'copied', no pointer, no reference
-void NS3_Communicator::bufferSend(DataContainer &tempSendBuffer)
+void NS3_Communicator::bufferSend(DataContainer &trySendBuffer)
 {
-	std::cout << "inside NS3_Communicator::bufferSend(" << tempSendBuffer.get().size() << ")" << std::endl;
-	commImpl.send(tempSendBuffer);
-	tempSendBuffer.reset();
+//	std::cout << "inside NS3_Communicator::bufferSend(" << trySendBuffer.get().size() << ")" << std::endl;
+//	commImpl.send(trySendBuffer);
 }
 bool NS3_Communicator::allAgentUpdatesDone()
 {
-//	WriteLock(*NS3_Communicator_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::const_iterator it, it_end(subscriptionList.end());
 
 	for(it = subscriptionList.begin(); it != it_end; it++)
@@ -146,7 +154,7 @@ bool NS3_Communicator::allAgentUpdatesDone()
 			{
 				if (info.isAgentUpdateDone())
 				{
-					WriteLock(*NS3_Communicator_Mutex);
+					boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 					duplicateEntityDoneChecker.insert(it->first);
 				}
 			}
@@ -164,25 +172,16 @@ bool NS3_Communicator::allAgentUpdatesDone()
 }
 void NS3_Communicator::trySend(timeslice now)
 {
-
-	if(!sendBuffer.empty())
+	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
+	if((!sendBuffer.empty())&& (!trySendBuffer.get_work_in_progress()))
 	{
-		DataContainer tempSendBuffer;
-		std::cout << now.frame() << ": sendBuffer NOT empty[" << sendBuffer.get().size() << "] =>firing bufferSend " << std::endl;
-		{
-			WriteLock(*NS3_Communicator_Mutex);
-			//don't panic. this is not a heavy copy
-			//coz the datacontainer's buffer just keeps the pointers
-			tempSendBuffer = sendBuffer;
-			sendBuffer.clear();
-//				std::cout << "tempSendBuffer.size(" << tempSendBuffer.get().size() << ")" << std::endl;
-		}
-		bufferSend(tempSendBuffer);
-//			todo may be nobody needs a lock in this function but how about other functions
-		tempSendBuffer.reset();
+		trySendBuffer.set_work_in_progress(true);
+		trySendBuffer = sendBuffer;
+		sendBuffer.clear();
+		commImpl.send(trySendBuffer);
 	}
 	else
-		std::cout << now.frame() << "sendBuffer IS empty()" << std::endl;
+		std::cout << now.frame() << " sendBuffer IS empty()" << std::endl;
 }
 //todo: think of a better return value than just void
 bool NS3_Communicator::processOutgoingData(timeslice now)
@@ -191,8 +190,8 @@ bool NS3_Communicator::processOutgoingData(timeslice now)
 	duplicateEntityDoneChecker.clear();
 	do
 	{
-		std::cout /*<< std::dec*/ << now.frame() << "  NS3_Communicator::processOutgoingData iteration[" << i++ << "]" << std::endl;
-		trySend(now);
+//		std::cout  << now.frame() << "  NS3_Communicator::processOutgoingData iteration[" << i++ << "]" << std::endl;
+//		trySend(now);
 		refineSubscriptionList();
 	}while(!allAgentUpdatesDone());
 	trySend(now);//the last chance for the leftovers
@@ -202,35 +201,45 @@ bool NS3_Communicator::processOutgoingData(timeslice now)
 //todo: think of a better return value than just void
 void NS3_Communicator::processIncomingData(timeslice now)
 {
-  DataContainer &receiveBatch = receiveBuffer; //will contain data belonging to many agents
+	DataContainer receiveBatch;
+	{
+		  boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex_Receive);
+		  receiveBatch = receiveBuffer; //will contain data belonging to many agents
+		  receiveBuffer.clear();
+	}
+
 //  const commResult &res = commImpl.receive(receiveBatch);//not working now
 //  if(res.getResult() != commResult::success) return;
   if(!receiveBatch.empty())
   {
-	  std::cout << "NS3_Communicator::processIncomingData=>RECEIVED DATA FROM THE PEER" << std::endl;
+	  std::cout << "NS3_Communicator::processIncomingData=>RECEIVED DATA FROM THE PEER[" <<  receiveBatch.get().size() << "]" << std::endl;
+
+	  DATA_MSG_PTR it;
+	  //distribute among agents
+	  BOOST_FOREACH(it,receiveBatch.get())
+//	  for(std::vector<DATA_MSG_PTR>::iterator it = receiveBatch.get())
+	  {
+		  //get the reference to the receiving agent's subscription record
+		  std::cout << it;
+		  std::cout << it->receiver;
+		  sim_mob::Entity * receiver = (sim_mob::Entity *) (it->receiver);
+		  try
+		  {
+			  sim_mob::CommunicationSupport & info = subscriptionList.at(receiver);
+			  std::cout << (*it).str.size() << std::endl;
+			  std::cout << (*it).str << std::endl;
+			  //the receiving agent's subscription record has a reference to its incoming buffer
+			  info.addIncoming(it);
+		  }
+		  catch(std::out_of_range e)
+		  {
+			  unSubscribeEntity(receiver);
+		  }
+	  }
   }
   else
   {
 	  std::cout << "Incoming is empty" << std::endl;
-  }
-  DATA_MSG_PTR it;
-  //distribute among agents
-  BOOST_FOREACH(it,receiveBatch.get())
-  {
-	  //get the reference to the receiving agent's subscription record
-	  sim_mob::Entity * receiver = (sim_mob::Entity *) (it->receiver);
-	  try
-	  {
-		  sim_mob::CommunicationSupport & info = subscriptionList.at(receiver);
-		  std::cout << (*it).str.size() << std::endl;
-		  std::cout << (*it).str << std::endl;
-		  //the receiving agent's subscription record has a reference to its incoming buffer
-		  info.addIncoming(it);
-	  }
-	  catch(std::out_of_range e)
-	  {
-		  unSubscribeEntity(receiver);
-	  }
   }
   receiveBatch.clear();
 
@@ -238,7 +247,7 @@ void NS3_Communicator::processIncomingData(timeslice now)
 
 void NS3_Communicator::reset()
 {
-//	WriteLock(*NS3_Communicator_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	std::map<const sim_mob::Entity*,sim_mob::CommunicationSupport&>::iterator it;
 	for(it = subscriptionList.begin(); it != subscriptionList.end(); it++)
 	{
@@ -255,25 +264,25 @@ void NS3_Communicator::reset(sim_mob::CommunicationSupport &info)
 	info.reset();
 }
 
-boost::shared_ptr<Lock>  NS3_Communicator::subscribeEntity(sim_mob::CommunicationSupport & value)
+std::vector<boost::shared_mutex*>  NS3_Communicator::subscribeEntity(sim_mob::CommunicationSupport & value)
 {
 	{
-//		WriteLock(*NS3_Communicator_Mutex);
+//		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 		subscriptionList.insert(std::pair<const sim_mob::Entity*, sim_mob::CommunicationSupport &>(&(value.getEntity()),value));
-		std::cout << "Subscribed agent[" << &value.getEntity() << "] with outgoing[" << &(subscriptionList.at(&value.getEntity()).getOutgoing()) << ":" << &sendBuffer << "]" << std::endl;
+//		std::cout << "Subscribed agent[" << &value.getEntity() << "] with outgoing[" << &(subscriptionList.at(&value.getEntity()).getOutgoing()) << ":" << &sendBuffer << "]" << std::endl;
 	}
-	return NS3_Communicator_Mutex;
+	return mutex_collection;
 }
 bool  NS3_Communicator::unSubscribeEntity(sim_mob::CommunicationSupport &value)
 {
-//	WriteLock(*NS3_Communicator_Mutex);
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	return subscriptionList.erase(&value.getEntity());
 }
 
 bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)
 {
 
-	WriteLock(*NS3_Communicator_Mutex);
+	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	subscriptionList.erase(agent);
 	//also refine duplicateEntityDoneChecker
 	std::set<const sim_mob::Entity*>::iterator it = duplicateEntityDoneChecker.find(agent);
@@ -285,32 +294,32 @@ bool  NS3_Communicator::unSubscribeEntity(const sim_mob::Entity * agent)
 
 sim_mob::DataContainer &NS3_Communicator::getSendBuffer()
 {
-	//		WriteLock(*NS3_Communicator_Mutex);
+	//		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	return sendBuffer;
 }
 
 void NS3_Communicator::popReceiveBuffer(DATA_MSG_PTR & value)
 {
-	//	WriteLock(*NS3_Communicator_Mutex);
+	//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	value = receiveBuffer.get().front();
 	receiveBuffer.get().erase(receiveBuffer.get().begin());
 }
 
 sim_mob::DataContainer &NS3_Communicator::getReceiveBuffer()
 {
-	//	WriteLock(*NS3_Communicator_Mutex);
+	//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	return receiveBuffer;
 }
 //void NS3_Communicator::addSendBuffer(sim_mob::DATA_MSG_PTR &value){
-//	sim_mob::WriteLock Lock(*myLock);
+//	sim_mob::boost::unique_lock< boost::shared_mutex > lock boost::shared_mutex(*myboost::shared_mutex);
 //	sendBuffer.add(value);
 //}
 void NS3_Communicator::addSendBuffer(sim_mob::DataContainer &value){
-	//	WriteLock(*NS3_Communicator_Mutex);
+	//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	sendBuffer.add(value);
 }
 void NS3_Communicator::addSendBuffer(std::vector<DATA_MSG_PTR> &values){
-	//		WriteLock(*NS3_Communicator_Mutex);
+	//		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
 	sendBuffer.add(values);
 }
 

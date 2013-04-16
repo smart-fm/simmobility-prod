@@ -24,16 +24,17 @@ namespace sim_mob
 class FileBasedImpl;
 class ASIO_Impl;
 
-class NS3_Communication: public sim_mob::Communication<DataContainer&, commResult> {
+class NS3_Communication: public sim_mob::Communication<DataContainer &, commResult> {
 	//ASIO implementation needs these variables for its operations
 	 DataContainer& sendBuffer;
 	 DataContainer& receiveBuffer;
-
+	 bool work_in_progress;
 public:
 	NS3_Communication(DataContainer *sedBuffer_ = 0, DataContainer* receiveBuffer_ = 0);
 	void init();
 	commResult send(DataContainer &value);
 	commResult receive(DataContainer& value);
+	bool get_work_in_progress();
 	void shortCircuit(std::string sendFile_ = "./send.txt", std::string receiveFile_ = "./receive.txt");
 
 private:

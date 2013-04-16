@@ -2098,7 +2098,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << *segIt;
+						//debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << *segIt;
 						throw std::runtime_error(debugMsgs.str());
 					}
 				}
@@ -2115,8 +2115,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		}
 		conflux->prepareLengthsOfSegmentsAhead();
 		confluxes.insert(conflux);
-		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
-				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
+//		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
+//				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
 	std::cout << debugMsgs.str();
 }

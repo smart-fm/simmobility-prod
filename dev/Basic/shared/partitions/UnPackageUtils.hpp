@@ -40,6 +40,9 @@ private:
 
 #ifndef SIMMOB_DISABLE_MPI
 	boost::archive::text_iarchive* package;
+
+//	friend class BoundaryProcessor;
+//	friend class ShortTermBoundaryProcessor;
 #endif
 
 public:

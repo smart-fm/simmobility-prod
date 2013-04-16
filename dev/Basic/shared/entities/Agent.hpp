@@ -32,7 +32,7 @@ class Agent;
 class WorkGroup;
 
 #ifndef SIMMOB_DISABLE_MPI
-class BoundaryProcessor;
+class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
 #endif
@@ -296,7 +296,7 @@ public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
-	friend class BoundaryProcessor;
+	friend class ShortTermBoundaryProcessor;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

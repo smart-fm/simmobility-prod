@@ -598,7 +598,7 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p) {
 void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p) {
 	//Skip?
 	if (vehicle->isDone()
-			|| ConfigParams::GetInstance().is_run_on_many_computers) {
+			|| ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 

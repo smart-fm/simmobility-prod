@@ -105,5 +105,6 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 	secondsInTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 
 	elapsedSeconds = 0.0;
+
 }
 

@@ -142,7 +142,6 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag);
-	void clear();
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
@@ -154,15 +153,9 @@ public:
 
 	void resetFrontalAgents();
 	sim_mob::Person* agentClosestToStopLineFromFrontalAgents();
-	bool isDownstreamCopy() const {
-		return downstreamCopy;
-	}
 
 	bool hasAgents();
 	bool canAccommodate(SegmentStats::VehicleType type);
-
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
-	void setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
 
 	unsigned int numMovingInSegment(bool hasVehicle);
 	unsigned int numQueueingInSegment(bool hasVehicle);

@@ -1947,7 +1947,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
  */
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
-	//int upsegCtr;
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
@@ -2012,7 +2011,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 					if((*segIt)->parentConflux == nullptr)
 					{
 						// assign only if not already assigned
-						//upsegCtr++;
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
 						//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
@@ -2022,14 +2020,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment [" << (*segIt)->getStart()->getID() << "->" << (*segIt)->getEnd()->getID() << "]";
 						throw std::runtime_error(debugMsgs.str());
 					}
-				}
-
-				// create AgentKeeper for downstream segments by sending true for isDownstream
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
-						segIt != downSegs.end(); segIt++)
-				{
-					conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new SegmentStats(*segIt, true)));
-					//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tDownstream";
 				}
 
 			} // for

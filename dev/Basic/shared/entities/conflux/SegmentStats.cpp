@@ -102,12 +102,6 @@ namespace sim_mob {
 	}
 
 	std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
-		if(isDownstreamCopy()) {
-			return std::make_pair(
-				laneStatsMap.at(lane)->getQueuingAgentsCount() + getPrevTickLaneCountsFromOriginal().at(lane).first,
-				laneStatsMap.at(lane)->getMovingAgentsCount() + getPrevTickLaneCountsFromOriginal().at(lane).second
-			);
-		}
 		return std::make_pair(
 				laneStatsMap.at(lane)->getQueuingAgentsCount(),
 				laneStatsMap.at(lane)->getMovingAgentsCount()
@@ -132,13 +126,6 @@ namespace sim_mob {
 	}
 
 	unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {
-		if(isDownstreamCopy()) {
-			return (laneStatsMap.at(lane)->getMovingAgentsCount()
-					+ laneStatsMap.at(lane)->getQueuingAgentsCount()
-					+ prevTickLaneCountsFromOriginal.at(lane).first
-					+ prevTickLaneCountsFromOriginal.at(lane).second
-					);
-		}
 		return (laneStatsMap.at(lane)->getMovingAgentsCount()
 				+ laneStatsMap.at(lane)->getQueuingAgentsCount()
 				);
@@ -154,13 +141,7 @@ namespace sim_mob {
 			{
 				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
 				if(laneStatsIt != laneStatsMap.end()) {
-					if(isDownstreamCopy()) {
-						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount() + prevTickLaneCountsFromOriginal.at(laneStatsIt->first).second;
-						std::cout<<"prevTickLaneCounts"<<prevTickLaneCountsFromOriginal.at(laneStatsIt->first).second<<std::endl;
-					}
-					else {
-						movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
-					}
+					movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
 				}
 				else {
 					throw std::runtime_error("SegmentStats::numMovingInSegment called with invalid laneStats.");
@@ -168,16 +149,18 @@ namespace sim_mob {
 			}
 			lane++;
 		}
-		if(movingCounts > roadSegment->getLanes().size()*roadSegment->computeLaneZeroLength()/400.0){
-			std::cout<<"large moving count "<< roadSegment->getStart()->getID()<<std::endl;
-		}
-		if(roadSegment->getStart()->getID()==66508 && roadSegment->getEnd()->getID()==93730){
-			std::cout<<"||||||counts||||||"<< roadSegment->getStart()->getID()
-					<<"->"<<roadSegment->getEnd()->getID()
-					<<" isD: "<<isDownstreamCopy()
-					<<" movingCount: "<<movingCounts
-					<<std::endl;
-		}
+
+//		if(movingCounts > roadSegment->getLanes().size()*roadSegment->computeLaneZeroLength()/400.0){
+//			std::cout<<"large moving count "<< roadSegment->getStart()->getID()<<std::endl;
+//		}
+//
+//		if(roadSegment->getStart()->getID()==66508 && roadSegment->getEnd()->getID()==93730){
+//			std::cout<<"||||||counts||||||"<< roadSegment->getStart()->getID()
+//					<<"->"<<roadSegment->getEnd()->getID()
+//					<<" isD: "<<isDownstreamCopy()
+//					<<" movingCount: "<<movingCounts
+//					<<std::endl;
+//		}
 		return movingCounts;
 	}
 
@@ -231,12 +214,7 @@ namespace sim_mob {
 			{
 				std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
 				if(laneStatsIt != laneStatsMap.end()) {
-					if(isDownstreamCopy()) {
-						queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount() + prevTickLaneCountsFromOriginal.at(laneStatsIt->first).first;
-					}
-					else {
-						queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
-					}
+					queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
 				}
 				else {
 					throw std::runtime_error("SegmentStats::numQueueingInSegment was called with invalid laneStats!");
@@ -286,19 +264,6 @@ namespace sim_mob {
 			i->second->resetIterator();
 			Person* person = i->second->next();
 			frontalAgents.insert(std::make_pair(i->first, person));
-		}
-	}
-
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getPrevTickLaneCountsFromOriginal() const {
-		if(isDownstreamCopy()) {
-			return prevTickLaneCountsFromOriginal;
-		}
-		return std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> >();
-	}
-
-	void SegmentStats::setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginalCopy) {
-		if(isDownstreamCopy()) {
-			prevTickLaneCountsFromOriginal = prevTickLaneCountsFromOriginalCopy;
 		}
 	}
 
@@ -527,19 +492,6 @@ namespace sim_mob {
 
 	unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane){
 		return laneStatsMap.find(lane)->second->getInitialQueueCount();
-	}
-
-	void SegmentStats::clear() {
-		// Only agents in the downstream copy of SegmentStats are meant to cleared with this function.
-		if(isDownstreamCopy())
-		{
-			for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i = laneStatsMap.begin();
-					i != laneStatsMap.end(); i++)
-			{
-				i->second->clear();
-			}
-		}
-
 	}
 
 	void SegmentStats::resetPositionOfLastUpdatedAgentOnLanes(){

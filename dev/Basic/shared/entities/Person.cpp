@@ -79,14 +79,14 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),remainingTimeThisTick(0.0),
-    databaseID(databaseID), debugMsgs(std::stringstream::out)
+	requestedNextSegment(nullptr), canMoveToNextSegment(false), databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), remainingTimeThisTick(0.0), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(false), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	prevRole = 0;
 	currRole = 0;
@@ -100,6 +100,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+	unsigned int start = getStartTime();
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTrips()).begin();

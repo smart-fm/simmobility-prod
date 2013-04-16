@@ -113,6 +113,9 @@ public:
 	//generate output with fake attributes for MPI
 	virtual void frame_tick_output_mpi(timeslice now) = 0;
 
+	//for use by confluxes to permit the person to move to next link
+	virtual void flowIntoNextLinkIfPossible(UpdateParams& p) = 0;
+
 	Person* getParent()
 	{
 		return parentAgent;

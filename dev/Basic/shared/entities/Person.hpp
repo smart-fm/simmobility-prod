@@ -106,8 +106,18 @@ public:
 		databaseID = databaseId;
 	}
 
+	double getRemainingTimeThisTick() const {
+		return remainingTimeThisTick;
+	}
+
+	void setRemainingTimeThisTick(double remainingTimeThisTick) {
+		this->remainingTimeThisTick = remainingTimeThisTick;
+	}
+
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+    const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
+    bool canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;

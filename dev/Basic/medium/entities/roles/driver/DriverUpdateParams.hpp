@@ -8,6 +8,7 @@
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+#include "geospatial/Link.hpp"
 
 
 namespace sim_mob
@@ -15,9 +16,6 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
-
-//Needed to prevent a declaration error.
-class NearestVehicle {};
 
 
 namespace medium

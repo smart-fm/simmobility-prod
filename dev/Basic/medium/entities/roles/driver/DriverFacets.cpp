@@ -75,17 +75,24 @@ sim_mob::medium::DriverMovement::~DriverMovement() {}
 
 void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 	//Save the path from orign to next activity location in allRoadSegments
-	if (!parentDriver->getResource()) {
-		Vehicle* veh = initializePath(true);
-		if (veh) {
-			safe_delete_item(vehicle);
-			//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
-			vehicle = veh;
-			parentDriver->setResource(veh);
-		}
-	}
-	else {
-		initializePath(false);
+//	if (!parentDriver->getResource()) {
+//		Vehicle* veh = initializePath(true);
+//		if (veh) {
+//			safe_delete_item(vehicle);
+//			//To Do: Better to use currResource instead of vehicle, when handling other roles ~melani
+//			vehicle = veh;
+//			parentDriver->setResource(veh);
+//		}
+//	}
+//	else {
+//		initializePath(false);
+//	}
+
+	Vehicle* newVeh = initializePath(true);
+	if (newVeh) {
+		safe_delete_item(vehicle);
+		vehicle = newVeh;
+		parentDriver->setResource(newVeh);
 	}
 }
 
@@ -142,11 +149,16 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//=====================================incident==============================================
 
 	//if vehicle is still in lane infinity, it shouldn't be advanced
+
+	if(parentAgent->canMoveToNextSegment) {
+		flowIntoNextLinkIfPossible(p2);
+	}
+
 	if (parentAgent->getCurrLane() != laneInfinity)
 	{
 		advance(p2);
 		//Update parent data. Only works if we're not "done" for a bad reason.
-		setParentData();
+		setParentData(p2);
 	}
 	else{
 		std::cout << "lane or vehicle is not set for driver " <<parentAgent->getId() << std::endl;
@@ -218,18 +230,20 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 	return res;
 }
 
-void DriverMovement::setParentData() {
+void DriverMovement::setParentData(DriverUpdateParams& p) {
 		if(!vehicle->isDone()) {
 			parentAgent->distanceToEndOfSegment = vehicle->getPositionInSegment();
 			parentAgent->movingVelocity = vehicle->getVelocity();
 			parentAgent->setCurrLane(currLane);
 			parentAgent->setCurrSegment(vehicle->getCurrSegment());
+			parentAgent->setRemainingTimeThisTick(p.secondsInTick - p.elapsedSeconds);
 		}
 		else {
 			parentAgent->distanceToEndOfSegment = 0.0;
 			parentAgent->movingVelocity = 0.0;
 			parentAgent->setCurrLane(nullptr);
 			parentAgent->setCurrSegment(nullptr);
+			parentAgent->setRemainingTimeThisTick(0.0);
 		}
 }
 
@@ -280,11 +294,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 			return false;
 		}
 
-	//	std::cout<<"Driver "<<parent->getId()<<" moveToNextSegment to "<< nextRdSeg->getStart()->getID()<<std::endl;
-		if(isNewLinkNext) {
-			currLane = nullptr;
-			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
-		}
+
 
 		const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 
@@ -292,6 +302,13 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 
 		double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
 		p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0));	//in seconds
+
+		//	std::cout<<"Driver "<<parent->getId()<<" moveToNextSegment to "<< nextRdSeg->getStart()->getID()<<std::endl;
+		if(isNewLinkNext) {
+			parentAgent->requestedNextSegment = nextRdSeg;
+			parentAgent->canMoveToNextSegment = false;
+			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
+		}
 
 		if (canGoToNextRdSeg(p, p.elapsedSeconds)){
 			if (vehicle->isQueuing){
@@ -322,10 +339,9 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 					//creating a new entry in agent's travelStats for the new link, with entry time
 					parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
 				}
-
 			}
 
-	/*		std::cout<< parent->getId()<<" Driver is movedToNextSeg at: "<< linkExitTimeSec*1000 << "ms to lane "<<
+			/*	std::cout<< parent->getId()<<" Driver is movedToNextSeg at: "<< linkExitTimeSec*1000 << "ms to lane "<<
 									currLane->getLaneID_str()
 									<<" in RdSeg "<< vehicle->getCurrSegment()->getStart()->getID()
 									<<" last Accept: "<< getLastAccept(currLane)
@@ -350,6 +366,55 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		}
 
 		return res;
+}
+
+void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
+	DriverUpdateParams& p = dynamic_cast<DriverUpdateParams&>(up);
+	if (canGoToNextRdSeg(p, p.elapsedSeconds)){
+		if (vehicle->isQueuing){
+			removeFromQueue();
+		}
+
+		currLane = nextLaneInNextSegment;
+		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
+		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+
+		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
+		//set Link Travel time for previous link
+		const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
+		if (prevSeg){
+			const Link* prevLink = prevSeg->getLink();
+			//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
+			if(prevLink == parentAgent->getTravelStats().link_){
+				parentAgent->addToTravelStatsMap(parentAgent->getTravelStats(), linkExitTimeSec); //in seconds
+				prevSeg->getParentConflux()->setTravelTimes(parentAgent, linkExitTimeSec);
+			}
+		//creating a new entry in agent's travelStats for the new link, with entry time
+		parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
+		}
+
+		/*	std::cout<< parent->getId()<<" Driver is movedToNextSeg at: "<< linkExitTimeSec*1000 << "ms to lane "<<
+						currLane->getLaneID_str()
+						<<" in RdSeg "<< vehicle->getCurrSegment()->getStart()->getID()
+						<<" last Accept: "<< getLastAccept(currLane)
+						<<" accept rate: "<<getAcceptRate(currLane)
+						<<" timeThisTick: "<<p.timeThisTick
+						<<" now: "<<p.now.ms()
+						<< " dist2End: "<<vehicle->getPositionInSegment()
+						<< std::endl;*/
+		setLastAccept(currLane, linkExitTimeSec);
+	}
+	else{
+		//	std::cout<<"canGoTo failed!"<<std::endl;
+		if (vehicle->isQueuing){
+			moveInQueue();
+		}
+		else{
+			addToQueue(currLane);
+		}
+	}
+
+	parentAgent->canMoveToNextSegment = false;
 }
 
 bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
@@ -718,7 +783,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 
 		setLastAccept(currLane, actualT);
 /*		std::cout<<"actualT: " <<actualT<<std::endl;*/
-		setParentData();
+		setParentData(p);
 	}
 	else
 	{

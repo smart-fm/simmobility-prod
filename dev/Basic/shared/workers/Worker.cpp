@@ -461,9 +461,6 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		}
 	}
 
-	// handover agents which have crossed conflux boundaries
-	perform_handover();
-
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		(*it)->updateAndReportSupplyStats(currTime);
@@ -487,14 +484,6 @@ void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
-}
-
-void sim_mob::Worker::perform_handover() {
-	// Agents to be handed over are in the downstream segments's SegmentStats
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->handoverDownstreamAgents();
-	}
 }
 
 //Methods to manage list of links managed by the worker

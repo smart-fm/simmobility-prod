@@ -49,8 +49,9 @@ public:
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
+	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
-	void setParentData();			///<set next data to parent buffer data
+	void setParentData(DriverUpdateParams& p);			///<set next data to parent buffer data
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	void stepFwdInTime(DriverUpdateParams& p, double time);
 	bool advance(DriverUpdateParams& p);

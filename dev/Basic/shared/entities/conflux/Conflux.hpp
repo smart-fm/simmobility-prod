@@ -62,10 +62,6 @@ private:
 	/* Map to store the vehicle counts of each road segment on this conflux */
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
 
-	/* This is a temporary storage data structure from which the agents would be moved to segmentAgents of
-	 * another conflux during a flip (barrier synchronization). */
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgentsDownstream;
-
 	/* Worker to which this conflux belongs to*/
 	sim_mob::Worker* parentWorker;
 
@@ -155,10 +151,6 @@ public:
 		return segmentAgents;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgentsDownstream() const {
-		return segmentAgentsDownstream;
-	}
-
 	sim_mob::Worker* getParentWorker() const {
 		return parentWorker;
 	}
@@ -179,7 +171,6 @@ public:
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
 	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats);
-	void handoverDownstreamAgents();
 
 	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);

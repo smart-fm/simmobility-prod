@@ -2107,7 +2107,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	PrintDB_Network_ptrBased();
     	std::cout <<"------------------\n";
    // }
-    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
+    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
@@ -2302,7 +2302,6 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 			msg <<"Aborting on Config error: \n" <<errorMsg;
 			throw std::runtime_error(msg.str().c_str());
 		}
-
 		delete doc;
 	}
 }

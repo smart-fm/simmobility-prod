@@ -3,9 +3,8 @@
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
-
+#include "../short/entities/roles/driver/BusDriver.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
 
 namespace sim_mob
 {
@@ -14,7 +13,7 @@ namespace sim_mob
  * A Person in the Passenger role is likely just waiting for his or her bus stop.
  * \author Meenu
  */
-class BusDriver;
+//class BusDriver;
 class BusStop;
 class Person;
 class Bus;
@@ -95,13 +94,14 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil){}
 #endif
 
+public:
+	sim_mob::Shared<BusDriver*> busdriver;///passenger should have info about the driver
 private:
 	PassengerUpdateParams params;
 	BusStop* OriginBusStop;///busstop passenger is starting the trip from
     BusStop* DestBusStop;///busstop passenger is ending the trip
 	sim_mob::Shared<bool> BoardedBus;
 	sim_mob::Shared<bool> AlightedBus;
-	sim_mob::Shared<BusDriver*> busdriver;///passenger should have info about the driver
 	std::vector<Busline*> BuslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
 	double WaitingTime;
 	double TimeOfReachingBusStop;

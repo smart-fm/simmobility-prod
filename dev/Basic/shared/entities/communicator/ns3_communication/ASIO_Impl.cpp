@@ -123,8 +123,8 @@ void ASIO_Impl::do_close()
 }
 ASIO_Impl::~ASIO_Impl(){
 //	io_service_.post([&](){acceptor.cancel();})
-	io_service_.stop();
-	thread_asio.interrupt();
+//	io_service_.stop();
+//	thread_asio.interrupt();
 	thread_asio.join();
 }
 

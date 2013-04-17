@@ -23,30 +23,33 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 void sim_mob::DriverComm::receiveModule(timeslice now)
 {
 	//check if you have received anything in the incoming buffer
+	std::cout << "checking isIncomingDirty" << std::endl;
+	{
 	if(!isIncomingDirty())
 		{
 			std::cout << "DriverComm::receiveModule=>Nothing to receive( " << getIncoming().get().size() << ")" << std::endl;
 			return;
 		}
-//	std::cout << "tick " << now.frame() << " [" << this->parent << "] incoming is dirty" << std::endl;
-//	if(getIncoming().get().size() < 0) { std::cout << " But there are no data" << std::endl; return; }
-	{
-		boost::unique_lock< boost::shared_mutex > lock(*Communicator_Mutexes[2]);
-	for(std::vector<DATA_MSG_PTR>::iterator it = getIncoming().get().begin(); it != getIncoming().get().end(); it++)
-	{
-//		std::ostringstream out("");
-		std::cout  << "tick " << now.frame() << " [" ;
-		std::cout << this->parent << "]" ;
+	std::cout << "checking-isIncomingDirty-Done" << std::endl;
+	}
+	//handover the incoming data to a temporary container and clear
+	DataContainer receiveBatch;
+	getAndClearIncoming(receiveBatch);
+	std::vector<DATA_MSG_PTR> buffer = receiveBatch.get();//easy reading only
+	DATA_MSG_PTR it;
+	BOOST_FOREACH(it, buffer)
 		{
-			std::cout << " Received[" << (*it)->str << "]" << std::endl;
-		}
-		receiveCnt  += 1;
-		totalReceiveCnt += 1;
-	}//for
-
-		getIncoming().reset();
-	}//mutex
-
+			//		std::ostringstream out("");
+			std::cout  << "tick " << now.frame() << " [" ;
+			std::cout << this->parent << "]" ;
+			{
+				std::cout << " Received[ " << it->serial << " : " << it->str << "]" << std::endl;
+			}
+			receiveCnt  += 1;
+			totalReceiveCnt += 1;
+		}//for
+	//haha, no need of mutex here
+	receiveBatch.reset();
 }
 void sim_mob::DriverComm::sendModule(timeslice now)
 {

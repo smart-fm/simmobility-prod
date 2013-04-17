@@ -68,6 +68,7 @@ public:
 	CommunicationSupport(sim_mob::Entity& entity_);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& getIncoming();
+	void getAndClearIncoming(DataContainer &values);
 	DataContainer& getOutgoing();
 	void setIncoming(DataContainer value);
 	bool popIncoming(DATA_MSG_PTR &var);

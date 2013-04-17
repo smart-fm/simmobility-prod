@@ -38,6 +38,13 @@ namespace sim_mob
 		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
 		return incoming;
 	}
+	//give a copy for temporary use and then clears. all done in one uninterrupted lock
+	void CommunicationSupport::getAndClearIncoming(DataContainer &values) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
+		values = incoming;
+		incoming.clear();
+	}
+
 	DataContainer& CommunicationSupport::getOutgoing() {
 		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[1]));
 		return outgoing;
@@ -59,6 +66,7 @@ namespace sim_mob
 
 	void CommunicationSupport::addIncoming(DATA_MSG_PTR value) {
 		boost::unique_lock< boost::shared_mutex > lock(*(Communicator_Mutexes[2]));
+		std::cout << "addIncoming_Acquiring_receive_lock_DONE" << std::endl;
 		incoming.add(value);
 		incomingIsDirty = true;
 	}

@@ -226,10 +226,12 @@ void NS3_Communicator::processIncomingData(timeslice now)
 		  try
 		  {
 			  sim_mob::CommunicationSupport & info = subscriptionList.at(receiver);
-			  std::cout << (*it).str.size() << std::endl;
-			  std::cout << (*it).str << std::endl;
+//			  std::cout << (*it).str.size() << std::endl;
+//			  std::cout << (*it).str << std::endl;
 			  //the receiving agent's subscription record has a reference to its incoming buffer
+			  std::cout << "addIncoming-Acquiring-receive-lock" << std::endl;
 			  info.addIncoming(it);
+			  std::cout << "addIncoming-receive-lock-released" << std::endl;
 		  }
 		  catch(std::out_of_range e)
 		  {
@@ -242,7 +244,6 @@ void NS3_Communicator::processIncomingData(timeslice now)
 	  std::cout << "Incoming is empty" << std::endl;
   }
   receiveBatch.clear();
-
 }
 
 void NS3_Communicator::reset()

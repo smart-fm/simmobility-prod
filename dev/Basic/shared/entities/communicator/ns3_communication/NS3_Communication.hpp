@@ -41,7 +41,7 @@ private:
 	//Send & Receive implementations
 //	FileBasedImpl *SR_Impl;
 //	sim_mob::Communication<DataContainer&, commResult> *SR_Impl;//testing
-	sim_mob::ASIO_Impl *SR_Impl;//testing
+	boost::shared_ptr<sim_mob::ASIO_Impl> SR_Impl;//testing
 };
 
 

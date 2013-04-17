@@ -56,6 +56,7 @@ public:
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
+	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	virtual bool frame_init(timeslice now);

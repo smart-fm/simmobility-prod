@@ -15,7 +15,7 @@ BusStopAgent::All_BusStopAgents BusStopAgent::all_BusstopAgents_;
 void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat)
 {
 	//BusController* busctrller = new sim_mob::BusController(-1, mtxStrat);
-	BusStopAgent * sig_ag = new BusStopAgent(busstop, mtxStrat);
+	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
 	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
 	busstop.generatedBusStopAgent = sig_ag;
 	all_BusstopAgents_.push_back(sig_ag);

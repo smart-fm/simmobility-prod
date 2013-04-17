@@ -402,15 +402,14 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 * checking if the remainingTimeThisTick of the person is 0. This case terminates the loop. The person's location is updated in the conflux
 	 * that it belongs to. If the person has to be removed from the simulation, he is.
 	 *
-	 * 2. The person has reached the end of a link. This case is identified by checking the special boolean which indicates that the role has
-	 * requested for permission to move to the next link in its path. If the next link is processed for the current tick, the person's current
-	 * segment are updated by the conflux and movement facet is invoked again. If the next link is not processed yet for the current
-	 * tick, the current segment is updated for the person and the current lane is set as lane infinity with distanceToEndOfSegment as the length
-	 * of the road segment. The loop terminates at this point and the agent is added to lane infinity of the next road segment. Subsequently
-	 * during the update of the adjacent conflux in which the next road segment is upstream, this person will be moved for the remaining duration.
+	 * 2. The person has reached the end of a link. This case is identified by checking requestedNextSegment for not null which indicates that the role has
+	 * requested permission to move to the next link in its path. The conflux immdeitely grants permission by setting the flag canMoveToNextSegment.
+	 * If the next link is not processed for the current tick, the person is added to lane infinity of the next conflux's segment stats and the
+	 * loop is broken. If the next link is processed, the loop continues until any of the termination conditions are met. The movement role facet (driver)
+	 * checks canMoveToNextSegment flag before it advances in its frame_tick.
 	 *
-	 * 3. The person has reached the end of the current subtrip. The conflux will catch this and update the current trip chain item and change roles.
-	 * This case is identified by checking for null in both current segment and current lane of the person. The conflux will have to set the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
+	 * 3. The person has reached the end of the current subtrip. The loop will catch this and update the current trip chain item and change roles.
+	 * This loop sets the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
 	 */
 	while(person->remainingTimeThisTick > 0) {
 		std::cout << "Frame: " << now.frame() << "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
@@ -427,7 +426,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			personRole = person->getRole();
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-			person->setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+			person->setStartTime(now.ms());
 
 			if(person->currTripChainItem != person->tripChain.end()) {
 				if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
@@ -440,11 +439,13 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					ap->initializeRemainingTime();
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
-					person->getRole()->Movement()->frame_init(*person->curr_params);
+					//person->getRole()->Movement()->frame_init(*person->curr_params);
+					call_movement_frame_init(now, person);
+					person->setCallFrameInit(false);
 					const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
 					person->setCurrSegment(curSeg);
 					person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
-
+					person->distanceToEndOfSegment = curSeg->computeLaneZeroLength();
 				}
 			}
 		}

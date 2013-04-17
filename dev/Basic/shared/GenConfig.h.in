@@ -31,6 +31,7 @@
 #define SIMMOB_XML_IN_FILE "@SIMMOB_XML_IN_FILE@" 
 
 //Miscellaneous cmake flags; define "temporary" flags here.
+#cmakedefine SIMMOB_REALTIME
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
 #cmakedefine SIMMOB_USE_CONFLUXES

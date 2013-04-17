@@ -17,6 +17,8 @@
 #include "soci.h"
 #include "soci-postgresql.h"
 
+#include "logging/Log.hpp"
+
 #include "CrossingLoader.hpp"
 #include "LaneLoader.hpp"
 
@@ -264,7 +266,8 @@ void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 	for (soci::rowset<Crossing>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
 		if(sections_.count(it->TMP_AtSectionID)==0) {
-			throw std::runtime_error("Crossing at Invalid Section");
+			sim_mob::Warn() <<"Crossing at Invalid Section\n";
+			continue;
 		}
 
 		//Convert meters to cm
@@ -287,7 +290,8 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 	for (soci::rowset<Lane>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
 		if(sections_.count(it->TMP_AtSectionID)==0) {
-			throw std::runtime_error("Lane at Invalid Section");
+			sim_mob::Warn() <<"Lane at Invalid Section\n";
+			continue;
 		}
 
 		//Convert meters to cm
@@ -343,7 +347,7 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 	}
 
 	//Print skipped turnings all at once.
-	sim_mob::PrintArray(skippedTurningIDs, "Turnings skipped: ", "[", "]", ", ", 4);
+	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -372,13 +376,19 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
+	//Avoid errors
+	tripchains_.clear();
+	if (storedProc.empty()) {
+		return;
+	}
+
 	//Our SQL statement
 	std::string sql_str = "select * from " + storedProc;
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 		int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
@@ -397,7 +407,6 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 #endif
 
 	//Retrieve a rowset for this set of trip chains.
-	tripchains_.clear();
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
 //	std::cout << " Found "
 	//Execute as a rowset to avoid repeatedly building the query.
@@ -437,7 +446,7 @@ void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
     if (storedProcedure.empty()) {
-        std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
+        sim_mob::Warn() << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
@@ -477,7 +486,7 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 {
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_dispatch_freq> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -499,7 +508,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_routes> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -523,7 +532,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
-		std::cout << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
+		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
 	soci::rowset<sim_mob::PT_bus_stops> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -544,10 +553,9 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
 {
-    if (storedProc.empty())
-    {
-        std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
-                  << "will not lookup the database to create any signal found in there" << std::endl;
+    if (storedProc.empty()) {
+    	sim_mob::Warn() << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
+               << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
     soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProc);
@@ -643,7 +651,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
-	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
@@ -652,7 +660,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		LoadBoundarySegments();
 	}
 #endif
@@ -738,7 +746,7 @@ Section& GetSection(Node& start, Node& end)
 			return **it;
 		}
 	}
-	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
+	sim_mob::Warn() <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
 	throw std::runtime_error("Can't find section in temporary cleanup function.");
 }
 void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
@@ -818,7 +826,7 @@ bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t r
 			resCrossing.back()->yPos = vec.getY();
 		}
 	} catch (std::exception& ex) {
-		std::cout <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
+		sim_mob::Warn() <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
 		baseCrossing.clear();
 		resCrossing.clear();
 		return false;
@@ -1036,7 +1044,7 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	}
 
 	//Print all node mismatches at once
-	sim_mob::PrintArray(nodeMismatchIDs, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
+	sim_mob::PrintArray(nodeMismatchIDs, std::cout, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
 
 	//Step 3: Tag all Sections with Turnings that apply to that Section
 	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
@@ -1121,7 +1129,7 @@ void DatabaseLoader::saveTripChains(std::map<std::string, std::vector<sim_mob::T
 void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
-	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
+	sim_mob::Warn() <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
@@ -1148,7 +1156,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		}
 	}
 	//Next, Turnings. These generally match up.
-	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
+	sim_mob::Warn() <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
 	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
 	}
@@ -1731,9 +1739,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			}
 		}
 		if (!nextSection) {
-			std::cout <<"PATH ERROR:\n";
-			std::cout <<"  Starting at Node: " <<src.fromNode->id <<"\n";
-			std::cout <<"  Currently at Node: " <<currSec->toNode->id <<"\n";
+			sim_mob::Warn() <<"PATH ERROR:\n"
+							<<"  Starting at Node: " <<src.fromNode->id <<"\n"
+							<<"  Currently at Node: " <<currSec->toNode->id <<"\n";
 			throw std::runtime_error("No path reachable from RoadSegment.");
 		}
 		currSec = nextSection;
@@ -1939,7 +1947,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().is_run_on_many_computers)
+	if (ConfigParams::GetInstance().using_MPI)
 	{
 		loader.TransferBoundaryRoadSegment();
 	}

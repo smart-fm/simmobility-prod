@@ -23,7 +23,6 @@
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
-
 #include "entities/signal/Signal.hpp"
 
 using std::vector;
@@ -179,9 +178,14 @@ void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
+
+//	std::ostringstream stream;
+//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
+//	std::string s=stream.str();
+//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
 	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 }

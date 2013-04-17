@@ -17,19 +17,12 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include "BoundarySegment.hpp"
 #include "util/MathUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
-
-namespace mpi = boost::mpi;
+//namespace mpi = boost::mpi;
 
 using std::string;
 using namespace sim_mob;
@@ -90,7 +83,7 @@ string sim_mob::PartitionManager::startMPIEnvironment(int argc, char* argv[], bo
 	//Let is try on MPI_Init firstly. ~xuyan
 	MPI_Init(&argc, &argv);
 
-	mpi::communicator world;
+	boost::mpi::communicator world;
 	int computer_size = world.size();
 	if (computer_size <= 0)
 	{
@@ -113,94 +106,94 @@ string sim_mob::PartitionManager::startMPIEnvironment(int argc, char* argv[], bo
 	 * 1. Init MPI configuration
 	 * 2. User/Modeler can overload the MPI configuration in config.xml file
 	 */
-
-	//	is_on_many_computers = true;
 	partition_config = new PartitionConfigure();
-	scenario = new SimulationScenario();
-
 	partition_config->partition_size = world.size();
 	partition_config->partition_id = world.rank();
 
+	scenario = new SimulationScenario();
 	initMPIConfigurationParameters(partition_config, scenario);
 	changeInputOutputFile(argc, argv, partition_config->partition_id);
 
-	processor.setConfigure(partition_config, scenario);
+	boundary_processor->setConfigure(partition_config, scenario);
 	return "";
 }
 
 void sim_mob::PartitionManager::setEntityWorkGroup(WorkGroup* entity_group,
 		WorkGroup* singal_group)
 {
-	processor.setEntityWorkGroup(entity_group, singal_group);
+	boundary_processor->setEntityWorkGroup(entity_group, singal_group);
 }
 
 void sim_mob::PartitionManager::initBoundaryTrafficItems()
 {
-	processor.initBoundaryTrafficItems();
+	boundary_processor->initBoundaryTrafficItems();
 }
 
 void sim_mob::PartitionManager::loadInBoundarySegment(string boundary_segment_id, BoundarySegment* boundary)
 {
-	processor.loadInBoundarySegment(boundary_segment_id, boundary);
+	boundary_processor->loadInBoundarySegment(boundary_segment_id, boundary);
 }
 
-void sim_mob::PartitionManager::updateRandomSeed()
-{
-	std::vector<Entity*> all_agents = Agent::all_agents;
-	//
-	std::vector<Entity*>::iterator itr = all_agents.begin();
-	for (; itr != all_agents.end(); itr++)
-	{
-		Entity* one_agent = (*itr);
-		if (one_agent->id >= 10000)
-		{
-			one_agent->id = one_agent->id - 10000 + 3;
-		}
-		else if (one_agent->id >= 3)
-		{
-			one_agent->id = one_agent->id + 4;
-		}
-
-		const Person *person = dynamic_cast<const Person *> (one_agent);
-		if (person)
-		{
-			Person* p = const_cast<Person*> (person);
-			//init random seed
-			p->dynamic_seed = one_agent->getId();
-
-			//update pedestrain speed
-			Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
-			if (pedestrian)
-			{
-				pedestrian->speed = 1.2 + (double(one_agent->getId() % 5)) / 10;
-			}
-		}
-	}
-}
+//void sim_mob::PartitionManager::updateRandomSeed()
+//{
+//	std::vector<Entity*> all_agents = Agent::all_agents;
+//	//
+//	std::vector<Entity*>::iterator itr = all_agents.begin();
+//	for (; itr != all_agents.end(); itr++)
+//	{
+//		Entity* one_agent = (*itr);
+//		if (one_agent->id >= 10000)
+//		{
+//			one_agent->id = one_agent->id - 10000 + 3;
+//		}
+//		else if (one_agent->id >= 3)
+//		{
+//			one_agent->id = one_agent->id + 4;
+//		}
+//
+//		const Person *person = dynamic_cast<const Person *> (one_agent);
+//		if (person)
+//		{
+//			Person* p = const_cast<Person*> (person);
+//			//init random seed
+//			p->dynamic_seed = one_agent->getId();
+//
+//			//update pedestrain speed
+//			Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
+//			if (pedestrian)
+//			{
+//				pedestrian->speed = 1.2 + (double(one_agent->getId() % 5)) / 10;
+//			}
+//		}
+//	}
+//}
 
 string sim_mob::PartitionManager::crossPCboundaryProcess(int time_step)
 {
-	return processor.boundaryProcessing(time_step);
+	return boundary_processor->boundaryProcessing(time_step);
 }
 
 string sim_mob::PartitionManager::crossPCBarrier()
 {
-	mpi::communicator world;
+	boost::mpi::communicator world;
 	world.barrier();
 
 	return "";
 }
 
-string sim_mob::PartitionManager::outputAllEntities(timeslice now)
-{
-	return processor.outputAllEntities(now);
-}
+//string sim_mob::PartitionManager::outputAllEntities(timeslice now)
+//{
+//	return boundary_processor->outputAllEntities(now);
+//}
 
 string sim_mob::PartitionManager::stopMPIEnvironment()
 {
 	MPI_Finalize();
-	std::cout << "Finished" << std::endl;
-	return ""; //processor.releaseMPIEnvironment();
+
+	boundary_processor->releaseResources();
+
+//	std::cout << "Finished" << std::endl;
+	return "";
 }
 
 string sim_mob::PartitionManager::adaptiveLoadBalance()

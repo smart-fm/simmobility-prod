@@ -18,6 +18,12 @@
  */
 
 
+///Helper macro to represent "doing nothing".
+///We use "do {} while (false);" for now to indicate something (but also nothing) to allow for macros
+/// to eliminate themselves without affecting, for example, single-line if statements.
+#define DO_NOTHING    do{}while(false)
+
+
 
 ///Useful macro for helping with the mpi classes. When used, it inserts a function body ({}) which
 ///  throws an exception. This allows you to define functions in the mpi-function header files as:

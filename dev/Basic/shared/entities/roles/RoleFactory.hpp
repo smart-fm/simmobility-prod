@@ -53,6 +53,9 @@ public:
 	static std::string GetSubTripMode(const sim_mob::SubTrip &currSubTrip);
 	const std::string GetTripChainItemMode(const sim_mob::TripChainItem *tripChainItem,const sim_mob::SubTrip *subTrip) const;
 
+	void clear() { prototypes.clear(); }
+
+public:
 	//Helper
 	const sim_mob::Role* getPrototype(const std::string& name) const;
 

@@ -7,7 +7,7 @@
 #   ./permute.rb in.txt >all_trips.txt
 #   #Manually convert all_trips.txt into all_trips.xml
 #   ./SimMobility all_trips.xml /dev/null >blacklist.txt
-#   ./generate.rb all_trips.txt blacklist.txt 4000 8:00 10:00 0
+#   ./generate.rb all_trips.txt blacklist.txt 4000 8:30 9:00 0
 #
 #Arguments after "blacklist" are:
 #    1) Number of Agents to generate
@@ -69,8 +69,8 @@ def run_main()
 
   #Stop early?
   if blacklist.empty?
-    puts 'Empty blacklist file.'
-    return
+    puts 'Note: Empty blacklist file.'
+    #return
   end
 
   #Build our list of allowed routes, skipping blacklisted entry.

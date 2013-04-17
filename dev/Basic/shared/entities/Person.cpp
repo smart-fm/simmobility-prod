@@ -12,6 +12,7 @@
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
@@ -149,7 +150,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		    int x = boost::lexical_cast<int>( lanepointer->second );
 		    laneID = x;
 		} catch( boost::bad_lexical_cast const& ) {
-		    std::cout << "Error: input string was not valid" << std::endl;
+		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
 
@@ -318,7 +319,9 @@ bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTr
 	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) return false;
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
+		return false;
+	}
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }

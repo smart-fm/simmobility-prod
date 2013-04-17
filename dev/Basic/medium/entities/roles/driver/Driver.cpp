@@ -165,7 +165,7 @@ void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
 	}
 	else
 	{
-		SyncCout("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
+		PrintOut("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
 	}
 }
 
@@ -212,7 +212,7 @@ void sim_mob::medium::Driver::setParentData() {
 void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers || ConfigParams::GetInstance().OutputDisabled()) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI || ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
 
@@ -485,7 +485,7 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(const RoadSegmen
 	}
 
 	if( !minQueueLengthLane){
-		SyncCout("ERROR: best target lane was not set!" <<std::endl);
+		Warn() <<"ERROR: best target lane was not set!" <<std::endl;
 	}
 	return minQueueLengthLane;
 }
@@ -522,7 +522,7 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 			}
 		}
 
@@ -555,7 +555,7 @@ void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 			setOrigin(params);
 		}
 	} else {
-		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
+		Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
 	}
 
 	//Are we done already?

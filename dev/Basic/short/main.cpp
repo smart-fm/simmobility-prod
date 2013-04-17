@@ -16,6 +16,9 @@
 #include <string>
 #include <ctime>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
+
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
@@ -32,8 +35,6 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "entities/signal/Signal.hpp"
-
-
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -57,11 +58,16 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
 #include "buffering/Shared.hpp"
+#include "network/CommunicationManager.hpp"
+#include "network/ControlManager.hpp"
+#include "logging/Log.hpp"
 
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -109,7 +115,21 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  */
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
-	
+
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -132,6 +152,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
 		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRole(nullptr));
+		//cannot allocate an object of abstract type
+//		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
 	}
 
@@ -149,20 +171,33 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
+	std::cout << "start to Load our user config file." << std::endl;
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "finish to Load our user config file." << std::endl;
+
+	//Initialize the control manager and wait for an IDLE state (interactive mode only).
+	sim_mob::ControlManager* ctrlMgr = nullptr;
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
+		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+		ctrlMgr->setSimState(IDLE);
+		while(ctrlMgr->getSimState() == IDLE) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+		}
+	}
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 	//Start boundaries
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager::instance().initBoundaryTrafficItems();
 	}
 
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		partMgr = &PartitionManager::instance();
 	}
 
@@ -172,6 +207,18 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+
+	std::cout << "start to Load our user config file." << std::endl;
+
+	//NOTE: I moved this from an #ifdef into a local variable.
+	//      Recompiling main.cpp is much faster than recompiling everything which relies on
+	//      PerformanceProfile.hpp   ~Seth
+	bool doPerformanceMeasurement = false; //TODO: From config file.
+	bool measureInParallel = true;
+	PerformanceProfile perfProfile;
+	if (doPerformanceMeasurement) {
+		perfProfile.init(config.agentWorkGroupSize, measureInParallel);
+	}
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
@@ -197,7 +244,57 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
+
+
+
+	//////////////////////////////DEBUG CODE START
+#if 0
+	StreetDirectory& stdir = StreetDirectory::instance();
+	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+
+	//First test: longer route on a 2-way street.
+	MultiNode* aim91218  = dynamic_cast<MultiNode*>(rn.locateNode(37227139,14327875, false));
+	Node* aim66508  = rn.locateNode(37250760,14355120, false);
+	Node* aim103046 = rn.locateNode(37236345,14337301, true); //Part of the blacklisted segment.
+	RoadSegment* blacklistSeg = nullptr;
+	for (std::set<sim_mob::RoadSegment*>::const_iterator segIt=aim91218->getRoadSegments().begin(); segIt!=aim91218->getRoadSegments().end(); segIt++) {
+		if ((*segIt)->getEnd()==aim91218 && (*segIt)->getStart()==aim103046) {
+			blacklistSeg = *segIt;
+			break;
+		}
+	}
+	if (!blacklistSeg) { throw 1; }
+
+	//Subtest 1: basic route
+	vector<WayPoint> route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218));
+	LogOut("ROUTE 1:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+
+	//Subtest 2: blacklist the easiest route.
+	vector<const RoadSegment*> blacklistV; blacklistV.push_back(blacklistSeg);
+	route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218), blacklistV);
+	LogOut("ROUTE 2:\n");
+	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
+		if (it->type_==WayPoint::ROAD_SEGMENT) {
+			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
+		} else {
+			LogOut("  <other>\n");
+		}
+	}
+#endif
+
+
+
+	//////////////////////////////DEBUG CODE END
+
+
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -209,7 +306,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup::StartAllWorkGroups();
 
 	//
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
@@ -234,7 +331,33 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
+	int endTick = config.totalRuntimeTicks;
+	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
+		if (ConfigParams::GetInstance().InteractiveMode()) {
+			if(ctrlMgr->getSimState() == STOP) {
+				while (ctrlMgr->getEndTick() < 0) {
+					ctrlMgr->setEndTick(currTick+2);
+				}
+				endTick = ctrlMgr->getEndTick();
+			}
+		}
+
+		//xuyan:measure simulation time
+		if (currTick == 600 * 5 + 1)
+		{ // mins
+			if (doPerformanceMeasurement) {
+				perfProfile.startMeasure();
+				perfProfile.markStartSimulation();
+			}
+		}
+		if (currTick == 600 * 30 - 1)
+		{ // mins
+			if (doPerformanceMeasurement) {
+				perfProfile.markEndSimulation();
+				perfProfile.endMeasure();
+			}
+		}
+
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -252,7 +375,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
-			SyncCout(msg.str());
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
@@ -277,7 +400,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}
 
 	//Finalize partition manager
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
@@ -293,6 +416,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		cout <<numPendingAgents;
 	}
 	cout << endl;
+
+	//xuyan:show measure time
+	if (doPerformanceMeasurement) {
+		perfProfile.showPerformanceProfile();
+	}
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";
@@ -341,15 +469,58 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
 	WorkGroup::FinalizeAllWorkGroups();
 
-	//Test: At this point, it should be possible to delete all Signals and Agents.
-	clear_delete_vector(Signal::all_signals_);
-	clear_delete_vector(Agent::all_agents);
+	//At this point, it should be possible to delete all Signals and Agents.
+	//TODO: For some reason, clear_delete_vector() does (may?) not work in INTERACTIVE mode.
+	//      We can address this later, but it should *definitely* be possible to cleanly
+	//      exit (even early) from the simulation.
+	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
+	//      them from the main loop, in the event that the simulator is shutting down early. This is
+	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
+	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
+	//      loop should propagate this value down. ~Seth
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		Signal::all_signals_.clear();
+		Agent::all_agents.clear();
+	} else {
+		clear_delete_vector(Signal::all_signals_);
+		clear_delete_vector(Agent::all_agents);
+	}
 
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);
 	return true;
+}
+
+/**
+ * Run the main loop of Sim Mobility, using command-line input.
+ * Returns the value of the last completed run of performMain().
+ */
+int run_simmob_interactive_loop() {
+	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+	int retVal = 1;
+	for (;;)
+	{
+		if(ctrlMgr->getSimState() == LOADSCENARIO)
+		{
+			ctrlMgr->setSimState(RUNNING);
+			std::map<std::string,std::string> paras;
+			ctrlMgr->getLoadScenarioParas(paras);
+			std::string configFileName = paras["configFileName"];
+			retVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+			ctrlMgr->setSimState(STOP);
+			ConfigParams::GetInstance().reset();
+			std::cout<<"scenario finished"<<std::cout;
+		}
+		if(ctrlMgr->getSimState() == QUIT)
+		{
+			std::cout<<"Thank you for using SIMMOB. Have a good day!"<<std::endl;
+			break;
+		}
+	}
+
+	return retVal;
 }
 
 int main(int argc, char* argv[])
@@ -359,6 +530,18 @@ int main(int argc, char* argv[])
 #if 0
 	std::cout << "Not Using New Signal Model" << std::endl;
 #endif
+
+	//Currently needs the #ifdef because of the way threads initialize.
+#ifdef SIMMOB_INTERACTIVE_MODE
+	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
+	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
+	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigParams::GetInstance().getControlMgr()));
+#endif
+
 	//Save start time
 	gettimeofday(&start_time, nullptr);
 
@@ -367,10 +550,10 @@ int main(int argc, char* argv[])
 	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
-	config.is_run_on_many_computers = false;
+	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
-		config.is_run_on_many_computers = true;
+		config.using_MPI = true;
 	}
 #endif
 
@@ -381,18 +564,21 @@ int main(int argc, char* argv[])
 	config.is_simulation_repeatable = true;
 
 	/**
-	 * Start MPI if is_run_on_many_computers is true
+	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
 		if (mpi_result.compare("") != 0)
 		{
-			cout << "Error:" << mpi_result << endl;
+			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
+
+		ShortTermBoundaryProcessor* boundary_processor = new ShortTermBoundaryProcessor();
+		partitionImpl.setBoundaryProcessor(boundary_processor);
 	}
 #endif
 
@@ -411,21 +597,27 @@ int main(int argc, char* argv[])
 	}
 	cout << "Using config file: " << configFileName << endl;
 
-	//Argument 2: Log file
-	string logFileName = argc>2 ? argv[2] : "";
+	//Argument 2: Log file. Defaults to out.txt
+	string logFileName = argc>2 ? argv[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}
 
-	//Perform main loop
-	int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+	//Perform main loop (this differs for interactive mode)
+	int returnVal = 1;
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		returnVal = run_simmob_interactive_loop();
+	} else {
+		returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+	}
 
 	//Close log file, return.
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
+
 	cout << "Done" << endl;
 	return returnVal;
 }

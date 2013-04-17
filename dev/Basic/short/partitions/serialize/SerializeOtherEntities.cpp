@@ -5,9 +5,9 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/vehicle/Vehicle.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
+#include "geospatial/GeneralPathMover.hpp"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
-#include "entities/roles/driver/IntersectionDrivingModel.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/misc/TripChain.hpp"
 
 #include "partitions/PackageUtils.hpp"
@@ -81,6 +81,7 @@ Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
 /**
  * Serialize Class GeneralPathMover
  */
+//void sim_mob::GeneralPathMover::calc
 
 void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fwdMovement)
 {
@@ -305,8 +306,8 @@ void DriverUpdateParams::pack(PackageUtils& package, const DriverUpdateParams* p
 		package << (is_NULL);
 	}
 
-	package << (params->frameNumber);
-	package << (params->currTimeMS);
+//	package << (params->frameNumber);
+//	package << (params->currTimeMS);
 
 	sim_mob::Lane::pack(package, params->currLane);
 	package << (params->currLaneIndex);
@@ -355,8 +356,8 @@ void DriverUpdateParams::unpack(UnPackageUtils& unpackage, DriverUpdateParams* p
 		return;
 	}
 
-	unpackage >> params->frameNumber;
-	unpackage >> params->currTimeMS;
+//	unpackage >> params->frameNumber;
+//	unpackage >> params->currTimeMS;
 
 //	params->frameNumber = unpackage.unpackBasicData<double> ();
 //	params->currTimeMS = unpackage.unpackBasicData<double> ();
@@ -444,54 +445,54 @@ void SimpleIntDrivingModel::unpack(UnPackageUtils& unpackage, SimpleIntDrivingMo
 /**
  * Class TripChain
  */
-void TripChain::pack(PackageUtils& package, const TripChain* chain) {
-	if (chain == NULL) {
-		bool is_NULL = true;
-		package<<(is_NULL);
-		return;
-	} else {
-		bool is_NULL = false;
-		package<<(is_NULL);
-	}
-
-	package << (chain->from.description);
-	sim_mob::Node::pack(package, chain->from.location);
-
-	package << (chain->to.description);
-	sim_mob::Node::pack(package, chain->to.location);
-
-	package << (chain->primary);
-	package << (chain->flexible);
-
-	package << (chain->startTime);
-	package << (chain->mode);
-}
-
-TripChain* TripChain::unpack(UnPackageUtils& unpackage) {
-	bool is_NULL = false;
-	unpackage >> is_NULL;
-	if (is_NULL) {
-		return NULL;
-	}
-
-	TripChain* chain = new TripChain();
-
-	unpackage >> chain->from.description;
+//void TripChain::pack(PackageUtils& package, const TripChain* chain) {
+//	if (chain == NULL) {
+//		bool is_NULL = true;
+//		package<<(is_NULL);
+//		return;
+//	} else {
+//		bool is_NULL = false;
+//		package<<(is_NULL);
+//	}
 //
-//	chain->from.description = unpackage.unpackBasicData<std::string> ();
-	chain->from.location = Node::unpack(unpackage);
-
-	unpackage >> chain->to.description;
-//	chain->to.description = unpackage.unpackBasicData<std::string> ();
-	chain->to.location = Node::unpack(unpackage);
-
-	unpackage >> chain->primary;
-	unpackage >> chain->flexible;
-	unpackage >> chain->startTime;
-	unpackage >> chain->mode;
-
-	return chain;
-}
+//	package << (chain->from.description);
+//	sim_mob::Node::pack(package, chain->from.location);
+//
+//	package << (chain->to.description);
+//	sim_mob::Node::pack(package, chain->to.location);
+//
+//	package << (chain->primary);
+//	package << (chain->flexible);
+//
+//	package << (chain->startTime);
+//	package << (chain->mode);
+//}
+//
+//TripChain* TripChain::unpack(UnPackageUtils& unpackage) {
+//	bool is_NULL = false;
+//	unpackage >> is_NULL;
+//	if (is_NULL) {
+//		return NULL;
+//	}
+//
+//	TripChain* chain = new TripChain();
+//
+//	unpackage >> chain->from.description;
+////
+////	chain->from.description = unpackage.unpackBasicData<std::string> ();
+//	chain->from.location = Node::unpack(unpackage);
+//
+//	unpackage >> chain->to.description;
+////	chain->to.description = unpackage.unpackBasicData<std::string> ();
+//	chain->to.location = Node::unpack(unpackage);
+//
+//	unpackage >> chain->primary;
+//	unpackage >> chain->flexible;
+//	unpackage >> chain->startTime;
+//	unpackage >> chain->mode;
+//
+//	return chain;
+//}
 }
 
 #endif

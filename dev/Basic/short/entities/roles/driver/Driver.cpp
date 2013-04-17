@@ -14,6 +14,9 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
+#include "conf/simpleconf.hpp"
+#include "logging/Log.hpp"
+
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -33,7 +36,6 @@
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"
-
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -246,7 +248,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
-		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
+		Warn() <<"ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl;
 	}
 }
 
@@ -327,6 +329,17 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 	}
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+
+	//Inform the GUI if interactive mode is active.
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		std::ostringstream stream;
+		stream<<"DriverSegment"
+				<<","<<p.now.frame()
+				<<","<<vehicle->getCurrSegment()
+				<<","<<vehicle->getCurrentSegmentLength()/100.0;
+		std::string s=stream.str();
+		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
+	}
 
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
@@ -534,7 +547,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 		if (Debug::Drivers && !DebugStream.str().empty()) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -1018,7 +1031,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
+		Warn() <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
 
@@ -1374,7 +1387,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 			}
 		}
 
@@ -1944,7 +1957,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 				if (Debug::Drivers) {
 					if (ConfigParams::GetInstance().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-						SyncCout(DebugStream.str());
+						PrintOut(DebugStream.str());
 					}
 				}
 

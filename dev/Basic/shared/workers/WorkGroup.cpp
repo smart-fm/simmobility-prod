@@ -21,6 +21,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
+#include "workers/Worker.hpp"
+
 
 using std::map;
 using std::vector;
@@ -37,6 +39,22 @@ bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
 FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
+
+
+namespace {
+Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
+	Worker* res = nullptr;
+	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
+		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
+			res = *it;
+		}
+	}
+	return res;
+}
+
+} //End unnamed namespace
+
+
 
 ////////////////////////////////////////////////////////////////////
 // Static methods
@@ -167,7 +185,20 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 	safe_delete_item(WorkGroup::BuffFlipBarr);
 	safe_delete_item(WorkGroup::AuraMgrBarr);
 }
+void sim_mob::WorkGroup::clear()
+{
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
+	}
+	workers.clear();
 
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
 
 ////////////////////////////////////////////////////////////////////
 // Normal methods (non-static)
@@ -186,6 +217,7 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 {
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
+		wk->interrupt();
 		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
 		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
 		delete wk;
@@ -194,7 +226,9 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+#ifndef SIMMOB_INTERACTIVE_MODE
 	safe_delete_item(macro_tick_barr);
+#endif
 }
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
@@ -392,8 +426,17 @@ sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-	workers.at(nextWorkerID++)->scheduleForAddition(ag);
-	nextWorkerID %= workers.size();
+	//For now, just rely on static access to ConfigParams.
+	// (We can allow per-workgroup configuration later).
+	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
+	if (strat == ASSIGN_ROUNDROBIN) {
+		workers.at(nextWorkerID++)->scheduleForAddition(ag);
+	} else {
+		getLeastCongestedWorker(workers)->scheduleForAddition(ag);
+	}
+
+	//Increase "nextWorkID", even if we're not using it.
+	nextWorkerID = (nextWorkerID+1)%workers.size();
 }
 
 
@@ -457,7 +500,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 			partitionMgr->crossPCBarrier();
 			partitionMgr->crossPCboundaryProcess(currTimeTick);
 			partitionMgr->crossPCBarrier();
-			partitionMgr->outputAllEntities(currTimeTick);
+//			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
 		//Update the aura manager, if we have one.
@@ -559,8 +602,6 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-//	std::stringstream debugMsgs(std::stringstream::out);
-
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {

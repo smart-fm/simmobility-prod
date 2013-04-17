@@ -49,6 +49,9 @@ public:
 	//May implement later
 	virtual void load(const std::map<std::string, std::string>& configProps){}
 
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//virtual Entity::UpdateStatus update(timeslice now);

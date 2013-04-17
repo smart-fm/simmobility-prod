@@ -136,11 +136,11 @@ StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const BusSto
 }
 
 
-vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(VertexDesc from, VertexDesc to) const
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }
 
-	return spImpl_->GetShortestDrivingPath(from, to);
+	return spImpl_->GetShortestDrivingPath(from, to, blacklist);
 }
 
 vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const

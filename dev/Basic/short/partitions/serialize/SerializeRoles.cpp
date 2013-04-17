@@ -47,13 +47,11 @@ void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	packageUtil<<(speed);
 	packageUtil<<(xVel);
 	packageUtil<<(yVel);
-	packageUtil<<(goal);
 	packageUtil<<(goalInLane);
-	packageUtil<<(currentStage);
 
 	//Part 2
 	packageUtil<<(sigColor);
-	packageUtil<<(curCrossingID);
+//	packageUtil<<(curCrossingID);
 	packageUtil<<(startToCross);
 	packageUtil<<(cStartX);
 	packageUtil<<(cStartY);
@@ -63,7 +61,7 @@ void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 
 	std::cout << " CCC " << std::endl;
 
-	packageUtil<<(interPoint);
+//	packageUtil<<(interPoint);
 	packageUtil<<(xCollisionVector);
 	packageUtil<<(yCollisionVector);
 
@@ -91,22 +89,22 @@ void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> speed;
 	unpackageUtil >> xVel;
 	unpackageUtil >> yVel;
-	unpackageUtil >> goal;
+//	unpackageUtil >> goal;
 	unpackageUtil >> goalInLane;
 
 	int value = 0;
 	unpackageUtil >> value;
-	currentStage = PedestrianStage(value);
+//	currentStage = PedestrianStage(value);
 
 	//Part 2
 	unpackageUtil >> sigColor;
-	unpackageUtil >> curCrossingID;
+//	unpackageUtil >> curCrossingID;
 	unpackageUtil >> startToCross;
 	unpackageUtil >> cStartX;
 	unpackageUtil >> cStartY;
 	unpackageUtil >> cEndX;
 	unpackageUtil >> cEndY;
-	unpackageUtil >> interPoint;
+//	unpackageUtil >> interPoint;
 //	interPoint = *(unpackageUtil.unpackPoint2D());
 
 	unpackageUtil >> xCollisionVector;
@@ -139,13 +137,13 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	packageUtil<<(speed);
 	packageUtil<<(xVel);
 	packageUtil<<(yVel);
-	packageUtil<<(goal);
+//	packageUtil<<(goal);
 	packageUtil<<(goalInLane);
-	packageUtil<<(currentStage);
+//	packageUtil<<(currentStage);
 
 	//Part 2
 	packageUtil<<(sigColor);
-	packageUtil<<(curCrossingID);
+//	packageUtil<<(curCrossingID);
 	packageUtil<<(startToCross);
 	packageUtil<<(cStartX);
 
@@ -155,7 +153,7 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	packageUtil<<(cEndX);
 	packageUtil<<(cEndY);
 	//packageUtil<<(firstTimeUpdate);
-	packageUtil<<(interPoint);
+//	packageUtil<<(interPoint);
 
 	packageUtil<<(xCollisionVector);
 	packageUtil<<(yCollisionVector);
@@ -196,12 +194,12 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-23" << std::endl;
 
-	unpackageUtil >> goal;
+//	unpackageUtil >> goal;
 	unpackageUtil >> goalInLane;
 
 	int value = 0;
 	unpackageUtil >> value;
-	currentStage = PedestrianStage(value);
+//	currentStage = PedestrianStage(value);
 
 //	unpackageUtil >> speed;
 //
@@ -227,7 +225,7 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 	//Part 2
 
 	unpackageUtil >> sigColor;
-	unpackageUtil >> curCrossingID;
+//	unpackageUtil >> curCrossingID;
 	unpackageUtil >> startToCross;
 	unpackageUtil >> cStartX;
 	unpackageUtil >> cStartY;
@@ -246,7 +244,7 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-6" << std::endl;
 
-	unpackageUtil >> interPoint;
+//	unpackageUtil >> interPoint;
 //	interPoint = *(unpackageUtil.unpackPoint2D());
 
 	unpackageUtil >> xCollisionVector;
@@ -588,15 +586,9 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> latMovement_buffer;
 	latMovement.force(latMovement_buffer);
 
-//	debug.outputToConsole("test_6");
-//	debug.outputToConsole("received latMovement");
-//	debug.outputToConsole(latMovement_buffer);
-
 	double fwdVelocity_buffer = 0;
 	unpackageUtil >> fwdVelocity_buffer;
 	fwdVelocity.force(fwdVelocity_buffer);
-
-//	std::cout << "fwdVelocity_buffer:" << fwdVelocity_buffer << std::endl;
 
 	double latVelocity_buffer = 0;
 	unpackageUtil >> latVelocity_buffer;
@@ -606,45 +598,22 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> fwdAccel_buffer;
 	fwdAccel.force(fwdAccel_buffer);
 
-//	double test_6 = 1;
-//	unpackageUtil >> (test_6);
-//
-//	debug.outputToConsole("test_6");
-//	debug.outputToConsole(test_6);
-
-//	debug.outputToConsole("test_7");
-	//currTimeMS = unpackageUtil.unpackBasicData<int> ();
 	vehicle = Vehicle::unpack(unpackageUtil);
-//	std::cout << "Step 4.2.7.5:" << std::endl;
-
-//	double test_7 = 1;
-//	unpackageUtil >> (test_7);
-//
-//	debug.outputToConsole("test_7");
-//	debug.outputToConsole(test_7);
-
-//	debug.outputToConsole("test_8");
 
 	bool hasSomething = false;
 	unpackageUtil >> hasSomething;
 	if(hasSomething)
 	{
 		intModel = new SimpleIntDrivingModel();
-//		debug.outputToConsole("test_8.5");
-
 		SimpleIntDrivingModel::unpack(unpackageUtil, dynamic_cast<SimpleIntDrivingModel *>(intModel));
-//		debug.outputToConsole("test_8.6");
 	}
 
 	unpackageUtil >> currLinkOffset;
-
-//	debug.outputToConsole("test_9");
 
 	int buffer;
 	unpackageUtil >> buffer;
 	targetLaneIndex = buffer;
 
-//	debug.outputToConsole("test_10");
 }
 
 }

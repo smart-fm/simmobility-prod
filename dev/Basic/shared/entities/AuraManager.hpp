@@ -2,14 +2,11 @@
 
 #pragma once
 
-#include <map>
+#include <vector>
 #include <boost/utility.hpp>
+
 #include "metrics/Length.hpp"
-#include "metrics/Frame.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "conflux/SegmentStats.hpp"
-#include "workers/WorkGroup.hpp"
-#include "workers/Worker.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
@@ -17,7 +14,9 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
-class SegmentStats;
+class TreeImpl;
+class PerformanceProfile;
+
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -42,6 +41,13 @@ class SegmentStats;
 class AuraManager : private boost::noncopyable
 {
 public:
+	///Types of implementations supported.
+	enum AuraManagerImplementation {
+		IMPL_RSTAR,    ///< R-Star tree
+		IMPL_SIMTREE,  ///< Sim Tree
+		IMPL_RDU       ///< RDU tree
+	};
+
 
     static AuraManager &
     instance()
@@ -98,7 +104,7 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(bool keepStats = false);
+    init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats = false);
 
     /**
      * Print statistics collected on internal operationss.
@@ -107,12 +113,14 @@ public:
     void
     printStatistics() const;
 
+	/**
+	 * register new agents to AuraManager each time step
+	 */
+	void registerNewAgent(Agent const* one_agent);
+
 private:
-    AuraManager()
-      : pimpl_(0)
-      , stats_(0)
-    {
-    }
+	AuraManager() : impl_(nullptr), stats_(0), time_step(0), perfProfile(nullptr)
+	{}
 
     /*Map to store the vehicle counts of each road segment. */
     //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
@@ -121,10 +129,23 @@ private:
 
     static AuraManager instance_;
 
+    //Current implementation being used (via inheritance).
+    TreeImpl* impl_;
+
+    //xuyan:choose between
+    /*RStarAuraManager* pimpl_rstar;
+    RDUAuraManager* pimpl_du;
+	SimAuraManager* pimpl_sim;*/
+
     // Using the pimple design pattern.  Impl is defined in the source file.
-    class Impl;
+    /*class Impl;
     Impl* pimpl_;
-    friend class Impl;  // allow access to stats_.
+    friend class Impl;  // allow access to stats_.*/
+
+    PerformanceProfile* perfProfile;
+
+    //Current time step.
+    int time_step;
 
     class Stats;
     Stats* stats_;

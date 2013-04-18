@@ -20,6 +20,7 @@
 
 #include "BoundaryProcessingPackage.hpp"
 #include "partitions/BoundarySegment.hpp"
+#include "partitions/BoundaryProcessor.hpp"
 #include "partitions/PartitionConfigure.hpp"
 #include "partitions/SimulationScenario.hpp"
 

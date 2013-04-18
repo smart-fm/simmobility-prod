@@ -69,6 +69,7 @@ private:
 //	friend class ShortTermBoundaryProcessor;
 
 	std::stringstream buffer;
+	//Should change to binary archive
 	boost::archive::text_oarchive* package;
 #endif
 

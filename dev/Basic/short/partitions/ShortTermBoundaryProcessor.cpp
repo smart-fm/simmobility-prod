@@ -117,7 +117,7 @@ sim_mob::ShortTermBoundaryProcessor::ShortTermBoundaryProcessor()
 string sim_mob::ShortTermBoundaryProcessor::boundaryProcessing(int time_step)
 {
 	//step 1, update fake agents (received in previous time step)
-	ParitionDebugOutput debug;
+//	ParitionDebugOutput debug;
 	clearFakeAgentFlag();
 
 	//step 2, check the agents that should be send to downstream partitions
@@ -252,7 +252,7 @@ string sim_mob::ShortTermBoundaryProcessor::checkBoundaryAgents(BoundaryProcessi
 
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); agent_pointer++)
 			{
-				if ((*agent_pointer)->isFake || (*agent_pointer)->isToBeRemoved())
+				if ((*agent_pointer)->isFake || (*agent_pointer)->toRemoved)
 				{
 					continue;
 				}
@@ -317,7 +317,7 @@ string sim_mob::ShortTermBoundaryProcessor::checkBoundaryAgents(BoundaryProcessi
 			vector<Agent const*>::iterator agent_pointer;
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); ++agent_pointer)
 			{
-				if ((*agent_pointer)->isFake || (*agent_pointer)->isToBeRemoved())
+				if ((*agent_pointer)->isFake || (*agent_pointer)->toRemoved)
 					continue;
 
 				if ((getAgentTypeForSerialization(*agent_pointer) != DRIVER_TYPE) && (getAgentTypeForSerialization(*agent_pointer) != PEDESTRIAN_TYPE))

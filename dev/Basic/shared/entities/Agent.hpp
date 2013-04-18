@@ -298,6 +298,9 @@ public:
 
 	friend class ShortTermBoundaryProcessor;
 
+	/**
+	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
+	 */
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	/**

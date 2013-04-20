@@ -6,17 +6,6 @@
 using std::vector;
 using namespace sim_mob;
 
-//Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_waitbusactivity_start::operator()(const WaitBusActivityRole* x, const WaitBusActivityRole* y) const {
-	//TODO: Not sure what to do in this case...
-	if ((!x) || (!y)) {
-		return 0;
-	}
-
-	//We want a lower start time to translate into a higher priority.
-	return x->getTimeOfReachingBusStop() > y->getTimeOfReachingBusStop();
-}
-
 BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 {
  	 std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
@@ -48,7 +37,7 @@ Role* sim_mob::WaitBusActivityRole::clone(Person* parent) const
 }
 
 void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
-	sim_mob::BusStop* busStop = setBusStopPos(parent->originNode);
+	sim_mob::BusStop* busStop = setBusStopPos(parent->destNode);
 	busStopAgent = busStop->generatedBusStopAgent;
 	parent->xPos.set(busStop->xPos);
 	parent->yPos.set(busStop->yPos);
@@ -63,6 +52,10 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 		if(boarding_Time <= 0) {
 			parent->setToBeRemoved();
 			boarding_Time = 0;
+			Person* person = dynamic_cast<Person*> (parent);
+			if(person) {
+				person->setTempRoleFlag(false);
+			}
 		}
 	}
 //	updateRemainingTime();

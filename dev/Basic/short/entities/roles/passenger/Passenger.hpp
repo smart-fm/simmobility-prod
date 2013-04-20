@@ -3,7 +3,7 @@
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
-#include "../short/entities/roles/driver/BusDriver.hpp"
+#include "../driver/BusDriver.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
 namespace sim_mob

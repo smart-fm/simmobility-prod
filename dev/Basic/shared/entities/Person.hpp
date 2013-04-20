@@ -66,6 +66,10 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
+    void setTempRoleFlag(bool bFlag);// just temp role inserted
+    bool getTempRoleFlag() const;
+    void setTempRole(sim_mob::Role* newRole);
+    sim_mob::Role* getTempRole() const;
     bool updatePersonRole();
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
@@ -130,6 +134,8 @@ private:
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
+    sim_mob::Role* tempRole;
+    bool tempRoleFlag;
 
     //Can be helpful for debugging
     std::string agentSrc;

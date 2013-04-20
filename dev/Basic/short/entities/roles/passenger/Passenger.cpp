@@ -56,6 +56,12 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
    DestBusStop=setBusStopXY(parent->destNode);
    TimeOfReachingBusStop=p.now.ms();
    FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
+//   Person* person = dynamic_cast<Person*> (parent);
+//   if(person && (!busdriver.get())) {
+//	   const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+//	   sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
+//	   person->setTempRole(newRole);
+//   }
 }
 
 UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)

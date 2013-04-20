@@ -83,8 +83,8 @@ public:
 	double getPositionX() const;
 	double getPositionY() const;
 
-	double getWaitTime_BusStop() { return BUS_STOP_WAIT_PASSENGER_TIME_SEC; }
-	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_PASSENGER_TIME_SEC = time; }// mainly for BusController Holding
+	double getWaitTime_BusStop() { return BUS_STOP_HOLDING_TIME_SEC; }
+	void setWaitTime_BusStop(double time) { BUS_STOP_HOLDING_TIME_SEC = time; }// mainly for BusController Holding
 	Vehicle* initializePath_bus(bool allocateVehicle);
 	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
 		return last_busStopRealTimes;
@@ -125,15 +125,10 @@ protected:
 
 //Basic data
 private:
-	BusDriver * me;
-	const DemoBusStop* nextStop;
-	int tick;
-	std::vector<DemoBusStop> stops;
 	std::vector<const BusStop*> busStops;
-	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	double BUS_STOP_WAIT_PASSENGER_TIME_SEC;
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING;
+	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
+	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime
 
 	//Serialization, not implemented
 #ifndef SIMMOB_DISABLE_MPI

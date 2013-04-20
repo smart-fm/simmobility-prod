@@ -7,8 +7,6 @@
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "../short/entities/roles/passenger/Passenger.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
@@ -81,11 +79,12 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
+	prevRole(nullptr), currRole(nullptr), tempRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
     databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
+	tempRoleFlag = false;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
@@ -227,20 +226,20 @@ bool sim_mob::Person::frame_init(timeslice now)
 		throw std::runtime_error(txt.str());
 	}
 
-	if(currRole->getRoleName() == "passenger") {
-		Passenger* passenger = dynamic_cast<Passenger*> (currRole);
-		if(!passenger->busdriver.get()) {
-			safe_delete_item(prevRole);
-			const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-			prevRole = currRole;
-			sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", this);// if it is a passenger role, just change to waitBusActivity role
-	//		WaitBusActivity* waitbusactivity = dynamic_cast<WaitBusActivity*> (newRole);
-	//		if(waitbusactivity) {
-	//			waitbusactivity->roleFlag = prevRole;
-	//		}
-			changeRole(newRole);
-		}
-	}
+//	if(currRole->getRoleName() == "passenger") {
+//		Passenger* passenger = dynamic_cast<Passenger*> (currRole);
+//		if(!passenger->busdriver.get()) {
+//			safe_delete_item(prevRole);
+//			const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+//			prevRole = currRole;
+//			sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", this);// if it is a passenger role, just change to waitBusActivity role
+//	//		WaitBusActivity* waitbusactivity = dynamic_cast<WaitBusActivity*> (newRole);
+//	//		if(waitbusactivity) {
+//	//			waitbusactivity->roleFlag = prevRole;
+//	//		}
+//			changeRole(newRole);
+//		}
+//	}
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
@@ -265,7 +264,12 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->frame_tick(*curr_params);
+		if(tempRoleFlag) {
+			tempRole->frame_tick(*curr_params);
+		} else {
+			safe_delete_item(tempRole);
+			currRole->frame_tick(*curr_params);
+		}
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -277,20 +281,28 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved()) {
-		retVal = checkTripChain(now.ms());
+		if(tempRoleFlag) {// tempRole update
+//			curr_params = &tempRole->make_frame_tick_params(now);
+//			tempRole->frame_tick(*curr_params);
+			//resetFrameInit();
+			clearToBeRemoved();
+		} else {
+			safe_delete_item(tempRole);
+			retVal = checkTripChain(now.ms());
 
-		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
+			setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
 
-		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-		//since start time of the activity is usually later than what is configured initially,
-		//we have to make adjustments so that it waits for exact amount of time
-		if(currTripChainItem != tripChain.end()) {
-			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
-				ap->initializeRemainingTime();
+			//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+			//since start time of the activity is usually later than what is configured initially,
+			//we have to make adjustments so that it waits for exact amount of time
+			if(currTripChainItem != tripChain.end()) {
+				if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
+					ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
+					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
+					ap->initializeRemainingTime();
+				}
 			}
 		}
 	}
@@ -529,4 +541,22 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
+}
+
+void sim_mob::Person::setTempRoleFlag(bool bFlag)
+{
+	tempRoleFlag = bFlag;
+}
+
+bool sim_mob::Person::getTempRoleFlag() const {
+	return tempRoleFlag;
+}
+
+void sim_mob::Person::setTempRole(sim_mob::Role* newRole)
+{
+	tempRole = newRole;
+}
+
+sim_mob::Role* sim_mob::Person::getTempRole() const {
+	return tempRole;
 }

@@ -91,6 +91,7 @@ sim_mob::Pedestrian2::Pedestrian2(Agent* parent, std::string roleName) : Role(pa
 
 	xCollisionVector = 0;
 	yCollisionVector = 0;
+	isAtBusstop = true;
 }
 
 //Note that a destructor is not technically needed, but I want to enforce the idea
@@ -156,6 +157,15 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 		else
 		{
 			parent->setToBeRemoved();
+			Person* person = dynamic_cast<Person*> (parent);
+			if(person && isAtBusstop) { // it is at the busstop
+				const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+				sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
+				person->setTempRole(newRole);// set WaitBusActivityRole to TempRole
+				newRole->frame_init(p);
+				person->setTempRoleFlag(true);
+				isAtBusstop = false;
+			}
 		}
 	}
 
@@ -377,5 +387,6 @@ void sim_mob::Pedestrian2::checkForCollisions() {
 		yCollisionVector = -dy * collisionForce;
 	}
 }
+
 
 

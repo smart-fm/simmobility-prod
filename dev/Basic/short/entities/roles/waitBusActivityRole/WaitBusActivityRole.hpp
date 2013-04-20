@@ -18,21 +18,11 @@ class BusStopAgent;
 class Passenger;
 class PackageUtils;
 class UnPackageUtils;
-class WaitBusActivityRole;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
 #endif
-
-//Comparison for our priority queue
-struct cmp_waitbusactivity_start : public std::less<WaitBusActivityRole*> {
-  bool operator() (const WaitBusActivityRole* x, const WaitBusActivityRole* y) const;
-};
-
-//C++ static constructors...
-class TimeOfReachingBusStopPriorityQueue : public std::priority_queue<WaitBusActivityRole*, std::vector<WaitBusActivityRole*>, cmp_waitbusactivity_start> {
-};
 
 //Helper struct
 struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
@@ -77,6 +67,7 @@ public:
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopPos(const Node* node);
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
+	void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 	std::string getBuslineID() { return buslineid; }
 
 //public:
@@ -98,5 +89,16 @@ private:
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 
+};
+
+struct less_than_TimeOfReachingBusStop {
+	inline bool operator() (const WaitBusActivityRole* wbaRole1, const WaitBusActivityRole* wbaRole2)
+	{
+		if ((!wbaRole1) || (!wbaRole2)) {
+			return 0;
+		}
+
+		return (wbaRole1->getTimeOfReachingBusStop() < wbaRole2->getTimeOfReachingBusStop());
+	}
 };
 }

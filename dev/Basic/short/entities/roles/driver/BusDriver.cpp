@@ -34,10 +34,10 @@ namespace {
 }//End anonymous namespace
 
 
-sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1), lastTickDistanceToBusStop(-1), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0), lastVisited_Busline(mtxStrat, "0"), lastVisited_BusTrip_SequenceNo(mtxStrat, 0), lastVisited_BusStop(mtxStrat, nullptr), lastVisited_BusStopSequenceNum(mtxStrat, 0), real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0), busstop_sequence_no(mtxStrat, 0), first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
+sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(parent, mtxStrat), waitAtStopMS(-1), lastTickDistanceToBusStop(-1), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0), lastVisited_Busline(mtxStrat, "0"), lastVisited_BusTrip_SequenceNo(mtxStrat, 0), lastVisited_BusStop(mtxStrat, nullptr), lastVisited_BusStopSequenceNum(mtxStrat, 0), real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0), busstop_sequence_no(mtxStrat, 0), first_busstop(true), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0)
 {
-	BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
-	BUS_STOP_WAIT_BOARDING_ALIGHTING = 2;
+	BUS_STOP_HOLDING_TIME_SEC = 2;
+	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;
 	dwellTime_record = 0;
 	passengerCountOld_display_flag = false;
 	last_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
@@ -300,14 +300,14 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 	}
 
 
-	if (isBusArriveBusStop() && (waitAtStopMS >= 0)&& (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
+	if (isBusArriveBusStop() && (waitAtStopMS >= 0)&& (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC)) {
 
 //		if ((vehicle->getVelocity()/100) > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity()/100 < 1)
 			vehicle->setVelocity(0);
 
-		if ((vehicle->getVelocity()/100 < 0.1) && (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
+		if ((vehicle->getVelocity()/100 < 0.1) && (waitAtStopMS < BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC)) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
 
 			//Pick up a semi-random number of passengers
@@ -379,11 +379,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		}
 	}
 	if (isBusLeavingBusStop()
-			|| (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING)) {
+			|| (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC)) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 				<< std::endl;
 		waitAtStopMS = -1;
-		BUS_STOP_WAIT_BOARDING_ALIGHTING = 2;// reset when leaving bus stop
+		BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;// reset when leaving bus stop
 		vehicle->setAcceleration(busAccelerating(p) * 100);
 	}
 
@@ -791,50 +791,50 @@ void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
 
 void sim_mob::BusDriver::BoardingPassengers_New(Bus* bus)
 {
-	uint32_t curr_frame = params.now.frame();
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
-	Person* person = dynamic_cast<Person*>(parent);
-	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-	if(!allowboarding_flag) {
-		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
-			const Busline* busline = bustrip->getBusline();
-			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
-			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
-			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
-				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
-				if(busOccupancy >= 1) {// then allow boarding
-					WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
-					Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
-					std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
-					waitbusActivityRole->boarding_Time = 5000;// each person 5000ms boarding time, from agent characteristics
-					BUS_STOP_WAIT_BOARDING_ALIGHTING = 5;
-					boarding_frame = curr_frame + 50;
-					allowboarding_flag = true;
-				}
-			}
-		}
-	}
-	if((boarding_frame == curr_frame) && allowboarding_flag) {// enable range: curr_frame - boarding_frame < = 10; 1s cache range time
-		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
-			const Busline* busline = bustrip->getBusline();
-			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
-			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
-			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
-				WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
-				Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
-				sim_mob::Role* newRole = rf.createRole("passenger", p);
-				p->changeRole(newRole);
-		 		bus->passengers_inside_bus.push_back(p);
-		 		bus->setPassengerCount(bus->getPassengerCount()+1);
-		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
-		 		waitBusActivityRole_Queue->pop();
-		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
-				allowboarding_flag = false;// reset after individual boarding finished
-				boarding_frame = 0;// reset after individual boarding finished
-			}
-		}
-	}
+//	uint32_t curr_frame = params.now.frame();
+//	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+//	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
+//	Person* person = dynamic_cast<Person*>(parent);
+//	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+//	if(!allowboarding_flag) {
+//		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
+//			const Busline* busline = bustrip->getBusline();
+//			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+//			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
+//			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
+//				int busOccupancy = bus->getBusCapacity() - bus->getPassengerCount();// indicate how many passengers need to take
+//				if(busOccupancy >= 1) {// then allow boarding
+//					WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
+//					Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
+//					std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
+//					waitbusActivityRole->boarding_Time = 5000;// each person 5000ms boarding time, from agent characteristics
+//					BUS_STOP_WAIT_BOARDING_ALIGHTING = 5;
+//					boarding_frame = curr_frame + 50;
+//					allowboarding_flag = true;
+//				}
+//			}
+//		}
+//	}
+//	if((boarding_frame == curr_frame) && allowboarding_flag) {// enable range: curr_frame - boarding_frame < = 10; 1s cache range time
+//		if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
+//			const Busline* busline = bustrip->getBusline();
+//			map<std::string, TimeOfReachingBusStopPriorityQueue*>::const_iterator buslineid_queueIt = busstopAgent->getBuslineID_WaitBusActivitiesMap().find(busline->getBusLineID());// find the WaitBusActivityQueue at this BusStopAgent for the passenger boarding
+//			TimeOfReachingBusStopPriorityQueue* waitBusActivityRole_Queue = (buslineid_queueIt==busstopAgent->getBuslineID_WaitBusActivitiesMap().end()) ? nullptr : buslineid_queueIt->second;
+//			if(waitBusActivityRole_Queue && (!waitBusActivityRole_Queue->empty())) {
+//				WaitBusActivityRole* waitbusActivityRole = waitBusActivityRole_Queue->top();
+//				Person* p = dynamic_cast<Person*>(waitbusActivityRole->getParent());
+//				sim_mob::Role* newRole = rf.createRole("passenger", p);
+//				p->changeRole(newRole);
+//		 		bus->passengers_inside_bus.push_back(p);
+//		 		bus->setPassengerCount(bus->getPassengerCount()+1);
+//		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
+//		 		waitBusActivityRole_Queue->pop();
+//		 		std::cout << "waitBusActivityRole_Queue size: " << waitBusActivityRole_Queue->size() << std::endl;
+//				allowboarding_flag = false;// reset after individual boarding finished
+//				boarding_frame = 0;// reset after individual boarding finished
+//			}
+//		}
+//	}
 }
 
 void sim_mob::BusDriver::AlightingPassengers_New(Bus* bus)

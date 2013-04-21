@@ -50,7 +50,8 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
-	std::vector<sim_mob::Person*> & getAlighted_Persons() { return alighted_Persons; }
+	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }
+	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
 	//void registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role);// for WaitBusActivity role
 
 	virtual ~BusStopAgent(){}

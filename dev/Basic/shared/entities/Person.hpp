@@ -108,6 +108,9 @@ public:
 	void setDatabaseId(const std::string& databaseId) {
 		databaseID = databaseId;
 	}
+	void setPersonCharacteristics();
+	double getBoardingCharacteristics() { return BOARDING_TIME_SEC; }
+	double getAlightingCharacteristics() { return ALIGTHING_TIME_SEC; }
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
@@ -151,6 +154,9 @@ private:
     friend class BoundaryProcessor;
 
     std::string databaseID;
+    unsigned int age;
+    double BOARDING_TIME_SEC;
+    double ALIGTHING_TIME_SEC;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

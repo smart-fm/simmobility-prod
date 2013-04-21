@@ -223,6 +223,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		TripChainItem* tc = it_map->second.front();
 
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		person->setPersonCharacteristics();
 		addOrStashEntity(person, active_agents, pending_agents);
 		//Reset for the next (possible) Agent
 		person = nullptr;

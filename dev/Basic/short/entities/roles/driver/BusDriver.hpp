@@ -115,10 +115,12 @@ public:
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
 
+
 	uint32_t boarding_frame;// to record the boarding_frame for each individual person
 	uint32_t alighting_frame;// to record the alighting_frame for each individual person
 	bool allowboarding_flag;// flag to advance the frame
 	bool allowalighting_flag;// flag to advance the frame
+	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);

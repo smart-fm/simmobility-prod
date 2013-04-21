@@ -85,6 +85,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 	tripchainInitialized = false;
 	laneID = -1;
 	tempRoleFlag = false;
+	age = 0;
+	BOARDING_TIME_SEC = 0;
+	ALIGTHING_TIME_SEC = 0;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
@@ -96,6 +99,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	agentSrc = src;
 	tripChain = tcs;
 	tripchainInitialized = false;
+	age = 0;
+	BOARDING_TIME_SEC = 0;
+	ALIGTHING_TIME_SEC = 0;
 	initTripChain();
 }
 
@@ -559,4 +565,52 @@ void sim_mob::Person::setTempRole(sim_mob::Role* newRole)
 
 sim_mob::Role* sim_mob::Person::getTempRole() const {
 	return tempRole;
+}
+
+void sim_mob::Person::setPersonCharacteristics()
+{
+	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));
+	boost::uniform_int<> ageRange(20, 60);
+	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAge(gen, ageRange);
+	age = (unsigned int)varAge();
+	if(age >= 20 && age < 30)
+	{
+		boost::uniform_int<> BoardingTime(5, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(5, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >=30 && age < 40)
+	{
+		boost::uniform_int<> BoardingTime(6, 11);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(6, 11);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 40 && age < 50)
+	{
+		boost::uniform_int<> BoardingTime(8, 13);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(8, 13);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 50 && age <= 60)
+	{
+		boost::uniform_int<> BoardingTime(10, 15);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(10, 15);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
 }

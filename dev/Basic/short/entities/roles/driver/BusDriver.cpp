@@ -925,6 +925,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 					}
 					boarding_frames.push_back(boarding_frame);
 					virtualBoarding_Persons.push_back(p);// push this person in the virtual queue,
+					std::cout << "BoardingNum_Pos[j]: " << BoardingNum_Pos[j] << std::endl;
 					boarding_waitBusActivities.erase(boarding_waitBusActivities.begin() + BoardingNum_Pos[j]);//  erase this Person in the BusStopAgent
 					std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
 				}
@@ -937,7 +938,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		} else {
 			last_frame = last_alighting_frame;
 		}
-		BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (int)((last_frame - first_frame) * 0.1f);// set the dwelltime for output
+		BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_frame - first_frame) * 0.1f);// set the dwelltime for output
 		return;
 	}
 	if(allow_boarding_alighting_flag)

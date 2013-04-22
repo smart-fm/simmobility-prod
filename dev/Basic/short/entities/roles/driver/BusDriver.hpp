@@ -84,8 +84,8 @@ public:
 	double getPositionX() const;
 	double getPositionY() const;
 
-	double getWaitTime_BusStop() { return BUS_STOP_HOLDING_TIME_SEC; }
-	void setWaitTime_BusStop(double time) { BUS_STOP_HOLDING_TIME_SEC = time; }// mainly for BusController Holding
+	double getWaitTime_BusStop() { return BUS_STOP_WAIT_TIME; }
+	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_TIME = time; }// total waiting time at the BusSTop
 	Vehicle* initializePath_bus(bool allocateVehicle);
 	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
 		return last_busStopRealTimes;
@@ -123,6 +123,10 @@ public:
 	std::map<int, int> AlightingNum_Pos;
 	std::vector<uint32_t> boarding_frames;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
 	std::vector<uint32_t> alighting_frames;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
+	uint32_t first_frame;// the first frame and bus will start boarding and alighting
+	uint32_t last_frame;// the last frame and bus will leaves the BusStop
+	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
+	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime
 
 protected:
 	//Override the following behavior
@@ -132,8 +136,7 @@ protected:
 private:
 	std::vector<const BusStop*> busStops;
 	double waitAtStopMS;
-	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime
+	double BUS_STOP_WAIT_TIME;// total waiting time
 
 	//Serialization, not implemented
 #ifndef SIMMOB_DISABLE_MPI

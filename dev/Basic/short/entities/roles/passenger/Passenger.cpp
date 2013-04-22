@@ -37,12 +37,16 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 }
 void sim_mob::Passenger::setParentBufferedData()
 {
-	//if passenger inside bus,update position of the passenger agent(inside bus)every frame tick
-	if((isAtBusStop()==false)and(this->busdriver.get()!=NULL))
+//	//if passenger inside bus,update position of the passenger agent(inside bus)every frame tick
+//	if((isAtBusStop()==false)and(this->busdriver.get()!=NULL))
+//	{
+//		//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
+//		parent->xPos.set(this->busdriver.get()->getPositionX());
+//		parent->yPos.set(this->busdriver.get()->getPositionY());
+//	}
+	if(busdriver.get()!=nullptr)
 	{
-		//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
-		parent->xPos.set(this->busdriver.get()->getPositionX());
-		parent->yPos.set(this->busdriver.get()->getPositionY());
+
 	}
 }
 

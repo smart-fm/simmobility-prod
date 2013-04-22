@@ -73,7 +73,7 @@ public:
 //public:
 //	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
 public:
-	int boarding_Time;// to record the boarding_frame for each individual person
+	int boarding_Frame;// to record the boarding_frame for each individual person
 
 private:
 	int remainingTime;

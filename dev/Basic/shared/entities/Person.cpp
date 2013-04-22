@@ -563,6 +563,22 @@ bool sim_mob::Person::deleteATripChainItem(TripChainItem* del)
 		tripChain.erase(itfinder);
 		ret = true;
 	}
+	else if((dynamic_cast<SubTrip*>(del)))
+	{
+		std::vector<TripChainItem*>::iterator itfinder = currTripChainItem;
+		for(itfinder++; itfinder!=tripChain.end(); itfinder++)
+		{
+			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW();
+			SubTrip temp = *(dynamic_cast<SubTrip*>(del));
+			std::vector<SubTrip>::iterator itfinder2 = std::find(subtrip.begin(), subtrip.end(), temp);
+			if(itfinder2!=subtrip.end())
+			{
+				subtrip.erase(itfinder2);
+				ret = true;
+				break;
+			}
+		}
+	}
 	return ret;
 }
 

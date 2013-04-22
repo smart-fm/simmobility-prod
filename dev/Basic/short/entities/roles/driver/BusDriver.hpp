@@ -63,7 +63,8 @@ public:
 	///if the bus goes to the destination passenger decides to board
 	void BoardingPassengers_Normal(Bus* bus);
 	// new boarding method
-	void BoardingPassengers_New(Bus* bus);// Yao Jin
+	void IndividualBoardingAlighting_New(Bus* bus);// Yao Jin
+	void resetBoardingAlightingVariables();// reset after leaving the BusStop, Yao Jin
 	void AlightingPassengers_New(Bus* bus);// Yao Jin
 
     void AlightingPassengers(Bus* bus);
@@ -117,11 +118,12 @@ public:
 
 
 	bool allow_boarding_alighting_flag;// flag to advance the frame
-	bool allowalighting_flag;// flag to advance the frame
 	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
 	std::map<int, int> BoardingNum_Pos;
+	std::map<int, int> AlightingNum_Pos;
 	std::vector<uint32_t> boarding_frames;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
 	std::vector<uint32_t> alighting_frames;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
+
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);

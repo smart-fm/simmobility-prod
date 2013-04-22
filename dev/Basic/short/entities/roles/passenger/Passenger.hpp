@@ -57,6 +57,8 @@ public:
 	bool isDestBusStopReached();
 	Point2D getXYPosition();
 	Point2D getDestPosition();
+	const BusStop* getOriginBusStop() { return OriginBusStop; }
+	const BusStop* getDestBusStop() { return DestBusStop; }
 
 	///NOTE: These boarding/alighting functions are called from BusDriver and used to transfer data.
 

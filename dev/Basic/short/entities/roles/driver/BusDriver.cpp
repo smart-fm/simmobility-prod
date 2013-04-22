@@ -369,12 +369,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				}
 				else if(mode == Role::REQUEST_STORE_ARRIVING_TIME ){
 					//setWaitTime_BusStop(DwellTime_ijk.get());
-					BUS_STOP_HOLDING_TIME_SEC = DwellTime_ijk.get()；
+					BUS_STOP_HOLDING_TIME_SEC = DwellTime_ijk.get();
 				}
 				else{
 					std::cout << "no request existed, something is wrong!!! " << std::endl;
 					//setWaitTime_BusStop(DwellTime_ijk.get());
-					BUS_STOP_HOLDING_TIME_SEC = DwellTime_ijk.get()；
+					BUS_STOP_HOLDING_TIME_SEC = DwellTime_ijk.get();
 				}
 				existed_Request_Mode.set( Role::REQUEST_NONE );
 				busStopRealTimes_vec_bus[busstop_sequence_no.get()]->set(last_busStopRealTimes->get());

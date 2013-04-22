@@ -205,63 +205,7 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 	}
 }
 
-void modifyTripChain(vector<TripChainItem*>& tripChain)
-{
-	std::vector<TripChainItem*>::iterator tripChainItem;
-	for(tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++ )
-	{
-		if((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP )
-		{
-			std::vector<SubTrip>::iterator subChainItem1, subChainItem2;
-			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
-			subChainItem1 = subtrip.begin();
-			subChainItem2 = subChainItem1++;
-			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
-			{
-				WayPoint source, destination;
-				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
-				{
-					BusStopFinder finder(subChainItem2->fromLocation.node_, subChainItem2->toLocation.node_);
-					if(finder.getSourceBusStop())
-					{
-						source = subChainItem1->toLocation;
-						destination = WayPoint(finder.getSourceBusStop());
-					}
-				}
-				else if((subChainItem2->mode=="Walk") && (subChainItem1->mode=="BusTravel"))
-				{
-					BusStopFinder finder(subChainItem1->fromLocation.node_, subChainItem1->toLocation.node_);
-					if(finder.getSourceBusStop())
-					{
-						source = WayPoint(finder.getDestinationBusStop());
-						destination = subChainItem2->fromLocation;
-					}
-				}
-				if(source.type_!=WayPoint::INVALID && destination.type_!=WayPoint::INVALID )
-				{
-					sim_mob::SubTrip subTrip;
-					subTrip.personID = -1;
-					subTrip.itemType = TripChainItem::getItemType("Trip");
-					subTrip.sequenceNumber = 1;
-					subTrip.startTime = subChainItem1->endTime;
-					subTrip.endTime = subChainItem1->endTime;
-					subTrip.fromLocation = source;
-					subTrip.fromLocationType = subChainItem1->fromLocationType;
-					subTrip.toLocation = destination;
-					subTrip.toLocationType = subChainItem2->toLocationType;
-					subTrip.tripID = "";
-					subTrip.mode = "Walk";
-					subTrip.isPrimaryMode = true;
-					subTrip.ptLineId = "";
 
-					subtrip.insert(subChainItem1, subTrip);
-					subChainItem1 = subChainItem2;
-					subChainItem2++;
-				}
-			}
-		}
-	}
-}
 
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
@@ -278,8 +222,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		std::cout << "id of tripchain item in this iteration is " << it_map->first << std::endl;
 		TripChainItem* tc = it_map->second.front();
-
-		modifyTripChain(it_map->second);
 
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
 		addOrStashEntity(person, active_agents, pending_agents);

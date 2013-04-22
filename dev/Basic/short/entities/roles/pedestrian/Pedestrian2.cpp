@@ -20,6 +20,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
+#include "geospatial/BusStop.hpp"
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
@@ -206,6 +207,7 @@ void sim_mob::Pedestrian2::frame_tick_output_mpi(timeslice now)
 
 void sim_mob::Pedestrian2::setSubPath() {
 	const StreetDirectory& stdir = StreetDirectory::instance();
+
 	StreetDirectory::VertexDesc source, destination;
 	if(parent->originNode.type_==WayPoint::NODE)
 		source = stdir.WalkingVertex(*parent->originNode.node_);
@@ -229,7 +231,7 @@ void sim_mob::Pedestrian2::setSubPath() {
 		} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
 			std::cout<<"  Road Segment: (not supported)" <<std::endl;
 		} else if (it->type_ == WayPoint::BUS_STOP) {
-			std::cout<<"  Bus Stop: (not supported)"<<std::endl;
+			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
 			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {

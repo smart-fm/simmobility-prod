@@ -14,6 +14,7 @@
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -94,6 +95,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	agentSrc = src;
 	tripChain = tcs;
 	tripchainInitialized = false;
+	simplyModifyTripChain(tcs);
 	initTripChain();
 }
 
@@ -418,6 +420,105 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	return trip->getSubTripsRW().begin();
 }
 
+void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripChain)
+{
+	std::vector<TripChainItem*>::iterator tripChainItem;
+	for(tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++ )
+	{
+		if((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP )
+		{
+			std::vector<SubTrip>::iterator subChainItem1, subChainItem2;
+			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
+			for(subChainItem1 = subtrip.begin();subChainItem1!=subtrip.end(); subChainItem1++)
+			{
+				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
+			}
+			subChainItem2 = subChainItem1 = subtrip.begin();
+			subChainItem2++;
+			vector<SubTrip> newsubchain;
+			newsubchain.push_back(*subChainItem1);
+			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
+			{
+				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
+				std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
+
+				WayPoint source, destination;
+				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
+				{
+					BusStopFinder finder(subChainItem2->fromLocation.node_, subChainItem2->toLocation.node_);
+					if(finder.getSourceBusStop())
+					{
+						source = subChainItem1->toLocation;
+						destination = WayPoint(finder.getSourceBusStop());
+					}
+				}
+				else if((subChainItem2->mode=="Walk") && (subChainItem1->mode=="BusTravel"))
+				{
+					BusStopFinder finder(subChainItem1->fromLocation.node_, subChainItem1->toLocation.node_);
+					if(finder.getSourceBusStop())
+					{
+						source = WayPoint(finder.getDestinationBusStop());
+						destination = subChainItem2->fromLocation;
+					}
+				}
+				if(source.type_!=WayPoint::INVALID && destination.type_!=WayPoint::INVALID )
+				{
+					sim_mob::SubTrip subTrip;
+					subTrip.personID = -1;
+					subTrip.itemType = TripChainItem::getItemType("Trip");
+					subTrip.sequenceNumber = 1;
+					subTrip.startTime = subChainItem1->endTime;
+					subTrip.endTime = subChainItem1->endTime;
+					subTrip.fromLocation = source;
+					subTrip.fromLocationType = subChainItem1->fromLocationType;
+					subTrip.toLocation = destination;
+					subTrip.toLocationType = subChainItem2->toLocationType;
+					subTrip.tripID = "";
+					subTrip.mode = "Walk";
+					subTrip.isPrimaryMode = true;
+					subTrip.ptLineId = "";
+
+					//subtrip.insert(subChainItem2, subTrip);
+
+					//if(destination.type_==WayPoint::BUS_STOP )
+					//	subChainItem2++;
+					//else if(source.type_==WayPoint::BUS_STOP)
+					//	subChainItem2->fromLocation = source;
+
+					if(destination.type_==WayPoint::BUS_STOP )
+						subChainItem1->toLocation = destination;
+					else if(source.type_==WayPoint::BUS_STOP)
+						subChainItem2->fromLocation = source;
+
+					newsubchain.push_back(subTrip);
+				}
+
+				newsubchain.push_back(*subChainItem2);
+				subChainItem1 = subChainItem2;
+				subChainItem2++;
+
+				if(subChainItem1==subtrip.end() || subChainItem2==subtrip.end())
+					break;
+			}
+
+			if(newsubchain.size()>2)
+			{
+				std::vector<SubTrip>::iterator subChainItem;
+				subtrip.clear();
+				for(subChainItem = newsubchain.begin();subChainItem!=newsubchain.end(); subChainItem++)
+				{
+					subtrip.push_back(*subChainItem);
+				}
+
+				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
+				{
+					std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
+				}
+			}
+		}
+	}
+}
+
 //only affect items after current trip chain item
 bool sim_mob::Person::insertATripChainItem(TripChainItem* before, TripChainItem* newone)
 {
@@ -505,12 +606,14 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 
 	bool res = false;
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
-//	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
+	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		//dont advance to next tripchainItem immidiately, check the subtrip first
 		res = advanceCurrentSubTrip();
+		std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
+
 	}
 
 	if(res) return res;

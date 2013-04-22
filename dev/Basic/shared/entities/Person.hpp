@@ -69,6 +69,9 @@ public:
     bool deleteATripChainItem(TripChainItem* del);
     bool replaceATripChainItem(TripChainItem* rep, TripChainItem* newone);
 
+    //modify trip chain so that a new item is inserted between walk and bus travel mode
+    void simplyModifyTripChain(std::vector<TripChainItem*>& tripChain);
+
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;

@@ -504,11 +504,11 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			if(newsubchain.size()>2)
 			{
 				std::vector<SubTrip>::iterator subChainItem;
-				subtrip.clear();
+				/*subtrip.clear();
 				for(subChainItem = newsubchain.begin();subChainItem!=newsubchain.end(); subChainItem++)
 				{
 					subtrip.push_back(*subChainItem);
-				}
+				}*/
 
 				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
 				{
@@ -628,6 +628,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	{
 		//dont advance to next tripchainItem immidiately, check the subtrip first
 		res = advanceCurrentSubTrip();
+		if(res)
 		std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
 
 	}

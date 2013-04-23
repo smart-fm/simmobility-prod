@@ -386,7 +386,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 		int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
@@ -658,7 +658,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		LoadBoundarySegments();
 	}
 #endif
@@ -1936,7 +1936,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().is_run_on_many_computers)
+	if (ConfigParams::GetInstance().using_MPI)
 	{
 		loader.TransferBoundaryRoadSegment();
 	}

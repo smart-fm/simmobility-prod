@@ -168,7 +168,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.initBoundaryTrafficItems();
 	}
@@ -177,7 +177,7 @@ bool performMainMed(const std::string& configFileName) {
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		partMgr = &PartitionManager::instance();
 	}
 
@@ -219,7 +219,7 @@ bool performMainMed(const std::string& configFileName) {
 	WorkGroup::StartAllWorkGroups();
 
 	//
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
@@ -281,7 +281,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
@@ -375,10 +375,10 @@ int main(int argc, char* argv[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
-	config.is_run_on_many_computers = false;
+	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
-		config.is_run_on_many_computers = true;
+		config.using_MPI = true;
 	}
 #endif
 
@@ -388,10 +388,10 @@ int main(int argc, char* argv[])
 	config.is_simulation_repeatable = true;
 
 	/**
-	 * Start MPI if is_run_on_many_computers is true
+	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);

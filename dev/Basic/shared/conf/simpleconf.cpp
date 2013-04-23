@@ -23,6 +23,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
 #include "entities/signal/Signal.hpp"
+#include "password/password.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -492,9 +493,11 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		if (!name || !value) {
 			return false;
 		}
+		if(strcmp(name,"password") == 0) continue;
 		string pair = (connectionString.empty()?"":" ") + string(name) + "=" + string(value);
 		connectionString += pair;
 	}
+	connectionString += (connectionString.empty()?"":" ") + string("password = ") + sim_mob::simple_password::load(string());
 
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();
@@ -1882,7 +1885,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
-    	if (config.is_run_on_many_computers) {
+    	if (config.using_MPI) {
 			sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 			std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
 

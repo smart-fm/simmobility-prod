@@ -63,6 +63,7 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 #include "util/PerformanceProfile.hpp"
 
@@ -147,7 +148,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
-		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+		//cannot allocate an object of abstract type
+//		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
 	}
 
@@ -184,14 +186,14 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 	//Start boundaries
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager::instance().initBoundaryTrafficItems();
 	}
 
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		partMgr = &PartitionManager::instance();
 	}
 
@@ -297,7 +299,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup::StartAllWorkGroups();
 
 	//
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
@@ -391,7 +393,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}
 
 	//Finalize partition manager
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
@@ -541,10 +543,10 @@ int main(int argc, char* argv[])
 	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
-	config.is_run_on_many_computers = false;
+	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
-		config.is_run_on_many_computers = true;
+		config.using_MPI = true;
 	}
 #endif
 
@@ -555,10 +557,10 @@ int main(int argc, char* argv[])
 	config.is_simulation_repeatable = true;
 
 	/**
-	 * Start MPI if is_run_on_many_computers is true
+	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
@@ -567,6 +569,9 @@ int main(int argc, char* argv[])
 			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
+
+		ShortTermBoundaryProcessor* boundary_processor = new ShortTermBoundaryProcessor();
+		partitionImpl.setBoundaryProcessor(boundary_processor);
 	}
 #endif
 

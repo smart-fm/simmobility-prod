@@ -10,6 +10,7 @@
 #include "CommunicationManager.hpp"
 #include "ControlManager.hpp"
 #include "tcp_server.hpp"
+#include <iostream>
 
 using boost::asio::ip::tcp;
 using namespace sim_mob;

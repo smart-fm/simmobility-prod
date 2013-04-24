@@ -65,6 +65,8 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
 				if(passenger) {
 					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+					passenger->BoardedBus.set(true);
+					passenger->AlightedBus.set(false);
 				}
 				//person->findPersonNextRole();
 			}

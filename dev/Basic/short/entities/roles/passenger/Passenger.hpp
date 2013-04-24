@@ -97,13 +97,15 @@ public:
 #endif
 
 public:
+	int alighting_Frame;// to record the alighting_frame for each individual person
 	sim_mob::Shared<BusDriver*> busdriver;///passenger should have info about the driver
+	sim_mob::Shared<bool> BoardedBus;
+	sim_mob::Shared<bool> AlightedBus;
 private:
 	PassengerUpdateParams params;
 	BusStop* OriginBusStop;///busstop passenger is starting the trip from
     BusStop* DestBusStop;///busstop passenger is ending the trip
-	sim_mob::Shared<bool> BoardedBus;
-	sim_mob::Shared<bool> AlightedBus;
+
 	std::vector<Busline*> BuslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
 	double WaitingTime;
 	double TimeOfReachingBusStop;

@@ -936,7 +936,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		}
 
 
-		if(virtualBoarding_Persons.empty()) {
+		if(boarding_frames.empty() && alighting_frames.empty()) {
 			//allow_boarding_alighting_flag = false;
 			resetBoardingAlightingVariables();
 			return;

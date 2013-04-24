@@ -33,7 +33,7 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 	 busdriver(mtxStrat,nullptr), displayX(0), displayY(0),skip(0),
 	WaitingTime(-1), TimeOfReachingBusStop(0), params(parent->getGenerator())
 {
-
+	alighting_Frame = 0;
 }
 void sim_mob::Passenger::setParentBufferedData()
 {

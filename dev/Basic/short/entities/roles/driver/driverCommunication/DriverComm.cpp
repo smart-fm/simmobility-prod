@@ -1,7 +1,7 @@
 
 #include "DriverComm.hpp"
 #include "entities/Person.hpp"
-#include "entities/communicator/Communicator.hpp"
+#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 
 namespace sim_mob
 {

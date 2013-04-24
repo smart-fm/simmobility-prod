@@ -121,6 +121,7 @@ private:
 	bool findNextTripChainItem();
 	bool findNextSubTrip();
 	std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
+	bool findNextPersonRole();
 
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.

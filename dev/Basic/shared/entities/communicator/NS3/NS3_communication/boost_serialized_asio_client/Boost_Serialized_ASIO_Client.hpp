@@ -11,10 +11,10 @@
 #include <sstream>
 #include <vector>
 //todo reduce the includes
-#include "../Communication_Base.hpp"
+#include "../../../Communication_Base.hpp"
 #include "entities/Agent.hpp"
 #include <boost/thread.hpp>
-#include "../serialized_asio/connection.hpp"
+#include "connection.hpp"
 
 namespace sim_mob {
 

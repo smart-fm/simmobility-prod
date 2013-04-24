@@ -24,7 +24,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "entities/communicator/Communicator.hpp"
+#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"

@@ -1,5 +1,5 @@
 #include "CommunicationSupport.hpp"
-#include "Communicator.hpp"
+#include "NS3/NS3_Communicator/NS3_Communicator.hpp"
 
 
 using namespace sim_mob;

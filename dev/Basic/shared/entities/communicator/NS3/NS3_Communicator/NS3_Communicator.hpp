@@ -1,5 +1,5 @@
 #pragma once
-#include "Communication.hpp"
+#include "../../../communicator/Communication.hpp"
 #include "entities/Agent.hpp"
 /*******************************************************************************************
  *

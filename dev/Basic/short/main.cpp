@@ -31,7 +31,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/communicator/Communicator.hpp"
+#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 
 
 #include "conf/simpleconf.hpp"

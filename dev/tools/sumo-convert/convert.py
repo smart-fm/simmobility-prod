@@ -13,6 +13,37 @@ from lxml import etree
 #Note that this program runs about 10x faster on Python3 for some reason
 
 
+#Helper class for UTM scaling
+class ScaleHelper:
+  def __init__(self):
+    self.bounds = [None, None, None, None] #minX,minY,maxX,maxY
+    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
+
+  #Add a point to the bounds
+  def add_point(self, pt):
+    self.bounds[0] = min(x for x in [pt.x, self.bounds[0]] if x is not None)
+    self.bounds[1] = min(y for y in [pt.y, self.bounds[1]] if y is not None)
+    self.bounds[2] = max(x for x in [pt.x, self.bounds[2]] if x is not None)
+    self.bounds[3] = max(y for y in [pt.y, self.bounds[3]] if y is not None)
+
+  #Convert a point to lat/long
+  def convert(self, pt):
+    from LatLongUTMconversion import UTMtoLL
+
+    #Convert this point to an offset "relative" to the center of the bounds, then add this to our UTM center.
+    offset = Point(self.bounds[0]+(self.bounds[2]-self.bounds[0])/2,self.bounds[1]+(self.bounds[3]-self.bounds[1])/2)
+    newPt = Point(self.center.x+(pt.x-offset.x), self.center.y+(pt.y-offset.y))
+
+    #Finally, convert back to lat/lng
+    return UTMtoLL(23, newPt.y, newPt.x, '48N')
+
+  #Get the minimum/maximum points
+  def min_pt(self):
+    return Point(self.bounds[0], self.bounds[1])
+  def max_pt(self):
+    return Point(self.bounds[2], self.bounds[3])
+
+
 #Our container class
 class RoadNetwork:
   def __init__(self):
@@ -289,7 +320,7 @@ def project_coords(wgsRev, utmZone, lat, lon):
   #Now, perform the projection. Make sure our result matches our expectations.
   (resZone, x, y) = LLtoUTM(23, lat, lon)
   if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
-    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (utmZone, resZone))
+    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,utmZone))
 
   #All is good; return a Point
   return Point(x,y)
@@ -530,33 +561,29 @@ def make_lane_edges(rn):
         currEnd.rotateRight().scaleVectTo(halfW).translate()
         e.lane_edges.append(LaneEdge([currStart.getPos(), currEnd.getPos()]))
 
-
-def update_min_max(minMaxLat, minMaxLng, pos):
-  from LatLongUTMconversion import UTMtoLL
-  (lat, lng) = UTMtoLL(23, pos.x, pos.y, '48N')
-  minMaxLat[0] = min(x for x in [lat, minMaxLat[0]] if x is not None)
-  minMaxLat[1] = max(x for x in [lat, minMaxLat[0]] if x is not None)
-  minMaxLng[0] = min(x for x in [lng, minMaxLng[0]] if x is not None)
-  minMaxLng[1] = max(x for x in [lng, minMaxLng[0]] if x is not None)
-
-
 def print_osm_format(rn):
   #Open, start writing
   f = open('out.osm', 'w')
   f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
   f.write('<osm version="0.6" generator="convert.py" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">\n')
 
-  #Figure out the min/max lat/long
-  minMaxLat = [None, None]
-  minMaxLng = [None, None]
+  #Here's where it gets tricky: a randomized SUMO network may not be centered on Singapore,
+  #  so we have to scale/translate it. We accomplish this by centering the map on the UTM 48N box.
+  helper = ScaleHelper()
+
+  #Figure out the bounds
   for n in rn.nodes.values():
-    update_min_max(minMaxLat, minMaxLng, n.pos)
+    helper.add_point(n.pos)
   for lk in rn.links.values():
     for e in lk.segments:
       for l in e.lane_edges:
         for pos in l.points:
-          update_min_max(minMaxLat, minMaxLng, pos)
-  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (minMaxLat[0], minMaxLng[0], minMaxLat[1], minMaxLng[1]))
+          helper.add_point(pos)
+
+  #Now we can just use the helper as-is
+  (minlat,minlng) = helper.convert(helper.min_pt())
+  (maxlat,maxlng) = helper.convert(helper.max_pt())
+  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (minlat, minlng, maxlat, maxlng))
 
   #Nodes
 #  for n in rn.nodes.values():

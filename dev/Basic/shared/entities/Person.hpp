@@ -74,6 +74,9 @@ public:
     sim_mob::Role* getNextRole() const;
     bool updatePersonRole(sim_mob::Role* newRole = 0);
     bool findPersonNextRole();
+
+	bool updateNextTripChainItem();
+	bool updateNextSubTrip();
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
@@ -138,8 +141,6 @@ private:
 
 	bool advanceCurrentTripChainItem();
 	bool advanceCurrentSubTrip();
-	bool updateNextTripChainItem();
-	bool updateNextSubTrip();
 	std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
 
     //Properties

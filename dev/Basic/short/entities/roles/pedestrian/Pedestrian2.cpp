@@ -156,15 +156,20 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
-			parent->setToBeRemoved();
 			Person* person = dynamic_cast<Person*> (parent);
-			if(person && isAtBusstop) { // it is at the busstop
+			if(person && isAtBusstop) { // it is at the busstop, dont set to be removed, just changeRole
 				const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 				sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
-				person->setTempRole(newRole);// set WaitBusActivityRole to TempRole
+				//person->setTempRole(newRole);// set WaitBusActivityRole to TempRole
 				//newRole->frame_init(p);
-				person->setTempRoleFlag(true);
+				//person->setTempRoleFlag(true);
+				newRole->frame_init(p);
+				person->changeRole(newRole);
+				person->updateNextTripChainItem();
 				isAtBusstop = false;
+				return;
+			} else {
+				parent->setToBeRemoved();
 			}
 		}
 	}

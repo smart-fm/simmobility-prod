@@ -39,7 +39,7 @@ Role* sim_mob::WaitBusActivityRole::clone(Person* parent) const
 }
 
 void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
-	sim_mob::BusStop* busStop = setBusStopPos(parent->destNode);
+	sim_mob::BusStop* busStop = setBusStopPos(parent->originNode);
 	busStopAgent = busStop->generatedBusStopAgent;
 	parent->xPos.set(busStop->xPos);
 	parent->yPos.set(busStop->yPos);
@@ -102,6 +102,13 @@ void sim_mob::WaitBusActivityRole::frame_tick_output(const UpdateParams& p) {
 //			<<"\"xPos\":\""<<static_cast<int>(parent->xPos)
 //			<<"\",\"yPos\":\""<<static_cast<int>(parent->yPos)
 //			<<"\"})"<<std::endl);
+//	LogOut("(\"Activity\""
+//				<<","<<p.now.frame()
+//				<<","<<parent->getId()
+//				<<",{"
+//				<<"\"xPos\":\""<<static_cast<int>(parent->xPos)
+//				<<"\",\"yPos\":\""<<static_cast<int>(parent->yPos)
+//				<<"\"})"<<std::endl);
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }
 

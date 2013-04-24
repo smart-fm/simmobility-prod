@@ -25,6 +25,8 @@ sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, std::string bus
 		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
 		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
 	boarding_Frame = 0;
+	busDriver = nullptr;
+	nextRole = nullptr;
 }
 
 sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {

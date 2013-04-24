@@ -162,7 +162,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 				const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 				sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
 				person->setTempRole(newRole);// set WaitBusActivityRole to TempRole
-				newRole->frame_init(p);
+				//newRole->frame_init(p);
 				person->setTempRoleFlag(true);
 				isAtBusstop = false;
 			}

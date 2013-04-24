@@ -78,7 +78,6 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
-	const Agent* Persontemp = nullptr;
 	if(now.frame() % 50 == 0) {// every 100 frames(10000ms-->10s) check AuraManager
 		vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3500),(busstop_.yPos - 3500)),Point2D((busstop_.xPos + 3500),(busstop_.yPos + 3500)));
 		std::cout << "nearby_agents size: " << nearby_agents.size() << std::endl;
@@ -87,7 +86,6 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 			//Retrieve only Passenger agents.
 		 	const Person* person = dynamic_cast<const Person *>(*it);
 		 	Person* p = const_cast<Person *>(person);
-		 	Persontemp = (*it);
 		 	WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*>(p->getTempRole()) : nullptr;
 		 	if(waitbusactivityRole) {
 		 		if((!waitbusactivityRole->getRegisteredFlag()) && (waitbusactivityRole->getBusStopAgent() == this)) {// not registered and waiting in this BusStopAgent

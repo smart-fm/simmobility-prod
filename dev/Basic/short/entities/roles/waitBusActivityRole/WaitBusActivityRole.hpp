@@ -14,6 +14,7 @@
 namespace sim_mob
 {
 
+class BusDriver;
 class BusStopAgent;
 class Passenger;
 class PackageUtils;
@@ -70,10 +71,10 @@ public:
 	void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 	std::string getBuslineID() { return buslineid; }
 
-//public:
-//	sim_mob::Role* roleFlag;// indicate whether it can be a passenger or not
 public:
 	int boarding_Frame;// to record the boarding_frame for each individual person
+	sim_mob::BusDriver* busDriver;// indicate which busDriver
+	sim_mob::Role* nextRole;// indicate next Role
 
 private:
 	int remainingTime;

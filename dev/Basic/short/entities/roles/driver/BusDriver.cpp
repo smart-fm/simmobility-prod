@@ -820,9 +820,6 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 		busline = bustrip->getBusline();
-//		if(boarding_waitBusActivities.empty()) {
-//			return;
-//		}
 	}
 	// boarding_waitBusActivities not empty
 	if((!allow_boarding_alighting_flag) && (curr_frame % 50 != 0)) {// skip the case when (curr_frame % 50 == 0)
@@ -854,6 +851,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 						accumulated_boarding_frame++;// advance also
 					}
 					boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_Frame = boarding_frame;// set BoardingFrame for this WaitBusActivity
+					boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = this;// set busDriver for this WaitBusActivity
 					boarding_frames.push_back(boarding_frame);
 					virtualBoarding_Persons.push_back(p);// push this person in the virtual queue
 					boarding_waitBusActivities.erase(boarding_waitBusActivities.begin() + BoardingNum_Pos[j]);//  erase this Person in the BusStopAgent
@@ -925,6 +923,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 						accumulated_boarding_frame++;// advance also
 					}
 					boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_Frame = boarding_frame;// set BoardingFrame for this WaitBusActivity
+					boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = this;// set busDriver for this WaitBusActivity
 					boarding_frames.push_back(boarding_frame);
 					virtualBoarding_Persons.push_back(p);// push this person in the virtual queue,
 					std::cout << "BoardingNum_Pos[j]: " << BoardingNum_Pos[j] << std::endl;
@@ -935,6 +934,8 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 					last_boarding_frame = boarding_frames.back();// store the last_boarding_frame
 				}
 		}
+
+
 		if(virtualBoarding_Persons.empty()) {
 			//allow_boarding_alighting_flag = false;
 			resetBoardingAlightingVariables();

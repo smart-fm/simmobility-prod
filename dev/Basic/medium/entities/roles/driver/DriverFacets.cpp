@@ -170,23 +170,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers || ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
-	if ( !parentAgent->getCurrLane()){
-		std::stringstream logout;
-		logout << "(\"Driver\""
-					<<","<<parentAgent->getId()
-					<<","<<p.now.frame()
-					<<",{"
-					<<"\"RoadSegment\":\""<< (parentAgent->getCurrSegment()->getSegmentID())
-					<<"\",\"UpNode\":\""<<(parentAgent->getCurrSegment()->getStart()->getID())
-					<<"\",\"DistanceToEndSeg\":\""<<parentAgent->distanceToEndOfSegment;
-			if (this->parentAgent->isQueuing) {
-					logout << "\",\"queuing\":\"" << "true";
-			} else {
-					logout << "\",\"queuing\":\"" << "false";
-			}
-			logout << "\"})" << std::endl;
-			std::cout<<logout.str();
-	}
+
 	std::stringstream logout;
 	logout << "(\"Driver\""
 			<<","<<parentAgent->getId()
@@ -254,7 +238,6 @@ void DriverMovement::setParentData(DriverUpdateParams& p) {
 			parentAgent->setCurrLane(currLane);
 			parentAgent->setCurrSegment(vehicle->getCurrSegment());
 			parentAgent->setRemainingTimeThisTick(p.secondsInTick - p.elapsedSeconds);
-			std::cout<<"remaining time: "<<p.secondsInTick - p.elapsedSeconds <<std::endl;
 		}
 		else {
 			parentAgent->distanceToEndOfSegment = 0.0;
@@ -320,9 +303,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 
 		double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
 		p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0));	//in seconds
-		if (parentAgent->getId()==3836 && p.now.ms()==235000){
-			std::cout<<"agent 3836"<<std::endl;
-		}
+
 		//	std::cout<<"Driver "<<parent->getId()<<" moveToNextSegment to "<< nextRdSeg->getStart()->getID()<<std::endl;
 		if(isNewLinkNext) {
 			parentAgent->requestedNextSegment = nextRdSeg;
@@ -474,8 +455,10 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 				<<" | empty space: "<< (vehLaneCount * nextRdSeg->computeLaneZeroLength())-(total*vehicle->length)
 				<<std::endl;
 
-   	return total - (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length)
-   			< std::numeric_limits<double>::epsilon( );
+		double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
+	 	return total < std::max(std::floor(max_allowed), 1.0);
+//   	return total - (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length)
+ //  			< std::numeric_limits<double>::epsilon( );
 		//we use following in place of checking if veh length is less than or equal to empty space
 //	return vehicle->length - (vehLaneCount * nextRdSeg->computeLaneZeroLength())
 //			- (total*vehicle->length) < std::numeric_limits<double>::epsilon( ) ;
@@ -618,9 +601,7 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 	else //no queue or no initial queue
 	{
 //		std::cout << "no queue" << std::endl;
-		std::cout<<"speed: "<<vu<<endl;
 		tf = t0 + x0/vu;
-		std::cout<<"tf: "<<tf<<endl;
 		if (tf < p.secondsInTick)
 		{
 /*			ss << vehicle->getCurrSegment()->getStart()->getID()
@@ -633,7 +614,6 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 				vehicle->setPositionInSegment(0.0);
 				p.elapsedSeconds = tf;
 				res = moveToNextSegment(p);
-				std::cout<<"elapsed sec: "<<p.elapsedSeconds<< std::endl;
 			}
 			else
 			{

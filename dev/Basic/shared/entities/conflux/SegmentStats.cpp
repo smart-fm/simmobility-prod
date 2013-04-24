@@ -393,7 +393,7 @@ namespace sim_mob {
 		//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 
 		double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-		double minSpeed = 0.0;
+		double minSpeed = 20.0;
 		double jamDensity = 0.59; //density during traffic jam
 		double alpha = 3.75; //Model parameter of speed density function
 		double beta = 0.5645; //Model parameter of speed density function

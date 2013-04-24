@@ -411,10 +411,12 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 * 3. The person has reached the end of the current subtrip. The loop will catch this and update the current trip chain item and change roles.
 	 * This loop sets the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
 	 */
-	while(person->remainingTimeThisTick > 0) {
+
+	while(person->remainingTimeThisTick > 0.0) {
 		std::cout << "Frame: " << now.frame() << "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
 				<< "|currSegment: [" << person->currSegment->getStart()->getID() <<","<< person->currSegment->getEnd()->getID() << "]"
 				<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
+				<< "|segLength: "<< person->getCurrSegment()->computeLaneZeroLength()
 				<< "|Conflux: " << multiNode->getID() <<std::endl;
 
 		if (!person->isToBeRemoved()) {
@@ -561,4 +563,12 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	}
 
 	return retVal;
+}
+
+double sim_mob::Conflux::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
+	return findSegStats(lane->getRoadSegment())->getPositionOfLastUpdatedAgentInLane(lane);
+}
+
+const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
+	return findSegStats(rdSeg)->laneInfinity;
 }

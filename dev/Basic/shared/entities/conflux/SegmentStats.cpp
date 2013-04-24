@@ -194,7 +194,7 @@ namespace sim_mob {
 						<< "| rdSegLength: "<< roadSegment->computeLaneZeroLength()
 						<< "| density " << density
 						<<std::endl;
-				throw std::runtime_error(debugMsgs.str());
+				//throw std::runtime_error(debugMsgs.str());
 			}
 		}
 		else
@@ -394,7 +394,7 @@ namespace sim_mob {
 
 		double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
 		double minSpeed = 0.0;
-		double jamDensity = 1; //density during traffic jam
+		double jamDensity = 0.59; //density during traffic jam
 		double alpha = 3.75; //Model parameter of speed density function
 		double beta = 0.5645; //Model parameter of speed density function
 		double minDensity = 0.0048; // minimum traffic density

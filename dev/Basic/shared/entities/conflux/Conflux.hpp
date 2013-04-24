@@ -219,6 +219,9 @@ public:
 		this->LinkTravelTimesMap.clear();
 	}
 	void reportLinkTravelTimes(timeslice frameNumber);
+
+	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
+	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 };
 
 } /* namespace sim_mob */

@@ -60,6 +60,10 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
    parent->yPos.set(OriginBusStop->yPos);
    DestBusStop=setBusStopXY(parent->destNode);
    TimeOfReachingBusStop=p.now.ms();
+   Person* person = dynamic_cast<Person*> (parent);
+   if(person) {
+	   person->setTempRole(nullptr);// should set tempRole to be nullptr when becoming Passenger
+   }
    FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
 //   Person* person = dynamic_cast<Person*> (parent);
 //   if(person && (!busdriver.get())) {

@@ -26,7 +26,7 @@ sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, std::string bus
 		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
 	boarding_Frame = 0;
 	busDriver = nullptr;
-	nextRole = nullptr;
+	//nextRole = nullptr;
 }
 
 sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {
@@ -58,11 +58,11 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 			if(person) {
 				//person->setTempRoleFlag(false);
 				std::cout << "busDriver: " << busDriver << std::endl;
-				if(!person->findPersonNextRole())
+				if(!person->findPersonTempRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
 				}
-				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+				Passenger* passenger = dynamic_cast<Passenger*> (person->getTempRole());
 				if(passenger) {
 					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 					passenger->BoardedBus.set(true);

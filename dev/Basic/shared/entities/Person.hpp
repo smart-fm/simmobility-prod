@@ -73,7 +73,7 @@ public:
     void setNextRole(sim_mob::Role* newRole);
     sim_mob::Role* getNextRole() const;
     bool updatePersonRole(sim_mob::Role* newRole = 0);
-    bool findPersonNextRole();
+    bool findPersonTempRole();
 
 	bool updateNextTripChainItem();
 	bool updateNextSubTrip();

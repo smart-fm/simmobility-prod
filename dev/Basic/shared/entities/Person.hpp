@@ -69,6 +69,9 @@ public:
     bool deleteATripChainItem(TripChainItem* del);
     bool replaceATripChainItem(TripChainItem* rep, TripChainItem* newone);
 
+    bool insertTripBeforeCurrentTrip(Trip* newone);
+    bool insertSubTripBeforeCurrentSubTrip(SubTrip* newone);
+
     //modify trip chain so that a new item is inserted between walk and bus travel mode
     void simplyModifyTripChain(std::vector<TripChainItem*>& tripChain);
 

@@ -519,6 +519,28 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 	}
 }
 
+bool sim_mob::Person::insertTripBeforeCurrentTrip(Trip* newone)
+{
+	bool ret = false;
+	if(dynamic_cast<sim_mob::Trip*>(*currTripChainItem))
+	{
+		currTripChainItem = tripChain.insert(currTripChainItem, newone);
+		ret = true;
+	}
+	return ret;
+}
+bool sim_mob::Person::insertSubTripBeforeCurrentSubTrip(SubTrip* newone)
+{
+	bool ret = false;
+	if(dynamic_cast<sim_mob::Trip*>(*currTripChainItem))
+	{
+		std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW();
+		currSubTrip = subtrip.insert(currSubTrip, *newone);
+		ret = true;
+	}
+	return ret;
+}
+
 //only affect items after current trip chain item
 bool sim_mob::Person::insertATripChainItem(TripChainItem* before, TripChainItem* newone)
 {

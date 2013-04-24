@@ -9,6 +9,7 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
+#include "../short/entities/roles/passenger/Passenger.hpp"
 #include "entities/UpdateParams.hpp"
 
 namespace sim_mob
@@ -16,7 +17,7 @@ namespace sim_mob
 
 class BusDriver;
 class BusStopAgent;
-class Passenger;
+//class Passenger;
 class PackageUtils;
 class UnPackageUtils;
 
@@ -66,7 +67,7 @@ public:
 	bool getRegisteredFlag() { return registered; }
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
-	BusStop* setBusStopPos(const Node* node);
+	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
 	void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 	std::string getBuslineID() { return buslineid; }

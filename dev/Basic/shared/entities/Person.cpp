@@ -402,16 +402,23 @@ bool sim_mob::Person::changeRoleRequired_Activity(/*sim_mob::Activity &activity*
 
 bool sim_mob::Person::findPersonNextRole()
 {
+	if(!updateNextTripChainItem())
+	{
+		safe_delete_item(nextRole);
+		return false;
+	}
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.
+	//safe_delete_item(prevRole);
 	safe_delete_item(nextRole);
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 
-	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
 	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
 
 	nextRole = rf.createRole(tci, str, this);
+	return true;
 }
 
 bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
@@ -422,12 +429,12 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 		// by saving it until the next time tick.
 		safe_delete_item(prevRole);
 		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-		prevRole = currRole;
+//		prevRole = currRole;
 
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
 
-		if(newRole == 0)
+		if(nextRole == 0)
 			newRole = rf.createRole(tci, str, this);
 
 		changeRole(newRole);
@@ -511,7 +518,6 @@ bool sim_mob::Person::updateNextSubTrip()
 
 	if (nextSubTrip == trip->getSubTrips().end())
 		return false;
-	findPersonNextRole();
 	return true;
 }
 
@@ -525,7 +531,11 @@ bool sim_mob::Person::updateNextTripChainItem()
 		res = updateNextSubTrip();
 	}
 
-	if(res) return res;
+	if(res)
+	{
+		nextTripChainItem = currTripChainItem;
+		return res;
+	}
 
 	//no, it is not the subtrip we need to advance, it is the tripchain item
 	nextTripChainItem = currTripChainItem + 1;
@@ -544,7 +554,6 @@ bool sim_mob::Person::updateNextTripChainItem()
 		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*nextTripChainItem);//easy reading
 			if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
 			nextSubTrip =  trip->getSubTrips().begin();
-			findPersonNextRole();
 	}
 
 	return true;
@@ -630,8 +639,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 			this->currWorker->stopManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
-
-	safe_delete_item(currRole);
+	prevRole = currRole;
 	currRole = newRole;
 	std::cout << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 

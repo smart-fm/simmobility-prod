@@ -46,7 +46,8 @@ void sim_mob::Passenger::setParentBufferedData()
 //	}
 	if(busdriver.get()!=nullptr)
 	{
-
+		parent->xPos.set(this->busdriver.get()->getPositionX());
+		parent->yPos.set(this->busdriver.get()->getPositionY());
 	}
 }
 

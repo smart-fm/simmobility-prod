@@ -39,7 +39,7 @@ Role* sim_mob::WaitBusActivityRole::clone(Person* parent) const
 }
 
 void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
-	sim_mob::BusStop* busStop = setBusStopPos(parent->originNode);
+	sim_mob::BusStop* busStop = setBusStopXY(parent->destNode);// it is pedestrians reaching here
 	busStopAgent = busStop->generatedBusStopAgent;
 	parent->xPos.set(busStop->xPos);
 	parent->yPos.set(busStop->yPos);
@@ -56,7 +56,17 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 			boarding_Frame = 0;
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person) {
-				person->setTempRoleFlag(false);
+				//person->setTempRoleFlag(false);
+				std::cout << "busDriver: " << busDriver << std::endl;
+				if(!person->findPersonNextRole())
+				{
+					std::cout << "End of trip chain...." << std::endl;
+				}
+				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+				if(passenger) {
+					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+				}
+				//person->findPersonNextRole();
 			}
 		}
 	}
@@ -143,7 +153,7 @@ void sim_mob::WaitBusActivityRole::updateBoardingTime()
 	//boarding_Time = std::max(0, boarding_Time - int(ConfigParams::GetInstance().baseGranMS));
 }
 
-BusStop* sim_mob::WaitBusActivityRole::setBusStopPos(const Node* node)//to find the nearest busstop to a node
+BusStop* sim_mob::WaitBusActivityRole::setBusStopXY(const Node* node)//to find the nearest busstop to a node
 {
  	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
  	 double dist=0;
@@ -208,6 +218,7 @@ BusStop* sim_mob::WaitBusActivityRole::setBusStopPos(const Node* node)//to find 
  					if(busStop_ptr)
  					{
  						double newDist = sim_mob::dist(busStop_ptr->xPos, busStop_ptr->yPos,point.getX(), point.getY());
+ 						std::cout << "busStop_ptr->BusLines.size(): " << busStop_ptr->BusLines.size() << std::endl;
  						if((newDist<dist || dist==0)&& busStop_ptr->BusLines.size()!=0)
  					    {
  						   dist=newDist;

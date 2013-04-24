@@ -165,7 +165,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 				//person->setTempRoleFlag(true);
 				newRole->frame_init(p);
 				person->changeRole(newRole);
-				person->updateNextTripChainItem();
+				//person->updateNextTripChainItem();
 				isAtBusstop = false;
 				return;
 			} else {

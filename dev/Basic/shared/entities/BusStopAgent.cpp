@@ -86,7 +86,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 			//Retrieve only Passenger agents.
 		 	const Person* person = dynamic_cast<const Person *>(*it);
 		 	Person* p = const_cast<Person *>(person);
-		 	WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*>(p->getTempRole()) : nullptr;
+		 	WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*>(p->getRole()) : nullptr;
 		 	if(waitbusactivityRole) {
 		 		if((!waitbusactivityRole->getRegisteredFlag()) && (waitbusactivityRole->getBusStopAgent() == this)) {// not registered and waiting in this BusStopAgent
 		 			boarding_WaitBusActivities.push_back(waitbusactivityRole);
@@ -95,7 +95,8 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		 			//std::cout << "WaitBusActivity: " << waitbusactivity->getParent()->getId() << std::endl;
 		 	}
 		}
-		sort(boarding_WaitBusActivities.begin(),boarding_WaitBusActivities.end(),less_than_TimeOfReachingBusStop());
+		if(!boarding_WaitBusActivities.empty())
+			sort(boarding_WaitBusActivities.begin(),boarding_WaitBusActivities.end(),less_than_TimeOfReachingBusStop());
 //		cout << "boarding_WaitBusActivities.size(): " << boarding_WaitBusActivities.size() << std::endl;
 //		for(int i = 0 ; i < boarding_WaitBusActivities.size(); i ++) {
 //			cout << "(" << boarding_WaitBusActivities[i]->getTimeOfReachingBusStop() << ")\n";

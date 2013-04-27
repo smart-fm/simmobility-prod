@@ -82,12 +82,22 @@ UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)
 //Main update method
 void sim_mob::Passenger::frame_tick(UpdateParams& p)
 {
-  setParentBufferedData();//update passenger coordinates every frame tick
-  if(AlightedBus.get()==true)
-  {
-	AlightedBus.set(false);
-	parent->setToBeRemoved();//removes passenger if destination is reached
-  }
+	if(0 != alighting_Frame) {
+		if(alighting_Frame == p.now.frame()) {
+			parent->setToBeRemoved();//removes passenger if destination is reached
+			busdriver.set(nullptr);// assign this busdriver to Passenger
+			BoardedBus.set(false);
+			AlightedBus.set(true);
+		} else {
+			setParentBufferedData();//update passenger coordinates every frame tick
+		}
+	}
+
+//	if(AlightedBus.get()==true)
+//	{
+//		AlightedBus.set(false);
+//		parent->setToBeRemoved();//removes passenger if destination is reached
+//	}
 }
 
 

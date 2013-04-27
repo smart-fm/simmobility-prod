@@ -70,7 +70,6 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 						passenger->AlightedBus.set(false);
 					}
 				}
-				//person->findPersonNextRole();
 			}
 		}
 	}

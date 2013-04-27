@@ -9,6 +9,7 @@
 #include "Pedestrian2.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/Node.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
@@ -158,16 +159,22 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 		{
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person && isAtBusstop) { // it is at the busstop, dont set to be removed, just changeRole
-				const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-				sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
-				//person->setTempRole(newRole);// set WaitBusActivityRole to TempRole
-				//newRole->frame_init(p);
-				//person->setTempRoleFlag(true);
-				newRole->frame_init(p);
-				person->changeRole(newRole);
-				//person->updateNextTripChainItem();
-				isAtBusstop = false;
-				return;
+				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+				{
+					std::cout << "End of trip chain...." << std::endl;
+				}
+				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+				if(passenger) {// nextRole is passenger
+					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
+					newRole->frame_init(p);
+					person->changeRole(newRole);
+					isAtBusstop = false;
+					return;
+//					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+//					passenger->BoardedBus.set(true);
+//					passenger->AlightedBus.set(false);
+				}
 			} else {
 				parent->setToBeRemoved();
 			}

@@ -57,36 +57,23 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person) {
 				//person->setTempRoleFlag(false);
-				std::cout << "busDriver: " << busDriver << std::endl;
-				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
-				{
-					std::cout << "End of trip chain...." << std::endl;
-				}
-				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
-				if(passenger) {
-					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
-					passenger->BoardedBus.set(true);
-					passenger->AlightedBus.set(false);
+//				std::cout << "busDriver: " << busDriver << std::endl;
+//				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+//				{
+//					std::cout << "End of trip chain...." << std::endl;
+//				}
+				if(person->getNextRole()) {
+					Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+					if(passenger) {
+						passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+						passenger->BoardedBus.set(true);
+						passenger->AlightedBus.set(false);
+					}
 				}
 				//person->findPersonNextRole();
 			}
 		}
 	}
-//	updateRemainingTime();
-//	if(remainingTime <= 0){
-//		parent->setToBeRemoved();
-//	}
-//	else
-//	{
-////		if(roleFlag) {
-////			if(roleFlag->getRoleName() == "passenger") {
-////				std::cout << "WaitBusActivity has a passenger flag! " << std::endl;
-////			}
-////		}
-//		if(p.now.frame() % 3 == 0 && (!registered)) {
-//
-//		}
-//	}
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick_output(const UpdateParams& p) {

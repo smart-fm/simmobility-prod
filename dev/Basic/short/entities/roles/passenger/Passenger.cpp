@@ -62,7 +62,7 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
    TimeOfReachingBusStop=p.now.ms();
    Person* person = dynamic_cast<Person*> (parent);
    if(person) {
-	   person->setNextRole(nullptr);// should set tempRole to be nullptr when becoming Passenger
+	   person->setNextRole(nullptr);// set nextRole to be nullptr when becoming Passenger
    }
    FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
 //   Person* person = dynamic_cast<Person*> (parent);

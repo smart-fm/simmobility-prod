@@ -400,24 +400,24 @@ bool sim_mob::Person::changeRoleRequired_Activity(/*sim_mob::Activity &activity*
 	return true;
 }
 
-bool sim_mob::Person::findPersonTempRole()
+bool sim_mob::Person::findPersonNextRole()
 {
 	if(!updateNextTripChainItem())
 	{
-		safe_delete_item(tempRole);
+		safe_delete_item(nextRole);
 		return false;
 	}
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.
 	//safe_delete_item(prevRole);
-	safe_delete_item(tempRole);
+	safe_delete_item(nextRole);
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 
 	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
 	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
 
-	tempRole = rf.createRole(tci, str, this);
+	nextRole = rf.createRole(tci, str, this);
 	return true;
 }
 
@@ -463,7 +463,7 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	setNextPathPlanned(false);
 
 	//Create a new Role based on the trip chain type
-	updatePersonRole(tempRole);
+	updatePersonRole(nextRole);
 
 	//Update our origin/dest pair.
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) { //put if to avoid & evade bustrips, can be removed when everything is ok

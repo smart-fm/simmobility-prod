@@ -2,6 +2,8 @@
 
 #include "Link.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 #include <stdexcept>
 #include <algorithm>
 

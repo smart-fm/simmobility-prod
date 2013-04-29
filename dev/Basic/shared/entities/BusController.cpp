@@ -16,10 +16,11 @@ using std::map;
 using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
-vector<BusController*> BusController::all_busctrllers_;// Temporary saved all the buscontroller, eventually it will go to all agent stream
-static int default_headway = 170000;//85000; // 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+
+/// Temporary saved all the buscontroller, eventually it will go to all agent stream
+vector<BusController*> BusController::all_busctrllers_;
+
 bool BusController::busBreak = false;
-const char* BusController::buslineID = NULL;
 int BusController::busstopindex = 1;
 
 void sim_mob::BusController::RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
@@ -46,6 +47,8 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
 		(*it)->assignBusTripChainWithPerson(agents_list);
 	}
+
+
 }
 
 
@@ -74,52 +77,6 @@ void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsLi
 }
 
 
-//UpdateStatus sim_mob::BusController::update(timeslice now)
-//{
-	//NOTE: I am removing the AGENT_UPDATE_PROFILE/STRICT_AGENT_ERRORS check, since it was clearly copied from Person.cpp
-	//      We will (after merging) be migrating the "frame_init"/"frame_tick" pattern out of Person and into Agent, with
-	//      Entity remaining the "minimal" class. To make this easier, it will help if BusController::update() only contains
-	//      what will later go into BusController::frame_tick.
-	// ~Seth
-
-//	unsigned int currTimeMS = now.frame()*ConfigParams::GetInstance().baseGranMS;
-
-	//Has update() been called early?
-	//TODO: This should eventually go into its own helper function in the Agent class.
-	//      Aim for the following API:
-	//      if (updateBeforeStartTime() { return UpdateStatus::Continue; }
-	//      ...and have the parent function take care of throwing the error. ~Seth
-	//if (now.ms() < getStartTime()) {
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-	//	if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-	//		std::stringstream msg;
-	//		msg << "Agent(" << getId() << ") specifies a start time of: "
-	//				<< getStartTime() << " but it is currently: " << now.ms()
-	//				<< "; this indicates an error, and should be handled automatically.";
-	//		throw std::runtime_error(msg.str().c_str());
-	//	}
-	//	return UpdateStatus::Continue;
-	//}
-
-	//TEMPORARY: will exist at the Agent level later.
-	//if (firstFrameTick) {
-	//	frame_init(now);
-	//	firstFrameTick = false;
-	//}
-	//END TEMPORARY
-
-	//TEMPORARY: This will become our frame_tick method.
-	//dispatchFrameTick(now);
-	//END TEMPORARY
-
-	//TEMPORARY: This will become frame_output
-	//frame_tick_output(now);
-	//END TEMPORARY
-
-	//The variable UpdateStatus::Continue is a convenient way of returning just the simple status.
-	//return UpdateStatus::Continue;
-//}
-
 
 void sim_mob::BusController::addBus(Bus* bus)
 {
@@ -145,9 +102,10 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+
 		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
 			if(tripIt->startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
-				Person* currAg = new Person("BusController", config.mutexStategy, tripIt->personID);
+				Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->personID);
 				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 
 				vector<TripChainItem*> currAgTripChain;
@@ -160,6 +118,12 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 			}
 		}
 	}
+
+	all_children.clear();
+	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
+		(*it)->parentEntity = this;
+		all_children.push_back( (*it) );
+	}
 }
 
 void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
@@ -168,7 +132,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	vector<const BusStop*> stops;
 	sim_mob::Busline* busline = nullptr;
 	int step = 0;
-
+	bool busstop_busline_registered=false;
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
 
@@ -176,12 +140,10 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
 			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type);
 
-			//From Santhosh's branch; re-enable if needed.
-			//busline = new sim_mob::Busline(curr->route_id,"headway_based");
-
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
 			step = 0; //NOTE: I'm fairly sure this needs to be reset here. ~Seth
+			busstop_busline_registered = true;
 		}
 
 		// define frequency_busline for one busline
@@ -195,7 +157,8 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 		DailyTime advance(curr->headway_sec*200);
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
-			BusTrip bustrip(-1, "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");
+
+			BusTrip bustrip("", "BusTrip", 0, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");
 
 			//Try to find our data.
 			map<string, vector<const RoadSegment*> >::const_iterator segmentsIt = config.getRoadSegments_Map().find(curr->route_id);
@@ -205,21 +168,26 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
 			vector<const RoadSegment*> segments = (segmentsIt==config.getRoadSegments_Map().end()) ? vector<const RoadSegment*>() : segmentsIt->second;
 			stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
-
+			if(busstop_busline_registered) // for each busline, only push once
+			{
+			  for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
+			  {
+				 BusStop* busStop=const_cast<BusStop*>(stops[k]);
+				 busStop->BusLines.push_back(busline);
+				// std:cout<<"busline"<<busline->getBusLineID()<<std::endl;
+			  }
+		     busstop_busline_registered = false;
+			}
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
 		}
 	}
-	for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
-	{
-	  BusStop* rs=const_cast<BusStop*>(stops[k]);
-	  rs->BusLines.push_back(busline);
-	}
+
 }
 
 
-void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus)
+void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
@@ -232,13 +200,25 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 	departure_time = ATijk + (DTijk * 1000.0);
 	BusStop_RealTimes busStop_RealTimes(ConfigParams::GetInstance().simStartTime + DailyTime(ATijk), ConfigParams::GetInstance().simStartTime + DailyTime(departure_time));
 	busStop_RealTimes.setReal_BusStop(lastVisited_BusStop);
-	busStopRealTimes_vec_bus[busstopSequence_j]->set(busStop_RealTimes);
+	realTime = (busStop_RealTimes);
 
 	// here need test, need add fake RealTimes first
-	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes_vec_bus[busstopSequence_j]);// set this value for next step
+	ConfigParams& config = ConfigParams::GetInstance();
+	Shared<BusStop_RealTimes>* busStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy, busStop_RealTimes);
+	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes);// set this value for next step
+
+	if(trip_k > 0){
+		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+
+		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
+		int iSize = busStopRealTime_tripK_1.size();
+		for(int i = 0; i < iSize; i++)
+			std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << std::endl;
+	}
 }
 
-double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_BusStop)
+double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop)
 {
 	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	Busline* busline = pt_schedule.findBusline(busline_i);
@@ -247,38 +227,37 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 		return -1;
 	}
 	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	const BusStop* lastvisited_busStop = lastVisited_BusStop;// stored it for no control side
 
 	double departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
 	double waitTime_BusStop = 0;
 
 	switch(controltype) {
 	case SCHEDULE_BASED:
-		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, busStopRealTimes_vec_bus, lastVisited_BusStop);
+		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - ATijk) * 0.001;
 		break;
 	case HEADWAY_BASED:
-		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, busStopRealTimes_vec_bus, lastVisited_BusStop);
+		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - ATijk) * 0.001;
 		break;
 	case EVENHEADWAY_BASED:
-		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, busStopRealTimes_vec_bus, lastVisited_BusStop);
+		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - ATijk) * 0.001;
 		break;
 	case HYBRID_BASED:
-		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, busStopRealTimes_vec_bus, lastVisited_BusStop);
+		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - ATijk) * 0.001;
 		break;
 	default:
 		// may add default scheduled departure time here
-		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStop, busStopRealTimes_vec_bus);
+		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStop, realTime);
 		waitTime_BusStop = DTijk;
 		break;
 	}
 	return waitTime_BusStop;
 }
 
-double sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop)
+double sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
@@ -297,18 +276,15 @@ double sim_mob::BusController::scheduledDecision(const string& busline_i, int tr
 
 	//StopInformation(Times)
 	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
-	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-
-	//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max(SETijk - sij, ATijk + (DTijk * 1000.0));
 
-	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
+	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);
 
 	return ETijk;
 }
 
-double sim_mob::BusController::headwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop)
+double sim_mob::BusController::headwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
@@ -323,35 +299,18 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 	double Hi = 0;
 	double alpha = 0.6;// 0.7(Hi = 100000) range from 0.6 to 0.8
 
-	std::cout << "busStopRealTimes_vec_bus[0]->get() " << busStopRealTimes_vec_bus[0]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[1]->get() " << busStopRealTimes_vec_bus[1]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[2]->get() " << busStopRealTimes_vec_bus[2]->get().real_ArrivalTime.getRepr_() << std::endl;
-	std::cout << "busStopRealTimes_vec_bus[3]->get() " << busStopRealTimes_vec_bus[3]->get().real_ArrivalTime.getRepr_() << std::endl;
-
 	if (0 == trip_k) {
 		// the first trip just use Dwell Time, no holding strategy
 		ETijk = ATijk + (DTijk * 1000.0);
-
-		// Test
-		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK = BusTrips[trip_k].getBusStopRealTimes();
-		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK.size() << std::endl;
-		std::cout << "busStop_RealTimes : real_ArrivalTime output " << busStopRealTime_tripK[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
-		std::cout << "busStop_RealTimes : real_DepartureTime output " << busStopRealTime_tripK[busstopSequence_j]->get().real_DepartureTime.getRepr_() << std::endl;
-		// Test
-
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
-//		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		std::cout << "real_ArrivalTime: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
+		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
+		std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		if(busStopRealTime_tripK_1[busstopSequence_j]->get().Real_busStop) { // data has already updated
 			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);// there are some cases that buses are bunched together so that k-1 has no values updated yet
-	//		Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
-	//				- BusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 			Hi = 143000;// 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
-
 			ETijk = std::max(ATijk_1 + alpha*Hi, ATijk + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 		} else {// data has not yet updated, sometimes happens especially buses are bunched together(trip_k bus can overtake tripk_1 bus)
 			ETijk = ATijk + (DTijk * 1000.0); // immediately leaving
@@ -360,12 +319,12 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 
 	}
 
-	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
+	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);
 
 	return ETijk;
 }
 
-double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop)
+double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
@@ -395,7 +354,7 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 	}
 	else if(lastTrip || lastVisitedStopNum == -1){
 		// If last trip or if next trip k+1 is not dispatched yet then use single headway
-		return headwayDecision(busline_i,trip_k,busstopSequence_j,ATijk,DTijk, busStopRealTimes_vec_bus, lastVisited_busStop);
+		return headwayDecision(busline_i,trip_k,busstopSequence_j,ATijk,DTijk, realTime, lastVisited_busStop);
 	}
 	else {
 		lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;//last stop visited by bus trip k+1
@@ -409,18 +368,17 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 		SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 				- busStopScheduledTime_tripKplus1[lastVisitedStopNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-		//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 		ETijk = std::max(ATijk_1 + (ATimk_plus1 + SRTmj - ATijk_1)/2.0, ATijk + (DTijk * 1000.0)); // need some changes for precision
 
 	}
 
 	std::cout<<"YaoJinTest:  busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<ETijk<<std::endl;
-	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
+	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);
 
 	return ETijk;
 }
 
-double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop)
+double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 		if(!busline) {
@@ -430,7 +388,6 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 		const vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 
-		//unsigned int DTijk = 0;
 		double ETijk = 0;
 		double ATijk_1 = 0;
 		double ATimk_plus1 = 0;
@@ -451,7 +408,7 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 		}
 		else if(lastTrip || lastVisitedStopNum == -1){
 			// If last trip or if next trip k+1 is not dispatched yet then use single headway
-			return headwayDecision(busline_i,trip_k,busstopSequence_j,ATijk,DTijk, busStopRealTimes_vec_bus, lastVisited_busStop);
+			return headwayDecision(busline_i,trip_k,busstopSequence_j,ATijk,DTijk, realTime, lastVisited_busStop);
 		}
 		else {
 			lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;//last stop visited by bus trip k+1
@@ -465,12 +422,10 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 			SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 					- busStopScheduledTime_tripKplus1[lastVisitedStopNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 			Hi = 143000;
-			//DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 			ETijk = std::max(std::min(ATijk_1 + (ATimk_plus1 + SRTmj - ATijk_1)/2.0, (ATijk_1 + Hi)),(double)(ATijk) + (DTijk * 1000.0)); // need some changes for precision
 		}
 
-		std::cout<<"YaoJinTest:  busstop "<<busstopSequence_j<<" trip "<<trip_k<<" arrival time "<<ATijk<<" Departure time "<<ETijk<<std::endl;
-		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, busStopRealTimes_vec_bus);
+		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);
 
 		return ETijk;
 }
@@ -491,8 +446,67 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_a
 }
 
 
+void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rParams)
+{
+	//No reaction if request params is empty.
+	if(rParams.asVector().empty() ) {
+		return;
+	}
+
+	Shared<int>* existed_Request_Mode = rParams.existedRequest_Mode;
+	if( existed_Request_Mode && (existed_Request_Mode->get()==Role::REQUEST_DECISION_TIME || existed_Request_Mode->get()==Role::REQUEST_STORE_ARRIVING_TIME)) {
+		Shared<string>* lastVisited_Busline = rParams.lastVisited_Busline;
+		Shared<int>* lastVisited_BusTrip_SequenceNo = rParams.lastVisited_BusTrip_SequenceNo;
+		Shared<int>* busstop_sequence_no = rParams.busstop_sequence_no;
+		Shared<double>* real_ArrivalTime = rParams.real_ArrivalTime;
+		Shared<double>* DwellTime_ijk = rParams.DwellTime_ijk;
+		Shared<const BusStop*>* lastVisited_BusStop = rParams.lastVisited_BusStop;
+		Shared<BusStop_RealTimes>* last_busStopRealTimes = rParams.last_busStopRealTimes;
+		Shared<double>* waiting_Time = rParams.waiting_Time;
+
+		if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
+		   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
+		{
+			BusStop_RealTimes realTime;
+			if(existed_Request_Mode->get() == Role::REQUEST_DECISION_TIME ){
+				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),realTime,lastVisited_BusStop->get());
+				waiting_Time->set(waitingtime);
+			}
+			else if(existed_Request_Mode->get() == Role::REQUEST_STORE_ARRIVING_TIME ){
+				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), realTime);
+			}
+			last_busStopRealTimes->set(realTime);
+		}
+	}
+}
+
+
+void sim_mob::BusController::handleDriverRequest()
+{
+	for (vector<Entity*>::iterator it = all_children.begin(); it != all_children.end(); it++) {
+	//for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+		Person* person = dynamic_cast<sim_mob::Person*>(*it);
+		if(person){
+			Role* role = person->getRole();
+			if(role){
+				handleRequestParams(role->getDriverRequestParams());
+			}
+		}
+	}
+}
+
+void sim_mob::BusController::unregisteredChild(Entity* child)
+{
+	if(child)
+	{
+		std::vector<Entity*>::iterator it = std::find(all_children.begin(), all_children.end(), child);
+		if (it != all_children.end() ) {
+			all_children.erase(it);
+		}
+	}
+}
+
 Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
-//void sim_mob::BusController::dispatchFrameTick(timeslice now)
 {
 	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
 	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
@@ -515,9 +529,17 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		//       when it knows it's safe to. ~Seth
 		//
 		///////////////////////////////////////////////////////////////////
-		currWorker->getParent()->scheduleEntity(pending_buses.top());
+		//currWorker->getParent()->scheduleEntity(pending_buses.top());
+		//pending_buses.pop();
+		// use new method to schedule child agent
+		Agent* child = pending_buses.top();
 		pending_buses.pop();
+		child->parentEntity = this;
+		currWorker->scheduleForBred(child);
+		all_children.push_back(child);
 	}
+
+	handleDriverRequest();
 
 	return Entity::UpdateStatus::Continue;
 }

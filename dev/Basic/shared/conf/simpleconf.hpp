@@ -23,7 +23,6 @@
 #include <string>
 #include <sstream>
 
-#include "GenConfig.h"
 #include "geospatial/xmlWriter/xmlWriter.hpp"
 #include <boost/utility.hpp>
 
@@ -33,12 +32,18 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
+#include "entities/AuraManager.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
+#include "workers/WorkGroup.hpp"
+
+#include "network/CommunicationDataManager.hpp"
+#include "network/CommunicationManager.hpp"
+#include "network/ControlManager.hpp"
 
 #include "Config.hpp"
 
@@ -51,7 +56,6 @@ class Entity;
 class Agent;
 class Person;
 class BusController;// add by Yao Jin
-class Region;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
@@ -96,6 +100,9 @@ public:
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
 
+	///What type of Aura Manager we're using.
+	AuraManager::AuraManagerImplementation aura_manager_impl;
+
 
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
@@ -110,6 +117,8 @@ public:
 	int percent_alighting;
 //	PassengerDist* passengerDist_alighting;
 
+	//Defautl assignment strategy for Workgroups.
+	WorkGroup::ASSIGNMENT_STRATEGY defaultWrkGrpAssignment;
 
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
@@ -143,7 +152,7 @@ public:
 
 	std::string connectionString;
 
-	bool is_run_on_many_computers;
+	bool using_MPI;
 	bool is_simulation_repeatable;
 
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
@@ -161,73 +170,53 @@ public:
 	}
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
-	bool MPI_Disabled() const {
-#ifdef SIMMOB_DISABLE_MPI
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool MPI_Disabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool OutputDisabled() const {
-#ifdef SIMMOB_DISABLE_OUTPUT
-		return true;
-#else
-		return false;
-#endif
-	}
-	
-	bool Output_Disabled() const {
-#ifdef SIMMOB_DISABLE_OUTPUT
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool OutputDisabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const {
 		return !OutputDisabled();
 	}
 
+	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
+	/// with the GUI or console.
+	bool InteractiveMode() const {
+#ifdef SIMMOB_INTERACTIVE_MODE
+		return true;
+#else
+		return false;
+#endif
+	}
+
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
-	bool StrictAgentErrors() const {
-#ifdef SIMMOB_STRICT_AGENT_ERRORS
-		return true;
-#else
-		return false;
-#endif
-	}
+	bool StrictAgentErrors() const;
 
-	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-	bool GenerateAgentUpdateProfile() const {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		return true;
-#else
-		return false;
-#endif
-	}
+	///Synced to the value of SIMMOB_PROFILE_ON; used for runtime checks.
+	bool ProfileOn() const ;
 
-	///Synced to the value of SIMMOB_AGENT_UPDATE_PROFILE; used for runtime checks.
-	bool NewSignalModelEnabled() const {
-#ifdef SIMMOB_NEW_SIGNAL
-		return true;
-#else
-#error SIMMOB_NEW_SIGNAL must always be defined.
-#endif
-	}
+	///Synced to the value of SIMMOB_PROFILE_AGENT_UPDATES; used for runtime checks.
+	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
+	bool ProfileAgentUpdates(bool accountForOnFlag=true) const ;
 
-
-
+	///Synced to the value of SIMMOB_PROFILE_WORKER_UPDATES; used for runtime checks.
+	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
+	bool ProfileWorkerUpdates(bool accountForOnFlag=true) const ;
 
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
+	void reset()
+	{
+		sealedNetwork=false;
+		roleFact.clear();
+	}
 	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
+
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
@@ -260,9 +249,29 @@ public:
 		sealedNetwork = true;
 	}
 
+	sim_mob::CommunicationDataManager&  getCommDataMgr() {
+#ifdef SIMMOB_INTERACTIVE_MODE
+		return commDataMgr;
+#else
+		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+	}
+
+	sim_mob::ControlManager* getControlMgr() {
+#ifdef SIMMOB_INTERACTIVE_MODE
+		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+		if (!controlMgr) {
+			controlMgr = new ControlManager();
+		}
+		return controlMgr;
+#else
+		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+	}
+
 	///Retrieve a reference to the list of trip chains.
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
@@ -286,9 +295,10 @@ public:
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
-		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalTimingMode(0), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
+		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
+		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false),
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
 	{}
 
 	static ConfigParams instance;
@@ -296,7 +306,10 @@ private:
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
+
+	CommunicationDataManager commDataMgr;
+	ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

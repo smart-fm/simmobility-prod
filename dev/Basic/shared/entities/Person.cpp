@@ -3,6 +3,7 @@
 #include "Person.hpp"
 
 #include <algorithm>
+#include <sstream>
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -10,6 +11,7 @@
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
@@ -32,7 +34,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
 	if (!(ag.originNode && ag.destNode)) {
-		throw std::runtime_error("Can't make a pseudo-trip for an Agent with no origin and destination.");
+		std::stringstream msg;
+		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode <<" , " <<ag.destNode;
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Make the trip itself
@@ -42,7 +46,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
 	res->endTime = res->startTime; //No estimated end time.
-	res->tripID = 0;
+	res->tripID = "";
 	res->fromLocation = ag.originNode;
 	res->fromLocationType = TripChainItem::getLocationType("node");
 	res->toLocation = ag.destNode;
@@ -62,7 +66,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	subTrip.fromLocationType = res->fromLocationType;
 	subTrip.toLocation = res->toLocation;
 	subTrip.toLocationType = res->toLocationType;
-	subTrip.tripID = 0;
+	subTrip.tripID = "";
 	subTrip.mode = mode;
 	subTrip.isPrimaryMode = true;
 	subTrip.ptLineId = "";
@@ -74,17 +78,16 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 }  //End unnamed namespace
 
-
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr)
-
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
+	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
+    databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat, tcs.front()->personID)
+	: Agent(mtxStrat), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	prevRole = 0;
 	currRole = 0;
@@ -142,16 +145,11 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
 	if(lanepointer != configProps.end())
 	{
-		/*if(atoi(lanepointer->second.c_str()))
-		{
-			laneID = atoi(lanepointer->second.c_str());
-		}*/
-
 		try {
 		    int x = boost::lexical_cast<int>( lanepointer->second );
 		    laneID = x;
 		} catch( boost::bad_lexical_cast const& ) {
-		    std::cout << "Error: input string was not valid" << std::endl;
+		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
 
@@ -160,20 +158,17 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	map<string, string>::const_iterator origIt = configProps.find("originPos");
 	map<string, string>::const_iterator destIt = configProps.find("destPos");
 	if (origIt!=configProps.end() && destIt!=configProps.end()) {
+		//Double-check some potential error states.
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
-
 		if (this->originNode || this->destNode) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.
-
-		//std::cout << "sim_mob::Person::load=>input[" << origIt->second << " , " << destIt->second << "]\n";
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
-		//std::cout << "Resulting nodes[" << this->originNode << " , " << this->destNode << "]\n";
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -312,7 +307,9 @@ bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTr
 	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) return false;
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
+		return false;
+	}
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }
@@ -401,18 +398,19 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	if (currRole) {
 		currParams = currRole->getSubscriptionParams();
 	}
-	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
 	//      now takes Agent* objects. (Use "currTimeMS" for this)
+
 	//setStartTime(nextValidTimeMS); done out side this function
 //	call_frame_init = true;//what a hack! -vahid
 
-	//Null out our trip chain, remove the "removed" flag, and return
-	clearToBeRemoved();
-	return res;
+		//Null out our trip chain, remove the "removed" flag, and return
+		clearToBeRemoved();
+		return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
+
 }
 
 //sets the current subtrip to the first subtrip of the provided trip(provided trip is usually the current tripChianItem)
@@ -565,6 +563,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 		currRole->setParent(nullptr);
 		if (this->currWorker) {
 			this->currWorker->stopManaging(currRole->getSubscriptionParams());
+			this->currWorker->stopManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 
@@ -576,6 +575,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 		currRole->setParent(this);
 		if (this->currWorker) {
 			this->currWorker->beginManaging(currRole->getSubscriptionParams());
+			this->currWorker->beginManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 }
@@ -583,4 +583,3 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
-

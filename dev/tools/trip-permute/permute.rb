@@ -4,6 +4,9 @@
 #  node to each other node. The <drivers> section of a Sim Mobility input file is then generated, 
 #  which can be run with check_bad_paths set to true, and output redirected to a file. This output
 #  file can then be combined with the original input file via the script generate.rb
+#
+#NOTE: check_bad_paths doesn't really work any more. We'll need a different way of handling this; 
+#      perhaps by scanning for Agent errors.
 
 class Point
   def initialize(x,y)  
@@ -26,7 +29,8 @@ def run_main()
   from_pts = []
   to_pts = []
   File.open(ARGV[0]).each { |line|
-    if line =~ /\("(uni-node|multi-node)"[^{]+\{"xPos":"([^"]+)" *, *"yPos":"([^"]+)" *, *"aimsun-id":"([^"]+)" *,? *\} *\) */
+#    if line =~ /\("(uni-node|multi-node)"[^{]+\{"xPos":"([^"]+)" *, *"yPos":"([^"]+)" *, *"aimsun-id":"([^"]+)" *,? *\} *\) */
+    if line =~ /\("(uni-node|multi-node)"[^{]+\{"xPos":"([^"]+)" *, *"yPos":"([^"]+)" *[^}]*\} *\) */
       unless $4.to_i == 70392
         from_pts.push Point.new($2, $3) if ($1=='multi-node') 
         to_pts.push Point.new($2, $3)

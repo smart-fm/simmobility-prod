@@ -38,8 +38,6 @@ class Loader;
 class Conflux : sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;
-public:
-
 
 private:
 	/* MultiNode around which this conflux is constructed */
@@ -52,8 +50,8 @@ private:
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
-	/* keeps an iterator on each link to keep tract of the current segment that is being processed*/
-	std::map<sim_mob::Link*, std::vector<sim_mob::RoadSegment*>::const_reverse_iterator > currSegsOnUpLinks;
+	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
+	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
 	/* segments on downstream links
 	 * These half-links conceptually belong to another conflux.
@@ -80,13 +78,15 @@ private:
 
 	timeslice currFrameNumber;
 
+	std::vector<Entity*> toBeRemoved;
+
 	void prepareLengthsOfSegmentsAhead();
 
 	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
 
 	/* function to call agents' updates if the MultiNode is not signalized */
-	void updateUnsignalized(timeslice frameNumber);
+	void updateUnsignalized();
 
 	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
 	void updateAgent(sim_mob::Agent* ag);
@@ -100,9 +100,10 @@ private:
 	/* selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Agent* agentClosestToIntersection();
 
-	/* updates lane params for all lanes within the conflux */
-	void updateSupplyStats(timeslice frameNumber);
-	void reportSupplyStats(timeslice frameNumber);
+	void killAgent(sim_mob::Agent* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
+
+	/*Searches segmentAgents and segmentAgentsDownstream to get the segmentStats for a road segment in this conflux*/
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 public:
 	//constructors and destructor
@@ -110,6 +111,10 @@ public:
 		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {};
 	virtual ~Conflux() {};
+
+	//Confluxes are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
 
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
@@ -152,24 +157,19 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
-	// adds an agent who has just become active to this conflux
-	void addStartingAgent(sim_mob::Agent* ag, sim_mob::RoadSegment* rdSeg);
-
-	// adds the agent into this conflux (to segmentAgents list)
+	// adds the agent into this conflux
 	void addAgent(sim_mob::Agent* ag);
-
-	// adds this agent into segmentAgentsDownstream list
-	void prepareAgentForHandover(sim_mob::Agent* ag);
 
 	// get agent counts in a segment
 	// lanewise
-	std::map<sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
+	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
 	// moving and queuing counts
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
-	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* agKeeper);
+	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats);
+	void handoverDownstreamAgents();
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);
@@ -179,10 +179,42 @@ public:
 	void restoreSupplyStats(const Lane* lane);
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int getInitialQueueCount(const Lane* lane);
+	double getLastAccept(const Lane* lane);
+	void setLastAccept(const Lane* lane, double lastAccept);
+	void resetPositionOfLastUpdatedAgentOnLanes();
+	void updateLaneParams(const Lane* lane, double newOutFlowRate);
+	void restoreLaneParams(const Lane* lane);
+	double getSegmentFlow(const RoadSegment* rdSeg);
+	void incrementSegmentFlow(const RoadSegment* rdSeg);
+	void resetSegmentFlows();
+	void resetLinkTravelTimes(timeslice frameNumber);
+
+	/* updates lane params for all lanes within the conflux */
+	void updateAndReportSupplyStats(timeslice frameNumber);
 
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
 
+	//for mid-term link travel time computation for current frame tick
+	struct travelTimes
+	{
+	public:
+		unsigned int linkTravelTime_;
+		unsigned int agentCount_;
+
+		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
+		: linkTravelTime_(linkTravelTime),
+		  agentCount_(agentCount)
+		{
+		}
+	};
+	std::map<const Link*, travelTimes> LinkTravelTimesMap;
+	void setTravelTimes(Agent* ag, double linkExitTime);
+	void clearTravelTimesMap()
+	{
+		this->LinkTravelTimesMap.clear();
+	}
+	void reportLinkTravelTimes(timeslice frameNumber);
 };
 
 } /* namespace sim_mob */

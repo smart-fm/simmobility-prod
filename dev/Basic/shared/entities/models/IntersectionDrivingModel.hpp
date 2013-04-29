@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
 
 #include "util/DynamicVector.hpp"
 

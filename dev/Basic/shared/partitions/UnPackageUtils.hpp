@@ -1,5 +1,7 @@
 #pragma once
-#include "GenConfig.h"
+
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -38,6 +40,9 @@ private:
 
 #ifndef SIMMOB_DISABLE_MPI
 	boost::archive::text_iarchive* package;
+
+//	friend class BoundaryProcessor;
+//	friend class ShortTermBoundaryProcessor;
 #endif
 
 public:

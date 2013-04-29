@@ -2,6 +2,10 @@
 
 #include "Agent.hpp"
 
+#include "conf/settings/ProfileOptions.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/StrictAgentErrors.h"
+
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 #include "partitions/PartitionManager.hpp"
@@ -54,7 +58,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigParams::GetInstance().using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
@@ -94,22 +98,24 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
 	dynamic_seed = id;
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentCreated(*this);
-#endif
+	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+		profile = new ProfileBuilder();
+		profile->logAgentCreated(*this);
+	}
 }
 
 sim_mob::Agent::~Agent()
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentDeleted(*this);
-#endif
+	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+		profile->logAgentDeleted(*this);
+	}
+	safe_delete_item(profile);
 }
 
 
@@ -192,7 +198,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, frameNumber);
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -227,7 +233,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		setToBeRemoved();
 	}
 
-	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, frameNumber);
+	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
 	return retVal;
 }
 
@@ -276,114 +282,17 @@ void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
 	currSegment = rdSeg;
 }
 
-void sim_mob::Agent::setTravelStats(const Link* link, unsigned int linkExitTime,
-		unsigned int linkTravelTime, bool hasVehicle)
+void sim_mob::Agent::initTravelStats(const Link* link, double entryTime)
 {
-	const travelStats tStats(link, linkExitTime, linkExitTime - linkEntryTime, hasVehicle);
-	travelStatsMap.insert(std::make_pair(linkExitTime, tStats));
+	currTravelStats.link_ = link;
+	currTravelStats.linkEntryTime_= entryTime;
+}
+
+void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
+	travelStatsMap.insert(std::make_pair(exitTime, ts));
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-//void sim_mob::Agent::pack(PackageUtils& packageUtil) {
-//	//std::cout << "Agent package Called" <<this->getId()<< std::endl;
-//
-//	packageUtil.packBasicData(id);
-//	//packageUtil.packBasicData(isSubscriptionListBuilt);
-//	packageUtil.packBasicData(startTime);
-//
-//	sim_mob::Node::pack(packageUtil, originNode);
-//	sim_mob::Node::pack(packageUtil, destNode);
-//
-////	packageUtil.packNode(originNode);
-////	packageUtil.packNode(destNode);
-//
-//	packageUtil.packBasicData(xPos.get());
-//	packageUtil.packBasicData(yPos.get());
-//	packageUtil.packBasicData(fwdVel.get());
-//	packageUtil.packBasicData(latVel.get());
-//	packageUtil.packBasicData(xAcc.get());
-//	packageUtil.packBasicData(yAcc.get());
-//
-//	packageUtil.packBasicData(toRemoved);
-//	packageUtil.packBasicData(dynamic_seed);
-//}
-//
-//void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
-//
-//	id = unpackageUtil.unpackBasicData<int> ();
-//	//std::cout << "Agent unpackage Called:" <<this->getId() << std::endl;
-//	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
-//	startTime = unpackageUtil.unpackBasicData<int> ();
-//
-//	originNode = Node::unpack(unpackageUtil);
-//	destNode = Node::unpack(unpackageUtil);
-//
-//	int x_pos, y_pos;
-//	double x_acc, y_acc;
-//	double x_vel, y_vel;
-//
-//	x_pos = unpackageUtil.unpackBasicData<int> ();
-//	y_pos = unpackageUtil.unpackBasicData<int> ();
-//	x_acc = unpackageUtil.unpackBasicData<double> ();
-//	y_acc = unpackageUtil.unpackBasicData<double> ();
-//	x_vel = unpackageUtil.unpackBasicData<double> ();
-//	y_vel = unpackageUtil.unpackBasicData<double> ();
-//
-//	xPos.force(x_pos);
-//	yPos.force(y_pos);
-//	xAcc.force(x_acc);
-//	yAcc.force(y_acc);
-//	fwdVel.force(x_vel);
-//	latVel.force(y_vel);
-//
-//	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
-//}
-//
-//void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
-//{
-//	packageUtil.packBasicData(id);
-//	//packageUtil.packBasicData(isSubscriptionListBuilt);
-//	packageUtil.packBasicData(startTime);
-//
-//	packageUtil.packBasicData(xPos.get());
-//	packageUtil.packBasicData(yPos.get());
-//	packageUtil.packBasicData(fwdVel.get());
-//	packageUtil.packBasicData(latVel.get());
-//	packageUtil.packBasicData(xAcc.get());
-//	packageUtil.packBasicData(yAcc.get());
-//
-//	packageUtil.packBasicData(toRemoved);
-//	packageUtil.packBasicData(dynamic_seed);
-//}
-
-//void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
-//	id = unpackageUtil.unpackBasicData<int> ();
-//	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
-//	startTime = unpackageUtil.unpackBasicData<int> ();
-//
-//	int x_pos, y_pos;
-//	double x_acc, y_acc;
-//	double x_vel, y_vel;
-//
-//	x_pos = unpackageUtil.unpackBasicData<int> ();
-//	y_pos = unpackageUtil.unpackBasicData<int> ();
-//	x_acc = unpackageUtil.unpackBasicData<double> ();
-//	y_acc = unpackageUtil.unpackBasicData<double> ();
-//	x_vel = unpackageUtil.unpackBasicData<double> ();
-//	y_vel = unpackageUtil.unpackBasicData<double> ();
-//
-//	xPos.force(x_pos);
-//	yPos.force(y_pos);
-//	xAcc.force(x_acc);
-//	yAcc.force(y_acc);
-//	fwdVel.force(x_vel);
-//	latVel.force(y_vel);
-//
-//	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
-//}
-
 int sim_mob::Agent::getOwnRandomNumber() {
 	int one_try = -1;
 	int second_try = -2;

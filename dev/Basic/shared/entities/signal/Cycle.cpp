@@ -116,20 +116,8 @@ void Cycle::updateprevCL() {
 }
 
 void Cycle::updatecurrCL() {
-//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
-//		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-//		std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
-//	}
 	currCL = nextCL;
 }
-
-//void Cycle::updateprevRL1(double RL1) {
-//	prevRL1 = RL1;
-//}
-//
-//void Cycle::updateprevRL2(double RL2) {
-//	prevRL2 = RL2;
-//}
 
 double Cycle::getcurrCL() {
 	return currCL;

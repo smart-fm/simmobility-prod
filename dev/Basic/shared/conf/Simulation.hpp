@@ -12,7 +12,6 @@
 
 #include "conf/LoadAgents.hpp"
 #include "entities/roles/RoleFactory.hpp"
-#include "entities/Person.hpp"
 
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"

@@ -329,7 +329,7 @@ private:
 class Plan_t_pimpl: public virtual Plan_t_pskel {
 public:
 	virtual void pre ();
-	virtual void post_Plan_t ();
+	virtual std::pair<short int, std::vector<double> > post_Plan_t ();
 
 	virtual void planID (unsigned char);
 	virtual void PhasePercentage (double);
@@ -339,64 +339,129 @@ public:
 class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel, public ::xml_schema::string_pimpl {
 public:
 	virtual void pre ();
-	virtual void post_TrafficColor_t ();
+	virtual sim_mob::TrafficColor post_TrafficColor_t ();
 };
 
 class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel {
+	std::pair<sim_mob::TrafficColor,short> model;
 public:
 	virtual void pre ();
-	virtual std::pair<sim_mob::TrafficColor,std::size_t> post_ColorDuration_t ();
+	virtual std::pair<sim_mob::TrafficColor,short> post_ColorDuration_t ();
 
-	virtual void TrafficColor ();
-	virtual void Duration (unsigned char);
+	virtual void TrafficColor (sim_mob::TrafficColor);
+	virtual void Duration (short);
 };
 
 
 class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel {
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > model;
 public:
 	virtual void pre ();
-	virtual std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > > post_ColorSequence_t ();
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > post_ColorSequence_t ();
 
-	virtual void TrafficLightType (const ::std::string&);
-	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
+	virtual void TrafficLightType (sim_mob::TrafficLightType);
+	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,short>);
 };
 
+class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
+{
+	  std::map<sim_mob::Crossing *, sim_mob::Crossings> model;
+//		helper::Bookkeeping& book;
+public:
+//	  crossings_maps_t_pimpl(helper::Bookkeeping& book) : book(book) {}
+
+  virtual void  pre ();
+
+  virtual void
+  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>);
+
+  virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_maps_t ();
+};
+
+class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
+{
+	  sim_mob::Crossings model;
+	  const helper::Bookkeeping& book;
+  public:
+	  crossings_map_t_pimpl(const helper::Bookkeeping& book) : book(book) {}
+
+  virtual void
+  pre ();
+
+  virtual void
+  linkID (unsigned int);
+
+  virtual void
+  crossingID (unsigned int);
+
+  virtual void
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+
+  virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
+  post_crossings_map_t ();
+};
 
 class Phase_t_pimpl: public virtual Phase_t_pskel {
+	sim_mob::Phase model;
 public:
 	virtual void pre ();
-	virtual void post_Phase_t ();
+	virtual sim_mob::Phase post_Phase_t ();
 
 	virtual void phaseID (unsigned char);
 	virtual void name (const ::std::string&);
 	virtual void links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>);
+    virtual void crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>);
 };
 
 
 class SplitPlan_t_pimpl: public virtual SplitPlan_t_pskel {
+	sim_mob::SplitPlan model;
 public:
 	virtual void pre ();
 	virtual sim_mob::SplitPlan post_SplitPlan_t ();
 
 	virtual void splitplanID (unsigned int);
-	virtual void signalTimingMode ();
 	virtual void cycleLength (unsigned char);
 	virtual void offset (unsigned char);
-	virtual void ChoiceSet ();
-	virtual void Phases ();
+	virtual void ChoiceSet (std::vector<std::vector<double> >&);
 };
 
 
 class Signal_t_pimpl: public virtual Signal_t_pskel {
+
 public:
+	typedef sim_mob::xml::helper::SignalHelper SignalHelper_;
+	Signal_t_pimpl(helper::Bookkeeping& book_) : book(book_){}
 	virtual void pre ();
 	virtual sim_mob::Signal* post_Signal_t ();
-
-	virtual void signalID (unsigned char);
+	virtual void phases (sim_mob::Signal::phases);
+	virtual void signalID (unsigned int);
 	virtual void nodeID (unsigned int);
-	virtual void signalTimingMode ();
+//	virtual void signalTimingMode ();
 	virtual void linkAndCrossings (sim_mob::LinkAndCrossingC);
-	virtual void SplitPlan (sim_mob::SplitPlan);
+//	virtual void SplitPlan (sim_mob::SplitPlan);
+	virtual void SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info SCATS_Info_);
+private:
+	SignalHelper_ signalHelper;
+	helper::Bookkeeping& book;
+	sim_mob::Signal* model;
+};
+
+
+class SCATS_t_pimpl: public virtual SCATS_t_pskel {
+	typedef sim_mob::xml::helper::SignalHelper SignalHelper_;
+public:
+	virtual void pre ();
+	virtual sim_mob::xml::helper::SignalHelper::SCATS_Info  post_SCATS_t ();
+	virtual void signalTimingMode (int);
+	virtual void SplitPlan (sim_mob::SplitPlan&);
+//	SCATS_t_pimpl(helper::Bookkeeping& book_, helper::SignalHelper & signal_) : book(book_),signalHelper(signal_){}
+
+private:
+//	SignalHelper_ &signalHelper;
+//	helper::Bookkeeping& book;
+	sim_mob::xml::helper::SignalHelper::SCATS_Info model;
 };
 
 class SimMobility_t_pimpl: public virtual SimMobility_t_pskel {
@@ -429,7 +494,7 @@ public:
 	virtual void pre ();
 	virtual sim_mob::TripChainItem* post_TripChainItem_t ();
 
-	virtual void personID (long long);
+	virtual void personID (std::string);
 	virtual void itemType (std::string);
 	virtual void sequenceNumber (unsigned int);
 	virtual void startTime (const ::std::string&);
@@ -500,14 +565,14 @@ private:
 class TripChain_t_pimpl: public virtual TripChain_t_pskel {
 public:
 	virtual void pre ();
-	virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
+	virtual std::pair<std::string, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
 
-	virtual void personID (long long);
+	virtual void personID (std::string);
 	virtual void Trip (sim_mob::TripChainItem*);
 	virtual void Activity (sim_mob::TripChainItem*);
 
 private:
-	std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > model;
+	std::pair<std::string, std::vector<sim_mob::TripChainItem*> > model;
 };
 
 

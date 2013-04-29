@@ -1,0 +1,19 @@
+/**
+ * \file DisableMPI.h
+ * Contains the compile-time flag "SIMMOB_DISABLE_MPI"
+ *
+ * \author Seth N. Hetu 
+ * 
+ * Please do not edit the file DisableMPI.h; instead, edit DisableMPI.h.in, 
+ *  which the header file is generated from.
+ *  
+ * Also note that parameters like SIMMOB_DISABLE_MPI should be set in your cmake cache file.
+ *  Do not simply override the defaults in CMakeLists.txt
+ *
+ * \par
+ * ~Seth
+ */
+
+#pragma once
+
+#cmakedefine SIMMOB_DISABLE_MPI

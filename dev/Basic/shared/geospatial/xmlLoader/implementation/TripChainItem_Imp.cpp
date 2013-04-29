@@ -32,7 +32,7 @@ sim_mob::TripChainItem* sim_mob::xml::TripChainItem_t_pimpl::post_TripChainItem_
 	return res;
 }
 
-void sim_mob::xml::TripChainItem_t_pimpl::personID (long long value)
+void sim_mob::xml::TripChainItem_t_pimpl::personID (std::string value)
 {
 	model.personID = value;
 }

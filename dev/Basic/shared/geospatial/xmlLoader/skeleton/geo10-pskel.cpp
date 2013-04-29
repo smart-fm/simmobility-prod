@@ -1655,7 +1655,7 @@ namespace sim_mob
     //
 
     void TripChainItem_t_pskel::
-    personID_parser (::xml_schema::integer_pskel& p)
+    personID_parser (::xml_schema::string_pskel& p)
     {
       this->personID_parser_ = &p;
     }
@@ -1685,7 +1685,7 @@ namespace sim_mob
     }
 
     void TripChainItem_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1748,7 +1748,7 @@ namespace sim_mob
     }
 
     void Trip_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1806,7 +1806,7 @@ namespace sim_mob
     }
 
     void SubTrip_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -1906,7 +1906,7 @@ namespace sim_mob
     }
 
     void Activity_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
              ::xml_schema::string_pskel& startTime,
@@ -2105,20 +2105,20 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    Plan_parser (::sim_mob::xml::Plan_t_pskel& p)
+    plan_parser (::sim_mob::xml::Plan_t_pskel& p)
     {
-      this->Plan_parser_ = &p;
+      this->plan_parser_ = &p;
     }
 
     void Plans_t_pskel::
-    parsers (::sim_mob::xml::Plan_t_pskel& Plan)
+    parsers (::sim_mob::xml::Plan_t_pskel& plan)
     {
-      this->Plan_parser_ = &Plan;
+      this->plan_parser_ = &plan;
     }
 
     Plans_t_pskel::
     Plans_t_pskel ()
-    : Plan_parser_ (0)
+    : plan_parser_ (0)
     {
     }
 
@@ -2132,14 +2132,14 @@ namespace sim_mob
     }
 
     void ColorDuration_t_pskel::
-    Duration_parser (::xml_schema::unsigned_byte_pskel& p)
+    Duration_parser (::xml_schema::short_pskel& p)
     {
       this->Duration_parser_ = &p;
     }
 
     void ColorDuration_t_pskel::
     parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
-             ::xml_schema::unsigned_byte_pskel& Duration)
+             ::xml_schema::short_pskel& Duration)
     {
       this->TrafficColor_parser_ = &TrafficColor;
       this->Duration_parser_ = &Duration;
@@ -2260,6 +2260,66 @@ namespace sim_mob
     {
     }
 
+    // crossings_maps_t_pskel
+    //
+
+    void crossings_maps_t_pskel::
+    crossings_map_parser (::sim_mob::xml::crossings_map_t_pskel& p)
+    {
+      this->crossings_map_parser_ = &p;
+    }
+
+    void crossings_maps_t_pskel::
+    parsers (::sim_mob::xml::crossings_map_t_pskel& crossings_map)
+    {
+      this->crossings_map_parser_ = &crossings_map;
+    }
+
+    crossings_maps_t_pskel::
+    crossings_maps_t_pskel ()
+    : crossings_map_parser_ (0)
+    {
+    }
+
+    // crossings_map_t_pskel
+    //
+
+    void crossings_map_t_pskel::
+    linkID_parser (::xml_schema::unsigned_int_pskel& p)
+    {
+      this->linkID_parser_ = &p;
+    }
+
+    void crossings_map_t_pskel::
+    crossingID_parser (::xml_schema::unsigned_int_pskel& p)
+    {
+      this->crossingID_parser_ = &p;
+    }
+
+    void crossings_map_t_pskel::
+    ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
+    {
+      this->ColorSequence_parser_ = &p;
+    }
+
+    void crossings_map_t_pskel::
+    parsers (::xml_schema::unsigned_int_pskel& linkID,
+             ::xml_schema::unsigned_int_pskel& crossingID,
+             ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
+    {
+      this->linkID_parser_ = &linkID;
+      this->crossingID_parser_ = &crossingID;
+      this->ColorSequence_parser_ = &ColorSequence;
+    }
+
+    crossings_map_t_pskel::
+    crossings_map_t_pskel ()
+    : linkID_parser_ (0),
+      crossingID_parser_ (0),
+      ColorSequence_parser_ (0)
+    {
+    }
+
     // Phase_t_pskel
     //
 
@@ -2276,26 +2336,35 @@ namespace sim_mob
     }
 
     void Phase_t_pskel::
-    links_map_parser (::sim_mob::xml::links_maps_t_pskel& p)
+    links_maps_parser (::sim_mob::xml::links_maps_t_pskel& p)
     {
-      this->links_map_parser_ = &p;
+      this->links_maps_parser_ = &p;
+    }
+
+    void Phase_t_pskel::
+    crossings_maps_parser (::sim_mob::xml::crossings_maps_t_pskel& p)
+    {
+      this->crossings_maps_parser_ = &p;
     }
 
     void Phase_t_pskel::
     parsers (::xml_schema::unsigned_byte_pskel& phaseID,
              ::xml_schema::string_pskel& name,
-             ::sim_mob::xml::links_maps_t_pskel& links_map)
+             ::sim_mob::xml::links_maps_t_pskel& links_maps,
+             ::sim_mob::xml::crossings_maps_t_pskel& crossings_maps)
     {
       this->phaseID_parser_ = &phaseID;
       this->name_parser_ = &name;
-      this->links_map_parser_ = &links_map;
+      this->links_maps_parser_ = &links_maps;
+      this->crossings_maps_parser_ = &crossings_maps;
     }
 
     Phase_t_pskel::
     Phase_t_pskel ()
     : phaseID_parser_ (0),
       name_parser_ (0),
-      links_map_parser_ (0)
+      links_maps_parser_ (0),
+      crossings_maps_parser_ (0)
     {
     }
 
@@ -2303,20 +2372,20 @@ namespace sim_mob
     //
 
     void Phases_t_pskel::
-    Phase_parser (::sim_mob::xml::Phase_t_pskel& p)
+    phase_parser (::sim_mob::xml::Phase_t_pskel& p)
     {
-      this->Phase_parser_ = &p;
+      this->phase_parser_ = &p;
     }
 
     void Phases_t_pskel::
-    parsers (::sim_mob::xml::Phase_t_pskel& Phase)
+    parsers (::sim_mob::xml::Phase_t_pskel& phase)
     {
-      this->Phase_parser_ = &Phase;
+      this->phase_parser_ = &phase;
     }
 
     Phases_t_pskel::
     Phases_t_pskel ()
-    : Phase_parser_ (0)
+    : phase_parser_ (0)
     {
     }
 
@@ -2327,12 +2396,6 @@ namespace sim_mob
     splitplanID_parser (::xml_schema::unsigned_int_pskel& p)
     {
       this->splitplanID_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
-    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
-    {
-      this->signalTimingMode_parser_ = &p;
     }
 
     void SplitPlan_t_pskel::
@@ -2354,35 +2417,53 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    Phases_parser (::sim_mob::xml::Phases_t_pskel& p)
-    {
-      this->Phases_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
     parsers (::xml_schema::unsigned_int_pskel& splitplanID,
-             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::xml_schema::unsigned_byte_pskel& cycleLength,
              ::xml_schema::unsigned_byte_pskel& offset,
-             ::sim_mob::xml::Plans_t_pskel& ChoiceSet,
-             ::sim_mob::xml::Phases_t_pskel& Phases)
+             ::sim_mob::xml::Plans_t_pskel& ChoiceSet)
     {
       this->splitplanID_parser_ = &splitplanID;
-      this->signalTimingMode_parser_ = &signalTimingMode;
       this->cycleLength_parser_ = &cycleLength;
       this->offset_parser_ = &offset;
       this->ChoiceSet_parser_ = &ChoiceSet;
-      this->Phases_parser_ = &Phases;
     }
 
     SplitPlan_t_pskel::
     SplitPlan_t_pskel ()
     : splitplanID_parser_ (0),
-      signalTimingMode_parser_ (0),
       cycleLength_parser_ (0),
       offset_parser_ (0),
-      ChoiceSet_parser_ (0),
-      Phases_parser_ (0)
+      ChoiceSet_parser_ (0)
+    {
+    }
+
+    // SCATS_t_pskel
+    //
+
+    void SCATS_t_pskel::
+    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
+    {
+      this->signalTimingMode_parser_ = &p;
+    }
+
+    void SCATS_t_pskel::
+    SplitPlan_parser (::sim_mob::xml::SplitPlan_t_pskel& p)
+    {
+      this->SplitPlan_parser_ = &p;
+    }
+
+    void SCATS_t_pskel::
+    parsers (::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
+             ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
+    {
+      this->signalTimingMode_parser_ = &signalTimingMode;
+      this->SplitPlan_parser_ = &SplitPlan;
+    }
+
+    SCATS_t_pskel::
+    SCATS_t_pskel ()
+    : signalTimingMode_parser_ (0),
+      SplitPlan_parser_ (0)
     {
     }
 
@@ -2390,7 +2471,7 @@ namespace sim_mob
     //
 
     void Signal_t_pskel::
-    signalID_parser (::xml_schema::unsigned_byte_pskel& p)
+    signalID_parser (::xml_schema::unsigned_int_pskel& p)
     {
       this->signalID_parser_ = &p;
     }
@@ -2402,44 +2483,44 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
-    {
-      this->signalTimingMode_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
     linkAndCrossings_parser (::sim_mob::xml::linkAndCrossings_t_pskel& p)
     {
       this->linkAndCrossings_parser_ = &p;
     }
 
     void Signal_t_pskel::
-    SplitPlan_parser (::sim_mob::xml::SplitPlan_t_pskel& p)
+    phases_parser (::sim_mob::xml::Phases_t_pskel& p)
     {
-      this->SplitPlan_parser_ = &p;
+      this->phases_parser_ = &p;
     }
 
     void Signal_t_pskel::
-    parsers (::xml_schema::unsigned_byte_pskel& signalID,
+    SCATS_parser (::sim_mob::xml::SCATS_t_pskel& p)
+    {
+      this->SCATS_parser_ = &p;
+    }
+
+    void Signal_t_pskel::
+    parsers (::xml_schema::unsigned_int_pskel& signalID,
              ::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
              ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
-             ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
+             ::sim_mob::xml::Phases_t_pskel& phases,
+             ::sim_mob::xml::SCATS_t_pskel& SCATS)
     {
       this->signalID_parser_ = &signalID;
       this->nodeID_parser_ = &nodeID;
-      this->signalTimingMode_parser_ = &signalTimingMode;
       this->linkAndCrossings_parser_ = &linkAndCrossings;
-      this->SplitPlan_parser_ = &SplitPlan;
+      this->phases_parser_ = &phases;
+      this->SCATS_parser_ = &SCATS;
     }
 
     Signal_t_pskel::
     Signal_t_pskel ()
     : signalID_parser_ (0),
       nodeID_parser_ (0),
-      signalTimingMode_parser_ (0),
       linkAndCrossings_parser_ (0),
-      SplitPlan_parser_ (0)
+      phases_parser_ (0),
+      SCATS_parser_ (0)
     {
     }
 
@@ -2447,20 +2528,20 @@ namespace sim_mob
     //
 
     void Signals_t_pskel::
-    signal_parser (::sim_mob::xml::Signal_t_pskel& p)
+    Signal_parser (::sim_mob::xml::Signal_t_pskel& p)
     {
-      this->signal_parser_ = &p;
+      this->Signal_parser_ = &p;
     }
 
     void Signals_t_pskel::
-    parsers (::sim_mob::xml::Signal_t_pskel& signal)
+    parsers (::sim_mob::xml::Signal_t_pskel& Signal)
     {
-      this->signal_parser_ = &signal;
+      this->Signal_parser_ = &Signal;
     }
 
     Signals_t_pskel::
     Signals_t_pskel ()
-    : signal_parser_ (0)
+    : Signal_parser_ (0)
     {
     }
 
@@ -6599,7 +6680,7 @@ namespace sim_mob
     //
 
     void TripChainItem_t_pskel::
-    personID (long long)
+    personID (const ::std::string&)
     {
     }
 
@@ -6696,7 +6777,7 @@ namespace sim_mob
       if (n == "personID" && ns.empty ())
       {
         if (this->personID_parser_)
-          this->personID (this->personID_parser_->post_integer ());
+          this->personID (this->personID_parser_->post_string ());
 
         return true;
       }
@@ -7319,7 +7400,7 @@ namespace sim_mob
     //
 
     void TripChains_t_pskel::
-    TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >)
+    TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >)
     {
     }
 
@@ -7536,14 +7617,6 @@ namespace sim_mob
       return false;
     }
 
-    // signalTimingMode_t_pskel
-    //
-
-    void signalTimingMode_t_pskel::
-    post_signalTimingMode_t ()
-    {
-    }
-
     // Plan_t_pskel
     //
 
@@ -7554,11 +7627,6 @@ namespace sim_mob
 
     void Plan_t_pskel::
     PhasePercentage (double)
-    {
-    }
-
-    void Plan_t_pskel::
-    post_Plan_t ()
     {
     }
 
@@ -7625,12 +7693,7 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    Plan ()
-    {
-    }
-
-    void Plans_t_pskel::
-    post_Plans_t ()
+    plan (std::pair<short,std::vector<double> >)
     {
     }
 
@@ -7644,12 +7707,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "Plan" && ns.empty ())
+      if (n == "plan" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Plan_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->plan_parser_;
 
-        if (this->Plan_parser_)
-          this->Plan_parser_->pre ();
+        if (this->plan_parser_)
+          this->plan_parser_->pre ();
 
         return true;
       }
@@ -7664,13 +7727,10 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "Plan" && ns.empty ())
+      if (n == "plan" && ns.empty ())
       {
-        if (this->Plan_parser_)
-        {
-          this->Plan_parser_->post_Plan_t ();
-          this->Plan ();
-        }
+        if (this->plan_parser_)
+          this->plan (this->plan_parser_->post_Plan_t ());
 
         return true;
       }
@@ -7678,24 +7738,16 @@ namespace sim_mob
       return false;
     }
 
-    // TrafficColor_t_pskel
-    //
-
-    void TrafficColor_t_pskel::
-    post_TrafficColor_t ()
-    {
-    }
-
     // ColorDuration_t_pskel
     //
 
     void ColorDuration_t_pskel::
-    TrafficColor ()
+    TrafficColor (sim_mob::TrafficColor)
     {
     }
 
     void ColorDuration_t_pskel::
-    Duration (unsigned char)
+    Duration (short)
     {
     }
 
@@ -7742,10 +7794,7 @@ namespace sim_mob
       if (n == "TrafficColor" && ns.empty ())
       {
         if (this->TrafficColor_parser_)
-        {
-          this->TrafficColor_parser_->post_TrafficColor_t ();
-          this->TrafficColor ();
-        }
+          this->TrafficColor (this->TrafficColor_parser_->post_TrafficColor_t ());
 
         return true;
       }
@@ -7753,7 +7802,7 @@ namespace sim_mob
       if (n == "Duration" && ns.empty ())
       {
         if (this->Duration_parser_)
-          this->Duration (this->Duration_parser_->post_unsigned_byte ());
+          this->Duration (this->Duration_parser_->post_short ());
 
         return true;
       }
@@ -7770,7 +7819,7 @@ namespace sim_mob
     }
 
     void ColorSequence_t_pskel::
-    ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>)
+    ColorDuration (std::pair<sim_mob::TrafficColor,short>)
     {
     }
 
@@ -7906,7 +7955,7 @@ namespace sim_mob
     }
 
     void links_map_t_pskel::
-    ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
     {
     }
 
@@ -8023,6 +8072,150 @@ namespace sim_mob
       return false;
     }
 
+    // crossings_maps_t_pskel
+    //
+
+    void crossings_maps_t_pskel::
+    crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>)
+    {
+    }
+
+    bool crossings_maps_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "crossings_map" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_map_parser_;
+
+        if (this->crossings_map_parser_)
+          this->crossings_map_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool crossings_maps_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "crossings_map" && ns.empty ())
+      {
+        if (this->crossings_map_parser_)
+          this->crossings_map (this->crossings_map_parser_->post_crossings_map_t ());
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // crossings_map_t_pskel
+    //
+
+    void crossings_map_t_pskel::
+    linkID (unsigned int)
+    {
+    }
+
+    void crossings_map_t_pskel::
+    crossingID (unsigned int)
+    {
+    }
+
+    void crossings_map_t_pskel::
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
+    {
+    }
+
+    bool crossings_map_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "linkID" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+
+        if (this->linkID_parser_)
+          this->linkID_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "crossingID" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
+
+        if (this->crossingID_parser_)
+          this->crossingID_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "ColorSequence" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
+
+        if (this->ColorSequence_parser_)
+          this->ColorSequence_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool crossings_map_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "linkID" && ns.empty ())
+      {
+        if (this->linkID_parser_)
+          this->linkID (this->linkID_parser_->post_unsigned_int ());
+
+        return true;
+      }
+
+      if (n == "crossingID" && ns.empty ())
+      {
+        if (this->crossingID_parser_)
+          this->crossingID (this->crossingID_parser_->post_unsigned_int ());
+
+        return true;
+      }
+
+      if (n == "ColorSequence" && ns.empty ())
+      {
+        if (this->ColorSequence_parser_)
+          this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
+
+        return true;
+      }
+
+      return false;
+    }
+
     // Phase_t_pskel
     //
 
@@ -8037,12 +8230,12 @@ namespace sim_mob
     }
 
     void Phase_t_pskel::
-    links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
+    links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
     {
     }
 
     void Phase_t_pskel::
-    post_Phase_t ()
+    crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>)
     {
     }
 
@@ -8076,12 +8269,22 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "links_map" && ns.empty ())
+      if (n == "links_maps" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->links_maps_parser_;
 
-        if (this->links_map_parser_)
-          this->links_map_parser_->pre ();
+        if (this->links_maps_parser_)
+          this->links_maps_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "crossings_maps" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_maps_parser_;
+
+        if (this->crossings_maps_parser_)
+          this->crossings_maps_parser_->pre ();
 
         return true;
       }
@@ -8112,10 +8315,18 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "links_map" && ns.empty ())
+      if (n == "links_maps" && ns.empty ())
       {
-        if (this->links_map_parser_)
-          this->links_map (this->links_map_parser_->post_links_maps_t ());
+        if (this->links_maps_parser_)
+          this->links_maps (this->links_maps_parser_->post_links_maps_t ());
+
+        return true;
+      }
+
+      if (n == "crossings_maps" && ns.empty ())
+      {
+        if (this->crossings_maps_parser_)
+          this->crossings_maps (this->crossings_maps_parser_->post_crossings_maps_t ());
 
         return true;
       }
@@ -8127,12 +8338,7 @@ namespace sim_mob
     //
 
     void Phases_t_pskel::
-    Phase ()
-    {
-    }
-
-    void Phases_t_pskel::
-    post_Phases_t ()
+    phase (sim_mob::Phase)
     {
     }
 
@@ -8146,12 +8352,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "Phase" && ns.empty ())
+      if (n == "phase" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Phase_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->phase_parser_;
 
-        if (this->Phase_parser_)
-          this->Phase_parser_->pre ();
+        if (this->phase_parser_)
+          this->phase_parser_->pre ();
 
         return true;
       }
@@ -8166,13 +8372,10 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "Phase" && ns.empty ())
+      if (n == "phase" && ns.empty ())
       {
-        if (this->Phase_parser_)
-        {
-          this->Phase_parser_->post_Phase_t ();
-          this->Phase ();
-        }
+        if (this->phase_parser_)
+          this->phase (this->phase_parser_->post_Phase_t ());
 
         return true;
       }
@@ -8189,11 +8392,6 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    signalTimingMode ()
-    {
-    }
-
-    void SplitPlan_t_pskel::
     cycleLength (unsigned char)
     {
     }
@@ -8204,12 +8402,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    ChoiceSet ()
-    {
-    }
-
-    void SplitPlan_t_pskel::
-    Phases ()
+    ChoiceSet (std::vector<std::vector<double> >)
     {
     }
 
@@ -8229,16 +8422,6 @@ namespace sim_mob
 
         if (this->splitplanID_parser_)
           this->splitplanID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
-
-        if (this->signalTimingMode_parser_)
-          this->signalTimingMode_parser_->pre ();
 
         return true;
       }
@@ -8273,16 +8456,6 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "Phases" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Phases_parser_;
-
-        if (this->Phases_parser_)
-          this->Phases_parser_->pre ();
-
-        return true;
-      }
-
       return false;
     }
 
@@ -8297,17 +8470,6 @@ namespace sim_mob
       {
         if (this->splitplanID_parser_)
           this->splitplanID (this->splitplanID_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        if (this->signalTimingMode_parser_)
-        {
-          this->signalTimingMode_parser_->post_signalTimingMode_t ();
-          this->signalTimingMode ();
-        }
 
         return true;
       }
@@ -8331,21 +8493,79 @@ namespace sim_mob
       if (n == "ChoiceSet" && ns.empty ())
       {
         if (this->ChoiceSet_parser_)
-        {
-          this->ChoiceSet_parser_->post_Plans_t ();
-          this->ChoiceSet ();
-        }
+          this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
 
         return true;
       }
 
-      if (n == "Phases" && ns.empty ())
+      return false;
+    }
+
+    // SCATS_t_pskel
+    //
+
+    void SCATS_t_pskel::
+    signalTimingMode (int)
+    {
+    }
+
+    void SCATS_t_pskel::
+    SplitPlan (sim_mob::SplitPlan)
+    {
+    }
+
+    bool SCATS_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "signalTimingMode" && ns.empty ())
       {
-        if (this->Phases_parser_)
-        {
-          this->Phases_parser_->post_Phases_t ();
-          this->Phases ();
-        }
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
+
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "SplitPlan" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
+
+        if (this->SplitPlan_parser_)
+          this->SplitPlan_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool SCATS_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "signalTimingMode" && ns.empty ())
+      {
+        if (this->signalTimingMode_parser_)
+          this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
+
+        return true;
+      }
+
+      if (n == "SplitPlan" && ns.empty ())
+      {
+        if (this->SplitPlan_parser_)
+          this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
 
         return true;
       }
@@ -8357,7 +8577,7 @@ namespace sim_mob
     //
 
     void Signal_t_pskel::
-    signalID (unsigned char)
+    signalID (unsigned int)
     {
     }
 
@@ -8367,17 +8587,17 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    signalTimingMode ()
-    {
-    }
-
-    void Signal_t_pskel::
     linkAndCrossings (sim_mob::LinkAndCrossingC)
     {
     }
 
     void Signal_t_pskel::
-    SplitPlan (sim_mob::SplitPlan)
+    phases (sim_mob::Signal::phases)
+    {
+    }
+
+    void Signal_t_pskel::
+    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info)
     {
     }
 
@@ -8411,16 +8631,6 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
-
-        if (this->signalTimingMode_parser_)
-          this->signalTimingMode_parser_->pre ();
-
-        return true;
-      }
-
       if (n == "linkAndCrossings" && ns.empty ())
       {
         this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossings_parser_;
@@ -8431,12 +8641,22 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "SplitPlan" && ns.empty ())
+      if (n == "phases" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->phases_parser_;
 
-        if (this->SplitPlan_parser_)
-          this->SplitPlan_parser_->pre ();
+        if (this->phases_parser_)
+          this->phases_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "SCATS" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->SCATS_parser_;
+
+        if (this->SCATS_parser_)
+          this->SCATS_parser_->pre ();
 
         return true;
       }
@@ -8454,7 +8674,7 @@ namespace sim_mob
       if (n == "signalID" && ns.empty ())
       {
         if (this->signalID_parser_)
-          this->signalID (this->signalID_parser_->post_unsigned_byte ());
+          this->signalID (this->signalID_parser_->post_unsigned_int ());
 
         return true;
       }
@@ -8467,17 +8687,6 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        if (this->signalTimingMode_parser_)
-        {
-          this->signalTimingMode_parser_->post_signalTimingMode_t ();
-          this->signalTimingMode ();
-        }
-
-        return true;
-      }
-
       if (n == "linkAndCrossings" && ns.empty ())
       {
         if (this->linkAndCrossings_parser_)
@@ -8486,10 +8695,18 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "SplitPlan" && ns.empty ())
+      if (n == "phases" && ns.empty ())
       {
-        if (this->SplitPlan_parser_)
-          this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
+        if (this->phases_parser_)
+          this->phases (this->phases_parser_->post_Phases_t ());
+
+        return true;
+      }
+
+      if (n == "SCATS" && ns.empty ())
+      {
+        if (this->SCATS_parser_)
+          this->SCATS (this->SCATS_parser_->post_SCATS_t ());
 
         return true;
       }
@@ -8501,12 +8718,7 @@ namespace sim_mob
     //
 
     void Signals_t_pskel::
-    signal (sim_mob::Signal*)
-    {
-    }
-
-    void Signals_t_pskel::
-    post_Signals_t ()
+    Signal (sim_mob::Signal*)
     {
     }
 
@@ -8520,12 +8732,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "signal" && ns.empty ())
+      if (n == "Signal" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signal_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->Signal_parser_;
 
-        if (this->signal_parser_)
-          this->signal_parser_->pre ();
+        if (this->Signal_parser_)
+          this->Signal_parser_->pre ();
 
         return true;
       }
@@ -8540,10 +8752,10 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "signal" && ns.empty ())
+      if (n == "Signal" && ns.empty ())
       {
-        if (this->signal_parser_)
-          this->signal (this->signal_parser_->post_Signal_t ());
+        if (this->Signal_parser_)
+          this->Signal (this->Signal_parser_->post_Signal_t ());
 
         return true;
       }
@@ -8619,7 +8831,7 @@ namespace sim_mob
     }
 
     void SimMobility_t_pskel::
-    Signals ()
+    Signals (std::vector<sim_mob::Signal*>)
     {
     }
 
@@ -8703,10 +8915,7 @@ namespace sim_mob
       if (n == "Signals" && ns.empty ())
       {
         if (this->Signals_parser_)
-        {
-          this->Signals_parser_->post_Signals_t ();
-          this->Signals ();
-        }
+          this->Signals (this->Signals_parser_->post_Signals_t ());
 
         return true;
       }

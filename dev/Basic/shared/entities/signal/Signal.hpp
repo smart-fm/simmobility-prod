@@ -10,9 +10,8 @@
 
 #pragma once
 
-//If we're not using the "new signal" flag, just forward this header file to the old location.
-//  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include <map>
 #include <vector>
 #include <stdexcept>
@@ -37,13 +36,13 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
-namespace geo
+
+namespace sim_mob
+{
+namespace xml
 {
 class Signal_t_pimpl;
 }
-namespace sim_mob
-{
-
 // Forwared declarations.
 class Node;
 class Lane;
@@ -77,7 +76,7 @@ class Signal  : public sim_mob::Agent
 {
 public:
 	typedef std::vector<sim_mob::Phase> phases;
-	friend class geo::Signal_t_pimpl;
+	friend class sim_mob::xml::Signal_t_pimpl;
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC)
 	  : Agent(mtxStrat, id), node_(node){};
    signalType getSignalType() const { return signalType_;}
@@ -97,13 +96,20 @@ public:
 
    virtual unsigned int getSignalId(){ return -1;}
    
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
-   virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
+   //virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
+   //xuyan: no return here
+   bool frame_init(timeslice){return false;}
+   sim_mob::Entity::UpdateStatus frame_tick(timeslice){ return UpdateStatus::Continue; }
+   void frame_output(timeslice){}
 
    typedef std::vector<Signal *> All_Signals;
    static All_Signals all_signals_;
@@ -120,7 +126,7 @@ private:
 
 
 class Signal_SCATS  : public sim_mob::Signal {
-	friend class geo::Signal_t_pimpl;
+	friend class sim_mob::xml::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;

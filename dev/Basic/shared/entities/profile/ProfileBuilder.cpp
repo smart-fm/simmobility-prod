@@ -1,10 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "entities/Agent.hpp"
 #include "ProfileBuilder.hpp"
 
+#include "entities/Agent.hpp"
+#include "workers/Worker.hpp"
+
 //Somewhat hackish way of getting "timespec" defined.
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
 #define _XOPEN_SOURCE 700
 #include <time.h>
 #undef _XOPEN_SOURCE
@@ -76,7 +78,7 @@ void ProfileBuilder::flushLogFile()
 }
 
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
 string ProfileBuilder::GetCurrentTime()
 {
 	timespec timeres;
@@ -104,6 +106,16 @@ string ProfileBuilder::GetCurrentTime()
 string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
+
+void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents)
+{
+	logWorkerUpdateGeneric(wrk, "worker-update-begin", currFrame, "", numAgents);
+}
+
+void ProfileBuilder::logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame)
+{
+	logWorkerUpdateGeneric(wrk, "worker-update-end", currFrame);
+}
 
 void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, timeslice now)
 {
@@ -141,6 +153,21 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame() <<"\"" <<",";
 	}
 	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+	if (!message.empty()) {
+		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
+	}
+	currLog <<"}\n";
+}
+
+
+void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message, size_t numAgents)
+{
+	currLog <<"{"
+			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
+			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<(&wrk) <<"\"" <<","
+			<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<currFrame <<"\"" <<","
+			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<","
+			<<"\"" <<"num-agents" <<"\"" <<":" <<"\"" <<numAgents <<"\"" <<",";
 	if (!message.empty()) {
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}

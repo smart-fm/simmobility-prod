@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 #include "geospatial/GeneralPathMover.hpp"
@@ -24,6 +26,7 @@ namespace sim_mob {
 class PackageUtils;
 class UnPackageUtils;
 
+/*// Commented out by Vahid
 class Park
 {
 	bool parkingEnabled;
@@ -42,14 +45,14 @@ public:
 	bool isparkingTimeOver() const {
 //		std::cout << "isparkingTimeOver()::elapsedParkingTime =" << elapsedParkingTime << "   parkingTime = " << parkingTime << std::endl;
 		return elapsedParkingTime >= parkingTime; }
-};
+};*/
 
 class Vehicle {
 public:
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, Park park_=Park(150,1));
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width, Park park_=Park(150,1)); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, Park park_=Park(150,1)); //Test
-	Vehicle(Park park_=Park(150,1));  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(std::vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width); //Test
+	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -154,10 +157,8 @@ private:
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 
-	sim_mob::Park park;
 public:
 	DPoint getPosition() const;
-	sim_mob::Park & getParkState() { return park;}
 	/*needed by mid-term*/
 	double getPositionInSegment();
 	void setPositionInSegment(double newDist2end);

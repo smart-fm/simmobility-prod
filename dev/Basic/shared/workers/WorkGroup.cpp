@@ -2,6 +2,8 @@
 
 #include "WorkGroup.hpp"
 
+#include "GenConfig.h"
+
 //For debugging
 #include <stdexcept>
 #include <boost/thread.hpp>
@@ -18,6 +20,9 @@
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Node.hpp"
+#include "workers/Worker.hpp"
+
 
 using std::map;
 using std::vector;
@@ -35,6 +40,22 @@ bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
 FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
+
+
+namespace {
+Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
+	Worker* res = nullptr;
+	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
+		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
+			res = *it;
+		}
+	}
+	return res;
+}
+
+} //End unnamed namespace
+
+
 
 ////////////////////////////////////////////////////////////////////
 // Static methods
@@ -177,7 +198,20 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 	safe_delete_item(WorkGroup::BuffFlipBarr);
 	safe_delete_item(WorkGroup::AuraMgrBarr);
 }
+void sim_mob::WorkGroup::clear()
+{
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
+	}
+	workers.clear();
 
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
 
 ////////////////////////////////////////////////////////////////////
 // Normal methods (non-static)
@@ -196,6 +230,7 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 {
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
+		wk->interrupt();
 		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
 		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
 		delete wk;
@@ -204,7 +239,9 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+#ifndef SIMMOB_INTERACTIVE_MODE
 	safe_delete_item(macro_tick_barr);
+#endif
 }
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
@@ -230,12 +267,14 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
 	if (UseDynamicDispatch) {
 		entToBeRemovedPerWorker.resize(numWorkers, vector<Entity*>());
+		entToBeBredPerWorker.resize(numWorkers, vector<Entity*>());
 	}
 
 	//Init the workers themselves.
 	for (size_t i=0; i<numWorkers; i++) {
 		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
-		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, numSimTicks, tickStep));
+		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
 
@@ -277,6 +316,17 @@ void sim_mob::WorkGroup::stageEntities()
 		return;
 	}
 
+	//Each Worker has its own vector of Entities to post addition requests to.
+	for (vector<vector <Entity*> >::iterator outerIt=entToBeBredPerWorker.begin(); outerIt!=entToBeBredPerWorker.end(); outerIt++) {
+		for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
+			//schedule each Entity.
+			scheduleEntity( dynamic_cast<Agent*>(*it) );
+		}
+
+		//This worker's list of entries is clear
+		outerIt->clear();
+	}
+
 	//Keep assigning the next entity until none are left.
 	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS;
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
@@ -300,8 +350,12 @@ void sim_mob::WorkGroup::stageEntities()
 		//Add it to our global list.
 		loader->entity_dest.push_back(ag);
 
-		//Find a worker to assign this to and send it the Entity to manage.
+		//Find a worker/conflux to assign this to and send it the Entity to manage.
+#ifdef SIMMOB_USE_CONFLUXES
+		putAgentOnConflux(ag);
+#else
 		assignAWorker(ag);
+#endif
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
 	}
@@ -323,6 +377,10 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 			if (it2!=loader->entity_dest.end()) {
 				loader->entity_dest.erase(it2);
 			}
+
+			//if parent existed, will inform parent to unregister this child if necessary
+			if( Entity* parent = (*it)->parentEntity )
+				parent->unregisteredChild( (*it) );
 
 			//Delete this entity
 			delete *it;
@@ -381,8 +439,17 @@ sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-	workers.at(nextWorkerID++)->scheduleForAddition(ag);
-	nextWorkerID %= workers.size();
+	//For now, just rely on static access to ConfigParams.
+	// (We can allow per-workgroup configuration later).
+	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
+	if (strat == ASSIGN_ROUNDROBIN) {
+		workers.at(nextWorkerID++)->scheduleForAddition(ag);
+	} else {
+		getLeastCongestedWorker(workers)->scheduleForAddition(ag);
+	}
+
+	//Increase "nextWorkID", even if we're not using it.
+	nextWorkerID = (nextWorkerID+1)%workers.size();
 }
 
 
@@ -446,7 +513,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 			partitionMgr->crossPCBarrier();
 			partitionMgr->crossPCboundaryProcess(currTimeTick);
 			partitionMgr->crossPCBarrier();
-			partitionMgr->outputAllEntities(currTimeTick);
+//			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
 		//Update the aura manager, if we have one.
@@ -548,8 +615,6 @@ const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGrou
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-//	std::stringstream debugMsgs(std::stringstream::out);
-
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
@@ -633,11 +698,14 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-		std::cout << "Agent ID: " << ag->getId() << std::endl;
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
-		ag->setCurrSegment(rdSeg);
-		ag->setCurrLane(nullptr);
-		rdSeg->getParentConflux()->addAgent(ag);
+		if(rdSeg) {
+			ag->setCurrSegment(rdSeg);
+			rdSeg->getParentConflux()->addAgent(ag);
+		}
+		else {
+			std::cout << "\n Agent ID: " << ag->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
+		}
 	}
 }
 
@@ -648,24 +716,33 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	std::string role = rf.GetTripChainMode(firstItem);
 
+	StreetDirectory& stdir = StreetDirectory::instance();
+
 	vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	if (role == "driver") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestDrivingPath(*(firstSubTrip.fromLocation), *(firstSubTrip.toLocation));
+		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation), stdir.DrivingVertex(*firstSubTrip.toLocation));
 	}
 	else if (role == "pedestrian") {
 		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = StreetDirectory::instance().SearchShortestWalkingPath(firstSubTrip.fromLocation->location, firstSubTrip.toLocation->location);
+		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation), stdir.WalkingVertex(*firstSubTrip.toLocation));
 	}
 	else if (role == "busdriver") {
 		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
 	}
 
-	 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-	 // you will get into.
-	if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-		rdSeg = path.at(1).roadSegment_;
+	/*
+	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
+	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
+	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
+	 */
+	if(path.size() > 0) {
+		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
+		 // you will get into.
+		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+			rdSeg = path.at(1).roadSegment_;
+		}
 	}
 
 	return rdSeg;

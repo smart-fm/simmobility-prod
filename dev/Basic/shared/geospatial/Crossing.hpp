@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "RoadItem.hpp"
 #include "Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"

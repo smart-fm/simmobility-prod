@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 

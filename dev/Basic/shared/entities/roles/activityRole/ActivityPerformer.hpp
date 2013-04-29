@@ -13,7 +13,8 @@
 
 #include <boost/random.hpp>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "entities/roles/Role.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/UpdateParams.hpp"
@@ -98,6 +99,15 @@ private:
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	virtual void pack(PackageUtils& packageUtil) = 0;
+	virtual void unpack(UnPackageUtils& unpackageUtil) = 0;
+
+	virtual void packProxy(PackageUtils& packageUtil) = 0;
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
+#endif
 };
 
 

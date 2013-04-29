@@ -1,0 +1,21 @@
+/**
+ * \file ProfileOptions.h
+ * Contains the compile-time flags "SIMMOB_PROFILE_ON", "SIMMOB_PROFILE_AGENT_UPDATES", and "SIMMOB_PROFILE_WORKER_UPDATES"
+ *
+ * \author Seth N. Hetu 
+ * 
+ * Please do not edit the file ProfileOptions.h; instead, edit ProfileOptions.h.in, 
+ *  which the header file is generated from.
+ *  
+ * Also note that parameters like SIMMOB_PROFILE_* should be set in your cmake cache file.
+ *  Do not simply override the defaults in CMakeLists.txt
+ *
+ * \par
+ * ~Seth
+ */
+
+#pragma once
+
+#cmakedefine SIMMOB_PROFILE_ON
+#cmakedefine SIMMOB_PROFILE_AGENT_UPDATES
+#cmakedefine SIMMOB_PROFILE_WORKER_UPDATES

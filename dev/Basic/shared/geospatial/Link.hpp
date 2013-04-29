@@ -10,14 +10,10 @@
 #include <algorithm>
 #include <iterator>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "Traversable.hpp"
 
-
-//namespace geo {
-//class link_t_pimpl;
-//}
 
 namespace sim_mob
 {

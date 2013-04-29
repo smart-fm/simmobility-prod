@@ -993,13 +993,13 @@ namespace geo
 
   class TripChains_t_pimpl: public virtual TripChains_t_pskel
   {
-	  std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains;
+	  std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains;
     public:
     virtual void
     pre ();
 
     virtual void
-    TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
+    TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >);
 
     virtual void
     post_TripChains_t ();

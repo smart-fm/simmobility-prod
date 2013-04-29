@@ -9,25 +9,29 @@
 #include <boost/thread.hpp>
 #include <string>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
 
-//Needed for ActionFunction
-#include "workers/Worker.hpp"
-
 
 namespace sim_mob
 {
 
+class RoadSegment;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class Agent;
+class Person;
+class Entity;
 class PartitionManager;
 class AuraManager;
 class Conflux;
+class Worker;
+
+
+
 
 /*
  * Worker wrapper, similar to thread_group but using barriers.
@@ -61,6 +65,18 @@ public:  //Static methods
 	};
 	//ease of typing only
 		typedef std::pair<std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator, std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator > WG_Members;
+	/**
+	 * Type of Worker assignment strategy. Determines how a newly-dispatched Agent
+	 * will be distributed among the various Worker threads.
+	 */
+	enum ASSIGNMENT_STRATEGY {
+		ASSIGN_ROUNDROBIN,  ///< Assign an Agent to Worker 1, then Worker 2, etc.
+		ASSIGN_SMALLEST,    ///< Assign an Agent to the Worker with the smallest number of Agents.
+		//TODO: Something like "ASSIGN_TIMEBASED", based on actual time tick length.
+	};
+
+
+
 	/**
 	 * Create a new WorkGroup and start tracking it. All WorkGroups must be created using this method so that their
 	 *   various synchronization barriers operate globally. Note that if both auraMgr and partitionMgr are null,
@@ -96,6 +112,8 @@ public:  //Static methods
 	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
 	///  for the next simulation.
 	static void FinalizeAllWorkGroups();
+	void clear();
+
 private: //Static fields
 
 	//For holding the set of known WorkGroups
@@ -153,6 +171,7 @@ public:
 	void stageEntities();
 	void collectRemovedEntities();
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
+	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorker(Entity* ag);
 
@@ -236,7 +255,9 @@ private:
 	boost::barrier* macro_tick_barr;
 
 public:
+	//Temp
 	std::stringstream debugMsg;
+
 };
 
 

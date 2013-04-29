@@ -113,7 +113,7 @@
       <xs:element name="maxSpeed" type="xs:short"/>
       <xs:element name="Length" type="xs:unsignedInt"/>
       <xs:element name="Width" type="xs:unsignedInt"/>
-      <xs:element name="originalDB_ID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="originalDB_ID" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="polyline" type="geo:PolyLine_t"/>
       <xs:element name="laneEdgePolylines_cached" type="geo:laneEdgePolylines_cached_t" minOccurs="0"/>
       <!--      <xs:element name="LanesLeftOfDivider" type="xs:unsignedInt"/>-->
@@ -220,7 +220,7 @@
       <xs:element name="nodeID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
 <!--      <xs:element name="linkLoc" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/> -->
-      <xs:element name="originalDB_ID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="originalDB_ID" type="xs:string" minOccurs="0" maxOccurs="1"/>
     </xs:choice>
   </xs:complexType>
 
@@ -465,7 +465,8 @@
 
   <xs:complexType name="TripChainItem_t">
     <xs:sequence>
-      <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <!--<xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>-->
+      <xs:element name="personID" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="itemType" type="geo:TripchainItemType" minOccurs="1" maxOccurs="1"/>
       <!-- <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="sequenceNumber" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
@@ -576,7 +577,7 @@
   <xs:complexType name="ColorDuration_t">
     <xs:sequence>
       <xs:element name="TrafficColor" type="geo:TrafficColor_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="Duration" type="xs:unsignedByte" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Duration" type="xs:short" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 

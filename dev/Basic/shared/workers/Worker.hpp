@@ -28,8 +28,6 @@
 #include <boost/unordered_map.hpp>
 #include "util/FlexiBarrier.hpp"
 
-#include "GenConfig.h"
-
 #include "entities/Entity.hpp"
 
 #include "metrics/Frame.hpp"
@@ -38,6 +36,8 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
+#include "event/EventManager.hpp"
 
 namespace sim_mob
 {
@@ -55,7 +55,7 @@ public:
 	 *        the way we synchronize data).
 	 *
 	 */
-	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, uint32_t endTick, uint32_t tickStep);
+	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
 
 	virtual ~Worker();
 
@@ -85,8 +85,11 @@ public:
 
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
+	void scheduleForBred(Entity* entity);
 
-	int getAgentSize() { return managedEntities.size(); }
+	int getAgentSize(bool includeToBeAdded=false);
+        
+        EventManager& GetEventManager();
 
 protected:
 	virtual void perform_main(timeslice currTime);
@@ -119,6 +122,7 @@ protected:
 
 	//Assigned by the parent.
 	std::vector<Entity*>* entityRemovalList;
+	std::vector<Entity*>* entityBredList;
 
 	//For migration. The first array is accessed by WorkGroup in the flip() phase, and should be
 	//   emptied by this worker at the beginning of the update() phase.
@@ -128,11 +132,13 @@ protected:
 	//   has the ability to schedule Agents for deletion in flip().
 	std::vector<Entity*> toBeAdded;
 	std::vector<Entity*> toBeRemoved;
+	std::vector<Entity*> toBeBred;
 
 private:
 	//Helper methods
 	void addPendingEntities();
 	void removePendingEntities();
+	void breedPendingEntities();
 
 	///The main thread which this Worker wraps
 	boost::thread main_thread;
@@ -141,6 +147,10 @@ private:
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
 	std::set<Conflux*> managedConfluxes;
+
+	///If non-null, used for profiling.
+	sim_mob::ProfileBuilder* profile;
+        EventManager eventManager;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

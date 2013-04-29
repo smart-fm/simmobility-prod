@@ -16,23 +16,26 @@
 
 #pragma once
 
+//Include our single-file flags.
+//Each of these #include file should contain a single flag, added via #cmakedefine
+#include "conf/settings/StrictAgentErrors.h"
+#include "conf/settings/DisableOutput.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/XML_Reader.h"
+
 //Cmake-related constants
 #define SIMMOB_VERSION_MAJOR "@Basic_VERSION_MAJOR@"
 #define SIMMOB_VERSION_MINOR "@Basic_VERSION_MINOR@"
 
-//Flags imported from cmake
-#cmakedefine SIMMOB_STRICT_AGENT_ERRORS
-#cmakedefine SIMMOB_DISABLE_OUTPUT
-#cmakedefine SIMMOB_DISABLE_MPI
-#cmakedefine SIMMOB_LATEST_STANDARD
-#cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
+//Our workaround flag
+#define SIMMOB_XML_IN_FILE "@SIMMOB_XML_IN_FILE@" 
+
+//Miscellaneous cmake flags; define "temporary" flags here.
+#cmakedefine SIMMOB_REALTIME
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
-#cmakedefine SIMMOB_XML_READER
 #cmakedefine SIMMOB_USE_CONFLUXES
 
-//Deprecated flags:
-#define SIMMOB_NEW_SIGNAL
 
 
 

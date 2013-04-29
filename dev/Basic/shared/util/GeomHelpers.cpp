@@ -13,6 +13,7 @@
 #include "geospatial/aimsun/Section.hpp"
 #include "geospatial/aimsun/Crossing.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "logging/Log.hpp"
 
 //add by xuyan
 #include "geospatial/RoadNetwork.hpp"
@@ -71,6 +72,43 @@ double sim_mob::dist(const Agent& ag, const Point2D& pt)
 {
 	return dist(ag.xPos.get(), ag.yPos.get(), pt.getX(), pt.getY());
 }
+
+
+Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::DynamicVector& line)
+{
+	//First, retrieve the coordinates of the point closest to 'pt' from 'line'.
+	//Using the equation of the line, we solve for 'u'.
+	double lhs = (pt.getX() - line.getX()) * (line.getEndX() - line.getX());
+	double rhs = (pt.getY() - line.getY()) * (line.getEndY() - line.getY());
+	double denom = line.getMagnitude() * line.getMagnitude();
+	if (denom==0) {
+		std::stringstream msg;
+		msg <<"Cannot determine the normal intersection: points are co-incidental.";
+		msg <<"\n  Point: " <<pt;
+		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
+		throw std::runtime_error(msg.str().c_str());
+	}
+	double u = (lhs + rhs) / denom;
+
+	//Now substitute it to get the actual point.
+	int x = (line.getX() + u*(line.getEndX()-line.getX()));
+	int y = (line.getY() + u*(line.getEndY()-line.getY()));
+	Point2D res(x, y);
+
+	//We can also test that this point is actually between the start and end. I'm not sure if the
+	// dot product approach above guarantees this or not.
+	if ((dist(res.getX(), res.getY(), line.getX(), line.getY()) > line.getMagnitude()) ||
+		(dist(res.getX(), res.getY(), line.getEndX(), line.getEndY()) > line.getMagnitude())) {
+		std::stringstream msg;
+		msg <<"Cannot determine the normal intersection: point is too far outside the line.";
+		msg <<"\n  Point: " <<pt;
+		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	return res;
+}
+
 
 bool sim_mob::lineContains(double ax, double ay, double bx, double by, double cx, double cy)
 {
@@ -338,8 +376,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 		}
 	}
 
-	std::cout << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY()
-			<< std::endl;
+	Warn() << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY() << std::endl;
 	return 0;
 }
 

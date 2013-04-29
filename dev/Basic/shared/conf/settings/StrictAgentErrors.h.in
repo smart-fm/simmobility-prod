@@ -1,0 +1,19 @@
+/**
+ * \file StrictAgentErrors.h
+ * Contains the compile-time flag "SIMMOB_STRICT_AGENT_ERRORS"
+ *
+ * \author Seth N. Hetu 
+ * 
+ * Please do not edit the file StrictAgentErrors.h; instead, edit StrictAgentErrors.h.in, 
+ *  which the header file is generated from.
+ *  
+ * Also note that parameters like SIMMOB_STRICT_AGENT_ERRORS should be set in your cmake cache file.
+ *  Do not simply override the defaults in CMakeLists.txt
+ *
+ * \par
+ * ~Seth
+ */
+
+#pragma once
+
+#cmakedefine SIMMOB_STRICT_AGENT_ERRORS

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "conf/simpleconf.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -14,6 +14,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
@@ -70,7 +71,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
-	//Determine whether or not the first one is fwd.
+/*	//Determine whether or not the first one is fwd.
 	bool OLD_isFwd; //(Probably?) not used anymore.
 	if (path.empty()) {
 		throw std::runtime_error("Attempting to set a path with 0 road segments_");
@@ -115,7 +116,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		}
 		LogOut(msg.str() <<std::endl);
 		throw std::runtime_error(msg.str().c_str());
-	}
+	}*/ // This unwanted chunk of code throws a runtime_error if there are agents who have trips starting and ending their trips within the same link ~ Harish
 
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
@@ -160,7 +161,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
 	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
-	setStartPositionInSegment(); //for mid-term
+//	setStartPositionInSegment(); //for mid-term
 }
 
 
@@ -172,7 +173,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
-	//Determine whether or not the first one is fwd.
+	/*//Determine whether or not the first one is fwd.
 	bool OLD_isFwd; //TODO: Likely isn't needed anymore
 	if (path.empty())
 	{
@@ -227,7 +228,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		}
 		throw std::runtime_error(msg.str().c_str());
 
-	}
+	}*/ // This unwanted chunk of code throws a runtime_error if there are agents who have trips starting and ending their trips within the same link ~ Harish
 
 	areFwds.insert(areFwds.begin(), true);
 	//areFwds.front() = isFwd;
@@ -436,12 +437,11 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 	if (Debug::Paths && res)
 	{
 		if (ConfigParams::GetInstance().OutputEnabled()) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			if (!DebugStream.str().empty())
 			{
 				//TEMP: Re-enable later.
 				DebugStream << "Path is DONE." << endl;
-				std::cout << DebugStream.str();
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -473,11 +473,10 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 		if (Debug::Paths)
 		{
 			if (ConfigParams::GetInstance().OutputEnabled()) {
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				if (!DebugStream.str().empty())
 				{
 					DebugStream << "EXCEPTION: " << msg << endl;
-					std::cout << DebugStream.str();
+					PrintOut(DebugStream.str());
 					DebugStream.str("");
 				}
 			}
@@ -514,7 +513,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "advance(double fwdDistance)::Entire path is already done.");
 
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
 	double res = 0.0;
@@ -567,7 +566,7 @@ double sim_mob::GeneralPathMover::advance(const RoadSegment* currSegment, vector
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "advance(const RoadSegment* currSegment, ...)::Entire path is already done.");
 
 	int i = 0;
 	bool isFwd = true;
@@ -714,7 +713,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "actualMoveToNextSegmentAndUpdateDir::Entire path is already done.");
 
 	//Record
 	bool nextInNewLink = ((currSegmentIt + 1) != fullPath.end()) && ((*(currSegmentIt + 1))->getLink() != (*currSegmentIt)->getLink());
@@ -777,13 +776,13 @@ double sim_mob::GeneralPathMover::getCurrLinkReportedLength() const
 const RoadSegment* sim_mob::GeneralPathMover::getCurrSegment() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getCurrSegment::Entire path is already done.");
 	return *currSegmentIt;
 }
 const RoadSegment* sim_mob::GeneralPathMover::getNextSegment(bool sameLink) const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getNextSegment::Entire path is already done.");
 
 	vector<const RoadSegment*>::iterator nextSegmentIt = currSegmentIt + 1;
 	if (nextSegmentIt == fullPath.end())
@@ -800,7 +799,7 @@ const RoadSegment* sim_mob::GeneralPathMover::getNextSegment(bool sameLink) cons
 const RoadSegment* sim_mob::GeneralPathMover::getNextToNextSegment() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getNextToNextSegment::Entire path is already done.");
 
 	vector<const RoadSegment*>::iterator nextSegmentIt = currSegmentIt + 1;
 	if (nextSegmentIt == fullPath.end())
@@ -818,7 +817,7 @@ const RoadSegment* sim_mob::GeneralPathMover::getNextToNextSegment() const
 const RoadSegment* sim_mob::GeneralPathMover::getPrevSegment(bool sameLink) const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done."); //Not technically an error, but unlikely to be useful.
+	throwIf(isDoneWithEntireRoute(), "getPrevSegment::Entire path is already done."); //Not technically an error, but unlikely to be useful.
 
 	if (currSegmentIt == fullPath.begin())
 	{
@@ -836,7 +835,7 @@ const RoadSegment* sim_mob::GeneralPathMover::getPrevSegment(bool sameLink) cons
 const Link* sim_mob::GeneralPathMover::getCurrLink() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getCurrLink::Entire path is already done.");
 	return getCurrSegment()->getLink();
 }
 
@@ -850,13 +849,13 @@ const Lane* sim_mob::GeneralPathMover::getCurrLane() const
 const Point2D& sim_mob::GeneralPathMover::getCurrPolypoint() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done."); //Not technically wrong, but probably an error.
+	throwIf(isDoneWithEntireRoute(), "getCurrPolypoint::Entire path is already done."); //Not technically wrong, but probably an error.
 	return *currPolypoint;
 }
 const Point2D& sim_mob::GeneralPathMover::getNextPolypoint() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getNextPolypoint::Entire path is already done.");
 	return *nextPolypoint;
 }
 
@@ -877,7 +876,10 @@ double sim_mob::GeneralPathMover::getCurrDistAlongPolyline() const
 double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isInIntersection(), "Can't get distance in Segment while in an intersection.");
+	//throwIf(isInIntersection(), "Can't get distance in Segment while in an intersection.");
+	if(isInIntersection()) {
+		throw std::runtime_error("Can't get distance in Segment while in an intersection.");
+	}
 
 	//Get the current median polyline distance
 	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
@@ -910,7 +912,7 @@ double sim_mob::GeneralPathMover::getAllRestRoadSegmentsLength() const
 double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getCurrPolylineTotalDist::Entire path is already done.");
 	return currPolylineLength();
 }
 double sim_mob::GeneralPathMover::getCurrentSegmentLength()
@@ -1023,7 +1025,7 @@ void sim_mob::GeneralPathMover::setStartPositionInSegment()
 double sim_mob::GeneralPathMover::getNextSegmentLength()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "getNextSegmentLength::Entire path is already done.");
 
 	return CalcSegmentLaneZeroDist( (currSegmentIt+1), fullPath.end());
 }
@@ -1048,7 +1050,7 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "advance_med::Entire path is already done.");
 
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
 	double res = 0.0;
@@ -1073,7 +1075,7 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir_med()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
-	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+	throwIf(isDoneWithEntireRoute(), "actualMoveToNextSegmentAndUpdateDir_med::Entire path is already done.");
 
 	//Record
 	bool nextInNewLink = ((currSegmentIt + 1) != fullPath.end()) && ((*(currSegmentIt + 1))->getLink() != (*currSegmentIt)->getLink());

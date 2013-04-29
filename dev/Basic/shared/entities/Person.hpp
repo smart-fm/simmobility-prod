@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "entities/Agent.hpp"
 #include "roles/Role.hpp"
@@ -44,11 +44,14 @@ class Person : public sim_mob::Agent {
 public:
 	bool tripchainInitialized;
 	///The "src" variable is used to help flag how this person was created.
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1);
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1, std::string databaseID = "");
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
 	virtual ~Person();
 	void initTripChain();
 
+
+	//Person objects are spatial in nature
+	virtual bool isNonspatial() { return false; }
 
 	//Update Person behavior (old)
 	//virtual Entity::UpdateStatus update(timeslice now);
@@ -94,6 +97,14 @@ public:
     SubTrip* getNextSubTripInTrip();
     TripChainItem* findNextItemInTripChain();
 
+	const std::string& getDatabaseId() const {
+		return databaseID;
+	}
+
+	void setDatabaseId(const std::string& databaseId) {
+		databaseID = databaseId;
+	}
+
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
@@ -104,12 +115,12 @@ public:
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
 
+    std::stringstream debugMsgs;
 
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
-
 
 private:
 	//Very risky:
@@ -140,6 +151,8 @@ private:
     ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;
+
+    std::string databaseID;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

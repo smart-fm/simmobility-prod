@@ -5,6 +5,7 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::linkAndCrossing_t_pimpl::pre ()
 {
+	model = sim_mob::LinkAndCrossing();
 }
 
 sim_mob::LinkAndCrossing sim_mob::xml::linkAndCrossing_t_pimpl::post_linkAndCrossing_t ()
@@ -24,12 +25,14 @@ void sim_mob::xml::linkAndCrossing_t_pimpl::linkID (unsigned int value)
 
 void sim_mob::xml::linkAndCrossing_t_pimpl::crossingID (unsigned int value)
 {
+	model.crossing = book.getCrossing(value);
 	//std::cout << "crossingID: " <<value << std::endl;
 }
 
 void sim_mob::xml::linkAndCrossing_t_pimpl::angle (unsigned char value)
 {
 	//std::cout << "angle: " << static_cast<unsigned short>(value) << std::endl;
+	model.angle = value;
 }
 
 

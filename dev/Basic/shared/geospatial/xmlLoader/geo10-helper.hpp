@@ -13,6 +13,8 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "entities/signal/SplitPlan.hpp"
+#include "geospatial/Crossing.hpp"
 
 
 namespace sim_mob {
@@ -102,6 +104,23 @@ public:
 		throw std::runtime_error("No Link exists in bookkeeper with the requested id.");
 	}
 
+	void addCrossing(sim_mob::Crossing* crossing) {
+		unsigned long id = crossing->getCrossingID();
+//		if (crossingLookup.count(id)>0) {
+//			std::cout << id << " ";
+//			throw std::runtime_error("Crossing already registered with bookkeeper.");
+//		}
+//		std::cout << " Crossing " << id << " added \n";
+		crossingLookup[id] = crossing;
+	}
+	sim_mob::Crossing* getCrossing(unsigned long id) const {
+		std::map<unsigned long, sim_mob::Crossing*>::const_iterator it = crossingLookup.find(id);
+		if (it!=crossingLookup.end()) {
+			return it->second;
+		}
+		throw std::runtime_error("No Crossing exists in bookkeeper with the requested id.");
+	}
+
 
 
 	//TODO: These are temporary!
@@ -149,12 +168,13 @@ public:
 		throw std::runtime_error("No UniNodeSegmentPair exists in bookkeeper with the requested id.");
 	}
 
-
 private:
 	std::map<unsigned long, sim_mob::Node*> nodeLookup;
 	std::map<unsigned long, sim_mob::Lane*> laneLookup;
 	std::map<unsigned long, sim_mob::RoadSegment*> segmentLookup;
 	std::map<unsigned long, sim_mob::Link*> linkLookup;
+	std::map<unsigned long,sim_mob::Crossing*> crossingLookup; //<getcrossingID,crossing*>
+
 
 	//
 	//TODO: The following items need to be removed once we merge our XML code.
@@ -165,6 +185,37 @@ private:
 	std::map<sim_mob::UniNode*, SegPair> uniNodeSegmentPairCache;
 };
 
+class SignalHelper {public:
+	struct SCATS_Info {
+		int signalTimingMode;
+		sim_mob::SplitPlan SplitPlan;
+	};
+private:
 
+	sim_mob::Signal *targetSignal;
+	sim_mob::Signal *basicSignal;
+	unsigned int signalID;
+	SCATS_Info SCATS_Info_;
+public:
+	void clearSignalHelper()
+	{
+		targetSignal = basicSignal = 0;
+		signalID = -1;
+	}
+
+	SignalHelper()
+	{
+		clearSignalHelper();
+	}
+	sim_mob::Signal *getTargetSignal() { return targetSignal; }
+	void setTargetSignal(sim_mob::Signal *t) { targetSignal = t; }
+
+	sim_mob::Signal *getBasicSignal() { return basicSignal; }
+	void setBasicSignal(sim_mob::Signal *t) { basicSignal = t; }
+	unsigned int getSignalID() { return signalID; }
+	void setSignalID(unsigned int id) {signalID = id; }
+	SCATS_Info getSCATS_Info() { return SCATS_Info_;}
+	void setSCATS_Info(SCATS_Info SCATS_Info__) {SCATS_Info_ = SCATS_Info__;}
+};
 }}} //End sim_mob::xml::helper namespace
 

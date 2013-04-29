@@ -14,6 +14,9 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
+#include "conf/simpleconf.hpp"
+#include "logging/Log.hpp"
+
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -33,7 +36,6 @@
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"
-
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -209,10 +211,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, std::string role
 
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-#if 0
-	perceivedTrafficColor = new FixedDelayed<Signal::TrafficColor>(reacTime,true);
-#endif
-
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
@@ -250,7 +248,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
-		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
+		Warn() <<"ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl;
 	}
 }
 
@@ -299,14 +297,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 			setParentBufferedData();
 		}
 	}
-	else if(vehicle)
-	{
-//		std::cout << "6-   increasing Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p2.elapsedSeconds << " = ";
-		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p2.elapsedSeconds);
-//		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-//		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-//		std::cout << "\n\n\n";
-	}
 
 
 	//Update our Buffered types
@@ -334,11 +324,22 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+
+	//Inform the GUI if interactive mode is active.
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		std::ostringstream stream;
+		stream<<"DriverSegment"
+				<<","<<p.now.frame()
+				<<","<<vehicle->getCurrSegment()
+				<<","<<vehicle->getCurrentSegmentLength()/100.0;
+		std::string s=stream.str();
+		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
+	}
 
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
@@ -443,11 +444,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	trafficColor = sim_mob::Green;
 	perceivedTrafficColor = sim_mob::Green;
 
-#if 0
-	trafficColor = Signal::Green;
-	perceivedTrafficColor = Signal::Green; //Green by default
-#endif
-
 	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
 
@@ -458,10 +454,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
 	perceivedTrafficColor  = sim_mob::Green;
-
-#if 0
-	perceivedTrafficColor  = Signal::Green; //Green by default
-#endif
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
@@ -555,8 +547,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 		if (Debug::Drivers && !DebugStream.str().empty()) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout << DebugStream.str();
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -705,106 +696,6 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 		else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-
-
-	//vahid begins
-//	find out the last trip that this driver has to finally take
-	sim_mob::Person * person = dynamic_cast<sim_mob::Person *>(parent);
-	std::vector<TripChainItem*>& tripchain = person->getTripChain();
-	std::vector<TripChainItem*>::iterator tripChainItem_it = std::find(tripchain.begin(), tripchain.end(), *(person->currTripChainItem));
-    Trip* trip_1; // pointer to current item in trip chain
-    while(tripChainItem_it != tripchain.end())
-    {
-    	if((*tripChainItem_it)->itemType == sim_mob::TripChainItem::IT_TRIP)
-    	{
-    		trip_1 = dynamic_cast<sim_mob::Trip*>(*tripChainItem_it); //currTripChainItem_1 is the place holder for keeping the last IT_TRIP
-    	}
-    	tripChainItem_it++;
-    }
-//    Node *lastSubTripEndingNode = 0;
-    std::vector<sim_mob::SubTrip>::const_iterator nextNonTrip_it = trip_1->getSubTrips().begin();
-    Node * lastSubTripEndingNode = 0;
-    while((*nextNonTrip_it).toLocation != trip_1->getSubTrips().back().toLocation)
-    {
-    	if((*nextNonTrip_it).itemType == sim_mob::TripChainItem::IT_TRIP)
-    		lastSubTripEndingNode = const_cast<Node *>((*nextNonTrip_it).toLocation);
-    	nextNonTrip_it ++;
-    }
-    //now find the last sub trip within that trip
-//    const Node * lastSubTripEndingNode = trip_1->getSubTrips().back().toLocation;
-    if(lastSubTripEndingNode) {
-    	//std::cout << "Our last stop of trip chain is: " << lastSubTripEndingNode->getID() << "  vs vehicle->getNodeMovingTowards() = "<< vehicle->getNodeMovingTowards()->getID() << std::endl;
-	} else {
-    	if((*(tripchain.begin()))->personID == 3)
-    	{
-    		std::cout << " there is no lastSubTripEndingNode\n";
-    	}
-	}
-    if(vehicle->getNodeMovingTowards() == lastSubTripEndingNode)
-	{
-    	//std::cout << "1-  We are in business\n";
-    	if (p.dis2stop >=0 &&  p.dis2stop <= 100) {//is approaching the park point?
-        	//std::cout << "2-  (p.dis2stop >=10 &&  p.dis2stop <= 100) = " << p.dis2stop << "\n";
-    		//Retrieve a new acceleration value.
-    		double acc = 0;
-    		//Convert back to m/s
-    		//TODO: Is this always m/s? We should rename the variable then...
-    		p.currSpeed = vehicle->getVelocity() / 100;
-    		//std::cout << "    Velocity = " << vehicle->getVelocity() << "\n";
-    		//Call our model
-    		acc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed) * 100;
-    		//move to most left lane
-//    		std::cout << "    Curr Lane Index = " << p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex <<"\n";
-//    		std::vector<sim_mob::Lane*>::iterator it = vehicle->getCurrSegment()->getLanes().begin();
-////    		for(std::vector<sim_mob::Lane*>::const_iterator it = vehicle->getCurrSegment()->getLanes().begin() ; it != vehicle->getCurrSegment()->getLanes().end(); it++) std::cout << (*it)->getLaneID() << " "; std::cout << std::endl;
-//    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
-    		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().size();
-    		//std::cout << "    Curr Lane Index = " <<  p.currLaneIndex << "    next Lane Index = " << p.nextLaneIndex << "\n";
-
-			MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-    		LANE_CHANGE_SIDE lcs = LCS_LEFT;//mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-    		//std::cout << "    curr turning direction = " << vehicle->getTurningDirection() << "\n";
-    		vehicle->setTurningDirection(lcs);
-    		//std::cout << "    next turning direction = " << vehicle->getTurningDirection() << "\n\n";
-    		double newLatVel;
-    		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
-    		vehicle->setLatVelocity(newLatVel*20);
-
-//    		// reduce speed
-    		if (vehicle->getVelocity() / 100.0 > 2.0)
-    		{
-    			//std::cout << "3-  Reduce Accelaration from " << vehicle->getAcceleration() ;
-    			if (acc<-5000.0)
-    			{
-    				vehicle->setAcceleration(acc);
-    			} else
-    				vehicle->setAcceleration(-5000);
-    			//std::cout << "  to " << vehicle->getAcceleration() << "\n";
-    		}
-
-//    		vehicle->getParkState().setElapsedParkingTime(0);
-    	}
-
-    	if (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!vehicle->getParkState().isparkingTimeOver())) {
-        	//std::cout << "4-  (p.dis2stop >= 0 &&  p.dis2stop < 10 && (!park.isparkingTimeOver()))\n";
-        	//std::cout << "    Accelaration = " <<  vehicle->getAcceleration() << "\n";
-        	//std::cout << "    Velocity = " <<  vehicle->getVelocity() << "\n";
-        	//std::cout << "    Park time = " <<  vehicle->getParkState().getParkingTime() << "\n";
-        	//std::cout << "    Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime()<< "\n";
-
-    		if (vehicle->getVelocity() > 0)
-    			vehicle->setAcceleration(-5000);
-    		//std::cout << "5-   increased Park elapsed time = " <<  vehicle->getParkState().getElapsedParkingTime() << " + " << p.elapsedSeconds << " = ";
-    		vehicle->getParkState().setElapsedParkingTime(vehicle->getParkState().getElapsedParkingTime() + p.elapsedSeconds);
-//    		std::cout << vehicle->getParkState().getElapsedParkingTime()<< "\n";
-//    		std::cout << (vehicle->getParkState().isparkingTimeOver()? "parkingTimeOver" : "parking NOT TimeOver");
-//    		std::cout << "\n\n\n";
-    		}
-//    	}
-	}
-
-    //....end of vahid
-
 
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
@@ -1007,27 +898,6 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 	if(it != LAC.end())
 		const Crossing* crossing = (*it).crossing;
 
-#if 0
-		map<Link const*, size_t> const linkMap = trafficSignal->links_map();
-		int index = -1;
-		for (map<Link const*, size_t>::const_iterator link_i = linkMap.begin(); link_i != linkMap.end(); link_i++) {
-			if (vehicle->getNextSegment() && link_i->first == vehicle->getNextSegment()->getLink()) {
-				index = (*link_i).second;
-				break;
-			}
-		}
-
-		map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
-		const Crossing* crossing = nullptr;
-		for (map<Crossing const *, size_t>::const_iterator crossing_i = crossingMap.begin(); crossing_i
-				!= crossingMap.end(); crossing_i++) {
-			if (static_cast<int> (crossing_i->second) == index) {
-				crossing = crossing_i->first;
-				break;
-			}
-		}
-#endif
-
 	//Have we found a relevant crossing?
 		if (!crossing) {
 		}
@@ -1161,7 +1031,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
+		Warn() <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
 
@@ -1328,10 +1198,8 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
-			int x = 0;
-			x = path.size();
-			//std::cout << "Driver path has " << path.size() << "  elements\n";
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1340,12 +1208,17 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
-				int x = path.size();
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+		}
+
+		//For now, empty paths aren't supported.
+		if (path.empty()) {
+			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
 
 		//TODO: Start in lane 0?
@@ -1385,7 +1258,8 @@ void sim_mob::Driver::initializePathMed() {
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
-			path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1394,12 +1268,18 @@ void sim_mob::Driver::initializePathMed() {
 			if (specialType=="loop") {
 				initLoopSpecialString(path, specialValue);
 			} else if (specialType=="tripchain") {
-				path = StreetDirectory::instance().SearchShortestDrivingPath(*origin.node, *goal.node);
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*origin.node), stdir.DrivingVertex(*goal.node));
 				int x = path.size();
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+		}
+
+		//For now, empty paths aren't supported.
+		if (path.empty()) {
+			throw std::runtime_error("Can't initializePathMed(); path is empty.");
 		}
 	}
 
@@ -1412,7 +1292,13 @@ void sim_mob::Driver::initializePathMed() {
 void sim_mob::Driver::resetPath(DriverUpdateParams& p) {
 	const Node * node = vehicle->getCurrSegment()->getEnd();
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	vector<WayPoint> path = StreetDirectory::instance().SearchShortestDrivingPath(*node, *goal.node);
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*goal.node));
+
+	//For now, empty paths aren't supported.
+	if (path.empty()) {
+		throw std::runtime_error("Can't resetPath(); path is empty.");
+	}
 
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(vehicle->getCurrSegment()));
@@ -1501,8 +1387,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout << DebugStream.str();
+				PrintOut(DebugStream.str());
 			}
 		}
 
@@ -2072,8 +1957,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 				if (Debug::Drivers) {
 					if (ConfigParams::GetInstance().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-						boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-						std::cout << DebugStream.str();
+						PrintOut(DebugStream.str());
 					}
 				}
 
@@ -2142,17 +2026,10 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 	if (!trafficSignal) {
 			p.trafficColor = sim_mob::Green;
 
-#if 0
-			p.trafficColor = Signal::Green;
-#endif
-
 		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
 		sim_mob::TrafficColor color;
 
-#if 0
-		Signal::TrafficColor color;
-#endif
 		if (vehicle->hasNextSegment(false)) {
 
 //			std::cout << "In Driver::setTrafficSignalParams, frame number " << p.frameNumber <<
@@ -2179,29 +2056,17 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		switch (color) {
 		case sim_mob::Red:
 
-#if 0
-		case Signal::Red:
-#endif
-
 //			std::cout<< "Driver is getting Red light \n";
 			p.trafficColor = color;
 			break;
 		case sim_mob::Amber:
 		case sim_mob::Green:
 
-#if 0
-		case Signal::Amber:
-		case Signal::Green:
-#endif
-
 //			std::cout<< "Driver is getting Green or Amber light \n";
 			if (!isPedestrianOnTargetCrossing())
 				p.trafficColor = color;
 			else
 				p.trafficColor = sim_mob::Red;
-#if 0
-				p.trafficColor = Signal::Red;
-#endif
 				break;
 		}
 

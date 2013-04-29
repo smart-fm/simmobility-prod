@@ -9,7 +9,8 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -86,11 +87,25 @@ public:
 	 */
 	virtual UpdateStatus update(timeslice now) = 0;
 
+	/**
+	 * Returns true if the Agent is "non-spatial" in nature  --i.e., it should not be added to our
+	 * spatial index. A non-spatial Agent cannot be identified by its location, which will usually
+	 * be (0,0) (but this is not guaranteed).
+	 *
+	 * Subclasses should override this function to indicate that they should not be considered as part
+	 * of the spatial index. Note that they *may* still have a geospatial location (e.g., Signals), but
+	 * this location should not be searchable.
+	 */
+	virtual bool isNonspatial() = 0;
+
 	//virtual Link* getCurrLink() = 0;
 	//virtual void setCurrLink(Link* link)= 0;
 
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
+
+	// inform parent to cut off connection with it if necessary
+	virtual void unregisteredChild(Entity* child = nullptr) {;}
 
 
 protected:
@@ -109,6 +124,8 @@ protected:
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
+
+
 	// Link* currLink;
 
 public:
@@ -116,6 +133,12 @@ public:
 	Worker* currWorker;
 	//	your communication support
 //	sim_mob::CommunicationSupport comm;
+
+	//xuyan:only used by Sim-Tree
+	bool can_remove_by_RTREE;
+
+	// parent may create children.
+	Entity* parentEntity;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)

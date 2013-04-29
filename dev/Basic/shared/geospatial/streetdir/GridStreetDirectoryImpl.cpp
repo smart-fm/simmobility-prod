@@ -77,6 +77,19 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     	buildLookups((*iter)->getPath(), completedCrossings);
     	//buildLookups((*iter)->getPath(false), completedCrossings);
     }
+
+    //Build a lookup for BusStops
+    for (vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
+    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
+    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+    		for (std::map<centimeter_t, const RoadItem*>::const_iterator it=(*segIt)->obstacles.begin(); it!=(*segIt)->obstacles.end(); it++) {
+    			const BusStop* bs = dynamic_cast<const BusStop*>(it->second);
+    			if (bs) {
+    				busStops_.insert(bs);
+    			}
+    		}
+    	}
+    }
 }
 
 
@@ -424,6 +437,21 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, boo
         }
     }
 }
+
+
+const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& position) const
+{
+	//This function currently searches point-by-point, since we don't have that many BusStops.
+	//TODO: Ideally, it would use some kind of spatial index.
+	const int Threshold = 10 * 100; //10m
+	for (std::set<const BusStop*>::const_iterator it=busStops_.begin(); it!=busStops_.end(); it++) {
+		if (dist(Point2D((*it)->xPos, (*it)->yPos), position) < Threshold) {
+			return *it;
+		}
+	}
+	return nullptr;
+}
+
 
 
 StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(const Point2D& point) const {

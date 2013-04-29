@@ -32,6 +32,7 @@
 
 #include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
+#if 0
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
 	std::ostringstream Id;
@@ -939,14 +940,14 @@ void sim_mob::WriteXMLInput_TripChains(TiXmlElement * SimMobility)
 	std::ostringstream out;
 	ConfigParams& config = ConfigParams::GetInstance();
 
-	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
 	if(TripChainsObj.size() < 1) return;
 
 	TiXmlElement * TripChains;
 	TripChains = new TiXmlElement( "TripChains" );
 	SimMobility->LinkEndChild( TripChains );
 
-	for(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >::iterator it_map = TripChainsObj.begin(), it_end(TripChainsObj.end()); it_map != it_end ; it_map ++)
+	for(std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it_map = TripChainsObj.begin(), it_end(TripChainsObj.end()); it_map != it_end ; it_map ++)
 	{
 		//tripchain
 		TiXmlElement * TripChain;
@@ -1013,7 +1014,7 @@ void sim_mob::WriteXMLInput_TrafficSignal_ColorSequence(TiXmlElement * parent, s
 	out << (colorSequence.getTrafficLightType() == sim_mob::Driver_Light ? "Driver_Light" : (colorSequence.getTrafficLightType() == sim_mob::Pedestrian_Light ? "Pedestrian_Light": "Unknown Traffic Light type"));
 	TrafficLightType->LinkEndChild(new TiXmlText(out.str()));
 
-	std::vector< std::pair<TrafficColor,std::size_t> > & cd = colorSequence.getColorDuration();
+	std::vector< std::pair<TrafficColor,short> > & cd = colorSequence.getColorDuration();
 	for(std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_cd = cd.begin(); it_cd != cd.end(); it_cd++)
 	{
 		//ColorDuration
@@ -1302,3 +1303,4 @@ void sim_mob::WriteXMLInput(const std::string& XML_OutPutFileName)
 	WriteXMLInput_TrafficSignals(SimMobility);
     doc.SaveFile( XML_OutPutFileName );
 }
+#endif

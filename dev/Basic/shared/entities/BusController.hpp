@@ -2,7 +2,10 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include <vector>
+#include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
 #include "buffering/Shared.hpp"
 #include "misc/BusTrip.hpp"
@@ -34,7 +37,6 @@ public:
 	static BusController* TEMP_Get_Bc_1();
 
 	static bool busBreak;
-	static const char* buslineID;
 	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
@@ -47,12 +49,18 @@ public:
 	//May implement later
 	virtual void load(const std::map<std::string, std::string>& configProps){}
 
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//virtual Entity::UpdateStatus update(timeslice now);
 
-	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
-	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus);
+	void handleDriverRequest();
+	void handleRequestParams(sim_mob::DriverRequestParams rParams);
+
+	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
+	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//NOTE: There's two problems here:
@@ -77,10 +85,15 @@ public:
 	virtual Link* getCurrLink();
 	virtual void setCurrLink(Link* link);
 
+	virtual void unregisteredChild(Entity* child);
+
 private:
 	//Note: For now, we have to store pointers, since the all_agents array is cleared and deleted on exit.
 	//      Otherwise, it will attempt to delete itself twice. ~Seth
 	static std::vector<BusController*> all_busctrllers_;
+
+	// keep all children agents to communicate with it
+	std::vector<Entity*> all_children;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -92,10 +105,10 @@ private:
 	//void frame_init(timeslice now);
 	//void frame_tick_output(timeslice now);
 
-	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop);// scheduled-based control
-	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // headway-based control
-	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // evenheadway-based control
-	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, std::vector<Shared<BusStop_RealTimes>* >& busStopRealTimes_vec_bus, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
+	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);// scheduled-based control
+	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // headway-based control
+	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // evenheadway-based control
+	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
 
 
 	uint32_t frameNumberCheck;// check some frame number to do control
@@ -111,8 +124,8 @@ private:
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
-    virtual void pack(PackageUtils& packageUtil){}
-    virtual void unpack(UnPackageUtils& unpackageUtil){}
+    virtual void pack(PackageUtils& packageUtil);
+    virtual void unpack(UnPackageUtils& unpackageUtil);
 
 	virtual void packProxy(PackageUtils& packageUtil);
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);

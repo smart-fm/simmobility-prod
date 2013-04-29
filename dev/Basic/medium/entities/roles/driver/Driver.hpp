@@ -3,11 +3,12 @@
 
 #pragma once
 
+#include "conf/settings/DisableMPI.h"
+
 #include <vector>
 #include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
@@ -76,19 +77,22 @@ public:
 	const sim_mob::Vehicle* getVehicle() const {return vehicle;}
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	void stepFwdInTime(DriverUpdateParams& p, double time);
-	bool advance(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool moveToNextSegment(DriverUpdateParams& p, unsigned int currTimeMS, double timeSpent);
+	bool advance(DriverUpdateParams& p);
+	bool moveToNextSegment(DriverUpdateParams& p);
 	bool canGoToNextRdSeg(DriverUpdateParams& p, double t);
 	void moveInQueue();
 	bool moveInSegment(DriverUpdateParams& p2, double distance);
-	bool advanceQueuingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
-	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
+	bool advanceQueuingVehicle(DriverUpdateParams& p);
+	bool advanceMovingVehicle(DriverUpdateParams& p);
+	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2);
 	void getSegSpeed();
 	int getOutputCounter(const Lane* l);
 	double getOutputFlowRate(const Lane* l);
 	double getAcceptRate(const Lane* l);
 	double getQueueLength(const Lane* l);
+	double getLastAccept(const Lane* l);
+	void setLastAccept(const Lane* l, double lastAccept);
+	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
 
 private:
 	//void chooseNextLaneForNextLink(DriverUpdateParams& p);
@@ -102,11 +106,11 @@ private:
 	bool isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg);
 
 	void addToQueue(const Lane* lane);
-	void addToMovingList();
 	void removeFromQueue();
-	void removeFromMovingList();
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* targetRdSeg, const RoadSegment* nextRdSeg);
 	double getInitialQueueLength(const Lane* l);
+	void insertIncident(const RoadSegment* rdSeg, double newFlowRate);
+	void removeIncident(const RoadSegment* rdSeg);
 
 protected:
 	//virtual double updatePositionOnLink(DriverUpdateParams& p);

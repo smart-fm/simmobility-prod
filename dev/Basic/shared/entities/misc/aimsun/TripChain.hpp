@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 
+#include "conf/settings/DisableMPI.h"
+
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
@@ -32,7 +34,7 @@ public:
 	int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
-	unsigned int personID;
+	std::string personID;
 	std::string description;
 	sim_mob::aimsun::Node* location;
 	sim_mob::TripChainItem::LocationType locationType;
@@ -46,13 +48,13 @@ public:
 	sim_mob::TripChainItem::LocationType fromLocationType;
     sim_mob::aimsun::Node* toLocation;
     sim_mob::TripChainItem::LocationType toLocationType;
-    int tripID;
+    std::string tripID;
 	std::string mode;
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
     //Temporaries for SOCI conversion
-	int tmp_subTripID;
+	std::string tmp_subTripID;
 	int tmp_tripfromLocationNodeID;
 	int tmp_triptoLocationNodeID;
 	int tmp_fromLocationNodeID;

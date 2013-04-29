@@ -7,7 +7,7 @@
 #include <functional>
 #include <stdlib.h>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
@@ -34,7 +34,7 @@ class Agent;
 class WorkGroup;
 
 #ifndef SIMMOB_DISABLE_MPI
-class BoundaryProcessor;
+class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
 #endif
@@ -162,14 +162,12 @@ private:
 	{
 	public:
 		const Link* link_;
-		unsigned int linkTravelTime_;
-		unsigned int linkExitTime_;
-		bool hasVehicle_;
+		unsigned int linkEntryTime_;
+		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
-		travelStats(const Link* link, unsigned int linkExitTime,
-				unsigned int linkTravelTime, bool hasVehicle)
-		: link_(link), linkTravelTime_(linkTravelTime),
-		  linkExitTime_(linkExitTime), hasVehicle_(hasVehicle)
+		travelStats(const Link* link,
+				unsigned int linkEntryTime)
+		: link_(link), linkEntryTime_(linkEntryTime)
 		{
 		}
 	};
@@ -239,16 +237,29 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
-	//used for mid-term supply
-	void setTravelStats(const Link*, unsigned int linkExitTime, unsigned int linkTravelTime, bool hasVehicle);
+	//used for mid-term supply for link travel time computation
+	//travelStats for each agent will be updated either for a role change or link change
+	void initTravelStats(const Link* link, double entryTime);
+	void addToTravelStatsMap(travelStats ts, double exitTime);
+	travelStats getTravelStats()
+	{
+		return currTravelStats;
+	}
+
+	const std::map<double, travelStats>& getTravelStatsMap()
+	{
+		return this->travelStatsMap;
+	}
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
 
 	//for mid-term, to compute link travel times
-	std::map<unsigned int, travelStats> travelStatsMap;
-	unsigned int linkEntryTime;
+	travelStats currTravelStats;
+	std::map<double, travelStats> travelStatsMap; //<linkExitTime, travelStats>
+//	double linkEntryTime; //in seconds - time agent change to the current link
+//	double roleEntryTime; //in seconds - time agent changed to the current role
 
 	//timeslice enqueueTick;
 
@@ -284,17 +295,17 @@ protected:
 	const sim_mob::Lane* currLane;
 	const sim_mob::RoadSegment* currSegment;
 
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	sim_mob::ProfileBuilder profile;
-#endif
+	sim_mob::ProfileBuilder* profile;
 
 public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
-	friend class BoundaryProcessor;
+	friend class ShortTermBoundaryProcessor;
 
-
+	/**
+	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
+	 */
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	/**

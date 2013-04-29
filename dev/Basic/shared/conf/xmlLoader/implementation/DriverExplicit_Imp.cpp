@@ -28,12 +28,14 @@ void sim_mob::conf::driver_explicit_pimpl::property (const std::pair<std::string
 
 void sim_mob::conf::driver_explicit_pimpl::originPos (const ::std::string& value)
 {
-	model.origin = parse_point(value);
+	std::pair<uint32_t, uint32_t> res = parse_point(value);
+	model.origin = sim_mob::Point2D(res.first, res.second);
 }
 
 void sim_mob::conf::driver_explicit_pimpl::destPos (const ::std::string& value)
 {
-	model.dest = parse_point(value);
+	std::pair<uint32_t, uint32_t> res = parse_point(value);
+	model.dest = sim_mob::Point2D(res.first, res.second);
 }
 
 void sim_mob::conf::driver_explicit_pimpl::startTime (const ::std::string& value)

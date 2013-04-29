@@ -2,12 +2,21 @@
 
 using namespace sim_mob::xml;
 
-
+sim_mob::TrafficColor getTrafficColorType(std::string value)
+{
+	if(value == "InvalidTrafficColor") return sim_mob::InvalidTrafficColor;
+	else if(value == "Red") return sim_mob::Red;
+	else if(value == "Amber") return sim_mob::Amber;
+	else if(value == "Green") return sim_mob::Green;
+	else if(value == "FlashingRed") return sim_mob::FlashingRed;
+	else if(value == "FlashingAmber") return sim_mob::FlashingAmber;
+	else if(value == "FlashingGreen") return sim_mob::FlashingGreen;
+}
 void sim_mob::xml::TrafficColor_t_pimpl::pre ()
 {
 }
 
-void sim_mob::xml::TrafficColor_t_pimpl::post_TrafficColor_t ()
+sim_mob::TrafficColor sim_mob::xml::TrafficColor_t_pimpl::post_TrafficColor_t ()
 {
-	//const ::std::string& v (post_string ());
+	return  getTrafficColorType(post_string ());
 }

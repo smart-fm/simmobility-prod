@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/LatestStandard.h"
 
 #include <vector>
 #include <stdexcept>
@@ -15,6 +16,12 @@
  *
  * \author Seth N. Hetu
  */
+
+
+///Helper macro to represent "doing nothing".
+///We use "do {} while (false);" for now to indicate something (but also nothing) to allow for macros
+/// to eliminate themselves without affecting, for example, single-line if statements.
+#define DO_NOTHING    do{}while(false)
 
 
 
@@ -55,13 +62,8 @@
 ///\note
 ///"Final" doesn't seem to be supported in gcc yet. Disabling this for now; it's more trouble than it's worth to
 ///  support.
-//#ifndef SIMMOB_LATEST_STANDARD
 #define newstd_final
 #define newstd_override
-//#else
-//#define newstd_final  final
-//#define newstd_override  override
-//#endif
 
 
 

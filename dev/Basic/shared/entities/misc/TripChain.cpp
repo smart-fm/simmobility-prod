@@ -7,10 +7,9 @@
 using std::string;
 using namespace sim_mob;
 
-sim_mob::TripChainItem::TripChainItem(int entId, string type, DailyTime start,
+sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start,
 		DailyTime end, unsigned int seqNumber) :
-		personID(entId), itemType(getItemType(type)), startTime(start), endTime(
-				end), sequenceNumber(seqNumber)
+		personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber)
 {
 }
 
@@ -19,20 +18,19 @@ sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""), 
 {
 }
 
-sim_mob::Trip::Trip(int entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int tripId, Node* from,
+sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
+		DailyTime start, DailyTime end, std::string tripId, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType) :
 		TripChainItem(entId, type, start, end, seqNumber), tripID(tripId), fromLocation(
-				from), fromLocationType(getLocationType(fromLocType)), toLocation(
-				to), toLocationType(getLocationType(toLocType))
+				from), fromLocationType(getLocationType(fromLocType)), toLocation(to), toLocationType(getLocationType(toLocType))
 {
 }
 
 
-sim_mob::SubTrip::SubTrip(int entId, std::string type, unsigned int seqNumber,
+sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
-		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, 0, from, fromLocType, to, toLocType),
+		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, "", from, fromLocType, to, toLocType),
 		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
 }

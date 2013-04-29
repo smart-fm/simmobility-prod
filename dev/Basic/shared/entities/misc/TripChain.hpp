@@ -12,6 +12,8 @@
 #include "util/DailyTime.hpp"
 #include "geospatial/Node.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -37,26 +39,36 @@ class Person;
  */
 class TripChainItem {
 public:
-	//Type of location of this trip chain item.
-	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
+	/**
+	 * Type of location of this trip chain item.
+	 *
+	 * \note
+	 * If you make changes in the following enum, you have to manually make required modifications
+	 * in the xml reader too.
+	 */
 	enum LocationType {
 		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
 	};
 
-	//Type of this trip chain item.
-	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
+	/**
+	 * Type of this trip chain item.
+	 *
+	 * \note
+	 * If you make changes in the following enum, you have to manually make required modifications
+	 * in the xml reader too.
+	 */
 	enum ItemType {
 		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
 	};
 
-	unsigned int personID;//replaces entityID
+	std::string personID;//replaces entityID
 	ItemType itemType;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 
 	//TripChainItem();
-	TripChainItem(int entId=-1, std::string type="Trip",
+	TripChainItem(std::string entId= "", std::string type="Trip",
 				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 				unsigned int seqNumber=0);
 	virtual ~TripChainItem() {}
@@ -98,15 +110,15 @@ class Trip: public sim_mob::TripChainItem {
 	friend class ::geo::SubTrip_t;
 
 public:
-	unsigned int tripID;
+	std::string tripID;
 	const sim_mob::Node* fromLocation;
 	TripChainItem::LocationType fromLocationType;
 	const sim_mob::Node* toLocation;
 	TripChainItem::LocationType toLocationType;
 
-	Trip(int entId=-1, std::string type="Trip", unsigned int seqNumber=0,
+	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-			int tripId=0, Node* from=nullptr, std::string fromLocType="node",
+			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
 			Node* to=nullptr, std::string toLocType="node");
 	virtual ~Trip() {}
 
@@ -140,7 +152,7 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	SubTrip(int entId=-1, std::string type="Trip", unsigned int seqNumber=0,
+	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");

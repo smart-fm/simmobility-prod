@@ -2,6 +2,8 @@
 
 #include "RoadSegment.hpp"
 
+#include "conf/settings/DisableMPI.h"
+
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"
 
@@ -173,6 +175,10 @@ double sim_mob::RoadSegment::computeLaneZeroLength() const{
 		res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
 	}
 	return res;
+}
+
+void sim_mob::RoadSegment::setCapacity() {
+	capacity = lanes.size()*940.0;
 }
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const

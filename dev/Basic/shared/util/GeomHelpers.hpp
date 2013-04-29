@@ -53,6 +53,13 @@ double dist(const sim_mob::Agent& ag, const sim_mob::Point2D& pt);
 
 
 /**
+ * Determine the normal intersection point between a line and a point outside that line.
+ * Currently, this will throw an exception if that intersection point is outside the line.
+ */
+Point2D normal_intersect(const sim_mob::Point2D& pt, const sim_mob::DynamicVector& line);
+
+
+/**
  * Check if an intersection point is actually on a line segment. The line from (ax,ay) to (bx,by) is
  *   checked to see if (cx,cy) is a valid point.
  *

@@ -21,12 +21,13 @@ namespace {
  *     1) If "resultNetwork" is non-null and "resultTripChains" is non-null, attempt to load an entire "SimMobility" spec.
  *     2) If "resultNetwork" is null, and "resultTripChains" is non-null, attempt to load just the "TripChains" section.
  */
-bool init_and_load_internal(const std::string& fileName, const std::string& rootNode, sim_mob::RoadNetwork* resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
+bool init_and_load_internal(const std::string& fileName, const std::string& rootNode, sim_mob::RoadNetwork* resultNetwork, std::map<std::string, std::vector<sim_mob::TripChainItem*> >* resultTripChains)
 {
 	//Attempt to load
 	try {
 		//Our bookkeeper assists various classes with optimizations, and is shared between them.
 		::sim_mob::xml::helper::Bookkeeping book;
+		::sim_mob::xml::helper::SignalHelper signal;
 
 		//Complex (usually optimized) parsers require external information.
 		::sim_mob::xml::RoadNetwork_t_pimpl RoadNetwork_t_p(resultNetwork);
@@ -87,7 +88,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::laneEdgePolylines_cached_t_pimpl laneEdgePolylines_cached_t_p;
 	    ::sim_mob::xml::laneEdgePolyline_cached_t_pimpl laneEdgePolyline_cached_t_p;
 	    ::sim_mob::xml::lane_t_pimpl lane_t_p;
-	    ::sim_mob::xml::RoadItems_t_pimpl RoadItems_t_p;
+	    ::sim_mob::xml::RoadItems_t_pimpl RoadItems_t_p(book);
 	    ::sim_mob::xml::BusStop_t_pimpl BusStop_t_p;
 	    ::xml_schema::double_pimpl double_p;
 	    ::sim_mob::xml::ERP_Gantry_t_pimpl ERP_Gantry_t_p;
@@ -100,9 +101,9 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::TripchainItemLocationType_pimpl TripchainItemLocationType_p;
 	    ::sim_mob::xml::SubTrips_t_pimpl SubTrips_t_p;
 	    ::sim_mob::xml::Signals_t_pimpl Signals_t_p;
-	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p;
+	    ::sim_mob::xml::Signal_t_pimpl Signal_t_p(book);
 	    ::xml_schema::unsigned_byte_pimpl unsigned_byte_p;
-	    ::sim_mob::xml::signalTimingMode_t_pimpl signalAlgorithm_t_p;
+//	    ::sim_mob::xml::signalTimingMode_t_pimpl signalAlgorithm_t_p;
 	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
 	    ::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
 	    ::sim_mob::xml::Plans_t_pimpl Plans_t_p;
@@ -110,10 +111,14 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::Phases_t_pimpl Phases_t_p;
 	    ::sim_mob::xml::Phase_t_pimpl Phase_t_p;
 	    ::sim_mob::xml::links_maps_t_pimpl links_maps_t_p;
-	    ::sim_mob::xml::links_map_t_pimpl links_map_t_p;
+	    ::sim_mob::xml::links_map_t_pimpl links_map_t_p(book);
 	    ::sim_mob::xml::ColorSequence_t_pimpl ColorSequence_t_p;
 	    ::sim_mob::xml::ColorDuration_t_pimpl ColorDuration_t_p;
 	    ::sim_mob::xml::TrafficColor_t_pimpl TrafficColor_t_p;
+	    ::sim_mob::xml::crossings_maps_t_pimpl crossings_maps_t_p/*(book)*/;
+	    ::sim_mob::xml::crossings_map_t_pimpl crossings_map_t_p(book);
+	    ::sim_mob::xml::SCATS_t_pimpl SCATS_t_p/*(book,signal)*/;
+	    ::sim_mob::xml::signalTimingMode_t_pimpl signalTimingMode_t_p;	    
 
 	    // Connect the parsers together.
 	    //
@@ -315,7 +320,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                           Trip_t_p,
 	                           Activity_t_p);
 
-	    Trip_t_p.parsers (integer_p,
+	    Trip_t_p.parsers (string_p,
 	                      TripchainItemType_p,
 	                      unsigned_int_p,
 	                      string_p,
@@ -329,7 +334,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    SubTrips_t_p.parsers (SubTrip_t_p);
 
-	    SubTrip_t_p.parsers (integer_p,
+	    SubTrip_t_p.parsers (string_p,
 	                         TripchainItemType_p,
 	                         unsigned_int_p,
 	                         string_p,
@@ -344,7 +349,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                         boolean_p,
 	                         string_p);
 
-	    Activity_t_p.parsers (integer_p,
+	    Activity_t_p.parsers (string_p,
 	                          TripchainItemType_p,
 	                          unsigned_int_p,
 	                          string_p,
@@ -356,13 +361,14 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                          boolean_p,
 	                          boolean_p);
 
+
 	    Signals_t_p.parsers (Signal_t_p);
 
-	    Signal_t_p.parsers (unsigned_byte_p,
+	    Signal_t_p.parsers (unsigned_int_p,
 	                        unsigned_int_p,
-	                        signalAlgorithm_t_p,
 	                        linkAndCrossings_t_p,
-	                        SplitPlan_t_p);
+	                        Phases_t_p,
+	                        SCATS_t_p);
 
 	    linkAndCrossings_t_p.parsers (linkAndCrossing_t_p);
 
@@ -371,23 +377,12 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                                 unsigned_int_p,
 	                                 unsigned_byte_p);
 
-	    SplitPlan_t_p.parsers (unsigned_int_p,
-	                           signalAlgorithm_t_p,
-	                           unsigned_byte_p,
-	                           unsigned_byte_p,
-	                           Plans_t_p,
-	                           Phases_t_p);
-
-	    Plans_t_p.parsers (Plan_t_p);
-
-	    Plan_t_p.parsers (unsigned_byte_p,
-	                      double_p);
-
 	    Phases_t_p.parsers (Phase_t_p);
 
 	    Phase_t_p.parsers (unsigned_byte_p,
 	                       string_p,
-	                       links_maps_t_p);
+	                       links_maps_t_p,
+	                       crossings_maps_t_p);
 
 	    links_maps_t_p.parsers (links_map_t_p);
 
@@ -401,7 +396,26 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                               ColorDuration_t_p);
 
 	    ColorDuration_t_p.parsers (TrafficColor_t_p,
-	                               unsigned_byte_p);
+	    		short_p);
+
+	    crossings_maps_t_p.parsers (crossings_map_t_p);
+
+	    crossings_map_t_p.parsers (unsigned_int_p,
+	                               unsigned_int_p,
+	                               ColorSequence_t_p);
+
+	    SCATS_t_p.parsers (signalTimingMode_t_p,
+	                       SplitPlan_t_p);
+
+	    SplitPlan_t_p.parsers (unsigned_int_p,
+	                           unsigned_byte_p,
+	                           unsigned_byte_p,
+	                           Plans_t_p);
+
+	    Plans_t_p.parsers (Plan_t_p);
+
+	    Plan_t_p.parsers (unsigned_byte_p,
+	                      double_p);
 
 
 		//Parse differently depending on what we are trying to fill.
@@ -435,12 +449,12 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 } //End unnamed namespace
 
 
-bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+bool sim_mob::xml::InitAndLoadXML(const std::string& fileName, sim_mob::RoadNetwork& resultNetwork, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
 	return init_and_load_internal(fileName, "SimMobility", &resultNetwork, &resultTripChains);
 }
 
-bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, const std::string& rootNode, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
+bool sim_mob::xml::InitAndLoadTripChainsFromXML(const std::string& fileName, const std::string& rootNode, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& resultTripChains)
 {
 	return init_and_load_internal(fileName, rootNode, nullptr, &resultTripChains);
 }

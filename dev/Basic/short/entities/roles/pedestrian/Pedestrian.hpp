@@ -17,7 +17,7 @@
 
 #include <boost/random.hpp>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"

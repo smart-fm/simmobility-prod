@@ -10,6 +10,8 @@
 #include "Vehicle.hpp"
 #include "geospatial/RoadSegment.hpp"
 
+#include "logging/Log.hpp"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -19,23 +21,23 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, sim_mob::Park park_) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) :
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false) {
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width, sim_mob::Park park_) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) :
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false) {
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width, sim_mob::Park park_) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false), park(park_) {
+sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false){
 	fwdMovement.setPath(path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(sim_mob::Park park_) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), park(park_),
+sim_mob::Vehicle::Vehicle() :
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0),
 	error_state(true), turningDirection(LCS_SAME), isQueuing(false)
 {
 }
@@ -44,7 +46,7 @@ sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing),park(copyFrom.park) {
+					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing) {
 }
 
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID) {
@@ -167,7 +169,7 @@ DPoint sim_mob::Vehicle::getPosition() const {
 
 	//Temp
 	if (isInIntersection() && (posInIntersection.x == 0 || posInIntersection.y == 0)) {
-		LogOut("WARNING: Vehicle is in intersection without a position!" <<std::endl);
+		Warn() <<"WARNING: Vehicle is in intersection without a position!" <<std::endl;
 	}
 
 	DPoint origPos = fwdMovement.getPosition();
@@ -335,7 +337,7 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
-	bool done = (fwdMovement.isDoneWithEntireRoute() && park.isparkingTimeOver());
+	bool done = (fwdMovement.isDoneWithEntireRoute());
 //	std::cout << (park.isparkingTimeOver()? "Vehicle::isDone=> parkingTimeOver" : "Vehicle::isDone=> parking NOT TimeOver");
 //	std::cout << "\n\n\n";
 	return done;

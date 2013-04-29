@@ -2,6 +2,7 @@
 //tripChains Branch
 #include "Config.hpp"
 
+//Config.cpp should include GenConfig.h, just to make sure we don't forget any files.
 #include "GenConfig.h"
 
 #include "entities/AuraManager.hpp"
@@ -82,7 +83,7 @@ sim_mob::WorkGroup* WorkGroupFactory::getItem()
 		//Create it. For now, this is bound to the old "ConfigParams" structure; we can change this later once both files build in parallel.
 		const ConfigParams& cf = ConfigParams::GetInstance();
 		PartitionManager* partMgr = nullptr;
-		if (!cf.MPI_Disabled() && cf.is_run_on_many_computers) {
+		if (!cf.MPI_Disabled() && cf.using_MPI) {
 			partMgr = &PartitionManager::instance();
 		}
 		if (agentWG) {
@@ -139,22 +140,11 @@ void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgent
 
 
 namespace {
-void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, MutexStrategy mtxStrat, const std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tripChains) {
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, MutexStrategy mtxStrat, const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tripChains) {
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 
 	//Create one person per trip-chain, as required.
 	for (TripChainList::const_iterator it=tripChains.begin(); it!=tripChains.end(); it++) {
-		TripChainItem* tc = it->second.front();
-
-		//Perform some amount of validation.
-		//TODO: Unfortunately, "personID" in TripChainItems is stored as an unsigned int, so
-		//      the value of "-1" could have been lost in the conversion. This should catch basic
-		//      usages; perhaps we might want to switch "0" to mean "auto id"?
-		int id = (int)it->second.front()->personID; //The unsafe (int) cast should handle this.
-		if (id != -1) {
-			constraints.validateID(id);  //Even if it doesn't, validateID will likely complain.
-		}
-
 		//Create the person; the constructor *should* handle the rest.
 		sim_mob::Person* ag = new sim_mob::Person("DB_TripChain", mtxStrat, it->second);
 		res.push_back(ag);
@@ -173,7 +163,7 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 	if (it->second.dbFormat!="aimsun") { throw std::runtime_error("DatabaseAgentLoader error: only the aimsun format supported (for now)."); }
 
 	//Load using the same code found in our NetworkLoader.
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
 
 	//Now use the same code for Db and Xml trip-chains.
@@ -185,7 +175,7 @@ void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, L
 void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
 {
 	//Create an output parameter.
-	typedef std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > TripChainList;
+	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains;
 
 	//    		todo: this is commented to speed up compilations. enable before pushing the code[XMLCOMMENT]
@@ -241,23 +231,39 @@ bool sim_mob::CMakeConfig::StrictAgentErrors() const
 #endif
 }
 
-bool sim_mob::CMakeConfig::GenerateAgentUpdateProfile() const
+bool sim_mob::CMakeConfig::ProfileOn() const
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+#ifdef SIMMOB_PROFILE_ON
 	return true;
 #else
 	return false;
 #endif
 }
 
-bool sim_mob::CMakeConfig::NewSignalModelEnabled() const
+bool sim_mob::CMakeConfig::ProfileAgentUpdates(bool accountForOnFlag) const
 {
-#ifdef SIMMOB_NEW_SIGNAL
+#ifdef SIMMOB_PROFILE_AGENT_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
 	return true;
 #else
-#error SIMMOB_NEW_SIGNAL must always be defined.
+	return false;
 #endif
 }
+
+bool sim_mob::CMakeConfig::ProfileWorkerUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_WORKER_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
 
 
 

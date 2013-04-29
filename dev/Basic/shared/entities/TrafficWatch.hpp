@@ -27,7 +27,7 @@
 #include <map>
 #include <vector>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
 
 #include "Agent.hpp"
 #include "roles/Role.hpp"

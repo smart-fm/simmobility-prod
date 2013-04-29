@@ -13,9 +13,10 @@
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/member.hpp>
 
-namespace geo
-{
+namespace sim_mob {
+namespace xml {
 class Phase_t_pimpl;
+}
 }
 
 namespace sim_mob
@@ -112,7 +113,7 @@ typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> cr
  */
 class Phase
 {
-	friend class geo::Phase_t_pimpl;
+	friend class sim_mob::xml::Phase_t_pimpl;
 public:
 	typedef links_map::iterator links_map_iterator;
 	typedef links_map::const_iterator links_map_const_iterator;

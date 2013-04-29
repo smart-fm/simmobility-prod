@@ -5,12 +5,9 @@
 #include <string>
 
 #include "Base.hpp"
-#include "GenConfig.h"
 
-namespace sim_mob
-{
-namespace aimsun
-{
+namespace sim_mob {
+namespace aimsun {
 
 //Forward declarations
 class Section;
@@ -25,7 +22,8 @@ public:
 	double yPos;
 	Section* section;
 
-	Polyline() : Base(), section(NULL) {}
+	Polyline() : Base(), xPos(0), yPos(0), section(NULL), TMP_SectionId(0), distanceFromSrc(0)
+	{}
 
 	//Temporaries
 	int TMP_SectionId;

@@ -73,11 +73,14 @@ void sim_mob::StreetDirectory::updateDrivingMap()
 {
 	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
-#if 0
-		spImpl_->GeneratePathChoiceSet();
-#endif
 	}
 }
+
+const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& point) const
+{
+    return pimpl_ ? pimpl_->getBusStop(point) : nullptr;
+}
+
 
 StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point2D& point) const
 {
@@ -104,18 +107,47 @@ const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 }
 
 
-vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const Node& n) const
 {
-	if (!spImpl_) { return vector<WayPoint>(); }
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
 
-	return spImpl_->GetShortestDrivingPath(fromNode, toNode);
+	return spImpl_->DrivingVertex(n);
 }
 
-vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const Node& n) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->WalkingVertex(n);
+}
+
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const BusStop& b) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->DrivingVertex(b);
+}
+
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const BusStop& b) const
+{
+	if (!spImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	return spImpl_->WalkingVertex(b);
+}
+
+
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }
 
-	return spImpl_->shortestWalkingPath(fromPoint, toPoint);
+	return spImpl_->GetShortestDrivingPath(from, to, blacklist);
+}
+
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const
+{
+	if (!spImpl_) { return vector<WayPoint>(); }
+
+	return spImpl_->GetShortestWalkingPath(from, to);
 }
 
 

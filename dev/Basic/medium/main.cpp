@@ -11,6 +11,7 @@
 #include <string>
 #include <ctime>
 
+//main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
 #include "buffering/BufferedDataManager.hpp"
@@ -33,6 +34,7 @@
 #include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "logging/Log.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -41,7 +43,7 @@
 #include "partitions/PartitionManager.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
-//      access to cout if SIMMOB_DISABLE_OUTPUT is true.
+//      access to cout if output is disabled.
 #include <iostream>
 
 using std::cout;
@@ -119,16 +121,29 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 #ifdef SIMMOB_USE_CONFLUXES
 	std::cout << "Confluxes ON!" << std::endl;
 #endif
 
 	ProfileBuilder* prof = nullptr;
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	ProfileBuilder::InitLogFile("agent_update_trace.txt");
-	ProfileBuilder prof_i;
-	prof = &prof_i;
-#endif
+	if (ConfigParams::GetInstance().ProfileOn()) {
+		ProfileBuilder::InitLogFile("profile_trace.txt");
+		prof = new ProfileBuilder();
+	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -151,10 +166,9 @@ bool performMainMed(const std::string& configFileName) {
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
-
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.initBoundaryTrafficItems();
 	}
@@ -163,7 +177,7 @@ bool performMainMed(const std::string& configFileName) {
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		partMgr = &PartitionManager::instance();
 	}
 
@@ -199,13 +213,13 @@ bool performMainMed(const std::string& configFileName) {
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init();
+	AuraManager::instance().init(config.aura_manager_impl, nullptr);
 
 	//Start work groups and all threads.
 	WorkGroup::StartAllWorkGroups();
 
 	//
-	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
@@ -239,12 +253,13 @@ bool performMainMed(const std::string& configFileName) {
 
 		//Output
 		if (ConfigParams::GetInstance().OutputEnabled()) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			cout << "Approximate Tick Boundary: " << currTick << ", ";
-			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+			std::stringstream msg;
+			msg << "Approximate Tick Boundary: " << currTick << ", ";
+			msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
-				cout << "  Warmup; output ignored." << endl;
+				msg << "  Warmup; output ignored." << endl;
 			}
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
@@ -266,7 +281,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
@@ -339,6 +354,9 @@ bool performMainMed(const std::string& configFileName) {
 	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
+
+	//Delete our profile pointer (if it exists)
+	safe_delete_item(prof);
 	return true;
 }
 
@@ -357,10 +375,10 @@ int main(int argc, char* argv[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
-	config.is_run_on_many_computers = false;
+	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
-		config.is_run_on_many_computers = true;
+		config.using_MPI = true;
 	}
 #endif
 
@@ -370,16 +388,16 @@ int main(int argc, char* argv[])
 	config.is_simulation_repeatable = true;
 
 	/**
-	 * Start MPI if is_run_on_many_computers is true
+	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
 		if (mpi_result.compare("") != 0)
 		{
-			cout << "Error:" << mpi_result << endl;
+			Warn() << "MPI Error:" << mpi_result << endl;
 			exit(1);
 		}
 	}
@@ -422,6 +440,7 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
+
 	return returnVal;
 }
 

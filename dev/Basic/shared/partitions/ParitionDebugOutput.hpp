@@ -3,7 +3,8 @@
 #include <string>
 #include <iostream>
 
-#include "GenConfig.h"
+#include "conf/settings/DisableMPI.h"
+
 #include "PartitionManager.hpp"
 
 namespace sim_mob {

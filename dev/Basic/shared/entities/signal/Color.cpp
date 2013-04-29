@@ -6,8 +6,8 @@ namespace sim_mob
 TrafficColor ColorSequence::computeColor(double Duration)
 {
 
-	std::size_t sum = 0;
-	std::vector< std::pair<TrafficColor,std::size_t> >::iterator it = ColorDuration.begin();
+	short sum = 0;
+	std::vector< std::pair<TrafficColor,short> >::iterator it = ColorDuration.begin();
 	for(; it != ColorDuration.end(); it++)
 	{
 		sum += (*it).second;
@@ -29,7 +29,7 @@ TrafficColor ColorSequence::computeColor(double Duration)
 	return sim_mob::Red;
 }
 
-void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> > cs)
+void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,short> > cs)
 {
 	ColorDuration = cs;
 }
@@ -38,15 +38,15 @@ void ColorSequence::setTrafficLightType(TrafficLightType t)
 {
 	type = t;
 }
-std::vector< std::pair<TrafficColor,std::size_t> > & ColorSequence::getColorDuration() { return ColorDuration; }
+std::vector< std::pair<TrafficColor,short> > & ColorSequence::getColorDuration() { return ColorDuration; }
 const TrafficLightType ColorSequence::getTrafficLightType() const { return type; }
 
-void ColorSequence::addColorDuration(TrafficColor color,std::size_t duration)
+void ColorSequence::addColorDuration(TrafficColor color,short duration)
 {
 	ColorDuration.push_back(std::make_pair(color,duration));
 
 }
-void ColorSequence::addColorPair(std::pair<TrafficColor,std::size_t> p)
+void ColorSequence::addColorPair(std::pair<TrafficColor,short> p)
 {
 	ColorDuration.push_back(p);
 }
@@ -60,9 +60,9 @@ void ColorSequence::clear()
 	ColorDuration.clear();
 }
 
-void ColorSequence::changeColorDuration(std::size_t color,std::size_t duration)
+void ColorSequence::changeColorDuration(std::size_t color,short duration)
 {
-	std::vector< std::pair<TrafficColor,std::size_t> >::iterator it=ColorDuration.begin();
+	std::vector< std::pair<TrafficColor,short> >::iterator it=ColorDuration.begin();
 	for(it=ColorDuration.begin(); it!=ColorDuration.end(); it++)
 		if((*it).first == color)
 		{

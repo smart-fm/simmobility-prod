@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include "GenConfig.h"
 #include "geospatial/RoadSegment.hpp"
 #include "Point2D.hpp"
-namespace geo
-{
+namespace geo {
 class crossing_t_pimpl;
 class RoadItem_t_pimpl;
 }

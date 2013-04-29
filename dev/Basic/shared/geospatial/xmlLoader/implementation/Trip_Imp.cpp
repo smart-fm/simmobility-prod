@@ -33,7 +33,7 @@ sim_mob::TripChainItem* sim_mob::xml::Trip_t_pimpl::post_Trip_t ()
 {
 	//NOTE: I'm not sure if the model would ever be null. It should have been created in pre(), not in tripID(). ~Seth
 	//if(!model) { return 0; }
-	sim_mob::Trip* res = new sim_mob::Trip(model);
+	sim_mob::Trip* res = new sim_mob::Trip(model);//here, model only helps as a factory object
 
 	//Copy over temporary properties.
 	sim_mob::TripChainItem* temp = TripChainItem_t_pimpl::post_TripChainItem_t ();

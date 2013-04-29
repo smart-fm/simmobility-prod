@@ -1,0 +1,19 @@
+/**
+ * \file DisableOutput.h
+ * Contains the compile-time flag "SIMMOB_DISABLE_OUTPUT"
+ *
+ * \author Seth N. Hetu 
+ * 
+ * Please do not edit the file DisableOutput.h; instead, edit DisableOutput.h.in, 
+ *  which the header file is generated from.
+ *  
+ * Also note that parameters like SIMMOB_DISABLE_OUTPUT should be set in your cmake cache file.
+ *  Do not simply override the defaults in CMakeLists.txt
+ *
+ * \par
+ * ~Seth
+ */
+
+#pragma once
+
+#cmakedefine SIMMOB_DISABLE_OUTPUT

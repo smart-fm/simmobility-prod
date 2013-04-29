@@ -500,7 +500,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 			partitionMgr->crossPCBarrier();
 			partitionMgr->crossPCboundaryProcess(currTimeTick);
 			partitionMgr->crossPCBarrier();
-			partitionMgr->outputAllEntities(currTimeTick);
+//			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
 		//Update the aura manager, if we have one.

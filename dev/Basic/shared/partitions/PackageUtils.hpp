@@ -24,8 +24,6 @@ class PackUnpackUnitTests;
 
 namespace sim_mob {
 
-class BoundaryProcessor;
-
 
 
 /**
@@ -60,15 +58,18 @@ public:
 	 */
 	void operator<<(double value) CHECK_MPI_THROW ;
 
-private:
+public:
 	std::string getPackageData() CHECK_MPI_THROW ;
 
 private:
-	friend class BoundaryProcessor;
 	friend class unit_tests::PackUnpackUnitTests;
 
 #ifndef SIMMOB_DISABLE_MPI
+//	friend class BoundaryProcessor;
+//	friend class ShortTermBoundaryProcessor;
+
 	std::stringstream buffer;
+	//Should change to binary archive
 	boost::archive::text_oarchive* package;
 #endif
 

@@ -5,9 +5,8 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/vehicle/Vehicle.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
-#include "entities/roles/driver/DriverUpdateParams.hpp"
-#include "entities/roles/driver/IntersectionDrivingModel.hpp"
+#include "geospatial/GeneralPathMover.hpp"
+#include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/misc/TripChain.hpp"
 
 #include "partitions/PackageUtils.hpp"
@@ -81,6 +80,7 @@ Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
 /**
  * Serialize Class GeneralPathMover
  */
+//void sim_mob::GeneralPathMover::calc
 
 void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fwdMovement)
 {
@@ -288,113 +288,6 @@ void sim_mob::GeneralPathMover::unpack(UnPackageUtils& unpackage, GeneralPathMov
 
 }
 
-/**
- * Serialize Class DriverUpdateParams
- */
-void DriverUpdateParams::pack(PackageUtils& package, const DriverUpdateParams* params) {
-
-	if (params == NULL)
-	{
-		bool is_NULL = true;
-		package << (is_NULL);
-		return;
-	}
-	else
-	{
-		bool is_NULL = false;
-		package << (is_NULL);
-	}
-
-	package << (params->frameNumber);
-	package << (params->currTimeMS);
-
-	sim_mob::Lane::pack(package, params->currLane);
-	package << (params->currLaneIndex);
-//	package << (params->fromLaneIndex);
-	sim_mob::Lane::pack(package, params->leftLane);
-	sim_mob::Lane::pack(package, params->rightLane);
-
-	package << (params->currSpeed);
-	package << (params->currLaneOffset);
-	package << (params->currLaneLength);
-//	package << (params->isTrafficLightStop);
-
-	package << (params->trafficSignalStopDistance);
-	package << (params->elapsedSeconds);
-	package << (params->perceivedFwdVelocity);
-	package << (params->perceivedLatVelocity);
-	package << (params->perceivedFwdVelocityOfFwdCar);
-	package << (params->perceivedLatVelocityOfFwdCar);
-	package << (params->perceivedAccelerationOfFwdCar);
-	package << (params->perceivedDistToFwdCar);
-
-	package << (params->laneChangingVelocity);
-	package << (params->isCrossingAhead);
-	package << (params->isApproachingToIntersection);
-	package << (params->crossingFwdDistance);
-
-	package << (params->space);
-	package << (params->a_lead);
-	package << (params->v_lead);
-	package << (params->space_star);
-	package << (params->distanceToNormalStop);
-
-	package << (params->dis2stop);
-	package << (params->isWaiting);
-
-	package << (params->justChangedToNewSegment);
-	package << (params->TEMP_lastKnownPolypoint);
-	package << (params->justMovedIntoIntersection);
-	package << (params->overflowIntoIntersection);
-}
-
-void DriverUpdateParams::unpack(UnPackageUtils& unpackage, DriverUpdateParams* params) {
-	bool is_NULL = false;
-	unpackage >> is_NULL;
-	if (is_NULL) {
-		return;
-	}
-
-	unpackage >> params->frameNumber;
-	unpackage >> params->currTimeMS;
-
-//	params->frameNumber = unpackage.unpackBasicData<double> ();
-//	params->currTimeMS = unpackage.unpackBasicData<double> ();
-
-	params->currLane = sim_mob::Lane::unpack(unpackage);
-	unpackage >> params->currLaneIndex;
-//	unpackage >> params->fromLaneIndex;
-	params->leftLane = sim_mob::Lane::unpack(unpackage);
-	params->rightLane = sim_mob::Lane::unpack(unpackage);
-
-	unpackage >> params->currSpeed;
-	unpackage >> params->currLaneOffset;
-	unpackage >> params->currLaneLength;
-//	unpackage >> params->isTrafficLightStop;
-
-//	params->currSpeed = unpackage.unpackBasicData<double> ();
-//	params->currLaneOffset = unpackage.unpackBasicData<double> ();
-//	params->currLaneLength = unpackage.unpackBasicData<double> ();
-//	params->isTrafficLightStop = unpackage.unpackBasicData<bool> ();
-
-	unpackage >> params->trafficSignalStopDistance;
-	unpackage >> params->elapsedSeconds;
-	unpackage >> params->perceivedFwdVelocity;
-	unpackage >> params->perceivedLatVelocity;
-	unpackage >> params->perceivedFwdVelocityOfFwdCar;
-	unpackage >> params->perceivedLatVelocityOfFwdCar;
-	unpackage >> params->perceivedAccelerationOfFwdCar;
-	unpackage >> params->perceivedDistToFwdCar;
-
-//	params->trafficSignalStopDistance = unpackage.unpackBasicData<double> ();
-//	params->elapsedSeconds = unpackage.unpackBasicData<double> ();
-//	params->perceivedFwdVelocity = unpackage.unpackBasicData<double> ();
-//	params->perceivedLatVelocity = unpackage.unpackBasicData<double> ();
-//	params->perceivedFwdVelocityOfFwdCar = unpackage.unpackBasicData<double> ();
-//	params->perceivedLatVelocityOfFwdCar = unpackage.unpackBasicData<double> ();
-//	params->perceivedAccelerationOfFwdCar = unpackage.unpackBasicData<double> ();
-//	params->perceivedDistToFwdCar = unpackage.unpackBasicData<double> ();
-}
 
 /**
  * Class IntersectionDrivingModel
@@ -444,54 +337,54 @@ void SimpleIntDrivingModel::unpack(UnPackageUtils& unpackage, SimpleIntDrivingMo
 /**
  * Class TripChain
  */
-void TripChain::pack(PackageUtils& package, const TripChain* chain) {
-	if (chain == NULL) {
-		bool is_NULL = true;
-		package<<(is_NULL);
-		return;
-	} else {
-		bool is_NULL = false;
-		package<<(is_NULL);
-	}
-
-	package << (chain->from.description);
-	sim_mob::Node::pack(package, chain->from.location);
-
-	package << (chain->to.description);
-	sim_mob::Node::pack(package, chain->to.location);
-
-	package << (chain->primary);
-	package << (chain->flexible);
-
-	package << (chain->startTime);
-	package << (chain->mode);
-}
-
-TripChain* TripChain::unpack(UnPackageUtils& unpackage) {
-	bool is_NULL = false;
-	unpackage >> is_NULL;
-	if (is_NULL) {
-		return NULL;
-	}
-
-	TripChain* chain = new TripChain();
-
-	unpackage >> chain->from.description;
+//void TripChain::pack(PackageUtils& package, const TripChain* chain) {
+//	if (chain == NULL) {
+//		bool is_NULL = true;
+//		package<<(is_NULL);
+//		return;
+//	} else {
+//		bool is_NULL = false;
+//		package<<(is_NULL);
+//	}
 //
-//	chain->from.description = unpackage.unpackBasicData<std::string> ();
-	chain->from.location = Node::unpack(unpackage);
-
-	unpackage >> chain->to.description;
-//	chain->to.description = unpackage.unpackBasicData<std::string> ();
-	chain->to.location = Node::unpack(unpackage);
-
-	unpackage >> chain->primary;
-	unpackage >> chain->flexible;
-	unpackage >> chain->startTime;
-	unpackage >> chain->mode;
-
-	return chain;
-}
+//	package << (chain->from.description);
+//	sim_mob::Node::pack(package, chain->from.location);
+//
+//	package << (chain->to.description);
+//	sim_mob::Node::pack(package, chain->to.location);
+//
+//	package << (chain->primary);
+//	package << (chain->flexible);
+//
+//	package << (chain->startTime);
+//	package << (chain->mode);
+//}
+//
+//TripChain* TripChain::unpack(UnPackageUtils& unpackage) {
+//	bool is_NULL = false;
+//	unpackage >> is_NULL;
+//	if (is_NULL) {
+//		return NULL;
+//	}
+//
+//	TripChain* chain = new TripChain();
+//
+//	unpackage >> chain->from.description;
+////
+////	chain->from.description = unpackage.unpackBasicData<std::string> ();
+//	chain->from.location = Node::unpack(unpackage);
+//
+//	unpackage >> chain->to.description;
+////	chain->to.description = unpackage.unpackBasicData<std::string> ();
+//	chain->to.location = Node::unpack(unpackage);
+//
+//	unpackage >> chain->primary;
+//	unpackage >> chain->flexible;
+//	unpackage >> chain->startTime;
+//	unpackage >> chain->mode;
+//
+//	return chain;
+//}
 }
 
 #endif

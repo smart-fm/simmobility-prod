@@ -58,7 +58,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigParams::GetInstance().using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;

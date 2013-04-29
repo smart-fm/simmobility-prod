@@ -157,8 +157,8 @@ void sim_mob::Person::pack(PackageUtils& packageUtil) {
 
 	//package person
 	packageUtil<<(specialStr);
-	sim_mob::TripChain::pack(packageUtil, currTripChain);
-	packageUtil<<(firstFrameTick);
+//	sim_mob::TripChain::pack(packageUtil, currTripChain);
+//	packageUtil<<(firstFrameTick);
 }
 
 void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
@@ -168,9 +168,9 @@ void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
 
 	unpackageUtil >> specialStr;
 //	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
+//	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
 
-	unpackageUtil >> firstFrameTick;
+//	unpackageUtil >> firstFrameTick;
 //	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
 }
 
@@ -180,14 +180,14 @@ void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
 
 	//package person
 	packageUtil<<(specialStr);
-	packageUtil<<(firstFrameTick);
+//	packageUtil<<(firstFrameTick);
 }
 
 void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 	sim_mob::Agent::unpackProxy(unpackageUtil);
 
 	unpackageUtil >> specialStr;
-	unpackageUtil >> firstFrameTick;
+//	unpackageUtil >> firstFrameTick;
 
 //	specialStr = unpackageUtil.unpackBasicData<std::string> ();
 //	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();

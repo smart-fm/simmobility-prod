@@ -15,6 +15,7 @@
 #include "entities/Person.hpp"
 
 #include "conf/simpleconf.hpp"
+#include "logging/Log.hpp"
 
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
@@ -247,7 +248,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
-		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
+		Warn() <<"ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl;
 	}
 }
 
@@ -323,7 +324,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 
@@ -1030,7 +1031,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
+		Warn() <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
 

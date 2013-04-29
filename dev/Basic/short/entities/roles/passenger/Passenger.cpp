@@ -75,12 +75,6 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 	   person->setNextRole(nullptr);// set nextRole to be nullptr when becoming Passenger
    }
    FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
-//   Person* person = dynamic_cast<Person*> (parent);
-//   if(person && (!busdriver.get())) {
-//	   const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-//	   sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
-//	   person->setTempRole(newRole);
-//   }
 }
 
 UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)
@@ -114,12 +108,6 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 			setParentBufferedData();//update passenger coordinates every frame tick
 		}
 	}
-
-//	if(AlightedBus.get()==true)
-//	{
-//		AlightedBus.set(false);
-//		parent->setToBeRemoved();//removes passenger if destination is reached
-//	}
 }
 
 
@@ -144,7 +132,7 @@ void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 
 	if((BoardedBus.get()==false) && (AlightedBus.get()==false)) {
 		//output passenger on visualizer only if passenger on road
-		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
+		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 	} else if((BoardedBus.get()==false) && (AlightedBus.get()==true)) {
 		//output passenger on visualizer only if passenger on road
 		 LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);

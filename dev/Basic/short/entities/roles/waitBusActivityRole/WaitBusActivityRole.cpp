@@ -45,6 +45,8 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 //	parent->yPos.set(busStop->yPos);
 	if(parent->destNode.type_== WayPoint::BUS_STOP) {
 		busStopAgent = parent->destNode.busStop_->generatedBusStopAgent;
+		//parent->xPos.set(parent->destNode.busStop_->xPos);
+		//parent->yPos.set(parent->destNode.busStop_->yPos);
 	}
 	TimeOfReachingBusStop = p.now.ms();
 	buslineid = "7_2";// hardcoded now, later change
@@ -110,7 +112,8 @@ void sim_mob::WaitBusActivityRole::frame_tick_output(const UpdateParams& p) {
 //				<<"\"xPos\":\""<<static_cast<int>(parent->xPos)
 //				<<"\",\"yPos\":\""<<static_cast<int>(parent->yPos)
 //				<<"\"})"<<std::endl);
-	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
+	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
+	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick_output_mpi(timeslice now) {

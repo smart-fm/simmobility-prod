@@ -111,7 +111,7 @@ vector<BufferedBase*> sim_mob::Pedestrian2::getSubscriptionParams() {
 void sim_mob::Pedestrian2::frame_init(UpdateParams& p)
 {
 	setSubPath();
-	dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
+	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 Role* sim_mob::Pedestrian2::clone(Person* parent) const
 {
@@ -197,9 +197,9 @@ void sim_mob::Pedestrian2::frame_tick_med(UpdateParams& p){
 
 void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 {
-	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
-		return;
-	}
+//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
+//		return;
+//	}
 
 	if (ConfigParams::GetInstance().using_MPI) {
 		return;

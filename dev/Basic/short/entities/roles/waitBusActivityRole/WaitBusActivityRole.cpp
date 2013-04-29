@@ -39,10 +39,13 @@ Role* sim_mob::WaitBusActivityRole::clone(Person* parent) const
 }
 
 void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
-	sim_mob::BusStop* busStop = setBusStopXY(parent->destNode.node_);// it is pedestrians reaching here
-	busStopAgent = busStop->generatedBusStopAgent;
-	parent->xPos.set(busStop->xPos);
-	parent->yPos.set(busStop->yPos);
+//	sim_mob::BusStop* busStop = setBusStopXY(parent->destNode.node_);// it is pedestrians reaching here
+//	busStopAgent = busStop->generatedBusStopAgent;
+//	parent->xPos.set(busStop->xPos);
+//	parent->yPos.set(busStop->yPos);
+	if(parent->destNode.type_== WayPoint::BUS_STOP) {
+		busStopAgent = parent->destNode.busStop_->generatedBusStopAgent;
+	}
 	TimeOfReachingBusStop = p.now.ms();
 	buslineid = "7_2";// hardcoded now, later change
 	initializeRemainingTime();

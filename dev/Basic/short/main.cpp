@@ -232,6 +232,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		agentWorkers->assignAWorker(*it);
 	}
 
+	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::all_BusstopAgents_.size() << std::endl;
 	for (vector<BusStopAgent*>::iterator it = BusStopAgent::all_BusstopAgents_.begin(); it != BusStopAgent::all_BusstopAgents_.end(); it++) {
 		agentWorkers->assignAWorker(*it);
 	}

@@ -93,7 +93,7 @@ sim_mob::Pedestrian2::Pedestrian2(Agent* parent, std::string roleName) : Role(pa
 
 	xCollisionVector = 0;
 	yCollisionVector = 0;
-	isAtBusstop = true;
+	isAtBusstop = false;
 }
 
 //Note that a destructor is not technically needed, but I want to enforce the idea
@@ -159,7 +159,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 		else
 		{
 			Person* person = dynamic_cast<Person*> (parent);
-			if(person && isAtBusstop) { // it is at the busstop, dont set to be removed, just changeRole
+			if(person && (parent->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
 				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
@@ -170,7 +170,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
 					newRole->frame_init(p);
 					person->changeRole(newRole);
-					isAtBusstop = false;
+					isAtBusstop = true;
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 //					passenger->BoardedBus.set(true);

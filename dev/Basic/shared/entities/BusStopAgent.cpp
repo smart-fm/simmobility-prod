@@ -17,12 +17,16 @@ void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const Mute
 	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
 	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
 	busstop.generatedBusStopAgent = sig_ag;
-	all_BusstopAgents_.push_back(sig_ag);
 }
 
 bool sim_mob::BusStopAgent::HasBusStopAgents()
 {
 	return !all_BusstopAgents_.empty();
+}
+
+bool sim_mob::BusStopAgent::isNonspatial()
+{
+	return true;
 }
 
 void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list)

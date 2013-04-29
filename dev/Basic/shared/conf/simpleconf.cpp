@@ -195,7 +195,8 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+	//if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {{
+	if(1){
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);
@@ -219,7 +220,8 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		std::cout << "id of tripchain item in this iteration is " << it_map->first << std::endl;
 		TripChainItem* tc = it_map->second.front();
 
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);

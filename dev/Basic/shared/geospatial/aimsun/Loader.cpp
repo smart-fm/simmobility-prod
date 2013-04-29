@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <boost/multi_index_container.hpp>
+#include "entities/AuraManager.hpp"
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
@@ -38,6 +39,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -902,10 +904,112 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->personID = tcItem.personID;
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	tripToSave->fromLocation = tcItem.fromLocation->generatedNode;
+	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
+}
+
+
+bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop* & sourceStop, sim_mob::BusStop* & destStop)
+{
+	bool result = false;
+	sim_mob::AuraManager::instance2();
+	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+	std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2);
+
+	std::vector<sim_mob::BusStop*> source_stops;
+	std::vector<sim_mob::BusStop*> dest_stops;
+	typedef std::pair<sim_mob::Busline*, sim_mob::BusStop*> LineToStop;
+	typedef std::pair<LineToStop, LineToStop> LineToStopPair;
+	std::vector< LineToStop > source_lines;
+	std::vector< LineToStop > dest_lines;
+	std::vector< LineToStopPair > selected_lines;
+	std::vector<sim_mob::BusStop*>::iterator it;
+
+	//find bus lines in source stop
+	for(it = source_stops.begin(); it != source_stops.end(); it++)
+	{
+		std::vector<sim_mob::Busline*> buslines = (*it)->BusLines;
+		std::vector<sim_mob::Busline*>::iterator itLines;
+		for(itLines = buslines.begin(); itLines!=buslines.end(); itLines++)
+		{
+			source_lines.push_back(std::make_pair((*itLines), (*it)));
+		}
+	}
+
+	//find bus lines in destination stop
+	for(it = dest_stops.begin(); it != dest_stops.end(); it++)
+	{
+		std::vector<sim_mob::Busline*> buslines = (*it)->BusLines;
+		std::vector<sim_mob::Busline*>::iterator itLines;
+		for(itLines = buslines.begin(); itLines!=buslines.end(); itLines++)
+		{
+			dest_lines.push_back(std::make_pair((*itLines), (*it)));
+		}
+	}
+
+	//find bus line which connect between source stop and destination stop with least number of stops
+	std::vector<LineToStop>::iterator itSourceLineToStop, itDestLineToStop;
+	for(itSourceLineToStop=source_lines.begin(); itSourceLineToStop!=source_lines.end(); itSourceLineToStop++)
+	{
+		sim_mob::Busline* source_line = itSourceLineToStop->first;
+		for(itDestLineToStop=dest_lines.begin(); itDestLineToStop!=dest_lines.end(); itDestLineToStop++)
+		{
+			sim_mob::Busline* dest_line = itDestLineToStop->first;
+			if( source_line->getBusLineID() == dest_line->getBusLineID() )
+			{
+				selected_lines.push_back(std::make_pair((*itSourceLineToStop), (*itDestLineToStop)));
+			}
+		}
+	}
+
+	//select bus line with least number of bus stops
+	std::vector<LineToStopPair>::iterator itSelectedPair;
+	sim_mob::BusStop* selSourceStop=0;
+	sim_mob::BusStop* selDestStop=0;
+	LineToStopPair selBusline;
+	int minStops = 1000;
+	for(itSelectedPair=selected_lines.begin(); itSelectedPair!=selected_lines.end(); itSelectedPair++)
+	{
+		LineToStop lineStopOne = itSelectedPair->first;
+		LineToStop lineStopTwo = itSelectedPair->second;
+		const std::vector<sim_mob::BusTrip>& BusTrips = (lineStopOne.first)->queryBusTrips();
+
+		//bus stops has the info about the list of bus stops a particular bus line goes to
+		std::vector<const sim_mob::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
+		std::vector<const sim_mob::BusStop*>::iterator it;
+		int numStops = 0;
+		for(it=busstops.begin(); it!=busstops.end(); it++)
+		{
+			if(numStops==0 && (*it)!=lineStopOne.second)
+				continue;
+			else if(numStops==0 && (*it)==lineStopOne.second)
+				numStops++;
+			else if(numStops>0 && (*it)!=lineStopTwo.second)
+				numStops++;
+			else if(numStops>0 && (*it)==lineStopTwo.second)
+				break;
+		}
+
+		if(numStops < minStops)
+		{
+			minStops = numStops;
+			selBusline = (*itSelectedPair);
+			selSourceStop = lineStopOne.second;
+			selDestStop = lineStopTwo.second;
+			result = true;
+		}
+	}
+
+	if(result)
+	{
+		sourceStop = selSourceStop;
+		destStop = selDestStop ;
+	}
+
+	return result;
 }
 
 sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::string, std::vector<const sim_mob::BusStop*> >& route_BusStops,
@@ -946,9 +1050,9 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	aSubTripInTrip.personID = tcItem.personID;
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
-	aSubTripInTrip.fromLocation = tcItem.fromLocation->generatedNode;
+	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
-	aSubTripInTrip.toLocation = tcItem.toLocation->generatedNode;
+	aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
 	aSubTripInTrip.toLocationType = tcItem.toLocationType;
 	aSubTripInTrip.mode = tcItem.mode;
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
@@ -2065,4 +2169,150 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	}
 //	std::cout << debugMsgs.str();
 }
+
+sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
+{
+	OriginBusStop = findNearbyBusStop(src);
+    DestBusStop = findNearbyBusStop(dest);
+}
+
+sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
+{
+	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
+	 double dist=0;
+	 BusStop*bs1;
+	 if(currEndNode)
+	 {
+		 const std::set<sim_mob::RoadSegment*>& segments_ = currEndNode->getRoadSegments();
+		 BusStop* busStop_ptr = nullptr;
+		 for(std::set<sim_mob::RoadSegment*>::const_iterator i = segments_.begin();i !=segments_.end();i++)
+		 {
+			sim_mob::BusStop* bustop_ = (*i)->getBusStop();
+			busStop_ptr = getBusStop(node,(*i));
+			if(busStop_ptr)
+			{
+			double newDist = sim_mob::dist(busStop_ptr->xPos, busStop_ptr->yPos,node->location.getX(), node->location.getY());
+			if((newDist<dist || dist==0)&& busStop_ptr->BusLines.size()!=0)
+			   {
+			     dist=newDist;
+				 bs1=busStop_ptr;
+			   }
+			}
+		 }
+	 }
+	 else
+	 {
+		 Point2D point = node->location;
+		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::instance().getLane(point);
+		 if(lane_index.lane_)
+		 {
+			 sim_mob::Link* link_= lane_index.lane_->getRoadSegment()->getLink();
+			 const sim_mob::Link* link_2 = StreetDirectory::instance().searchLink(link_->getEnd(),link_->getStart());
+			 BusStop* busStop_ptr = nullptr;
+
+			 std::vector<sim_mob::RoadSegment*> segments_ ;
+
+			 if(link_)
+			 {
+				 segments_= const_cast<Link*>(link_)->getSegments();
+				 for(std::vector<sim_mob::RoadSegment*>::const_iterator i = segments_.begin();i != segments_.end();i++)
+				 {
+					sim_mob::BusStop* bustop_ = (*i)->getBusStop();
+					busStop_ptr = getBusStop(node,(*i));
+					if(busStop_ptr)
+					{
+						double newDist = sim_mob::dist(busStop_ptr->xPos, busStop_ptr->yPos,point.getX(), point.getY());
+						if((newDist<dist || dist==0)&& busStop_ptr->BusLines.size()!=0)
+						 {
+						 	dist=newDist;
+						 	bs1=busStop_ptr;
+						 }
+					}
+				 }
+			 }
+
+			 if(link_2)
+			 {
+				 segments_ = const_cast<Link*>(link_2)->getSegments();
+				 for(std::vector<sim_mob::RoadSegment*>::const_iterator i = segments_.begin();i != segments_.end();i++)
+				 {
+					sim_mob::BusStop* bustop_ = (*i)->getBusStop();
+					busStop_ptr = getBusStop(node,(*i));
+					if(busStop_ptr)
+					{
+						double newDist = sim_mob::dist(busStop_ptr->xPos, busStop_ptr->yPos,point.getX(), point.getY());
+						if((newDist<dist || dist==0)&& busStop_ptr->BusLines.size()!=0)
+					    {
+						   dist=newDist;
+						   bs1=busStop_ptr;
+						 }
+					}
+				 }
+			 }
+		 }
+
+	 }
+
+	 return bs1;
+}
+
+sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
+{
+	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
+	 int prev=0;
+	 for(int i=0;i<buslines.size();i++)
+	 {
+	  /*query through the busstops for each available busline at the busstop
+	  and see if it goes to the passengers destination.If more than one busline avaiable
+	  choose the busline with the shortest path*/
+
+	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
+
+	  //busstops has the info about the list of bus stops a particular bus line goes to
+	  std::vector<const sim_mob::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
+
+	  std::vector<const sim_mob::BusStop*>::iterator it;
+	  int noOfBusstops=0;
+
+	  //queries through list of bus stops of bus line starting from current bus stop to end bus stop
+	  //this is to see if the particular bus line has the destination bus stop of passenger
+	  //if yes and if its shortest available route, the bus line is added to the list of bus lines passenger is supposed to take
+	  for(it=++std::find(busstops.begin(),busstops.end(),OriginBusStop);it!=busstops.end();it++)
+	  {
+		 BusStop* bs=const_cast<sim_mob::BusStop*>(*it);
+
+		  //checking if the bus stop is the destination bus stop of passenger
+		  if(bs==DestBusStop)//add this bus line to the list,if it is the shortest
+		  {
+			  if(prev==0 || prev> noOfBusstops)
+			  {
+				  BusLineToTake = buslines[i];
+			      prev=noOfBusstops;
+			  }
+			  else if(prev==noOfBusstops)
+			  {
+				  BusLineToTake = buslines[i];//update the list of bus lines passenger is supposed to take
+				  prev=noOfBusstops;
+			  }
+		  }
+		  noOfBusstops++;
+	  }
+	 }
+}
+
+sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
+{
+	 std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
+	 const std::map<centimeter_t, const RoadItem*> & obstacles =segment->obstacles;
+	 for (ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it) {
+		RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
+		BusStop *bs = dynamic_cast<BusStop*>(ri);
+		if (bs && ((segment->getStart() == node) || (segment->getEnd() == node) )) {
+			return bs;
+		}
+	 }
+
+	 return nullptr;
+}
+
 

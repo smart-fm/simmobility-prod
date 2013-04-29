@@ -20,6 +20,7 @@
 namespace sim_mob
 {
 /* static */ AuraManager AuraManager::instance_;
+/* static */ AuraManager AuraManager::instance2_;
 
 /** \cond ignoreAuraManagerInnards -- Start of block to be ignored by doxygen.  */
 

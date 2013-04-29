@@ -55,10 +55,20 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
 {
    //initialization
    WaitingTime = -1;
-   OriginBusStop=setBusStopXY(parent->originNode);
-   parent->xPos.set(OriginBusStop->xPos);
-   parent->yPos.set(OriginBusStop->yPos);
-   DestBusStop=setBusStopXY(parent->destNode);
+   OriginBusStop=nullptr;
+   if(parent->originNode.type_==WayPoint::NODE)
+	   OriginBusStop = setBusStopXY(parent->originNode.node_);
+
+   if(OriginBusStop!=nullptr)
+   {
+	   parent->xPos.set(OriginBusStop->xPos);
+	   parent->yPos.set(OriginBusStop->yPos);
+   }
+   DestBusStop=nullptr;
+   if(parent->destNode.type_ == WayPoint::NODE )
+   {
+	   DestBusStop = setBusStopXY(parent->destNode.node_);
+	}
    TimeOfReachingBusStop=p.now.ms();
    Person* person = dynamic_cast<Person*> (parent);
    if(person) {

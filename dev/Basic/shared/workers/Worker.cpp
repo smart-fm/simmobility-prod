@@ -437,6 +437,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
 				stopManaging(*it);
 			}
+			std::cout << "res.toAdd.size(): " << res.toAdd.size() << std::endl;
 			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
 				beginManaging(*it);
 			}

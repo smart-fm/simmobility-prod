@@ -84,6 +84,18 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 {
 	if(0 != alighting_Frame) {
 		if(alighting_Frame == p.now.frame()) {
+//			Person* person = dynamic_cast<Person*> (parent);
+//			if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+//			{
+//				std::cout << "End of trip chain...." << std::endl;
+//			}
+//			Pedestrian2* pedestrian2 = dynamic_cast<Pedestrian2*> (person->getNextRole());
+//			if(pedestrian2) {
+//				pedestrian2->frame_init(p);
+//				person->changeRole(person->getNextRole());
+//			} else {
+//				parent->setToBeRemoved();//removes passenger if destination is reached
+//			}
 			parent->setToBeRemoved();//removes passenger if destination is reached
 			busdriver.set(nullptr);// assign this busdriver to Passenger
 			BoardedBus.set(false);

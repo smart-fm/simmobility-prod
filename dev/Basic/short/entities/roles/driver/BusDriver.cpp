@@ -872,8 +872,8 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 					AlightingNum_Pos[i] = i;
 					Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
 					Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-					alighting_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
-					accumulated_alighted_frame += (p->getBoardingCharacteristics()*10);
+					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
+					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
 					if(alighting_frame % 50 == 0) {// deal with a special case
 						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
 						accumulated_alighted_frame++;// advance also
@@ -900,8 +900,8 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 				for(j = 0; j < alightingNum; j++) {// extract person characteristics and calculate the corresponding alighting frames
 					Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[AlightingNum_Pos[j]]);
 					Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-					alighting_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
-					accumulated_alighted_frame += (p->getBoardingCharacteristics()*10);
+					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
+					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
 					if(alighting_frame % 50 == 0) {// deal with a special case
 						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
 						accumulated_alighted_frame++;// advance also

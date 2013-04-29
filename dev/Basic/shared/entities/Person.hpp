@@ -115,8 +115,8 @@ public:
 		databaseID = databaseId;
 	}
 	void setPersonCharacteristics();
-	double getBoardingCharacteristics() { return BOARDING_TIME_SEC; }
-	double getAlightingCharacteristics() { return ALIGTHING_TIME_SEC; }
+	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }
+	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)

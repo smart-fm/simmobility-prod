@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "entities/Agent.hpp"
 #include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "../short/entities/roles/pedestrian/Pedestrian2.hpp"
 #include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
 
@@ -52,6 +53,7 @@ public:
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }
 	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }
 	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
+	void unregisterAlightedPerons();
 	//void registerWaitingBusActivityToBusStopAgent(WaitBusActivityRole* wba_role);// for WaitBusActivity role
 
 	virtual ~BusStopAgent(){}

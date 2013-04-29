@@ -68,11 +68,12 @@ bool sim_mob::BusStopAgent::frame_init(timeslice now)
 
 void sim_mob::BusStopAgent::frame_output(timeslice now)
 {
-	if(now.frame() % 100 == 0) {// every 100 frames(10000ms-->10s) output
+	if(now.frame() % 50 == 0) {// every 100 frames(10000ms-->10s) output
 		LogOut("(\"BusStopAgent\""
 			<<","<<now.frame()
 			<<","<<getId()
-			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_<<"\"})"<<std::endl);
+			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_
+			<<"\"})"<<std::endl);
 	}
 }
 
@@ -102,6 +103,27 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 //			cout << "(" << boarding_WaitBusActivities[i]->getTimeOfReachingBusStop() << ")\n";
 //		}
 	}
+	//unregisterAlightedPerons();// check the Alighted Queue and unregister Alighted Persons
 
 	return Entity::UpdateStatus::Continue;
+}
+
+void sim_mob::BusStopAgent::unregisterAlightedPerons()
+{
+	for(int i = 0; i < alighted_Persons.size(); i++) {
+		if(!(alighted_Persons[i]->currWorker)) {// currWorker is nullptr
+			std::cout << "alighted_Persons[i]->getRole(): " << alighted_Persons[i]->getRole() << std::endl;
+			alighted_Persons.erase(alighted_Persons.begin() + i);// ghost, erase this person from the BusStopAgent
+		} else {
+			if(!alighted_Persons[i]->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+			{
+				std::cout << "End of trip chain...." << std::endl;
+			}
+			Pedestrian2* pedestrian2 = dynamic_cast<Pedestrian2*> (alighted_Persons[i]->getNextRole());// ? nextRole or currRole
+			if(pedestrian2) {// nextRole is pedestrian
+				//pedestrian2->setAtBusStop(false);
+				alighted_Persons.erase(alighted_Persons.begin() + i);// erase this person from the BusStopAgent
+			}
+		}
+	}
 }

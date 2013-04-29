@@ -26,7 +26,7 @@
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 
-#include "entities/roles/pedestrian/PedestrianPathMover.hpp"
+#include "PedestrianPathMover.hpp"
 
 using std::vector;
 

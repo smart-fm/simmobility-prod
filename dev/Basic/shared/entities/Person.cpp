@@ -238,20 +238,6 @@ bool sim_mob::Person::frame_init(timeslice now)
 		throw std::runtime_error(txt.str());
 	}
 
-//	if(currRole->getRoleName() == "passenger") {
-//		Passenger* passenger = dynamic_cast<Passenger*> (currRole);
-//		if(!passenger->busdriver.get()) {
-//			safe_delete_item(prevRole);
-//			const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-//			prevRole = currRole;
-//			sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", this);// if it is a passenger role, just change to waitBusActivity role
-//	//		WaitBusActivity* waitbusactivity = dynamic_cast<WaitBusActivity*> (newRole);
-//	//		if(waitbusactivity) {
-//	//			waitbusactivity->roleFlag = prevRole;
-//	//		}
-//			changeRole(newRole);
-//		}
-//	}
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
@@ -293,34 +279,6 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
-//	if (isToBeRemoved()) {
-//		if(tempRoleFlag) {// tempRole update
-////			curr_params = &tempRole->make_frame_tick_params(now);
-////			tempRole->frame_tick(*curr_params);
-//			//resetFrameInit();
-//			tempRole->frame_init(*curr_params);
-//			clearToBeRemoved();
-//		} else {
-//			safe_delete_item(tempRole);
-//			retVal = checkTripChain(now.ms());
-//
-//			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-//			setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
-//
-//			//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-//			//since start time of the activity is usually later than what is configured initially,
-//			//we have to make adjustments so that it waits for exact amount of time
-//			if(currTripChainItem != tripChain.end()) {
-//				if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-//					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer *>(currRole);
-//					ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
-//					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
-//					ap->initializeRemainingTime();
-//				}
-//			}
-//		}
-//	}
-
 	if (isToBeRemoved()) {
 		retVal = checkTripChain(now.ms());
 

@@ -22,7 +22,7 @@
 namespace sim_mob
 {
 class FileBasedImpl;
-class ASIO_Impl;
+class BoostSerialized_Client_ASIO;
 
 class NS3_Communication: public sim_mob::Communication<DataContainer &, commResult> {
 	//ASIO implementation needs these variables for its operations
@@ -41,7 +41,7 @@ private:
 	//Send & Receive implementations
 //	FileBasedImpl *SR_Impl;
 //	sim_mob::Communication<DataContainer&, commResult> *SR_Impl;//testing
-	boost::shared_ptr<sim_mob::ASIO_Impl> SR_Impl;//testing
+	boost::shared_ptr<sim_mob::BoostSerialized_Client_ASIO> SR_Impl;//testing
 };
 
 

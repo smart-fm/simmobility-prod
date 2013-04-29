@@ -15,22 +15,22 @@
 #include "Boost_Serialized_ASIO_Client.hpp"
 /*
  * *************************************************************
- * 						ASIO_Impl
+ * 						BoostSerialized_Client_ASIO
  * * ***********************************************************
  */
 namespace sim_mob {
-ASIO_Impl::ASIO_Impl(std::string host,std::string port,DataContainer &mainReceiveBuffer):
+BoostSerialized_Client_ASIO::BoostSerialized_Client_ASIO(std::string host,std::string port,DataContainer &mainReceiveBuffer):
 		connection_(io_service_),host_(host),port_(port),mainReceiveBuffer_(mainReceiveBuffer)
 {
 	init();
 }
 
-bool ASIO_Impl::init()
+bool BoostSerialized_Client_ASIO::init()
 {
 	connect();
 }
 
-bool ASIO_Impl::connect()
+bool BoostSerialized_Client_ASIO::connect()
 {
 
 	// Resolve the host name into an IP address.
@@ -41,27 +41,27 @@ bool ASIO_Impl::connect()
 	boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
 
 	std::cout << "Connecting" << std::endl;
-	boost::asio::async_connect(connection_.socket(), endpoint_iterator, boost::bind(&ASIO_Impl::handle_connect, this,boost::asio::placeholders::error));
-	boost::thread thread_asio = boost::thread(&ASIO_Impl::thread_asio_function,this);
+	boost::asio::async_connect(connection_.socket(), endpoint_iterator, boost::bind(&BoostSerialized_Client_ASIO::handle_connect, this,boost::asio::placeholders::error));
+	boost::thread thread_asio = boost::thread(&BoostSerialized_Client_ASIO::thread_asio_function,this);
 }
 
-bool ASIO_Impl::thread_asio_function() {
+bool BoostSerialized_Client_ASIO::thread_asio_function() {
 	io_service_.run();
 }
 
-void ASIO_Impl::close()
+void BoostSerialized_Client_ASIO::close()
 {
-  io_service_.post(boost::bind(&ASIO_Impl::do_close, this));
+  io_service_.post(boost::bind(&BoostSerialized_Client_ASIO::do_close, this));
 }
 
-void ASIO_Impl::handle_connect(const boost::system::error_code& error)
+void BoostSerialized_Client_ASIO::handle_connect(const boost::system::error_code& error)
 {
   if (!error)
   {
 //	  boost::unique_lock< boost::shared_mutex > lock(*mainReceiveBuffer_.Owner_Mutex);
 	  std::cout << "Connection Established" << std::endl;
 	  std::cout << "Reading" << std::endl;
-	  connection_.async_read(temporaryReceiveBuffer,boost::bind(&ASIO_Impl::handle_read, this,boost::asio::placeholders::error));
+	  connection_.async_read(temporaryReceiveBuffer,boost::bind(&BoostSerialized_Client_ASIO::handle_read, this,boost::asio::placeholders::error));
   }
   else
   {
@@ -70,7 +70,7 @@ void ASIO_Impl::handle_connect(const boost::system::error_code& error)
 }
 
 
-void ASIO_Impl::handle_read(const boost::system::error_code& error)
+void BoostSerialized_Client_ASIO::handle_read(const boost::system::error_code& error)
 {
   if (!error)
   {
@@ -81,7 +81,7 @@ void ASIO_Impl::handle_read(const boost::system::error_code& error)
 	 std::cout << "Reading successfull[" << temporaryReceiveBuffer.get().size() << ":" << mainReceiveBuffer_.get().size() << "]" << std::endl;
 	temporaryReceiveBuffer.clear();
 	std::cout << "Reading again" << std::endl;
-	connection_.async_read(temporaryReceiveBuffer,boost::bind(&ASIO_Impl::handle_read, this,boost::asio::placeholders::error));
+	connection_.async_read(temporaryReceiveBuffer,boost::bind(&BoostSerialized_Client_ASIO::handle_read, this,boost::asio::placeholders::error));
   }
   else
   {
@@ -90,18 +90,18 @@ void ASIO_Impl::handle_read(const boost::system::error_code& error)
   }
 }
 
-commResult ASIO_Impl::send(DataContainer& value)
+commResult BoostSerialized_Client_ASIO::send(DataContainer& value)
 {
 	boost::unique_lock< boost::shared_mutex > lock(*value.Owner_Mutex);
 	std::cout << "Writing [" << value.get().size()  << "]" << std::endl;
-	connection_.async_write(value, boost::bind(&ASIO_Impl::handle_send, this,boost::asio::placeholders::error, boost::ref(value)));
+	connection_.async_write(value, boost::bind(&BoostSerialized_Client_ASIO::handle_send, this,boost::asio::placeholders::error, boost::ref(value)));
 }
-commResult ASIO_Impl::receive(DataContainer& value)
+commResult BoostSerialized_Client_ASIO::receive(DataContainer& value)
 {
 
 }
 
-void ASIO_Impl::handle_send(const boost::system::error_code& error,DataContainer &value)
+void BoostSerialized_Client_ASIO::handle_send(const boost::system::error_code& error,DataContainer &value)
 {
   if (!error)
   {
@@ -117,11 +117,11 @@ void ASIO_Impl::handle_send(const boost::system::error_code& error,DataContainer
   }
 }
 
-void ASIO_Impl::do_close()
+void BoostSerialized_Client_ASIO::do_close()
 {
   connection_.socket().close();
 }
-ASIO_Impl::~ASIO_Impl(){
+BoostSerialized_Client_ASIO::~BoostSerialized_Client_ASIO(){
 //	io_service_.post([&](){acceptor.cancel();})
 //	io_service_.stop();
 //	thread_asio.interrupt();

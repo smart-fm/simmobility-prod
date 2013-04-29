@@ -203,6 +203,11 @@ find_package(XercesC REQUIRED)
 include_directories(${XERCESC_INCLUDE_DIR})
 LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
 
+#Find JsonCpp
+find_package(JsonCpp REQUIRED)
+include_directories(${JSONCPP_INCLUDE_DIR})
+LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})

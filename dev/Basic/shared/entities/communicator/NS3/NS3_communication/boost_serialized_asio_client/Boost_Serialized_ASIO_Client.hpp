@@ -18,7 +18,7 @@
 
 namespace sim_mob {
 
-class ASIO_Impl: public Communication<DataContainer&, commResult> {
+class BoostSerialized_Client_ASIO: public Communication<DataContainer&, commResult> {
 	boost::asio::io_service io_service_send, io_service_receive ,io_service_;
 //	boost::asio::ip::tcp::socket socket_send, socket_receive;
 	connection connection_;
@@ -41,7 +41,7 @@ class ASIO_Impl: public Communication<DataContainer&, commResult> {
 		asio_receive, asio_send
 	};
 public:
-	ASIO_Impl( std::string host,std::string port,DataContainer &mainReceiveBuffer_);
+	BoostSerialized_Client_ASIO( std::string host,std::string port,DataContainer &mainReceiveBuffer_);
 	bool connect();
 
 	/// Handle completion of a connect operation.
@@ -57,7 +57,7 @@ public:
 
 	commResult send(DataContainer &value);
 	commResult receive(DataContainer& value);
-	~ASIO_Impl();
+	~BoostSerialized_Client_ASIO();
 };
 
 }

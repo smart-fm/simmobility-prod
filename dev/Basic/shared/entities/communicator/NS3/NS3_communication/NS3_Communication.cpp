@@ -23,7 +23,7 @@ void NS3_Communication::init()
 	//	SR_Impl = new FileBasedImpl();
 
 //	std::cout << " NS3_Communication's SendBuffer address [" << &sendBuffer <<  ":" << &(sendBuffer.buffer) << "]" << std::endl;
-		SR_Impl.reset(new ASIO_Impl("localhost","2013",receiveBuffer));
+		SR_Impl.reset(new BoostSerialized_Client_ASIO("localhost","2013",receiveBuffer));
 
 //		boost::thread FakeNS3(fakeNS3);
 

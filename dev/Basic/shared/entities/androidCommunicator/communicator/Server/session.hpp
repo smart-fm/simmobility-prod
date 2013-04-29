@@ -34,10 +34,10 @@ public:
 
   /// Asynchronously write a data structure to the socket.
   template <typename Handler>
-  void async_write(std::ostringstream archive_stream, Handler handler)
+  void async_write(std::string &data, Handler handler)
   {
-    outbound_data_ = archive_stream.str();
-
+	outbound_data_ = data;
+	std::cout << "outbound_data_ is : [" << outbound_data_ << "] " << std::endl;
     // Format the header.
     std::ostringstream header_stream;
     header_stream << std::setw(header_length)
@@ -51,35 +51,29 @@ public:
     }
     outbound_header_ = header_stream.str();
 
-    // Write the serialized data to the socket. We use "gather-write" to send
-    // both the header and the data in a single write operation.
     std::vector<boost::asio::const_buffer> buffers;
-    buffers.push_back(boost::asio::buffer(outbound_header_));
-    buffers.push_back(boost::asio::buffer(outbound_data_));
-    boost::asio::async_write(socket_, buffers, handler);
+//    buffers.push_back(boost::asio::buffer(outbound_header_));
+//    buffers.push_back(boost::asio::buffer(outbound_data_));
+    boost::asio::async_write(socket_, boost::asio::buffer(outbound_data_), handler);
   }
 
   /// Asynchronously read a data structure from the socket.
   template <typename Handler>
-  void async_read(std::string& t, Handler handler)
+  void async_read(std::string &input, Handler handler)
   {
+//	  std::vector<char>* t
     // Issue a read operation to read exactly the number of bytes in a header.
-    void (session::*f)(
-        const boost::system::error_code&,
-        std::string&, boost::tuple<Handler>)
-      = &session::handle_read_header<Handler>;
-    boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),
-        boost::bind(f,
-          this, boost::asio::placeholders::error, boost::ref(t),
-          boost::make_tuple(handler)));
+    void (session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &session::handle_read_header<Handler>;
+    boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,this, boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
+
+
   }
 
   /// Handle a completed read of a message header. The handler is passed using
   /// a tuple since boost::bind seems to have trouble binding a function object
   /// created using boost::bind as a parameter.
   template <typename Handler>
-  void handle_read_header(const boost::system::error_code& e,
-      std::string& t, boost::tuple<Handler> handler)
+  void handle_read_header(const boost::system::error_code& e,/*std::vector<char>*t*/std::string &input, boost::tuple<Handler> handler)
   {
     if (e)
     {
@@ -87,46 +81,35 @@ public:
     }
     else
     {
-      // Determine the length of the serialized data.
       std::istringstream is(std::string(inbound_header_, header_length));
       std::size_t inbound_data_size = 0;
       if (!(is >> std::hex >> inbound_data_size))
       {
-        // Header doesn't seem to be valid. Inform the caller.
-        boost::system::error_code error(boost::asio::error::invalid_argument);
-        boost::get<0>(handler)(error);
         std::cout << "ERROR in session-Handle_read_header" << std::endl;
         return;
       }
-
-      // Start an asynchronous call to receive the data.
       inbound_data_.resize(inbound_data_size);
 
-      void (session::*f)(const boost::system::error_code&,std::string&, boost::tuple<Handler>)
-        = &session::handle_read_data<Handler>;
-
-      boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),
-        boost::bind(f, this,boost::asio::placeholders::error, boost::ref(t), handler));
+      void (session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &session::handle_read_data<Handler>;
+      boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, this,boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
     }
   }
 
   /// Handle a completed read of message data.
   template <typename Handler>
-  void handle_read_data(const boost::system::error_code& e,
-      std::string& t, boost::tuple<Handler> handler)
+  void handle_read_data(const boost::system::error_code& e,/*std::vector<char> * t*/std::string &input, boost::tuple<Handler> handler)
   {
-    if (e)
+	  if(e)
     {
       boost::get<0>(handler)(e);
     }
     else
     {
-      // Extract the data structure from the data just received.
       try
       {
-    	  t.resize(inbound_data_.size());
-        std::string archive_data(&inbound_data_[0], inbound_data_.size());
-        t = archive_data;
+    	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
+    	  std::cout << "4.inbound_data_[" << archive_data << "]" << std::endl;
+    	  input = archive_data;
       }
       catch (std::exception& e)
       {
@@ -135,8 +118,6 @@ public:
         boost::get<0>(handler)(error);
         return;
       }
-
-      // Inform caller that data has been received ok.
       boost::get<0>(handler)(e);
     }
   }

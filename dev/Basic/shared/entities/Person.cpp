@@ -80,12 +80,11 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), tempRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
+	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
     databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
-	tempRoleFlag = false;
 	age = 0;
 	BOARDING_TIME_SEC = 0;
 	ALIGTHING_TIME_SEC = 0;
@@ -97,8 +96,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	prevRole = 0;
 	currRole = 0;
 	nextRole = 0;
-	tempRole = 0;
-	tempRoleFlag = false;
 	laneID = -1;
 	agentSrc = src;
 	tripChain = tcs;
@@ -134,7 +131,6 @@ sim_mob::Person::~Person() {
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);
-	safe_delete_item(tempRole);
 }
 
 
@@ -815,24 +811,6 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
-}
-
-void sim_mob::Person::setTempRoleFlag(bool bFlag)
-{
-	tempRoleFlag = bFlag;
-}
-
-bool sim_mob::Person::getTempRoleFlag() const {
-	return tempRoleFlag;
-}
-
-void sim_mob::Person::setTempRole(sim_mob::Role* newRole)
-{
-	tempRole = newRole;
-}
-
-sim_mob::Role* sim_mob::Person::getTempRole() const {
-	return tempRole;
 }
 
 void sim_mob::Person::setNextRole(sim_mob::Role* newRole)

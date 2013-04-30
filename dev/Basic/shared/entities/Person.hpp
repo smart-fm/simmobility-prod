@@ -78,10 +78,6 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
-    void setTempRoleFlag(bool bFlag);// just temp role inserted
-    bool getTempRoleFlag() const;
-    void setTempRole(sim_mob::Role* newRole);
-    sim_mob::Role* getTempRole() const;
     void setNextRole(sim_mob::Role* newRole);
     sim_mob::Role* getNextRole() const;
     bool updatePersonRole(sim_mob::Role* newRole = 0);
@@ -159,8 +155,6 @@ private:
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
     sim_mob::Role* nextRole; //do not be misled. this variable is only temporary and will not be used to update the currRole
-    sim_mob::Role* tempRole;
-    bool tempRoleFlag;
 
     //Can be helpful for debugging
     std::string agentSrc;

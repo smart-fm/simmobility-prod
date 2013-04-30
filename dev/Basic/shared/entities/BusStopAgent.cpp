@@ -73,7 +73,7 @@ bool sim_mob::BusStopAgent::frame_init(timeslice now)
 
 void sim_mob::BusStopAgent::frame_output(timeslice now)
 {
-	if(now.frame() % 50 == 0) {// every 100 frames(10000ms-->10s) output
+	if(now.frame() % 50 == 0) {// every 50 frames(5000ms-->5s) output
 		LogOut("(\"BusStopAgent\""
 			<<","<<now.frame()
 			<<","<<getId()
@@ -84,7 +84,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
-	if(now.frame() % 50 == 0) {// every 100 frames(10000ms-->10s) check AuraManager
+	if(now.frame() % 50 == 0) {// every 50 frames(5000ms-->5s) check AuraManager
 		vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3500),(busstop_.yPos - 3500)),Point2D((busstop_.xPos + 3500),(busstop_.yPos + 3500)));
 		std::cout << "nearby_agents size: " << nearby_agents.size() << std::endl;
 		for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)

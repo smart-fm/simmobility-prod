@@ -168,8 +168,8 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 				if(passenger) {// nextRole is passenger
 					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
-					newRole->frame_init(p);
 					person->changeRole(newRole);
+					newRole->frame_init(p);
 					isAtBusstop = true;
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger

@@ -195,8 +195,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	//if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {{
-	if(1){
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);

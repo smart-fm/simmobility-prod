@@ -9,7 +9,8 @@
 #include <jsoncpp/json.h>
 #include <boost/foreach.hpp>
 #include <queue>
-
+#include "../Message/DataMessage.hpp"
+#include "message/MessageReceiver.hpp"
 namespace sim_mob
 {
 
@@ -54,9 +55,32 @@ public:
 		Json::FastWriter writer;
 		return writer.write(time);
 	}
+	//@originalMessage input
+	//@extractedType output
+	//@extractedData output
+	//@root output
+	static bool getMessageTypeAndData(std::string &originalMessage, std::string &extractedType, std::string &extractedData, Json::Value &root_)
+	{
+		Json::Value root;
+		Json::Reader reader;
+		bool parsedSuccess = reader.parse(originalMessage, root, false);
+		if(not parsedSuccess)
+		{
+			std::cout << "Parsing [" << originalMessage << "] Failed" << std::endl;
+			return false;
+		}
+		extractedType = root["MessageType"].asString();
+		//the rest of the message is actually named after the type name
+		extractedData = root[extractedType.c_str()].asString();
+		root_ = root;
+		return true;
+	}
 };
+
 class server; //forward declaration
 void clientRegistration_(session_ptr sess, server *server_);
+
+
 class server {
 
 public:
@@ -101,38 +125,6 @@ public:
 		clientList.push(std::make_pair(ID,sess));
 		std::cout << " registerClient success, returning" << std::endl;
 	}
-	void sendTime(session_ptr sess)
-	{
-
-		std::string str = JsonParser::makeTime();
-		sess->async_write(str,
-				boost::bind(&server::general_send_handler, this,
-						boost::asio::placeholders::error, sess));
-	}
-
-
-	void send(session_ptr sess, std::string &data) {
-		sess->async_write(data,
-				boost::bind(&server::write_handler, this,
-						boost::asio::placeholders::error,
-						boost::ref(sess)));
-	}
-
-	void write_handler(const boost::system::error_code& e, session_ptr sess) {
-		if (!e) {
-			std::cout << "Write Successful" << std::endl;
-		} else {
-			std::cout << "Write Failed" << std::endl;
-		}
-
-	}
-
-//	void receive(unsigned int receiver, std::string &data) {
-//		clientList[receiver]->async_read(data,
-//				boost::bind(&server::read_handler, this,
-//						boost::asio::placeholders::error, boost::ref(data),
-//						boost::ref(clientList[receiver])));
-//	}
 
 	void read_handler(const boost::system::error_code& e, std::string &data, session_ptr sess) {
 		if (!e) {
@@ -151,15 +143,8 @@ public:
 		}
 
 	}
-
-//	const std::map<unsigned int, session_ptr> & getClientList() const {
-//		return clientList;
-//	}
 	~server()
 	{
-//		boost::thread *t;
-//		BOOST_FOREACH(t , registrationThreads)
-//			t->join();
 	}
 
 private:
@@ -234,10 +219,19 @@ class ConnectionHandler
 {
 	session_ptr mySession;
 	std::string message;
-	template <typename ReceiveHandler>
-	ConnectionHandler(session_ptr session_, ReceiveHandler rHandler)
+	sim_mob::MessageReceiver &rHandler;
+	//metadata
+	unsigned int clientID, agentPtr;
+public:
+	ConnectionHandler(session_ptr session_, sim_mob::MessageReceiver &rHandler_, unsigned int clientID_ = 0, unsigned int agentPtr_ = 0):rHandler(rHandler_)
 	{
 		mySession = session_;
+		clientID = clientID_;
+		agentPtr = agentPtr_;
+	}
+
+	void start()
+	{
 
 		Json::Value whoAreYou;
 		whoAreYou["MessageType"] = "Ready";
@@ -245,12 +239,13 @@ class ConnectionHandler
 
 		std::string str = writer.write(whoAreYou);
 
-		void (ConnectionHandler::*f)(const boost::system::error_code&, ReceiveHandler) = &ConnectionHandler::readyHandler<ReceiveHandler>;
-		mySession->async_write(str,boost::bind(f, this, boost::asio::placeholders::error, rHandler));
+//		void (ConnectionHandler::*f)(const boost::system::error_code&) = &ConnectionHandler::readyHandler;
+		mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error));
+
 	}
 
-	template <typename ReceiveHandler>
-	void readyHandler(const boost::system::error_code &e, ReceiveHandler rHandler)
+
+	void readyHandler(const boost::system::error_code &e)
 	{
 		if(e)
 		{
@@ -260,15 +255,15 @@ class ConnectionHandler
 		{
 			//will not pass 'message' variable as argument coz it
 			//is global between functions. some function read into it, another function read from it
-			void (ConnectionHandler::*f)(const boost::system::error_code&, ReceiveHandler) = &ConnectionHandler::readHandler<ReceiveHandler>;
+//			void (ConnectionHandler::*f)(const boost::system::error_code&) = &ConnectionHandler::readHandler;
 
 			mySession->async_read(message,
-				boost::bind(f, this,
-						boost::asio::placeholders::error, rHandler));
+				boost::bind(&ConnectionHandler::readHandler, this,
+						boost::asio::placeholders::error));
 		}
 	}
-	template <typename ReceiveHandler>
-	void readHandler(const boost::system::error_code& e, session_ptr sess, ReceiveHandler rHandler) {
+
+	void readHandler(const boost::system::error_code& e) {
 
 		if(e)
 		{
@@ -276,13 +271,34 @@ class ConnectionHandler
 		}
 		else
 		{
-			rHandler(message);
-			sess->async_read(message,
+			//After message type is extracted, the
+			//rest of the message string is wrapped into a BrokerMessage
+			std::string type_, data_;
+			Json::Value root;
+			if(sim_mob::JsonParser::getMessageTypeAndData(message,type_,data_, root));
+			BrokerMessage *message_ = new BrokerMessage(data_, root, this);
+			unsigned int type = atoi(type_.c_str());
+			rHandler.Post(type, &rHandler, message_);
+			mySession->async_read(message,
 							boost::bind(&ConnectionHandler::readHandler, this,
-									boost::asio::placeholders::error, rHandler));
+									boost::asio::placeholders::error));
 		}
 	}
 
+	void send(std::string str)
+	{
+		mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
+	}
+	void sendHandler(const boost::system::error_code& e) {
+		if(e)
+		{
+			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Failed" << std::endl;
+		}
+		else
+		{
+			//good for you!
+		}
+	}
 };
 
 

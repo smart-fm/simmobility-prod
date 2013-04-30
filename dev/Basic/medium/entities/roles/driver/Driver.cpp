@@ -243,9 +243,9 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode;
+		origin.node = parent->originNode.node_;
 		origin.point = origin.node->location;
-		goal.node = parent->destNode;
+		goal.node = parent->destNode.node_;
 		goal.point = goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.

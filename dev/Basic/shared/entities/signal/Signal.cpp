@@ -107,10 +107,15 @@ Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
-	,Signal(node,mtxStrat,id)
+  :  Signal(node,mtxStrat,id)
 	/*, node_(node)*/
 {
+	tempLoop = 0;
+	loopDetector_ = new LoopDetectorEntity(*this, mtxStrat);
+	tempLoop = loopDetector_;
+	std::cout << "Created loopdetectorEntity[" << loopDetector_ << "]" << std::endl;
+
+
 	setSignalType(type_);
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;

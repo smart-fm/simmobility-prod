@@ -41,6 +41,7 @@ class Link;
 class LoopDetectorEntity : public Agent
 {
 public:
+	void *tempLoopImpl;
     // Forward declaration.  Definition is below.
     struct CountAndTimePair;
 

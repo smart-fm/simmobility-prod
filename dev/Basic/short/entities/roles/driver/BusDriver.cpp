@@ -48,6 +48,8 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(pa
 	allow_boarding_alighting_flag = false;
 	first_frame = 0;
 	last_frame = 0;
+	boardingframe_offset = 0;
+	alightingframe_offset = 0;
 
 	if(parent) {
 		if(parent->getAgentSrc() == "BusController") {
@@ -968,18 +970,22 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 			for(i = 0; i < alighting_frames.size(); i++) {// individual alighting
 				if(curr_frame == alighting_frames[i]) {
 					busstopAgent->getAlighted_Persons().push_back(bus->passengers_inside_bus[AlightingNum_Pos[i]]);// from the left-hand side
-					(bus->passengers_inside_bus).erase(bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]);// erase also from left-hand side
+					(bus->passengers_inside_bus).erase((bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]) - alightingframe_offset);// erase also from left-hand side
 					bus->setPassengerCount(bus->getPassengerCount()-1);
+					alightingframe_offset++;
 				}
 			}
 		}
 		if(!boarding_frames.empty())// not empty for boarding, otherwise only alighting
 		{
+			//int offset = 0;
 			for(i = 0; i < boarding_frames.size(); i++) {// individual boarding
 				if(curr_frame == boarding_frames[i]) {
 					(bus->passengers_inside_bus).push_back(virtualBoarding_Persons[i]);
-					boarding_waitBusActivities.erase(boarding_waitBusActivities.begin() + BoardingNum_Pos[i]);//  erase this Person in the BusStopAgent
+					std::cout << "BoardingNum_Pos[i]: " << BoardingNum_Pos[i] << std::endl;
+					boarding_waitBusActivities.erase((boarding_waitBusActivities.begin() + BoardingNum_Pos[i]) - boardingframe_offset);//  erase this Person in the BusStopAgent
 					bus->setPassengerCount(bus->getPassengerCount()+1);
+					boardingframe_offset++;
 				}
 			}
 		}
@@ -992,6 +998,8 @@ void sim_mob::BusDriver::resetBoardingAlightingVariables()
 	allow_boarding_alighting_flag = false;
 	first_frame = 0;
 	last_frame = 0;
+	boardingframe_offset = 0;
+	alightingframe_offset = 0;
 	BUS_STOP_WAIT_TIME = 2;
 	BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;// reset dwelltime

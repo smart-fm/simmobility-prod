@@ -6,6 +6,7 @@
 
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
+#include <cmath>
 
 using std::string;
 
@@ -228,6 +229,55 @@ namespace sim_mob {
 	sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
 		sim_mob::Person* person = nullptr;
 		const sim_mob::Lane* personLane = nullptr;
+		double maxRemainingTimeAtIntersection = std::numeric_limits<double>::min();
+		double remainingTimeAtIntersection = 0.0;
+		double timeToReachIntersection = 0.0;
+		double remainingTimeThisTick = 0.0;
+		double tickSize = ConfigParams::GetInstance().baseGranMS / 1000.0;
+
+		std::map<const sim_mob::Lane*, sim_mob::Person* >::iterator i = frontalAgents.begin();
+		while(i!=frontalAgents.end()) {
+			if(i->second) {
+				if (i->second->lastUpdatedFrame < roadSegment->getParentConflux()->currFrameNumber.frame()) {
+					//if the person is moved for the first time in this tick
+					remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+				}
+				else {
+					remainingTimeThisTick = i->second->getRemainingTimeThisTick();
+				}
+
+				timeToReachIntersection = roadSegment->getParentConflux()->computeTimeToReachEndOfLink(roadSegment, i->second->distanceToEndOfSegment);
+				remainingTimeAtIntersection =  - fmod(timeToReachIntersection - remainingTimeThisTick, tickSize); //Requires modulo computation because the person may take multiple ticks to reach the intersection.
+				if(remainingTimeAtIntersection < 0) remainingTimeAtIntersection = remainingTimeAtIntersection + tickSize;
+				if(maxRemainingTimeAtIntersection == remainingTimeAtIntersection) {
+					// If current person and (*i) are at equal distance to the stop line, we 'toss a coin' and choose one of them
+					bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
+					if(coinTossResult) {
+						personLane = i->first;
+						person = i->second;
+					}
+				}
+				else if (maxRemainingTimeAtIntersection < remainingTimeAtIntersection) {
+					maxRemainingTimeAtIntersection = remainingTimeAtIntersection;
+					personLane = i->first;
+					person = i->second;
+					person->remainingTimeAtIntersection = remainingTimeAtIntersection;
+				}
+			}
+			i++;
+		}
+
+		if(person) { // frontalAgents could possibly be all nullptrs
+			frontalAgents.erase(personLane);
+			frontalAgents.insert(std::make_pair(personLane,laneStatsMap.at(personLane)->next()));
+		}
+		return person;
+	}
+
+	/* old version based on distance to end of segment
+	sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
+		sim_mob::Person* person = nullptr;
+		const sim_mob::Lane* personLane = nullptr;
 		double minDistance = std::numeric_limits<double>::max();
 
 		std::map<const sim_mob::Lane*, sim_mob::Person* >::iterator i = frontalAgents.begin();
@@ -255,12 +305,11 @@ namespace sim_mob {
 			frontalAgents.insert(std::make_pair(personLane,laneStatsMap.at(personLane)->next()));
 		}
 		return person;
-	}
+	}*/
 
 	void SegmentStats::resetFrontalAgents() {
 		frontalAgents.clear();
-		for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin();
-				i != laneStatsMap.end(); i++) {
+		for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 			i->second->resetIterator();
 			Person* person = i->second->next();
 			frontalAgents.insert(std::make_pair(i->first, person));

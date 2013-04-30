@@ -176,7 +176,7 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 //					passenger->BoardedBus.set(true);
 //					passenger->AlightedBus.set(false);
 				}
-			} else {
+			} else {// not at the busstop, set to be removed
 				parent->setToBeRemoved();
 			}
 		}

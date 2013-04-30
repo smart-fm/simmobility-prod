@@ -67,6 +67,7 @@ public:
 	bool unSubscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(const sim_mob::Entity * agent);
 	static NS3_Communicator& GetInstance() { return NS3_Communicator::instance; }
+	bool isNonspatial(){};
 };
 //at present, we are not supposed to have more than one communicator(it is a singleton) still we put this for workgroups
 

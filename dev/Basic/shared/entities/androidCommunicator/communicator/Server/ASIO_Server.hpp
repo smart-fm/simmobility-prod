@@ -8,6 +8,7 @@
 #include "session.hpp"
 #include <jsoncpp/json.h>
 #include <boost/foreach.hpp>
+#include <queue>
 
 namespace sim_mob
 {
@@ -57,6 +58,7 @@ public:
 class server; //forward declaration
 void clientRegistration_(session_ptr sess, server *server_);
 class server {
+
 public:
 	boost::mutex server_mutex;
 	void CreatSocketAndAccept() {
@@ -68,11 +70,17 @@ public:
 						boost::asio::placeholders::error, new_sess));
 	}
 
-	server(boost::asio::io_service& io_service, unsigned short port = 2013) :
+	server(boost::asio::io_service& io_service, std::queue<std::pair<unsigned int,boost::shared_ptr<session> > > &clientList_, unsigned short port = 2013) :
 			io_service_(io_service), acceptor_(io_service,
-			        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
+			        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
+			        clientList(clientList_)
+	{
+	}
+	void start()
+	{
 		acceptor_.listen();
 		CreatSocketAndAccept();
+
 	}
 
 	void handle_accept(const boost::system::error_code& e, session_ptr sess) {
@@ -90,7 +98,7 @@ public:
 	{
 //		boost::mutex::scoped_lock lock(server_mutex);//todo remove comment
 		std::cout << " registerClient in progress" << std::endl;
-		clientList[ID] = sess;
+		clientList.push(std::make_pair(ID,sess));
 		std::cout << " registerClient success, returning" << std::endl;
 	}
 	void sendTime(session_ptr sess)
@@ -103,11 +111,11 @@ public:
 	}
 
 
-	void send(unsigned int receiver, std::string &data) {
-		clientList[receiver]->async_write(data,
+	void send(session_ptr sess, std::string &data) {
+		sess->async_write(data,
 				boost::bind(&server::write_handler, this,
 						boost::asio::placeholders::error,
-						boost::ref(clientList[receiver])));
+						boost::ref(sess)));
 	}
 
 	void write_handler(const boost::system::error_code& e, session_ptr sess) {
@@ -119,12 +127,12 @@ public:
 
 	}
 
-	void receive(unsigned int receiver, std::string &data) {
-		clientList[receiver]->async_read(data,
-				boost::bind(&server::read_handler, this,
-						boost::asio::placeholders::error, boost::ref(data),
-						boost::ref(clientList[receiver])));
-	}
+//	void receive(unsigned int receiver, std::string &data) {
+//		clientList[receiver]->async_read(data,
+//				boost::bind(&server::read_handler, this,
+//						boost::asio::placeholders::error, boost::ref(data),
+//						boost::ref(clientList[receiver])));
+//	}
 
 	void read_handler(const boost::system::error_code& e, std::string &data, session_ptr sess) {
 		if (!e) {
@@ -144,9 +152,9 @@ public:
 
 	}
 
-	const std::map<unsigned int, session_ptr> & getClientList() const {
-		return clientList;
-	}
+//	const std::map<unsigned int, session_ptr> & getClientList() const {
+//		return clientList;
+//	}
 	~server()
 	{
 //		boost::thread *t;
@@ -157,7 +165,8 @@ public:
 private:
 	boost::asio::ip::tcp::acceptor acceptor_;
 	boost::asio::io_service& io_service_;
-	std::map<unsigned int, session_ptr> clientList;
+//	std::map<unsigned int, session_ptr> clientList;
+	std::queue<std::pair<unsigned int,boost::shared_ptr<session> > > &clientList;
 
 //	std::vector<boost::thread *> registrationThreads;
 };
@@ -196,9 +205,6 @@ private:
 	}
 	void WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess) {
 
-//		  ID.resize(1);
-//		  ID = "A";
-//		  std::cout << "1.Address of String1 " << &ID << " value[" << ID << "] size " << ID.size() << std::endl;
 		sess->async_read(ID,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
 						boost::asio::placeholders::error, sess));
@@ -211,8 +217,6 @@ private:
 		}
 		else
 		{
-//	        std::string archive_data(&((*ID_)[0]), ID_->size());
-//	        std::cout << "WhoAreYou_response_handler gets [" << archive_data << "]" << std::endl;
 	        unsigned int i = getID(ID);
 	        std::cout << "ID = " << i << std::endl;
 			server_->registerClient(i , sess);
@@ -224,6 +228,62 @@ private:
 	}
 };
 
+
+
+class ConnectionHandler
+{
+	session_ptr mySession;
+	std::string message;
+	template <typename ReceiveHandler>
+	ConnectionHandler(session_ptr session_, ReceiveHandler rHandler)
+	{
+		mySession = session_;
+
+		Json::Value whoAreYou;
+		whoAreYou["MessageType"] = "Ready";
+		Json::FastWriter writer;
+
+		std::string str = writer.write(whoAreYou);
+
+		void (ConnectionHandler::*f)(const boost::system::error_code&, ReceiveHandler) = &ConnectionHandler::readyHandler<ReceiveHandler>;
+		mySession->async_write(str,boost::bind(f, this, boost::asio::placeholders::error, rHandler));
+	}
+
+	template <typename ReceiveHandler>
+	void readyHandler(const boost::system::error_code &e, ReceiveHandler rHandler)
+	{
+		if(e)
+		{
+			std::cerr << "Connection Not Ready [" << e.message() << "]" << std::endl;
+		}
+		else
+		{
+			//will not pass 'message' variable as argument coz it
+			//is global between functions. some function read into it, another function read from it
+			void (ConnectionHandler::*f)(const boost::system::error_code&, ReceiveHandler) = &ConnectionHandler::readHandler<ReceiveHandler>;
+
+			mySession->async_read(message,
+				boost::bind(f, this,
+						boost::asio::placeholders::error, rHandler));
+		}
+	}
+	template <typename ReceiveHandler>
+	void readHandler(const boost::system::error_code& e, session_ptr sess, ReceiveHandler rHandler) {
+
+		if(e)
+		{
+			std::cerr << "Read Fail [" << e.message() << "]" << std::endl;
+		}
+		else
+		{
+			rHandler(message);
+			sess->async_read(message,
+							boost::bind(&ConnectionHandler::readHandler, this,
+									boost::asio::placeholders::error, rHandler));
+		}
+	}
+
+};
 
 
 }//namespace sim_mob

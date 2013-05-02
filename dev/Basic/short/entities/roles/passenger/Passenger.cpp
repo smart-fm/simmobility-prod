@@ -72,7 +72,7 @@ void sim_mob::Passenger::frame_init(UpdateParams& p)
    TimeOfReachingBusStop=p.now.ms();
    Person* person = dynamic_cast<Person*> (parent);
    if(person) {
-	   person->setNextRole(nullptr);// set nextRole to be nullptr when becoming Passenger
+	   person->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
    }
    FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
 }
@@ -88,22 +88,29 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 {
 	if(0 != alighting_Frame) {
 		if(alighting_Frame == p.now.frame()) {
-//			Person* person = dynamic_cast<Person*> (parent);
-//			if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
-//			{
-//				std::cout << "End of trip chain...." << std::endl;
-//			}
-//			Pedestrian2* pedestrian2 = dynamic_cast<Pedestrian2*> (person->getNextRole());
-//			if(pedestrian2) {
-//				pedestrian2->frame_init(p);
-//				person->changeRole(person->getNextRole());
-//			} else {
-//				parent->setToBeRemoved();//removes passenger if destination is reached
-//			}
-			parent->setToBeRemoved();//removes passenger if destination is reached
-			busdriver.set(nullptr);// assign this busdriver to Passenger
-			BoardedBus.set(false);
-			AlightedBus.set(true);
+			Person* person = dynamic_cast<Person*> (parent);
+			if(person) {
+				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+				{
+					std::cout << "End of trip chain...." << std::endl;
+				}
+				Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+				if(passenger) {// nextRole is passenger
+					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
+					person->changeRole(newRole);
+					newRole->frame_init(p);
+				} else {
+					parent->setToBeRemoved();//removes passenger if destination is reached
+					busdriver.set(nullptr);// assign this busdriver to Passenger
+					BoardedBus.set(false);
+					AlightedBus.set(true);
+				}
+			}
+//			parent->setToBeRemoved();//removes passenger if destination is reached
+//			busdriver.set(nullptr);// assign this busdriver to Passenger
+//			BoardedBus.set(false);
+//			AlightedBus.set(true);
 		} else {
 			setParentBufferedData();//update passenger coordinates every frame tick
 		}

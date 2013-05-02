@@ -110,7 +110,12 @@ vector<BufferedBase*> sim_mob::Pedestrian2::getSubscriptionParams() {
 
 void sim_mob::Pedestrian2::frame_init(UpdateParams& p)
 {
+	Person* person = dynamic_cast<Person*> (parent);
+	if(person) {
+		person->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+	}
 	setSubPath();
+
 	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 Role* sim_mob::Pedestrian2::clone(Person* parent) const

@@ -22,6 +22,7 @@
 namespace sim_mob
 {
 class NS3_Communicator;
+class Agent;
 
 /*********************************************************************************
  * Any agent who wants to send or receive data, should inherit this class ("CommunicationSupport") also
@@ -56,7 +57,7 @@ class CommunicationSupport
 	//todo make this an enum-vahid
 	std::string agentIdentification;
 	sim_mob::NS3_Communicator & communicator;
-	sim_mob::Entity &entity;//the entity this class is actually referring to
+	sim_mob::Agent &entity;//the entity this class is actually referring to
 
 public:
 	//general purpose counter
@@ -65,7 +66,7 @@ public:
 	boost::shared_mutex CommSupp_Mutex;
 	std::vector<boost::shared_mutex *> Communicator_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
-	CommunicationSupport(sim_mob::Entity& entity_);
+	CommunicationSupport(sim_mob::Agent& entity_);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& getIncoming();
 	void getAndClearIncoming(DataContainer &values);
@@ -91,7 +92,7 @@ public:
 	//this is used to subscribe the drived class
 	//(which is also an agent) to the communicator agent
 	virtual bool subscribe(sim_mob::Entity* subscriber,sim_mob::NS3_Communicator &communicator);
-	virtual const sim_mob::Entity& getEntity();
+	virtual const sim_mob::Agent& getEntity();
 };
 
 };//namespace

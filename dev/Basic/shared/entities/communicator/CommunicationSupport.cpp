@@ -5,7 +5,7 @@
 using namespace sim_mob;
 namespace sim_mob
 {
-	CommunicationSupport::CommunicationSupport(sim_mob::Entity& entity_)
+	CommunicationSupport::CommunicationSupport(sim_mob::Agent& entity_)
 	:	/*CommSupp_Mutex(new boost::shared_mutex),*/
 	 	entity(entity_),
 		communicator(sim_mob::NS3_Communicator::GetInstance()),
@@ -144,7 +144,7 @@ namespace sim_mob
 		Communicator_Mutexes = communicator.subscribeEntity(*this);
 //		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 	}
-	const sim_mob::Entity& CommunicationSupport::getEntity()
+	const sim_mob::Agent& CommunicationSupport::getEntity()
 	{
 		return entity;
 	}

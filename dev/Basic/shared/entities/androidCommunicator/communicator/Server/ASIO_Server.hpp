@@ -9,7 +9,8 @@
 #include <jsoncpp/json.h>
 #include <boost/foreach.hpp>
 #include <queue>
-#include "../Message/DataMessage.hpp"
+//#include "../Message/DataMessage.hpp"
+#include "../Message/BufferContainer.hpp"
 #include "message/MessageReceiver.hpp"
 namespace sim_mob
 {
@@ -42,16 +43,26 @@ public:
 		std::ostringstream out("");
 		return writer.write(whoAreYou);
 	}
-	static std::string makeTime()
+//	just conveys the tick
+	static std::string makeTimeData(unsigned int tick)
 	{
 		Json::Value time;
 		time["MessageType"] = "TimeData";
 		Json::Value breakDown;
-		breakDown["hh"] = "12";
-		breakDown["mm"] = "13";
-		breakDown["ss"] = "14";
-		breakDown["ms"] = "15";
+		breakDown["tick"] = tick;
 		time["TimeData"] = breakDown;
+		Json::FastWriter writer;
+		return writer.write(time);
+	}
+	static std::string makeLocationData(int x, int y)
+	{
+
+		Json::Value time;
+		time["MessageType"] = "LocationData";
+		Json::Value breakDown;
+		breakDown["x"] = x;
+		breakDown["y"] = y;
+		time["LocationData"] = breakDown;
 		Json::FastWriter writer;
 		return writer.write(time);
 	}
@@ -213,50 +224,58 @@ private:
 	}
 };
 
-
-
+#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+class Broker;
 class ConnectionHandler
 {
 	session_ptr mySession;
 	std::string message;
-	sim_mob::MessageReceiver &rHandler;
+//	/*sim_mob::MessageReceiver*/sim_mob::Broker &rHandler;
 	//metadata
 	unsigned int clientID, agentPtr;
+//	boost::tuple<receiveHandler> handler_;
+	typedef void (Broker::*BrokerReceiveCallback)(std::string);
+	BrokerReceiveCallback &receiveCallBack;
+	Broker &theBroker;
 public:
-	ConnectionHandler(session_ptr session_, sim_mob::MessageReceiver &rHandler_, unsigned int clientID_ = 0, unsigned int agentPtr_ = 0):rHandler(rHandler_)
+	ConnectionHandler(
+			session_ptr session_ ,
+			Broker& broker,
+			BrokerReceiveCallback callback,
+			unsigned int clientID_ = 0,
+			unsigned long agentPtr_ = 0
+			):theBroker(broker), receiveCallBack(callback)
+
 	{
 		mySession = session_;
 		clientID = clientID_;
 		agentPtr = agentPtr_;
+//		handler_ = boost::make_tuple(rHandler_);
 	}
 
 	void start()
 	{
 
-		Json::Value whoAreYou;
-		whoAreYou["MessageType"] = "Ready";
+		Json::Value ready;
+		ready["MessageType"] = "Ready";
 		Json::FastWriter writer;
 
-		std::string str = writer.write(whoAreYou);
+		std::string str = writer.write(ready);
 
-//		void (ConnectionHandler::*f)(const boost::system::error_code&) = &ConnectionHandler::readyHandler;
-		mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error));
-
+		mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
 	}
 
-
-	void readyHandler(const boost::system::error_code &e)
+	void readyHandler(const boost::system::error_code &e, std::string str)
 	{
 		if(e)
 		{
-			std::cerr << "Connection Not Ready [" << e.message() << "]" << std::endl;
+			std::cerr << "Connection Not Ready [" << e.message() << "] Trying Again" << std::endl;
+			mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
 		}
 		else
 		{
 			//will not pass 'message' variable as argument coz it
 			//is global between functions. some function read into it, another function read from it
-//			void (ConnectionHandler::*f)(const boost::system::error_code&) = &ConnectionHandler::readHandler;
-
 			mySession->async_read(message,
 				boost::bind(&ConnectionHandler::readHandler, this,
 						boost::asio::placeholders::error));
@@ -271,14 +290,18 @@ public:
 		}
 		else
 		{
-			//After message type is extracted, the
-			//rest of the message string is wrapped into a BrokerMessage
-			std::string type_, data_;
-			Json::Value root;
-			if(sim_mob::JsonParser::getMessageTypeAndData(message,type_,data_, root));
-			BrokerMessage *message_ = new BrokerMessage(data_, root, this);
-			unsigned int type = atoi(type_.c_str());
-			rHandler.Post(type, &rHandler, message_);
+//			//After message type is extracted, the
+//			//rest of the message string is wrapped into a BrokerMessage
+//			std::string type_, data_;
+//			Json::Value root;
+//			if(sim_mob::JsonParser::getMessageTypeAndData(message,type_,data_, root));
+//			BrokerMessage *message_ = new BrokerMessage(data_, root, this);
+//			unsigned int type = atoi(type_.c_str());
+//			rHandler.Post(type, &rHandler, message_);
+
+			//call the receive handler in the broker
+			CALL_MEMBER_FN(theBroker, receiveCallBack)(message);
+
 			mySession->async_read(message,
 							boost::bind(&ConnectionHandler::readHandler, this,
 									boost::asio::placeholders::error));
@@ -296,7 +319,7 @@ public:
 		}
 		else
 		{
-			//good for you!
+			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Success" << std::endl;
 		}
 	}
 };

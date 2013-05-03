@@ -319,20 +319,13 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 			bus->TimeOfBusreachingBusstop=p.now.ms();
 
-			//From Meenu's branch; enable if needed.
-			//dwellTime_record = passengerGeneration(bus);//if random distribution is to be used,uncomment4
-
-			no_passengers_alighting=0;
-			no_passengers_boarding=0;
 			bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
-			//AlightingPassengers(bus);//first alight passengers inside the bus
-			//BoardingPassengers_Choice(bus);//then board passengers waiting at the bus stop
-			IndividualBoardingAlighting_New(bus);
-			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
-				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
-			} else {
-				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
-			}
+//			IndividualBoardingAlighting_New(bus);
+//			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
+//				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
+//			} else {
+//				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
+//			}
 			//BoardingPassengers_Normal(bus);
 //			dwellTime_record = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 
@@ -385,6 +378,13 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 				}
 				existed_Request_Mode.set( Role::REQUEST_NONE );
 				busStopRealTimes_vec_bus[busstop_sequence_no.get()]->set(last_busStopRealTimes->get());
+			}
+
+			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
+			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
+				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
+			} else {
+				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
 			}
 			if (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC) {// larger than dwell time
 				passengerCountOld_display_flag = false;
@@ -979,7 +979,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		{
 			for(i = 0; i < alighting_frames.size(); i++) {// individual alighting
 				if(curr_frame == alighting_frames[i]) {
-					busstopAgent->getAlighted_Persons().push_back(bus->passengers_inside_bus[AlightingNum_Pos[i]]);// from the left-hand side
+					//busstopAgent->getAlighted_Persons().push_back(bus->passengers_inside_bus[AlightingNum_Pos[i]]);// from the left-hand side
 					(bus->passengers_inside_bus).erase((bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]) - alightingframe_offset);// erase also from left-hand side
 					bus->setPassengerCount(bus->getPassengerCount()-1);
 					alightingframe_offset++;

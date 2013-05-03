@@ -5,6 +5,7 @@
 using namespace sim_mob;
 namespace sim_mob
 {
+
 	CommunicationSupport::CommunicationSupport(sim_mob::Agent& entity_)
 	:	/*CommSupp_Mutex(new boost::shared_mutex),*/
 	 	entity(entity_),
@@ -16,9 +17,9 @@ namespace sim_mob
 		readOutgoingDone(false),
 		agentUpdateDone(false)
 	{
-
+		subscribed = false;
+		subscriptionCallback = &CommunicationSupport::setSubscribed;
 	}
-
 //	subscriptionInfo CommunicationSupport::getSubscriptionInfo(){
 //		subscriptionInfo info(
 //				(sim_mob::Entity*)0,
@@ -32,6 +33,10 @@ namespace sim_mob
 //				);
 //		return info;
 //	}
+void CommunicationSupport::setSubscribed(bool value)
+{
+	subscribed = value;
+}
 
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& CommunicationSupport::getIncoming() {
@@ -148,5 +153,4 @@ namespace sim_mob
 	{
 		return entity;
 	}
-
-};
+}//namespace sim_mob;

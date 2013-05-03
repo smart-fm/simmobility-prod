@@ -105,12 +105,17 @@ public:
 						boost::asio::placeholders::error, new_sess));
 	}
 
-	server(boost::asio::io_service& io_service, std::queue<std::pair<unsigned int,boost::shared_ptr<session> > > &clientList_, unsigned short port = 2013) :
-			io_service_(io_service), acceptor_(io_service,
-			        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
-			        clientList(clientList_)
+	server(boost::asio::io_service& io_service,
+			std::queue<std::pair<unsigned int,
+			boost::shared_ptr<session> > > &clientList_,
+			unsigned short port = 2013) :
+
+			io_service_(io_service),
+			acceptor_(io_service,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
+			clientList(clientList_)
 	{
 	}
+
 	void start()
 	{
 		acceptor_.listen();

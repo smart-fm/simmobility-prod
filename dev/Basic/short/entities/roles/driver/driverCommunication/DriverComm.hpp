@@ -1,9 +1,8 @@
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/communicator/CommunicationSupport.hpp"
-
+#include "entities/androidCommunicator/JCommunicationSupport.hpp"
 namespace sim_mob
 {
-class DriverComm : public Driver, public CommunicationSupport
+class DriverComm : public Driver, public JCommunicationSupport
 {
 	static int totalSendCnt;
 	static int totalReceiveCnt;

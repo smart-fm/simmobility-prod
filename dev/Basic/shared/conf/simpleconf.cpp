@@ -28,7 +28,8 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+#include "entities/androidCommunicator/communicator/Broker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -1581,7 +1582,7 @@ bool createCommunicator()
 {
 //	sim_mob::NS3_Communicator::all_NS3_cummunication_agents.push_back(new sim_mob::NS3_Communicator(ConfigParams::GetInstance().mutexStategy));
 	//since at present communicator is a singleton, we just enable it :)
-		NS3_Communicator::GetInstance().enable();
+		Broker::GetInstance().enable();
 		return true;
 }
 
@@ -1742,7 +1743,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
 	int agentWgSize = ReadValue(handle, "agent");
 	int signalWgSize = ReadValue(handle, "signal");
-	int commWgSize = ReadValue(handle, "NS3_Communication");
+	int commWgSize = ReadValue(handle, "Android_Communication");
 
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);

@@ -1,14 +1,15 @@
 
 #include "DriverComm.hpp"
 #include "entities/Person.hpp"
-#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+#include "entities/androidCommunicator/communicator/Broker.hpp"
 
 namespace sim_mob
 {
 
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
-sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), CommunicationSupport(*parent)
+sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), JCommunicationSupport(*parent)
 { }
 sim_mob::DriverComm::~DriverComm(){
 }
@@ -20,6 +21,7 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 
 	return role;
 }
+#if 0
 void sim_mob::DriverComm::receiveModule(timeslice now)
 {
 	//check if you have received anything in the incoming buffer
@@ -87,23 +89,25 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 	//then where to put this?
 	setAgentUpdateDone(true);
 }
+#endif
 //Virtual implementations
 void DriverComm::frame_init(UpdateParams& p) {
 	Driver::frame_init(p);
-	subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
+//	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
+	subscribed = subscribe(this->parent, sim_mob::Broker::GetInstance());
 }
 ;
 void DriverComm::frame_tick(UpdateParams& p) {
 	std::cout << "[" << this->parent << "]:DriverComm::frame_tick(" << p.now.frame() << ")" << std::endl;
 	Driver::frame_tick(p);
-	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
-	{
-		sendModule(p.now);
-	}
-//	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
+//	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
 //	{
-		receiveModule(p.now);
+//		sendModule(p.now);
 //	}
+////	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
+////	{
+//		receiveModule(p.now);
+////	}
 	setAgentUpdateDone(true);
 	std::cout << "[" << this->parent << "]: AgentUpdate Done" << std::endl;
 	std::cerr  << std::dec << "tick " << p.now.frame() << " [" << this->parent << "] send:[" << sendCnt << "] totalsend:[" << sim_mob::DriverComm::totalSendCnt << "]    receive:[" << receiveCnt << "]   totalreceive:[" << sim_mob::DriverComm::totalReceiveCnt << "]" << std::endl;

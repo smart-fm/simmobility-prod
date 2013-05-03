@@ -1,10 +1,10 @@
-//simmobility core
+#pragma once
 #include "message/Message.hpp"
 #include "message/MessageReceiver.hpp"
 #include "entities/Agent.hpp"
 //broker specific
 #include "Server/ASIO_Server.hpp"
-#include "../../communicator/CommunicationSupport.hpp"
+#include "../JCommunicationSupport.hpp"
 #include "SubscriptionIndex.hpp"
 #include "Message/BufferContainer.hpp"
 //external libraries
@@ -12,12 +12,10 @@
 
 namespace sim_mob
 {
-//class CommunicationSupport;
-
-
 
 class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 {
+	typedef void (JCommunicationSupport::*setConnected)(void);
 	enum MessageTypes
 	{
 		 ANNOUNCE = 1,
@@ -42,6 +40,8 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	agentSubscribers &agentSubscribers_;
 	clientSubscribers &clientSubscribers_;
 
+	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
+
 	std::map<const sim_mob::Agent*,subscription > agentList;
 	std::map<const sim_mob::Agent*,subscription > agentWaitingList;
 	//list of available clients ready to be assigned to agents
@@ -50,11 +50,16 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	//accepts, authenticate and registers client connections
 	sim_mob::server server_;
 	//incoming message handler
-	void HandleMessage(MessageType type, MessageReceiver& sender,const Message& message);
 	//asio provisions
 	boost::asio::io_service io_service_;
 	boost::thread io_service_thread; //thread to run the io_service
 	void io_service_run(boost::asio::io_service & ); //thread function
+	void clientEntityAssociation(subscription subscription_);
+	bool deadEntityCheck(sim_mob::JCommunicationSupport & info);
+	void refineSubscriptionList();
+	void HandleMessage(MessageType type, MessageReceiver& sender,const Message& message);
+
+
 
 
 public:
@@ -62,27 +67,52 @@ public:
 	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Send;
 	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Receive;
 	std::vector<boost::shared_ptr<boost::shared_mutex > > mutex_collection;
-	subscriptionC &getSubscriptionList();
+	bool enabled;
+
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
+	static Broker& GetInstance() { return Broker::instance; }
+	void start();
 	~Broker();
-	void preparePerTickData(timeslice now);
-	void processIncomingData(timeslice);
+
+
+	sim_mob::BufferContainer &getSendBuffer();
+
 	bool handleANNOUNCE(std::string);
 	bool handleKEY_REQUEST(std::string data);
 	bool handleKEY_SEND(std::string data);
+	void handleReceiveMessage(std::string);
+
 	Entity::UpdateStatus update(timeslice now);
+	bool allAgentUpdatesDone();
 	void processOutgoingData(timeslice now);
-	void unicast(const sim_mob::Agent *, std::string);
+	void preparePerTickData(timeslice now);
+	void processIncomingData(timeslice);
+
+	void unicast(const sim_mob::Agent *, std::string);//not used now
+
+	//abstract vitual
 	void load(const std::map<std::string, std::string>& configProps){};
 	bool frame_init(timeslice now){};
 	Entity::UpdateStatus frame_tick(timeslice now){};
 	void frame_output(timeslice now){};
+	bool isNonspatial(){};
+
+	void enable();
+	void disable();
+	bool isEnabled();
+
 	//assign a client from clientList to an agent in the agentList
 //	void assignClient(sim_mob::Entity *agent, std::pair<unsigned int,session_ptr> client);
-	void handleReceiveMessage(std::string);
-	std::vector< boost::shared_ptr<boost::shared_mutex> > subscribeEntity(sim_mob::CommunicationSupport&);
-	static Broker& GetInstance() { return Broker::instance; }
-	bool isNonspatial(){};
+
+	bool processEntityWaitingList();
+	void addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subscription &subscription_);
+	bool subscribeEntity(sim_mob::JCommunicationSupport & );
+	bool unSubscribeEntity(sim_mob::JCommunicationSupport &value);
+	bool unSubscribeEntity(const sim_mob::Agent * agent);
+	subscriptionC &getSubscriptionList();
+
+
+
 };
 
 

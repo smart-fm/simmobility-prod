@@ -35,7 +35,8 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+#include "entities/androidCommunicator/communicator/Broker.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -259,7 +260,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
-	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
+//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
+	communicationWorkers->assignAWorker(&(sim_mob::Broker::GetInstance()));
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

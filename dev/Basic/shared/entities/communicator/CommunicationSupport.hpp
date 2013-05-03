@@ -59,14 +59,19 @@ class CommunicationSupport
 	sim_mob::NS3_Communicator & communicator;
 	sim_mob::Agent &entity;//the entity this class is actually referring to
 
+
+
 public:
+	bool subscribed;
+	void (CommunicationSupport::*subscriptionCallback)(bool);
 	//general purpose counter
 	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
 	int cnt_2;
 	boost::shared_mutex CommSupp_Mutex;
-	std::vector<boost::shared_mutex *> Communicator_Mutexes;
+	std::vector<boost::shared_mutex* > Communicator_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
 	CommunicationSupport(sim_mob::Agent& entity_);
+	void setSubscribed(bool);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	DataContainer& getIncoming();
 	void getAndClearIncoming(DataContainer &values);

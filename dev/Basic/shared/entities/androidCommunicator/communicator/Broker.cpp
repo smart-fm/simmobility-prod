@@ -3,13 +3,22 @@
 #include <jsoncpp/json.h>
 #include "Message/RoadRunnerHandler.hpp"
 #include "entities/AuraManager.hpp"
+#include "workers/Worker.hpp"
 
 namespace sim_mob
 {
+void Broker::enable() { enabled = true; }
+void Broker::disable() { enabled = false; }
+bool Broker::isEnabled() { return enabled; }
 void Broker::io_service_run(boost::asio::io_service & io_service_)
 {
 	server_.start();
 	io_service_.run();
+}
+sim_mob::BufferContainer &Broker::getSendBuffer()
+{
+	//		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
+	return sendBuffer;
 }
 subscriptionC &Broker::getSubscriptionList() { return subscriptionList;}
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
@@ -24,6 +33,11 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 ,clientSubscribers_(get<2>(getSubscriptionList()))
 {
 	 MessageMap = boost::assign::map_list_of("ANNOUNCE", ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND);
+
+}
+
+void Broker::start()
+{
 	io_service_thread = boost::thread(&Broker::io_service_run,this, boost::ref(io_service_));
 }
 
@@ -38,38 +52,92 @@ Broker::~Broker()
 void Broker::handleReceiveMessage(std::string str){
 	receiveBuffer.add(sim_mob::BufferContainer::makeDataElement(str));
 }
-
-std::vector< boost::shared_ptr<boost::shared_mutex> >  Broker::subscribeEntity(sim_mob::CommunicationSupport & value)
+void Broker::clientEntityAssociation(subscription subscription_)
 {
+	//Variable declaration
+			std::pair<unsigned int,sim_mob::session_ptr > availableClient;
+			boost::shared_ptr<session> session_;
+			unsigned int clientID_;
+			//poping from client list
+			availableClient = clientList.front();
+			clientList.pop();
+			//filling temp data
+			clientID_ = availableClient.first;
+			session_ = availableClient.second;
+			//filling real data
+			subscription_.clientID = clientID_;
+			subscription_.handler.reset(
+					new sim_mob::ConnectionHandler(
+							session_,
+							*this,
+							&Broker::handleReceiveMessage,
+							clientID_,
+							(unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
+							)
+			);
+			//inserting to list
+			subscriberList_.insert(subscriberList_.begin(),subscription_);
+			subscription_.JCommunicationSupport_->setMutexes(mutex_collection);
+			//tell the agent he is subscribed
+			CALL_MEMBER_FN(*(subscription_.JCommunicationSupport_), subscription_.JCommunicationSupport_->subscriptionCallback)(true);
+			//start send/receive functionality right here. It seems there is no need of a thread
+			subscription_.handler->start();
+}
+
+bool Broker::processEntityWaitingList()
+{
+	bool success = false;
+
+	while(clientList.size() && agentWaitingList.size())
+	{
+		subscription subscription_ = agentWaitingList.begin()->second;
+		agentWaitingList.erase(agentWaitingList.begin());
+		clientEntityAssociation(subscription_);//client list will be reduced in this function, so no worries.
+	}
+}
+
+void Broker::addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subscription &subscription_)
+{
+
+	//no client(android emulator for now) available, putting into the waiting list
+	agentWaitingList.at(&value.getEntity()) = subscription_;
+	CALL_MEMBER_FN(value, value.subscriptionCallback)(false);
+}
+bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport & value)
+{
+	bool success = false;
 	subscription subscription_(&value);
 
 	if(clientList.size())
 	{
-		//Variable declaration
-		std::pair<unsigned int,sim_mob::session_ptr > availableClient;
-		boost::shared_ptr<session> session_;
-		unsigned int clientID_;
-		//poping from client list
-		availableClient = clientList.front();
-		clientList.pop();
-		//filling temp data
-		clientID_ = availableClient.first;
-		session_ = availableClient.second;
-		//filling real data
-		subscription_.clientID = clientID_;
-		subscription_.handler.reset(new sim_mob::ConnectionHandler(session_,*this, &Broker::handleReceiveMessage, clientID_, (unsigned long)const_cast<sim_mob::Agent*>(&value.getEntity())));
-		//inserting to list
-		subscriberList_.insert(subscriberList_.begin(),subscription_);
-		//start send/receive functionality right here. It seems there is no need of a thread
-		(subscription_.handler)->start();
+		clientEntityAssociation(subscription_);
+		success = true;
 	}
 	else
 	{
-		//no client(android emulator for now) available, putting into the waiting list
-		agentWaitingList.at(&value.getEntity()) = subscription_;
+		addAgentToWaitingList(value, subscription_);
+		success = false;
 	}
+	 return success;
+}
 
-	return mutex_collection;
+bool  Broker::unSubscribeEntity(sim_mob::JCommunicationSupport &value)
+{
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
+	return unSubscribeEntity(&value.getEntity());
+}
+
+bool  Broker::unSubscribeEntity(const sim_mob::Agent * agent)
+{
+
+	agentSubscribers_.erase(agent);
+//	boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutex);
+	//also refine duplicateEntityDoneChecker
+	std::set<const sim_mob::Agent*>::iterator it = duplicateEntityDoneChecker.find(agent);
+	if(it != duplicateEntityDoneChecker.end() ) {
+		duplicateEntityDoneChecker.erase(it);
+	}
+	return false;//for now. I dont know if ne1 needs its return value
 }
 
 //Regular data that needs to be sent every tick
@@ -225,10 +293,45 @@ bool sim_mob::Broker::handleKEY_SEND(std::string data)
 	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
 }
 
+
+bool Broker::allAgentUpdatesDone()
+{
+//	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
+	subscriberIterator it = subscriberList_.begin(), it_end(subscriberList_.end());
+
+	for(; it != it_end; it++)
+	{
+
+			sim_mob::JCommunicationSupport &info = *(it->JCommunicationSupport_);//easy read
+//			if(deadEntityCheck(info))
+//			{
+//				throw std::runtime_error("You are dealing with a probably dead entity");
+//			}
+			try
+			{
+				if (info.isAgentUpdateDone())
+				{
+					boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutex);
+					duplicateEntityDoneChecker.insert(it->agent);
+				}
+			}
+			catch(char * str)
+			{
+				if(deadEntityCheck(info))
+				{
+					unSubscribeEntity(info);
+				}
+				else
+					throw std::runtime_error("Unknown Error checking entity");
+			}
+	}
+	return(duplicateEntityDoneChecker.size() >= subscriberList_.size());
+}
+
 void Broker::processOutgoingData(timeslice now)
 {
 //	now send what you have to send:
-
+	duplicateEntityDoneChecker.clear();
 	std::map<const sim_mob::Agent *, sim_mob::BufferContainer >::iterator it = sendBufferMap.begin(),
 			it_end = sendBufferMap.end();
 	while(it!=it_end)
@@ -248,6 +351,60 @@ void Broker::processOutgoingData(timeslice now)
 	}
 	sendBufferMap.clear();
 }
+
+//checks to see if the subscribed entity(agent) is alive
+bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
+	//some top notch optimizasion! to check if the agent is alive at all?
+	info.cnt_1++;
+	if (info.cnt_1 < 1000)
+		return false;
+	//you or your worker are probably dead already. you just don't know it
+	if (!(info.getEntity().currWorker))
+	{
+		std::cout << "currWorker dead" << std::endl;
+		return true;
+	}
+	//one more check to see if the entity is deleted
+	const std::vector<sim_mob::Entity*> & managedEntities_ = info.getEntity().currWorker->getEntities();
+	std::vector<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
+	for (std::vector<sim_mob::Entity*>::const_iterator it =	managedEntities_.begin(); it != managedEntities_.end(); it++)
+	{
+		//agent is still being managed, so it is not dead
+		if (*it == &(info.getEntity()))
+			return false;
+	}
+
+	return true;
+}
+
+//iterate the entire subscription list looking for
+//those who are not done with their update and check if they are dead.
+//you better hope they are dead otherwise you have to hold the simulation
+//tick waiting for them to finish
+void Broker::refineSubscriptionList() {
+	subscriberIterator it, it_end(subscriberList_.end());
+	for(it = subscriberList_.begin(); it != it_end; it++)
+	{
+		const sim_mob::Agent * target = (*it).agent;
+		//you or your worker are probably dead already. you just don't know it
+		if (!target->currWorker)
+			{
+				unSubscribeEntity(target);
+				continue;
+			}
+		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
+		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
+		if(it_entity == managedEntities_.end())
+		{
+			unSubscribeEntity(target);
+			continue;
+		}
+		else
+		{
+//			std::cout << std::dec << "_Agent [" << target << ":" << *it_entity << "] is still among " << (int)((target->currWorker)->getEntities().size()) << " entities of worker[" << target->currWorker << "]" << std::endl;
+		}
+	}
+}
 sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 Entity::UpdateStatus Broker::update(timeslice now)
 {
@@ -263,6 +420,10 @@ Entity::UpdateStatus Broker::update(timeslice now)
 
 	preparePerTickData(now);
 	processIncomingData(now);
+	while(!allAgentUpdatesDone())
+		{
+			refineSubscriptionList();
+		}
 	processOutgoingData(now);
 
 	std::cout <<"------------------------------------------------------\n";
@@ -289,64 +450,6 @@ void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 void Broker::HandleMessage(MessageType type, MessageReceiver& sender,
                 const Message& message)
 {
-//	/*
-//	 * Important Note.
-//	 * I just have a doubt if full functionalities of
-//	 * a common message handling architecture
-//	 * can be exploited in our time-based simulator.
-//	 * messages in our simulator are processed within
-//	 * a 'tick' time window, whereas this callback method
-//	 * "HandleMessage" doesn't respect this framework and is invoked
-//	 * whenever there is a message in the message queue.
-//	 * So, until i figure out how to make best use of message handling within
-//	 * our framework, any messages passed to this callback will be reposted to
-//	 * our own buffer to be processed in each tick.
-//	 */
-//
-//	BrokerMessage* msg = MSG_CAST(BrokerMessage,message);
-//	receiveBuffer.add(boost::make_tuple(type, msg->str, msg->root));
-//	return;
-//	//todo move this part to your handler
-//	switch(type)
-//	{
-//	case  ANNOUNCE:
-//	{
-//		//original data looks like this: {"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx"}}
-//		//so the values of this method's argument list are: type = 1, sender = not important, message= "ANNOUNCE" : {"Sender":"clientIdxxx"}
-//
-//		//first you need to find the nearby agents
-//		//extract the client id
-//		const Json::Value data = msg->root["ANNOUNCE"];
-//		unsigned int clientID = data["Sender"].asUInt();
-//		//get the mapping agent
-//		clientIterator it = clientSubscribers_.find(clientID);
-//		const Entity * entity = it->agent;
-//		const Agent * agent = dynamic_cast<const Agent *>(entity);
-//		//get agent's position
-//		int x,y;
-//		x = agent->xPos.get();
-//		y = agent->yPos.get();
-//		//get nearby agents
-//
-//		std::vector<const Agent*> nearby_agents ;/*= AuraManager::instance().nearbyAgents(
-//
-//				Point2D(x, y), *params.currLane, dis, distanceBehind);*/
-//		//seth:
-//		//ok, it is not possible to get the nearbyagents from agent (weird though)
-//		//let's fake it as you said.
-//		//todo: do the faking here....
-//
-//
-//
-//
-////		sim_mob::Entity * receiver = (sim_mob::Entity *) (it->receiver);
-//		break;
-//	}
-//	case  KEY_REQUEST:
-//		break;
-//	case KEY_SEND:
-//		break;
-//
-//	}
+
 }
 }//namespace

@@ -265,7 +265,7 @@ void NS3_Communicator::reset(sim_mob::CommunicationSupport &info)
 	info.reset();
 }
 
-std::vector<boost::shared_mutex*>  NS3_Communicator::subscribeEntity(sim_mob::CommunicationSupport & value)
+std::vector<boost::shared_mutex* >  NS3_Communicator::subscribeEntity(sim_mob::CommunicationSupport & value)
 {
 	{
 //		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);

@@ -7,41 +7,44 @@
 
 namespace sim_mob
 {
-class CommunicationSupport;
+class JCommunicationSupport;
 struct subscription
 {
-	subscription(sim_mob::CommunicationSupport* cs) :
+	///////////////Function Members///////////////////
+	subscription(sim_mob::JCommunicationSupport* cs) :
 			 connected(false), agent(&(cs->getEntity())) {
-		CommunicationSupport_.reset(cs);
+		JCommunicationSupport_.reset(cs);
 	}
 
 	subscription(
 			const sim_mob::Agent * agent_,
 			unsigned int clientID_,
-			sim_mob::CommunicationSupport * CommunicationSupport_,
+			sim_mob::JCommunicationSupport * JCommunicationSupport_,
 			boost::shared_ptr<ConnectionHandler > handler_
 			):
 				agent(agent_),
 				clientID(clientID_),
-				CommunicationSupport_(CommunicationSupport_),
+				JCommunicationSupport_(JCommunicationSupport_),
 				handler(handler_)
 	{connected = false;}
+
 	subscription & operator=(const subscription &s)
 	{
 		agent = s.agent;
 		clientID = s.clientID;
-		CommunicationSupport_ = s.CommunicationSupport_;
+		JCommunicationSupport_ = s.JCommunicationSupport_;
 		handler = s.handler;
 		connected = s.connected;
 	}
+///////////////Data Members///////////////////
 
-
-	boost::shared_ptr<sim_mob::CommunicationSupport> CommunicationSupport_;
+	boost::shared_ptr<sim_mob::JCommunicationSupport> JCommunicationSupport_;
 	boost::shared_ptr<ConnectionHandler > handler;
 	const sim_mob::Agent * agent;
 //	session_ptr session;
 	unsigned int clientID;
 	bool connected;
+
 };
 
 typedef boost::multi_index_container<

@@ -63,7 +63,7 @@ public:
 	void addSendBuffer(sim_mob::DataContainer &value);
 	void addSendBuffer(std::vector<DATA_MSG_PTR> &value);
 
-	std::vector<boost::shared_mutex *> subscribeEntity(sim_mob::CommunicationSupport&);
+	std::vector<boost::shared_mutex* > subscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(sim_mob::CommunicationSupport&);
 	bool unSubscribeEntity(const sim_mob::Entity * agent);
 	static NS3_Communicator& GetInstance() { return NS3_Communicator::instance; }

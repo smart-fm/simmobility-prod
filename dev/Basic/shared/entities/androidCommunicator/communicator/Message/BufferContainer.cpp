@@ -71,6 +71,7 @@ bool BufferContainer::pop(DataElement & var) {
 		return false;
 	var = buffer.front();
 	buffer.erase(buffer.begin());
+	return true;
 }
 
 bool BufferContainer::empty(){

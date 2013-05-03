@@ -64,8 +64,9 @@ public:
 	void BoardingPassengers_Normal(Bus* bus);
 	// new boarding method
 	void IndividualBoardingAlighting_New(Bus* bus);// Yao Jin
+	void DetermineBoardingAlightingFrame(Bus* bus);// Yao Jin
+	void StartBoardingAlighting(Bus* bus);// Yao Jin
 	void resetBoardingAlightingVariables();// reset after leaving the BusStop, Yao Jin
-	void AlightingPassengers_New(Bus* bus);// Yao Jin
 
     void AlightingPassengers(Bus* bus);
 

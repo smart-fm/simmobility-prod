@@ -807,6 +807,12 @@ void sim_mob::BusDriver::BoardingPassengers_Choice(Bus* bus)
 
 void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 {
+	DetermineBoardingAlightingFrame(bus);
+	StartBoardingAlighting(bus);
+}
+
+void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
+{
 	uint32_t curr_frame = params.now.frame();
 	if(curr_frame == 16357) {
 		std::cout <<"haha " << std::endl;
@@ -962,7 +968,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		}
 
 
-		if(boarding_frames.empty() && alighting_frames.empty()) {
+		if(boarding_frames.empty() && alighting_frames.empty()) {// no one boarding and alighting
 			//allow_boarding_alighting_flag = false;
 			resetBoardingAlightingVariables();
 			return;
@@ -971,8 +977,17 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_frame - first_frame) / 10.0 + 0.1f);// set the dwelltime for output, some precision corrected
 		return;
 	}
+}
 
+void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
+{
 	// begin alighting and boarding
+	uint32_t curr_frame = params.now.frame();
+	int i = 0;
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const Busline* busline = nullptr;
+	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
+	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
 	if(allow_boarding_alighting_flag)
 	{
 		if(!alighting_frames.empty())// not empty for alighting, otherwise only boarding
@@ -1020,58 +1035,3 @@ void sim_mob::BusDriver::resetBoardingAlightingVariables()
 	alighting_frames.clear();
 }
 
-void sim_mob::BusDriver::AlightingPassengers_New(Bus* bus)
-{
-//	uint32_t curr_frame = params.now.frame();
-//	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-//	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
-//	vector<sim_mob::Person*> alighted_Persons = busstopAgent->getAlighted_Persons();// get alighted_Persons in the BusStopAgent
-//	Person* person = dynamic_cast<Person*>(parent);
-//	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-//	if(!allowalighting_flag) {
-//		if(!bus->passengers_inside_bus.empty()) {
-//			Person* p = bus->passengers_inside_bus.front();// check the first alighting person
-//			alighting_frame = curr_frame + 50;// each person 5s alighting time, calculate alighting_frame(alighting_frame should be in the Passenger class)
-//			allowalighting_flag = true;
-//		}
-//	}
-//	if((alighting_frame == curr_frame) && allowalighting_flag) {// enable range: curr_frame - alighting_frame < = 10; 1s cache range time
-//		if(!bus->passengers_inside_bus.empty()) {
-//			Person* p = bus->passengers_inside_bus.front();
-//			sim_mob::Role* newRole = rf.createRole("pedestrian", p);// change to pedestrian role
-//			p->changeRole(newRole);
-//			alighted_Persons.push_back(p);
-//			bus->passengers_inside_bus.erase(bus->passengers_inside_bus.begin());
-//			allowalighting_flag = false;// reset after individual boarding finished
-//			alighting_frame = 0;// reset after individual boarding finished
-//		}
-//	}
-}
-
-/*void sim_mob::BusDriver::BoardingPassengers_Normal(Bus* bus)
-{
-	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
-			Point2D((lastVisited_BusStop.get()->xPos - 3500),
-					(lastVisited_BusStop.get()->yPos - 3500)),
-			Point2D((lastVisited_BusStop.get()->xPos + 3500),
-					(lastVisited_BusStop.get()->yPos + 3500))); //  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
-
-	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
-	{
-		//Retrieve only Passenger agents.
-		const Person* person = dynamic_cast<const Person *>(*it);
-		Person* p = const_cast<Person *>(person);
-		Passenger* passenger =p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
-		if (!passenger)
-			continue;
-		if((abs((passenger->getXYPosition().getX()/1000)-(xpos_approachingbusstop/1000)) <=2) and (abs((passenger->getXYPosition().getY()/1000)-(ypos_approachingbusstop/1000))<=2) )
-		{
-			if (passenger->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
-			{
-				 if(passenger->PassengerBoardBus_Normal(this,busStops)==true)//check if passenger wants to board the bus
-					no_passengers_boarding++; //set the number of boarding passengers
-			}
-
-		}
-	}
-}*/

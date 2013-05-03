@@ -98,7 +98,7 @@ void DriverComm::frame_init(UpdateParams& p) {
 }
 ;
 void DriverComm::frame_tick(UpdateParams& p) {
-	std::cout << "[" << this->parent << "]:DriverComm::frame_tick(" << p.now.frame() << ")" << std::endl;
+
 	Driver::frame_tick(p);
 //	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
 //	{
@@ -109,9 +109,6 @@ void DriverComm::frame_tick(UpdateParams& p) {
 //		receiveModule(p.now);
 ////	}
 	setAgentUpdateDone(true);
-	std::cout << "[" << this->parent << "]: AgentUpdate Done" << std::endl;
-	std::cerr  << std::dec << "tick " << p.now.frame() << " [" << this->parent << "] send:[" << sendCnt << "] totalsend:[" << sim_mob::DriverComm::totalSendCnt << "]    receive:[" << receiveCnt << "]   totalreceive:[" << sim_mob::DriverComm::totalReceiveCnt << "]" << std::endl;
-
 
 }
 ;

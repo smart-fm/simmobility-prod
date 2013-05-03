@@ -13,7 +13,7 @@ struct subscription
 	///////////////Function Members///////////////////
 	subscription(sim_mob::JCommunicationSupport* cs) :
 			 connected(false), agent(&(cs->getEntity())) {
-		JCommunicationSupport_.reset(cs);
+		JCommunicationSupport_ = cs;
 	}
 
 	subscription(
@@ -38,12 +38,17 @@ struct subscription
 	}
 ///////////////Data Members///////////////////
 
-	boost::shared_ptr<sim_mob::JCommunicationSupport> JCommunicationSupport_;
+	sim_mob::JCommunicationSupport* JCommunicationSupport_;
 	boost::shared_ptr<ConnectionHandler > handler;
 	const sim_mob::Agent * agent;
 //	session_ptr session;
 	unsigned int clientID;
 	bool connected;
+	~subscription()
+	{
+//		handler.reset();
+//		JCommunicationSupport_.reset();
+	}
 
 };
 

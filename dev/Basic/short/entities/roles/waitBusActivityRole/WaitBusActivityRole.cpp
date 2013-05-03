@@ -43,8 +43,13 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 //	busStopAgent = busStop->generatedBusStopAgent;
 //	parent->xPos.set(busStop->xPos);
 //	parent->yPos.set(busStop->yPos);
-	if(parent->destNode.type_== WayPoint::BUS_STOP) {
+	if(parent->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
 		busStopAgent = parent->destNode.busStop_->generatedBusStopAgent;
+	} else {
+		sim_mob::BusStop* busStop_dest = setBusStopXY(parent->destNode.node_);// to here waiting(node)
+		busStopAgent = busStop_dest->generatedBusStopAgent;
+		parent->xPos.set(busStop_dest->xPos);
+		parent->yPos.set(busStop_dest->yPos);
 	}
 	TimeOfReachingBusStop = p.now.ms();
 	buslineid = "7_2";// hardcoded now, later change
@@ -59,12 +64,6 @@ void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
 			boarding_Frame = 0;
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person) {
-				//person->setTempRoleFlag(false);
-//				std::cout << "busDriver: " << busDriver << std::endl;
-//				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
-//				{
-//					std::cout << "End of trip chain...." << std::endl;
-//				}
 				if(person->getNextRole()) {
 					Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
 					if(passenger) {
@@ -95,21 +94,6 @@ void sim_mob::WaitBusActivityRole::frame_tick_output(const UpdateParams& p) {
 	   value= (unsigned int)varY();
 	   DisplayOffset.setY(value+1);
 	}
-
-//	LogOut("(\"WaitBusActivity\""
-//			<<","<<p.now.frame()
-//			<<","<<parent->getId()
-//			<<",{"
-//			<<"\"xPos\":\""<<static_cast<int>(parent->xPos)
-//			<<"\",\"yPos\":\""<<static_cast<int>(parent->yPos)
-//			<<"\"})"<<std::endl);
-//	LogOut("(\"Activity\""
-//				<<","<<p.now.frame()
-//				<<","<<parent->getId()
-//				<<",{"
-//				<<"\"xPos\":\""<<static_cast<int>(parent->xPos)
-//				<<"\",\"yPos\":\""<<static_cast<int>(parent->yPos)
-//				<<"\"})"<<std::endl);
 	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }

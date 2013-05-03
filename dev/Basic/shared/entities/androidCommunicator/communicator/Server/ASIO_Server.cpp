@@ -8,4 +8,4 @@ void clientRegistration_(session_ptr sess, server *server_)
 	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,server_);
 	registration->start();
 }
-}
+};

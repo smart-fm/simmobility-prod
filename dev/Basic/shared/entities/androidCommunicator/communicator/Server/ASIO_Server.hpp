@@ -105,13 +105,11 @@ public:
 						boost::asio::placeholders::error, new_sess));
 	}
 
-	server(boost::asio::io_service& io_service,
-			std::queue<std::pair<unsigned int,
-			boost::shared_ptr<session> > > &clientList_,
-			unsigned short port = 2013) :
-
-			io_service_(io_service),
-			acceptor_(io_service,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
+	server(	std::queue<std::pair<unsigned int,
+			sim_mob::session_ptr > > &clientList_,
+			unsigned short port = 2013)
+	:
+			acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
 			clientList(clientList_)
 	{
 	}
@@ -120,9 +118,13 @@ public:
 	{
 		acceptor_.listen();
 		CreatSocketAndAccept();
-
+		io_service_thread = boost::thread(&server::io_service_run,this);
 	}
 
+	void io_service_run()
+	{
+		io_service_.run();
+	}
 	void handle_accept(const boost::system::error_code& e, session_ptr sess) {
 		if (!e) {
 //			boost::mutex::scoped_lock lock(server_mutex);
@@ -161,11 +163,13 @@ public:
 	}
 	~server()
 	{
+		io_service_thread.join();
 	}
-
+	boost::thread io_service_thread; //thread to run the io_service
+	boost::asio::io_service io_service_;
 private:
 	boost::asio::ip::tcp::acceptor acceptor_;
-	boost::asio::io_service& io_service_;
+
 //	std::map<unsigned int, session_ptr> clientList;
 	std::queue<std::pair<unsigned int,boost::shared_ptr<session> > > &clientList;
 

@@ -20,7 +20,7 @@ class session
 {
 public:
   /// Constructor.
-  session(boost::asio::io_service& io_service)
+  session(boost::asio::io_service &io_service)
     : socket_(io_service)
   {
   }

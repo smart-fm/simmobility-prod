@@ -10,11 +10,11 @@ namespace sim_mob
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() { return enabled; }
-void Broker::io_service_run(boost::asio::io_service & io_service_)
-{
-	server_.start();
-	io_service_.run();
-}
+//void Broker::io_service_run(boost::shared_ptr<boost::asio::io_service> io_service_)
+//{
+//	server_.start();
+//	io_service_->run();
+//}
 sim_mob::BufferContainer &Broker::getSendBuffer()
 {
 	//		boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
@@ -22,28 +22,29 @@ sim_mob::BufferContainer &Broker::getSendBuffer()
 }
 subscriptionC &Broker::getSubscriptionList() { return subscriptionList;}
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id),server_(io_service_,clientList) /*commImpl(&sendBuffer, &receiveBuffer,clientList)*/
-,Broker_Mutex(new boost::shared_mutex)
-,Broker_Mutex_Send(new boost::shared_mutex)
-,Broker_Mutex_Receive(new boost::shared_mutex)
-,sendBuffer(Broker_Mutex_Send)
-,receiveBuffer(Broker_Mutex_Receive)
+: Agent(mtxStrat, id),/*io_service_(new boost::asio::io_service()),*/
+  server_(clientList)
 ,subscriberList_(get<0>(getSubscriptionList()))
 ,agentSubscribers_(get<1>(getSubscriptionList()))
 ,clientSubscribers_(get<2>(getSubscriptionList()))
 {
 	 MessageMap = boost::assign::map_list_of("ANNOUNCE", ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND);
 
+	 Broker_Mutex.reset(new boost::shared_mutex);
+	 Broker_Mutex_Send.reset(new boost::shared_mutex);
+	 Broker_Mutex_Receive.reset(new boost::shared_mutex);
+	 sendBuffer.setOwnerMutex(Broker_Mutex_Send);
+	 receiveBuffer.setOwnerMutex(Broker_Mutex_Receive);
+	 std::cout << "Broker Server Starting" << std::endl;
 }
 
 void Broker::start()
 {
-	io_service_thread = boost::thread(&Broker::io_service_run,this, boost::ref(io_service_));
+
 }
 
 Broker::~Broker()
 {
-	io_service_thread.join();
 }
 
 //called when a message is received in a connectionHandler
@@ -200,6 +201,17 @@ void Broker::processIncomingData(timeslice now)
 
 
 }
+bool Broker::frame_init(timeslice now){
+//	std::cout << "Broker Server Starting" << std::endl;
+//
+//	std::cout << "Broker Server Started" << std::endl;
+//	std::cout << "BTW here are the mutexes :" <<
+//			"Broker_Mutex[" << Broker_Mutex <<
+//			"] \n Broker_Mutex_Send[" << Broker_Mutex_Send <<
+//			"] \n Broker_Mutex_Receive[" << Broker_Mutex_Receive <<
+//			"]" << std::endl;
+
+};
 
 //data is : {"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
 //no need to parse the message much:
@@ -408,27 +420,26 @@ void Broker::refineSubscriptionList() {
 sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 Entity::UpdateStatus Broker::update(timeslice now)
 {
-	std::cout << "communicator tick:"<< now.frame() << " ================================================\n";
-////	printSubscriptionList(now);
-//	boost::thread outGoing_thread(boost::bind(&sim_mob::NS3_Communicator::processOutgoingData,this,now));
-//	boost::thread inComing_thread(boost::bind(&sim_mob::NS3_Communicator::processIncomingData,this,now));
-//	outGoing_thread.join();
-//	inComing_thread.join();
-//	processOutgoingData(now);
-//	processIncomingData(now);
-//	reset();
+	std::cout << "Broker tick:"<< now.frame() << " ================================================\n";
+	if(now.frame() == 0)
+		{
+//			server_.start();
+		}
 
 	preparePerTickData(now);
+	std::cout << "preparePerTickData Done" << std::endl;
 	processIncomingData(now);
+	std::cout << "processIncomingData Done" << std::endl;
 	while(!allAgentUpdatesDone())
 		{
 			refineSubscriptionList();
+			std::cout << "refineSubscriptionList Done" << std::endl;
 		}
+	std::cout << "allAgentUpdatesDone Done" << std::endl;
 	processOutgoingData(now);
+	std::cout << "processOutgoingData Done" << std::endl;
 
 	std::cout <<"------------------------------------------------------\n";
-
-	while(ReadMessage());
 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 

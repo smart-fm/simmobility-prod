@@ -25,7 +25,7 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	std::map<std::string, MessageTypes> MessageMap;
 	//Broker's main buffers
 	std::map<const sim_mob::Agent *, sim_mob::BufferContainer > sendBufferMap; //temporarily used, later the buffer of the agent's communicationsupport will be used
-	sim_mob::BufferContainer sendBuffer;//apparently useless
+	sim_mob::BufferContainer sendBuffer;//apparently useless for this demo
 	sim_mob::BufferContainer receiveBuffer;
 //	sim_mob::DataContainer trySendBuffer;//send the buffers in batches
 	static Broker instance;
@@ -51,9 +51,9 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	sim_mob::server server_;
 	//incoming message handler
 	//asio provisions
-	boost::asio::io_service io_service_;
-	boost::thread io_service_thread; //thread to run the io_service
-	void io_service_run(boost::asio::io_service & ); //thread function
+//	boost::shared_ptr<boost::asio::io_service> io_service_;
+//	boost::thread io_service_thread; //thread to run the io_service
+	void io_service_run(boost::shared_ptr<boost::asio::io_service> ); //thread function
 	void clientEntityAssociation(subscription subscription_);
 	bool deadEntityCheck(sim_mob::JCommunicationSupport & info);
 	void refineSubscriptionList();
@@ -92,7 +92,7 @@ public:
 
 	//abstract vitual
 	void load(const std::map<std::string, std::string>& configProps){};
-	bool frame_init(timeslice now){};
+	bool frame_init(timeslice now);
 	Entity::UpdateStatus frame_tick(timeslice now){};
 	void frame_output(timeslice now){};
 	bool isNonspatial(){};

@@ -13,7 +13,7 @@ namespace sim_mob {
 NS3_Communication::NS3_Communication(DataContainer *sedBuffer_, DataContainer* receiveBuffer_) :
 	sendBuffer(*sedBuffer_), receiveBuffer(*receiveBuffer_)
 {
-	init();
+//	init();
 
 	};
 void NS3_Communication::init()

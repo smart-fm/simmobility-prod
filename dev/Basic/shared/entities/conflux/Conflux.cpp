@@ -66,7 +66,16 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
-//	resetSegmentFlows();
+	//resetSegmentFlows();
+
+	//sort the virtual queues before starting to move agents for this tick
+	//for now, virtual queues are the lane infinities of the first road segment (in the driving direction) of each link
+	SegmentStats* firstSegStats = nullptr;
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i!=upstreamSegmentsMap.end(); i++) {
+		firstSegStats = findSegStats(*(i->second.begin()));
+		firstSegStats->sortPersons_DecreasingRemTime(firstSegStats->laneInfinity);
+	}
+	firstSegStats = nullptr; //reset so that this isn't accidentally used elsewhere
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented
@@ -225,6 +234,7 @@ double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment*
 	return timeToReachEndOfLink;
 }
 
+/* unused version based on remaining time at intersection
 sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 	sim_mob::Person* ag = nullptr;
 	const sim_mob::RoadSegment* agRdSeg = nullptr;
@@ -265,10 +275,9 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents.insert(std::make_pair(*rdSegIt, nextAg));
 	}
 	return ag;
-}
+}*/
 
-/* old version based on distance
- * sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
+sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 	sim_mob::Person* ag = nullptr;
 	const sim_mob::RoadSegment* agRdSeg = nullptr;
 	double minDistance = std::numeric_limits<double>::max();
@@ -305,7 +314,7 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents.insert(std::make_pair(*rdSegIt, nextAg));
 	}
 	return ag;
-}*/
+}
 
 void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++)
@@ -477,7 +486,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 		debugMsgs << "Frame: " << now.frame() << "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
 				<< "|currSegment: [" << person->currSegment->getStart()->getID() <<","<< person->currSegment->getEnd()->getID() << "]"
 				<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
-				<< "|remainingTimeAtIntersection" << person->remainingTimeAtIntersection
+				<< "|isQueuing: " << person->isQueuing
 				<< "|segLength: "<< person->getCurrSegment()->computeLaneZeroLength()
 				<< "|Conflux: " << multiNode->getID() <<std::endl;
 		std::cout << debugMsgs.str();
@@ -645,14 +654,4 @@ double sim_mob::Conflux::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
 
 const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
 	return findSegStats(rdSeg)->laneInfinity;
-}
-
-bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, const Person* y) const {
-	//TODO: Not sure what to do in this case...
-	if ((!x) || (!y)) {
-		throw std::runtime_error("cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null");
-	}
-
-	//We want remaining time in this tick to translate into a higher priority.
-	return x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick();
 }

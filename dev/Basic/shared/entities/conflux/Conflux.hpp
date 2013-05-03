@@ -36,11 +36,6 @@ namespace aimsun
 class Loader;
 }
 
-//Comparison for our priority queue
-struct cmp_person_remainingTimeThisTick : public std::greater_equal<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
-};
-
 class Conflux : public sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;

@@ -3,7 +3,6 @@
 #include "SegmentStats.hpp"
 
 #include <algorithm>
-
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include <cmath>
@@ -41,9 +40,9 @@ namespace sim_mob {
 
 
 	void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
-		if(canAccommodate(car)) {
-			laneStatsMap.find(lane)->second->addPerson(p);
-		}
+		//if(canAccommodate(car)) {
+		laneStatsMap.find(lane)->second->addPerson(p);
+		/*}
 		else {
 			printAgents();
 			// if agent cannot be added to the lane he is meant to be added in, we add him in laneInfinity. This is done for virtual queue implementation
@@ -53,7 +52,7 @@ namespace sim_mob {
 			p->setCurrLane(laneInfinity);
 			p->distanceToEndOfSegment = roadSegment->computeLaneZeroLength();
 			laneStatsMap.find(laneInfinity)->second->addPerson(p);
-		}
+		}*/
 		// if(lane != laneInfinity) laneStatsMap.find(lane)->second->verifyOrdering();
 	}
 
@@ -226,6 +225,7 @@ namespace sim_mob {
 		return queuingCounts;
 	}
 
+	/* unused version based on remaining time at intersection
 	sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
 		sim_mob::Person* person = nullptr;
 		const sim_mob::Lane* personLane = nullptr;
@@ -272,9 +272,8 @@ namespace sim_mob {
 			frontalAgents.insert(std::make_pair(personLane,laneStatsMap.at(personLane)->next()));
 		}
 		return person;
-	}
+	}*/
 
-	/* old version based on distance to end of segment
 	sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
 		sim_mob::Person* person = nullptr;
 		const sim_mob::Lane* personLane = nullptr;
@@ -305,7 +304,7 @@ namespace sim_mob {
 			frontalAgents.insert(std::make_pair(personLane,laneStatsMap.at(personLane)->next()));
 		}
 		return person;
-	}*/
+	}
 
 	void SegmentStats::resetFrontalAgents() {
 		frontalAgents.clear();
@@ -442,8 +441,8 @@ namespace sim_mob {
 		//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 
 		double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-		double minSpeed = 20.0;
-		double jamDensity = 0.59; //density during traffic jam
+		double minSpeed = 500.0;
+		double jamDensity = 0.25; //density during traffic jam
 		double alpha = 3.75; //Model parameter of speed density function
 		double beta = 0.5645; //Model parameter of speed density function
 		double minDensity = 0.0048; // minimum traffic density
@@ -563,72 +562,104 @@ namespace sim_mob {
 		segFlow = 0.0;
 	}
 
-	void SegmentStats::printAgents() {
-		debugMsgs << "\nSegment " << "[" << roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
-				<< "|length " << roadSegment->computeLaneZeroLength() << std::endl;
-		std::cout << debugMsgs.str();
-		debugMsgs.str("");
+void SegmentStats::sortPersons_DecreasingRemTime(const Lane* lane) {
+	return laneStatsMap.find(lane)->second->sortPersons_DecreasingRemTime();
+}
 
+void SegmentStats::printAgents() {
+	debugMsgs << "\nSegment " << "[" << roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
+			<< "|length " << roadSegment->computeLaneZeroLength() << std::endl;
+	std::cout << debugMsgs.str();
+	debugMsgs.str("");
 		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-			(*i).second->printAgents();
-		}
-		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-			(*i).second->printAgents(true);
+		(*i).second->printAgents();
+	}
+	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+		(*i).second->printAgents(true);
+	}
+}
+
+bool SegmentStats::canAccommodate(VehicleType type) {
+	if(type == SegmentStats::car) {
+		int lengthOccupied = (numMovingInSegment(true) + numQueueingInSegment(true)) * 400; // This must change to count cars and buses separately.
+		int segLength = roadSegment->computeLaneZeroLength();
+		if (lengthOccupied <= segLength * numVehicleLanes)
+			return true;
+		else
+			return false;
+	}
+	else {
+		throw std::runtime_error("Buses and Pedestrians are not implemented in medium term yet");
+	}
+}
+
+void LaneStats::printAgents(bool copy) {
+	if(!copy) {
+		debugMsgs << "Lane " << lane->getLaneID();
+		for(std::deque<sim_mob::Person*>::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++) {
+			debugMsgs << "|" << (*i)->getId();
 		}
 	}
-
-	bool SegmentStats::canAccommodate(VehicleType type) {
-		if(type == SegmentStats::car) {
-			int lengthOccupied = (numMovingInSegment(true) + numQueueingInSegment(true)) * 400; // This must change to count cars and buses separately.
-			int segLength = roadSegment->computeLaneZeroLength();
-			if (lengthOccupied <= segLength * numVehicleLanes)
-				return true;
-			else
-				return false;
-		}
-		else {
-			throw std::runtime_error("Buses and Pedestrians are not implemented in medium term yet");
+	else {
+		debugMsgs << "LaneCopy " << lane->getLaneID();
+		for(std::deque<sim_mob::Person*>::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++) {
+			debugMsgs << "|" << (*i)->getId();
 		}
 	}
+	debugMsgs <<std::endl;
+	std::cout << debugMsgs.str();
+	debugMsgs.str("");
+}
 
-	void LaneStats::printAgents(bool copy) {
-		if(!copy) {
-			debugMsgs << "Lane " << lane->getLaneID();
-			for(std::deque<sim_mob::Person*>::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++) {
-				debugMsgs << "|" << (*i)->getId();
-			}
-		}
-		else {
-			debugMsgs << "LaneCopy " << lane->getLaneID();
-			for(std::deque<sim_mob::Person*>::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++) {
-				debugMsgs << "|" << (*i)->getId();
-			}
-		}
-		debugMsgs <<std::endl;
-		std::cout << debugMsgs.str();
-		debugMsgs.str("");
-	}
-
-	void LaneStats::verifyOrdering() {
-		double distance = -1.0;
-		for(std::deque<sim_mob::Person*>::const_iterator i = laneAgents.begin(); i!=laneAgents.end(); i++) {
-			if(distance >= (*i)->distanceToEndOfSegment) {
-				debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
-						<< "\nSegment: [" << lane->getRoadSegment()->getStart()->getID() << "," << lane->getRoadSegment()->getEnd()->getID() << "] "
-						<< " length = " << lane->getRoadSegment()->computeLaneZeroLength()
-						<< "\nLane: " << lane->getLaneID()
-						<< "\nCulprit Person: " << (*i)->getId();
-				debugMsgs << "\nAgents ";
-				for(std::deque<sim_mob::Person*>::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++) {
-					debugMsgs << "|" << (*j)->getId() << "--" << (*j)->distanceToEndOfSegment;
-				}
-				throw std::runtime_error(debugMsgs.str());
-			}
-			else {
-				distance = (*i)->distanceToEndOfSegment;
-			}
+void LaneStats::sortPersons_DecreasingRemTime() {
+	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
+	//Currently the only requirement is to sort lane infinity. This requirement may change in the future.
+	if(isLaneInfinity()) {
+		//ordering is required only if we have more than 1 person in the deque
+		if(laneAgents.size() > 1) {
+			printAgents();
+			std::sort(laneAgents.begin(), laneAgents.end(), cmp_person_remainingTimeThisTick_obj);
 		}
 	}
+}
 
-}			// end of namespace sim_mob
+void LaneStats::verifyOrdering() {
+	double distance = -1.0;
+	for (std::deque<sim_mob::Person*>::const_iterator i = laneAgents.begin();
+			i != laneAgents.end(); i++) {
+		if (distance >= (*i)->distanceToEndOfSegment) {
+			debugMsgs
+					<< "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
+					<< "\nSegment: ["
+					<< lane->getRoadSegment()->getStart()->getID() << ","
+					<< lane->getRoadSegment()->getEnd()->getID() << "] "
+					<< " length = "
+					<< lane->getRoadSegment()->computeLaneZeroLength()
+					<< "\nLane: " << lane->getLaneID() << "\nCulprit Person: "
+					<< (*i)->getId();
+			debugMsgs << "\nAgents ";
+			for (std::deque<sim_mob::Person*>::const_iterator j =
+					laneAgents.begin(); j != laneAgents.end(); j++) {
+				debugMsgs << "|" << (*j)->getId() << "--"
+						<< (*j)->distanceToEndOfSegment;
+			}
+			throw std::runtime_error(debugMsgs.str());
+		} else {
+			distance = (*i)->distanceToEndOfSegment;
+		}
+	}
+}
+
+bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x,const Person* y) const {
+	if ((!x) || (!y)) {
+		std::stringstream debugMsgs;
+		debugMsgs << "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
+				<< "|x: "<< (x? x->getId() : 0) << "|y: "<< (y? y->getId() : 0);
+		throw std::runtime_error(debugMsgs.str());
+	}
+	//We want remaining time in this tick to translate into a higher priority.
+	return (x->getRemainingTimeThisTick() >= y->getRemainingTimeThisTick());
+}
+
+}// end of namespace sim_mob
 

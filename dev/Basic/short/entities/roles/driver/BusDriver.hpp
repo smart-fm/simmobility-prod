@@ -118,7 +118,7 @@ public:
 	size_t no_passengers_alighting;
 
 
-	bool allow_boarding_alighting_flag;// flag to advance the frame
+	bool allow_boarding_alighting_flag;// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined
 	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
 	std::map<int, int> BoardingNum_Pos;
 	std::map<int, int> AlightingNum_Pos;

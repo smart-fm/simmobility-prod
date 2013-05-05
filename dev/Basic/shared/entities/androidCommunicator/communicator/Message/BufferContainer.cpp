@@ -6,7 +6,8 @@ BufferContainer::BufferContainer(){
 work_in_progress = false;
 }
 
-BufferContainer::BufferContainer(boost::shared_ptr<boost::shared_mutex> Owner_Mutex_):Owner_Mutex(Owner_Mutex_){
+BufferContainer::BufferContainer(boost::shared_ptr<boost::shared_mutex> Owner_Mutex_){
+	Owner_Mutex = Owner_Mutex_;
 work_in_progress = false;
 }
 

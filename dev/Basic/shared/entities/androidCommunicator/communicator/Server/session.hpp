@@ -37,7 +37,7 @@ public:
   void async_write(std::string &data, Handler handler)
   {
 	outbound_data_ = data;
-	std::cout << "outbound_data_ is : [" << outbound_data_ << "] " << std::endl;
+	std::cout << "outbound_data_ [" << outbound_data_ << "] " << std::endl;
     // Format the header.
     std::ostringstream header_stream;
     header_stream << std::setw(header_length)
@@ -108,7 +108,7 @@ public:
       try
       {
     	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
-    	  std::cout << "4.inbound_data_[" << archive_data << "]" << std::endl;
+    	  std::cout << "inbound_data_[" << archive_data << "]" << std::endl;
     	  input = archive_data;
       }
       catch (std::exception& e)

@@ -1,4 +1,10 @@
 #pragma once
+#include <boost/thread/locks.hpp>
+#include "boost/thread/shared_mutex.hpp"
+#include <boost/shared_ptr.hpp>
+#include <boost/foreach.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <string>
@@ -95,6 +101,8 @@ void clientRegistration_(session_ptr sess, server *server_);
 class server {
 
 public:
+	boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
+	boost::shared_ptr<boost::condition_variable> Broker_Client_register;
 	boost::mutex server_mutex;
 	void CreatSocketAndAccept() {
 		// Start an accept operation for a new connection.
@@ -107,22 +115,34 @@ public:
 
 	server(	std::queue<std::pair<unsigned int,
 			sim_mob::session_ptr > > &clientList_,
+			boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
+			boost::shared_ptr<boost::condition_variable> Broker_Client_register_,
 			unsigned short port = 2013)
 	:
+			Broker_Client_Mutex(Broker_Client_Mutex_),
+			Broker_Client_register(Broker_Client_register_),
 			acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
 			clientList(clientList_)
 	{
+//		std::cout << "1.Server Starting with mutexes:\n"
+//						"Broker_Client_Mutex_[" << Broker_Client_Mutex << "]\n"
+//								"Broker_Client_register[" << Broker_Client_register << "]" << std::endl;
+
 	}
 
 	void start()
 	{
-		acceptor_.listen();
-		CreatSocketAndAccept();
+//		std::cout << "2.Server Starting with mutexes:\n"
+//				"Broker_Client_Mutex_[" << Broker_Client_Mutex << "]\n"
+//						"Broker_Client_register[" << Broker_Client_register << "]" << std::endl;
+
 		io_service_thread = boost::thread(&server::io_service_run,this);
 	}
 
 	void io_service_run()
 	{
+		acceptor_.listen();
+		CreatSocketAndAccept();
 		io_service_.run();
 	}
 	void handle_accept(const boost::system::error_code& e, session_ptr sess) {
@@ -132,15 +152,16 @@ public:
 //			boost::thread *t = new boost::thread(clientRegistration_,sess,this);
 //			registrationThreads.push_back(t);
 			clientRegistration_(sess,this);
-			std::cout << "clientRegistration returned" <<   std::endl;
+//			std::cout << "clientRegistration returned" <<   std::endl;
 		}
 		CreatSocketAndAccept();
 	}
 	void registerClient(unsigned int ID, session_ptr sess)
 	{
-//		boost::mutex::scoped_lock lock(server_mutex);//todo remove comment
+		boost::unique_lock< boost::mutex > lock(*Broker_Client_Mutex);//todo remove comment
 		std::cout << " registerClient in progress" << std::endl;
 		clientList.push(std::make_pair(ID,sess));
+		Broker_Client_register->notify_one();
 		std::cout << " registerClient success, returning" << std::endl;
 	}
 
@@ -204,12 +225,13 @@ private:
 
 	void startClientRegistration(session_ptr sess) {
 		std::string str = JsonParser::makeWhoAreYou();
+		std::cout<< " WhoAreYou protocol Sending [" << str << "]" <<  std::endl;
 		sess->async_write(str,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler, this,
 						boost::asio::placeholders::error, sess));
 	}
 	void WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess) {
-
+		std::cout<< " WhoAreYou_handler readring" << std::endl;
 		sess->async_read(ID,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
 						boost::asio::placeholders::error, sess));
@@ -222,6 +244,7 @@ private:
 		}
 		else
 		{
+			std::cout<< " WhoAreYou_handler read Done [" << ID << "]"  << std::endl;
 	        unsigned int i = getID(ID);
 	        std::cout << "ID = " << i << std::endl;
 			server_->registerClient(i , sess);

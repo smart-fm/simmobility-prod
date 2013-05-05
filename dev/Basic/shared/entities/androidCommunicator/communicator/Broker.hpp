@@ -7,14 +7,16 @@
 #include "../JCommunicationSupport.hpp"
 #include "SubscriptionIndex.hpp"
 #include "Message/BufferContainer.hpp"
+#include <boost/thread/condition_variable.hpp>
 //external libraries
 
-
+#define MIN_CLIENTS 1 //minimum number of subscribed clients
 namespace sim_mob
 {
 
 class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 {
+
 	typedef void (JCommunicationSupport::*setConnected)(void);
 	enum MessageTypes
 	{
@@ -48,7 +50,7 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	std::queue<std::pair<unsigned int,sim_mob::session_ptr > >clientList;
 
 	//accepts, authenticate and registers client connections
-	sim_mob::server server_;
+	boost::shared_ptr<sim_mob::server> server_;
 	//incoming message handler
 	//asio provisions
 //	boost::shared_ptr<boost::asio::io_service> io_service_;
@@ -63,10 +65,13 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 
 
 public:
+	boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
 	boost::shared_ptr<boost::shared_mutex> Broker_Mutex;
 	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Send;
 	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Receive;
 	std::vector<boost::shared_ptr<boost::shared_mutex > > mutex_collection;
+
+	boost::shared_ptr<boost::condition_variable> client_register;
 	bool enabled;
 
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);

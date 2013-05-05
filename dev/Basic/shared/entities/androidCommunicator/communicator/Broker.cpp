@@ -22,26 +22,35 @@ sim_mob::BufferContainer &Broker::getSendBuffer()
 }
 subscriptionC &Broker::getSubscriptionList() { return subscriptionList;}
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id),/*io_service_(new boost::asio::io_service()),*/
-  server_(clientList)
+: Agent(mtxStrat, id)/*io_service_(new boost::asio::io_service()),*/
 ,subscriberList_(get<0>(getSubscriptionList()))
 ,agentSubscribers_(get<1>(getSubscriptionList()))
 ,clientSubscribers_(get<2>(getSubscriptionList()))
 {
 	 MessageMap = boost::assign::map_list_of("ANNOUNCE", ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND);
 
+	Broker_Client_Mutex.reset(new boost::mutex);
+	client_register.reset(new boost::condition_variable);
+	server_.reset(new server(clientList, Broker_Client_Mutex,client_register));
+
 	 Broker_Mutex.reset(new boost::shared_mutex);
 	 Broker_Mutex_Send.reset(new boost::shared_mutex);
 	 Broker_Mutex_Receive.reset(new boost::shared_mutex);
+
+	 mutex_collection.push_back(Broker_Mutex);
+	 mutex_collection.push_back(Broker_Mutex_Send);
+	 mutex_collection.push_back(Broker_Mutex_Receive);
+
 	 sendBuffer.setOwnerMutex(Broker_Mutex_Send);
 	 receiveBuffer.setOwnerMutex(Broker_Mutex_Receive);
-	 std::cout << "Broker Server Starting" << std::endl;
+
+
+//		std::cout << "Broker Starting with mutexes:\n"
+//				"Broker_Client_Mutex_[" << Broker_Client_Mutex << "]   \n"
+//						"Broker_Client_register[" << client_register << "]" << std::endl;
+
 }
 
-void Broker::start()
-{
-
-}
 
 Broker::~Broker()
 {
@@ -89,6 +98,7 @@ bool Broker::processEntityWaitingList()
 {
 	bool success = false;
 
+	std::cout << "processEntityWaitingList Started clientList.size(" << clientList.size()  << ") agentWaitingList.size("<< agentWaitingList.size()  << ")" << std::endl;
 	while(clientList.size() && agentWaitingList.size())
 	{
 		subscription subscription_ = agentWaitingList.begin()->second;
@@ -156,8 +166,7 @@ void Broker::preparePerTickData(timeslice now)
 		it->handler->send(time);
 		//send location
 		//1.get the agent
-		const Entity * entity = it->agent;
-		const Agent * agent = dynamic_cast<const Agent *>(entity);
+		const Agent * agent = it->agent;
 		//2.get x,y
 		int x,y;
 		x = agent->xPos.get();
@@ -166,8 +175,13 @@ void Broker::preparePerTickData(timeslice now)
 		std::string location_ = sim_mob::JsonParser::makeLocationData(x,y);
 
 		//finally add both time and location to the corresponding agent's send buffer
-		sendBufferMap[agent].add(BufferContainer::makeDataElement(time,0,(unsigned long)(entity)));
-		sendBufferMap[agent].add(BufferContainer::makeDataElement(location_,0,(unsigned long)(entity)));
+		if(sendBufferMap.find(agent) == sendBufferMap.end())
+		{
+			sendBufferMap.insert(std::make_pair(agent, BufferContainer(Broker_Mutex_Send)));//this is wrong coz the send buffers are not related to each other. but it's ok since it is sendBufferMap temporary
+			sendBufferMap[agent].setOwnerMutex(Broker_Mutex_Send);
+		}
+		sendBufferMap[agent].add(BufferContainer::makeDataElement(time,0,(unsigned long)(agent)));
+		sendBufferMap[agent].add(BufferContainer::makeDataElement(location_,0,(unsigned long)(agent)));
 	}
 }
 void Broker::processIncomingData(timeslice now)
@@ -327,8 +341,9 @@ bool Broker::allAgentUpdatesDone()
 					duplicateEntityDoneChecker.insert(it->agent);
 				}
 			}
-			catch(char * str)
+			catch(std::exception e)
 			{
+				std::cout << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
 				{
 					unSubscribeEntity(info);
@@ -366,24 +381,35 @@ void Broker::processOutgoingData(timeslice now)
 
 //checks to see if the subscribed entity(agent) is alive
 bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
-	//some top notch optimizasion! to check if the agent is alive at all?
-	info.cnt_1++;
-	if (info.cnt_1 < 1000)
-		return false;
+//	//some top notch optimizasion! to check if the agent is alive at all?
+//	info.cnt_1++;
+//	if (info.cnt_1 < 1000)
+//		return false;
 	//you or your worker are probably dead already. you just don't know it
-	if (!(info.getEntity().currWorker))
-	{
-		std::cout << "currWorker dead" << std::endl;
+	try {
+
+		if (!(info.getEntity().currWorker)) {
+			std::cout << "currWorker dead" << std::endl;
+			return true;
+		}
+
+		//one more check to see if the entity is deleted
+		const std::vector<sim_mob::Entity*> & managedEntities_ =
+				info.getEntity().currWorker->getEntities();
+		std::vector<sim_mob::Entity*>::const_iterator it =
+				managedEntities_.begin();
+		if(!managedEntities_.size())
+		{
+			return true;
+		}
+		for (std::vector<sim_mob::Entity*>::const_iterator it =
+				managedEntities_.begin(); it != managedEntities_.end(); it++) {
+			//agent is still being managed, so it is not dead
+			if (*it == &(info.getEntity()))
+				return false;
+		}
+	} catch (std::exception e) {
 		return true;
-	}
-	//one more check to see if the entity is deleted
-	const std::vector<sim_mob::Entity*> & managedEntities_ = info.getEntity().currWorker->getEntities();
-	std::vector<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
-	for (std::vector<sim_mob::Entity*>::const_iterator it =	managedEntities_.begin(); it != managedEntities_.end(); it++)
-	{
-		//agent is still being managed, so it is not dead
-		if (*it == &(info.getEntity()))
-			return false;
 	}
 
 	return true;
@@ -423,8 +449,22 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	std::cout << "Broker tick:"<< now.frame() << " ================================================\n";
 	if(now.frame() == 0)
 		{
-//			server_.start();
+			server_->start();
 		}
+
+
+	//condition variable clause
+	{
+		boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+
+		while((subscriberList_.size() < MIN_CLIENTS) && (clientList.size() < MIN_CLIENTS) )
+		{
+			client_register->wait(lock);
+			std::cout << "Broker Notified " << std::endl;
+			processEntityWaitingList();
+			std::cout << "processEntityWaitingList Done " << std::endl;
+		}
+	}
 
 	preparePerTickData(now);
 	std::cout << "preparePerTickData Done" << std::endl;
@@ -438,7 +478,8 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	std::cout << "allAgentUpdatesDone Done" << std::endl;
 	processOutgoingData(now);
 	std::cout << "processOutgoingData Done" << std::endl;
-
+	//see if anything is left off
+	processEntityWaitingList();
 	std::cout <<"------------------------------------------------------\n";
 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);

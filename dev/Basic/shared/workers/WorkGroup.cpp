@@ -716,7 +716,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
 	}
 	else if (role == "busdriver") {
-		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
 	}
 
 	/*

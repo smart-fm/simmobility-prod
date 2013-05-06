@@ -95,7 +95,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	agentSrc = src;
 	tripChain = tcs;
 	tripchainInitialized = false;
-	simplyModifyTripChain(tcs);
+	//simplyModifyTripChain(tcs);
 	initTripChain();
 }
 

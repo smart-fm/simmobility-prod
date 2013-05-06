@@ -2180,7 +2180,7 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 {
 	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
 	 double dist=0;
-	 BusStop*bs1;
+	 BusStop*bs1=0;
 	 if(currEndNode)
 	 {
 		 const std::set<sim_mob::RoadSegment*>& segments_ = currEndNode->getRoadSegments();

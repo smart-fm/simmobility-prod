@@ -151,8 +151,9 @@ float Bidder::CalculateSurplus(const Unit& unit) {
 }
 
 float Bidder::CalculateWP() {
-    return (float) ((GetParent()->GetIncome() * 1.0f) +
-            (GetParent()->GetNumberOfMembers() * 2.0f));
+    //return (float) ((GetParent()->GetIncome() * 1.0f) +
+      //      (GetParent()->GetNumberOfMembers() * 2.0f));
+    return .0f;
 }
 
 void Bidder::FollowMarket() {

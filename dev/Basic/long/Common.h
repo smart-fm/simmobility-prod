@@ -15,12 +15,7 @@
 using std::cout;
 using std::endl;
 
-/**
- * Types
- */
-typedef int UnitId;
-
-
+#define INVALID_ID -1
 
 /**
  * Events IDs
@@ -41,6 +36,11 @@ typedef int UnitId;
 // Messages for biding process
 #define LTMID_BID         LTMID_START + 1
 #define LTMID_BID_RSP     LTMID_START + 2
+
+/**
+ * DEFAULT VALUES
+ */
+#define MIN_AGE_TO_WORK 18
 
 
 

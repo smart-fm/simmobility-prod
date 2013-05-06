@@ -23,7 +23,8 @@
 #include "workers/WorkGroup.hpp"
 #include "entities/AuraManager.hpp"
 #include "agent/LT_Agent.hpp"
-
+#include "database/dao/HouseholdDao.hpp"
+#include "DatabaseHelper.h"
 using std::cout;
 using std::endl;
 using std::vector;
@@ -110,7 +111,7 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 1.0f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 1000
+#define MAX_ITERATIONS 1
 #define TICK_STEP 1
 #define DAYS 365
 #define WORKERS 4
@@ -126,9 +127,53 @@ void perform_main() {
     ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
     ConfigParams::GetInstance().defaultWrkGrpAssignment =
             WorkGroup::ASSIGN_ROUNDROBIN;
+    //
+    //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
+    //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
+    DBConnection conn (POSTGRES, "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg");
+    conn.Connect();
     
+    HouseholdDao dao (&conn);
+    //  INSERTS
+    Household hh1(1999294);
+    hh1.buildingId = 10;
+    hh1.numberOfMembers = 11;
+    hh1.numberOfWorkers = 11;
+    hh1.numberOfChildren = 11;
+    hh1.numberOfCars = 11;
+    hh1.income = 12;
+    hh1.headAge = 41;
+    hh1.race = OTHER;
+    
+    dao.Update(hh1);
+    
+    
+    
+    //  DELETES
+    //dao::Parameters keys1;
+    //dao.Delete(keys1);
+    //GETS
+    Household hh(-1);
+   
+    //Get by id
+    dao::Parameters keys;
+    keys.push_back(98);
+    if(dao.GetById(keys, hh)){
+        LogOut("Household- PIMBAS: " << hh << endl);
+    }
+    
+    vector<Household> hhs;
+    dao.GetAll(hhs);
+    LogOut("Households Number: " << hhs.size()<< endl);
+    for (vector<Household>::iterator it = hhs.begin(); it != hhs.end() ; it++){
+        LogOut("Household: " << (*it) << endl);
+    }
+    
+    conn.Disconnect();
+    int x=0;
+   
     //Work Group specifications
-    WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
+    /*WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
     WorkGroup::InitAllGroups();
     agentWorkers->initWorkers(nullptr);
     
@@ -170,7 +215,7 @@ void perform_main() {
         LT_Agent* ag = *(itr);
         safe_delete_item(ag);
     }
-    agents.clear();
+    agents.clear();*/
 }
 
 int main(int argc, char* argv[]) {

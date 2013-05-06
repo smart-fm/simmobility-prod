@@ -34,9 +34,8 @@ namespace sim_mob {
          */
         class LT_Agent : public Agent, public UnitHolder {
         public:
-            LT_Agent(int id, HousingMarket* market, float income, 
-                     int numberOfMembers);
-            virtual ~LT_Agent();
+            LT_Agent(int id, HousingMarket* market);
+            virtual ~LT_Agent() = 0;
 
             /**
              * Inherited from Agent.
@@ -48,13 +47,6 @@ namespace sim_mob {
              * @return EventManager reference. 
              */
             EventManager& GetEventManager();
-
-            /**
-             * TODO: put this characteristics in another class
-             * @return 
-             */
-            float GetIncome() const;
-            float GetNumberOfMembers() const;
 
         protected:
             /**
@@ -75,8 +67,6 @@ namespace sim_mob {
         private:
             LT_Role* currentRole;
             HousingMarket* market;
-            float income; // TODO: put this on separated class.
-            int numberOfMembers; //on the family.
         };
     }
 }

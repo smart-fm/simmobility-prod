@@ -16,11 +16,9 @@
 using namespace sim_mob;
 using namespace long_term;
 
-LT_Agent::LT_Agent(int id, HousingMarket* market, float income,
-        int numberOfMembers)
+LT_Agent::LT_Agent(int id, HousingMarket* market)
 : Agent(ConfigParams::GetInstance().mutexStategy, id), market(market),
-UnitHolder(id), currentRole(nullptr), income(income),
-numberOfMembers(numberOfMembers) {
+UnitHolder(id), currentRole(nullptr){
 
     if (getId() % 2 == 0) {
         currentRole = new Seller(this, market);
@@ -64,12 +62,4 @@ void LT_Agent::HandleMessage(MessageType type, MessageReceiver& sender,
     if (currentRole) {
         currentRole->HandleMessage(type, sender, message);
     }
-}
-
-float LT_Agent::GetIncome() const {
-    return income;
-}
-
-float LT_Agent::GetNumberOfMembers() const {
-    return numberOfMembers;
 }

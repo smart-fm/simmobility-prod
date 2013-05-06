@@ -11,6 +11,7 @@
 #include "event/EventListener.hpp"
 #include "model/Bid.hpp"
 #include "Common.h"
+#include "Types.h"
 
 namespace sim_mob {
 

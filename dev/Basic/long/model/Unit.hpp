@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Common.h"
+#include "Types.h"
 #include "message/MessageReceiver.hpp"
 
 namespace sim_mob {

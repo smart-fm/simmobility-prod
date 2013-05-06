@@ -73,6 +73,13 @@ public:
 
 	boost::shared_ptr<boost::condition_variable> client_register;
 	bool enabled;
+	//set to true when there are enough number of subscribers
+	//this is used by the Broker to
+	//qualifies itself to either
+	//-process in/out messages
+	//-block the update function and wait for enough number of agents&clients to register
+	//-return from update() in order not to block &disturb the simulation
+	bool brokerInOperation;
 
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	static Broker& GetInstance() { return Broker::instance; }
@@ -86,6 +93,7 @@ public:
 	bool handleKEY_REQUEST(std::string data);
 	bool handleKEY_SEND(std::string data);
 	void handleReceiveMessage(std::string);
+	bool brokerIsQualified();
 
 	Entity::UpdateStatus update(timeslice now);
 	bool allAgentUpdatesDone();

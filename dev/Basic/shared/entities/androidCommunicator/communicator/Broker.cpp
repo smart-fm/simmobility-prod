@@ -44,7 +44,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 sendBuffer.setOwnerMutex(Broker_Mutex_Send);
 	 receiveBuffer.setOwnerMutex(Broker_Mutex_Receive);
 
-
+	 brokerInOperation = false;
 //		std::cout << "Broker Starting with mutexes:\n"
 //				"Broker_Client_Mutex_[" << Broker_Client_Mutex << "]   \n"
 //						"Broker_Client_register[" << client_register << "]" << std::endl;
@@ -444,6 +444,21 @@ void Broker::refineSubscriptionList() {
 	}
 }
 sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
+
+//not enough number of subscribers
+bool Broker::brokerIsQualified()
+{
+	//easy reading
+	const bool NOT_QUALIFIED = false;
+	const bool QUALIFIED = true;
+
+	if(subscriberList_.size() < MIN_CLIENTS)
+	{
+		return NOT_QUALIFIED;
+	}
+	return QUALIFIED;
+
+}
 Entity::UpdateStatus Broker::update(timeslice now)
 {
 	std::cout << "Broker tick:"<< now.frame() << " ================================================\n";
@@ -456,13 +471,32 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//condition variable clause
 	{
 		boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
-
-		while((subscriberList_.size() < MIN_CLIENTS) && (clientList.size() < MIN_CLIENTS) )
+		/*if:
+		 * 1- number of subscribers is too low
+		 * 2-there is no client(emulator) waiting in the queue
+		 * 3-this update function never started to process any data so far
+		 * then:
+		 *  wait for enough number of clients and agents to join
+		 */
+		while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false)
 		{
 			client_register->wait(lock);
 			std::cout << "Broker Notified " << std::endl;
 			processEntityWaitingList();
 			std::cout << "processEntityWaitingList Done " << std::endl;
+		}
+		//now that you are qualified(have enough nof subscribers), then
+		//you are considered to have already started operating.
+		if(brokerIsQualified())
+		{
+			brokerInOperation = true;
+		}
+
+		//broker started before but is no more qualified to run
+		if(brokerInOperation && (!brokerIsQualified()))
+		{
+			//don't block, just cooperate & don't do anything untill this simulation ends
+			return UpdateStatus(UpdateStatus::RS_CONTINUE);
 		}
 	}
 

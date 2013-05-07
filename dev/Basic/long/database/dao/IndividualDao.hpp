@@ -1,48 +1,45 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   HouseholdDao.hpp
+ * File:   IndividualDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on April 23, 2013, 5:17 PM
+ * Created on May 7, 2013, 3:59 PM
  */
 #pragma once
+
 #include "database/dao/AbstractDao.hpp"
-#include "database/entity/Household.hpp"
+#include "database/entity/Individual.hpp"
 
-using namespace boost;
+
 namespace sim_mob {
-
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(Household);
+        DAO_DECLARE_CALLBACKS(Individual);
         /**
-         * Data Access Object to Household table on datasource.
+         * Data Access Object to Individual table on datasource.
          */
-        class HouseholdDao : public AbstractDao<Household> {
+        class IndividualDao : public AbstractDao<Individual> {
         public:
-            HouseholdDao(DBConnection* connection);
-            virtual ~HouseholdDao();
+            IndividualDao(DBConnection* connection);
+            virtual ~IndividualDao();
 
         private:
-            
             /**
              * Fills the given outObj with all values contained on Row. 
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, Household& outObj);
-            
+            void FromRow(Row& result, Individual& outObj);
+
             /**
              * Fills the outParam with all values to insert or update on datasource.
              * @param data to get values.
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Household& data, Parameters& outParams, bool update);
+            void ToRow(Individual& data, Parameters& outParams, bool update);
         };
     }
 }
-
-
 

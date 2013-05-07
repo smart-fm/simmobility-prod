@@ -11,8 +11,6 @@
 #include "Common.h"
 #include "Types.h"
 
-using std::ostream;
-
 namespace sim_mob {
     namespace long_term {
 
@@ -102,7 +100,7 @@ namespace sim_mob {
         private:
             friend class HouseholdDao;
 
-        public: //tests only
+        private:
             int id;
             int buildingId;
             int numberOfMembers;

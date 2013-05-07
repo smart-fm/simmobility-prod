@@ -18,7 +18,7 @@ connectionStr(connectionStr), currentSession(), type(type), connected(false) {
 }
 
 DBConnection::~DBConnection() {
-    currentSession.close();
+    Disconnect();
 }
 
 bool DBConnection::Connect() {

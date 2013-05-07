@@ -10,6 +10,8 @@
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
 
+typedef int UnitId;
+
 enum Sex {
     UNKNOWN_SEX = 0,
     MASCULINE = 1,
@@ -22,6 +24,12 @@ enum Race {
     MALAY = 2,
     INDIAN = 3,
     OTHER = 4,
+};
+
+enum EmploymentStatus {
+    UNKNOWN_ESTATUS = -1,
+    UNEMPLOYED = 0,
+    EMPLOYED = 1
 };
 
 static Race ToRace(int value) {
@@ -42,6 +50,11 @@ static Sex ToSex(int value) {
     }
 }
 
-
-typedef int UnitId;
+static EmploymentStatus ToEmploymentStatus(int value) {
+    switch (value) {
+        case UNEMPLOYED: return UNEMPLOYED;
+        case EMPLOYED: return EMPLOYED;
+        default: return UNKNOWN_ESTATUS;
+    }
+}
 

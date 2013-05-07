@@ -23,6 +23,7 @@ const string CURRENT_SCHEMA = DB_SCHEMA_BASELINE_2001;
  * Tables
  */
 const string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "households");
+const string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(CURRENT_SCHEMA, "persons");
 
 /**
  * Fields
@@ -36,6 +37,17 @@ const string DB_FIELD_CHILDREN = "children";
 const string DB_FIELD_INCOME = "income";
 const string DB_FIELD_PERSONS = "persons";
 const string DB_FIELD_RACE_ID = "race_id";
+const string DB_FIELD_PERSON_ID = "person_id";
+const string DB_FIELD_AGE = "age";
+const string DB_FIELD_EMPLOYMENT_STATUS = "employment_status";
+const string DB_FIELD_HBO_TRIPS = "hbo_trips";
+const string DB_FIELD_HBW_TRIPS = "hbw_trips";
+const string DB_FIELD_JOB_ID = "job_id";
+const string DB_FIELD_ZONE_ID = "zone_id";
+const string DB_FIELD_MODE = "mode";
+const string DB_FIELD_WORK_AT_HOME = "work_at_home";
+const string DB_FIELD_SEX = "sex";
+const string DB_FIELD_EARNING = "earning";
 
 /**
  * INSERT
@@ -51,6 +63,8 @@ const string DB_INSERT_HOUSEHOLD = "INSERT INTO " + DB_TABLE_HOUSEHOLD + " ("
         + DB_FIELD_PERSONS + ", "
         + DB_FIELD_RACE_ID + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9)";
 
+const string DB_INSERT_INDIVIDUAL = ""; // not defined yet...
+
 /**
  * UPDATE
  */
@@ -64,17 +78,23 @@ const string DB_UPDATE_HOUSEHOLD = "UPDATE " + DB_TABLE_HOUSEHOLD + " SET "
         + DB_FIELD_PERSONS + "= :v7, "
         + DB_FIELD_RACE_ID + "= :v8 WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:v9";
 
+const string DB_UPDATE_INDIVIDUAL = ""; // not defined yet...
+
+
 /**
  * DELETE
  */
 const string DB_DELETE_HOUSEHOLD = "DELETE FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
+const string DB_DELETE_INDIVIDUAL = "DELETE FROM " + DB_TABLE_INDIVIDUAL + " WHERE " + DB_FIELD_PERSON_ID + "=:id";
 
 /**
  * GET ALL
  */
 const string DB_GETALL_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " limit 10";
+const string DB_GETALL_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " limit 10";
 
 /**
  * GET BY ID
  */
 const string DB_GETBYID_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " where " + DB_FIELD_HOUSEHOLD_ID + "=:id";
+const string DB_GETBYID_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " where " + DB_FIELD_PERSON_ID + "=:id";

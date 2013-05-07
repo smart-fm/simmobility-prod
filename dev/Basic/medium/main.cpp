@@ -35,6 +35,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "logging/Log.hpp"
+#include "entities/BusController.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -203,6 +204,10 @@ bool performMainMed(const std::string& configFileName) {
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		// agentWorkers->assignAWorker(*it);
 		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+	}
+
+	if(BusController::HasBusControllers()){
+		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too

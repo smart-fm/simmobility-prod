@@ -114,7 +114,7 @@ private:
 
 protected:
 	//virtual double updatePositionOnLink(DriverUpdateParams& p);
-	Vehicle* initializePath(bool allocateVehicle);
+	virtual Vehicle* initializePath(bool allocateVehicle);
 
 	void setOrigin(DriverUpdateParams& p);
 	//void chooseLaneToStart();
@@ -127,7 +127,7 @@ public:
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
-private:
+protected:
 	//const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
 	const Lane* nextLaneInNextSegment;
 	//size_t targetLaneIndex;

@@ -31,6 +31,10 @@ public:
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
+protected:
+	virtual Vehicle* initializePath(bool allocateVehicle);
+
+
 };
 
 #endif /* BUSDRIVER_HPP_ */

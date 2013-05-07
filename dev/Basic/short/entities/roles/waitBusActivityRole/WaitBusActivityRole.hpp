@@ -60,10 +60,7 @@ public:
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	void initializeRemainingTime();
-	void updateRemainingTime();
-	void updateBoardingTime();
-	///finds the nearest busstop for the given node,As passenger origin and destination is given in terms of nodes
+
 	bool getRegisteredFlag() { return registered; }
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }

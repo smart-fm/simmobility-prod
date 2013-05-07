@@ -53,7 +53,6 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 	}
 	TimeOfReachingBusStop = p.now.ms();
 	buslineid = "7_2";// hardcoded now, later change
-	initializeRemainingTime();
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
@@ -112,28 +111,11 @@ std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptio
 	return res;
 }
 
-void sim_mob::WaitBusActivityRole::initializeRemainingTime()
-{
-//	remainingTime = activityEndTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
-//			- activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-	remainingTime = 3000000;
-}
-
-void sim_mob::WaitBusActivityRole::updateRemainingTime()
-{
-	remainingTime = std::max(0, remainingTime - int(ConfigParams::GetInstance().baseGranMS));
-}
-
-void sim_mob::WaitBusActivityRole::updateBoardingTime()
-{
-	//boarding_Time = std::max(0, boarding_Time - int(ConfigParams::GetInstance().baseGranMS));
-}
-
 BusStop* sim_mob::WaitBusActivityRole::setBusStopXY(const Node* node)//to find the nearest busstop to a node
 {
  	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
  	 double dist=0;
- 	 BusStop*bs1;
+ 	 BusStop*bs1=0;
  	 if(currEndNode)
  	 {
  		 const std::set<sim_mob::RoadSegment*>& segments_ = currEndNode->getRoadSegments();

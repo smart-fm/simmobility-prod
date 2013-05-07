@@ -37,7 +37,7 @@ public:
   void async_write(std::string &data, Handler handler)
   {
 	outbound_data_ = data;
-	std::cout << "outbound_data_ [" << outbound_data_ << "] " << std::endl;
+//	std::cout << "outbound_data_ [" << outbound_data_ << "] " << std::endl;
     // Format the header.
     std::ostringstream header_stream;
     header_stream << std::setw(header_length)

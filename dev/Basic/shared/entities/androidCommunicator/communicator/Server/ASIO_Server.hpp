@@ -154,6 +154,10 @@ public:
 			clientRegistration_(sess,this);
 //			std::cout << "clientRegistration returned" <<   std::endl;
 		}
+		else
+		{
+			std::cout << "Connection Refused" << std::endl;
+		}
 		CreatSocketAndAccept();
 	}
 	void registerClient(unsigned int ID, session_ptr sess)
@@ -182,10 +186,13 @@ public:
 		}
 
 	}
+
 	~server()
 	{
+		io_service_.stop();
 		io_service_thread.join();
 	}
+
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;
 private:

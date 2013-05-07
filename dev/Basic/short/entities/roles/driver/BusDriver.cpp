@@ -321,13 +321,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 
 			bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
 //			IndividualBoardingAlighting_New(bus);
-//			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
-//				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
-//			} else {
-//				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
-//			}
-			//BoardingPassengers_Normal(bus);
-//			dwellTime_record = dwellTimeCalculation(no_passengers_alighting,no_passengers_boarding,0,0,0,bus->getPassengerCountOld());
 
 			//Back to both branches:
 			//DwellTime_ijk.set(dwellTime_record);
@@ -1024,7 +1017,7 @@ void sim_mob::BusDriver::resetBoardingAlightingVariables()
 	last_frame = 0;
 	boardingframe_offset = 0;
 	alightingframe_offset = 0;
-	BUS_STOP_WAIT_TIME = 2;
+	BUS_STOP_WAIT_TIME = 2;// reset waiting time
 	BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;// reset dwelltime
 	virtualBoarding_Persons.clear();

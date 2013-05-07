@@ -184,8 +184,13 @@ namespace sim_mob {
 								- numQueueingInSegment(true)*vehicle_length;
 		if(movingLength > 0)
 		{
-			density = numMovingInSegment(true)/(movingLength/100.0);
-			if(density > 0.25) {
+			if (roadSegment->computeLaneZeroLength() > 10*vehicle_length){
+				density = numMovingInSegment(true)/(movingLength/100.0);
+			}
+			else{
+				density = numQueueingInSegment(true)/(movingLength/100.0);
+			}
+		/*if(density > 0.25) {
 				debugMsgs<<"Error in segment Density | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
 						<< "| numMovingInSeg: "<< numMovingInSegment(true)
 						<< "| numQueueingInSeg: " << numQueueingInSegment(true)
@@ -196,6 +201,7 @@ namespace sim_mob {
 						<<std::endl;
 				//throw std::runtime_error(debugMsgs.str());
 			}
+			*/
 		}
 		else
 			density = 1/(vehicle_length/100.0);
@@ -431,7 +437,7 @@ namespace sim_mob {
 		/**
 		 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 		 * must be obtained from an external source (XML/Database)
-		 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
+		 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
 		 * This must be changed after we have this data for each road segment in the network.
 		 *
 		 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
@@ -446,19 +452,22 @@ namespace sim_mob {
 		double alpha = 3.75; //Model parameter of speed density function
 		double beta = 0.5645; //Model parameter of speed density function
 		double minDensity = 0.0048; // minimum traffic density
-
+		double speed = 0.0;
 		//Speed-Density function
-		if(segDensity <= minDensity){
-			return freeFlowSpeed;
+		//if(segDensity <= minDensity){
+		//	return freeFlowSpeed;
+		//}
+		if (segDensity >= jamDensity) {
+			speed =  minSpeed;
 		}
-		else if (segDensity >= jamDensity) {
-			return minSpeed;
+		else if(segDensity >= minDensity){
+			speed = freeFlowSpeed * pow((1 - pow((segDensity - minDensity)/jamDensity, beta)),alpha);
 		}
-		else {
-			//TODO: Remove debugging print statement later ~ Harish
-			//ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << std::endl;
-			return freeFlowSpeed * pow((1 - pow((segDensity - minDensity)/jamDensity, beta)),alpha);
+		else{
+			speed = freeFlowSpeed;
 		}
+		speed = std::max(speed, minSpeed );
+		return speed;
 	}
 
 	void sim_mob::SegmentStats::restoreLaneParams(const Lane* lane){

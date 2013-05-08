@@ -134,6 +134,7 @@ void perform_main() {
     unit_tests::DaoTests tests;
     tests.TestHouseholdDao();
     tests.TestIndividualDao();
+    tests.TestBuildingTypeDao();
     
     //Work Group specifications
     /*WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);

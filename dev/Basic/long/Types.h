@@ -7,8 +7,12 @@
 
 #pragma once
 
+#include <string>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
+
+using std::string;
+using std::stringstream;
 
 typedef int UnitId;
 

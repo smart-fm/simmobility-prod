@@ -21,6 +21,11 @@ namespace unit_tests {
          * Tests the Household DAO
          */
         void TestHouseholdDao();
+        
+        /**
+         * Tests the BuildingType DAO
+         */
+        void TestBuildingTypeDao();
     };
 }
 

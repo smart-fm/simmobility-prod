@@ -10,6 +10,7 @@
 #include "DaoTests.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
+#include "database/dao/BuildingTypeDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -18,9 +19,9 @@ using namespace unit_tests;
 //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
 //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
 #define CONNECTION_STRING "host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
-    
+
 void DaoTests::TestIndividualDao() {
-    DBConnection conn (POSTGRES, CONNECTION_STRING);
+    DBConnection conn(POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
         IndividualDao dao(&conn);
@@ -42,7 +43,7 @@ void DaoTests::TestIndividualDao() {
 }
 
 void DaoTests::TestHouseholdDao() {
-    DBConnection conn (POSTGRES, CONNECTION_STRING);
+    DBConnection conn(POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
         HouseholdDao dao(&conn);
@@ -59,6 +60,28 @@ void DaoTests::TestHouseholdDao() {
         LogOut("Households Number: " << hhs.size() << endl);
         for (vector<Household>::iterator it = hhs.begin(); it != hhs.end(); it++) {
             LogOut("Household: " << (*it) << endl);
+        }
+    }
+}
+
+void DaoTests::TestBuildingTypeDao() {
+    DBConnection conn(POSTGRES, CONNECTION_STRING);
+    conn.Connect();
+    if (conn.IsConnected()) {
+        BuildingTypeDao dao(&conn);
+        BuildingType bt;
+        //Get by id
+        dao::Parameters keys;
+        keys.push_back(1);
+        if (dao.GetById(keys, bt)) {
+            LogOut("BuildingType by id: " << bt << endl);
+        }
+
+        vector<BuildingType> bts;
+        dao.GetAll(bts);
+        LogOut("BuildingTypes Number: " << bts.size() << endl);
+        for (vector<BuildingType>::iterator it = bts.begin(); it != bts.end(); it++) {
+            LogOut("BuildingType: " << (*it) << endl);
         }
     }
 }

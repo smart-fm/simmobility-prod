@@ -717,6 +717,13 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	}
 	else if (role == "busdriver") {
 		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
+		vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
+		std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
+		std::vector<const RoadSegment*>::iterator itor;
+		for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
+			path.push_back(WayPoint(*itor));
+		}
 	}
 
 	/*

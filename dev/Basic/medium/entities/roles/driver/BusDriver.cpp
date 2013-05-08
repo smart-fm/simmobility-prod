@@ -83,8 +83,7 @@ sim_mob::Vehicle* sim_mob::medium::BusDriver::initializePath(bool allocateVehicl
 				pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
 				std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
 				std::vector<const RoadSegment*>::iterator itor;
-				for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++)
-				{
+				for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
 					path.push_back(WayPoint(*itor));
 				}
 			} else {

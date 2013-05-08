@@ -26,6 +26,11 @@ namespace unit_tests {
          * Tests the BuildingType DAO
          */
         void TestBuildingTypeDao();
+        
+        /**
+         * Tests the Building DAO
+         */
+        void TestBuildingDao();
     };
 }
 

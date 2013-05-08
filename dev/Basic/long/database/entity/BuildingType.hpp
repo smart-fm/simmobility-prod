@@ -69,7 +69,7 @@ namespace sim_mob {
             BuildingType& operator=( const BuildingType& source );
             
             /**
-             * Operator to print the Household data.  
+             * Operator to print the BuildingType data.  
              */
             friend ostream& operator<<(ostream& strm, const BuildingType& data) {
                 return strm << "{"

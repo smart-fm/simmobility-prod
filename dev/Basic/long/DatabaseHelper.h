@@ -25,6 +25,7 @@ const string CURRENT_SCHEMA = DB_SCHEMA_BASELINE_2001;
 const string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "households");
 const string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(CURRENT_SCHEMA, "persons");
 const string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "building_types");
+const string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "buildings");
 
 /**
  * Fields
@@ -56,6 +57,18 @@ const string DB_FIELD_BUILDING_TYPE_NAME = "building_type_name";
 const string DB_FIELD_IS_RESIDENTIAL = "is_residential";
 const string DB_FIELD_GENERIC_BUILDING_TYPE_DESCRIPTION = "generic_building_type_description";
 const string DB_FIELD_DESCRIPTION = "description";
+const string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
+const string DB_FIELD_YEAR_BUILT = "year_built";
+const string DB_FIELD_PARCEL_ID = "parcel_id";
+const string DB_FIELD_LAND_AREA = "land_area";
+const string DB_FIELD_BUILDING_QUALITY_ID = "building_quality_id";
+const string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
+const string DB_FIELD_STORIES = "stories";
+const string DB_FIELD_TAX_EXEMPT = "tax_exempt";
+const string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
+const string DB_FIELD_TEMPLATE_ID = "template_id";
+const string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
+
 
 
 /**
@@ -74,6 +87,7 @@ const string DB_INSERT_HOUSEHOLD = "INSERT INTO " + DB_TABLE_HOUSEHOLD + " ("
 
 const string DB_INSERT_INDIVIDUAL = ""; // not defined yet...
 const string DB_INSERT_BUILDING_TYPE = ""; // not defined yet...
+const string DB_INSERT_BUILDING = ""; // not defined yet...
 
 /**
  * UPDATE
@@ -90,6 +104,7 @@ const string DB_UPDATE_HOUSEHOLD = "UPDATE " + DB_TABLE_HOUSEHOLD + " SET "
 
 const string DB_UPDATE_INDIVIDUAL = ""; // not defined yet...
 const string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
+const string DB_UPDATE_BUILDING = ""; // not defined yet...
 
 
 /**
@@ -98,6 +113,7 @@ const string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
 const string DB_DELETE_HOUSEHOLD = "DELETE FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
 const string DB_DELETE_INDIVIDUAL = "DELETE FROM " + DB_TABLE_INDIVIDUAL + " WHERE " + DB_FIELD_PERSON_ID + "=:id";
 const string DB_DELETE_BUILDING_TYPE = "DELETE FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_BUILDING_TYPE_ID + "=:id";
+const string DB_DELETE_BUILDING = "DELETE FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_BUILDING_ID + "=:id";
 
 /**
  * GET ALL
@@ -105,6 +121,7 @@ const string DB_DELETE_BUILDING_TYPE = "DELETE FROM " + DB_TABLE_BUILDING_TYPE +
 const string DB_GETALL_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " limit 10";
 const string DB_GETALL_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " limit 10";
 const string DB_GETALL_BUILDING_TYPE = "select * from " + DB_TABLE_BUILDING_TYPE + " limit 10";
+const string DB_GETALL_BUILDING = "select * from " + DB_TABLE_BUILDING + " limit 10";
 
 /**
  * GET BY ID
@@ -112,3 +129,4 @@ const string DB_GETALL_BUILDING_TYPE = "select * from " + DB_TABLE_BUILDING_TYPE
 const string DB_GETBYID_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " where " + DB_FIELD_HOUSEHOLD_ID + "=:id";
 const string DB_GETBYID_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " where " + DB_FIELD_PERSON_ID + "=:id";
 const string DB_GETBYID_BUILDING_TYPE = "select * from " + DB_TABLE_BUILDING_TYPE + " where " + DB_FIELD_BUILDING_TYPE_ID + "=:id";
+const string DB_GETBYID_BUILDING = "select * from " + DB_TABLE_BUILDING + " where " + DB_FIELD_BUILDING_ID + "=:id";

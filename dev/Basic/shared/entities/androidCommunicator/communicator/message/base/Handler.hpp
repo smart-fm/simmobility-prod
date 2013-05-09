@@ -9,21 +9,18 @@
 #define HANDLER_HPP_
 namespace sim_mob
 {
+namespace comm
+{
 //Forward Declaration
 class Message;
-
+}
 class Handler
 {
-	Message *message;
+	sim_mob::comm::Message *message;
 public:
-	Handler(Message* message_):message(message_){
-	}
-
+	Handler(sim_mob::comm::Message* message_);
 	virtual void handle() = 0;
-	Message * getMessage()
-	{
-		return message;
-	}
+	sim_mob::comm::Message * getMessage();
 };
 }//namespace
 #endif /* HANDLER_HPP_ */

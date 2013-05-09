@@ -6,7 +6,7 @@
 #include "Server/ASIO_Server.hpp"
 #include "../JCommunicationSupport.hpp"
 #include "SubscriptionIndex.hpp"
-#include "Message/BufferContainer.hpp"
+#include "buffer/BufferContainer.hpp"
 #include <boost/thread/condition_variable.hpp>
 //external libraries
 

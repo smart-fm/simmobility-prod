@@ -16,7 +16,7 @@
 #include <boost/foreach.hpp>
 #include <queue>
 //#include "../Message/DataMessage.hpp"
-#include "../Message/BufferContainer.hpp"
+#include "../buffer/BufferContainer.hpp"
 #include "message/MessageReceiver.hpp"
 namespace sim_mob
 {

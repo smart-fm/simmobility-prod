@@ -1,7 +1,6 @@
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <jsoncpp/json.h>
-#include "Message/RoadRunnerHandler.hpp"
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
 

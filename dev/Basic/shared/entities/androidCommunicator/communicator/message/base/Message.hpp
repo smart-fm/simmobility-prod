@@ -9,6 +9,9 @@ namespace sim_mob
 {
 //Forward Declaration
 class Handler;
+namespace comm
+{
+
 
 //Base Message
 class Message
@@ -16,5 +19,6 @@ class Message
 public:
 	virtual Handler * newHandler() = 0;
 };
-}
+}//namespace comm
+}//namespace sim_mob
 #endif

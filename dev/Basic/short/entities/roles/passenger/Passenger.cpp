@@ -117,7 +117,6 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 	}
 }
 
-
 void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 {
 	if (ConfigParams::GetInstance().using_MPI) {
@@ -181,11 +180,6 @@ void sim_mob::Passenger::frame_tick_output_mpi(timeslice now)
 
 }
 
-/*void sim_mob::Passenger::update(timeslice now)
-{
-
-}*/
-
 bool sim_mob::Passenger::isAtBusStop()
 {
 	if(BoardedBus.get()==false)
@@ -215,8 +209,6 @@ Point2D sim_mob::Passenger::getDestPosition()
 {
 	return Point2D((DestBusStop->xPos),(DestBusStop->yPos));
 }
-
-
 
 bool sim_mob::Passenger::PassengerAlightBus(BusDriver* busdriver)
 {
@@ -257,11 +249,12 @@ void sim_mob::Passenger::findWaitingTime(Bus* bus)
 {
 	WaitingTime=(bus->TimeOfBusreachingBusstop)-(TimeOfReachingBusStop);
 }
+
 BusStop* sim_mob::Passenger::setBusStopXY(const Node* node)//to find the nearest busstop to a node
   {
  	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
  	 double dist=0;
- 	 BusStop*bs1;
+ 	 BusStop*bs1=0;
  	 if(currEndNode)
  	 {
  		 const std::set<sim_mob::RoadSegment*>& segments_ = currEndNode->getRoadSegments();
@@ -361,6 +354,7 @@ bool sim_mob::Passenger::PassengerBoardBus_Choice(BusDriver* busdriver)
  	}
  	return false;
   }
+
 void sim_mob::Passenger::FindBusLines() //find bus lines there and decide which line to board based on shortest path
  {
 	 if(BoardedBus.get()==false)
@@ -408,32 +402,8 @@ void sim_mob::Passenger::FindBusLines() //find bus lines there and decide which 
 		 }
 	 }
  }
+
 std::vector<Busline*> sim_mob::Passenger::ReturnBusLines()
 {
 	 return BuslinesToTake;
 }
-/*bool sim_mob::Passenger::PassengerBoardBus_Normal(BusDriver* busdriver,std::vector<const BusStop*> busStops)
-{
-   int busstop_sequence_no=busdriver->busstop_sequence_no.get()+1;
-	//chcking if destinaton node position of passenger is in the list of bus stops which the bus would stop
-	for(int k=busstop_sequence_no;k < busStops.size();k++) {
-		  Point2D busStop_Pos(busStops[k]->xPos,busStops[k]->yPos);
-	 	  if((abs((busStop_Pos.getX() - getDestPosition().getX())/100)<= 3) and (abs((busStop_Pos.getY() - getDestPosition().getY())/100)<= 3))
-	 	  {
-	 		 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-	           if(bus->getPassengerCount()+1<=bus->getBusCapacity())//and(last_busstop==false))
-	           {
-	        	   Person* p=dynamic_cast<Person*>(this->getParent());
-	        	   //if passenger is to be boarded,add to passenger vector inside the bus
-	        	   bus->passengers_inside_bus.push_back(p);
-	        	   bus->setPassengerCount(bus->getPassengerCount()+1);
-	        	   this->busdriver.set(busdriver);//passenger should store the bus driver
-	        	   BoardedBus.set(true);//to indicate passenger has boarded bus
-	        	   AlightedBus.set(false);//to indicate whether passenger has alighted bus
-	        	   findWaitingTime(bus);
-	        	   return true;
-	           }
-	 	  }
-	 }
-	 return false;
-}*/

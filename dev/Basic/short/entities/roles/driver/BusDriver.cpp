@@ -807,7 +807,7 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 		DetermineBoardingAlightingFrame(bus);// in default secs, keep determining the boarding and alighting frames, once determined, allow_boarding_alighting_flag is true
 	}
 	if(allow_boarding_alighting_flag) {
-		StartBoardingAlighting(bus);
+		StartBoardingAlighting(bus);// can support boarding and alighting at the same time
 	}
 }
 

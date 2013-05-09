@@ -22,6 +22,7 @@
 #include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 //#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -156,6 +157,7 @@ bool performMainMed(const std::string& configFileName) {
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 
 	//No built-in models available to the medium term (yet).
 	Config::BuiltInModels builtIn;

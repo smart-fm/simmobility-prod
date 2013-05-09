@@ -23,6 +23,8 @@ public:
 	BusDriver(Agent* parent, MutexStrategy mtxStrat);
 	virtual ~BusDriver();
 
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);

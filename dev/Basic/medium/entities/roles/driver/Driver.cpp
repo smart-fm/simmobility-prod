@@ -243,6 +243,9 @@ Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
+		if(parent->originNode.type_ == WayPoint::INVALID || parent->destNode.type_ == WayPoint::INVALID)
+			return nullptr;
+
 		origin.node = parent->originNode.node_;
 		origin.point = origin.node->location;
 		goal.node = parent->destNode.node_;
@@ -542,6 +545,11 @@ bool sim_mob::medium::Driver::moveInSegment(DriverUpdateParams& p2, double dista
 void sim_mob::medium::Driver::frame_tick(UpdateParams& p)
 {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+
+	if(vehicle==nullptr){
+		parent->setToBeRemoved();
+		return;
+	}
 
 	const Lane* laneInfinity = nullptr;
 	if(vehicle->getCurrSegment()->getParentConflux()->getSegmentAgents().find(vehicle->getCurrSegment())

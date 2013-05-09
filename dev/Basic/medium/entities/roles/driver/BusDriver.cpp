@@ -25,6 +25,9 @@ sim_mob::medium::BusDriver::~BusDriver() {
 	// TODO Auto-generated destructor stub
 }
 
+Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
+	return new sim_mob::medium::BusDriver(parent, parent->getMutexStrategy());
+}
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {
 	vector<BufferedBase*> res;
@@ -60,10 +63,14 @@ sim_mob::Vehicle* sim_mob::medium::BusDriver::initializePath(bool allocateVehicl
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode.node_;
-		origin.point = origin.node->location;
-		goal.node = parent->destNode.node_;
-		goal.point = goal.node->location;
+		if( parent->originNode.type_ != WayPoint::INVALID){
+			origin.node = parent->originNode.node_;
+			origin.point = origin.node->location;
+		}
+		if( parent->destNode.type_ != WayPoint::INVALID ){
+			goal.node = parent->destNode.node_;
+			goal.point = goal.node->location;
+		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;

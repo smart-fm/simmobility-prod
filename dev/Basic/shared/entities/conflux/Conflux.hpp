@@ -222,6 +222,8 @@ public:
 
 	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
 	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
+
+	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 };
 
 } /* namespace sim_mob */

@@ -10,6 +10,10 @@
 
 namespace sim_mob {
 
+struct cmp_person_remainingTimeThisTick : public std::greater_equal<Person*> {
+  bool operator() (const Person* x, const Person* y) const;
+};
+
 class LaneParams {
 	friend class LaneStats;
 	friend class SegmentStats;
@@ -61,6 +65,10 @@ public:
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
+
+	//Sort all agents in lane (based on remaining time this tick)
+	void sortPersons_DecreasingRemTime();
+
 	// This function prints all agents in laneAgents
 	void printAgents(bool copy = false);
 
@@ -176,6 +184,7 @@ public:
 	void incrementSegFlow();
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
+	void sortPersons_DecreasingRemTime(const Lane* l);
 
 	// This function prints all agents in this segment
 	void printAgents();

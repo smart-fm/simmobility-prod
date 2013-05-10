@@ -133,7 +133,6 @@ public:
     const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
     bool canMoveToNextSegment;
 
-
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
 

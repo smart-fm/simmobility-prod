@@ -830,41 +830,41 @@ void sim_mob::Person::setPersonCharacteristics()
 	age = (unsigned int)varAge();
 	if(age >= 20 && age < 30)
 	{
-		boost::uniform_int<> BoardingTime(5, 10);
+		boost::uniform_int<> BoardingTime(3, 7);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
 		BOARDING_TIME_SEC = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(5, 10);
+		boost::uniform_int<> AlightingTime(3, 7);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
 		ALIGTHING_TIME_SEC = varAlightingTime();
 	}
 	if(age >=30 && age < 40)
 	{
-		boost::uniform_int<> BoardingTime(6, 11);
+		boost::uniform_int<> BoardingTime(4, 8);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
 		BOARDING_TIME_SEC = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(6, 11);
+		boost::uniform_int<> AlightingTime(4, 8);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
 		ALIGTHING_TIME_SEC = varAlightingTime();
 	}
 	if(age >= 40 && age < 50)
 	{
-		boost::uniform_int<> BoardingTime(8, 13);
+		boost::uniform_int<> BoardingTime(5, 9);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
 		BOARDING_TIME_SEC = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(8, 13);
+		boost::uniform_int<> AlightingTime(5, 9);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
 		ALIGTHING_TIME_SEC = varAlightingTime();
 	}
 	if(age >= 50 && age <= 60)
 	{
-		boost::uniform_int<> BoardingTime(10, 15);
+		boost::uniform_int<> BoardingTime(6, 10);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
 		BOARDING_TIME_SEC = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(10, 15);
+		boost::uniform_int<> AlightingTime(6, 10);
 		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
 		ALIGTHING_TIME_SEC = varAlightingTime();
 	}

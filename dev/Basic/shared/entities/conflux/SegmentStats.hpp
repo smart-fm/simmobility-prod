@@ -6,7 +6,7 @@
 #include <boost/unordered_set.hpp>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 namespace sim_mob {
 
@@ -41,21 +41,21 @@ class LaneStats {
 
 public:
 
-	std::deque<sim_mob::Agent*> laneAgents;
+	std::deque<sim_mob::Person*> laneAgents;
 
 	LaneStats(const sim_mob::Lane* laneInSegment, bool isLaneInfinity = false) :
 		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
 
-	void addAgent(sim_mob::Agent* ag);
-	void updateQueueStatus(sim_mob::Agent* ag);
-	void removeAgent(sim_mob::Agent* ag);
+	void addPerson(sim_mob::Person* p);
+	void updateQueueStatus(sim_mob::Person* p);
+	void removePerson(sim_mob::Person* p);
 	void clear();
-	sim_mob::Agent* dequeue();
+	sim_mob::Person* dequeue();
 	unsigned int getQueuingAgentsCount();
 	unsigned int getMovingAgentsCount();
 
 	void resetIterator();
-	sim_mob::Agent* next();
+	sim_mob::Person* next();
 
 	void initLaneParams(const sim_mob::Lane* lane, double vehSpeed, double pedSpeed);
 	void updateOutputCounter(const sim_mob::Lane* lane);
@@ -108,8 +108,8 @@ private:
 	 * laneAgentsIt will iterate on laneAgentsCopy and stays intact. Any handover of agents to the next segment
 	 * is done by removing the agent from laneAgents and adding to laneAgents of the next segment. ~ Harish
 	 */
-	std::deque<sim_mob::Agent*> laneAgentsCopy;
-	std::deque<sim_mob::Agent*>::iterator laneAgentsIt;
+	std::deque<sim_mob::Person*> laneAgentsCopy;
+	std::deque<sim_mob::Person*>::iterator laneAgentsIt;
 };
 
 /**
@@ -122,7 +122,7 @@ private:
 	const sim_mob::RoadSegment* roadSegment;
 	std::map<const sim_mob::Lane*, sim_mob::LaneStats* > laneStatsMap;
 
-	std::map<const sim_mob::Lane*, sim_mob::Agent* > frontalAgents;
+	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
 
 	bool downstreamCopy;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
@@ -139,30 +139,23 @@ public:
 
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
-	void addAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
+	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
-	void removeAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag);
-	void clear();
-	sim_mob::Agent* dequeue(const sim_mob::Lane* lane);
-	bool isFront(const sim_mob::Lane* lane, sim_mob::Agent* agent);
-	std::deque<Agent*> getAgents(const sim_mob::Lane* lane);
+	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag);
+	sim_mob::Person* dequeue(const sim_mob::Lane* lane);
+	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
+	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
-	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Agent* ag);
+	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person* p);
 
 	void resetFrontalAgents();
-	sim_mob::Agent* agentClosestToStopLineFromFrontalAgents();
-	bool isDownstreamCopy() const {
-		return downstreamCopy;
-	}
+	sim_mob::Person* agentClosestToStopLineFromFrontalAgents();
 
 	bool hasAgents();
 	bool canAccommodate(SegmentStats::VehicleType type);
-
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getPrevTickLaneCountsFromOriginal() const;
-	void setPrevTickLaneCountsFromOriginal(std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal);
 
 	unsigned int numMovingInSegment(bool hasVehicle);
 	unsigned int numQueueingInSegment(bool hasVehicle);

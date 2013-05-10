@@ -4,18 +4,15 @@
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
-
 #include <vector>
 #include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
-#include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
-#include "entities/AuraManager.hpp"
+#include "DriverFacets.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -37,12 +34,16 @@ class UpdateParams;
 
 namespace medium
 {
+
+class DriverBehavior;
+class DriverMovement;
 /**
  * A medium-term Driver.
  * \author Seth N. Hetu
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
+
 class Driver : public sim_mob::Role {
 private:
 	//Helper class for grouping a Node and a Point2D together.
@@ -57,24 +58,17 @@ public:
 	std::stringstream ss;
 	//int remainingTimeToComplete;
 
-	//Driver(Agent* parent);
-	Driver(Agent* parent, MutexStrategy mtxStrat);
+	Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior = nullptr, sim_mob::medium::DriverMovement* movement = nullptr);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now) { throw std::runtime_error("frame_tick_output_mpi not implemented in Driver."); }
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setParentData();			///<set next data to parent buffer data
 
-	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const sim_mob::Vehicle* getVehicle() const {return vehicle;}
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	void stepFwdInTime(DriverUpdateParams& p, double time);
 	bool advance(DriverUpdateParams& p);
@@ -95,14 +89,6 @@ public:
 	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
 
 private:
-	//void chooseNextLaneForNextLink(DriverUpdateParams& p);
-	//bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	//bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
-	//void intersectionDriving(DriverUpdateParams& p);
-	//void justLeftIntersection(DriverUpdateParams& p);
-	//void syncCurrLaneCachedInfo(DriverUpdateParams& p);
-	//void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	//double speed_density_function(unsigned int numVehicles); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	bool isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg);
 
 	void addToQueue(const Lane* lane);
@@ -114,7 +100,7 @@ private:
 
 protected:
 	//virtual double updatePositionOnLink(DriverUpdateParams& p);
-	virtual Vehicle* initializePath(bool allocateVehicle);
+	Vehicle* initializePath(bool allocateVehicle);
 
 	void setOrigin(DriverUpdateParams& p);
 	//void chooseLaneToStart();
@@ -127,9 +113,10 @@ public:
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
-protected:
+private:
 	//const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
 	const Lane* nextLaneInNextSegment;
+	Vehicle* vehicle;
 	//size_t targetLaneIndex;
 	//size_t currLaneIndex;
 	mutable std::stringstream DebugStream;
@@ -137,8 +124,10 @@ protected:
 	NodePoint goal;
 
 protected:
-	Vehicle* vehicle;
+	friend class DriverBehavior;
+	friend class DriverMovement;
 };
 
 
-}}
+} // namespace medium
+} // namespace sim_mob

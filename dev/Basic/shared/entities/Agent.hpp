@@ -188,6 +188,7 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
+
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -250,6 +251,7 @@ public:
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
+	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
@@ -296,6 +298,14 @@ protected:
 public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
+
+	bool isCallFrameInit() const {
+		return call_frame_init;
+	}
+
+	void setCallFrameInit(bool callFrameInit) {
+		call_frame_init = callFrameInit;
+	}
 
 	friend class BoundaryProcessor;
 

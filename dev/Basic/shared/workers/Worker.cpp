@@ -319,9 +319,6 @@ void sim_mob::Worker::barrier_mgmt()
 		 //Now flip all remaining data.
 		perform_flip();
 
-		// handover agents which have crossed conflux boundaries
-		perform_handover();
-
 		//Second barrier
 		if (buff_flip_barr) {
 			buff_flip_barr->wait();
@@ -450,6 +447,23 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		UpdateStatus res = (*it)->update(currTime);
+
+		if (res.status == UpdateStatus::RS_DONE) {
+			//This Entity is done; schedule for deletion.
+			scheduleForRemoval(*it);
+		}
+		else if (res.status == UpdateStatus::RS_CONTINUE) {
+			//Still going, but we may have properties to start/stop managing
+			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+				stopManaging(*it);
+			}
+			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+				beginManaging(*it);
+			}
+		}
+		else {
+			throw std::runtime_error("Unknown/unexpected update() return status.");
+		}
 	}
 
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
@@ -459,6 +473,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		(*it)->resetSegmentFlows();
 		(*it)->resetLinkTravelTimes(currTime);
 	}
+
 
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 
@@ -485,6 +500,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
 	}
+
 #endif
 }
 
@@ -500,14 +516,6 @@ void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
-}
-
-void sim_mob::Worker::perform_handover() {
-	// Agents to be handed over are in the downstream segments's SegmentStats
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->handoverDownstreamAgents();
-	}
 }
 
 //Methods to manage list of links managed by the worker

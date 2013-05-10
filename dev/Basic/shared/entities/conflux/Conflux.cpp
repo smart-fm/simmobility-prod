@@ -59,6 +59,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 	ag->setCurrSegment(rdSeg);
 	ag->setCurrLane(rdSegStats->laneInfinity);
 	ag->distanceToEndOfSegment = rdSeg->computeLaneZeroLength();
+	ag->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
 
@@ -483,7 +484,8 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 */
 
 	while(person->remainingTimeThisTick > 0.0) {
-		debugMsgs << "Frame: " << now.frame() << "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
+		debugMsgs << "Frame: " << now.frame() << "|ms: " << now.ms()
+				<< "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
 				<< "|currSegment: [" << person->currSegment->getStart()->getID() <<","<< person->currSegment->getEnd()->getID() << "]"
 				<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
 				<< "|isQueuing: " << person->isQueuing
@@ -494,14 +496,6 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 		if (!person->isToBeRemoved()) {
 			personRole->Movement()->frame_tick(*person->curr_params);
-		}
-
-		if(now.frame() == 465 && person->getId() == 3842) {
-			debugMsgs << "\n Problematic Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
-					<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
-					<< "|requestedNextSegment:" << std::endl;
-			std::cout << debugMsgs.str();
-			debugMsgs.str("");
 		}
 
 		if (person->isToBeRemoved()) {

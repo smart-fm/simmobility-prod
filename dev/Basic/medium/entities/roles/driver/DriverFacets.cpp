@@ -392,21 +392,34 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
 		}
 
-		/*std::cout<< parentAgent->getId()<<" Driver is movedToNextLink at: "<< linkExitTimeSec*1000 << "ms to lane "<<
+		DebugStream << parentAgent->getId()<<" Driver is movedToNextLink at: "<< linkExitTimeSec*1000 << "ms to lane "<<
 						currLane->getLaneID()
-						<<" in RdSeg "<< vehicle->getCurrSegment()->getStart()->getID()
+						<<" in RdSeg ["<< vehicle->getCurrSegment()->getStart()->getID() <<"," << vehicle->getCurrSegment()->getEnd()->getID() <<"]"
 						<<" last Accept: "<< getLastAccept(currLane)
 						<<" accept rate: "<<getAcceptRate(currLane)
-						<<" timeThisTick: "<<p.elapsedSeconds
-						<<" now: "<<p.now.ms()
+						<<" elapsedSeconds: "<<p.elapsedSeconds
+						<<" now: "<< p.now.ms()
 						<< " dist2End: "<<vehicle->getPositionInSegment()
-						<< std::endl;*/
+						<< std::endl;
+		std::cout << DebugStream.str();
+		DebugStream.str("");
 		setLastAccept(currLane, linkExitTimeSec);
 		setParentData(p);
 		parentAgent->canMoveToNextSegment = false;
 	}
 	else{
-		std::cout<<"flowIntoNextLinkIfPossible | canGoTo failed!"<<std::endl;
+		DebugStream<<"flowIntoNextLinkIfPossible | canGoTo failed for person " << parentAgent->getId() <<std::endl;
+		DebugStream<< parentAgent->getId() << "ms to lane "<< currLane->getLaneID()
+						<<" in RdSeg ["<< nextRdSeg->getStart()->getID() <<"," << nextRdSeg->getEnd()->getID() <<"]"
+						<<" last Accept: "<< getLastAccept(nextLaneInNextSegment)
+						<<" accept rate: "<< getAcceptRate(nextLaneInNextSegment)
+						<<" elapsedSeconds: "<< p.elapsedSeconds
+						<<" now: "<< p.now.ms()
+						<<" dist2End: "<<vehicle->getPositionInSegment()
+						<< std::endl;
+
+		std::cout << DebugStream.str();
+		DebugStream.str("");
 		p.elapsedSeconds = p.secondsInTick;
 		parentAgent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
@@ -414,7 +427,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 
 bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 	//return false if the Driver cannot be added during this time tick
-	std::cout<<"t: "<< t << " timeThisTick: "<<p.secondsInTick<<std::endl;
+	DebugStream<<"t: "<< t << " secondsInTick: "<<p.secondsInTick<<std::endl;
 	if (t >= p.secondsInTick) return false;
 	//check if the next road segment has sufficient empty space to accommodate one more vehicle
 	const RoadSegment* nextRdSeg = nextLaneInNextSegment->getRoadSegment();
@@ -432,17 +445,21 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		}
 		laneIt++;
 	}
-		std::cout << "nextRdSeg: ["<<nextRdSeg->getStart()->getID()<<","<<nextRdSeg->getEnd()->getID()<<"]"
-				<<" queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
-				<<" movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
+	DebugStream << "Frame: " << p.now.frame()
+				<< "| nextRdSeg: ["<<nextRdSeg->getStart()->getID()<<","<<nextRdSeg->getEnd()->getID()<<"]"
+				<<" | queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
+				<<" | movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 				<<" | numLanes: " << nextRdSeg->getLanes().size()
 				<<" | physical cap: " << vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length - total
 				<<" | length: " << nextRdSeg->computeLaneZeroLength()
-				<<" | veh len: " << vehicle->length
 				<<" | empty space: "<< (vehLaneCount * nextRdSeg->computeLaneZeroLength())-(total*vehicle->length)
 				<<std::endl;
 
 		double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
+		DebugStream << "Person: " << parentAgent->getId() << "|canGoToNextRdSeg| total " << total << "| max_allowed " << max_allowed << std::endl;
+
+		std::cout << DebugStream.str();
+		DebugStream.str("");
 	 	return total < max_allowed;
 //   	return total - (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length)
  //  			< std::numeric_limits<double>::epsilon( );

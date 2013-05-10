@@ -626,8 +626,11 @@ void LaneStats::sortPersons_DecreasingRemTime() {
 	if(isLaneInfinity()) {
 		//ordering is required only if we have more than 1 person in the deque
 		if(laneAgents.size() > 1) {
+			debugMsgs << "Before sorting";
 			printAgents();
 			std::sort(laneAgents.begin(), laneAgents.end(), cmp_person_remainingTimeThisTick_obj);
+			debugMsgs << "After sorting";
+			printAgents();
 		}
 	}
 }

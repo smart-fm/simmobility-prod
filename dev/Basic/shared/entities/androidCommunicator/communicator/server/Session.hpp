@@ -16,16 +16,18 @@ namespace sim_mob {
  * 8-byte header containing the length of the serialized data in hexadecimal.
  * and then The serialized data.
  */
-class session
+class Session;
+typedef boost::shared_ptr<Session> session_ptr;
+class Session
 {
 public:
   /// Constructor.
-  session(boost::asio::io_service &io_service)
+  Session(boost::asio::io_service &io_service)
     : socket_(io_service)
   {
   }
 
-  /// Get the underlying socket. Used for making a session or for accepting
+  /// Get the underlying socket. Used for making a Session or for accepting
   /// an incoming connection.
   boost::asio::ip::tcp::socket& socket()
   {
@@ -63,7 +65,7 @@ public:
   {
 //	  std::vector<char>* t
     // Issue a read operation to read exactly the number of bytes in a header.
-    void (session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &session::handle_read_header<Handler>;
+    void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
     boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,this, boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
 
 
@@ -90,7 +92,7 @@ public:
       }
       inbound_data_.resize(inbound_data_size);
 
-      void (session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &session::handle_read_data<Handler>;
+      void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
       boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, this,boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
     }
   }
@@ -141,8 +143,6 @@ private:
   /// Holds the inbound data.
   std::vector<char> inbound_data_;
 };
-
-typedef boost::shared_ptr<session> session_ptr;
 
 } // namespace sim_mob
 

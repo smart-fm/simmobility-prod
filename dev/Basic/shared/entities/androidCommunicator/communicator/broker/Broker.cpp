@@ -30,7 +30,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 
 	Broker_Client_Mutex.reset(new boost::mutex);
 	client_register.reset(new boost::condition_variable);
-	server_.reset(new server(clientList, Broker_Client_Mutex,client_register));
+	server_.reset(new Server(clientList, Broker_Client_Mutex,client_register));
 
 	 Broker_Mutex.reset(new boost::shared_mutex);
 	 Broker_Mutex_Send.reset(new boost::shared_mutex);
@@ -44,9 +44,6 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 receiveBuffer.setOwnerMutex(Broker_Mutex_Receive);
 
 	 brokerInOperation = false;
-//		std::cout << "Broker Starting with mutexes:\n"
-//				"Broker_Client_Mutex_[" << Broker_Client_Mutex << "]   \n"
-//						"Broker_Client_register[" << client_register << "]" << std::endl;
 
 }
 
@@ -65,7 +62,7 @@ void Broker::clientEntityAssociation(subscription subscription_)
 {
 	//Variable declaration
 			std::pair<unsigned int,sim_mob::session_ptr > availableClient;
-			boost::shared_ptr<session> session_;
+			sim_mob::session_ptr session_;
 			unsigned int clientID_;
 			//poping from client list
 			availableClient = clientList.front();
@@ -97,7 +94,7 @@ bool Broker::processEntityWaitingList()
 {
 	bool success = false;
 
-	std::cout << "processEntityWaitingList Started clientList.size(" << clientList.size()  << ") agentWaitingList.size("<< agentWaitingList.size()  << ")" << std::endl;
+	Print() << "processEntityWaitingList Started clientList.size(" << clientList.size()  << ") agentWaitingList.size("<< agentWaitingList.size()  << ")" << std::endl;
 	while(clientList.size() && agentWaitingList.size())
 	{
 		subscription subscription_ = agentWaitingList.begin()->second;
@@ -215,10 +212,10 @@ void Broker::processIncomingData(timeslice now)
 
 }
 bool Broker::frame_init(timeslice now){
-//	std::cout << "Broker Server Starting" << std::endl;
+//	Print() << "Broker Server Starting" << std::endl;
 //
-//	std::cout << "Broker Server Started" << std::endl;
-//	std::cout << "BTW here are the mutexes :" <<
+//	Print() << "Broker Server Started" << std::endl;
+//	Print() << "BTW here are the mutexes :" <<
 //			"Broker_Mutex[" << Broker_Mutex <<
 //			"] \n Broker_Mutex_Send[" << Broker_Mutex_Send <<
 //			"] \n Broker_Mutex_Receive[" << Broker_Mutex_Receive <<
@@ -236,7 +233,7 @@ bool Broker::handleANNOUNCE(std::string data)
 	bool parsedSuccess = reader.parse(data, root, false);
 	if(not parsedSuccess)
 	{
-		std::cout << "Parsing [" << data << "] Failed" << std::endl;
+		Print() << "Parsing [" << data << "] Failed" << std::endl;
 		return false;
 	}
 	Json::Value body = root["ANNOUNCE"];
@@ -276,7 +273,7 @@ bool sim_mob::Broker::handleKEY_REQUEST(std::string data)
 	bool parsedSuccess = reader.parse(data, root, false);
 	if(not parsedSuccess)
 	{
-		std::cout << "Parsing [" << data << "] Failed" << std::endl;
+		Print() << "Parsing [" << data << "] Failed" << std::endl;
 		return false;
 	}
 	//get the destination
@@ -302,7 +299,7 @@ bool sim_mob::Broker::handleKEY_SEND(std::string data)
 	bool parsedSuccess = reader.parse(data, root, false);
 	if(not parsedSuccess)
 	{
-		std::cout << "Parsing [" << data << "] Failed" << std::endl;
+		Print() << "Parsing [" << data << "] Failed" << std::endl;
 		return false;
 	}
 	//get the destination
@@ -342,7 +339,7 @@ bool Broker::allAgentUpdatesDone()
 			}
 			catch(std::exception e)
 			{
-				std::cout << "Exception Occured " << e.what() << std::endl;
+				Print() << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
 				{
 					unSubscribeEntity(info);
@@ -388,7 +385,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
 	try {
 
 		if (!(info.getEntity().currWorker)) {
-			std::cout << "currWorker dead" << std::endl;
+			Print() << "currWorker dead" << std::endl;
 			return true;
 		}
 
@@ -438,7 +435,7 @@ void Broker::refineSubscriptionList() {
 		}
 		else
 		{
-//			std::cout << std::dec << "_Agent [" << target << ":" << *it_entity << "] is still among " << (int)((target->currWorker)->getEntities().size()) << " entities of worker[" << target->currWorker << "]" << std::endl;
+//			Print() << std::dec << "_Agent [" << target << ":" << *it_entity << "] is still among " << (int)((target->currWorker)->getEntities().size()) << " entities of worker[" << target->currWorker << "]" << std::endl;
 		}
 	}
 }
@@ -460,7 +457,7 @@ bool Broker::brokerIsQualified()
 }
 Entity::UpdateStatus Broker::update(timeslice now)
 {
-	std::cout << "Broker tick:"<< now.frame() << " ================================================\n";
+	Print() << "Broker tick:"<< now.frame() << " ================================================\n";
 	if(now.frame() == 0)
 		{
 			server_->start();
@@ -479,10 +476,10 @@ Entity::UpdateStatus Broker::update(timeslice now)
 		 */
 		while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false)
 		{
+			Print() << "[Broker] waiting for enough number of clients to join" << std::endl;
 			client_register->wait(lock);
-			std::cout << "Broker Notified " << std::endl;
+			Print() << "Broker Notified " << std::endl;
 			processEntityWaitingList();
-			std::cout << "processEntityWaitingList Done " << std::endl;
 		}
 		//now that you are qualified(have enough nof subscribers), then
 		//you are considered to have already started operating.
@@ -500,20 +497,20 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	}
 
 	preparePerTickData(now);
-	std::cout << "preparePerTickData Done" << std::endl;
+	Print() << "preparePerTickData Done" << std::endl;
 	processIncomingData(now);
-	std::cout << "processIncomingData Done" << std::endl;
+	Print() << "processIncomingData Done" << std::endl;
 	while(!allAgentUpdatesDone())
 		{
 			refineSubscriptionList();
-			std::cout << "refineSubscriptionList Done" << std::endl;
+			Print() << "refineSubscriptionList Done" << std::endl;
 		}
-	std::cout << "allAgentUpdatesDone Done" << std::endl;
+	Print() << "allAgentUpdatesDone Done" << std::endl;
 	processOutgoingData(now);
-	std::cout << "processOutgoingData Done" << std::endl;
+	Print() << "processOutgoingData Done" << std::endl;
 	//see if anything is left off
 	processEntityWaitingList();
-	std::cout <<"------------------------------------------------------\n";
+	Print() <<"------------------------------------------------------\n";
 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 
@@ -525,7 +522,7 @@ void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 	agentIterator it = agentSubscribers_.find(agent);
 	if(it == agentSubscribers_.end())
 	{
-		std::cout << "unicast Failed. Agent not Found" << std::endl;
+		Print() << "unicast Failed. Agent not Found" << std::endl;
 	}
 //	ConnectionHandler handler = it->handler;
 	it->handler->send(data);

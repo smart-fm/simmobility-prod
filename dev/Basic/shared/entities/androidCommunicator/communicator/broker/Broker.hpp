@@ -3,10 +3,10 @@
 #include "message/MessageReceiver.hpp"
 #include "entities/Agent.hpp"
 //broker specific
-#include "Server/ASIO_Server.hpp"
-#include "../JCommunicationSupport.hpp"
+#include "../server/Server.hpp"
+#include "../../support/JCommunicationSupport.hpp"
 #include "SubscriptionIndex.hpp"
-#include "buffer/BufferContainer.hpp"
+#include "../buffer/BufferContainer.hpp"
 #include <boost/thread/condition_variable.hpp>
 //external libraries
 
@@ -50,7 +50,7 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	std::queue<std::pair<unsigned int,sim_mob::session_ptr > >clientList;
 
 	//accepts, authenticate and registers client connections
-	boost::shared_ptr<sim_mob::server> server_;
+	boost::shared_ptr<sim_mob::Server> server_;
 	//incoming message handler
 	//asio provisions
 //	boost::shared_ptr<boost::asio::io_service> io_service_;

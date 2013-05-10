@@ -36,7 +36,7 @@
 #include "util/DailyTime.hpp"
 #include "entities/signal/Signal.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/androidCommunicator/communicator/Broker.hpp"
+#include "entities/androidCommunicator/communicator/broker/Broker.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"

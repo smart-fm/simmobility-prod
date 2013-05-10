@@ -1,5 +1,5 @@
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/androidCommunicator/JCommunicationSupport.hpp"
+#include "entities/androidCommunicator/support/JCommunicationSupport.hpp"
 namespace sim_mob
 {
 class DriverComm : public Driver, public JCommunicationSupport

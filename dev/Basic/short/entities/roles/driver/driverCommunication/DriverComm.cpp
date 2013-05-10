@@ -2,7 +2,7 @@
 #include "DriverComm.hpp"
 #include "entities/Person.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/androidCommunicator/communicator/Broker.hpp"
+#include "entities/androidCommunicator/communicator/broker/Broker.hpp"
 
 namespace sim_mob
 {

@@ -47,17 +47,17 @@ private:
 	const sim_mob::Signal* signal;
 
 	/* segments in this conflux (on upstream links)
-	 * stores std::map< Link connected to the intersection, direction of the half-link which flows into the intersection>
+	 * stores std::map<link which flows into the multinode, segments on the link>
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
+	/* segments on downstream links
+	 * These links conceptually belong to the adjacent confluxes.
+	 */
+	std::vector<sim_mob::Link*> downstreamLinks;
+
 	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
-
-	/* segments on downstream links
-	 * These half-links conceptually belong to an adjacent conflux.
-	 */
-	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/* Map to store the vehicle counts of each road segment on this conflux */
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
@@ -69,9 +69,14 @@ private:
 	std::map<const sim_mob::RoadSegment*, sim_mob::Person* > candidateAgents;
 
 	/* cache the added lengths of road segments ahead in this link in this conflux
-	 * E.g. If there are 3 consecutive segments A, B and C in a half-link and the end node of C is the end of the link
+	 * E.g. If there are 3 consecutive segments A, B and C in a link and the end node of C is the end of the link
 	 * this map stores (length-of-B+length-of-C) against A */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
+
+	/* For each downstream link (or rather, the first segment of the downstream link), this map stores the number of persons that can be allowed
+	 * to enter from this conflux to that link in the current tick.
+	 */
+	std::map<const sim_mob::RoadSegment*, unsigned int> outputBounds;
 
 	/*holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
@@ -112,6 +117,8 @@ private:
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
 
+	void resetOutputBounds();
+
 public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
@@ -143,10 +150,6 @@ public:
 		return signal;
 	}
 
-	std::set<const sim_mob::RoadSegment*> getDownstreamSegments() {
-		return downstreamSegments;
-	}
-
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
 		return segmentAgents;
 	}
@@ -170,7 +173,7 @@ public:
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
-	void absorbAgentsAndUpdateCounts(sim_mob::SegmentStats* sourceSegStats);
+	void updateOutputBounds();
 
 	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
@@ -209,8 +212,7 @@ public:
 		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
 		: linkTravelTime_(linkTravelTime),
 		  agentCount_(agentCount)
-		{
-		}
+		{ }
 	};
 	std::map<const Link*, travelTimes> LinkTravelTimesMap;
 	void setTravelTimes(Person* ag, double linkExitTime);

@@ -185,6 +185,7 @@ public:
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
 	void sortPersons_DecreasingRemTime(const Lane* l);
+	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment
 	void printAgents();

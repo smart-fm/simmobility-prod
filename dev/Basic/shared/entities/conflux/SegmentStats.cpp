@@ -575,6 +575,14 @@ void SegmentStats::sortPersons_DecreasingRemTime(const Lane* lane) {
 	return laneStatsMap.find(lane)->second->sortPersons_DecreasingRemTime();
 }
 
+unsigned int SegmentStats::computeExpectedOutputPerTick() {
+	unsigned int count = 0;
+	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+		count += std::floor((*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS / 1000.0);
+	}
+	return count;
+}
+
 void SegmentStats::printAgents() {
 	debugMsgs << "\nSegment " << "[" << roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
 			<< "|length " << roadSegment->computeLaneZeroLength() << std::endl;

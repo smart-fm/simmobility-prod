@@ -66,6 +66,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
+	resetOutputBounds();
 	resetPositionOfLastUpdatedAgentOnLanes();
 	//resetSegmentFlows();
 
@@ -219,6 +220,17 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
 		currSegsOnUpLinks.insert(std::make_pair(i->first, i->second.back()));
+	}
+}
+
+void sim_mob::Conflux::resetOutputBounds() {
+	outputBounds.clear();
+	const sim_mob::RoadSegment* firstSeg = nullptr;
+	unsigned int outputEstimate = 0;
+	for(std::vector<sim_mob::Link*>::iterator i = downstreamLinks.begin(); i!=downstreamLinks.end(); i++) {
+		firstSeg = *((*i)->getSegments().begin());
+		outputEstimate = findSegStats(firstSeg)->computeExpectedOutputPerTick();
+		outputBounds.insert(std::make_pair(firstSeg, outputEstimate));
 	}
 }
 

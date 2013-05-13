@@ -1,7 +1,7 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   BuildingTypeDao.hpp
+ * File:   LandUseTypeDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
  * Created on May 7, 2013, 3:59 PM
@@ -9,20 +9,21 @@
 #pragma once
 
 #include "database/dao/AbstractDao.hpp"
-#include "database/entity/BuildingType.hpp"
+#include "database/entity/LandUseType.hpp"
 
 
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(BuildingType);
+        DAO_DECLARE_CALLBACKS(LandUseType);
+
         /**
-         * Data Access Object to BuildingType table on datasource.
+         * Data Access Object to LandUseType table on datasource.
          */
-        class BuildingTypeDao : public AbstractDao<BuildingType> {
+        class LandUseTypeDao : public AbstractDao<LandUseType> {
         public:
-            BuildingTypeDao(DBConnection* connection);
-            virtual ~BuildingTypeDao();
+            LandUseTypeDao(DBConnection* connection);
+            virtual ~LandUseTypeDao();
 
         private:
             /**
@@ -30,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, BuildingType& outObj);
+            void FromRow(Row& result, LandUseType& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -38,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(BuildingType& data, Parameters& outParams, bool update);
+            void ToRow(LandUseType& data, Parameters& outParams, bool update);
         };
     }
 }

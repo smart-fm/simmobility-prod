@@ -12,6 +12,7 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
+#include "database/dao/LandUseTypeDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -21,90 +22,34 @@ using namespace unit_tests;
 //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
 #define CONNECTION_STRING "host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
 #define ID_TO_GET 1
-void DaoTests::TestIndividualDao() {
+
+template <typename T, typename K>
+void TestDao() {
     DBConnection conn(POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
-        IndividualDao dao(&conn);
-        Individual valueById;
+        T dao(&conn);
+        K valueById;
         //Get by id
         dao::Parameters keys;
         keys.push_back(ID_TO_GET);
         if (dao.GetById(keys, valueById)) {
-            LogOut("Individual by id: " << valueById << endl);
+            LogOut("Get by id: " << valueById << endl);
         }
 
-        vector<Individual> values;
+        vector<K> values;
         dao.GetAll(values);
-        LogOut("Individuals Number: " << values.size() << endl);
-        for (vector<Individual>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("Individual: " << (*it) << endl);
+        LogOut("GetAll Size: " << values.size() << endl);
+        for (typename vector<K>::iterator it = values.begin(); it != values.end(); it++) {
+            LogOut("Value: " << (*it) << endl);
         }
     }
 }
 
-void DaoTests::TestHouseholdDao() {
-    DBConnection conn(POSTGRES, CONNECTION_STRING);
-    conn.Connect();
-    if (conn.IsConnected()) {
-        HouseholdDao dao(&conn);
-        Household valueById;
-        //Get by id
-        dao::Parameters keys;
-        keys.push_back(ID_TO_GET);
-        if (dao.GetById(keys, valueById)) {
-            LogOut("Household by id: " << valueById << endl);
-        }
-
-        vector<Household> values;
-        dao.GetAll(values);
-        LogOut("Households Number: " << values.size() << endl);
-        for (vector<Household>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("Household: " << (*it) << endl);
-        }
-    }
-}
-
-void DaoTests::TestBuildingTypeDao() {
-    DBConnection conn(POSTGRES, CONNECTION_STRING);
-    conn.Connect();
-    if (conn.IsConnected()) {
-        BuildingTypeDao dao(&conn);
-        BuildingType valueById;
-        //Get by id
-        dao::Parameters keys;
-        keys.push_back(ID_TO_GET);
-        if (dao.GetById(keys, valueById)) {
-            LogOut("BuildingType by id: " << valueById << endl);
-        }
-
-        vector<BuildingType> values;
-        dao.GetAll(values);
-        LogOut("BuildingTypes Number: " << values.size() << endl);
-        for (vector<BuildingType>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("BuildingType: " << (*it) << endl);
-        }
-    }
-}
-
-void DaoTests::TestBuildingDao() {
-    DBConnection conn(POSTGRES, CONNECTION_STRING);
-    conn.Connect();
-    if (conn.IsConnected()) {
-        BuildingDao dao(&conn);
-        Building valueById;
-        //Get by id
-        dao::Parameters keys;
-        keys.push_back(ID_TO_GET);
-        if (dao.GetById(keys, valueById)) {
-            LogOut("Building by id: " << valueById << endl);
-        }
-
-        vector<Building> values;
-        dao.GetAll(values);
-        LogOut("Building Number: " << values.size() << endl);
-        for (vector<Building>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("Building: " << (*it) << endl);
-        }
-    }
+void DaoTests::TestAll() {
+    TestDao<IndividualDao, Individual>();
+    TestDao<HouseholdDao, Household>();
+    TestDao<BuildingTypeDao, BuildingType>();
+    TestDao<BuildingDao, Building>();
+    TestDao<LandUseTypeDao, LandUseType>();
 }

@@ -11,26 +11,14 @@
 namespace unit_tests {
 
     class DaoTests {
+        
     public:
+        
         /**
-         * Tests the Individual DAO
+         * Runs all tests inside of this class.
          */
-        void TestIndividualDao();
+        void TestAll();
 
-        /**
-         * Tests the Household DAO
-         */
-        void TestHouseholdDao();
-        
-        /**
-         * Tests the BuildingType DAO
-         */
-        void TestBuildingTypeDao();
-        
-        /**
-         * Tests the Building DAO
-         */
-        void TestBuildingDao();
     };
 }
 

@@ -120,9 +120,8 @@ float UNIT_FIXED_COST = 1.0f;
 #define WORKERS 4
 #define DATA_SIZE 30
 
-
 void perform_main() {
-    
+
     LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
@@ -132,11 +131,8 @@ void perform_main() {
             WorkGroup::ASSIGN_ROUNDROBIN;
 
     unit_tests::DaoTests tests;
-    tests.TestHouseholdDao();
-    tests.TestIndividualDao();
-    tests.TestBuildingTypeDao();
-    tests.TestBuildingDao();
-    
+    tests.TestAll();
+
     //Work Group specifications
     /*WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
     WorkGroup::InitAllGroups();

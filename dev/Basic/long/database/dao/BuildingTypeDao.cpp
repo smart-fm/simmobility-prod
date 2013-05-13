@@ -1,7 +1,7 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   IndividualDao.cpp
+ * File:   BuildingTypeDao.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
  * Created on May 7, 2013, 3:59 PM

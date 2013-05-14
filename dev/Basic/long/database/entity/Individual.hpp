@@ -121,7 +121,7 @@ namespace sim_mob {
             Individual& operator=(const Individual& source);
 
             /**
-             * Operator to print the Household data.  
+             * Operator to print the Individual data.  
              */
             friend ostream& operator<<(ostream& strm, const Individual& data) {
                 return strm << "{"

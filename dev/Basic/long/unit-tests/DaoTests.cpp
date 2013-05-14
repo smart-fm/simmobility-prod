@@ -13,6 +13,7 @@
 #include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/LandUseTypeDao.hpp"
+#include "database/dao/GenericLandUseTypeDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -52,4 +53,5 @@ void DaoTests::TestAll() {
     TestDao<BuildingTypeDao, BuildingType>();
     TestDao<BuildingDao, Building>();
     TestDao<LandUseTypeDao, LandUseType>();
+    TestDao<GenericLandUseTypeDao, GenericLandUseType>();
 }

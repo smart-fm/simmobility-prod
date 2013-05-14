@@ -963,13 +963,14 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		}
 	}
 
-	if(boarding_frames.empty() && alighting_frames.empty()) {// no one boarding and alighting
+	// no one boarding and alighting
+	if(boarding_frames.empty() && alighting_frames.empty()) {
 		resetBoardingAlightingVariables();// allow_boarding_alighting_flag = false
 		return;
 	}
 	last_frame = (last_boarding_frame > last_alighting_frame) ? last_boarding_frame : last_alighting_frame;// determine the last frame, may be boarding frame or alighting frame
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_frame - first_frame) / 10.0 + 0.1f);// set the dwelltime for output, some precision corrected
-	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this loop to check
+	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this whole loop to check
 }
 
 void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)

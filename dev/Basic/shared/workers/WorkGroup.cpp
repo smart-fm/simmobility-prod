@@ -733,8 +733,15 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	if(path.size() > 0) {
 		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
 		 // you will get into.
-		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-			rdSeg = path.at(1).roadSegment_;
+		if (role == "busdriver") {
+			if(path[0].type_ == WayPoint::ROAD_SEGMENT) {
+			rdSeg = path.at(0).roadSegment_;
+			}
+		}
+		else {
+			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+				rdSeg = path.at(1).roadSegment_;
+			}
 		}
 	}
 

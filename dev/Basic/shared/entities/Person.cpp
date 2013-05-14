@@ -166,8 +166,8 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
-		if (this->originNode .node_|| this->destNode.node_) {
-			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+		if (this->originNode.node_ || this->destNode.node_ ) {
+			throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.

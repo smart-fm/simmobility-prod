@@ -34,6 +34,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -105,7 +106,8 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	if (vehicle && vehicle->hasPath() && laneInfinity !=nullptr) {
 		//at start vehicle will be in lane infinity. set origin will move it to the correct lane
 		if (parentAgent->getCurrLane() == laneInfinity){ //for now
-			setOrigin(parentDriver->params);
+			//setOrigin(parentDriver->params);
+			setOrigin(p2);
 		}
 	} else {
 		LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
@@ -494,7 +496,7 @@ bool DriverMovement::moveInSegment(DriverUpdateParams& p2, double distance) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				Print()<<(DebugStream.str());
 			}
 		}
 
@@ -786,7 +788,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
-		std::cout<<"setorigin prevLink>0 driver:"<< parentAgent->getId()<<" | "<<vehicle->getCurrSegment()->getLink()->getStart()
+		Print()<<"setorigin prevLink>0 driver:"<< parentAgent->getId()<<" | "<<vehicle->getCurrSegment()->getLink()->getStart()
 				->getID()<<std::endl;
 		parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
 
@@ -807,7 +809,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	{
 		p.elapsedSeconds = p.secondsInTick;
 		setParentData(p);
-		SyncCout("Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl);
+		Print()<<"Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl;
 	}
 }
 
@@ -908,7 +910,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	}
 
 	if( !minQueueLengthLane){
-		SyncCout("ERROR: best target lane was not set!" <<std::endl);
+		Print()<<"ERROR: best target lane was not set!" <<std::endl;
 	}
 	return minQueueLengthLane;
 }

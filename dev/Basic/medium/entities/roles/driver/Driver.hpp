@@ -8,7 +8,6 @@
 #include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
@@ -113,7 +112,7 @@ public:
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
-private:
+protected:
 	//const Lane* nextLaneInNextLink; //to be removed-no longer needed for mid-term
 	const Lane* nextLaneInNextSegment;
 	Vehicle* vehicle;
@@ -123,7 +122,6 @@ private:
 	NodePoint origin;
 	NodePoint goal;
 
-protected:
 	friend class DriverBehavior;
 	friend class DriverMovement;
 };

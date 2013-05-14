@@ -34,7 +34,7 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
-private:
+protected:
 	sim_mob::medium::Driver* parentDriver;
 
 };
@@ -70,7 +70,7 @@ public:
 	double getLastAccept(const Lane* l);
 	void setLastAccept(const Lane* l, double lastAccept);
 	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
-	Vehicle* initializePath(bool allocateVehicle);
+	virtual Vehicle* initializePath(bool allocateVehicle);
 	void setOrigin(DriverUpdateParams& p);
 
 	sim_mob::medium::Driver* getParentDriver() const {
@@ -81,7 +81,7 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
-private:
+protected:
 	sim_mob::medium::Driver* parentDriver;
 	Vehicle* vehicle;
 	const Lane* currLane;

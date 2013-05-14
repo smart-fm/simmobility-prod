@@ -814,9 +814,6 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 {
 	uint32_t curr_frame = params.now.frame();
-	if(curr_frame == 16357) {
-		std::cout <<"haha " << std::endl;
-	}
 	int i = 0;
 	int j = 0;
 	int boardingNum = 0;
@@ -860,7 +857,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p) {
 				boarding_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
 				accumulated_boarding_frame += (p->getBoardingCharacteristics()*10);
-				if(boarding_frame % 50 == 0) {// deal with a special case for busstopAgent
+				if(boarding_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
 					boarding_frame++;// delay one frame tick, doesnt matter(100ms)
 					accumulated_boarding_frame++;// advance also
 				}
@@ -883,7 +880,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p && passenger) {
 				alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
 				accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-				if(alighting_frame % 50 == 0) {// deal with a special case
+				if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
 					alighting_frame++;// delay one frame tick, doesnt matter(100ms)
 					accumulated_alighted_frame++;// advance also
 				}
@@ -916,7 +913,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p && passenger) {
 				alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
 				accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-				if(alighting_frame % 50 == 0) {// deal with a special case
+				if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
 					alighting_frame++;// delay one frame tick, doesnt matter(100ms)
 					accumulated_alighted_frame++;// advance also
 				}
@@ -948,7 +945,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p) {
 				boarding_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
 				accumulated_boarding_frame += (p->getBoardingCharacteristics()*10);
-				if(boarding_frame % 50 == 0) {// deal with a special case
+				if(boarding_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
 					boarding_frame++;// delay one frame tick, doesnt matter(100ms)
 					accumulated_boarding_frame++;// advance also
 				}
@@ -970,7 +967,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		resetBoardingAlightingVariables();// allow_boarding_alighting_flag = false
 		return;
 	}
-	last_frame = (last_boarding_frame > last_alighting_frame) ? last_boarding_frame : last_alighting_frame;
+	last_frame = (last_boarding_frame > last_alighting_frame) ? last_boarding_frame : last_alighting_frame;// determine the last frame, may be boarding frame or alighting frame
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_frame - first_frame) / 10.0 + 0.1f);// set the dwelltime for output, some precision corrected
 	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this loop to check
 }

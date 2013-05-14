@@ -374,8 +374,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
-			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
-				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
+			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {
+				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// no additional holding time
 			} else {
 				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
 			}
@@ -391,7 +391,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 				<< std::endl;
 		waitAtStopMS = -1;
-		//BUS_STOP_WAIT_TIME = 2;// reset when leaving bus stop
 		resetBoardingAlightingVariables();// reset boarding alighting variables when leaving bus stop
 		vehicle->setAcceleration(busAccelerating(p) * 100);
 	}

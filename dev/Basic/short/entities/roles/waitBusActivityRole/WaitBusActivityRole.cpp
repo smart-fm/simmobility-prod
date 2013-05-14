@@ -52,7 +52,7 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 		parent->yPos.set(busStop_dest->yPos);
 	}
 	TimeOfReachingBusStop = p.now.ms();
-	buslineid = "7_2";// hardcoded now, later change
+	buslineid = "7_2";// hardcoded now, later change from AVL to choose the busline
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {

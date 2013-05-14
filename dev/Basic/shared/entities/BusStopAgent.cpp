@@ -89,7 +89,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		std::cout << "nearby_agents size: " << nearby_agents.size() << std::endl;
 		for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 		{
-			//Retrieve only Passenger agents.
+			//Retrieve only agents with WaitBusActivityRoles.
 		 	const Person* person = dynamic_cast<const Person *>(*it);
 		 	Person* p = const_cast<Person *>(person);
 		 	WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*>(p->getRole()) : nullptr;
@@ -98,7 +98,6 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		 			boarding_WaitBusActivities.push_back(waitbusactivityRole);
 		 			waitbusactivityRole->setRegisteredFlag(true);// set this person's role to be registered
 		 		}
-		 			//std::cout << "WaitBusActivity: " << waitbusactivity->getParent()->getId() << std::endl;
 		 	}
 		}
 		if(!boarding_WaitBusActivities.empty())

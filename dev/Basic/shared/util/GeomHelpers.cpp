@@ -97,14 +97,14 @@ Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::Dyn
 
 	//We can also test that this point is actually between the start and end. I'm not sure if the
 	// dot product approach above guarantees this or not.
-	if ((dist(res.getX(), res.getY(), line.getX(), line.getY()) > line.getMagnitude()) ||
-		(dist(res.getX(), res.getY(), line.getEndX(), line.getEndY()) > line.getMagnitude())) {
-		std::stringstream msg;
-		msg <<"Cannot determine the normal intersection: point is too far outside the line.";
-		msg <<"\n  Point: " <<pt;
-		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
-		throw std::runtime_error(msg.str().c_str());
-	}
+//	if ((dist(res.getX(), res.getY(), line.getX(), line.getY()) > line.getMagnitude()) ||
+//		(dist(res.getX(), res.getY(), line.getEndX(), line.getEndY()) > line.getMagnitude())) {
+//		std::stringstream msg;
+//		msg <<"Cannot determine the normal intersection: point is too far outside the line.";
+//		msg <<"\n  Point: " <<pt;
+//		msg <<"\n  Line: (" <<line.getX() <<"," <<line.getY() <<") => (" <<line.getEndX() <<"," <<line.getEndY() <<")";
+//		throw std::runtime_error(msg.str().c_str());
+//	}
 
 	return res;
 }

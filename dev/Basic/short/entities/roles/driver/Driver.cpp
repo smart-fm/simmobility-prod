@@ -324,9 +324,9 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	/*if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
-	}
+	}*/
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 

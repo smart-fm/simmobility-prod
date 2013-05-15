@@ -236,7 +236,7 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
-		currRole->Behavior()->frame_init(*curr_params);
+		currRole->Movement()->frame_init(*curr_params);
 	}
 
 	return true;
@@ -253,7 +253,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->Behavior()->frame_tick(*curr_params);
+		currRole->Movement()->frame_tick(*curr_params);
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -292,7 +292,7 @@ void sim_mob::Person::frame_output(timeslice now)
 {
 	//Save the output
 	if (!isToBeRemoved()) {
-		currRole->Behavior()->frame_tick_output(*curr_params);
+		currRole->Movement()->frame_tick_output(*curr_params);
 	}
 
 	//TODO: Still risky.

@@ -632,7 +632,7 @@ void LaneStats::sortPersons_DecreasingRemTime() {
 	if(isLaneInfinity()) {
 		//ordering is required only if we have more than 1 person in the deque
 		if(laneAgents.size() > 1) {
-			debugMsgs << "Before sorting";
+			debugMsgs << "Before sorting | size: "<<laneAgents.size()<<" -> ";
 			printAgents();
 			std::sort(laneAgents.begin(), laneAgents.end(), cmp_person_remainingTimeThisTick_obj);
 			debugMsgs << "After sorting";
@@ -669,7 +669,7 @@ void LaneStats::verifyOrdering() {
 }
 
 bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x,const Person* y) const {
-	if ((!x) || (!y)) {
+	if (( !x) || ( !y)) {
 		std::stringstream debugMsgs;
 		debugMsgs << "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
 				<< "|x: "<< (x? x->getId() : 0) << "|y: "<< (y? y->getId() : 0);

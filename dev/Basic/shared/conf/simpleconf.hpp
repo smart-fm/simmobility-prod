@@ -39,6 +39,7 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
+#include "workers/WorkGroup.hpp"
 
 #include "network/CommunicationDataManager.hpp"
 #include "network/CommunicationManager.hpp"
@@ -115,6 +116,8 @@ public:
 	int percent_alighting;
 //	PassengerDist* passengerDist_alighting;
 
+	//Defautl assignment strategy for Workgroups.
+	WorkGroup::ASSIGNMENT_STRATEGY defaultWrkGrpAssignment;
 
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
@@ -291,7 +294,8 @@ private:
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr)
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
 	{}
 
 	static ConfigParams instance;

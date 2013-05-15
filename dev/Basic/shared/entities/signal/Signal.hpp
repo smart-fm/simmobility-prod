@@ -102,7 +102,7 @@ public:
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
    virtual void load(const std::map<std::string, std::string>&) {}
-   virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
+   //virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
@@ -128,6 +128,7 @@ class Signal_SCATS  : public sim_mob::Signal {
 	friend class sim_mob::xml::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
+void *tempLoop;
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/

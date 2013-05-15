@@ -148,6 +148,11 @@ void sim_mob::Worker::interrupt()
 	}
 }
 
+int sim_mob::Worker::getAgentSize(bool includeToBeAdded) 
+{ 
+	return managedEntities.size() + (includeToBeAdded?toBeAdded.size():0);
+}
+
 
 void sim_mob::Worker::addPendingEntities()
 {
@@ -402,7 +407,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<std::endl);
+		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
 	}
 }
 
@@ -467,6 +472,33 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		(*it)->reportLinkTravelTimes(currTime);
 		(*it)->resetSegmentFlows();
 		(*it)->resetLinkTravelTimes(currTime);
+	}
+
+
+	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+
+		Conflux* ag = dynamic_cast<Conflux*>(*it);
+		if( ag != nullptr )
+			continue;
+
+		UpdateStatus res = (*it)->update(currTime);
+		if (res.status == UpdateStatus::RS_DONE) {
+			//This Entity is done; schedule for deletion.
+			scheduleForRemoval(*it);
+
+			//xuyan:it can be removed from Sim-Tree
+			(*it)->can_remove_by_RTREE = true;
+		} else if (res.status == UpdateStatus::RS_CONTINUE) {
+			//Still going, but we may have properties to start/stop managing
+			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+				stopManaging(*it);
+			}
+			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+				beginManaging(*it);
+			}
+		} else {
+			throw std::runtime_error("Unknown/unexpected update() return status.");
+		}
 	}
 
 #endif

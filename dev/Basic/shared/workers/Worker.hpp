@@ -87,7 +87,7 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	int getAgentSize() { return managedEntities.size(); }
+	int getAgentSize(bool includeToBeAdded=false);
 
 protected:
 	virtual void perform_main(timeslice currTime);

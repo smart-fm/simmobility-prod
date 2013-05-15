@@ -22,6 +22,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
@@ -193,7 +194,8 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+	//if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {{
+	if(1){
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);
@@ -217,7 +219,8 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		std::cout << "id of tripchain item in this iteration is " << it_map->first << std::endl;
 		TripChainItem* tc = it_map->second.front();
 
 		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
@@ -602,13 +605,13 @@ void PrintDB_Network()
 
 	//Initial message
 	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOutNotSync("Printing node network" <<endl);
-	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
+	LogOut("Printing node network" <<endl);
+	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
 	//Print some properties of the simulation itself
-	LogOutNotSync("(\"simulation\", 0, 0, {");
-	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOutNotSync("})" <<endl);
+	LogOut("(\"simulation\", 0, 0, {");
+	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
+	LogOut("})" <<endl);
 
 
 	sim_mob::Signal::all_signals_const_Iterator it;
@@ -619,19 +622,19 @@ void PrintDB_Network()
 #endif
 	//Print the Signal representation.
 	{
-		LogOutNotSync((*it)->toString() <<endl);
+		LogOut((*it)->toString() <<endl);
 	}
 
 
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"uni-node\", 0, " <<*it <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
@@ -640,13 +643,13 @@ void PrintDB_Network()
 		}
 	}
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"multi-node\", 0, " <<*it <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -671,21 +674,21 @@ void PrintDB_Network()
 
 	//Links can go next.
 	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOutNotSync("(\"link\", 0, " <<*it <<", {");
-		LogOutNotSync("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
-		LogOutNotSync("\"fwd-path\":\"[");
+		LogOut("(\"link\", 0, " <<*it <<", {");
+		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
+		LogOut("\"start-node\":\"" <<(*it)->getStart() <<"\",");
+		LogOut("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
+		LogOut("\"fwd-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOutNotSync(*segIt <<",");
+			LogOut(*segIt <<",");
 		}
-		LogOutNotSync("]\",");
-/*		LogOutNotSync("\"rev-path\":\"[");
+		LogOut("]\",");
+/*		LogOut("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOutNotSync(*segIt <<",");
+			LogOut(*segIt <<",");
 		}
-		LogOutNotSync("]\",");*/
-		LogOutNotSync("})" <<endl);
+		LogOut("]\",");*/
+		LogOut("})" <<endl);
 	}
 
 
@@ -695,26 +698,26 @@ void PrintDB_Network()
 	std::set<const Crossing*> cachedCrossings;
 	std::set<const BusStop*> cachedBusStops;
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
-		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
-		LogOutNotSync("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		LogOut("(\"road-segment\", 0, " <<*it <<", {");
+		LogOut("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
+		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
+		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
+		LogOut("\"from-node\":\"" <<(*it)->getStart() <<"\",");
+		LogOut("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
-			LogOutNotSync("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
-			LogOutNotSync("\"parent-segment\":\"" <<*it <<"\",");
-			LogOutNotSync("\"points\":\"[");
+			LogOut("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
+			LogOut("\"parent-segment\":\"" <<*it <<"\",");
+			LogOut("\"points\":\"[");
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOutNotSync("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
+				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
 			}
-			LogOutNotSync("]\",");
-			LogOutNotSync("})" <<endl);
+			LogOut("]\",");
+			LogOut("})" <<endl);
 		}
 
 		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
@@ -758,22 +761,22 @@ void PrintDB_Network()
 
 		}
 		laneBuffer <<"})" <<endl;
-		LogOutNotSync(laneBuffer.str());
+		LogOut(laneBuffer.str());
 	}
 
 	//Crossings are part of Segments
 	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOutNotSync("(\"crossing\", 0, " <<*it <<", {");
-		LogOutNotSync("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOutNotSync("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOutNotSync("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"crossing\", 0, " <<*it <<", {");
+		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
+		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
+		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
+		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
+		LogOut("})" <<endl);
 	}
 
 	//Bus Stops are part of Segments
 	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
+		LogOut("(\"busstop\", 0, " <<*it <<", {");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
@@ -792,11 +795,11 @@ void PrintDB_Network()
 		double x4d = x + diagonal_half * cos(phi - theta);
 		double y4d = y + diagonal_half * sin(phi - theta);
 
-		LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-		LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
+		LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+		LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+		LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+		LogOut("})" <<endl);
 	}
 
 
@@ -809,12 +812,12 @@ void PrintDB_Network()
 		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
 
 		//Output
-		LogOutNotSync("(\"lane-connector\", 0, " <<*it <<", {");
-		LogOutNotSync("\"from-segment\":\"" <<fromSeg <<"\",");
-		LogOutNotSync("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOutNotSync("\"to-segment\":\"" <<toSeg <<"\",");
-		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"lane-connector\", 0, " <<*it <<", {");
+		LogOut("\"from-segment\":\"" <<fromSeg <<"\",");
+		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
+		LogOut("\"to-segment\":\"" <<toSeg <<"\",");
+		LogOut("\"to-lane\":\"" <<toLane <<"\",");
+		LogOut("})" <<endl);
 	}
 
 	//Print the StreetDirectory graphs.
@@ -894,13 +897,13 @@ void PrintDB_Network_ptrBased()
 
 	//Initial message
 	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOutNotSync("Printing node network" <<endl);
-	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
+	LogOut("Printing node network" <<endl);
+	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
 	//Print some properties of the simulation itself
-	LogOutNotSync("(\"simulation\", 0, 0, {");
-	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOutNotSync("})" <<endl);
+	LogOut("(\"simulation\", 0, 0, {");
+	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
+	LogOut("})" <<endl);
 
 
 	sim_mob::Signal::all_signals_const_Iterator it;
@@ -911,19 +914,19 @@ void PrintDB_Network_ptrBased()
 #endif
 	//Print the Signal representation.
 	{
-		LogOutNotSync((*it)->toString() <<endl);
+		LogOut((*it)->toString() <<endl);
 	}
 
 
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"uni-node\", 0, " <<*it <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		//
 		if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -947,13 +950,13 @@ void PrintDB_Network_ptrBased()
 	}
 
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"multi-node\", 0, " <<*it <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -990,21 +993,21 @@ void PrintDB_Network_ptrBased()
 
 	//Links can go next.
 	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOutNotSync("(\"link\", 0, " <<*it <<", {");
-		LogOutNotSync("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
-		LogOutNotSync("\"fwd-path\":\"[");
+		LogOut("(\"link\", 0, " <<*it <<", {");
+		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
+		LogOut("\"start-node\":\"" <<(*it)->getStart() <<"\",");
+		LogOut("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
+		LogOut("\"fwd-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOutNotSync(*segIt <<",");
+			LogOut(*segIt <<",");
 		}
-		LogOutNotSync("]\",");
-/*		LogOutNotSync("\"rev-path\":\"[");
+		LogOut("]\",");
+/*		LogOut("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOutNotSync(*segIt <<",");
+			LogOut(*segIt <<",");
 		}
-		LogOutNotSync("]\",");*/
-		LogOutNotSync("})" <<endl);
+		LogOut("]\",");*/
+		LogOut("})" <<endl);
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1027,27 +1030,27 @@ void PrintDB_Network_ptrBased()
 	std::set<const Crossing*,Sorter> cachedCrossings;
 	std::set<const BusStop*,Sorter> cachedBusStops;
 		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
-		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
-		LogOutNotSync("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOutNotSync("\"width\":\"" <<(*it)->width <<"\",");
-		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		LogOut("(\"road-segment\", 0, " <<*it <<", {");
+		LogOut("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
+		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
+		LogOut("\"width\":\"" <<(*it)->width <<"\",");
+		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
+		LogOut("\"from-node\":\"" <<(*it)->getStart() <<"\",");
+		LogOut("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
-			LogOutNotSync("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
-			LogOutNotSync("\"parent-segment\":\"" <<*it <<"\",");
-			LogOutNotSync("\"points\":\"[");
+			LogOut("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
+			LogOut("\"parent-segment\":\"" <<*it <<"\",");
+			LogOut("\"points\":\"[");
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOutNotSync("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
+				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
 			}
-			LogOutNotSync("]\",");
-			LogOutNotSync("})" <<endl);
+			LogOut("]\",");
+			LogOut("})" <<endl);
 		}
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -1147,18 +1150,18 @@ void PrintDB_Network_ptrBased()
 		}
 
 		laneBuffer <<"})" <<endl;
-		LogOutNotSync(laneBuffer.str());
+		LogOut(laneBuffer.str());
 
 	}
 
 	//Crossings are part of Segments
 	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOutNotSync("(\"crossing\", 0, " <<*it <<", {");
-		LogOutNotSync("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOutNotSync("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOutNotSync("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"crossing\", 0, " <<*it <<", {");
+		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
+		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
+		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
+		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
+		LogOut("})" <<endl);
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1175,7 +1178,7 @@ void PrintDB_Network_ptrBased()
 
 	//Bus Stops are part of Segments
 	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
+		LogOut("(\"busstop\", 0, " <<*it <<", {");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
@@ -1194,11 +1197,11 @@ void PrintDB_Network_ptrBased()
 		double x4d = x + diagonal_half * cos(phi - theta);
 		double y4d = y + diagonal_half * sin(phi - theta);
 
-		LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-		LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-		LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-		LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
+		LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+		LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+		LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+		LogOut("})" <<endl);
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1223,12 +1226,12 @@ void PrintDB_Network_ptrBased()
 		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
 
 		//Output
-		LogOutNotSync("(\"lane-connector\", 0, " <<*it <<", {");
-		LogOutNotSync("\"from-segment\":\"" <<fromSeg <<"\",");
-		LogOutNotSync("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOutNotSync("\"to-segment\":\"" <<toSeg <<"\",");
-		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"lane-connector\", 0, " <<*it <<", {");
+		LogOut("\"from-segment\":\"" <<fromSeg <<"\",");
+		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
+		LogOut("\"to-segment\":\"" <<toSeg <<"\",");
+		LogOut("\"to-lane\":\"" <<toLane <<"\",");
+		LogOut("})" <<endl);
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1253,7 +1256,7 @@ void PrintDB_Network_ptrBased()
 	StreetDirectory::instance().printWalkingGraph();
 
 	//Required for the visualizer
-	LogOutNotSync("ROADNETWORK_DONE" <<endl);
+	LogOut("ROADNETWORK_DONE" <<endl);
 }
 
 
@@ -1272,22 +1275,22 @@ void PrintDB_Network_idBased()
 
 	//Initial message
 	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOutNotSync("Printing node network" <<endl);
-	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
+	LogOut("Printing node network" <<endl);
+	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
 	//Print some properties of the simulation itself
-	LogOutNotSync("(\"simulation\", 0, 0, {");
-	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOutNotSync("})" <<endl);
+	LogOut("(\"simulation\", 0, 0, {");
+	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
+	LogOut("})" <<endl);
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOutNotSync("(\"uni-node\", 0, " <<(*it)->getID() <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"uni-node\", 0, " <<(*it)->getID() <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		//Cache all segments
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
@@ -1297,13 +1300,13 @@ void PrintDB_Network_idBased()
 	}
 
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOutNotSync("(\"multi-node\", 0, " <<(*it)->getID() <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		LogOut("(\"multi-node\", 0, " <<(*it)->getID() <<", {");
+		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -1327,21 +1330,21 @@ void PrintDB_Network_idBased()
 
 	//Links can go next.
 	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOutNotSync("(\"link\", 0, " <<(*it)->getLinkId() <<", {");
-		LogOutNotSync("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOutNotSync("\"start-node\":\"" <<(*it)->getStart()->getID() <<"\",");
-		LogOutNotSync("\"end-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
-		LogOutNotSync("\"fwd-path\":\"[");
+		LogOut("(\"link\", 0, " <<(*it)->getLinkId() <<", {");
+		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
+		LogOut("\"start-node\":\"" <<(*it)->getStart()->getID() <<"\",");
+		LogOut("\"end-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
+		LogOut("\"fwd-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOutNotSync((*segIt)->getSegmentID() <<",");
+			LogOut((*segIt)->getSegmentID() <<",");
 		}
-		LogOutNotSync("]\",");
-/*		LogOutNotSync("\"rev-path\":\"[");
+		LogOut("]\",");
+/*		LogOut("\"rev-path\":\"[");
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOutNotSync((*segIt)->getSegmentID() <<",");
+			LogOut((*segIt)->getSegmentID() <<",");
 		}
-		LogOutNotSync("]\",");*/
-		LogOutNotSync("})" <<endl);
+		LogOut("]\",");*/
+		LogOut("})" <<endl);
 	}
 
 
@@ -1353,27 +1356,27 @@ void PrintDB_Network_idBased()
 	int i = 0;
 
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOutNotSync("(\"road-segment\", 0, " <<(*it)->getSegmentID() <<", {");
-		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink()->getLinkId() <<"\",");
-		LogOutNotSync("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOutNotSync("\"width\":\"" <<(*it)->width <<"\",");
-		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart()->getID() <<"\",");
-		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
+		LogOut("(\"road-segment\", 0, " <<(*it)->getSegmentID() <<", {");
+		LogOut("\"parent-link\":\"" <<(*it)->getLink()->getLinkId() <<"\",");
+		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
+		LogOut("\"width\":\"" <<(*it)->width <<"\",");
+		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
+		LogOut("\"from-node\":\"" <<(*it)->getStart()->getID() <<"\",");
+		LogOut("\"to-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+			LogOut((*it)->originalDB_ID.getLogItem());
 		}
-		LogOutNotSync("})" <<endl);
+		LogOut("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
-			LogOutNotSync("(\"polyline\", 0, " /*<<&((*it)->polyline)*/ <<", {");
-			LogOutNotSync("\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",");
-			LogOutNotSync("\"points\":\"[");
+			LogOut("(\"polyline\", 0, " /*<<&((*it)->polyline)*/ <<", {");
+			LogOut("\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",");
+			LogOut("\"points\":\"[");
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOutNotSync("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
+				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
 			}
-			LogOutNotSync("]\",");
-			LogOutNotSync("})" <<endl);
+			LogOut("]\",");
+			LogOut("})" <<endl);
 		}
 
 
@@ -1421,26 +1424,26 @@ void PrintDB_Network_idBased()
 			}
 		}
 		laneBuffer <<"})" <<endl;
-		LogOutNotSync(laneBuffer.str());
+		LogOut(laneBuffer.str());
 	}
 
 	//Crossings are part of Segments
 	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOutNotSync("(\"crossing\", 0, " <<(*it)->getRoadItemID() <<", {");
-		LogOutNotSync("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOutNotSync("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOutNotSync("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"crossing\", 0, " <<(*it)->getRoadItemID() <<", {");
+		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
+		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
+		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
+		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
+		LogOut("})" <<endl);
 	}
 
 	//Bus Stops are part of Segments
 		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
-			//LogOutNotSync("Surav's loop  is here!");
-		LogOutNotSync("(\"busstop\", 0, " <</*(*it) <<*/", {");
-		//	LogOutNotSync("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
-			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
-		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
+			//LogOut("Surav's loop  is here!");
+			LogOut("(\"busstop\", 0, " <</*(*it) <<*/", {");
+		//	LogOut("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
+			// LogOut("\"xPos\":\"" <<(*it)->xPos<<"\",");
+		//	LogOut("\"yPos\":\"" <<(*it)->yPos<<"\",");
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
@@ -1458,11 +1461,11 @@ void PrintDB_Network_idBased()
 							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
 							        		double x4d = x + diagonal_half*cos(phi-theta);
 							        		double y4d = y + diagonal_half*sin(phi-theta);
-			LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-			LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-			LogOutNotSync("})" <<endl);
+			LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
+			LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+			LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+			LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+			LogOut("})" <<endl);
 		}
 
 
@@ -1475,12 +1478,12 @@ void PrintDB_Network_idBased()
 		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
 
 		//Output
-		LogOutNotSync("(\"lane-connector\", 0, " /*<<(*it)*/ <<", {");
-		LogOutNotSync("\"from-segment\":\"" <<fromSeg->getSegmentID() <<"\",");
-		LogOutNotSync("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOutNotSync("\"to-segment\":\"" <<toSeg->getSegmentID() <<"\",");
-		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
-		LogOutNotSync("})" <<endl);
+		LogOut("(\"lane-connector\", 0, " /*<<(*it)*/ <<", {");
+		LogOut("\"from-segment\":\"" <<fromSeg->getSegmentID() <<"\",");
+		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
+		LogOut("\"to-segment\":\"" <<toSeg->getSegmentID() <<"\",");
+		LogOut("\"to-lane\":\"" <<toLane <<"\",");
+		LogOut("})" <<endl);
 	}
 
 }
@@ -1690,6 +1693,26 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+	//Save the WorkGroup assignment strategy
+	WorkGroup::ASSIGNMENT_STRATEGY wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
+	node = handle.FirstChild("workgroup_assignment").ToElement();
+	if(node) {
+		const char* valC = node->Attribute("value");
+		if (!valC) {
+			throw std::runtime_error("Workgroup assignment strategy requires a \"value\" tag.");
+		} else {
+			string val = string(valC);
+			if (val=="roundrobin") {
+				wg_assign_strat = WorkGroup::ASSIGN_ROUNDROBIN;
+			} else  if (val=="smallest") {
+				wg_assign_strat = WorkGroup::ASSIGN_SMALLEST;
+			} else {
+				throw std::runtime_error("Unknown workgroup assignment strategy type.");
+			}
+		}
+	}
+
+
 
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
@@ -1829,11 +1852,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
     if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
     if (totalRuntime%baseGran != 0) {
-    	std::cout <<"  Warning! Total Runtime will be truncated.\n";
+    	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
     if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
     if (totalWarmup%baseGran != 0) {
-    	std::cout <<"  Warning! Total Warmup will be truncated.\n";
+    	Warn() <<"Total warmup (" <<totalWarmup <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
 
     //Save params
@@ -1854,6 +1877,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     	//Save the Aura Manager implementation type.
     	config.aura_manager_impl = aura_mgr_impl;
+
+    	//Save the WorkGroup strategy.
+    	config.defaultWrkGrpAssignment = wg_assign_strat;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
@@ -2081,6 +2107,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+	//Print the WorkGroup strategy.
+	std::cout <<"WorkGroup assignment: ";
+	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
+		std::cout <<"roundrobin" <<std::endl;
+	} else if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_SMALLEST) {
+		std::cout <<"smallest" <<std::endl;
+	} else {
+		std::cout <<"<unknown>" <<std::endl;
+	}
     std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
@@ -2137,6 +2172,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //they should be handled with in the signal constructor, not here
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
+    }
+
+    if(BusStopAgent::HasBusStopAgents()) {
+    	BusStopAgent::PlaceAllBusStopAgents(active_agents);
     }
 
     std::vector<Signal*>& all_signals = Signal::all_signals_;

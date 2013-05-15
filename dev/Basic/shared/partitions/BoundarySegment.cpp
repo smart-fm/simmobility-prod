@@ -21,10 +21,10 @@ namespace {
 void outputLine(Point2D& start_p, Point2D& end_p, std::string color)
 {
 	static int line_id = 100;
-
+std::cout.operator <<(std::endl);
 	LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
 			<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
-			<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
+			<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" <<"\n");
 }
 } //End anonymous namespace
 

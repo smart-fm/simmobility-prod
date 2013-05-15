@@ -22,6 +22,7 @@
 #include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 //#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -34,6 +35,8 @@
 #include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "logging/Log.hpp"
+#include "entities/BusController.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -120,6 +123,20 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
 #ifdef SIMMOB_USE_CONFLUXES
 	std::cout << "Confluxes ON!" << std::endl;
 #endif
@@ -139,7 +156,9 @@ bool performMainMed(const std::string& configFileName) {
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
+
 
 	//No built-in models available to the medium term (yet).
 	Config::BuiltInModels builtIn;
@@ -150,7 +169,6 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
-
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -189,6 +207,10 @@ bool performMainMed(const std::string& configFileName) {
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		// agentWorkers->assignAWorker(*it);
 		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+	}
+
+	if(BusController::HasBusControllers()){
+		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too
@@ -245,7 +267,7 @@ bool performMainMed(const std::string& configFileName) {
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
-			SyncCout(msg.str());
+			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
@@ -426,6 +448,7 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
+
 	return returnVal;
 }
 

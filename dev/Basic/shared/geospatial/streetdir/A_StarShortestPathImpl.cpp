@@ -504,7 +504,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 			//Did we find anything?
 			if ((minDist<0) || error) {
 				//For now it's not an error.
-				std::cout <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
+				Warn() <<"Warning: BusStop on WalkingPath could not find any candidate Lanes." <<std::endl;
 				continue;
 			}
 
@@ -982,7 +982,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 			const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
 			if (!atNode) {
 				//TODO: We have a UniNode with a crossing; we should really add this later.
-				std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
+				Warn() <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
 				continue;
 			}
 
@@ -1477,7 +1477,7 @@ void sim_mob::A_StarShortestPathImpl::printWalkingGraph() const
 void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
 	//Print an identifier
-	LogOutNotSync("(\"sd-graph\""
+	LogOut("(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
@@ -1492,7 +1492,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
     	const Point2D pt = boost::get(boost::vertex_name, graph, v);
-    	LogOutNotSync("(\"sd-vertex\""
+    	LogOut("(\"sd-vertex\""
     		<<","<<0
     		<<","<<v
     		<<",{"
@@ -1513,7 +1513,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     	StreetDirectory::Edge ed = *iter;
     	StreetDirectory::Vertex srcV = boost::source(ed, graph);
     	StreetDirectory::Vertex destV = boost::target(ed, graph);
-    	LogOutNotSync("(\"sd-edge\""
+    	LogOut("(\"sd-edge\""
     		<<","<<0
     		<<","<<id++
     		<<",{"

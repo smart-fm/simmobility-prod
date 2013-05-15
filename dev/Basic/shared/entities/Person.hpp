@@ -36,6 +36,7 @@ class UnPackageUtils;
  * \author Li Zhemin
  * \author Xu Yan
  * \author Harish Loganathan
+ * \author zhang huai peng
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -63,6 +64,17 @@ public:
 
     ///Update a Person's subscription list.
     virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
+    //interfaces dynamically to modify the trip chain
+    bool insertATripChainItem(TripChainItem* before, TripChainItem* newone);
+    bool deleteATripChainItem(TripChainItem* del);
+    bool replaceATripChainItem(TripChainItem* rep, TripChainItem* newone);
+
+    bool insertTripBeforeCurrentTrip(Trip* newone);
+    bool insertSubTripBeforeCurrentSubTrip(SubTrip* newone);
+
+    //modify trip chain so that a new item is inserted between walk and bus travel mode
+    void simplyModifyTripChain(std::vector<TripChainItem*>& tripChain);
 
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
@@ -115,12 +127,11 @@ public:
 	}
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
-    std::vector<SubTrip>::const_iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+
+    std::vector<SubTrip>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+
     const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
     bool canMoveToNextSegment;
-
-    //Used by confluxes purely for ordering.
-    double remainingTimeAtIntersection;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -139,7 +150,7 @@ private:
 
 	bool advanceCurrentTripChainItem();
 	bool advanceCurrentSubTrip();
-	std::vector<sim_mob::SubTrip>::const_iterator resetCurrSubTrip();
+	std::vector<sim_mob::SubTrip>::iterator resetCurrSubTrip();
 
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.

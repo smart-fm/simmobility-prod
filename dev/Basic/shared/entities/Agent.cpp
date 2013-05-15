@@ -96,7 +96,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat), call_frame_init(true),
-	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
+	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
 {
@@ -218,8 +218,14 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
 			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			msg <<"\n  From node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n  To node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+			if(originNode.type_ == WayPoint::NODE)
+			{
+				msg <<"\n  From node: " <<(originNode.node_?originNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+			}
+			if(destNode.type_ == WayPoint::NODE )
+			{
+				msg <<"\n  To node: " <<(destNode.node_?destNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+			}
 			msg <<"\n  " <<ex.what();
 			LogOut(msg.str() <<std::endl);
 		}

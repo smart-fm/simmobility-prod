@@ -60,6 +60,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  * \author LIM Fung Chai
  * \author Wang Xinyuan
  * \author Xu Yan
+ * \author zhang huai peng
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
@@ -173,8 +174,8 @@ private:
 
 public:
 	//The agent's start/end nodes.
-	const Node* originNode;
-	const Node* destNode;
+	WayPoint originNode;
+	WayPoint destNode;
 
 //	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y

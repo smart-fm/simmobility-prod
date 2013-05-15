@@ -40,6 +40,34 @@ using std::vector;
 using namespace sim_mob;
 
 
+Point2D WayPoint::location()
+{
+	Point2D pnt(0,0);
+	if(type_ == NODE )
+	{
+		pnt = node_->location;
+	}
+	else if(type_ == BUS_STOP )
+	{
+		pnt = Point2D(busStop_->xPos, busStop_->yPos );
+	}
+	return pnt;
+}
+
+int WayPoint::getID()
+{
+	int id = -1;
+	if(type_==NODE )
+	{
+		id = node_->getID();
+	}
+	else if(type_==BUS_STOP)
+	{
+		id = busStop_->id;
+	}
+	return id;
+}
+
 StreetDirectory sim_mob::StreetDirectory::instance_;
 
 

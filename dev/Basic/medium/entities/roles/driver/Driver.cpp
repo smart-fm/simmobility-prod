@@ -107,4 +107,3 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 	elapsedSeconds = 0.0;
 
 }
-

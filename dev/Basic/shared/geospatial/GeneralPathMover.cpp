@@ -14,6 +14,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
@@ -440,7 +441,7 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 			{
 				//TEMP: Re-enable later.
 				DebugStream << "Path is DONE." << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -475,7 +476,7 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 				if (!DebugStream.str().empty())
 				{
 					DebugStream << "EXCEPTION: " << msg << endl;
-					SyncCout(DebugStream.str());
+					PrintOut(DebugStream.str());
 					DebugStream.str("");
 				}
 			}

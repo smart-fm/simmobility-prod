@@ -546,7 +546,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 		if (Debug::Drivers && !DebugStream.str().empty()) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 				DebugStream.str("");
 			}
 		}
@@ -1123,7 +1123,7 @@ void sim_mob::Driver::initLoopSpecialString(vector<WayPoint>& path, const string
 		throw std::runtime_error("Bad \"loop\" special string.");
 	}
 	//Repeat this path X times.
-	vector<WayPoint> part = LoadSpecialPath(parent->originNode, value[1]);
+	vector<WayPoint> part = LoadSpecialPath(parent->originNode.node_, value[1]);
 
 	size_t ind = value.find(':', 1);
 	if (ind != string::npos && ++ind < value.length()) {
@@ -1188,9 +1188,9 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()) {
 		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode;
+		origin.node = parent->originNode.node_;
 		origin.point = origin.node->location;
-		goal.node = parent->destNode;
+		goal.node = parent->destNode.node_;
 		goal.point = goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
@@ -1248,9 +1248,9 @@ void sim_mob::Driver::initializePathMed() {
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode;
+		origin.node = parent->originNode.node_;
 		origin.point = origin.node->location;
-		goal.node = parent->destNode;
+		goal.node = parent->destNode.node_;
 		goal.point = goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
@@ -1386,7 +1386,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		if (Debug::Drivers) {
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
-				SyncCout(DebugStream.str());
+				PrintOut(DebugStream.str());
 			}
 		}
 
@@ -1956,7 +1956,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 				if (Debug::Drivers) {
 					if (ConfigParams::GetInstance().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
-						SyncCout(DebugStream.str());
+						PrintOut(DebugStream.str());
 					}
 				}
 

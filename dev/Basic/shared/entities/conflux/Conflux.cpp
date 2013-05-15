@@ -9,10 +9,12 @@
 #include<map>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
 #include "Conflux.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include <algorithm>
+#include "logging/Log.hpp"
+
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -124,6 +126,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
 		killAgent(person, segBeforeUpdate, laneBeforeUpdate);
+		Print()<<"kill agent: "<< person->getId()<<std::endl;
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -456,6 +459,10 @@ void sim_mob::Conflux::setTravelTimes(Person* ag, double linkExitTime) {
 
 bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	//Agents may be created with a null Role and a valid trip chain
+	Print()<<"calling frame_init for Person: "<<person->getId()<<std::endl;
+	if (person->getId()==167){
+		Print()<<"Person "<<person->getId()<<" found in call_movement_frame_init"<<std::endl;
+	}
 	if (!person->getRole()) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?

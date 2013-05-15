@@ -12,6 +12,7 @@
 #include "Conflux.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include <algorithm>
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -66,7 +67,6 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
-	resetOutputBounds();
 	resetPositionOfLastUpdatedAgentOnLanes();
 	//resetSegmentFlows();
 
@@ -88,6 +88,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	//updateSupplyStats(frameNumber);
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
+	resetOutputBounds(); //For use by other confluxes in the next tick
 	lastUpdatedFrame = frameNumber.frame();
 	return retVal;
 }
@@ -226,11 +227,32 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 void sim_mob::Conflux::resetOutputBounds() {
 	outputBounds.clear();
 	const sim_mob::RoadSegment* firstSeg = nullptr;
+	sim_mob::SegmentStats* segStats = nullptr;
 	unsigned int outputEstimate = 0;
-	for(std::vector<sim_mob::Link*>::iterator i = downstreamLinks.begin(); i!=downstreamLinks.end(); i++) {
-		firstSeg = *((*i)->getSegments().begin());
-		outputEstimate = findSegStats(firstSeg)->computeExpectedOutputPerTick();
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
+		firstSeg = *(i->second.begin());
+		segStats = findSegStats(firstSeg);
+		outputEstimate = segStats->computeExpectedOutputPerTick();
+		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputBounds.insert(std::make_pair(firstSeg, outputEstimate));
+	}
+}
+
+bool sim_mob::Conflux::hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg) {
+	return (outputBounds.at(rdSeg) > 0);
+}
+
+void sim_mob::Conflux::decrementBound(const sim_mob::RoadSegment* rdSeg) {
+	try {
+		if(outputBounds.at(rdSeg)) {
+			unsigned int bound = outputBounds.at(rdSeg);
+			bound = (bound > 0)? bound-1 : 0;
+			outputBounds[rdSeg] = bound;
+		}
+	}
+	catch(std::exception& e) {
+		debugMsgs << "decrementBound() called for segment " << rdSeg->getStartEnd() << " from invalid conflux " << multiNode->getID();
+		throw std::runtime_error(debugMsgs.str());
 	}
 }
 
@@ -542,6 +564,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 		if(person->requestedNextSegment){
 			Conflux* nxtConflux = person->requestedNextSegment->getParentConflux();
 			SegmentStats* nxtSegStats = findSegStats(person->requestedNextSegment);
+
 			debugMsgs << "nxtConflux:" << nxtConflux->getMultiNode()->getID()
 					<< "|lastUpdatedFrame:" << nxtConflux->lastUpdatedFrame
 					<< "|currFrame:" << now.frame()
@@ -553,10 +576,15 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			person->canMoveToNextSegment = true; // grant permission. But check whether the subsequent frame_tick can be called now.
 			if(now.frame() > nxtConflux->lastUpdatedFrame) {
 				// nxtConflux is not processed for the current tick yet
-				person->setCurrSegment(person->requestedNextSegment);
-				person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the lane infinity of nxtSegStats
-				person->requestedNextSegment = nullptr;
-				break; //break off from loop
+				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment)) {
+					person->setCurrSegment(person->requestedNextSegment);
+					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the lane infinity of nxtSegStats
+					person->requestedNextSegment = nullptr;
+					break; //break off from loop
+				}
+				else {
+					person->canMoveToNextSegment = false;
+				}
 			}
 			else if(now.frame() == nxtConflux->lastUpdatedFrame) {
 				// nxtConflux is processed for the current tick. Can move to the next link.

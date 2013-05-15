@@ -152,8 +152,14 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	if(parentAgent->canMoveToNextSegment) {
 		flowIntoNextLinkIfPossible(p2);
 	}
+	else {
+		if(currLane) {
+			addToQueue(currLane); // adds to queue if not already in queue
+			p2.elapsedSeconds = p2.secondsInTick;
+		}
+	}
 
-	if (parentAgent->getCurrLane() != laneInfinity && !parentAgent->canMoveToNextSegment)
+	if (currLane && !parentAgent->canMoveToNextSegment)
 	{
 		advance(p2);
 		//Update parent data. Only works if we're not "done" for a bad reason.
@@ -177,7 +183,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<","<<p.now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<< (parentAgent->getCurrSegment()->getSegmentID())
-			<<"\",\"Lane\":\""<<(parentAgent->getCurrLane()->getLaneID())
+			<<"\",\"Lane\":\""<<((parentAgent->getCurrLane())? parentAgent->getCurrLane()->getLaneID():0)
 			<<"\",\"UpNode\":\""<<(parentAgent->getCurrSegment()->getStart()->getID())
 			<<"\",\"DistanceToEndSeg\":\""<<parentAgent->distanceToEndOfSegment;
 	if (this->parentAgent->isQueuing) {
@@ -407,7 +413,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		setParentData(p);
 		parentAgent->canMoveToNextSegment = false;
 	}
-	else{
+	else {
 		DebugStream<<"flowIntoNextLinkIfPossible | canGoTo failed for person " << parentAgent->getId() <<std::endl;
 		DebugStream<< parentAgent->getId() << "ms to lane "<< currLane->getLaneID()
 						<<" in RdSeg ["<< nextRdSeg->getStart()->getID() <<"," << nextRdSeg->getEnd()->getID() <<"]"
@@ -445,7 +451,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		}
 		laneIt++;
 	}
-	DebugStream << "Frame: " << p.now.frame()
+	/*DebugStream << "Frame: " << p.now.frame()
 				<< "| nextRdSeg: ["<<nextRdSeg->getStart()->getID()<<","<<nextRdSeg->getEnd()->getID()<<"]"
 				<<" | queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
 				<<" | movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
@@ -453,10 +459,13 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 				<<" | physical cap: " << vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length - total
 				<<" | length: " << nextRdSeg->computeLaneZeroLength()
 				<<" | empty space: "<< (vehLaneCount * nextRdSeg->computeLaneZeroLength())-(total*vehicle->length)
-				<<std::endl;
+				<<std::endl;*/
 
 		double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
-		DebugStream << "Person: " << parentAgent->getId() << "|canGoToNextRdSeg| total " << total << "| max_allowed " << max_allowed << std::endl;
+		DebugStream << "canGoToNextRdSeg|Person: " << parentAgent->getId()
+				<< "|total: " << total
+				<< "|max_allowed: " << max_allowed
+				<< "|total < max_allowed: " << (total < max_allowed) << std::endl;
 
 		std::cout << DebugStream.str();
 		DebugStream.str("");
@@ -471,9 +480,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 void DriverMovement::moveInQueue() {
 	//1.update position in queue (vehicle->setPosition(distInQueue))
 	//2.update p.timeThisTick
-	double positionOfLastUpdatedAgentInLane = 0.0;
-
-	parentAgent->getCurrSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(parentAgent->getCurrLane());
+	double positionOfLastUpdatedAgentInLane = parentAgent->getCurrSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(parentAgent->getCurrLane());
 
 	if(positionOfLastUpdatedAgentInLane == -1.0)
 	{
@@ -837,21 +844,38 @@ void DriverMovement::addToQueue(const Lane* lane) {
 	/* 1. set position to queue length in front
 	 * 2. set isQueuing = true
 	*/
-	vehicle->setPositionInSegment(getQueueLength(lane));
-
 	Person* parentP = dynamic_cast<Person*> (parentAgent);
 	if (parentP) {
-		vehicle->isQueuing = true;
-		parentP->isQueuing = vehicle->isQueuing;
+		if(!parentP->isQueuing) {
+			vehicle->setPositionInSegment(getQueueLength(lane));
+			vehicle->isQueuing = true;
+			parentP->isQueuing = vehicle->isQueuing;
+		}
+		else {
+			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parentP->getId()
+					<< "|RoadSegment: " << lane->getRoadSegment()->getStartEnd()
+					<< "|Lane: " << lane->getLaneID() << std::endl;
+			std::cout << DebugStream.str();
+			DebugStream.str("");
+		}
 	}
+
 }
 
 void DriverMovement::removeFromQueue() {
-
 	Person* parentP = dynamic_cast<Person*> (parentAgent);
 	if (parentP) {
-		parentP->isQueuing = false;
-		vehicle->isQueuing = false;
+		if(parentP->isQueuing) {
+			parentP->isQueuing = false;
+			vehicle->isQueuing = false;
+		}
+		else {
+			DebugStream << "removeFromQueue() was called for a driver who is not in queue. Person: " << parentP->getId()
+					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
+					<< "|Lane: " << currLane->getLaneID() << std::endl;
+			std::cout << DebugStream.str();
+			DebugStream.str("");
+		}
 	}
 }
 

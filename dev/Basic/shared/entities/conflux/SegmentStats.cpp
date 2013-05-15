@@ -348,10 +348,8 @@ namespace sim_mob {
 	}
 
 	void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p) {
-		if(p->isQueuing)
-			queueCount++;
-		else
-			queueCount--;
+		if(p->isQueuing) { queueCount++; }
+		else { queueCount--; }
 	}
 
 	void sim_mob::LaneStats::removePerson(sim_mob::Person* p) {
@@ -678,7 +676,7 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x,cons
 		throw std::runtime_error(debugMsgs.str());
 	}
 	//We want remaining time in this tick to translate into a higher priority.
-	return (x->getRemainingTimeThisTick() >= y->getRemainingTimeThisTick());
+	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
 }
 
 }// end of namespace sim_mob

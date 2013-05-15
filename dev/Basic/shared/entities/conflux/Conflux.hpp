@@ -51,13 +51,13 @@ private:
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
+	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
+	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
+
 	/* segments on downstream links
 	 * These links conceptually belong to the adjacent confluxes.
 	 */
-	std::vector<sim_mob::Link*> downstreamLinks;
-
-	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
-	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
+	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/* Map to store the vehicle counts of each road segment on this conflux */
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
@@ -119,6 +119,14 @@ private:
 
 	void resetOutputBounds();
 
+	void decrementBound(const sim_mob::RoadSegment* rdSeg);
+
+	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
+protected:
+	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
+
 public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
@@ -133,14 +141,6 @@ public:
 	virtual void load(const std::map<std::string, std::string>&) {}
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
-	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
-protected:
-	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
-	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }
-
-public:
-
 	// Getters
 	const sim_mob::MultiNode* getMultiNode() const {
 		return multiNode;
@@ -148,6 +148,10 @@ public:
 
 	const sim_mob::Signal* getSignal() const {
 		return signal;
+	}
+
+	std::set<const sim_mob::RoadSegment*> getDownstreamSegments() {
+		return downstreamSegments;
 	}
 
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
@@ -161,6 +165,8 @@ public:
 	void setParentWorker(sim_mob::Worker* parentWorker) {
 		this->parentWorker = parentWorker;
 	}
+
+	bool hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg);
 
 	// adds the agent into this conflux
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);

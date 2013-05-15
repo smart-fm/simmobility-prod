@@ -1982,6 +1982,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				sim_mob::Link* lnk = (*segmt)->getLink();
 			//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
 				std::vector<sim_mob::RoadSegment*> upSegs;
+				std::vector<sim_mob::RoadSegment*> downSegs;
 
 				//If the Link in question *ends* at the Node we are considering for a Conflux.
 				if(lnk->getEnd() == (*i))
@@ -1997,7 +1998,10 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				{
 					//NOTE: There will *only* be downstream segments in this case.
 					//debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
-					conflux->downstreamLinks.push_back(lnk);
+					//upSegs = lnk->getRevSegments();
+					downSegs = lnk->getSegments();
+					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
 
 				// set conflux pointer to the segments and create SegmentStats for the segment

@@ -10,7 +10,7 @@
 
 namespace sim_mob {
 
-struct cmp_person_remainingTimeThisTick : public std::greater_equal<Person*> {
+struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
 

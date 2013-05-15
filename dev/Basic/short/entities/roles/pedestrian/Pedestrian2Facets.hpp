@@ -72,7 +72,7 @@ private:
 	double xVel;
 	double yVel;
 
-	const Signal* trafficSignal;
+	const Signal* trafficSignal;// later move this into Pedestrian2 if required by Behavior Facet
 	const Crossing* currCrossing;
 	int sigColor; //0-red, 1-yellow, 2-green
 

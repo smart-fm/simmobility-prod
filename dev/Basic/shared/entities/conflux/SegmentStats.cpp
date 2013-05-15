@@ -675,7 +675,7 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x,cons
 				<< "|x: "<< (x? x->getId() : 0) << "|y: "<< (y? y->getId() : 0);
 		throw std::runtime_error(debugMsgs.str());
 	}
-	//We want remaining time in this tick to translate into a higher priority.
+	//We want greater remaining time in this tick to translate into a higher priority.
 	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
 }
 

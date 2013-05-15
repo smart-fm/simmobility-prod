@@ -237,7 +237,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
 	// This will only generate an error if someone actually tries to load an agent of this type.
 	const RoleFactory& rf = config.getRoleFactory();
-	bool knownFole = rf.isKnownRole(agentType);
+	bool knownRole = rf.isKnownRole(agentType);
 
 	//Attempt to load either "agentType"+s or "agentType"+es (drivers, buses).
 	// This allows ungrammatical terms like "driveres", but it's probably better than being too restrictive.
@@ -248,7 +248,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	}
 
 	//If at least one elemnt of an unknown type exists, it's an error.
-	if (node && !knownFole) {
+	if (node && !knownRole) {
 		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}

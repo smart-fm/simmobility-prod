@@ -405,7 +405,7 @@ sim_mob::Driver::~Driver() {
 //	safe_delete_item(intModel);
 //
 //	//Our vehicle
-//	safe_delete_item(vehicle);
+	safe_delete_item(vehicle);
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {

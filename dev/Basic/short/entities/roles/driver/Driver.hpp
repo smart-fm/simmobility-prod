@@ -257,6 +257,9 @@ private:
 //	mutable std::stringstream DebugStream;
 
 	//Serialization
+	friend class DriverBehavior;
+	friend class DriverMovement;
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);

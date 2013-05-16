@@ -1,12 +1,14 @@
 /*
- * Pedestrian2Facets.cpp
+ * DriverFacets.cpp
  *
- *  Created on: May 15, 2013
+ *  Created on: May 15th, 2013
  *      Author: Yao Jin
  */
 
 #include "DriverFacets.hpp"
+#include "BusDriver.hpp"
 
+#include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Link.hpp"
@@ -200,9 +202,9 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	//Some one-time flags and other related defaults.
 	nextLaneInNextLink = nullptr;
 	disToFwdVehicleLastFrame = parentDriver->maxVisibleDis;
-	// record start time
-	startTime = parentDriver->params.now.ms()/1000.0;
-	isAleadyStarted = false;
+//	// record start time
+//	startTime = parentDriver->params.now.ms()/1000.0;
+//	isAleadyStarted = false;
 }
 
 sim_mob::DriverMovement::~DriverMovement()
@@ -213,15 +215,15 @@ sim_mob::DriverMovement::~DriverMovement()
 	safe_delete_item(intModel);
 
 	//Our vehicle
-	safe_delete_item(vehicle);
+//	safe_delete_item(vehicle);
 }
 
 void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	//Save the path from orign to next activity location in allRoadSegments
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
-		safe_delete_item(vehicle);
-		vehicle = newVeh;
+		safe_delete_item(parentDriver->vehicle);
+		parentDriver->vehicle = newVeh;
 	}
 
 	//Set some properties about the current path, such as the current polyline, etc.
@@ -519,11 +521,11 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::DriverMovement::linkDriving(DriverUpdateParams& p) {
 
-if ( (parentDriver->params.now.ms()/1000.0 - startTime > 10) &&  parentDriver->vehicle->getDistanceMovedInSegment()>2000 && isAleadyStarted == false)
+if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (parentDriver->vehicle->getDistanceMovedInSegment()>2000) && (parentDriver->isAleadyStarted == false))
 	{
-		isAleadyStarted = true;
+	parentDriver->isAleadyStarted = true;
 	}
-	p.isAlreadyStart = isAleadyStarted;
+	p.isAlreadyStart = parentDriver->isAleadyStarted;
 
 	if (!(parentDriver->vehicle->hasNextSegment(true))) // has seg in current link
 	{
@@ -632,7 +634,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - startTime > 10) &&  parentDriver->v
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
 
-	if ( isAleadyStarted == false )
+	if ( parentDriver->isAleadyStarted == false )
 	{
 		if(nv.distance<=0)
 		{
@@ -1014,7 +1016,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer
-		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
+		const double length = dynamic_cast<BusDriver*>(this->getParentDriver()) ? 1200 : 400;
 		const double width = 200;
 
 		//A non-null vehicle means we are moving.
@@ -1034,7 +1036,7 @@ void sim_mob::DriverMovement::resetPath(DriverUpdateParams& p) {
 	const Node * node = parentDriver->vehicle->getCurrSegment()->getEnd();
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
 	const StreetDirectory& stdir = StreetDirectory::instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*goal.node));
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)));
 
 	//For now, empty paths aren't supported.
 	if (path.empty()) {
@@ -1171,7 +1173,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist(NearestVehicle& res, do
 	if (distance>=0)
 		fwd = true;
 	distance = fabs(distance) - veh->length / 2 - other->getVehicleLength() / 2;
-	if ( isAleadyStarted )
+	if ( parentDriver->isAleadyStarted )
 	{
 		if(fwd && distance <0)
 			distance = 0.1;
@@ -1811,7 +1813,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 				break;
 		}
 
-		parentDriver->perceivedTrafficColor->set_delay(reacTime);
+		parentDriver->perceivedTrafficColor->set_delay(parentDriver->reacTime);
 		if(parentDriver->perceivedTrafficColor->can_sense())
 		{
 			p.perceivedTrafficColor = parentDriver->perceivedTrafficColor->sense();
@@ -1823,7 +1825,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 
 
 		p.trafficSignalStopDistance = parentDriver->vehicle->getAllRestRoadSegmentsLength() - parentDriver->vehicle->getDistanceMovedInSegment() - parentDriver->vehicle->length / 2;
-		parentDriver->perceivedDistToTrafficSignal->set_delay(reacTime);
+		parentDriver->perceivedDistToTrafficSignal->set_delay(parentDriver->reacTime);
 		if(parentDriver->perceivedDistToTrafficSignal->can_sense())
 		{
 			p.perceivedDistToTrafficSignal = parentDriver->perceivedDistToTrafficSignal->sense();

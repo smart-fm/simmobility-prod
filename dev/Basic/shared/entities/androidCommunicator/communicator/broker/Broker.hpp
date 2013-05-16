@@ -1,6 +1,8 @@
 #pragma once
-#include "message/Message.hpp"
-#include "message/MessageReceiver.hpp"
+//#include "message/Message.hpp"
+//#include "message/MessageReceiver.hpp"
+#include "../message/base/MessageFactory.hpp"
+#include "../message/base/MessageQueue.hpp"
 #include "entities/Agent.hpp"
 //broker specific
 #include "../server/Server.hpp"
@@ -14,10 +16,11 @@
 namespace sim_mob
 {
 
-class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent//, public sim_mob::MessageReceiver
 {
 
 	typedef void (JCommunicationSupport::*setConnected)(void);
+	//impl-1
 	enum MessageTypes
 	{
 		 ANNOUNCE = 1,
@@ -29,7 +32,11 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	std::map<const sim_mob::Agent *, sim_mob::BufferContainer > sendBufferMap; //temporarily used, later the buffer of the agent's communicationsupport will be used
 	sim_mob::BufferContainer sendBuffer;//apparently useless for this demo
 	sim_mob::BufferContainer receiveBuffer;
-//	sim_mob::DataContainer trySendBuffer;//send the buffers in batches
+
+	//impl-2
+	sim_mob::comm::MessageQueue receiveQueue;
+	boost::shared_ptr<MessageFactory<msg_ptr, std::string> > messageFactory;
+
 	static Broker instance;
 	//list of agents willing to participate in communication simulation
 	//they are catgorized as those who get a connection and those
@@ -59,7 +66,7 @@ class Broker  : public sim_mob::Agent, public sim_mob::MessageReceiver
 	void clientEntityAssociation(subscription subscription_);
 	bool deadEntityCheck(sim_mob::JCommunicationSupport & info);
 	void refineSubscriptionList();
-	void HandleMessage(MessageType type, MessageReceiver& sender,const Message& message);
+//	void HandleMessage(MessageType type, MessageReceiver& sender,const Message& message);
 
 
 

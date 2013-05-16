@@ -16,16 +16,18 @@
 #include <boost/foreach.hpp>
 #include <queue>
 #include "../buffer/BufferContainer.hpp"
-#include "Serialization.hpp"
+#include "../message/derived/roadrunner/Serialization.hpp"
 namespace sim_mob
 {
 #define DEFAULT_SERVER_PORT 2013
 //typedef boost::shared_ptr<sim_mob::session> session_ptr;
 
 
-class Server; //forward declaration
-void clientRegistration_(session_ptr sess, Server *server_);
-
+//class Server; //forward declaration
+//void clientRegistration_(session_ptr sess, Server *server_);
+/***************************************************************************
+ *************************        Server       *****************************
+ ****************************************************************************/
 
 class Server {
 
@@ -74,13 +76,17 @@ private:
 	void WhoAreYou_response_handler(const boost::system::error_code& e, session_ptr sess);
 };
 
+//Macro used for callbacks
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+
+/***************************************************************************
+ *************************        ConnectionHandler       *****************************
+ ****************************************************************************/
 class Broker;
 class ConnectionHandler
 {
 	session_ptr mySession;
 	std::string message;
-//	/*sim_mob::MessageReceiver*/sim_mob::Broker &rHandler;
 	//metadata
 	unsigned int clientID, agentPtr;
 //	boost::tuple<receiveHandler> handler_;
@@ -100,7 +106,6 @@ public:
 		mySession = session_;
 		clientID = clientID_;
 		agentPtr = agentPtr_;
-//		handler_ = boost::make_tuple(rHandler_);
 	}
 
 	void start()
@@ -140,15 +145,6 @@ public:
 		}
 		else
 		{
-//			//After message type is extracted, the
-//			//rest of the message string is wrapped into a BrokerMessage
-//			std::string type_, data_;
-//			Json::Value root;
-//			if(sim_mob::JsonParser::getMessageTypeAndData(message,type_,data_, root));
-//			BrokerMessage *message_ = new BrokerMessage(data_, root, this);
-//			unsigned int type = atoi(type_.c_str());
-//			rHandler.Post(type, &rHandler, message_);
-
 			//call the receive handler in the broker
 			CALL_MEMBER_FN(theBroker, receiveCallBack)(message);
 

@@ -8,19 +8,19 @@
 #ifndef HANDLERFACTORY_HPP_
 #define HANDLERFACTORY_HPP_
 
-
+#include "Handler.hpp"
 
 namespace sim_mob {
 namespace comm
 {
 class Message;
 }
-class Handler;
+//class Handler;
 //my Base Handler Factory
 
 class HandlerFactory {
 public:
-	Handler * create(sim_mob::comm::Message * message);
+	virtual hdlr_ptr  supplyHandler(msg_ptr message) = 0;
 };
 
 } /* namespace sim_mob */

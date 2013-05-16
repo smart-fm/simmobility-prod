@@ -3,6 +3,7 @@
 #include <jsoncpp/json.h>
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
+#include "../message/derived/roadrunner/RR_Factory.hpp"
 
 namespace sim_mob
 {
@@ -44,6 +45,9 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 receiveBuffer.setOwnerMutex(Broker_Mutex_Receive);
 
 	 brokerInOperation = false;
+	 //todo think of a better way of specializing Broker with respect to the messagefactory
+	 //current message factory
+	 messageFactory.reset(new sim_mob::roadrunner::RR_Factory());
 
 }
 
@@ -56,7 +60,12 @@ Broker::~Broker()
 //so far there is no need to specify wich connection it is
 //coz it is currently assumed that the string contains all the information
 void Broker::handleReceiveMessage(std::string str){
+	//impl-1
 	receiveBuffer.add(sim_mob::BufferContainer::makeDataElement(str));
+
+	//impl-2
+	msg_ptr msg(messageFactory->createMessage(str));
+	receiveQueue.post(msg);
 }
 void Broker::clientEntityAssociation(subscription subscription_)
 {
@@ -182,32 +191,37 @@ void Broker::preparePerTickData(timeslice now)
 }
 void Broker::processIncomingData(timeslice now)
 {
-	DataElement dataElement;
-	while(receiveBuffer.pop(dataElement))
-	{
 
-	//get the message received from client
-	std::string message = boost::get<2>(dataElement);
-	std::string type, data;
-	Json::Value root_;
-	sim_mob::JsonParser::getMessageTypeAndData(message, type, data, root_);
-	switch(MessageMap[type])
-	{
-	case ANNOUNCE:
-		//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
-		//no need to parse the message much:
-		//just update its x,y location, then forward it to nearby agents
-		handleANNOUNCE(message);
-		break;
-	case KEY_REQUEST:
-		//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
-		//just extract the receiver and forward the string to it without modifications
-		handleKEY_REQUEST(message);
-		break;
-	case KEY_SEND:
-		break;
-	}
-	}
+	msg_ptr msg = receiveQueue.pop();
+	msg->supplyHandler()->handle(msg);
+
+
+//	DataElement dataElement;
+//	while(receiveBuffer.pop(dataElement))
+//	{
+//
+//	//get the message received from client
+//	std::string message = boost::get<2>(dataElement);
+//	std::string type, data;
+//	Json::Value root_;
+//	sim_mob::JsonParser::getMessageTypeAndData(message, type, data, root_);
+//	switch(MessageMap[type])
+//	{
+//	case ANNOUNCE:
+//		//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
+//		//no need to parse the message much:
+//		//just update its x,y location, then forward it to nearby agents
+//		handleANNOUNCE(message);
+//		break;
+//	case KEY_REQUEST:
+//		//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
+//		//just extract the receiver and forward the string to it without modifications
+//		handleKEY_REQUEST(message);
+//		break;
+//	case KEY_SEND:
+//		break;
+//	}
+//	}
 
 
 }
@@ -528,10 +542,10 @@ void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 	it->handler->send(data);
 }
 
-//todo write a more generic method ....later
-void Broker::HandleMessage(MessageType type, MessageReceiver& sender,
-                const Message& message)
-{
-
-}
+////todo write a more generic method ....later
+//void Broker::HandleMessage(MessageType type, MessageReceiver& sender,
+//                const Message& message)
+//{
+//
+//}
 }//namespace

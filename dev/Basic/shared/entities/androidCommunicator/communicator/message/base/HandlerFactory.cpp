@@ -5,13 +5,13 @@
  *      Author: vahid
  */
 #include "HandlerFactory.hpp"
-#include "Message.hpp"
+//#include "Message.hpp"
 namespace sim_mob
 {
 
-Handler * HandlerFactory::create(sim_mob::comm::Message * message){
-	return message->newHandler();
-}
+//hdlr_ptr HandlerFactory::supplyHandler(msg_ptr message){
+//	return message->supplyHandler();
+//}
 }//namespace
 
 

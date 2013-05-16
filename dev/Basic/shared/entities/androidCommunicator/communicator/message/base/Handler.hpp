@@ -7,6 +7,7 @@
 
 #ifndef HANDLER_HPP_
 #define HANDLER_HPP_
+#include "Message.hpp"
 namespace sim_mob
 {
 namespace comm
@@ -16,11 +17,9 @@ class Message;
 }
 class Handler
 {
-	sim_mob::comm::Message *message;
 public:
-	Handler(sim_mob::comm::Message* message_);
-	virtual void handle() = 0;
-	sim_mob::comm::Message * getMessage();
+	virtual void handle(msg_ptr message_) = 0;
 };
+typedef boost::shared_ptr<Handler> hdlr_ptr;
 }//namespace
 #endif /* HANDLER_HPP_ */

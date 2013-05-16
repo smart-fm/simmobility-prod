@@ -4,7 +4,7 @@
  *  Created on: May 10, 2013
  *      Author: vahid
  */
-
+#include <sstream>
 namespace sim_mob
 {
 class JsonParser

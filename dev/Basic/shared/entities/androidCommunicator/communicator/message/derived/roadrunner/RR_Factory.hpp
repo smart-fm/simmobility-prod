@@ -8,8 +8,7 @@
 #ifndef RRMSGFACTORY_HPP_
 #define RRMSGFACTORY_HPP_
 
-#include "../../base/MessageFactory.hpp"
-//#include "../../base/Handler.hpp"
+#include "entities/androidCommunicator/communicator/message/base/MessageFactory.hpp"
 #include "announce/ANNOUNCE_Handler.hpp"
 #include <map>
 namespace sim_mob {

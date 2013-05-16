@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 //todo reduce the includes
-#include "../../../Communication_Base.hpp"
+#include "entities/communicator/Communication_Base.hpp"
 #include "entities/Agent.hpp"
 #include <boost/thread.hpp>
 #include "connection.hpp"

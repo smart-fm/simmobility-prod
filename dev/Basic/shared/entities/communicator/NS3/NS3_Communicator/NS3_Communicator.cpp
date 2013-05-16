@@ -1,5 +1,5 @@
 #include "NS3_Communicator.hpp"
-#include "../../CommunicationSupport.hpp"
+#include "entities/communicator/CommunicationSupport.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include <boost/thread/mutex.hpp>

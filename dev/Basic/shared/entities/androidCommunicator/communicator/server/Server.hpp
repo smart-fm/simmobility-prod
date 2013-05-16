@@ -15,8 +15,8 @@
 #include <json/json.h>
 #include <boost/foreach.hpp>
 #include <queue>
-#include "../buffer/BufferContainer.hpp"
-#include "../message/derived/roadrunner/Serialization.hpp"
+#include "entities/androidCommunicator/communicator/buffer/BufferContainer.hpp"
+#include "entities/androidCommunicator/communicator/message/derived/roadrunner/Serialization.hpp"
 namespace sim_mob
 {
 #define DEFAULT_SERVER_PORT 2013

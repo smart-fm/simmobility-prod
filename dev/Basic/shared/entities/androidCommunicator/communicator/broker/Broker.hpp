@@ -1,14 +1,14 @@
 #pragma once
 //#include "message/Message.hpp"
 //#include "message/MessageReceiver.hpp"
-#include "../message/base/MessageFactory.hpp"
-#include "../message/base/MessageQueue.hpp"
+#include "entities/androidCommunicator/communicator/message/base/MessageFactory.hpp"
+#include "entities/androidCommunicator/communicator/message/base/MessageQueue.hpp"
 #include "entities/Agent.hpp"
 //broker specific
-#include "../server/Server.hpp"
-#include "../../support/JCommunicationSupport.hpp"
+#include "entities/androidCommunicator/communicator/server/Server.hpp"
+#include "entities/androidCommunicator/support/JCommunicationSupport.hpp"
 #include "SubscriptionIndex.hpp"
-#include "../buffer/BufferContainer.hpp"
+#include "entities/androidCommunicator/communicator/buffer/BufferContainer.hpp"
 #include <boost/thread/condition_variable.hpp>
 //external libraries
 

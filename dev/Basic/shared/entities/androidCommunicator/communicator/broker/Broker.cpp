@@ -3,7 +3,7 @@
 #include <json/json.h>
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
-#include "../message/derived/roadrunner/RR_Factory.hpp"
+#include "entities/androidCommunicator/communicator/message/derived/roadrunner/RR_Factory.hpp"
 
 namespace sim_mob
 {

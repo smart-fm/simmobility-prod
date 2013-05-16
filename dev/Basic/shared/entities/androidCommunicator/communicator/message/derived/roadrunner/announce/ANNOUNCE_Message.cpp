@@ -6,7 +6,6 @@
  */
 
 #include "ANNOUNCE_Handler.hpp"
-//#include "../RoadrunnerMessage.hpp"
 namespace sim_mob {
 class Handler;
 

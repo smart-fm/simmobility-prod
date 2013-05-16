@@ -1,7 +1,6 @@
 #pragma once
 //#include "buffering/Shared.hpp"
-#include "../../Communication_Base.hpp"
-//#include "../CommunicationData.hpp"
+#include "entities/communicator/Communication_Base.hpp"
 
 #include<fstream>
 ////this file provides some of the communication

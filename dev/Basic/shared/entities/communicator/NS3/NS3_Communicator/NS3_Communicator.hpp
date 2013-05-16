@@ -1,5 +1,5 @@
 #pragma once
-#include "../NS3_communication/NS3_Communication.hpp"
+#include "entities/communicator/NS3/NS3_communication/NS3_Communication.hpp"
 #include "entities/Agent.hpp"
 /*******************************************************************************************
  *

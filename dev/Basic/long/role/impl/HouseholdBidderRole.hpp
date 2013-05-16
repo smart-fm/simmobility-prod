@@ -19,10 +19,14 @@ namespace sim_mob {
         class HouseholdAgent;
         
         /**
-         * Bidder role.
+         * Bidder role for household.
          * 
-         * An agent with this role active means that 
-         * he is looking for a new house. 
+         * This role starts to go to the market and choose the unit 
+         * with maximum surplus for the bidder. After that the bidder 
+         * will bid the unit and will *WAIT* for the response.
+         * 
+         * The bidder only can do a new bid if he is in a different 
+         * day of the last bid AND if he is not waiting for a response.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
         public MessageReceiver {
@@ -83,6 +87,7 @@ namespace sim_mob {
             HousingMarket* market;
             volatile bool waitingForResponse;
             timeslice lastTime;
+            bool bidOnCurrentDay;
         };
     }
 }

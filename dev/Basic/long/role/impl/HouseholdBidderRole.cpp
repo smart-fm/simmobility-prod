@@ -21,7 +21,7 @@ using namespace sim_mob::long_term;
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
         HousingMarket* market)
 : LT_AgentRole(parent), market(market), hh(hh), waitingForResponse(false),
-lastTime(0, 0) {
+lastTime(0, 0), bidOnCurrentDay(false) {
     FollowMarket();
 }
 
@@ -29,9 +29,16 @@ HouseholdBidderRole::~HouseholdBidderRole() {
 }
 
 void HouseholdBidderRole::Update(timeslice now) {
+    //can bid another house if it is not waiting for any 
+    //response and if it not the same day
+    if (!waitingForResponse && lastTime.ms() < now.ms()) {
+        bidOnCurrentDay = false;
+    }
+
     if (isActive()) {
-        if (!waitingForResponse && BidUnit()) {
+        if (!waitingForResponse && !bidOnCurrentDay && BidUnit()) {
             waitingForResponse = true;
+            bidOnCurrentDay = true;
         }
     }
     lastTime = now;
@@ -100,13 +107,13 @@ void HouseholdBidderRole::OnMarketAction(EventId id, EventPublisher* sender,
         case LTEID_HM_UNIT_ADDED:// Bid response received 
         {
             //LogOut("Agent: " << GetParent()->getId() <<
-              //      " notified about the unit added." << endl);
+            //      " notified about the unit added." << endl);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
             //LogOut("Agent: " << GetParent()->getId() <<
-              //      " notified about the unit removed." << endl);
+            //      " notified about the unit removed." << endl);
             break;
         }
         default:break;

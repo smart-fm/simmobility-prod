@@ -16,7 +16,8 @@ namespace sim_mob {
 
         class Household {
         public:
-            Household(int id = INVALID_ID);
+            Household(int id = INVALID_ID, float income = .0f, 
+                    int numberOfMembers = 0);
             virtual ~Household();
 
             /**
@@ -99,7 +100,6 @@ namespace sim_mob {
 
         private:
             friend class HouseholdDao;
-
         private:
             int id;
             int buildingId;

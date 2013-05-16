@@ -1,26 +1,28 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   Seller.cpp
+ * File:   HouseholdSellerRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
- * Created on April 4, 2013, 5:13 PM
+ * Created on May 16, 2013, 5:13 PM
  */
 #include <math.h>
-#include "Seller.hpp"
+#include "HouseholdSellerRole.hpp"
 #include "message/LT_Message.hpp"
+#include "agent/impl/HouseholdAgent.hpp" 
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Seller::Seller(LT_Agent* parent, HousingMarket* market)
-: LT_Role(parent), market(market) {
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+        HousingMarket* market)
+: LT_AgentRole(parent), market(market), hh(hh) {
 }
 
-Seller::~Seller() {
+HouseholdSellerRole::~HouseholdSellerRole() {
 }
 
-void Seller::Update(timeslice currTime) {
+void HouseholdSellerRole::Update(timeslice currTime) {
     if (isActive()) {
         list<Unit*> units;
         GetParent()->GetUnits(units);
@@ -34,7 +36,7 @@ void Seller::Update(timeslice currTime) {
     }
 }
 
-void Seller::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
 
     switch (type) {
@@ -68,11 +70,11 @@ void Seller::HandleMessage(MessageType type, MessageReceiver& sender,
     }
 }
 
-bool Seller::Decide(const Bid& bid, const Unit& unit) {
+bool HouseholdSellerRole::Decide(const Bid& bid, const Unit& unit) {
     return bid.GetValue() > unit.GetReservationPrice();
 }
 
-void Seller::AdjustUnitParams(Unit& unit) {
+void HouseholdSellerRole::AdjustUnitParams(Unit& unit) {
     float denominator = pow((1 - 2 * unit.GetFixedCost()), 0.5f);
     //re-calculates the new reservation price.
     float reservationPrice =

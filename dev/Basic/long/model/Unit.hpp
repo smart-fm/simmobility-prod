@@ -111,14 +111,14 @@ namespace sim_mob {
              * Gets the owner endpoint for communication.
              * @return owner endpoint.
              */
-            MessageReceiver* GetOwner();
+            UnitHolder* GetOwner();
         private:
 
             /**
              * Gets the owner endpoint for communication.
              * @return owner endpoint.
              */
-            void SetOwner(MessageReceiver* receiver);
+            void SetOwner(UnitHolder* receiver);
 
         private:
             friend class UnitHolder;
@@ -129,7 +129,7 @@ namespace sim_mob {
             float hedonicPrice;
             float distanceToCDB;
             float size;
-            MessageReceiver* owner;
+            UnitHolder* owner;
             mutable shared_mutex mutex;
         };
     }

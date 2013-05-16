@@ -1,31 +1,32 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   Seller.hpp
+ * File:   HouseholdSellerRole.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on April 4, 2013, 5:13 PM
+ * Created on May 16, 2013, 5:13 PM
  */
 #pragma once
 
 #include "model/Bid.hpp"
 #include "role/LT_Role.hpp"
-#include "entity/HousingMarket.hpp"
+#include "database/entity/Household.hpp"
+#include "core/HousingMarket.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
-
+        
+        class HouseholdAgent;
+        
         /**
-         * Sellers role.
-         * 
-         * An agent with this role is selling units.
-         *  
+         * Household Seller role.
          */
-        class Seller : public LT_Role {
+        class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            Seller(LT_Agent* parent, HousingMarket* market);
-            virtual ~Seller();
+            HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+                    HousingMarket* market);
+            virtual ~HouseholdSellerRole();
 
             /**
              * Method that will update the seller on each tick.
@@ -53,7 +54,9 @@ namespace sim_mob {
              */
             virtual void AdjustUnitParams(Unit& unit);
         private:
+            friend class HouseholdAgent;
             HousingMarket* market;
+            Household* hh;
         };
     }
 }

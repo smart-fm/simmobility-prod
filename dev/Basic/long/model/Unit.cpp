@@ -8,6 +8,7 @@
  */
 
 #include "Unit.hpp"
+#include "UnitHolder.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -100,12 +101,12 @@ void Unit::SetFixedCost(float cost) {
     fixedCost = cost;
 }
 
-MessageReceiver* Unit::GetOwner() {
+UnitHolder* Unit::GetOwner() {
     SharedReadLock(mutex);
     return this->owner;
 }
 
-void Unit::SetOwner(MessageReceiver* receiver) {
+void Unit::SetOwner(UnitHolder* receiver) {
     SharedWriteLock(mutex);
     this->owner = receiver;
 }

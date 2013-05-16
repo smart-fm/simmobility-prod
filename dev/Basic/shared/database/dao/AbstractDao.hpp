@@ -54,7 +54,9 @@ namespace sim_mob {
 #define DAO_TO_ROW_CALLBACK_HANDLER(modelType, func) (AbstractDao<modelType>::ToRowCallback)(modelType##ToCallback) &func
 
     /**
-     * Represents an Abstract Data Access Object to a given template entity.
+     * Represents an Abstract implementation of Data Access Object for 
+     * SQL databases to a given template entity.
+     * 
      * Example:
      *     DB Table: Person
      *     Entity on System: Person

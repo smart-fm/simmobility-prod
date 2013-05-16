@@ -27,7 +27,7 @@ namespace sim_mob {
             LandUseType();
             virtual ~LandUseType();
             /**
-             * Gets the id of the individual.
+             * Gets the id.
              * @return id value.
              */
             int GetId() const;

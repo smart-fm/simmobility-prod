@@ -25,7 +25,7 @@ namespace sim_mob {
          * 
          * Attention: this class will hold the ownership of the Unit instances.
          */
-        class UnitHolder : public MessageReceiver {
+        class UnitHolder {
         public:
             UnitHolder(int id);
             virtual ~UnitHolder() = 0;
@@ -103,13 +103,7 @@ namespace sim_mob {
              *  null if the Unit does not exists.
              */
             virtual Unit* GetById(UnitId id);
-
-            /**
-             * Inherited from MessageReceiver.
-             */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
-
+            
         private:
             typedef pair<UnitId, Unit*> HoldingUnitsEntry;
             typedef map<UnitId, Unit*> HoldingUnits;

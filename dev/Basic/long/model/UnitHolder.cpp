@@ -96,7 +96,3 @@ Unit* UnitHolder::GetById(UnitId id) {
     }
     return nullptr;
 }
-
-void UnitHolder::HandleMessage(MessageType type, MessageReceiver& sender,
-        const Message& message) {
-}

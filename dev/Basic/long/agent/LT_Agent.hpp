@@ -12,7 +12,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "event/EventManager.hpp"
-#include "entity/HousingMarket.hpp"
+#include "message/MessageReceiver.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -22,7 +22,6 @@ using std::map;
 namespace sim_mob {
 
     namespace long_term {
-        class LT_Role;
 
         /**
          * Represents an Long-Term agent.
@@ -32,10 +31,10 @@ namespace sim_mob {
          * - Both
          * It will depend of the context.
          */
-        class LT_Agent : public Agent, public UnitHolder {
+        class LT_Agent : public Agent, public MessageReceiver {
         public:
-            LT_Agent(int id, HousingMarket* market);
-            virtual ~LT_Agent() = 0;
+            LT_Agent(int id);
+            virtual ~LT_Agent();
 
             /**
              * Inherited from Agent.
@@ -49,24 +48,51 @@ namespace sim_mob {
             EventManager& GetEventManager();
 
         protected:
+
             /**
-             * Inherited from UnitHolder.
+             * Handler for frame_init method from agent.
+             * @param now time.
+             * @return true if the init ran well or false otherwise.
              */
-            virtual void HandleMessage(MessageType type, 
+            virtual bool OnFrameInit(timeslice now) = 0;
+
+            /**
+             * Handler for frame_tick method from agent.
+             * Attention: this method can be called N 
+             * times depending on the messages contained in the message queue.
+             * 
+             * messageCounter field has the counter of 
+             * the read messages on the current tick. 
+             * 0- indicates that is the first time that 
+             *    this method is called on this tick.
+             * N- indicates that (N+1) message were loaded in this tick.  
+             * 
+             * @param now time.
+             * @param messageCounter has the counter.
+             * @return update status.
+             */
+            virtual Entity::UpdateStatus OnFrameTick(timeslice now,
+                    int messageCounter) = 0;
+
+            /**
+             * Handler for frame_output method from agent.
+             * @param now time.
+             */
+            virtual void OnFrameOutput(timeslice now) = 0;
+
+            /**
+             * Inherited from MessageReceiver.
+             */
+            virtual void HandleMessage(MessageType type,
                     MessageReceiver& sender, const Message& message);
 
             /**
              * Inherited from Agent.
              */
-            virtual bool frame_init(timeslice now);
-            virtual Entity::UpdateStatus frame_tick(timeslice now);
-            virtual void frame_output(timeslice now);
-            virtual bool isNonspatial();
-
-
-        private:
-            LT_Role* currentRole;
-            HousingMarket* market;
+            bool frame_init(timeslice now);
+            Entity::UpdateStatus frame_tick(timeslice now);
+            void frame_output(timeslice now);
+            bool isNonspatial();    
         };
     }
 }

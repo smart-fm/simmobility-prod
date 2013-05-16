@@ -12,8 +12,9 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Household::Household(int id) : id(id), headAge(0), income(.0f), numberOfCars(0),
-numberOfChildren(0), numberOfWorkers(0), numberOfMembers(0), buildingId(-1) {
+Household::Household(int id, float income, int numberOfMembers) : id(id), 
+        headAge(0), income(income), numberOfCars(0), numberOfChildren(0), 
+        numberOfWorkers(0), numberOfMembers(numberOfMembers), buildingId(-1) {
 }
 
 Household& Household::operator=(const Household& source) {

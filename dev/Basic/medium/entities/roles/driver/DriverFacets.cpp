@@ -151,17 +151,22 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 
 	//if vehicle is still in lane infinity, it shouldn't be advanced
 
-	if(parentAgent->canMoveToNextSegment) {
+	if(parentAgent->canMoveToNextSegment == Person::GRANTED) {
 		flowIntoNextLinkIfPossible(p2);
+		parentAgent->canMoveToNextSegment = Person::NONE;
 	}
-	else {
+
+	if (parentAgent->canMoveToNextSegment == Person::DENIED){
 		if(currLane) {
-			addToQueue(currLane); // adds to queue if not already in queue
+			if(parentAgent->isQueuing) { moveInQueue(currLane); }
+			else {addToQueue(currLane); } // adds to queue if not already in queue
+
 			p2.elapsedSeconds = p2.secondsInTick;
+			parentAgent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 		}
 	}
 
-	if (currLane && !parentAgent->canMoveToNextSegment)
+	if (currLane && parentAgent->canMoveToNextSegment == Person::NONE)
 	{
 		advance(p2);
 		//Update parent data. Only works if we're not "done" for a bad reason.
@@ -300,7 +305,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 
 	if(isNewLinkNext) {
 		parentAgent->requestedNextSegment = nextRdSeg;
-		parentAgent->canMoveToNextSegment = false;
+		parentAgent->canMoveToNextSegment = Person::NONE;
 		return false; // return whenever a new link is to be entered. Seek permission from Conflux.
 	}
 
@@ -412,7 +417,6 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 
 		setLastAccept(currLane, linkExitTimeSec);
 		setParentData(p);
-		parentAgent->canMoveToNextSegment = false;
 	}
 	else {
 		Print() <<"flowIntoNextLinkIfPossible | canGoTo failed for person " << parentAgent->getId() <<std::endl;
@@ -425,6 +429,10 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 						<<" dist2End: "<<vehicle->getPositionInSegment()
 						<< std::endl;
 
+		if(currLane){
+			if(parentAgent->isQueuing) { moveInQueue(currLane); }
+			else {addToQueue(currLane); } // adds to queue if not already in queue
+		}
 		p.elapsedSeconds = p.secondsInTick;
 		parentAgent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
@@ -804,6 +812,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		setLastAccept(currLane, actualT);
 /*		std::cout<<"actualT: " <<actualT<<std::endl;*/
 		setParentData(p);
+		parentAgent->canMoveToNextSegment = Person::NONE;
 	}
 	else
 	{

@@ -90,7 +90,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	//updateSupplyStats(frameNumber);
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
-	resetOutputBounds(); //For use by other confluxes in the next tick
+	//resetOutputBounds(); //For use by other confluxes in the next tick
 	lastUpdatedFrame = frameNumber.frame();
 	return retVal;
 }
@@ -238,10 +238,14 @@ void sim_mob::Conflux::resetOutputBounds() {
 		outputEstimate = segStats->computeExpectedOutputPerTick();
 		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputBounds.insert(std::make_pair(firstSeg, outputEstimate));
+		Print()<<"outputBounds rdSeg (insert): ["<<firstSeg->getStart()->getID()<<","<<firstSeg->getEnd()->getID()
+					<<"]"<<" conflux mnode: "<<multiNode->getID()<<std::endl;
 	}
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg) {
+	Print()<<"outputBounds rdSeg (hasSpace): ["<<rdSeg->getStart()->getID()<<","<<rdSeg->getEnd()->getID()
+			<<"]"<<" conflux mnode: "<<multiNode->getID()<<std::endl;
 	return (outputBounds.at(rdSeg) > 0);
 }
 
@@ -580,7 +584,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			std::cout << debugMsgs.str();
 			debugMsgs.str("");
 
-			person->canMoveToNextSegment = true; // grant permission. But check whether the subsequent frame_tick can be called now.
+			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
 			if(now.frame() > nxtConflux->lastUpdatedFrame) {
 				// nxtConflux is not processed for the current tick yet
 				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment)) {
@@ -590,7 +594,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					break; //break off from loop
 				}
 				else {
-					person->canMoveToNextSegment = false;
+					person->canMoveToNextSegment = Person::DENIED;
 				}
 			}
 			else if(now.frame() == nxtConflux->lastUpdatedFrame) {

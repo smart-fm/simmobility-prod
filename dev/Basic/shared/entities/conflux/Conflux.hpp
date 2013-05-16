@@ -117,8 +117,6 @@ private:
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
 
-	void resetOutputBounds();
-
 	void decrementBound(const sim_mob::RoadSegment* rdSeg);
 
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
@@ -232,6 +230,8 @@ public:
 	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
+
+	void resetOutputBounds();
 };
 
 } /* namespace sim_mob */

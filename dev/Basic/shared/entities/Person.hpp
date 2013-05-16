@@ -131,7 +131,14 @@ public:
     std::vector<SubTrip>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
-    bool canMoveToNextSegment;
+
+    enum Permission //to be renamed later
+    	{
+    		NONE=0,
+    		GRANTED,
+    		DENIED
+    	};
+    Permission canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;

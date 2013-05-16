@@ -19,7 +19,6 @@
 #include "entities/androidCommunicator/communicator/message/derived/roadrunner/Serialization.hpp"
 namespace sim_mob
 {
-#define DEFAULT_SERVER_PORT 2013
 //typedef boost::shared_ptr<sim_mob::session> session_ptr;
 
 
@@ -54,6 +53,8 @@ public:
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;
 private:
+	const static unsigned int DEFAULT_SERVER_PORT = 6745;
+
 	boost::asio::ip::tcp::acceptor acceptor_;
 	std::queue<std::pair<unsigned int,sim_mob::session_ptr > > &clientList;
 };

@@ -91,9 +91,11 @@ class ConnectionHandler
 	unsigned int clientID, agentPtr;
 //	boost::tuple<receiveHandler> handler_;
 	typedef void (Broker::*BrokerReceiveCallback)(std::string);
-	BrokerReceiveCallback &receiveCallBack;
+	BrokerReceiveCallback receiveCallBack;
 	Broker &theBroker;
 public:
+	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
+	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(
 			session_ptr session_ ,
 			Broker& broker,

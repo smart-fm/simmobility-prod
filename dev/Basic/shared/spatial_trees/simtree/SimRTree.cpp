@@ -138,8 +138,11 @@ struct VisitFunctor: std::unary_function<const TreeItem *, void>
 //loop the tree
 struct QueryFunctor: std::unary_function<const TreeItem, void>
 {
-	const AcceptEnclosing &accept;
-	Collecting_Visitor_sim& visitor;
+	//NOTE: "visitor" should not be a reference, since it is set by a value-type.
+	//      I am also making "accept" a value-type, even though this is not strictly
+	//      required (because it seems that you are being careless with references). ~Seth
+	const AcceptEnclosing accept;
+	Collecting_Visitor_sim visitor;
 
 	explicit QueryFunctor(AcceptEnclosing a, Collecting_Visitor_sim v) :
 			accept(a), visitor(v)

@@ -1789,7 +1789,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication_simulator").ToElement();
 	if (node) {
-		const char* commSimYesNo = node->Attribute("value");
+		commSimYesNo = std::string(node->Attribute("value"));
 		if (commSimYesNo == "yes") {
 			createCommunicator();
 

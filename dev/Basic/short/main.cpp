@@ -220,12 +220,16 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+
+	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
+	//      If an Agent is "behind" the Broker, we have two options:
+	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
+	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
 	WorkGroup* communicationWorkers = WorkGroup::NewWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+
 	//membership to various clubs
 //	WorkGroup::addWorkGroupMembership(agentWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
 //	WorkGroup::addWorkGroupMembership(signalStatusWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
-
-	std::cout << "start to Load our user config file." << std::endl;
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -259,6 +263,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//..and Assign communication agent(currently a singleton
 
 
+	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
 	communicationWorkers->assignAWorker(&(sim_mob::Broker::GetInstance()));

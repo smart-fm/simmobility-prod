@@ -18,7 +18,11 @@ namespace sim_mob
 
 class Broker  : public sim_mob::Agent//, public sim_mob::MessageReceiver
 {
+public:
+	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
+	~Broker();
 
+private:
 	typedef void (JCommunicationSupport::*setConnected)(void);
 	//impl-1
 	enum MessageTypes
@@ -88,10 +92,8 @@ public:
 	//-return from update() in order not to block &disturb the simulation
 	bool brokerInOperation;
 
-	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	static Broker& GetInstance() { return Broker::instance; }
 	void start();
-	~Broker();
 
 
 	sim_mob::BufferContainer &getSendBuffer();
@@ -130,6 +132,10 @@ public:
 	bool unSubscribeEntity(sim_mob::JCommunicationSupport &value);
 	bool unSubscribeEntity(const sim_mob::Agent * agent);
 	subscriptionC &getSubscriptionList();
+
+protected:
+	//Wait for clients; return "false" to jump out of the loop.
+	bool waitForClients();
 
 
 

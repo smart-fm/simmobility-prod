@@ -477,62 +477,63 @@ bool Broker::brokerIsQualified()
 	return QUALIFIED;
 
 }
-Entity::UpdateStatus Broker::update(timeslice now)
+
+bool Broker::waitForClients()
 {
-	Print() << "Broker tick:"<< now.frame() << " ================================================\n";
-	if(now.frame() == 0)
-		{
-			server_->start();
-		}
+	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
 
-
-	//condition variable clause
-	{
-		boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
-		/*if:
-		 * 1- number of subscribers is too low
-		 * 2-there is no client(emulator) waiting in the queue
-		 * 3-this update function never started to process any data so far
-		 * then:
-		 *  wait for enough number of clients and agents to join
-		 */
-		while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false)
-		{
-			Print() << "[Broker] waiting for enough number of clients to join" << std::endl;
-			client_register->wait(lock);
-			Print() << "Broker Notified " << std::endl;
-			processEntityWaitingList();
-		}
-		//now that you are qualified(have enough nof subscribers), then
-		//you are considered to have already started operating.
-		if(brokerIsQualified())
-		{
-			brokerInOperation = true;
-		}
-
-		//broker started before but is no more qualified to run
-		if(brokerInOperation && (!brokerIsQualified()))
-		{
-			//don't block, just cooperate & don't do anything untill this simulation ends
-			return UpdateStatus(UpdateStatus::RS_CONTINUE);
-		}
+	/*if:
+	 * 1- number of subscribers is too low
+	 * 2-there is no client(emulator) waiting in the queue
+	 * 3-this update function never started to process any data so far
+	 * then:
+	 *  wait for enough number of clients and agents to join
+	 */
+	while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false) {
+		Print() << "[Broker] waiting for enough number of clients to join" << std::endl;
+		client_register->wait(lock);
+		Print() << "Broker Notified " << std::endl;
+		processEntityWaitingList();
 	}
 
+	//now that you are qualified(have enough nof subscribers), then
+	//you are considered to have already started operating.
+	if(brokerIsQualified()) {
+		brokerInOperation = true;
+	}
+
+	//broker started before but is no more qualified to run
+	if(brokerInOperation && (!brokerIsQualified())) {
+		//don't block, just cooperate & don't do anything until this simulation ends
+		return false;
+	}
+
+	//Success! Continue.
+	return true;
+}
+
+Entity::UpdateStatus Broker::update(timeslice now)
+{
+	Print() << "Broker tick:"<< now.frame() << "\n";
+	if(now.frame() == 0) {
+		server_->start();
+	}
+
+	//Ensure that we have enough clients to process.
+	if (!waitForClients()) {
+		return UpdateStatus(UpdateStatus::RS_CONTINUE);
+	}
+
+	//Process clients, waiting to ensure that we have received all incoming data.
 	preparePerTickData(now);
-	Print() << "preparePerTickData Done" << std::endl;
 	processIncomingData(now);
-	Print() << "processIncomingData Done" << std::endl;
-	while(!allAgentUpdatesDone())
-		{
-			refineSubscriptionList();
-			Print() << "refineSubscriptionList Done" << std::endl;
-		}
-	Print() << "allAgentUpdatesDone Done" << std::endl;
+	while(!allAgentUpdatesDone()) {
+		refineSubscriptionList();
+	}
 	processOutgoingData(now);
-	Print() << "processOutgoingData Done" << std::endl;
+
 	//see if anything is left off
 	processEntityWaitingList();
-	Print() <<"------------------------------------------------------\n";
 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 
@@ -542,8 +543,7 @@ void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 {
 	//find the connection handler
 	agentIterator it = agentSubscribers_.find(agent);
-	if(it == agentSubscribers_.end())
-	{
+	if(it == agentSubscribers_.end()) {
 		Print() << "unicast Failed. Agent not Found" << std::endl;
 	}
 //	ConnectionHandler handler = it->handler;

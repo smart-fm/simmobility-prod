@@ -359,7 +359,7 @@ bool Broker::allAgentUpdatesDone()
 					duplicateEntityDoneChecker.insert(it->agent);
 				}
 			}
-			catch(std::exception e)
+			catch(std::exception& e)
 			{
 				Print() << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
@@ -426,7 +426,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
 			if (*it == &(info.getEntity()))
 				return false;
 		}
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		return true;
 	}
 

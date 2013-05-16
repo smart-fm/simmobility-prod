@@ -63,6 +63,8 @@ public:
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
+	void dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents);
+
 	//NOTE: There's two problems here:
 	//      1) You use a static "BusController", which is not flexible.
 	//      2) You use a flag "isToBeInList" to determine if output should be produced each time tick.

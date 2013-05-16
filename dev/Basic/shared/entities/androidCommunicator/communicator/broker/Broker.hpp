@@ -12,7 +12,6 @@
 #include <boost/thread/condition_variable.hpp>
 //external libraries
 
-#define MIN_CLIENTS 1 //minimum number of subscribed clients
 namespace sim_mob
 {
 
@@ -23,6 +22,8 @@ public:
 	~Broker();
 
 private:
+	static const unsigned int MIN_CLIENTS = 1; //minimum number of subscribed clients
+
 	typedef void (JCommunicationSupport::*setConnected)(void);
 	//impl-1
 	enum MessageTypes
@@ -67,11 +68,16 @@ private:
 //	boost::shared_ptr<boost::asio::io_service> io_service_;
 //	boost::thread io_service_thread; //thread to run the io_service
 	void io_service_run(boost::shared_ptr<boost::asio::io_service> ); //thread function
-	void clientEntityAssociation(subscription subscription_);
+	void clientEntityAssociation(subscription subscription_, std::pair<unsigned int,sim_mob::session_ptr > availableClient);
 	bool deadEntityCheck(sim_mob::JCommunicationSupport & info);
 	void refineSubscriptionList();
 //	void HandleMessage(MessageType type, MessageReceiver& sender,const Message& message);
 
+	///Returns true if enough subscriptions exist to allow the broker to update.
+	bool subscriptionsQualify() const;
+
+	///Returns true if enough clients exist to allow the broker to update.
+	bool clientsQualify() const;
 
 
 
@@ -102,7 +108,6 @@ public:
 	bool handleKEY_REQUEST(std::string data);
 	bool handleKEY_SEND(std::string data);
 	void handleReceiveMessage(std::string);
-	bool brokerIsQualified();
 
 	Entity::UpdateStatus update(timeslice now);
 	bool allAgentUpdatesDone();
@@ -134,7 +139,7 @@ public:
 	subscriptionC &getSubscriptionList();
 
 protected:
-	//Wait for clients; return "false" to jump out of the loop.
+	///Wait for clients; return "false" to jump out of the loop.
 	bool waitForClients();
 
 

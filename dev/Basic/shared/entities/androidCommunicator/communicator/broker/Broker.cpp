@@ -67,48 +67,46 @@ void Broker::handleReceiveMessage(std::string str){
 	msg_ptr msg(messageFactory->createMessage(str));
 	receiveQueue.post(msg);
 }
-void Broker::clientEntityAssociation(subscription subscription_)
+
+void Broker::clientEntityAssociation(subscription subscription_, std::pair<unsigned int,sim_mob::session_ptr > availableClient)
 {
-	//Variable declaration
-			std::pair<unsigned int,sim_mob::session_ptr > availableClient;
-			sim_mob::session_ptr session_;
-			unsigned int clientID_;
-			//poping from client list
-			availableClient = clientList.front();
-			clientList.pop();
-			//filling temp data
-			clientID_ = availableClient.first;
-			session_ = availableClient.second;
-			//filling real data
-			subscription_.clientID = clientID_;
-			subscription_.handler.reset(
-					new sim_mob::ConnectionHandler(
-							session_,
-							*this,
-							&Broker::handleReceiveMessage,
-							clientID_,
-							(unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
-							)
-			);
-			//inserting to list
-			subscriberList_.insert(subscriberList_.begin(),subscription_);
-			subscription_.JCommunicationSupport_->setMutexes(mutex_collection);
-			//tell the agent he is subscribed
-			CALL_MEMBER_FN(*(subscription_.JCommunicationSupport_), subscription_.JCommunicationSupport_->subscriptionCallback)(true);
-			//start send/receive functionality right here. It seems there is no need of a thread
-			subscription_.handler->start();
+	//filling temp data
+	unsigned int clientID_ = availableClient.first;
+	sim_mob::session_ptr session_ = availableClient.second;
+
+	//filling real data
+	subscription_.clientID = clientID_;
+	subscription_.handler.reset(
+			new sim_mob::ConnectionHandler(
+					session_,
+					*this,
+					&Broker::handleReceiveMessage,
+					clientID_,
+					(unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
+					)
+	);
+
+	//inserting to list
+	subscriberList_.insert(subscriberList_.begin(),subscription_);
+	subscription_.JCommunicationSupport_->setMutexes(mutex_collection);
+
+	//tell the agent he is subscribed
+	CALL_MEMBER_FN(*(subscription_.JCommunicationSupport_), subscription_.JCommunicationSupport_->subscriptionCallback)(true);
+
+	//start send/receive functionality right here. It seems there is no need of a thread
+	subscription_.handler->start();
 }
 
 bool Broker::processEntityWaitingList()
 {
-	bool success = false;
+	//Pair up pending agents with pending clients.
+	while(clientList.size()>0 && agentWaitingList.size()>0) {
+		//Associate the first client & agent.
+		clientEntityAssociation(agentWaitingList.begin()->second, clientList.front());
 
-	Print() << "processEntityWaitingList Started clientList.size(" << clientList.size()  << ") agentWaitingList.size("<< agentWaitingList.size()  << ")" << std::endl;
-	while(clientList.size() && agentWaitingList.size())
-	{
-		subscription subscription_ = agentWaitingList.begin()->second;
+		//Pop the client & agent off their respective lists.
 		agentWaitingList.erase(agentWaitingList.begin());
-		clientEntityAssociation(subscription_);//client list will be reduced in this function, so no worries.
+		clientList.pop();
 	}
 
 	return true;
@@ -128,7 +126,8 @@ bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport & value)
 
 	if(clientList.size())
 	{
-		clientEntityAssociation(subscription_);
+		clientEntityAssociation(subscription_, clientList.front());
+		clientList.pop();
 		success = true;
 	}
 	else
@@ -463,48 +462,42 @@ void Broker::refineSubscriptionList() {
 }
 sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
-//not enough number of subscribers
-bool Broker::brokerIsQualified()
+bool Broker::subscriptionsQualify() const
 {
-	//easy reading
-	const bool NOT_QUALIFIED = false;
-	const bool QUALIFIED = true;
+	return subscriberList_.size() >= MIN_CLIENTS;
+}
 
-	if(subscriberList_.size() < MIN_CLIENTS)
-	{
-		return NOT_QUALIFIED;
-	}
-	return QUALIFIED;
-
+bool Broker::clientsQualify() const
+{
+	return clientList.size() >= MIN_CLIENTS;
 }
 
 bool Broker::waitForClients()
 {
 	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
 
-	/*if:
+	/**if:
 	 * 1- number of subscribers is too low
 	 * 2-there is no client(emulator) waiting in the queue
 	 * 3-this update function never started to process any data so far
 	 * then:
 	 *  wait for enough number of clients and agents to join
 	 */
-	while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false) {
-		Print() << "[Broker] waiting for enough number of clients to join" << std::endl;
+	while(!(subscriptionsQualify() && clientsQualify() && brokerInOperation)) {
 		client_register->wait(lock);
-		Print() << "Broker Notified " << std::endl;
 		processEntityWaitingList();
 	}
 
-	//now that you are qualified(have enough nof subscribers), then
+	//now that you are qualified(have enough number of subscribers), then
 	//you are considered to have already started operating.
-	if(brokerIsQualified()) {
+	if(subscriptionsQualify()) {
 		brokerInOperation = true;
 	}
 
 	//broker started before but is no more qualified to run
-	if(brokerInOperation && (!brokerIsQualified())) {
+	if(brokerInOperation && (!subscriptionsQualify())) {
 		//don't block, just cooperate & don't do anything until this simulation ends
+		//TODO: This might be why our client eventually gives up.
 		return false;
 	}
 

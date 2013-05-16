@@ -161,14 +161,7 @@ public:
 		mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 	}
 	void sendHandler(const boost::system::error_code& e) {
-		if(e)
-		{
-			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Failed" << std::endl;
-		}
-		else
-		{
-			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Success" << std::endl;
-		}
+		std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
 	}
 };
 

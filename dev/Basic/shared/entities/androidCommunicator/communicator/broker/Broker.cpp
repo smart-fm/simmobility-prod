@@ -9,7 +9,8 @@ namespace sim_mob
 {
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
-bool Broker::isEnabled() { return enabled; }
+bool Broker::isEnabled() const { return enabled; }
+
 //void Broker::io_service_run(boost::shared_ptr<boost::asio::io_service> io_service_)
 //{
 //	server_.start();
@@ -21,11 +22,13 @@ sim_mob::BufferContainer &Broker::getSendBuffer()
 	return sendBuffer;
 }
 subscriptionC &Broker::getSubscriptionList() { return subscriptionList;}
+
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id)/*io_service_(new boost::asio::io_service()),*/
 ,subscriberList_(get<0>(getSubscriptionList()))
 ,agentSubscribers_(get<1>(getSubscriptionList()))
 ,clientSubscribers_(get<2>(getSubscriptionList()))
+,enabled(true) //If a Broker is created, we assume it is enabled.
 {
 	 MessageMap = boost::assign::map_list_of("ANNOUNCE", ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND);
 
@@ -68,22 +71,18 @@ void Broker::handleReceiveMessage(std::string str){
 	receiveQueue.post(msg);
 }
 
-void Broker::clientEntityAssociation(subscription subscription_, std::pair<unsigned int,sim_mob::session_ptr > availableClient)
+void Broker::clientEntityAssociation(subscription subscription_, const std::pair<unsigned int,sim_mob::session_ptr >& availableClient)
 {
 	//filling temp data
-	unsigned int clientID_ = availableClient.first;
-	sim_mob::session_ptr session_ = availableClient.second;
+	subscription_.clientID = availableClient.first;
+	//sim_mob::session_ptr session_ = availableClient.second;
 
 	//filling real data
-	subscription_.clientID = clientID_;
 	subscription_.handler.reset(
 			new sim_mob::ConnectionHandler(
-					session_,
-					*this,
-					&Broker::handleReceiveMessage,
-					clientID_,
-					(unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
-					)
+				availableClient.second, *this, &Broker::handleReceiveMessage,
+				subscription_.clientID, (unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
+			)
 	);
 
 	//inserting to list
@@ -119,23 +118,22 @@ void Broker::addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subsc
 	agentWaitingList.at(&value.getEntity()) = subscription_;
 	CALL_MEMBER_FN(value, value.subscriptionCallback)(false);
 }
+
 bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport & value)
 {
-	bool success = false;
+	//Generate a subscription regardless.
 	subscription subscription_(&value);
 
-	if(clientList.size())
-	{
-		clientEntityAssociation(subscription_, clientList.front());
-		clientList.pop();
-		success = true;
-	}
-	else
-	{
+	//If the client list is empty, store in the waiting list (triggers callback).
+	if(clientList.empty()) {
 		addAgentToWaitingList(value, subscription_);
-		success = false;
+		return false;
 	}
-	 return success;
+
+	//Otherwise, we associate the subscription with a client.
+	clientEntityAssociation(subscription_, clientList.front());
+	clientList.pop();
+	return true;
 }
 
 bool  Broker::unSubscribeEntity(sim_mob::JCommunicationSupport &value)
@@ -460,7 +458,7 @@ void Broker::refineSubscriptionList() {
 		}
 	}
 }
-sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
+//sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
 bool Broker::subscriptionsQualify() const
 {

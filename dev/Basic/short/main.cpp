@@ -150,6 +150,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		prof = new ProfileBuilder();
 	}
 
+	//This is kind of a mess.
+	sim_mob::Broker mainBroker(MtxStrat_Locked, 0);
+	mainBroker.disable();
+
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
@@ -158,8 +162,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
+		//TODO: We should be able to handle both regular drivers and DriverComms.
 //		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
-		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
+		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &mainBroker, mtx));
+
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 
@@ -187,6 +193,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	std::cout << "start to Load our user config file." << std::endl;
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
 	std::cout << "finish to Load our user config file." << std::endl;
+
+	//DriverComms are only allowed if the communicator is enabled.
+	if (ConfigParams::GetInstance().commSimEnabled) {
+		mainBroker.enable();
+	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
@@ -266,7 +277,9 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-	communicationWorkers->assignAWorker(&(sim_mob::Broker::GetInstance()));
+	if (mainBroker.isEnabled()) {
+		communicationWorkers->assignAWorker(&mainBroker);
+	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

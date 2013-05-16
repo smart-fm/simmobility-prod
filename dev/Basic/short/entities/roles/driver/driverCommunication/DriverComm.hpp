@@ -2,6 +2,8 @@
 #include "entities/androidCommunicator/support/JCommunicationSupport.hpp"
 namespace sim_mob
 {
+class Broker;
+
 class DriverComm : public Driver, public JCommunicationSupport
 {
 	static int totalSendCnt;
@@ -9,7 +11,7 @@ class DriverComm : public Driver, public JCommunicationSupport
 	int sendCnt,receiveCnt;
 public:
 
-	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat);
+	DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat);
 	virtual ~DriverComm();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

@@ -129,6 +129,9 @@ public:
 	//Busline_Control_Type
 	std::string busline_control_type;
 
+	//Is our communication simulator enabled?
+	bool commSimEnabled;
+
 	// temporary maps
 	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
@@ -298,7 +301,7 @@ private:
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
 	{}
 
 	static ConfigParams instance;

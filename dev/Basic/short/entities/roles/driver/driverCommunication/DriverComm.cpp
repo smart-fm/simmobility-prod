@@ -9,15 +9,16 @@ namespace sim_mob
 
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
-sim_mob::DriverComm::DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), JCommunicationSupport(*parent)
-{ }
-sim_mob::DriverComm::~DriverComm(){
-}
+sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), JCommunicationSupport(*managingBroker, *parent)
+{}
+
+sim_mob::DriverComm::~DriverComm()
+{}
 
 Role* sim_mob::DriverComm::clone(Person* parent) const
 {
 	Role* role = 0;
-	role = new DriverComm(parent, parent->getMutexStrategy());
+	role = new DriverComm(parent, &this->communicator, parent->getMutexStrategy());
 
 	return role;
 }
@@ -94,7 +95,7 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 void DriverComm::frame_init(UpdateParams& p) {
 	Driver::frame_init(p);
 //	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
-	subscribed = subscribe(this->parent, sim_mob::Broker::GetInstance());
+	subscribed = subscribe(this->parent, this->communicator);
 }
 ;
 void DriverComm::frame_tick(UpdateParams& p) {

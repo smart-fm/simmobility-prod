@@ -1,6 +1,6 @@
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <jsoncpp/json.h>
+#include <json/json.h>
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
 #include "../message/derived/roadrunner/RR_Factory.hpp"
@@ -110,6 +110,8 @@ bool Broker::processEntityWaitingList()
 		agentWaitingList.erase(agentWaitingList.begin());
 		clientEntityAssociation(subscription_);//client list will be reduced in this function, so no worries.
 	}
+
+	return true;
 }
 
 void Broker::addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subscription &subscription_)
@@ -192,8 +194,11 @@ void Broker::preparePerTickData(timeslice now)
 void Broker::processIncomingData(timeslice now)
 {
 
-	msg_ptr msg = receiveQueue.pop();
-	msg->supplyHandler()->handle(msg);
+	//TODO: This is very dangerous! receiveQueue.pop() didn't do anything, so
+	//      I changed it to void. Now, msg_ptr is garbage data, so calling
+	//      supplyHandler() is super-risky. ~Seth
+	//msg_ptr msg = receiveQueue.pop();
+	//msg->supplyHandler()->handle(msg);
 
 
 //	DataElement dataElement;
@@ -234,7 +239,7 @@ bool Broker::frame_init(timeslice now){
 //			"] \n Broker_Mutex_Send[" << Broker_Mutex_Send <<
 //			"] \n Broker_Mutex_Receive[" << Broker_Mutex_Receive <<
 //			"]" << std::endl;
-
+	return true;
 };
 
 //data is : {"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
@@ -275,6 +280,7 @@ bool Broker::handleANNOUNCE(std::string data)
 	{
 		sendBufferMap[*it].add(BufferContainer::makeDataElement(output,clientID,(unsigned long)(*it)));
 	}
+	return true;
 }
 
 //data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
@@ -301,6 +307,7 @@ bool sim_mob::Broker::handleKEY_REQUEST(std::string data)
 	}
 	const sim_mob::Agent* receiver = it->agent;
 	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
+	return true;
 }
 
 //data is : {"messageType":"KEY_SEND", "KEY_SEND" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "SendingTokens":["A", "B", "C"]}}
@@ -327,6 +334,7 @@ bool sim_mob::Broker::handleKEY_SEND(std::string data)
 	}
 	const sim_mob::Agent* receiver = it->agent;
 	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
+	return true;
 }
 
 

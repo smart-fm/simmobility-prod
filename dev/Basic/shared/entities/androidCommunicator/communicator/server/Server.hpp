@@ -12,7 +12,7 @@
 #include <vector>
 #include <time.h>
 #include "Session.hpp"
-#include <jsoncpp/json.h>
+#include <json/json.h>
 #include <boost/foreach.hpp>
 #include <queue>
 #include "../buffer/BufferContainer.hpp"

@@ -20,6 +20,7 @@ BufferContainer::BufferContainer( const BufferContainer& other ) :
 BufferContainer& BufferContainer::operator=(BufferContainer& other)
 {
 	buffer = other.buffer;
+	return *this;
 }
 
 void BufferContainer::add(DataElement value) {

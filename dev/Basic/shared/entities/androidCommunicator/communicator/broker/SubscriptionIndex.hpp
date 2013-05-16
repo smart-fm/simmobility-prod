@@ -35,6 +35,7 @@ struct subscription
 		JCommunicationSupport_ = s.JCommunicationSupport_;
 		handler = s.handler;
 		connected = s.connected;
+		return *this;
 	}
 ///////////////Data Members///////////////////
 

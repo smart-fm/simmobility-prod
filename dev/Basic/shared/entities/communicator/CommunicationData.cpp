@@ -13,6 +13,7 @@ DataContainer::DataContainer( const DataContainer& other ) :
 DataContainer& DataContainer::operator=(DataContainer& other)
 {
 	buffer = other.buffer;
+	return *this;
 }
 
 void DataContainer::add(DATA_MSG_PTR value) {
@@ -68,6 +69,7 @@ bool DataContainer::pop(DATA_MSG_PTR & var) {
 		return false;
 	var = buffer.front();
 	buffer.erase(buffer.begin());
+	return true;
 }
 
 bool DataContainer::empty(){

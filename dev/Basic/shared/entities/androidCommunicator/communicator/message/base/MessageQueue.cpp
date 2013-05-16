@@ -16,14 +16,13 @@ MessageQueue::~MessageQueue(){
 }
 bool MessageQueue::ReadMessage(){
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
-
+	return true;
 }
 void MessageQueue::post(msg_ptr message){
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
 }
-msg_ptr MessageQueue::pop(){
+void MessageQueue::pop(){
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
-
 }
 
 MessageQueue::MessageQueue() {

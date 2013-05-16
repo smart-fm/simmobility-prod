@@ -113,9 +113,9 @@ public:
 	//abstract vitual
 	void load(const std::map<std::string, std::string>& configProps){};
 	bool frame_init(timeslice now);
-	Entity::UpdateStatus frame_tick(timeslice now){};
+	Entity::UpdateStatus frame_tick(timeslice now){ return Entity::UpdateStatus::Continue; };
 	void frame_output(timeslice now){};
-	bool isNonspatial(){};
+	bool isNonspatial(){ return true; };
 
 	void enable();
 	void disable();

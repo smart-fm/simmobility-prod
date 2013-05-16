@@ -7,7 +7,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <jsoncpp/json.h>
+#include <json/json.h>
 #include <boost/thread.hpp>
 
 namespace sim_mob

@@ -8,18 +8,20 @@
  */
 
 #include "Bid.hpp"
+#include "metrics/Frame.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Bid::Bid(UnitId unitId, int bidderId, float value)
-: unitId(unitId), bidderId(bidderId), value(value) {
+Bid::Bid(UnitId unitId, int bidderId, MessageReceiver* bidder, float value, timeslice& time)
+: unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {
 }
 
-Bid::Bid(const Bid& source) {
+Bid::Bid(const Bid& source) : time(source.time) {
     this->unitId = source.unitId;
     this->bidderId = source.bidderId;
     this->value = source.value;
+    this->bidder = source.bidder;
 }
 
 Bid::~Bid() {
@@ -29,6 +31,8 @@ Bid& Bid::operator=(const Bid& source) {
     this->unitId = source.unitId;
     this->bidderId = source.bidderId;
     this->value = source.value;
+    this->time = source.time;
+    this->bidder = source.bidder;
     return *this;
 }
 
@@ -42,4 +46,12 @@ int Bid::GetBidderId() const {
 
 float Bid::GetValue() const {
     return value;
+}
+
+const timeslice& Bid::GetTime() const {
+    return time;
+}
+
+MessageReceiver* Bid::GetBidder() const{
+    return bidder;
 }

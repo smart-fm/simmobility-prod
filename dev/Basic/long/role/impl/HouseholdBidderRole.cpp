@@ -36,7 +36,7 @@ void HouseholdBidderRole::Update(timeslice now) {
     }
 
     if (isActive()) {
-        if (!waitingForResponse && !bidOnCurrentDay && BidUnit()) {
+        if (!waitingForResponse && !bidOnCurrentDay && BidUnit(now)) {
             waitingForResponse = true;
             bidOnCurrentDay = true;
         }
@@ -120,7 +120,7 @@ void HouseholdBidderRole::OnMarketAction(EventId id, EventPublisher* sender,
     }
 }
 
-bool HouseholdBidderRole::BidUnit() {
+bool HouseholdBidderRole::BidUnit(timeslice now) {
     list<Unit*> units;
     market->GetUnits(units);
     if (!units.empty()) {
@@ -143,8 +143,8 @@ bool HouseholdBidderRole::BidUnit() {
             float bidValue = maxSurplus + CalculateWP();
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 owner->Post(LTMID_BID, GetParent(),
-                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
-                        bidValue)));
+                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(), 
+                        GetParent(), bidValue, now)));
                 return true;
             }
         }

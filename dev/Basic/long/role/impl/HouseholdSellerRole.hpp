@@ -12,19 +12,22 @@
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
-
 namespace sim_mob {
 
     namespace long_term {
-        
+
         class HouseholdAgent;
-        
+
         /**
          * Household Seller role.
+         *
+         * Seller will receive N bids each day and it will choose 
+         * the maximum bid *of the day* that satisfies the seller's condition.
+         * 
          */
         class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+            HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
                     HousingMarket* market);
             virtual ~HouseholdSellerRole();
 
@@ -53,10 +56,26 @@ namespace sim_mob {
              * @param unit
              */
             virtual void AdjustUnitParams(Unit& unit);
+            
         private:
+            /**
+             * Notify the bidders that have their bid were accepted.
+             */
+            void NotifyWinnerBidders();
+            /**
+             * Adjust parameters of all units that were not selled.
+             */
+            void AdjustNotSelledUnits();
+        private:
+            typedef map<UnitId, Bid> Bids; 
+            typedef pair<UnitId, Bid> BidEntry;
             friend class HouseholdAgent;
             HousingMarket* market;
             Household* hh;
+            timeslice currentTime;
+            volatile bool hasUnitsToSale;
+            //Current max bid information.
+            Bids maxBidsOfDay;
         };
     }
 }

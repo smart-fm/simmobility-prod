@@ -79,7 +79,7 @@ namespace sim_mob {
 
         private:
             friend class HouseholdAgent;
-            bool BidUnit();
+            bool BidUnit(timeslice now);
             float CalculateSurplus(const Unit& unit);
             float CalculateWP();
         private:

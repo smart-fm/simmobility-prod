@@ -10,6 +10,8 @@
 
 #include "Common.h"
 #include "Types.h"
+#include "metrics/Frame.hpp"
+#include "message/MessageReceiver.hpp"
 
 namespace sim_mob {
 
@@ -21,7 +23,7 @@ namespace sim_mob {
         class Bid {
         public:
 
-            Bid(UnitId id, int bidderId, float value);
+            Bid(UnitId id, int bidderId, MessageReceiver* bidder, float value, timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -43,17 +45,31 @@ namespace sim_mob {
              * @return value with Bidder identifier.
              */
             int GetBidderId() const;
+            
+            /**
+             * Gets the Bidder pointer.
+             * @return bidder pointer.
+             */
+            MessageReceiver* GetBidder() const;
 
             /**
              * Gets the value of the bid.
              * @return the value of the bid.
              */
             float GetValue() const;
+            
+            /**
+             * Gets the time of the bid.
+             * @return the value of the bid.
+             */
+            const timeslice& GetTime() const;
 
         private:
+            timeslice time;
             UnitId unitId;
             int bidderId;
             float value;
+            MessageReceiver* bidder;
         };
     }
 }

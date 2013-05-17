@@ -238,14 +238,10 @@ void sim_mob::Conflux::resetOutputBounds() {
 		outputEstimate = segStats->computeExpectedOutputPerTick();
 		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputBounds.insert(std::make_pair(firstSeg, outputEstimate));
-		Print()<<"outputBounds rdSeg (insert): ["<<firstSeg->getStart()->getID()<<","<<firstSeg->getEnd()->getID()
-					<<"]"<<" conflux mnode: "<<multiNode->getID()<<std::endl;
 	}
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg) {
-	Print()<<"outputBounds rdSeg (hasSpace): ["<<rdSeg->getStart()->getID()<<","<<rdSeg->getEnd()->getID()
-			<<"]"<<" conflux mnode: "<<multiNode->getID()<<std::endl;
 	return (outputBounds.at(rdSeg) > 0);
 }
 

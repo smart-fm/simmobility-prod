@@ -148,6 +148,7 @@ void CommunicationSupport::setSubscribed(bool value)
 
 		Communicator_Mutexes = communicator.subscribeEntity(*this);
 //		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+		return true;
 	}
 	const sim_mob::Agent& CommunicationSupport::getEntity()
 	{

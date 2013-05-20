@@ -356,6 +356,7 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 			newRole = rf.createRole(tci, str, this);
 
 		changeRole(newRole);
+		return true;
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
@@ -433,6 +434,7 @@ bool sim_mob::Person::findNextPersonRole()
 		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
 
 		nextRole = rf.createRole(tci, str, this);
+		return true;
 }
 
 bool sim_mob::Person::findNextSubTrip()

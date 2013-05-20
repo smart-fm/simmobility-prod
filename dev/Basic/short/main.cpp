@@ -150,6 +150,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		prof = new ProfileBuilder();
 	}
 
+	//This is kind of a mess.
+	sim_mob::Broker mainBroker(MtxStrat_Locked, 0);
+	mainBroker.disable();
+
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
@@ -158,8 +162,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
+		//TODO: We should be able to handle both regular drivers and DriverComms.
 //		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
-		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
+		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &mainBroker, mtx));
+
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 
@@ -187,6 +193,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	std::cout << "start to Load our user config file." << std::endl;
 	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
 	std::cout << "finish to Load our user config file." << std::endl;
+
+	//DriverComms are only allowed if the communicator is enabled.
+	if (ConfigParams::GetInstance().commSimEnabled) {
+		mainBroker.enable();
+	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
@@ -220,12 +231,16 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+
+	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
+	//      If an Agent is "behind" the Broker, we have two options:
+	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
+	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
 	WorkGroup* communicationWorkers = WorkGroup::NewWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+
 	//membership to various clubs
 //	WorkGroup::addWorkGroupMembership(agentWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
 //	WorkGroup::addWorkGroupMembership(signalStatusWorkers,WorkGroup::WGM_COMMUNICATING_AGENTS);
-
-	std::cout << "start to Load our user config file." << std::endl;
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -259,9 +274,12 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//..and Assign communication agent(currently a singleton
 
 
+	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-	communicationWorkers->assignAWorker(&(sim_mob::Broker::GetInstance()));
+	if (mainBroker.isEnabled()) {
+		communicationWorkers->assignAWorker(&mainBroker);
+	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

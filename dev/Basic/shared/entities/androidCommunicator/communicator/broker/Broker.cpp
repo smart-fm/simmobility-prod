@@ -1,15 +1,16 @@
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <jsoncpp/json.h>
+#include <json/json.h>
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
-#include "../message/derived/roadrunner/RR_Factory.hpp"
+#include "entities/androidCommunicator/communicator/message/derived/roadrunner/RR_Factory.hpp"
 
 namespace sim_mob
 {
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
-bool Broker::isEnabled() { return enabled; }
+bool Broker::isEnabled() const { return enabled; }
+
 //void Broker::io_service_run(boost::shared_ptr<boost::asio::io_service> io_service_)
 //{
 //	server_.start();
@@ -21,11 +22,13 @@ sim_mob::BufferContainer &Broker::getSendBuffer()
 	return sendBuffer;
 }
 subscriptionC &Broker::getSubscriptionList() { return subscriptionList;}
+
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id)/*io_service_(new boost::asio::io_service()),*/
 ,subscriberList_(get<0>(getSubscriptionList()))
 ,agentSubscribers_(get<1>(getSubscriptionList()))
 ,clientSubscribers_(get<2>(getSubscriptionList()))
+,enabled(true) //If a Broker is created, we assume it is enabled.
 {
 	 MessageMap = boost::assign::map_list_of("ANNOUNCE", ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND);
 
@@ -67,49 +70,45 @@ void Broker::handleReceiveMessage(std::string str){
 	msg_ptr msg(messageFactory->createMessage(str));
 	receiveQueue.post(msg);
 }
-void Broker::clientEntityAssociation(subscription subscription_)
+
+void Broker::clientEntityAssociation(subscription subscription_, const std::pair<unsigned int,sim_mob::session_ptr >& availableClient)
 {
-	//Variable declaration
-			std::pair<unsigned int,sim_mob::session_ptr > availableClient;
-			sim_mob::session_ptr session_;
-			unsigned int clientID_;
-			//poping from client list
-			availableClient = clientList.front();
-			clientList.pop();
-			//filling temp data
-			clientID_ = availableClient.first;
-			session_ = availableClient.second;
-			//filling real data
-			subscription_.clientID = clientID_;
-			subscription_.handler.reset(
-					new sim_mob::ConnectionHandler(
-							session_,
-							*this,
-							&Broker::handleReceiveMessage,
-							clientID_,
-							(unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
-							)
-			);
-			//inserting to list
-			subscriberList_.insert(subscriberList_.begin(),subscription_);
-			subscription_.JCommunicationSupport_->setMutexes(mutex_collection);
-			//tell the agent he is subscribed
-			CALL_MEMBER_FN(*(subscription_.JCommunicationSupport_), subscription_.JCommunicationSupport_->subscriptionCallback)(true);
-			//start send/receive functionality right here. It seems there is no need of a thread
-			subscription_.handler->start();
+	//filling temp data
+	subscription_.clientID = availableClient.first;
+	//sim_mob::session_ptr session_ = availableClient.second;
+
+	//filling real data
+	subscription_.handler.reset(
+			new sim_mob::ConnectionHandler(
+				availableClient.second, *this, &Broker::handleReceiveMessage,
+				subscription_.clientID, (unsigned long)const_cast<sim_mob::Agent*>(&(subscription_.JCommunicationSupport_->getEntity()))
+			)
+	);
+
+	//inserting to list
+	subscriberList_.insert(subscriberList_.begin(),subscription_);
+	subscription_.JCommunicationSupport_->setMutexes(mutex_collection);
+
+	//tell the agent he is subscribed
+	CALL_MEMBER_FN(*(subscription_.JCommunicationSupport_), subscription_.JCommunicationSupport_->subscriptionCallback)(true);
+
+	//start send/receive functionality right here. It seems there is no need of a thread
+	subscription_.handler->start();
 }
 
 bool Broker::processEntityWaitingList()
 {
-	bool success = false;
+	//Pair up pending agents with pending clients.
+	while(clientList.size()>0 && agentWaitingList.size()>0) {
+		//Associate the first client & agent.
+		clientEntityAssociation(agentWaitingList.begin()->second, clientList.front());
 
-	Print() << "processEntityWaitingList Started clientList.size(" << clientList.size()  << ") agentWaitingList.size("<< agentWaitingList.size()  << ")" << std::endl;
-	while(clientList.size() && agentWaitingList.size())
-	{
-		subscription subscription_ = agentWaitingList.begin()->second;
+		//Pop the client & agent off their respective lists.
 		agentWaitingList.erase(agentWaitingList.begin());
-		clientEntityAssociation(subscription_);//client list will be reduced in this function, so no worries.
+		clientList.pop();
 	}
+
+	return true;
 }
 
 void Broker::addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subscription &subscription_)
@@ -119,22 +118,22 @@ void Broker::addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subsc
 	agentWaitingList.at(&value.getEntity()) = subscription_;
 	CALL_MEMBER_FN(value, value.subscriptionCallback)(false);
 }
+
 bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport & value)
 {
-	bool success = false;
+	//Generate a subscription regardless.
 	subscription subscription_(&value);
 
-	if(clientList.size())
-	{
-		clientEntityAssociation(subscription_);
-		success = true;
-	}
-	else
-	{
+	//If the client list is empty, store in the waiting list (triggers callback).
+	if(clientList.empty()) {
 		addAgentToWaitingList(value, subscription_);
-		success = false;
+		return false;
 	}
-	 return success;
+
+	//Otherwise, we associate the subscription with a client.
+	clientEntityAssociation(subscription_, clientList.front());
+	clientList.pop();
+	return true;
 }
 
 bool  Broker::unSubscribeEntity(sim_mob::JCommunicationSupport &value)
@@ -192,8 +191,11 @@ void Broker::preparePerTickData(timeslice now)
 void Broker::processIncomingData(timeslice now)
 {
 
-	msg_ptr msg = receiveQueue.pop();
-	msg->supplyHandler()->handle(msg);
+	//TODO: This is very dangerous! receiveQueue.pop() didn't do anything, so
+	//      I changed it to void. Now, msg_ptr is garbage data, so calling
+	//      supplyHandler() is super-risky. ~Seth
+	//msg_ptr msg = receiveQueue.pop();
+	//msg->supplyHandler()->handle(msg);
 
 
 //	DataElement dataElement;
@@ -234,7 +236,7 @@ bool Broker::frame_init(timeslice now){
 //			"] \n Broker_Mutex_Send[" << Broker_Mutex_Send <<
 //			"] \n Broker_Mutex_Receive[" << Broker_Mutex_Receive <<
 //			"]" << std::endl;
-
+	return true;
 };
 
 //data is : {"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
@@ -275,6 +277,7 @@ bool Broker::handleANNOUNCE(std::string data)
 	{
 		sendBufferMap[*it].add(BufferContainer::makeDataElement(output,clientID,(unsigned long)(*it)));
 	}
+	return true;
 }
 
 //data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
@@ -301,6 +304,7 @@ bool sim_mob::Broker::handleKEY_REQUEST(std::string data)
 	}
 	const sim_mob::Agent* receiver = it->agent;
 	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
+	return true;
 }
 
 //data is : {"messageType":"KEY_SEND", "KEY_SEND" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "SendingTokens":["A", "B", "C"]}}
@@ -327,6 +331,7 @@ bool sim_mob::Broker::handleKEY_SEND(std::string data)
 	}
 	const sim_mob::Agent* receiver = it->agent;
 	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
+	return true;
 }
 
 
@@ -351,7 +356,7 @@ bool Broker::allAgentUpdatesDone()
 					duplicateEntityDoneChecker.insert(it->agent);
 				}
 			}
-			catch(std::exception e)
+			catch(std::exception& e)
 			{
 				Print() << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
@@ -418,7 +423,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
 			if (*it == &(info.getEntity()))
 				return false;
 		}
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		return true;
 	}
 
@@ -453,78 +458,73 @@ void Broker::refineSubscriptionList() {
 		}
 	}
 }
-sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
+//sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
-//not enough number of subscribers
-bool Broker::brokerIsQualified()
+bool Broker::subscriptionsQualify() const
 {
-	//easy reading
-	const bool NOT_QUALIFIED = false;
-	const bool QUALIFIED = true;
-
-	if(subscriberList_.size() < MIN_CLIENTS)
-	{
-		return NOT_QUALIFIED;
-	}
-	return QUALIFIED;
-
+	return subscriberList_.size() >= MIN_CLIENTS;
 }
+
+bool Broker::clientsQualify() const
+{
+	return clientList.size() >= MIN_CLIENTS;
+}
+
+bool Broker::waitForClients()
+{
+	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+
+	/**if:
+	 * 1- number of subscribers is too low
+	 * 2-there is no client(emulator) waiting in the queue
+	 * 3-this update function never started to process any data so far
+	 * then:
+	 *  wait for enough number of clients and agents to join
+	 */
+	while(!(subscriptionsQualify() && clientsQualify() && brokerInOperation)) {
+		client_register->wait(lock);
+		processEntityWaitingList();
+	}
+
+	//now that you are qualified(have enough number of subscribers), then
+	//you are considered to have already started operating.
+	if(subscriptionsQualify()) {
+		brokerInOperation = true;
+	}
+
+	//broker started before but is no more qualified to run
+	if(brokerInOperation && (!subscriptionsQualify())) {
+		//don't block, just cooperate & don't do anything until this simulation ends
+		//TODO: This might be why our client eventually gives up.
+		return false;
+	}
+
+	//Success! Continue.
+	return true;
+}
+
 Entity::UpdateStatus Broker::update(timeslice now)
 {
-	Print() << "Broker tick:"<< now.frame() << " ================================================\n";
-	if(now.frame() == 0)
-		{
-			server_->start();
-		}
-
-
-	//condition variable clause
-	{
-		boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
-		/*if:
-		 * 1- number of subscribers is too low
-		 * 2-there is no client(emulator) waiting in the queue
-		 * 3-this update function never started to process any data so far
-		 * then:
-		 *  wait for enough number of clients and agents to join
-		 */
-		while((!brokerIsQualified()) && (clientList.size() < MIN_CLIENTS) && brokerInOperation == false)
-		{
-			Print() << "[Broker] waiting for enough number of clients to join" << std::endl;
-			client_register->wait(lock);
-			Print() << "Broker Notified " << std::endl;
-			processEntityWaitingList();
-		}
-		//now that you are qualified(have enough nof subscribers), then
-		//you are considered to have already started operating.
-		if(brokerIsQualified())
-		{
-			brokerInOperation = true;
-		}
-
-		//broker started before but is no more qualified to run
-		if(brokerInOperation && (!brokerIsQualified()))
-		{
-			//don't block, just cooperate & don't do anything untill this simulation ends
-			return UpdateStatus(UpdateStatus::RS_CONTINUE);
-		}
+	Print() << "Broker tick:"<< now.frame() << "\n";
+	if(now.frame() == 0) {
+		server_->start();
 	}
 
+	//Ensure that we have enough clients to process.
+	if (!waitForClients()) {
+		return UpdateStatus(UpdateStatus::RS_CONTINUE);
+	}
+
+	//Process clients, waiting to ensure that we have received all incoming data.
 	preparePerTickData(now);
-	Print() << "preparePerTickData Done" << std::endl;
 	processIncomingData(now);
-	Print() << "processIncomingData Done" << std::endl;
-	while(!allAgentUpdatesDone())
-		{
-			refineSubscriptionList();
-			Print() << "refineSubscriptionList Done" << std::endl;
-		}
-	Print() << "allAgentUpdatesDone Done" << std::endl;
+	while(!allAgentUpdatesDone()) {
+		refineSubscriptionList();
+	}
 	processOutgoingData(now);
-	Print() << "processOutgoingData Done" << std::endl;
+
 	//see if anything is left off
 	processEntityWaitingList();
-	Print() <<"------------------------------------------------------\n";
 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 
@@ -534,8 +534,7 @@ void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 {
 	//find the connection handler
 	agentIterator it = agentSubscribers_.find(agent);
-	if(it == agentSubscribers_.end())
-	{
+	if(it == agentSubscribers_.end()) {
 		Print() << "unicast Failed. Agent not Found" << std::endl;
 	}
 //	ConnectionHandler handler = it->handler;

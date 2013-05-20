@@ -23,7 +23,7 @@ public:
 	virtual ~MessageQueue();
 	bool ReadMessage();
     void post(msg_ptr message);
-    msg_ptr pop();
+    void pop();
 };
 
 }/* namespace comm */

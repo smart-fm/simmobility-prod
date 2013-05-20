@@ -587,7 +587,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, timeslice now)
 
 
 	//Has the segment changed?
-	if ((!vehicle->isDone()) && (!vehicle->hasPath()) ) {
+	if ((!vehicle->isDone()) /*&& (!vehicle->hasPath())*/ ) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment() != prevSegment);
 	}
 	return true;
@@ -2018,16 +2018,19 @@ void sim_mob::Driver::saveCurrTrafficSignal() {
 	else
 		node = vehicle->getCurrLink()->getStart();
 	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
+	Print() << "Node[" << node->getID() << "] returned signal[" << trafficSignal << "]" << std::endl;
 }
 
 void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
-
+	std::cout << "setTrafficSignalParams ";
 	if (!trafficSignal) {
+		std::cout << "->[signal is null] " << std::endl;
 			p.trafficColor = sim_mob::Green;
 
 		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
+		std::cout << "->[signal is NOT null] " << std::endl;
 		sim_mob::TrafficColor color;
 
 		if (vehicle->hasNextSegment(false)) {
@@ -2040,9 +2043,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
-
-
-//			std::cout << "The driver light is " << color << std::endl;
+			std::cout << "getDriverLight " << color << std::endl;
 		} else {
 			/*vahid:
 			 * Basically,there is no notion of left, right forward any more.

@@ -1,5 +1,5 @@
 #pragma once
-#include "../communicator/buffer/BufferContainer.hpp"
+#include "entities/androidCommunicator/communicator/buffer/BufferContainer.hpp"
 
 
 //this file provides some of the communication
@@ -42,11 +42,15 @@ class Agent;
 //then override the driver's(agent's) update method to use send & receive and set
 //various flags as necessary.
 
-class JCommunicationSupport
-{
+class JCommunicationSupport {
+public:
+	JCommunicationSupport(sim_mob::Broker& managingBroker, sim_mob::Agent& entity_);
+	virtual ~JCommunicationSupport() {}
 
+private:
 	BufferContainer incoming;
 	BufferContainer &outgoing;
+
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
 	bool outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
@@ -56,9 +60,10 @@ class JCommunicationSupport
 	bool agentUpdateDone;
 	//todo make this an enum-vahid
 	std::string agentIdentification;
-	sim_mob::Broker & communicator;
 	sim_mob::Agent &entity;//the entity this class is actually referring to
 
+protected:
+	sim_mob::Broker& communicator;
 
 
 public:
@@ -70,7 +75,6 @@ public:
 	boost::shared_mutex CommSupp_Mutex;
 	std::vector<boost::shared_ptr<boost::shared_mutex> > Broker_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
-	JCommunicationSupport(sim_mob::Agent& entity_);
 	void setSubscribed(bool);
 	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write

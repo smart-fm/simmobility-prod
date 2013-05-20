@@ -35,6 +35,7 @@ commResult FileBasedImpl::send(DataContainer& values) {
     }
     oa & values;
 
+    return commResult(commResult::success);
 };
 commResult FileBasedImpl::receive(DataContainer& value){
 	std::cout << "Inside FileBasedImpl::receive[" << receiveFile << "]" << std::endl;
@@ -69,7 +70,7 @@ commResult FileBasedImpl::receive(DataContainer& value){
 		std::cerr << "Receivefile is not yet ready: " << ba.what() << std::endl;
 	}
 
-
+	return commResult(commResult::success);
 };
 void FileBasedImpl::shortCircuit(std::string sendFile_ , std::string receiveFile_)
 {

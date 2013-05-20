@@ -8,10 +8,11 @@
 # JSONCPP_FOUND, If false, do not try to use jsoncpp.
 # also defined, but not for general use are
 # JSONCPP_LIBRARY, where to find the jsoncpp library.
+#
 
-FIND_PATH(JSONCPP_INCLUDE_DIR jsoncpp/json.h
-/usr/local/include
-/usr/include
+FIND_PATH(JSONCPP_INCLUDE_DIR json/json.h
+  /usr/local/include/jsoncpp
+  /usr/include/jsoncpp
 )
 
 # Get the GCC compiler version
@@ -21,7 +22,7 @@ OUTPUT_VARIABLE _gcc_COMPILER_VERSION
 OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-SET(JSONCPP_NAMES ${JSONCPP_NAMES} libjson_linux-gcc-${_gcc_COMPILER_VERSION}_libmt.so)
+SET(JSONCPP_NAMES ${JSONCPP_NAMES} libjsoncpp.so libjson_linux-gcc-${_gcc_COMPILER_VERSION}_libmt.so)
 FIND_LIBRARY(JSONCPP_LIBRARY
 NAMES ${JSONCPP_NAMES}
 PATHS /usr/lib /usr/local/lib

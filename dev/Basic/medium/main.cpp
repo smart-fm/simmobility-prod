@@ -17,6 +17,7 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "entities/models/LaneChangeModel.hpp"
 #include "entities/models/IntersectionDrivingModel.hpp"

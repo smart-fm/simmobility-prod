@@ -1,5 +1,5 @@
 #include "NS3_Communicator.hpp"
-#include "../../CommunicationSupport.hpp"
+#include "entities/communicator/CommunicationSupport.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include <boost/thread/mutex.hpp>
@@ -196,6 +196,7 @@ bool NS3_Communicator::processOutgoingData(timeslice now)
 	}while(!allAgentUpdatesDone());
 	trySend(now);//the last chance for the leftovers
 	std::cout<< "  NS3_Communicator::processOutgoingData [" << now.frame() << "]  allAgentUpdatesDone"  << std::endl;
+	return true;
 }
 
 //todo: think of a better return value than just void
@@ -331,12 +332,12 @@ void NS3_Communicator::load(const std::map<std::string, std::string>& configProp
 
 bool NS3_Communicator::frame_init(timeslice now)
 {
-
+	return true;
 }
 
 Entity::UpdateStatus NS3_Communicator::frame_tick(timeslice now)
 {
-
+	return Entity::UpdateStatus::Continue;
 }
 void NS3_Communicator::frame_output(timeslice now)
 {

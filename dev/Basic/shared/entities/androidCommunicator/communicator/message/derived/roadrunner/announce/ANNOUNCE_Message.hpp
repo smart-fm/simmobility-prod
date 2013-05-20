@@ -9,7 +9,7 @@
 #define ANNOUNCE_MESSAGE_HPP_
 //#include "entities/androidCommunicator/communicator/message/base/Message.hpp"
 //#include "ANNOUNCE_Handler.hpp"
-#include "../RoadrunnerMessage.hpp"
+#include "entities/androidCommunicator/communicator/message/derived/roadrunner/RoadrunnerMessage.hpp"
 
 namespace sim_mob {
 namespace roadrunner {

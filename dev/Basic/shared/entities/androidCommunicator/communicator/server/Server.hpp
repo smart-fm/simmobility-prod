@@ -12,14 +12,13 @@
 #include <vector>
 #include <time.h>
 #include "Session.hpp"
-#include <jsoncpp/json.h>
+#include <json/json.h>
 #include <boost/foreach.hpp>
 #include <queue>
-#include "../buffer/BufferContainer.hpp"
-#include "../message/derived/roadrunner/Serialization.hpp"
+#include "entities/androidCommunicator/communicator/buffer/BufferContainer.hpp"
+#include "entities/androidCommunicator/communicator/message/derived/roadrunner/Serialization.hpp"
 namespace sim_mob
 {
-#define DEFAULT_SERVER_PORT 2013
 //typedef boost::shared_ptr<sim_mob::session> session_ptr;
 
 
@@ -54,6 +53,8 @@ public:
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;
 private:
+	const static unsigned int DEFAULT_SERVER_PORT = 6745;
+
 	boost::asio::ip::tcp::acceptor acceptor_;
 	std::queue<std::pair<unsigned int,sim_mob::session_ptr > > &clientList;
 };
@@ -91,9 +92,11 @@ class ConnectionHandler
 	unsigned int clientID, agentPtr;
 //	boost::tuple<receiveHandler> handler_;
 	typedef void (Broker::*BrokerReceiveCallback)(std::string);
-	BrokerReceiveCallback &receiveCallBack;
+	BrokerReceiveCallback receiveCallBack;
 	Broker &theBroker;
 public:
+	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
+	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(
 			session_ptr session_ ,
 			Broker& broker,
@@ -159,14 +162,7 @@ public:
 		mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 	}
 	void sendHandler(const boost::system::error_code& e) {
-		if(e)
-		{
-			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Failed" << std::endl;
-		}
-		else
-		{
-			std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] Success" << std::endl;
-		}
+		std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
 	}
 };
 

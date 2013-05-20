@@ -28,6 +28,7 @@ BoostSerialized_Client_ASIO::BoostSerialized_Client_ASIO(std::string host,std::s
 bool BoostSerialized_Client_ASIO::init()
 {
 	connect();
+	return true;
 }
 
 bool BoostSerialized_Client_ASIO::connect()
@@ -43,10 +44,13 @@ bool BoostSerialized_Client_ASIO::connect()
 	std::cout << "Connecting" << std::endl;
 	boost::asio::async_connect(connection_.socket(), endpoint_iterator, boost::bind(&BoostSerialized_Client_ASIO::handle_connect, this,boost::asio::placeholders::error));
 	boost::thread thread_asio = boost::thread(&BoostSerialized_Client_ASIO::thread_asio_function,this);
+
+	return true;
 }
 
 bool BoostSerialized_Client_ASIO::thread_asio_function() {
 	io_service_.run();
+	return true;
 }
 
 void BoostSerialized_Client_ASIO::close()
@@ -95,10 +99,11 @@ commResult BoostSerialized_Client_ASIO::send(DataContainer& value)
 	boost::unique_lock< boost::shared_mutex > lock(*value.Owner_Mutex);
 	std::cout << "Writing [" << value.get().size()  << "]" << std::endl;
 	connection_.async_write(value, boost::bind(&BoostSerialized_Client_ASIO::handle_send, this,boost::asio::placeholders::error, boost::ref(value)));
+	return commResult(commResult::success);
 }
 commResult BoostSerialized_Client_ASIO::receive(DataContainer& value)
 {
-
+	return commResult(commResult::success);
 }
 
 void BoostSerialized_Client_ASIO::handle_send(const boost::system::error_code& error,DataContainer &value)

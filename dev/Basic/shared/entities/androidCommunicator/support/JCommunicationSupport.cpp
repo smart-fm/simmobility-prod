@@ -1,20 +1,21 @@
 #include "JCommunicationSupport.hpp"
-#include "../communicator/broker/Broker.hpp"
+#include "entities/androidCommunicator/communicator/broker/Broker.hpp"
 
 
 using namespace sim_mob;
 namespace sim_mob
 {
-	JCommunicationSupport::JCommunicationSupport(sim_mob::Agent& entity_)
+	JCommunicationSupport::JCommunicationSupport(sim_mob::Broker& managingBroker, sim_mob::Agent& entity_)
 	:	/*CommSupp_Mutex(new boost::shared_mutex),*/
 	 	entity(entity_),
-		communicator(sim_mob::Broker::GetInstance()),
-	 	outgoing(sim_mob::Broker::GetInstance().getSendBuffer()),
+		communicator(managingBroker),
+	 	outgoing(managingBroker.getSendBuffer()),
 		incomingIsDirty(false),
 		outgoingIsDirty(false),
 		writeIncomingDone(false),
 		readOutgoingDone(false),
-		agentUpdateDone(false)
+		agentUpdateDone(false),
+		cnt_1(0), cnt_2(0)
 	{
 		subscribed = false;
 		subscriptionCallback = &JCommunicationSupport::setSubscribed;
@@ -129,9 +130,10 @@ void JCommunicationSupport::setMutexes(std::vector<boost::shared_ptr<boost::shar
 	void JCommunicationSupport::init(){
 
 	}
+
 	//this is used to subscribe the drived class
 	//(which is also an agent) to the communicator agent
-	bool JCommunicationSupport::subscribe(sim_mob::Agent* subscriber, sim_mob::Broker &communicator = sim_mob::Broker::GetInstance())
+	bool JCommunicationSupport::subscribe(sim_mob::Agent* subscriber, sim_mob::Broker &communicator)
 	{
 //		//todo here you are copying twice while once is possibl, I guess.
 //		subscriptionInfo info = getSubscriptionInfo();

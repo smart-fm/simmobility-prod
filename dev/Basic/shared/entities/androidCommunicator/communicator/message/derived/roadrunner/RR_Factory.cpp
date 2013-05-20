@@ -7,8 +7,10 @@
 
 #include "RR_Factory.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <jsoncpp/json.h>
+#include <json/json.h>
+#include <stdexcept>
 #include "Serialization.hpp"
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
@@ -35,6 +37,8 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 		handler.reset(new sim_mob::roadrunner::HDL_ANNOUNCE());
 		HandlerMap[type] = handler;
 	}
+
+	return handler;
 }
 
 //creates a message with correct format + assigns correct handler
@@ -66,7 +70,11 @@ msg_ptr RR_Factory::createMessage(std::string message)
 //		break;
 //	case KEY_SEND:
 //		break;
+	default:
+		WarnOut("RR_Factory::createMessage() - Unhandled message type.");
 	}
+
+	throw std::runtime_error("Message not handled.");
 }
 
 } /* namespace roadrunner */

@@ -95,6 +95,9 @@ void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 		vehicle = newVeh;
 		parentDriver->setResource(newVeh);
 	}
+	Print() << "DriverMovement::frame_init|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+			<< "|First segment in path: " << newVeh->getCurrSegment()->getStartEnd() << "|First sgmt id: " << newVeh->getCurrSegment()->getSegmentID()
+			<< std::endl;
 }
 
 void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
@@ -105,13 +108,12 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 
 	if(vehicle->getCurrSegment() == parentAgent->getCurrSegment() )
 	{
-		if (vehicle && vehicle->hasPath() && laneInfinity !=nullptr)
+		if (vehicle->hasPath() && laneInfinity)
 		{
 			//at start vehicle will be in lane infinity. set origin will move it to the correct lane
 			if (parentAgent->getCurrLane() == laneInfinity){
-				Print()<<"Driver "<< parentAgent->getId()<<" setOrigin ["<<
-						vehicle->getCurrSegment()->getStart()->getID()<<","
-						<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
+				Print() <<"DriverMovement::frame_tick|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+						<<"|calling setOrigin "<< vehicle->getCurrSegment()->getStartEnd() <<std::endl;
 				//setOrigin(parentDriver->params);
 				setOrigin(p2);
 			}
@@ -155,27 +157,24 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//}
 */
 	//=====================================incident==============================================
-
+	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
 	if(parentAgent->canMoveToNextSegment == Person::GRANTED) {
 		flowIntoNextLinkIfPossible(p2);
 	}
-
 	else if (parentAgent->canMoveToNextSegment == Person::DENIED){
-		Print()<<"Driver "<< parentAgent->getId()<<" Permission Denied ["<<
-								vehicle->getCurrSegment()->getStart()->getID()<<","
-								<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
+		Print() << "|Permission: Denied"
+				<< "|vehicle|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
+				<< "|Person|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << parentAgent->getCurrLane()->getLaneID()
+				<< std::endl;
+
 		if(currLane) {
 			if(parentAgent->isQueuing) {
-				Print()<<"Driver "<< parentAgent->getId()<<" move in queue ["<<
-												vehicle->getCurrSegment()->getStart()->getID()<<","
-												<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
 				moveInQueue();
+				Print() << "|called moveInQueue()";
 			}
 			else {
-				Print()<<"Driver "<< parentAgent->getId()<<" add to queue ["<<
-												vehicle->getCurrSegment()->getStart()->getID()<<","
-												<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
 				addToQueue(currLane); // adds to queue if not already in queue
+				Print() << "|called addToQueue()";
 			}
 
 			p2.elapsedSeconds = p2.secondsInTick;
@@ -185,15 +184,13 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//if vehicle is still in lane infinity, it shouldn't be advanced
 	if (currLane && parentAgent->canMoveToNextSegment == Person::NONE)
 	{
-		Print()<<"Driver "<< parentAgent->getId()<<" advance ["<<
-										vehicle->getCurrSegment()->getStart()->getID()<<","
-										<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
 		advance(p2);
 		//Update parent data. Only works if we're not "done" for a bad reason.
 		setParentData(p2);
+		Print() << "|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId() << "|called advance() and setParentData()" << std::endl;
 	}
-	else{
-		Print() << "Driver remains in lane infinity|Person: " <<parentAgent->getId()
+	else {
+		Print() << "|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId() << "|missed advance() and setParentData()"
 				<< "|canMoveToNextSegment: " << parentAgent->canMoveToNextSegment << std::endl;
 	}
 }
@@ -391,7 +388,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 			addToQueue(currLane);
 		}
 		p.elapsedSeconds = p.secondsInTick;
-		//	parentAgent->setRemainingTimeThisTick(0.0);
+		parentAgent->setRemainingTimeThisTick(0.0);
 	}
 	return res;
 }
@@ -400,9 +397,12 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
-	Print()<<"Driver "<< parentAgent->getId()<<" flowIntoNextLinkIfPossible ["<<
-							vehicle->getCurrSegment()->getStart()->getID()<<","
-							<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
+
+	Print()	<< "|Permission: Granted"
+			<< "|vehicle|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
+			<< "|Person|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << parentAgent->getCurrLane()->getLaneID()
+			<< std::endl;
+
 	DriverUpdateParams& p = dynamic_cast<DriverUpdateParams&>(up);
 
 	const sim_mob::RoadSegment* nextRdSeg = vehicle->getNextSegment(false);
@@ -413,11 +413,6 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0)); //in seconds
 
 	if (canGoToNextRdSeg(p, p.elapsedSeconds)){
-		Print()<<"canGoTo passed for Driver "<<parentAgent->getId()
-				<<" elapsedSec: "<<p.elapsedSeconds<<" | ["
-				<<nextRdSeg->getStart()->getID()<<","
-				<<nextRdSeg->getEnd()->getID()<<"]"
-						<<std::endl;
 		if (vehicle->isQueuing){
 			removeFromQueue();
 		}
@@ -440,79 +435,91 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
 		}
 
-		Print() << parentAgent->getId()<<" Driver is movedToNextLink at: "<< linkExitTimeSec*1000 << "ms to lane "<<
-						currLane->getLaneID()
-						<<" in RdSeg ["<< vehicle->getCurrSegment()->getStart()->getID() <<"," << vehicle->getCurrSegment()->getEnd()->getID() <<"]"
-						<<" last Accept: "<< getLastAccept(currLane)
-						<<" accept rate: "<<getAcceptRate(currLane)
-						<<" elapsedSeconds: "<<p.elapsedSeconds
-						<<" now: "<< p.now.ms()
-						<< " dist2End: "<<vehicle->getPositionInSegment()
-						<< std::endl;
+		Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+				<< "|canGoToNextRdSeg successful"
+				<< "|Driver is movedToNextLink at: " << linkExitTimeSec*1000 << "ms"
+				<< "|moved to nextRdSeg: " << vehicle->getCurrSegment()->getStartEnd() << "|nextRdSeg id: " << vehicle->getCurrSegment()->getSegmentID()
+				<< "|lane: " << currLane->getLaneID()
+				<< "|last Accept: "<< getLastAccept(currLane)
+				<< "|accept rate: "<<getAcceptRate(currLane)
+				<< "|elapsedSeconds: " << p.elapsedSeconds
+				<< "|dist2End: " <<vehicle->getPositionInSegment()
+				<< std::endl;
 
 		setLastAccept(currLane, linkExitTimeSec);
 		setParentData(p);
 		parentAgent->canMoveToNextSegment = Person::NONE;
 	}
 	else {
-		Print() <<"flowIntoNextLinkIfPossible | canGoTo failed for person " << parentAgent->getId() <<std::endl;
-		Print() << parentAgent->getId() << " to-lane "<< currLane->getLaneID()
-						<<" in RdSeg ["<< nextRdSeg->getStart()->getID() <<"," << nextRdSeg->getEnd()->getID() <<"]"
-						<<" last Accept: "<< getLastAccept(nextLaneInNextSegment)
-						<<" accept rate: "<< getAcceptRate(nextLaneInNextSegment)
-						<<" elapsedSeconds: "<< p.elapsedSeconds
-						<<" now: "<< p.now.ms()
-						<<" dist2End: "<<vehicle->getPositionInSegment()
-						<< std::endl;
+		Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+				<< "|canGoToNextRdSeg failed"
+				<< "|nextRdSeg: " << nextRdSeg->getStartEnd() << "|nextRdSeg id: " << nextRdSeg->getSegmentID()
+				<< "|lane: " << currLane->getLaneID()
+				<< "|last Accept: "<< getLastAccept(nextLaneInNextSegment)
+				<< "|accept rate: "<< getAcceptRate(nextLaneInNextSegment)
+				<< "|elapsedSeconds: " << p.elapsedSeconds
+				<< "|dist2End: " << vehicle->getPositionInSegment();
 
-
-		//driver is in previous segment (should be added to queue if canGoTo failed)
+		//Person is in previous segment (should be added to queue if canGoTo failed)
 		if(vehicle->getCurrSegment() == parentAgent->getCurrSegment() ){
-			Print()<<"Driver "<< parentAgent->getId()<<" in previous segment ["<<
-									vehicle->getCurrSegment()->getStart()->getID()<<","
-									<<vehicle->getCurrSegment()->getEnd()->getID()<<std::endl;
+			Print() << "|currSegment" << vehicle->getCurrSegment()->getStartEnd()
+					<< "|isQueuing:" << parentAgent->isQueuing;
 			if(currLane){
-				Print()<<"Driver "<<parentAgent->getId()<<" back in queue"<<std::endl;
-				if(parentAgent->isQueuing) { moveInQueue(); }
-				else {addToQueue(currLane); } // adds to queue if not already in queue
+				if(parentAgent->isQueuing) {
+					moveInQueue();
+					Print() << "|called moveInQueue()"<< std::endl;
+				}
+				else {
+					addToQueue(currLane); // adds to queue if not already in queue
+					Print() << "|called addToQueue()"<< std::endl;
+				}
+
+				parentAgent->canMoveToNextSegment = Person::NONE; // so that advance() and setParentData() is called subsequently
 			}
 		}
-		//driver is in virtual queue (should remain in virtual queues if canGoTo failed)
+		//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 		else if (vehicle->getNextSegment(false) == parentAgent->getCurrSegment() ){
-
-			Print()<<"Driver "<<parentAgent->getId()<<" remains in virtual queue "
-					"a.k.a. lane infinity"<<std::endl;
+			Print() << "Driver remains in virtual queue a.k.a. lane infinity" << std::endl;
 		}
 		else{
-			Print()<<"Unexpected situation for Driver "<<parentAgent->getId()<<std::endl;
-		}
+			DebugStream << "Driver " << parentAgent->getId()
+					<< "was neither in Virtual queue nor in previous segment!"
+					<< "\nvehicle| segment: " << vehicle->getCurrSegment()->getStartEnd() << "|id: " << vehicle->getCurrSegment()->getSegmentID()
+					<< "|lane: " << vehicle->getCurrLane()->getLaneID()
+					<< "\nparentAgent| segment: " << parentAgent->getCurrSegment()->getStartEnd() << "|id: " << parentAgent->getCurrSegment()->getSegmentID()
+					<< "|lane: " << parentAgent->getCurrLane()->getLaneID()
+					<< std::endl;
 
+			throw::std::runtime_error(DebugStream.str());
+		}
+		Print() << std::endl;
 		p.elapsedSeconds = p.secondsInTick;
 		parentAgent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-		parentAgent->canMoveToNextSegment = Person::DENIED;
+		//parentAgent->canMoveToNextSegment = Person::DENIED;
 	}
 }
 
 bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 	//return false if the Driver cannot be added during this time tick
-	DebugStream<<"t: "<< t << " secondsInTick: "<<p.secondsInTick<<std::endl;
-	if (t >= p.secondsInTick) return false;
+	if (t >= p.secondsInTick) {
+		return false;
+	}
+
 	//check if the next road segment has sufficient empty space to accommodate one more vehicle
 	const RoadSegment* nextRdSeg = nextLaneInNextSegment->getRoadSegment();
-
-	if ( !nextRdSeg) return false;
-	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
-		+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
-	int vehLaneCount = 0;
-	std::vector<sim_mob::Lane*>::const_iterator laneIt = nextRdSeg->getLanes().begin();
-	while(laneIt != nextRdSeg->getLanes().end())
-	{
-		if ( !(*laneIt)->is_pedestrian_lane())
-		{
-			vehLaneCount += 1;
-		}
-		laneIt++;
+	if (!nextRdSeg) {
+		return false;
 	}
+
+	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
+						+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
+
+	int vehLaneCount = 0;
+	for(std::vector<sim_mob::Lane*>::const_iterator laneIt=nextRdSeg->getLanes().begin(); laneIt!=nextRdSeg->getLanes().end(); laneIt++)
+	{
+		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
+	}
+
 	/*DebugStream << "Frame: " << p.now.frame()
 				<< "| nextRdSeg: ["<<nextRdSeg->getStart()->getID()<<","<<nextRdSeg->getEnd()->getID()<<"]"
 				<<" | queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
@@ -523,18 +530,18 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 				<<" | empty space: "<< (vehLaneCount * nextRdSeg->computeLaneZeroLength())-(total*vehicle->length)
 				<<std::endl;*/
 
-		double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
-		Print() << "canGoToNextRdSeg|Person: " << parentAgent->getId()
-				<< "|total: " << total
-				<< "|max_allowed: " << max_allowed
-				<< "|total < max_allowed: " << (total < max_allowed) << std::endl;
+	double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
+/*	Print() << "|canGoToNextRdSeg"
+			<< "|total: " << total
+			<< "|max_allowed: " << max_allowed;*/
 
-	 	return total < max_allowed;
-//   	return total - (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length)
- //  			< std::numeric_limits<double>::epsilon( );
-		//we use following in place of checking if veh length is less than or equal to empty space
-//	return vehicle->length - (vehLaneCount * nextRdSeg->computeLaneZeroLength())
-//			- (total*vehicle->length) < std::numeric_limits<double>::epsilon( ) ;
+	return total < max_allowed;
+
+	//return total - (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length)
+	//	< std::numeric_limits<double>::epsilon( );
+	//we use following in place of checking if veh length is less than or equal to empty space
+	//return vehicle->length - (vehLaneCount * nextRdSeg->computeLaneZeroLength())
+	//	- (total*vehicle->length) < std::numeric_limits<double>::epsilon( ) ;
 }
 
 void DriverMovement::moveInQueue() {
@@ -599,14 +606,16 @@ bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& p) {
 	{
 		moveInQueue();
 		xf = vehicle->getPositionInSegment();
-		tf = p.secondsInTick;
+		//tf = p.secondsInTick;
+		p.elapsedSeconds =  p.secondsInTick; //harish 20-May
 	}
 	//unless it is handled previously;
 	//1. update current position of vehicle/driver with xf
 	//2. update current time, p.timeThisTick, with tf
 	vehicle->setPositionInSegment(xf);
 //	std::cout<<"advanceQueuingVehicle rdSeg: "<<vehicle->getCurrSegment()->getStart()->getID()<<" setPos: "<< xf<<std::endl;
-	p.elapsedSeconds = tf;
+
+	//p.elapsedSeconds = tf; commented by harish 20-May
 
 	return res;
 }
@@ -757,7 +766,8 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 		else
 		{
 			addToQueue(currLane);
-			tf = p.secondsInTick; // melani 17-May
+			//tf = p.secondsInTick; // melani 17-May
+			p.elapsedSeconds = p.secondsInTick; //harish 20-May
 		}
 	}
 	else
@@ -775,13 +785,16 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 			xf = 0.0 ;
 			res = moveInSegment(p, x0-xf);
 		}
+
+		vehicle->setPositionInSegment(xf); //harish 20-May
+		p.elapsedSeconds = tf; //harish 20-May
 	}
 	//1. update current position of vehicle/driver with xf
 	//2. update current time with tf
 //	std::cout<<"advanceMoving with initial Q rdSeg: "<<vehicle->getCurrSegment()->getStart()->getID()<<" setPos: "<< xf<<std::endl;
-	vehicle->setPositionInSegment(xf);
-	p.elapsedSeconds = tf;
 
+	//vehicle->setPositionInSegment(xf); commented by harish 20-May
+	//p.elapsedSeconds = tf; commented harish 20-May
 	return res;
 }
 
@@ -852,8 +865,10 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
-		Print()<<"setorigin prevLink>0 driver:"<< parentAgent->getId()<<" | "<<vehicle->getCurrSegment()->getLink()->getStart()
-				->getID()<<std::endl;
+		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+				<< "|canGoToNextRdSeg successful|currLane set to: "<< currLane->getLaneID()
+				<< "|Link: " << vehicle->getCurrSegment()->getLink()->getStart()->getID() << "->" << vehicle->getCurrSegment()->getLink()->getEnd()->getID()
+				<< std::endl;
 		parentAgent->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
 
 /*		std::cout<< parent->getId()<<" Driver is added at: "<< actualT*1000 << "ms to lane "<<
@@ -874,7 +889,8 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	{
 		p.elapsedSeconds = p.secondsInTick;
 		setParentData(p);
-		Print()<<"Driver cannot be started in new segment, will remain in lane infinity!" <<std::endl;
+		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
+				<< "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
 	}
 }
 
@@ -912,12 +928,12 @@ void DriverMovement::addToQueue(const Lane* lane) {
 			parentP->isQueuing = vehicle->isQueuing;
 		}
 		else {
-			Print() << "addToQueue() was called for a driver who is already in queue. Person: " << parentP->getId()
+			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parentP->getId()
 					<< "|RoadSegment: " << lane->getRoadSegment()->getStartEnd()
 					<< "|Lane: " << lane->getLaneID() << std::endl;
+			throw std::runtime_error(DebugStream.str());
 		}
 	}
-
 }
 
 void DriverMovement::removeFromQueue() {

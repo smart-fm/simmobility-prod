@@ -125,8 +125,8 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
-		killAgent(person, segBeforeUpdate, laneBeforeUpdate);
-		Print()<<"kill agent: "<< person->getId()<<std::endl;
+		killAgent(person, segBeforeUpdate, laneBeforeUpdate, isQueuingBeforeUpdate);
+		Print()<<"Person "<< person->getId() << "is removed from the simulation." <<std::endl;
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -144,13 +144,13 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		Person* dequeuedAgent = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
 		if(dequeuedAgent != person) {
 			segStatsBfrUpdt->printAgents();
-			segStatsAftrUpdt->printAgents();
 			debugMsgs << "Error: Person " << dequeuedAgent->getId() << " dequeued instead of Person " << person->getId()
-					<< "|segment: [" << segBeforeUpdate->getStart()->getID() <<","<< segBeforeUpdate->getEnd()->getID() << "]"
+					<< "|segment: " << segBeforeUpdate->getStartEnd()
 					<< "|lane: " << laneBeforeUpdate->getLaneID()
 					<< "|Frame " << currFrameNumber.frame();
 			throw std::runtime_error(debugMsgs.str());
 		}
+
 		if(laneAfterUpdate) {
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
 		}
@@ -407,8 +407,8 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 	return findSegStats(lane->getRoadSegment())->getInitialQueueCount(lane);
 }
 
-void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane) {
-	findSegStats(prevRdSeg)->removeAgent(prevLane, ag);
+void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing) {
+	findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
 	ag->currWorker = parentWorker;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);
@@ -460,9 +460,7 @@ void sim_mob::Conflux::setTravelTimes(Person* ag, double linkExitTime) {
 bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	//Agents may be created with a null Role and a valid trip chain
 	Print()<<"calling frame_init for Person: "<<person->getId()<<std::endl;
-	if (person->getId()==167){
-		Print()<<"Person "<<person->getId()<<" found in call_movement_frame_init"<<std::endl;
-	}
+
 	if (!person->getRole()) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?

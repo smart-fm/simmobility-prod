@@ -1,5 +1,5 @@
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/androidCommunicator/support/JCommunicationSupport.hpp"
+#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
 namespace sim_mob
 {
 class Broker;

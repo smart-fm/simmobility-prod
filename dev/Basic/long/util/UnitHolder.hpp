@@ -9,7 +9,7 @@
 #pragma once
 #include <map>
 #include <list>
-#include "model/Unit.hpp"
+#include "database/entity/Unit.hpp"
 
 namespace sim_mob {
 

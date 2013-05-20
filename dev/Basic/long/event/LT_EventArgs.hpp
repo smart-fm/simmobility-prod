@@ -9,7 +9,7 @@
 #pragma once
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
-#include "model/Bid.hpp"
+#include "database/entity/Bid.hpp"
 #include "Common.h"
 #include "Types.h"
 

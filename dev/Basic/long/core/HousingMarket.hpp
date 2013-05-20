@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "model/UnitHolder.hpp"
+#include "util/UnitHolder.hpp"
 #include "entities/Entity.hpp"
 #include "event/EventPublisher.hpp"
 

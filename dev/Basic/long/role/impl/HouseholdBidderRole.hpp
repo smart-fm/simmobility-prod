@@ -25,8 +25,9 @@ namespace sim_mob {
          * with maximum surplus for the bidder. After that the bidder 
          * will bid the unit and will *WAIT* for the response.
          * 
-         * The bidder only can do a new bid if he is in a different 
-         * day of the last bid AND if he is not waiting for a response.
+         * The bidder can only do a bid each day. 
+         * If he is waiting for a response he will 
+         * only able to do the next bid on the next day.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
         public MessageReceiver {

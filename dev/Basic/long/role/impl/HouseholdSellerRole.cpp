@@ -51,12 +51,9 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
         {
             BidMessage* msg = MSG_CAST(BidMessage, message);
             Unit* unit = GetParent()->GetUnitById(msg->GetBid().GetUnitId());
-            LogOut("Agent: " << GetParent()->getId() <<
-                    " at day: " << msg->GetBid().GetTime().ms() <<
-                    " has received a bid: " << msg->GetBid().GetValue() <<
-                    " from: " << msg->GetBid().GetBidderId() <<
-                    " to the Unit: " << msg->GetBid().GetUnitId()
-                    << endl);
+            LogOut("Seller: [" << GetParent()->getId() <<
+                    "] received a bid: " << msg->GetBid() <<
+                    " at day: " << currentTime.ms() << endl);
             bool decision = false;
             if (unit && unit->IsAvailable()) {
                 //verify if is the bid satisfies the asking price.

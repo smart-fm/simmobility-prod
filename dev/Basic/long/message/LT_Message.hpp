@@ -8,7 +8,7 @@
  */
 #pragma once
 #include "Common.h"
-#include "model/Bid.hpp"
+#include "database/entity/Bid.hpp"
 #include "message/Message.hpp"
 
 namespace sim_mob {

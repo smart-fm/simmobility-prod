@@ -24,6 +24,11 @@ Bid::Bid(const Bid& source) : time(source.time) {
     this->bidder = source.bidder;
 }
 
+Bid::Bid()
+: unitId(INVALID_ID), bidderId(INVALID_ID), value(.0f), time(0,0), 
+        bidder(nullptr) {
+}
+
 Bid::~Bid() {
 }
 

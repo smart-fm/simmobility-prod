@@ -22,8 +22,8 @@ namespace sim_mob {
          */
         class Bid {
         public:
-
-            Bid(UnitId id, int bidderId, MessageReceiver* bidder, float value, timeslice& time);
+            Bid(UnitId id, int bidderId, MessageReceiver* bidder, float value, 
+                    timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -63,7 +63,24 @@ namespace sim_mob {
              * @return the value of the bid.
              */
             const timeslice& GetTime() const;
-
+            
+            /**
+             * Operator to print the Bid data.  
+             */
+            friend ostream& operator<<(ostream& strm, const Bid& data) {
+                return strm << "{"
+                        << "\"unitId\":\"" << data.unitId << "\","
+                        << "\"bidderId\":\"" << data.bidderId << "\","
+                        << "\"value\":\"" << data.value << "\","
+                        << "\"day\":\"" << data.time.ms() << "\""
+                        << "}";
+            }
+        private:
+            //TODO: FUTURE friend class BidDao;
+            /**
+             * Private constructor for DAO use. 
+             */
+            Bid();
         private:
             timeslice time;
             UnitId unitId;

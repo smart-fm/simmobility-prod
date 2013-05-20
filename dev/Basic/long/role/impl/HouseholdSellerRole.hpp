@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "model/Bid.hpp"
+#include "database/entity/Bid.hpp"
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
@@ -22,8 +22,8 @@ namespace sim_mob {
          * Household Seller role.
          *
          * Seller will receive N bids each day and it will choose 
-         * the maximum bid *of the day* that satisfies the seller's condition.
-         * 
+         * the maximum bid *of the time unit* (in this case is DAY) 
+         * that satisfies the seller's asking price.
          */
         class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:

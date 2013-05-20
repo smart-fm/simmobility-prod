@@ -9,7 +9,7 @@
 
 #include <math.h>
 #include "HouseholdBidderRole.hpp"
-#include "model/UnitHolder.hpp"
+#include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
@@ -49,7 +49,7 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     switch (id) {
         case EM_WND_EXPIRED:
         {
-            LogOut("Agent: " << GetParent()->getId() << " AWOKE." << endl);
+            LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
             FollowMarket();
             SetActive(true);
             break;
@@ -72,9 +72,9 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
-                        LogOut("Agent: " << GetParent()->getId() <<
-                                " bought the unit: " << msg->GetBid().GetUnitId()
-                                << endl);
+                        LogOut("Bidder: [" << GetParent()->getId() <<
+                                "] bid: " << msg->GetBid() <<
+                                " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
                                 lastTime.frame() + 10);
@@ -87,9 +87,9 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                 }
                 case NOT_ACCEPTED:
                 {
-                    LogOut("Agent: " << GetParent()->getId() <<
-                            " bid to unit: " << msg->GetBid().GetUnitId() <<
-                            " was not accepted." << endl);
+                    LogOut("Bidder: [" << GetParent()->getId() <<
+                            "] bid: " << msg->GetBid() <<
+                            " was not accepted " << endl);
                     break;
                 }
                 default:break;
@@ -143,7 +143,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
             float bidValue = maxSurplus + CalculateWP();
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 owner->Post(LTMID_BID, GetParent(),
-                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(), 
+                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
                         GetParent(), bidValue, now)));
                 return true;
             }

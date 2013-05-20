@@ -111,7 +111,7 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 0.1f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 50
+#define MAX_ITERATIONS 1
 #define TICK_STEP 1
 #define DAYS 365
 #define WORKERS 2
@@ -149,12 +149,14 @@ void perform_main() {
     for (int i = 0; i < DATA_SIZE; i++) {
         Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
         HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
+        //LogOut("Household: " << (*hh) << endl);
         //add agents units.
         for (int j = 0; j < DATA_SIZE; j++) {
             if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
                 Unit* unit = new Unit((TEST_UNITS[j][0]), true,
                         UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
                 hhAgent->AddUnit(unit);
+                LogOut("Unit: " << (*unit) << endl);
             }
         }
         agents.push_back(hhAgent);

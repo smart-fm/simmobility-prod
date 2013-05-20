@@ -112,7 +112,27 @@ namespace sim_mob {
              * @return owner endpoint.
              */
             UnitHolder* GetOwner();
+            
+             /**
+             * Operator to print the Unit data.  
+             */
+            friend ostream& operator<<(ostream& strm, const Unit& data) {
+                SharedWriteLock(data.mutex);
+                return strm << "{"
+                        << "\"id\":\"" << data.id << "\","
+                        << "\"reservationPrice\":\"" << data.reservationPrice << "\","
+                        << "\"fixedCost\":\"" << data.fixedCost << "\","
+                        << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
+                        << "\"distanceToCDB\":\"" << data.distanceToCDB << "\","
+                        << "\"size\":\"" << data.size << "\""
+                        << "}";
+            }
         private:
+            //TODO: FUTURE UnitDao
+            /**
+             * private constructor for future Dao class.
+             */
+            Unit();
 
             /**
              * Gets the owner endpoint for communication.

@@ -376,11 +376,11 @@ namespace sim_mob {
 	}
 
 	sim_mob::Person* sim_mob::LaneStats::dequeue() {
-		sim_mob::Person* p = laneAgents.front();
 		if(laneAgents.size() == 0){
 			throw std::runtime_error("Trying to dequeue from empty lane.");
 		}
-		laneAgents.erase(laneAgents.begin());
+		sim_mob::Person* p = laneAgents.front();
+		laneAgents.pop_front();
 		if(queueCount > 0) {
 			// we have removed a queuing agent
 			queueCount--;

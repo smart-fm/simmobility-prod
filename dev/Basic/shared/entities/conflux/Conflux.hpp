@@ -115,9 +115,7 @@ private:
 	/* selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Person* agentClosestToIntersection();
 
-	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane);
-
-	void resetOutputBounds();
+	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing);
 
 	void decrementBound(const sim_mob::RoadSegment* rdSeg);
 
@@ -131,8 +129,12 @@ public:
 	//constructors and destructor
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
 		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {};
-	virtual ~Conflux() {};
+		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {}
+	virtual ~Conflux() {
+		for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
+			safe_delete_item(i->second);
+		}
+	}
 
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
@@ -216,10 +218,9 @@ public:
 		unsigned int agentCount_;
 
 		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
-		: linkTravelTime_(linkTravelTime),
-		  agentCount_(agentCount)
-		{ }
+		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
 	};
+
 	std::map<const Link*, travelTimes> LinkTravelTimesMap;
 	void setTravelTimes(Person* ag, double linkExitTime);
 	void clearTravelTimesMap()
@@ -232,6 +233,8 @@ public:
 	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
+
+	void resetOutputBounds();
 };
 
 } /* namespace sim_mob */

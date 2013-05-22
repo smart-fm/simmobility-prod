@@ -155,6 +155,7 @@ private:
 	//Internal update function for handling frame_init(), frame_tick(), etc.
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
+public:
 	//for mid-term link travel time computation
 	struct travelStats
 	{

@@ -341,6 +341,8 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
 	}
 
+	const bool inLane = vehicle && (!vehicle->isInIntersection());
+
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
 			<<","<<parent->getId()
@@ -350,6 +352,9 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
+			<<"\",\"curr-segment\":\""<<(inLane?vehicle->getCurrLane()->getRoadSegment():0x0)
+			<<"\",\"fwd-speed\":\""<<vehicle->getVelocity()
+			<<"\",\"fwd-accel\":\""<<vehicle->getAcceleration()
 			<<"\"})"<<std::endl);
 }
 
@@ -1351,8 +1356,6 @@ void sim_mob::Driver::findCrossing(DriverUpdateParams& p) {
 
 double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
-	//TODO: I've disabled the acceleration component because it doesn't really make sense.
-	//      Please re-enable if you think this is expected behavior. ~Seth
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration()
 			* p.elapsedSeconds * p.elapsedSeconds;
 	if (fwdDistance < 0) {

@@ -9,17 +9,18 @@ import (
 	"strings"
 	"bytes"
 	"math"
+	"errors"
 	"encoding/binary"
     "container/list"
 	"./simmob"
 )
 
-func processLine(line *string) (*simmob.DriverTick, error) {
+func processLine(line *string) (*simmob.DriverTick, *simmob.SimSettings, error) {
 	//Sample lines will be something like this:
 	//("TYPE",frame_id,agent_id,{"k1":"v1","k2":"v2",...})
 	typeStr, frameId, agentId, propsStr, err := simmob.ParseLine(line)
 	if err!=nil {
-		return nil, err
+		return nil, nil, err
 	}
 	
 	//Dispatch based on type.
@@ -31,23 +32,31 @@ func processLine(line *string) (*simmob.DriverTick, error) {
 
 		//Dispatch construction of the propStr
 		err = simmob.ParseDriverProps(res, propsStr)
-		return res, err
+		return res, nil, err
+	} else if typeStr=="simulation" {
+		//Dispatch construction
+		res := new(simmob.SimSettings)
+		err = simmob.ParseSimulationSettings(res, propsStr)
+		return nil, res, err
 	}
 
 	//Failsafe
-	return nil, nil
+	return nil, nil, nil
 }
 
-func parseFile(f *os.File) (map[int] *list.List, error) {
+func parseFile(f *os.File) (map[int] *list.List, float32, error) {  //float is tick-length in seconds
 	ticks := make(map[int] *list.List)
 	scanner := bufio.NewScanner(f)
+	var tick_len float32
+	isErr := false
 	for scanner.Scan() {
 		//Only process lines that begin and end with "(",")"
 		line := strings.Trim(scanner.Text(), " \t\r\n")
 		if len(line) >= 2 && strings.HasPrefix(line,"(") && strings.HasSuffix(line,")") {
-			drivTick, err := processLine(&line)
+			drivTick, simTick, err := processLine(&line)
 			if err != nil {
 				fmt.Println("Error parsing tick:\n" , err)
+				isErr = true
 				continue
 			}
 
@@ -58,10 +67,25 @@ func parseFile(f *os.File) (map[int] *list.List, error) {
 				}
 				ticks[drivTick.Frame].PushBack(drivTick)
 			}
+
+			//Also...
+			if (simTick != nil) {
+				tick_len = float32(simTick.FrameTickMs) / 1000.0 //Convert to seconds
+			}
 		}
 	}
 
-	return ticks, scanner.Err()
+	//We *need* a tick_len
+	if tick_len==0 {
+		return nil, 0, errors.New("Simulation output file does not list \"frame-time-ms\" (in the \"simulation\" tag).")
+	}
+
+	//Final check
+	if isErr {
+		return nil, 0, errors.New("Parsing of ticks did not complete without errors.")
+	}
+
+	return ticks, tick_len, scanner.Err()
 }
 
 func sort_keys(source map[int] *list.List) (res []int) {
@@ -151,7 +175,8 @@ func main() {
 
 	//Parse it.
 	var ticks map[int] *list.List
-	ticks, err = parseFile(f)
+	var tick_len float32
+	ticks, tick_len, err = parseFile(f)
 	if err != nil {
 		log.Fatal("Error parsing:\n", err)
 	}
@@ -170,13 +195,44 @@ func main() {
 	out.Write(intTo4Bytes(int32(maxX))) //Right
 	out.Write(intTo4Bytes(int32(maxY))) //Top
 
-	//Now convert each tick.
+	//Print each TIMESTEP record (which triggers VEHICLE) records
 	keys := sort_keys(ticks)
-	for _,key := range keys {
-		fmt.Println("Tick: ", key)
+	for _,tt := range keys {
+		out.Write([]byte{2})
+		out.Write(floatTo4Bytes(float32(tt)*tick_len))
+
+		//Print each VEHICLE record in this tick.
+		val := ticks[tt]
+		for e:=val.Front(); e!=nil; e=e.Next() { 
+			drv := e.Value.(*simmob.DriverTick)
+			out.Write([]byte{3})
+			out.Write(intTo4Bytes(int32(drv.AgentId)))
+
+			//TODO: out.txt now contains "curr-segment", which can be used to retrieve the Link ID. Lanes are tougher, since their IDs won't match the
+			//      output (SM uses lane mid-lines; out.txt uses lane edge-lines). Either way, we should eventually list both Link and Lane IDs for Drivers.
+			out.Write(intTo4Bytes(0))
+			out.Write([]byte{0})
+
+			//Middle-front bumper (x,y)
+			out.Write(floatTo4Bytes(0))
+			out.Write(floatTo4Bytes(0))
+
+			//Middle-rear bumper (x,y)
+			out.Write(floatTo4Bytes(0))
+			out.Write(floatTo4Bytes(0))
+
+			//Vehicle length/width
+			out.Write(floatTo4Bytes(drv.Length))
+			out.Write(floatTo4Bytes(drv.Width))
+
+			//Forward speed, accell
+			out.Write(floatTo4Bytes(drv.FwdSpeed))
+			out.Write(floatTo4Bytes(drv.FwdAccel))
+		}
 	}
 
 	out.Close()
+	fmt.Println("Warning: Link and Lane IDs are currently not set (they are optional).")
 	fmt.Println("Done")
 }
 

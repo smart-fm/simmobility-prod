@@ -9,6 +9,9 @@
 
 namespace sim_mob {
 
+namespace FMOD
+{
+
 Message::Message() {
 	// TODO Auto-generated constructor stub
 
@@ -16,6 +19,8 @@ Message::Message() {
 
 Message::~Message() {
 	// TODO Auto-generated destructor stub
+}
+
 }
 
 } /* namespace sim_mob */

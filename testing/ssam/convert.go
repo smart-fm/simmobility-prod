@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"bytes"
+	"math"
 	"encoding/binary"
     "container/list"
 	"./simmob"
@@ -74,6 +75,45 @@ func sort_keys(source map[int] *list.List) (res []int) {
 	return
 }
 
+func calc_bounds(ticks map[int] *list.List, boundary float64) (minX,minY,maxX,maxY float64) {
+	first := true
+	for _,val := range ticks {
+		for e:=val.Front(); e!=nil; e=e.Next() { 
+			drv := e.Value.(*simmob.DriverTick)
+			//First; just save all.
+			if first {
+				minX = drv.XPos
+				maxX = minX
+				minY = drv.YPos
+				maxY = minY
+				first = false
+			} else {
+				minX = math.Min(minX, drv.XPos)
+				maxX = math.Max(maxX, drv.XPos)
+				minY = math.Min(minY, drv.YPos)
+				maxY = math.Max(maxY, drv.YPos)
+			}
+		}
+	}
+
+	//Apply the border
+	minX -= boundary
+	maxX += boundary
+	minY -= boundary
+	maxY += boundary
+	return
+}
+
+//Convert an integer value to a 4-byte array.
+func intTo4Bytes(value int32) ([]byte) {
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.LittleEndian, value)
+	if err != nil {
+		log.Fatal("Can't convert int to 4 bytes:", err)
+	}
+	return buf.Bytes()
+}
+
 //Convert a floating-point value to a 4-byte array.
 func floatTo4Bytes(value float32) ([]byte) {
 	buf := new(bytes.Buffer)
@@ -118,8 +158,17 @@ func main() {
 	f.Close()
 
 	//Print the format record
-	out.Write([]byte{0, 'L'})
+	out.Write([]byte{0, 'L'}) //Little-endian
 	out.Write(floatTo4Bytes(1.04))
+
+	//Print the dimensions record. (X increases right; Y increases up)
+	minX,minY,maxX,maxY := calc_bounds(ticks, 100) //10m added to each side.
+	out.Write([]byte{1, 1}) //Metric
+	out.Write(floatTo4Bytes(1.0)) //1 meter per unit
+	out.Write(intTo4Bytes(int32(minX))) //Left
+	out.Write(intTo4Bytes(int32(minY))) //Bottom
+	out.Write(intTo4Bytes(int32(maxX))) //Right
+	out.Write(intTo4Bytes(int32(maxY))) //Top
 
 	//Now convert each tick.
 	keys := sort_keys(ticks)

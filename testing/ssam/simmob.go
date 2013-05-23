@@ -18,10 +18,16 @@ type DriverTick struct {
 	Width   float32 //meters
 	FwdSpeed float32 //m/s
 	FwdAccel float32 //m/s^2
+	OnSegment string //e.g., "0x...." not currently used.
 }
 
 type SimSettings struct {
 	FrameTickMs int
+}
+
+type Point struct {
+	XPos float32
+	YPos float32
 }
 
 var qStr string = "\"([^\"]*)\""
@@ -103,6 +109,11 @@ func ParseDriverProps(drv *DriverTick, propsStr string) (err error) {
 	ac,err = parseFloatOrPass(props["fwd-accel"], err)
 	if (err != nil) {
 		return err
+	}
+
+	//Optionally set "OnSegment"
+	if props["curr-segment"]!="" {
+		drv.OnSegment = props["curr-segment"]
 	}
 
 	//Tidy up x/y/l/w/sp/ac

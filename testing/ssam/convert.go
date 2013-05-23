@@ -148,6 +148,27 @@ func floatTo4Bytes(value float32) ([]byte) {
 	return buf.Bytes()
 }
 
+//Move a point forward along a given angle by a given distance.
+func moveLineForward(x,y float64, angle,dist float32) (res simmob.Point) {
+	//Convert to radians (also, I think our angles are "backwards")
+	angleR := -1*float64(angle)*math.Pi/180
+
+	//Start with a vector of arbitrary magnitude
+	magX := 100 * math.Cos(angleR)
+	magY := 100 * math.Sin(angleR)
+	mag := math.Sqrt(magX*magX + magY*magY)
+
+	//Now, form a vector from x,y to x+dX,y+dY and scale it to the appropriate size
+	factor := float64(dist) / mag
+    magX = factor*magX
+	magY = factor*magY
+
+	//Done
+	res.XPos = float32(x+magX)
+	res.YPos = float32(y+magY)
+	return
+}
+
 func main() {
 	//Param 1 = input file.
 	fileName := "out.txt"
@@ -214,12 +235,14 @@ func main() {
 			out.Write([]byte{0})
 
 			//Middle-front bumper (x,y)
-			out.Write(floatTo4Bytes(0))
-			out.Write(floatTo4Bytes(0))
+			pt1 := moveLineForward(drv.XPos, drv.YPos, drv.Angle, drv.Length/2.0)
+			out.Write(floatTo4Bytes(pt1.XPos))
+			out.Write(floatTo4Bytes(pt1.YPos))
 
 			//Middle-rear bumper (x,y)
-			out.Write(floatTo4Bytes(0))
-			out.Write(floatTo4Bytes(0))
+			pt2 := moveLineForward(drv.XPos, drv.YPos, drv.Angle, -1*drv.Length/2.0)
+			out.Write(floatTo4Bytes(pt2.XPos))
+			out.Write(floatTo4Bytes(pt2.YPos))
 
 			//Vehicle length/width
 			out.Write(floatTo4Bytes(drv.Length))

@@ -1,30 +1,30 @@
 package main
 
 import (
+	"./simmob"
 	"bufio"
+	"bytes"
+	"container/list"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strings"
-	"bytes"
-	"math"
-	"errors"
-	"encoding/binary"
-    "container/list"
-	"./simmob"
 )
 
 func processLine(line *string) (*simmob.DriverTick, *simmob.SimSettings, error) {
 	//Sample lines will be something like this:
 	//("TYPE",frame_id,agent_id,{"k1":"v1","k2":"v2",...})
 	typeStr, frameId, agentId, propsStr, err := simmob.ParseLine(line)
-	if err!=nil {
+	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	//Dispatch based on type.
-	if typeStr=="driver" {
+	if typeStr == "driver" {
 		//Simple properties.
 		res := new(simmob.DriverTick)
 		res.AgentId = agentId
@@ -33,7 +33,7 @@ func processLine(line *string) (*simmob.DriverTick, *simmob.SimSettings, error) 
 		//Dispatch construction of the propStr
 		err = simmob.ParseDriverProps(res, propsStr)
 		return res, nil, err
-	} else if typeStr=="simulation" {
+	} else if typeStr == "simulation" {
 		//Dispatch construction
 		res := new(simmob.SimSettings)
 		err = simmob.ParseSimulationSettings(res, propsStr)
@@ -44,39 +44,39 @@ func processLine(line *string) (*simmob.DriverTick, *simmob.SimSettings, error) 
 	return nil, nil, nil
 }
 
-func parseFile(f *os.File) (map[int] *list.List, float32, error) {  //float is tick-length in seconds
-	ticks := make(map[int] *list.List)
+func parseFile(f *os.File) (map[int]*list.List, float32, error) { //float is tick-length in seconds
+	ticks := make(map[int]*list.List)
 	scanner := bufio.NewScanner(f)
 	var tick_len float32
 	isErr := false
 	for scanner.Scan() {
 		//Only process lines that begin and end with "(",")"
 		line := strings.Trim(scanner.Text(), " \t\r\n")
-		if len(line) >= 2 && strings.HasPrefix(line,"(") && strings.HasSuffix(line,")") {
+		if len(line) >= 2 && strings.HasPrefix(line, "(") && strings.HasSuffix(line, ")") {
 			drivTick, simTick, err := processLine(&line)
 			if err != nil {
-				fmt.Println("Error parsing tick:\n" , err)
+				fmt.Println("Error parsing tick:\n", err)
 				isErr = true
 				continue
 			}
 
 			//We might still have a nil results; e.g., it might be a pedestrian.
-			if (drivTick != nil) {
-				if _,exists := ticks[drivTick.Frame]; !exists {
+			if drivTick != nil {
+				if _, exists := ticks[drivTick.Frame]; !exists {
 					ticks[drivTick.Frame] = list.New()
 				}
 				ticks[drivTick.Frame].PushBack(drivTick)
 			}
 
 			//Also...
-			if (simTick != nil) {
+			if simTick != nil {
 				tick_len = float32(simTick.FrameTickMs) / 1000.0 //Convert to seconds
 			}
 		}
 	}
 
 	//We *need* a tick_len
-	if tick_len==0 {
+	if tick_len == 0 {
 		return nil, 0, errors.New("Simulation output file does not list \"frame-time-ms\" (in the \"simulation\" tag).")
 	}
 
@@ -88,21 +88,21 @@ func parseFile(f *os.File) (map[int] *list.List, float32, error) {  //float is t
 	return ticks, tick_len, scanner.Err()
 }
 
-func sort_keys(source map[int] *list.List) (res []int) {
+func sort_keys(source map[int]*list.List) (res []int) {
 	res = make([]int, len(source))
-    i := 0
-    for k,_ := range source {
-        res[i] = k
-        i++
-    }
+	i := 0
+	for k, _ := range source {
+		res[i] = k
+		i++
+	}
 	sort.Ints(res)
 	return
 }
 
-func calc_bounds(ticks map[int] *list.List, boundary float64) (minX,minY,maxX,maxY float64) {
+func calc_bounds(ticks map[int]*list.List, boundary float64) (minX, minY, maxX, maxY float64) {
 	first := true
-	for _,val := range ticks {
-		for e:=val.Front(); e!=nil; e=e.Next() { 
+	for _, val := range ticks {
+		for e := val.Front(); e != nil; e = e.Next() {
 			drv := e.Value.(*simmob.DriverTick)
 			//First; just save all.
 			if first {
@@ -129,7 +129,7 @@ func calc_bounds(ticks map[int] *list.List, boundary float64) (minX,minY,maxX,ma
 }
 
 //Convert an integer value to a 4-byte array.
-func intTo4Bytes(value int32) ([]byte) {
+func intTo4Bytes(value int32) []byte {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, value)
 	if err != nil {
@@ -139,7 +139,7 @@ func intTo4Bytes(value int32) ([]byte) {
 }
 
 //Convert a floating-point value to a 4-byte array.
-func floatTo4Bytes(value float32) ([]byte) {
+func floatTo4Bytes(value float32) []byte {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, value)
 	if err != nil {
@@ -149,9 +149,9 @@ func floatTo4Bytes(value float32) ([]byte) {
 }
 
 //Move a point forward along a given angle by a given distance.
-func moveLineForward(x,y float64, angle,dist float32) (res simmob.Point) {
+func moveLineForward(x, y float64, angle, dist float32) (res simmob.Point) {
 	//Convert to radians (also, I think our angles are "backwards")
-	angleR := -1*float64(angle)*math.Pi/180
+	angleR := -1 * float64(angle) * math.Pi / 180
 
 	//Start with a vector of arbitrary magnitude
 	magX := 100 * math.Cos(angleR)
@@ -160,12 +160,12 @@ func moveLineForward(x,y float64, angle,dist float32) (res simmob.Point) {
 
 	//Now, form a vector from x,y to x+dX,y+dY and scale it to the appropriate size
 	factor := float64(dist) / mag
-    magX = factor*magX
-	magY = factor*magY
+	magX = factor * magX
+	magY = factor * magY
 
 	//Done
-	res.XPos = float32(x+magX)
-	res.YPos = float32(y+magY)
+	res.XPos = float32(x + magX)
+	res.YPos = float32(y + magY)
 	return
 }
 
@@ -189,13 +189,13 @@ func main() {
 	}
 
 	//Make sure output file is reachable.
-	out,err := os.Create(outName)
+	out, err := os.Create(outName)
 	if err != nil {
 		log.Fatal("Error, file \"", outName, "\" won't work for output:\n", err)
 	}
 
 	//Parse it.
-	var ticks map[int] *list.List
+	var ticks map[int]*list.List
 	var tick_len float32
 	ticks, tick_len, err = parseFile(f)
 	if err != nil {
@@ -208,23 +208,23 @@ func main() {
 	out.Write(floatTo4Bytes(1.04))
 
 	//Print the dimensions record. (X increases right; Y increases up)
-	minX,minY,maxX,maxY := calc_bounds(ticks, 100) //10m added to each side.
-	out.Write([]byte{1, 1}) //Metric
-	out.Write(floatTo4Bytes(1.0)) //1 meter per unit
-	out.Write(intTo4Bytes(int32(minX))) //Left
-	out.Write(intTo4Bytes(int32(minY))) //Bottom
-	out.Write(intTo4Bytes(int32(maxX))) //Right
-	out.Write(intTo4Bytes(int32(maxY))) //Top
+	minX, minY, maxX, maxY := calc_bounds(ticks, 100) //10m added to each side.
+	out.Write([]byte{1, 1})                           //Metric
+	out.Write(floatTo4Bytes(1.0))                     //1 meter per unit
+	out.Write(intTo4Bytes(int32(minX)))               //Left
+	out.Write(intTo4Bytes(int32(minY)))               //Bottom
+	out.Write(intTo4Bytes(int32(maxX)))               //Right
+	out.Write(intTo4Bytes(int32(maxY)))               //Top
 
 	//Print each TIMESTEP record (which triggers VEHICLE) records
 	keys := sort_keys(ticks)
-	for _,tt := range keys {
+	for _, tt := range keys {
 		out.Write([]byte{2})
-		out.Write(floatTo4Bytes(float32(tt)*tick_len))
+		out.Write(floatTo4Bytes(float32(tt) * tick_len))
 
 		//Print each VEHICLE record in this tick.
 		val := ticks[tt]
-		for e:=val.Front(); e!=nil; e=e.Next() { 
+		for e := val.Front(); e != nil; e = e.Next() {
 			drv := e.Value.(*simmob.DriverTick)
 			out.Write([]byte{3})
 			out.Write(intTo4Bytes(int32(drv.AgentId)))

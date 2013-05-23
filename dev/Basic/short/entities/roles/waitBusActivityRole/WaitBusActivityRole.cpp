@@ -47,24 +47,23 @@ void sim_mob::WaitBusActivityRole::frame_init(UpdateParams& p) {
 		busStopAgent = parent->destNode.busStop_->generatedBusStopAgent;
 	} else {
 		sim_mob::BusStop* busStop_dest = setBusStopXY(parent->destNode.node_);// to here waiting(node)
-		busStopAgent = busStop_dest->generatedBusStopAgent;
-		parent->xPos.set(busStop_dest->xPos);
-		parent->yPos.set(busStop_dest->yPos);
+		busStopAgent = busStop_dest->generatedBusStopAgent;// assign the BusStopAgent to WaitBusActivityRole
+		parent->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
+		parent->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
 	TimeOfReachingBusStop = p.now.ms();
-	buslineid = "7_2";// hardcoded now, later change from AVL to choose the busline
+	buslineid = "7_2";// set Busline information(hardcoded now, later change from AVL to choose the busline)
 }
 
 void sim_mob::WaitBusActivityRole::frame_tick(UpdateParams& p) {
-	if(0!=boarding_Frame) {
-		//updateBoardingTime();
-		if(boarding_Frame == p.now.frame()) {
+	if(0!=boarding_Frame) {// if boarding_Frame is already set
+		if(boarding_Frame == p.now.frame()) {// if currFrame is equal to the boarding_Frame
 			parent->setToBeRemoved();
 			boarding_Frame = 0;
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person) {
 				if(person->getNextRole()) {
-					Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());
+					Passenger* passenger = dynamic_cast<Passenger*> (person->getNextRole());// check whether nextRole is passenger Role or not
 					if(passenger) {
 						passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 						passenger->BoardedBus.set(true);

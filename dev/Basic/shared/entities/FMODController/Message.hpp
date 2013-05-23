@@ -8,6 +8,8 @@
 #ifndef MESSAGE_HPP_
 #define MESSAGE_HPP_
 #include "string"
+#include <iostream>
+#include<boost/shared_ptr.hpp>
 namespace sim_mob {
 
 namespace FMOD

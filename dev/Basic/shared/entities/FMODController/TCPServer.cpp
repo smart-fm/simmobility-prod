@@ -18,11 +18,25 @@ namespace FMOD
 TCPServer::TCPServer(boost::asio::io_service& io_service,int port)
 		: acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), myPort(port){
 	// TODO Auto-generated constructor stub
-
+	start_accept();
 }
 
 TCPServer::~TCPServer() {
 	// TODO Auto-generated destructor stub
+}
+
+void TCPServer::start_accept()
+{
+	new_connection = TCPSession::create(acceptor_.get_io_service());
+
+	acceptor_.async_accept(new_connection->socket(),
+								boost::bind(&TCPServer::handle_accept, this, new_connection,
+									boost::asio::placeholders::error));
+}
+
+void TCPServer::handle_accept(boost::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error)
+{
+	start_accept();
 }
 
 }

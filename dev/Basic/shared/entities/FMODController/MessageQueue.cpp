@@ -21,10 +21,23 @@ MessageQueue::~MessageQueue() {
 	// TODO Auto-generated destructor stub
 }
 
-void MessageQueue::PushMessage(msg_ptr msg)
+void MessageQueue::PushMessage(std::string msg)
 {
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
 	messages.push(msg);
+}
+
+bool MessageQueue::PopMessage(std::string& msg)
+{
+	bool ret=false;
+	boost::unique_lock< boost::shared_mutex > lock(mutex);
+	if(messages.size()>0)
+	{
+		msg = messages.front();
+		ret = true;
+		messages.pop();
+	}
+	return ret;
 }
 
 MessageList MessageQueue::ReadMessage()
@@ -33,7 +46,7 @@ MessageList MessageQueue::ReadMessage()
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
 	while(messages.size()>0)
 	{
-		msg_ptr msg = messages.front();
+		std::string msg = messages.front();
 		res.push(msg);
 		messages.pop();
 	}

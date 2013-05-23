@@ -16,7 +16,7 @@ namespace sim_mob {
 namespace FMOD
 {
 
-typedef std::queue<msg_ptr> MessageList;
+typedef std::queue<std::string> MessageList;
 
 class MessageQueue {
 public:
@@ -28,7 +28,8 @@ private:
 	MessageList messages;
 
 public:
-	void PushMessage(msg_ptr msg);
+	void PushMessage(std::string msg);
+	bool PopMessage(std::string& msg);
 	MessageList ReadMessage();
 
 };

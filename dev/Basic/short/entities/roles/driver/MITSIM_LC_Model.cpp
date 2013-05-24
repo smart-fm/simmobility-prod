@@ -106,10 +106,9 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 //	return k*-dv_ * p.elapsedSeconds;
 
 	double lcGapModels_[][9] = {
+  //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
 			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000, -0.420 , 0.000 , 0.488},
 			{1.00 , 0.0 ,  0.000  , 2.020 , 0.000 , 0.000 , 0.153 , 0.188 , 0.526},
-			//{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
-			//{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859},
 			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
 			{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859}};
 
@@ -220,14 +219,15 @@ double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(DriverUpdateParams& p)
 {
+	std::cout<<"Already DLC"<<std::endl;
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	//const LaneSide freeLanes = gapAcceptance(p, DLC);
 	LaneSide freeLanes = gapAcceptance(p, MLC);
 	if(!freeLanes.left && !freeLanes.right) {
-		std::cout<<"no free lanes"<<std::endl;
+		//std::cout<<"no free lanes"<<std::endl;
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
-	std::cout<<"yes free lanes"<<std::endl;
+	//std::cout<<"yes free lanes"<<std::endl;
 	double s = p.nvFwd.distance;
 	const double satisfiedDistance = 2000;
 	const double minDistance = 1000;
@@ -242,7 +242,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	//to check if their utilities are greater than current lane
 	bool left = ( s < leftUtility );
 	bool right = ( s < rightUtility );
-	std::cout<<"right?"<<right<<"  left:"<<left<<std::endl;
+	//std::cout<<"right?"<<right<<"  left:"<<left<<std::endl;
 	//left = true;//Runmin
 	//right = false;//Runmin
 	//decide
@@ -295,6 +295,7 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p)
 {
+	std::cout<<"Already MLC"<<std::endl;
 	LaneSide freeLanes = gapAcceptance(p, MLC);
 
 	//find which lane it should get to and choose which side to change
@@ -361,23 +362,25 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
 
-//		if(randNum<mandCheck){
-//			changeMode = MLC;
-//		} else {
-//			changeMode = DLC;
-//			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
-//		}
+		if(randNum<mandCheck){
+			changeMode = MLC;
+		} else {
+			changeMode = DLC;
+			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
+		}
 
-		changeMode = DLC;
-		p.dis2stop = 1000;//MAX_NUM;
+
+
+		//changeMode = DLC;
+		//p.dis2stop = 1000;//MAX_NUM;
 
 		//3.make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;
 		if(changeMode==DLC) {
-
+			std::cout<<"Choose to DLC"<<std::endl;
 			decision = makeDiscretionaryLaneChangingDecision(p);
 		} else {
-
+			std::cout<<"Choose to MLC"<<std::endl;
 			decision = makeMandatoryLaneChangingDecision(p);
 		}
 

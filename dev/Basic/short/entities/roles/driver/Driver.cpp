@@ -697,6 +697,11 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
+	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+	LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
+	vehicle->setTurningDirection(lcs);
+
+
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
@@ -748,6 +753,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 					if (mitsim_lc_model) {
 						LANE_CHANGE_SIDE lcs = LCS_SAME;
 //						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						std::cout<<"Have to MLC"<<std::endl;
 						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 						vehicle->setTurningDirection(lcs);
 					} else {
@@ -762,11 +768,9 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
 		std::cout<<"find vh"<<std::endl;*/
-	//vehicle->setTurningDirection(LCS_LEFT); //Runmin
-	//LANE_CHANGE_SIDE lcs = lcModel->makeMandatoryLaneChangingDecision(p);
-	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-	LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
-	vehicle->setTurningDirection(lcs);
+	//MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+	//LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
+	//vehicle->setTurningDirection(lcs);
 
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
@@ -817,7 +821,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 
 	if(abs(vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && vehicle->getVelocity() / 100>10)
 	{
-		//newFwdAcc = 0;
+		newFwdAcc = 0;
 	}
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
@@ -1405,7 +1409,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
 	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 
-	if(vehicle->getTurningDirection()==LCS_LEFT){
+	/*if(vehicle->getTurningDirection()==LCS_LEFT){
 		std::cout<<"Turn Decision Left"<<endl;
 	}else if(vehicle->getTurningDirection()==LCS_RIGHT){
 		std::cout<<"Turn Decision Right"<<endl;
@@ -1413,7 +1417,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		std::cout<<"Turn Decision Same"<<endl;
 	}
 
-	if(relative==LCS_LEFT)std::cout<<"Turn Relative Left"<<endl;
+	if(relative==LCS_LEFT)std::cout<<"Turn Relative Left"<<endl;*/
 
 	//std::cout<<"Turning Decision:"<<vehicle->getTurningDirection()<<"  relative:"<<relative<<endl;
 	//after forwarding, adjacent lanes might be changed

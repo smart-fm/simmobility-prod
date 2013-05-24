@@ -106,8 +106,10 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 //	return k*-dv_ * p.elapsedSeconds;
 
 	double lcGapModels_[][9] = {
-			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000, -0.420 , 0.000 , 0.488 },
+			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000, -0.420 , 0.000 , 0.488},
 			{1.00 , 0.0 ,  0.000  , 2.020 , 0.000 , 0.000 , 0.153 , 0.188 , 0.526},
+			//{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
+			//{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859},
 			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
 			{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859}};
 
@@ -219,15 +221,18 @@ double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(DriverUpdateParams& p)
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
-	const LaneSide freeLanes = gapAcceptance(p, DLC);
+	//const LaneSide freeLanes = gapAcceptance(p, DLC);
+	LaneSide freeLanes = gapAcceptance(p, MLC);
 	if(!freeLanes.left && !freeLanes.right) {
+		std::cout<<"no free lanes"<<std::endl;
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
+	std::cout<<"yes free lanes"<<std::endl;
 	double s = p.nvFwd.distance;
 	const double satisfiedDistance = 2000;
 	const double minDistance = 1000;
 	if(s>satisfiedDistance || s<minDistance) {
-		return LCS_SAME;	// space ahead is satisfying, stay in current lane
+		//return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
 
 	//calculate the utility of both sides
@@ -237,7 +242,9 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	//to check if their utilities are greater than current lane
 	bool left = ( s < leftUtility );
 	bool right = ( s < rightUtility );
-
+	std::cout<<"right?"<<right<<"  left:"<<left<<std::endl;
+	//left = true;//Runmin
+	//right = false;//Runmin
 	//decide
 	if(freeLanes.rightOnly() && right) {
 		return LCS_RIGHT;
@@ -295,7 +302,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 	//i am going to fix it.
 	int direction = p.nextLaneIndex - p.currLaneIndex;
 	//direction = 0; //Otherwise drivers always merge.
-
+	//direction = 1;
 	//current lane is target lane
 	if(direction==0) {
 		return LCS_SAME;
@@ -355,11 +362,14 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
 
 //		if(randNum<mandCheck){
-			changeMode = MLC;
+//			changeMode = MLC;
 //		} else {
 //			changeMode = DLC;
 //			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
 //		}
+
+		changeMode = DLC;
+		p.dis2stop = 1000;//MAX_NUM;
 
 		//3.make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;
@@ -371,6 +381,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 			decision = makeMandatoryLaneChangingDecision(p);
 		}
 
+		//decision = LCS_LEFT;
+
 		//4.Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {
 			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
@@ -380,6 +392,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 
 		return 0.0;
 	}
+
+
 //	{ //Performing a lane change.
 //		//Set the lateral velocity of the vehicle; move it.
 //		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;

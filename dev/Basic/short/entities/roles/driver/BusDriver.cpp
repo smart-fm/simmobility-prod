@@ -374,12 +374,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p)
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
-			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {
+			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// boarding alighting time greater than or equal to the holding time
 				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// no additional holding time
-			} else {
+			} else {// boarding alighting time smaller than the holding time
 				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
 			}
-			if (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC) {// larger than dwell time
+			if (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC) {// larger than dwell time(boarding and alighting time)
 				passengerCountOld_display_flag = false;
 			} else {
 				passengerCountOld_display_flag = true;

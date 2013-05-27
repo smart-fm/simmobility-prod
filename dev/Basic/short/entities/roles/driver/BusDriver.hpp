@@ -120,16 +120,16 @@ public:
 
 	bool allow_boarding_alighting_flag;// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined
 	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
-	std::map<int, int> BoardingNum_Pos;
-	std::map<int, int> AlightingNum_Pos;
+	std::map<int, int> BoardingNum_Pos;// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent
+	std::map<int, int> AlightingNum_Pos;// record the AlightingNum_Pos map based on the passenger queue in the Bus
 	std::vector<uint32_t> boarding_frames;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
 	std::vector<uint32_t> alighting_frames;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
 	uint32_t first_frame;// the first frame and bus will start boarding and alighting
 	uint32_t last_frame;// the last frame and bus will leaves the BusStop
-	int boardingframe_offset;
-	int alightingframe_offset;
+	int boardingframe_offset;// temporary boardingframe offset for boarding queue erase purpose
+	int alightingframe_offset;// temporary alightingframe offset for passenger queue erase purpose
 	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime
+	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime(boarding and alighting time)
 
 protected:
 	//Override the following behavior
@@ -139,7 +139,7 @@ protected:
 private:
 	std::vector<const BusStop*> busStops;
 	double waitAtStopMS;
-	double BUS_STOP_WAIT_TIME;// total waiting time
+	double BUS_STOP_WAIT_TIME;// total waiting time (can be holding time or dwelltime)
 
 	//Serialization, not implemented
 #ifndef SIMMOB_DISABLE_MPI

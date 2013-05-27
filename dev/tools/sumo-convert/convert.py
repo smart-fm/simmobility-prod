@@ -609,6 +609,7 @@ def print_osm_format(rn):
       f.write(' </way>\n')
     
   #Done
+  f.write('</osm>\n')
   f.close()
 
 

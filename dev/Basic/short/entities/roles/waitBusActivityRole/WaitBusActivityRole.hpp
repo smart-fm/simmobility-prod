@@ -61,8 +61,8 @@ public:
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	bool getRegisteredFlag() { return registered; }
-	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; }
+	bool getRegisteredFlag() { return registered; } // get the registered flag
+	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; } // set the registered flag
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
@@ -72,13 +72,9 @@ public:
 public:
 	int boarding_Frame;// to record the boarding_frame for each individual person
 	sim_mob::BusDriver* busDriver;// indicate which busDriver
-	//sim_mob::Role* nextRole;// indicate next Role
 
 private:
-	int remainingTime;
 	bool registered;// indicate whether it is registered or not
-	sim_mob::DailyTime activityStartTime;
-	sim_mob::DailyTime activityEndTime;
 	sim_mob::BusStopAgent* busStopAgent;
 	uint32_t TimeOfReachingBusStop;
 	std::string buslineid;

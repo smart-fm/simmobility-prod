@@ -22,11 +22,11 @@ BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 }
 
 sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, std::string buslineid, std::string roleName) :
-		Role(parent,  roleName), params(parent->getGenerator()), remainingTime(0),
-		busStopAgent(nullptr), registered(false), TimeOfReachingBusStop(0), buslineid(buslineid) {
+		Role(parent,  roleName), params(parent->getGenerator()), busStopAgent(nullptr),
+		registered(false), TimeOfReachingBusStop(0), buslineid(buslineid)
+{
 	boarding_Frame = 0;
 	busDriver = nullptr;
-	//nextRole = nullptr;
 }
 
 sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {

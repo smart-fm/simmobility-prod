@@ -681,7 +681,7 @@ bool sim_mob::Person::updateNextTripChainItem()
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
-		//dont advance to next tripchainItem immidiately, check the subtrip first
+		//dont advance to next tripchainItem immediately, check the subtrip first
 		res = updateNextSubTrip();
 	}
 

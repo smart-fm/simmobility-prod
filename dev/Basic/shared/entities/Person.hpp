@@ -79,13 +79,13 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
-    void setNextRole(sim_mob::Role* newRole);
-    sim_mob::Role* getNextRole() const;
+    void setNextRole(sim_mob::Role* newRole);// set NextRole
+    sim_mob::Role* getNextRole() const;// get NextRole
     bool updatePersonRole(sim_mob::Role* newRole = 0);
-    bool findPersonNextRole();
+    bool findPersonNextRole();// find Person's NextRole
 
-	bool updateNextTripChainItem();
-	bool updateNextSubTrip();
+	bool updateNextTripChainItem();// update nextTripChainItem, used only for NextRole
+	bool updateNextSubTrip();// update nextSubTrip, used only for NextRole
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
@@ -123,9 +123,9 @@ public:
 	void setDatabaseId(const std::string& databaseId) {
 		databaseID = databaseId;
 	}
-	void setPersonCharacteristics();
-	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }
-	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }
+	void setPersonCharacteristics();// set Person's characteristics by distribution
+	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }// get boarding time secs
+	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }// get alighting time secs
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)

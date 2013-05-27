@@ -26,6 +26,7 @@ public:
 	void pushMessage(std::string data);
 	MessageList popMessage();
 	boost::asio::ip::tcp::socket& socket();
+	bool ConnectToServer(std::string ip, int port);
 
 private:
 	void handle_write(const boost::system::error_code& error, size_t bytesTransferred);
@@ -42,6 +43,8 @@ private:
 	boost::array<char, 1> ReceivedBuf;
 
 };
+
+typedef boost::shared_ptr<TCPSession> TCPSessionPtr;
 
 }
 

@@ -27,7 +27,7 @@ TCPServer::~TCPServer() {
 
 void TCPServer::start_accept()
 {
-	new_connection = TCPSession::create(acceptor_.get_io_service());
+	TCPSessionPtr new_connection = TCPSession::create(acceptor_.get_io_service());
 
 	acceptor_.async_accept(new_connection->socket(),
 								boost::bind(&TCPServer::handle_accept, this, new_connection,

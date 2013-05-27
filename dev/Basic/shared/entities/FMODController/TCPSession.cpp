@@ -49,13 +49,31 @@ MessageList TCPSession::popMessage()
 
 void TCPSession::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
 {
-	sendData();
+	if( error == 0 ){
+		sendData();
+	}
 }
 void TCPSession::handle_read(const boost::system::error_code& error, size_t bytesTransferred)
 {
-	msgReceiveQueue.PushMessage(ReceivedBuf.data());
-	receiveData();
+	if( error == 0 ){
+		msgReceiveQueue.PushMessage(ReceivedBuf.data());
+		receiveData();
+	}
 }
+
+bool TCPSession::ConnectToServer(std::string ip, int port)
+{
+	bool ret = true;
+	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);
+	boost::system::error_code ec;
+	socket_.connect(endpoint, ec);
+	if(ec) {
+		std::cerr<<"start: connect error "<<ec.message()<<std::endl;
+		ret = false;
+	}
+	return ret;
+}
+
 bool TCPSession::sendData()
 {
 	bool ret = msgSendQueue.PopMessage(messageSnd);
@@ -90,7 +108,7 @@ bool TCPSession::receiveData()
 							  boost::asio::placeholders::error,
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
-			 std::cerr<<"start: send error "<<err.message()<<std::endl;
+			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
 			 return false;
 		 }
 	}

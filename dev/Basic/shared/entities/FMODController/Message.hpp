@@ -28,6 +28,6 @@ private:
 
 } /* namespace sim_mob */
 
-typedef boost::shared_ptr<sim_mob::FMOD::Message*> msg_ptr;
+typedef boost::shared_ptr<sim_mob::FMOD::Message> msg_ptr;
 
 #endif /* MESSAGE_HPP_ */

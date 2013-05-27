@@ -10,6 +10,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include "TCPSession.hpp"
+#include "vector"
 
 namespace sim_mob {
 
@@ -21,10 +22,11 @@ public:
 	TCPServer(boost::asio::io_service& io_service,int port);
 	virtual ~TCPServer();
 public:
-  bool isClientConnect() { return new_connection->socket().is_open();}
+  bool isClientConnect() { return connectionList.size()>0;}
 
 private:
-  boost::shared_ptr<TCPSession> new_connection;
+
+  std::vector<TCPSessionPtr> connectionList;
   int myPort;
   void start_accept();
 

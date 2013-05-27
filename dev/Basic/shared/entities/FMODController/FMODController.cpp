@@ -9,13 +9,33 @@
 
 namespace sim_mob {
 
-FMODController::FMODController() {
-	// TODO Auto-generated constructor stub
-
-}
+namespace FMOD
+{
 
 FMODController::~FMODController() {
 	// TODO Auto-generated destructor stub
+}
+
+bool FMODController::frame_init(timeslice now)
+{
+	return true;
+}
+
+Entity::UpdateStatus FMODController::frame_tick(timeslice now)
+{
+	return Entity::UpdateStatus::Continue;
+}
+
+void FMODController::frame_output(timeslice now)
+{
+
+}
+
+bool FMODController::Initialzie(std::vector<sim_mob::Entity*>& all_agents)
+{
+	return true;
+}
+
 }
 
 } /* namespace sim_mob */

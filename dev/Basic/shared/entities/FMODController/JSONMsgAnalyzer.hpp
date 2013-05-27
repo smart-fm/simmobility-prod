@@ -10,11 +10,16 @@
 
 namespace sim_mob {
 
+namespace FMOD
+{
+
 class JSONMsgAnalyzer {
 public:
 	JSONMsgAnalyzer();
 	virtual ~JSONMsgAnalyzer();
 };
+
+}
 
 } /* namespace sim_mob */
 #endif /* JSONMSGANALYZER_HPP_ */

@@ -9,6 +9,9 @@
 
 namespace sim_mob {
 
+namespace FMOD
+{
+
 JSONMsgAnalyzer::JSONMsgAnalyzer() {
 	// TODO Auto-generated constructor stub
 
@@ -16,6 +19,8 @@ JSONMsgAnalyzer::JSONMsgAnalyzer() {
 
 JSONMsgAnalyzer::~JSONMsgAnalyzer() {
 	// TODO Auto-generated destructor stub
+}
+
 }
 
 } /* namespace sim_mob */

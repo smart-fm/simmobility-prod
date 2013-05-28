@@ -6,6 +6,7 @@
  */
 
 #include "FMODController.hpp"
+#include "Message.hpp"
 
 namespace sim_mob {
 
@@ -33,6 +34,9 @@ void FMODController::frame_output(timeslice now)
 
 bool FMODController::Initialzie(std::vector<sim_mob::Entity*>& all_agents)
 {
+	Msg_Request request;
+	std::string msg = request.BuildToString();
+	std::cout << msg << std::endl;
 	return true;
 }
 

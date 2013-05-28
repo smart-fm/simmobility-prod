@@ -238,6 +238,11 @@ LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 find_package(Boost COMPONENTS regex REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
+#Find JsonCpp
+find_package(JsonCpp REQUIRED)
+include_directories(${JSONCPP_INCLUDE_DIR})
+LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi

@@ -34,6 +34,13 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 
+	//May implement later
+	virtual void load(const std::map<std::string, std::string>& configProps){}
+	//Signals are non-spatial in nature.
+	virtual bool isNonspatial() { return true; }
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
+
+
 private:
 	TCPSessionPtr connectPoint;
 

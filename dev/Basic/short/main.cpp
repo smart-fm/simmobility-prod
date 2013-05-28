@@ -232,10 +232,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		agentWorkers->assignAWorker(*it);
 	}
 
-	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::all_BusstopAgents_.size() << std::endl;
-	for (vector<BusStopAgent*>::iterator it = BusStopAgent::all_BusstopAgents_.begin(); it != BusStopAgent::all_BusstopAgents_.end(); it++) {
-		agentWorkers->assignAWorker(*it);
-	}
+	//Assign all BusStopAgents
+	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
+	BusStopAgent::AssignAllBusStopAgents(*agentWorkers);
+
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
 //		std::cout << "performmain() Signal " << (*it)->getId() << "  Has " <<  (*it)->getPhases().size()/* << "  " << (*it)->getNOF_Phases()*/ <<  " phases\n";

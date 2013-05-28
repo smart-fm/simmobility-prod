@@ -14,24 +14,34 @@
 #include <vector>
 #include <algorithm>
 #include "entities/Agent.hpp"
-#include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "../short/entities/roles/pedestrian/Pedestrian2.hpp"
 #include "geospatial/BusStop.hpp"
 #include "buffering/Shared.hpp"
+
+//You can't use "../short" for these
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 
 namespace sim_mob
 {
 
 //Forward declarations
-
 class PackageUtils;
 class UnPackageUtils;
+class WorkGroup;
 
 class BusStopAgent  : public sim_mob::Agent
 {
 public:
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
 		  : Agent(mtxStrat, id), busstop_(busstop){};
+
+	//Return the number of known BusStopAgents
+	static size_t AllBusStopAgentsCount();
+
+	//Assign all bus stops to Workers in the given WorkGroup
+	static void AssignAllBusStopAgents(sim_mob::WorkGroup& wg);
+
+
 	///Initialize a new BusStopAgent with the given busstop and MutexStrategy.
 	static void RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat);
 
@@ -65,10 +75,9 @@ public:
 
 	virtual bool isNonspatial();
 
-	typedef std::vector<BusStopAgent *> All_BusStopAgents;
-	static All_BusStopAgents all_BusstopAgents_;
-
 private:
+	static std::vector<BusStopAgent *> all_BusstopAgents_;
+
 	sim_mob::BusStop const & busstop_; // BusStop object reference
 	std::string busstopAgentno_; //currently is equal to busstopno_
 	std::vector<sim_mob::WaitBusActivityRole*> boarding_WaitBusActivities;// one boarding queue of persons for all Buslines(temporary, each BusDriver will construct a new queue based on this)

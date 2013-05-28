@@ -3,13 +3,26 @@
 #include "BusStopAgent.hpp"
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
+#include "workers/WorkGroup.hpp"
 
-using namespace std;
+using std::vector;
 using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-BusStopAgent::All_BusStopAgents BusStopAgent::all_BusstopAgents_;
+vector<BusStopAgent*> BusStopAgent::all_BusstopAgents_;
+
+size_t sim_mob::BusStopAgent::AllBusStopAgentsCount()
+{
+	return all_BusstopAgents_.size();
+}
+
+void sim_mob::BusStopAgent::AssignAllBusStopAgents(sim_mob::WorkGroup& wg)
+{
+	for (vector<BusStopAgent*>::iterator it=all_BusstopAgents_.begin(); it!=all_BusstopAgents_.end(); it++) {
+		wg.assignAWorker(*it);
+	}
+}
 
 void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat)
 {

@@ -9,8 +9,10 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
-#include "../short/entities/roles/passenger/Passenger.hpp"
 #include "entities/UpdateParams.hpp"
+
+//TODO: You can't use ../short for this:
+#include "entities/roles/passenger/Passenger.hpp"
 
 namespace sim_mob
 {

@@ -43,12 +43,9 @@ class BusStop : public sim_mob::RoadItem {
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem() {lane_location = 0;
-	busCapacityAsLength = 0;
-	parentSegment_ = 0;
-	generatedBusStopAgent = nullptr;
-//	xPos = yPos = 0;
-	}
+	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0), parentSegment_(nullptr),
+		generatedBusStopAgent(nullptr), is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
+	{}
 
 public:
 	///Which RoadItem and lane is this bus stop located at?

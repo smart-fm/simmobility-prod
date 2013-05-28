@@ -119,6 +119,8 @@ private:
 
 	void decrementBound(const sim_mob::RoadSegment* rdSeg);
 
+	void resetRemTimesInLaneInfinities();
+
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
 protected:
 	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods not supported for Confluxes."); }

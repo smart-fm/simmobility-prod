@@ -438,7 +438,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
 				<< "|canGoToNextRdSeg successful"
 				<< "|Driver is movedToNextLink at: " << linkExitTimeSec*1000 << "ms"
-				<< "|moved to nextRdSeg: " << vehicle->getCurrSegment()->getStartEnd() << "|nextRdSeg id: " << vehicle->getCurrSegment()->getSegmentID()
+				<< "|moved to nextRdSeg: " << vehicle->getCurrSegment()->getStartEnd()
+				<< "|nextRdSeg id: " << vehicle->getCurrSegment()->getSegmentID()
 				<< "|lane: " << currLane->getLaneID()
 				<< "|last Accept: "<< getLastAccept(currLane)
 				<< "|accept rate: "<<getAcceptRate(currLane)
@@ -888,7 +889,8 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	else
 	{
 		p.elapsedSeconds = p.secondsInTick;
-		setParentData(p);
+		parentAgent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+		//setParentData(p);
 		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << parentAgent->getId()
 				<< "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
 	}

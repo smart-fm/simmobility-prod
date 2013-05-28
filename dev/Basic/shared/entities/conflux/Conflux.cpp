@@ -70,16 +70,18 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
-	//resetSegmentFlows();
+
+	//reset the remaining times of persons in lane infinity if required.
+	resetRemTimesInLaneInfinities();
 
 	//sort the virtual queues before starting to move agents for this tick
 	//for now, virtual queues are the lane infinities of the first road segment (in the driving direction) of each link
-	SegmentStats* firstSegStats = nullptr;
+	SegmentStats* segStats = nullptr;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i!=upstreamSegmentsMap.end(); i++) {
-		firstSegStats = findSegStats(*(i->second.begin()));
-		firstSegStats->sortPersons_DecreasingRemTime(firstSegStats->laneInfinity);
+		segStats = findSegStats(*(i->second.begin()));
+		segStats->sortPersons_DecreasingRemTime(segStats->laneInfinity);
 	}
-	firstSegStats = nullptr; //reset so that this isn't accidentally used elsewhere
+	segStats = nullptr; //reset so that this isn't accidentally used elsewhere
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented
@@ -87,10 +89,8 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	else {
 		updateUnsignalized();
 	}
-	//updateSupplyStats(frameNumber);
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
-	//resetOutputBounds(); //For use by other confluxes in the next tick
 	lastUpdatedFrame = frameNumber.frame();
 	return retVal;
 }
@@ -111,10 +111,6 @@ void sim_mob::Conflux::updateUnsignalized() {
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
-	if (person->lastUpdatedFrame < currFrameNumber.frame()) {
-		//if the person is moved for the first time in this tick
-		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
-	}
 
 	const sim_mob::RoadSegment* segBeforeUpdate = person->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = person->getCurrLane();
@@ -224,6 +220,29 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
 		currSegsOnUpLinks.insert(std::make_pair(i->first, i->second.back()));
+	}
+}
+
+/*
+ * This function resets the remainingTime of persons who remain in lane infinity for more than 1 tick.
+ * Note: This may include
+ * 1. newly starting persons who (were supposed to, but) did not get added to the simulation
+ * in the previous tick due to traffic congestion in their starting segment.
+ * 2. Persons who got added to and remained in laneInfinity (virtual queue) in the previous tick
+ */
+void sim_mob::Conflux::resetRemTimesInLaneInfinities() {
+	SegmentStats* segStats = nullptr;
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
+			segStats = findSegStats(*rdSegIt);
+			std::deque<sim_mob::Person*> personsInLaneInfinity = segStats->getAgents(segStats->laneInfinity);
+			for(std::deque<sim_mob::Person*>::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
+				if ((*personIt)->lastUpdatedFrame < currFrameNumber.frame()) {
+					//if the person is moved for the first time in this tick
+					(*personIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+				}
+			}
+		}
 	}
 }
 

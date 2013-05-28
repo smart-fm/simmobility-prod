@@ -839,7 +839,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 	{
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
-			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus
+			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
 			{
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;
@@ -893,7 +893,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
 			Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
 			if(passenger) {
-				if(passenger->getDestBusStop() == lastVisited_BusStop.get()) // it reached the DestBusStop
+				if(passenger->getDestBusStop() == lastVisited_BusStop.get()) // it reached the DestBusStop and it want to alight
 				{
 					AlightingNum_Pos[alightingNum] = i;
 					alightingNum++;
@@ -921,7 +921,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
-			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus
+			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
 			{
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;

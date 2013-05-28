@@ -41,15 +41,15 @@ class Agent;
 //create a class inherited from driver and the the following class.
 //then override the driver's(agent's) update method to use send & receive and set
 //various flags as necessary.
-
+template<class T>
 class JCommunicationSupport {
 public:
 	JCommunicationSupport(sim_mob::Broker& managingBroker, sim_mob::Agent& entity_);
-	virtual ~JCommunicationSupport() {}
+	virtual ~JCommunicationSupport();
 
 private:
-	BufferContainer incoming;
-	BufferContainer &outgoing;
+	BufferContainer<T> incoming;
+	BufferContainer<T> &outgoing;
 
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
@@ -80,14 +80,14 @@ public:
 	void setSubscribed(bool);
 	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value);
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-	BufferContainer& getIncoming();
-	void getAndClearIncoming(BufferContainer &values);
-	BufferContainer& getOutgoing();
-	void setIncoming(BufferContainer value);
-	bool popIncoming(DataElement &var);
+	BufferContainer<T>& getIncoming();
+	void getAndClearIncoming(BufferContainer<T> &values);
+	BufferContainer<T>& getOutgoing();
+	void setIncoming(BufferContainer<T> value);
+	bool popIncoming(T &var);
 //	void setOutgoing(BufferContainer value); we are now writing directly to communicator buffer so this function is dangerous
-	void addIncoming(DataElement value);
-	void addOutgoing(DataElement value);
+	void addIncoming(T value);
+	void addOutgoing(T value);
 
 	void setwriteIncomingDone(bool value);
 	void setWriteOutgoingDone(bool value);
@@ -105,6 +105,6 @@ public:
 	//(which is also an agent) to the communicator agent
 	virtual bool subscribe(sim_mob::Agent* subscriber,sim_mob::Broker &communicator);
 	virtual const sim_mob::Agent& getEntity();
-};
+};//end of class  JCommunicationSupport
 
 };//namespace

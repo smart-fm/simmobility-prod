@@ -15,22 +15,31 @@ namespace sim_mob
 {
 //Forward Declaration
 class Handler;
+typedef boost::shared_ptr<sim_mob::Handler> hdlr_ptr;
 namespace comm
 {
 
 typedef int MessageType;
 
 //Base Message
+template<class T>
 class Message
 {
+	T data;
+	hdlr_ptr handler;
 public:
-//	Message();
-	//todo put hdlr_ptr
-	virtual boost::shared_ptr<Handler> supplyHandler() = 0;
+	Message();
+	Message(T data_):data(data_){}
+	virtual hdlr_ptr supplyHandler() = 0;
+	void setHandler( hdlr_ptr handler_)
+	{
+		handler = handler_;
+	}
 };
 }//namespace comm
-}//namespace sim_mob
+//todo do simething here. the following std::string is spoiling messge's templatization benefits
+typedef boost::shared_ptr<sim_mob::comm::Message<std::string> > msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
 
-typedef boost::shared_ptr<sim_mob::comm::Message> msg_ptr;
+}//namespace sim_mob
 
 #endif

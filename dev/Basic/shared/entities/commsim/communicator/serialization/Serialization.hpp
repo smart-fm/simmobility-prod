@@ -4,7 +4,11 @@
  *  Created on: May 10, 2013
  *      Author: vahid
  */
+#pragma once
 #include <sstream>
+#include "entities/commsim/communicator/service/services.hpp"
+#include <set>
+#include <json/json.h>
 namespace sim_mob
 {
 class JsonParser
@@ -26,7 +30,7 @@ public:
 		return true;
 	}
 
-	static bool getCapabilities(std::string& input, std::set<sim_mob::CAPABILITY> & capabilities)
+	static bool getServices(std::string& input, std::set<sim_mob::SIM_MOB_SERVICE> & services)
 	{
 
 		Json::Value root;
@@ -37,15 +41,15 @@ public:
 			std::cout << "Parsing [" << input << "] Failed" << std::endl;
 			return false;
 		}
-		if(!root.isMember("capabilities"))
+		if(!root.isMember("services"))
 		{
-			std::cout << "Parsing capabilities in [" << input << "] Failed" << std::endl;
+			std::cout << "Parsing services in [" << input << "] Failed" << std::endl;
 			return false;
 		}
-		const Json::Value array = root["capabilities"];
+		const Json::Value array = root["services"];
 		for(unsigned int index=0; index<array.size(); index++)
 		{
-			capabilities.insert(sim_mob::CapabilityMap[array[index].asString()]);
+			services.insert(sim_mob::ServiceMap[array[index].asString()]);
 		}
 	}
 

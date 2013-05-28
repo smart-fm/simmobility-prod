@@ -13,6 +13,7 @@
 namespace sim_mob {
 namespace comm
 {
+template<class T>
 class Message;
 }
 //class Handler;

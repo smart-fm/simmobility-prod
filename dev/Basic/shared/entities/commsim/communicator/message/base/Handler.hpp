@@ -10,16 +10,15 @@
 #include "Message.hpp"
 namespace sim_mob
 {
-namespace comm
-{
-//Forward Declaration
-class Message;
-}
+//namespace comm
+//{
+////Forward Declaration
+//class Message;
+//}
 class Handler
 {
 public:
 	virtual void handle(msg_ptr message_) = 0;
 };
-typedef boost::shared_ptr<Handler> hdlr_ptr;
 }//namespace
 #endif /* HANDLER_HPP_ */

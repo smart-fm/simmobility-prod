@@ -17,7 +17,7 @@ AndroidClientRegistration::AndroidClientRegistration(ClientType type_) : ClientR
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
 {
 	boost::unique_lock< boost::mutex > lock(*broker.getBrokerMutex());
-	//some checks to avoid calling this expensive method unnecessarily
+	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
 			|| broker.getRegisteredAgents().empty()
@@ -28,44 +28,66 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	}
 
 	AgentsMap &registeredAgents = broker.getRegisteredAgents();
-	//find a free agent
-	 std::pair<sim_mob::Agent *, JCommunicationSupport* >* freeAgent;
+	//find a free agent(someone who is not yet been associated to an andriod client)
+	 std::pair<sim_mob::Agent *, JCommunicationSupport* >* freeAgent = 0;
 	for(AgentsMap::iterator it = registeredAgents.begin(), it_end = registeredAgents.end() ; it != it_end; it++)
 	{
-		if(usedAgents.find(it->first) != usedAgents.end())
+		if(usedAgents.find(it->first) == usedAgents.end())
 		{
-			//this agent is already associated with a client whose type is handled by this class
-			continue;
+			//found a free agent
+			freeAgent = it;
+			break;
 		}
-		//found a free agent
-		freeAgent = it;
+	}
+	if(freeAgent == 0)
+	{
+		//you couldn't find a free function
+		return false;
+	}
 		//use it to create a client entry
-		registeredClientEntry clientEntry;
-		clientEntry.cnnHandler.reset(new ConnectionHandler(
+		boost::shared_ptr<AndroidClientHandler> clientEntry(new AndroidClientHandler());
+		clientEntry->cnnHandler.reset(new ConnectionHandler(
 				request.session_
 				,broker
 				,request.clientID
 				,(unsigned long)(freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
 				)
+
 		);
 
-		clientEntry.JCommunicationSupport_ = freeAgent->second;
+		clientEntry->JCommunicationSupport_ = freeAgent->second;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-		clientEntry.agent = freeAgent->first;
-		clientEntry.clientID = request.clientID;
-		clientEntry.client_type = myType;
-		clientEntry.requiredCapabilities = request.requiredCapabilities;
+		clientEntry->agent = freeAgent->first;
+		clientEntry->clientID = request.clientID;
+		clientEntry->client_type = myType;
+		SIM_MOB_SERVICE srv;
+		BOOST_FOREACH(srv, request.requiredServices)
+		{
+			switch(srv)
+			{
+			case SIMMOB_SRV_TIME:
+				broker.getPublishers()[SIMMOB_SRV_TIME]->Suscribe(COMMEID_TIME, CALLBACK_HANDLER(TimeEventArgs, AndroidClientHandler::OnTime) );
+				break;
+			case SIMMOB_SRV_LOCATION:
+				broker.getPublishers()[SIMMOB_SRV_LOCATION]->Suscribe(COMMEID_TIME, CALLBACK_HANDLER(LocationEventArgs, AndroidClientHandler::OnLocation) );
+				break;
+			}
+
+		}
+		//todo
+
+
 
 		//add the client entry to broker
 		broker.getClientList().insert(std::make_pair(myType,clientEntry));
 
+		//start listening to the handler
+		clientEntry->cnnHandler->start();
+
 		//add this agent to the list of the agents who are associated with a android emulator client
-		usedAgents.insert( *it);
-		//we have nothing to do in this method
+		usedAgents.insert( *freeAgent);
+
 		return true;
-	}
-	//you couldn't find a free function
-	return false;
 }
 AndroidClientRegistration::~AndroidClientRegistration() {
 	// TODO Auto-generated destructor stub

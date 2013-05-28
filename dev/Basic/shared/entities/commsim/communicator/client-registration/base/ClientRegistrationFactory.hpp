@@ -10,9 +10,9 @@
 
 #ifndef CLIENTREGISTRATIONFACTORY_HPP_
 #define CLIENTREGISTRATIONFACTORY_HPP_
-#include "entities/commsim/communicator/external/base/ClinetRegistrationHandler.hpp"
-#include "entities/commsim/communicator/external/derived/android/AndroidClientRegistration.hpp"
-#include "entities/commsim/communicator/external/derived/ns3/NS3ClientRegistration.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
+#include "entities/commsim/communicator/client-registration/derived/android/AndroidClientRegistration.hpp"
+#include "entities/commsim/communicator/client-registration/derived/ns3/NS3ClientRegistration.hpp"
 
 namespace sim_mob {
 

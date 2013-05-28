@@ -871,16 +871,18 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		for(i = 0; i < (bus->passengers_inside_bus).size(); i++) {
 			AlightingNum_Pos[i] = i;
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
-			Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-			if(p && passenger) {
-				alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
-				accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-				if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-					alighting_frame++;// delay one frame tick, doesnt matter(100ms)
-					accumulated_alighted_frame++;// advance also
+			if(p) {
+				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
+				if(passenger) {
+					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
+					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
+					if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
+						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
+						accumulated_alighted_frame++;// advance also
+					}
+					passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
+					alighting_frames.push_back(alighting_frame);
 				}
-				passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
-				alighting_frames.push_back(alighting_frame);
 			}
 		}
 		if(!alighting_frames.empty()) {
@@ -891,27 +893,31 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		// determine the alighting frame for each possible persons
 		for(i = 0; i < (bus->passengers_inside_bus).size(); i++) {
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
-			Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-			if(passenger) {
-				if(passenger->getDestBusStop() == lastVisited_BusStop.get()) // it reached the DestBusStop and it want to alight
-				{
-					AlightingNum_Pos[alightingNum] = i;
-					alightingNum++;
+			if(p) {
+				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
+				if(passenger) {
+					if(passenger->getDestBusStop() == lastVisited_BusStop.get()) // it reached the DestBusStop and it want to alight
+					{
+						AlightingNum_Pos[alightingNum] = i;
+						alightingNum++;
+					}
 				}
 			}
 		}
 		for(j = 0; j < alightingNum; j++) {// extract person characteristics and calculate the corresponding alighting frames
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[AlightingNum_Pos[j]]);
-			Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-			if(p && passenger) {
-				alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
-				accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-				if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-					alighting_frame++;// delay one frame tick, doesnt matter(100ms)
-					accumulated_alighted_frame++;// advance also
+			if(p) {
+				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
+				if(passenger) {
+					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
+					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
+					if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
+						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
+						accumulated_alighted_frame++;// advance also
+					}
+					passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
+					alighting_frames.push_back(alighting_frame);
 				}
-				passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
-				alighting_frames.push_back(alighting_frame);
 			}
 		}
 		if(!alighting_frames.empty()) {

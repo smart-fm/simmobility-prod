@@ -982,6 +982,7 @@ void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
 	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
 
+	// first alighting
 	if(!alighting_frames.empty())// not empty for alighting, otherwise only boarding
 	{
 		for(i = 0; i < alighting_frames.size(); i++) {// individual alighting
@@ -993,6 +994,7 @@ void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
 			}
 		}
 	}
+	// then boarding
 	if(!boarding_frames.empty())// not empty for boarding, otherwise only alighting
 	{
 		for(i = 0; i < boarding_frames.size(); i++) {// individual boarding

@@ -93,7 +93,6 @@ sim_mob::Pedestrian2::Pedestrian2(Agent* parent, std::string roleName) : Role(pa
 
 	xCollisionVector = 0;
 	yCollisionVector = 0;
-	isAtBusstop = false;
 }
 
 //Note that a destructor is not technically needed, but I want to enforce the idea
@@ -175,7 +174,6 @@ void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", person);
 					person->changeRole(newRole);
 					newRole->frame_init(p);
-					isAtBusstop = true;
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 //					passenger->BoardedBus.set(true);

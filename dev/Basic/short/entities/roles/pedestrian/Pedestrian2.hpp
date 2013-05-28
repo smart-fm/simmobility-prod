@@ -81,7 +81,6 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	bool isOnCrossing() const;
-	bool isAtBusStop() const { return isAtBusstop; }
 
 private:
 	//Movement-related variables
@@ -110,7 +109,6 @@ private:
 
 	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
 	bool isUsingGenPathMover;
-	bool isAtBusstop; // indicate whether pedestrian is at stop or not
 
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.

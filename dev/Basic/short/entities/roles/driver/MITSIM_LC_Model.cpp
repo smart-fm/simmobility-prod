@@ -295,7 +295,7 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p)
 {
-	std::cout<<"Already MLC"<<std::endl;
+	//std::cout<<"Already MLC"<<std::endl;
 	LaneSide freeLanes = gapAcceptance(p, MLC);
 
 	//find which lane it should get to and choose which side to change
@@ -305,9 +305,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 	//direction = 0; //Otherwise drivers always merge.
 	//direction = 1;
 	//current lane is target lane
+	std::cout<<"Already MLC,"<<"Direction:"<<direction<<std::endl;
 	if(direction==0) {
 		return LCS_SAME;
 	}
+
 
 	//current lane isn't target lane
 	if(freeLanes.right && direction<0) {		//target lane on the right and is accessable
@@ -318,9 +320,138 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
 		p.isWaiting=true;
-		return LCS_SAME;
+		LANE_CHANGE_SIDE decision = executeNGSIMModel(p);
+		return decision;
 	}
 }
+
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams& p)
+{
+	bool isCourtesy; //if courtesy merging
+	bool isForced;	// if forced merging
+	double anti_Gap; //anticipated gap
+
+	isCourtesy = false;
+	isForced = false;
+	anti_Gap = 0;
+
+	int direction = p.nextLaneIndex - p.currLaneIndex;
+
+	LANE_CHANGE_SIDE lcs = direction>0? LCS_LEFT : LCS_RIGHT;
+
+	anti_Gap = calcAnticipatedGap(p);
+
+	if(anti_Gap > 0) return lcs;
+
+	return LCS_SAME;
+}
+
+double sim_mob::MITSIM_LC_Model::calcAnticipatedGap(DriverUpdateParams& p)
+{
+	//[0:left,1:right]
+	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
+	LeadLag<double> otherDistance[2];	//the distance to the closest vehicle in adjacent lane
+	LeadLag<double> otherAcc[2]; 		//the acceleration of the closet vehicles in the adjant lane
+
+	const Lane* adjacentLanes[2] = {p.leftLane, p.rightLane};
+	const NearestVehicle * fwd;
+	const NearestVehicle * back;
+	for(int i=0;i<2;i++){
+		fwd = (i==0) ? &p.nvLeftFwd : &p.nvRightFwd;
+		back = (i==0) ? &p.nvLeftBack : &p.nvRightBack;
+
+		if(adjacentLanes[i]){	//the left/right side exists
+			if(!fwd->exists()) {		//no vehicle ahead on current lane
+				otherSpeed[i].lead=5000;
+				otherDistance[i].lead=5000;
+				otherAcc[i].lead = 5000;
+			} else {				//has vehicle ahead
+				otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
+				otherDistance[i].lead= fwd->distance;
+				otherAcc[i].lead = fwd->driver->fwdAccel.get();
+			}
+//check otherDistance[i].lead if <= 0 return
+
+			if(!back->exists()){//no vehicle behind
+				otherSpeed[i].lag=-5000;
+				otherDistance[i].lag=5000;
+				otherAcc[i].lag = 5000;
+			}
+			else{		//has vehicle behind, check the gap
+				otherSpeed[i].lag=back->driver->fwdVelocity.get();
+				otherDistance[i].lag= back->distance;
+				otherAcc[i].lag = back->driver->fwdAccel.get();
+			}
+		} else {			// no left/right side exists
+			otherSpeed[i].lead    = 0;
+			otherDistance[i].lead = 0;
+			otherAcc[i].lead = 0;
+			otherSpeed[i].lag     = 0;
+			otherDistance[i].lag  = 0;
+			otherAcc[i].lag = 0;
+		}
+	}
+
+
+
+	int direction = p.nextLaneIndex - p.currLaneIndex;
+	//[0:left,1:right]
+	int i = direction>0? 0:1;
+	//if (direction > 0) direction = 0;
+	//else direction = 1;
+
+	double dis_lead = otherDistance[i].lead/100.0;
+	double dis_lag = otherDistance[i].lag/100.0;
+
+	double v_lead = otherSpeed[i].lead/100.0;
+	double v_lag =  otherSpeed[i].lag/100.0;
+
+	double acc_lead = otherAcc[i].lead/100.0;
+	double acc_lag = otherAcc[i].lag/100.0;
+
+	//double veh_length =
+
+	double Gap = dis_lead + dis_lag + (v_lead - v_lag)*p.elapsedSeconds + 0.5*(acc_lead - acc_lag) * p.elapsedSeconds * p.elapsedSeconds;
+
+	return Gap;
+
+	/*
+	//[0:left,1:right]
+	LeadLag<bool> flags[2];
+	for(int i=0;i<2;i++){	//i for left / right
+		for(int j=0;j<2;j++){	//j for lead / lag
+			if (j==0) {
+				double v      = p.perceivedFwdVelocity/100.0;
+				double dv     = (otherSpeed[i].lead/100.0 - v);
+				double dis = otherDistance[i].lead/100.0;
+				double cri_gap = lcCriticalGap(p, j+type,p.dis2stop,v,dv);
+				flags[i].lead = (dis > cri_gap);
+				if(cri_gap<0)
+					std::cout<<"find gap < 1"<<std::endl;
+			} else {
+				double v 	 = otherSpeed[i].lag/100.0;
+				double dv 	 = p.perceivedFwdVelocity/100.0 - otherSpeed[i].lag/100.0;
+				double cri_gap = lcCriticalGap(p, j+type,p.dis2stop,v,dv);
+				flags[i].lag = (otherDistance[i].lag/100.0 > cri_gap);
+				if(cri_gap<0)
+						std::cout<<"find gap < 1."<<std::endl;
+			}
+		}
+	}
+
+	//Build up a return value.
+	LaneSide returnVal = {false, false};
+	if ( flags[0].lead && flags[0].lag ) {
+		returnVal.left = true;
+	}
+	if ( flags[1].lead && flags[1].lag ) {
+		returnVal.right = true;
+	}
+
+	return returnVal;
+	*/
+}
+
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l) {
 	if (l) {
@@ -368,8 +499,6 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 			changeMode = DLC;
 			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
 		}
-
-
 
 		//changeMode = DLC;
 		//p.dis2stop = 1000;//MAX_NUM;

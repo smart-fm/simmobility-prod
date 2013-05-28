@@ -72,11 +72,18 @@ public:
 	std::string getBuslineID() { return buslineid; }
 
 public:
-	int boarding_Frame;// to record the boarding_frame for each individual person
-	sim_mob::BusDriver* busDriver;// indicate which busDriver
+    //Set by the BusDriver to the frame this Person should board the bus.
+	int boarding_Frame;
+
+	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
+	sim_mob::BusDriver* busDriver;
 
 private:
-	bool registered;// indicate whether it is registered or not
+	//Indicates whether or not this Activity has registered with the appropriate BusStopAgent.
+	//An unregistered Activity will not be able to board buses.
+	//BusStopAgents will automatically register every WaitBusActivityRole in their vicinity periodically.
+	bool registered;
+
 	sim_mob::BusStopAgent* busStopAgent;
 	uint32_t TimeOfReachingBusStop;
 	std::string buslineid;

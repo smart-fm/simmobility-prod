@@ -9,6 +9,7 @@
 #define SERVICES_HPP_
 //include publishing services that you provide in simmobility
 #include "derived/TimePublisher.hpp"
+#include "derived/LocationPublisher.hpp"
 
 
 #endif /* SERVICES_HPP_ */

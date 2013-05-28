@@ -33,13 +33,13 @@ class ConnectionServer {
 
 public:
 	boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
-	boost::shared_ptr<boost::condition_variable> Broker_Client_register;
+	boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST;
 	boost::mutex server_mutex;
 	void handleNewClient(session_ptr sess);
 	void CreatSocketAndAccept();
 	ConnectionServer(	std::queue<boost::tuple<unsigned int,ClientRegistrationRequest > > &clientRegistrationWaitingList_,
 			boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
-			boost::shared_ptr<boost::condition_variable> Broker_Client_register_,
+			boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
 			unsigned short port = DEFAULT_SERVER_PORT);
 	void start();
 	void io_service_run();
@@ -88,12 +88,12 @@ class Broker;
 class ConnectionHandler
 {
 	session_ptr mySession;
-	std::string message;//rudimentary?
+//	std::string message;//rudimentary?
 	//metadata
-	unsigned int clientID, agentPtr;
+	unsigned int clientID, agentPtr, clientType;//some of such data is duplicated in the broker client list entries
 //	boost::tuple<receiveHandler> handler_;
-//	typedef void (Broker::*BrokerReceiveCallback)(std::string);
-//	BrokerReceiveCallback receiveCallBack;
+	typedef void (Broker::*messageReceiveCallback)(ConnectionHandler&,std::string);
+	messageReceiveCallback receiveCallBack;
 	Broker &theBroker;
 public:
 	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
@@ -101,8 +101,9 @@ public:
 	ConnectionHandler(
 			session_ptr session_ ,
 			Broker& broker,
-//			BrokerReceiveCallback callback,
+			messageReceiveCallback callback,
 			unsigned int clientID_ = 0,
+			unsigned int ClienType_ = 0,
 			unsigned long agentPtr_ = 0
 			);
 	void start();

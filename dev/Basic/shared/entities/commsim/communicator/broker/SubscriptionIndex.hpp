@@ -8,28 +8,32 @@
 namespace sim_mob {
 
 //type of services that clients like to subscribed to receive updates from publisher
-enum CAPABILITY
+
+enum SIM_MOB_SERVICE
 {
-	CAP_TIME,
-	CAP_LOCATION
+	SIMMOB_SRV_TIME,
+	SIMMOB_SRV_LOCATION
 };
-std::map<std::string, CAPABILITY> CapabilityMap = boost::assign::map_list_of("CAP_LOCATION", CAP_LOCATION)("CAP_TIME", CAP_TIME);
+
+std::map<std::string, SIM_MOB_SERVICE> ServiceMap = boost::assign::map_list_of("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION);
 struct ClientRegistrationRequest
 {
 	unsigned int clientID;
 	unsigned int client_type; //ns3, android emulator, FMOD etc
-	std::set<CAPABILITY> requiredCapabilities;
+	std::set<SIM_MOB_SERVICE> requiredServices;
 	session_ptr session_;
 };
+//Forward Declaration
+template<class T>
 class JCommunicationSupport;
 
-struct registeredClientEntry {
+struct registeredClient {
 	boost::shared_ptr<ConnectionHandler > cnnHandler;
 	sim_mob::JCommunicationSupport* JCommunicationSupport_; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
-	sim_mob::Agent* agent;
+	const sim_mob::Agent* agent;
 	unsigned int clientID;
 	unsigned int client_type; //ns3, android emulator, FMOD etc
-	std::set<CAPABILITY> requiredCapabilities;
+	std::set<SIM_MOB_SERVICE> requiredServices;
 };
 
 struct subscription {
@@ -45,7 +49,7 @@ struct subscription {
 	int client_type; //ns3, android emulator, FMOD etc
 	boost::shared_ptr<ConnectionHandler > handler;
 	sim_mob::JCommunicationSupport* JCommunicationSupport_;
-	std::set<CAPABILITY> requiredCapabilities;
+	std::set<SIM_MOB_SERVICE> requiredServices;
 
 private:
 	bool connected;
@@ -84,9 +88,9 @@ public:
 };
 
 
-typedef std::map<sim_mob::Agent *, JCommunicationSupport* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
+typedef std::map<const sim_mob::Agent *, JCommunicationSupport* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 typedef std::multimap<unsigned int,ClientRegistrationRequest > ClientWaitList; //<client type,registrationrequestform >
-typedef std::multimap<unsigned int , registeredClientEntry> ClientList; //<client type,clientregistrationinfo >
+typedef std::multimap<unsigned int , registeredClient> ClientList; //<client type,clientregistrationinfo >
 
 typedef boost::multi_index_container<
 		subscription, boost::multi_index::indexed_by<

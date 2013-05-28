@@ -15,7 +15,7 @@ namespace sim_mob {
 class LocationPublisher: public sim_mob::Publisher {
 public:
 	LocationPublisher();
-	void publish(sim_mob::Broker *,sim_mob::subscription &, timeslice);
+	void publish(sim_mob::Broker &,sim_mob::registeredClient &, timeslice);
 	virtual ~LocationPublisher();
 };
 

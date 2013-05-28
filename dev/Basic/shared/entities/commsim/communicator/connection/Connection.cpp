@@ -1,4 +1,4 @@
-#include "ConnectionServer.hpp"
+#include "Connection.hpp"
 #include "boost/tuple/tuple.hpp"
 namespace sim_mob
 {
@@ -22,11 +22,11 @@ void ConnectionServer::CreatSocketAndAccept() {
 
 ConnectionServer::ConnectionServer(	std::queue<boost::tuple<unsigned int,ClientRegistrationRequest > > &clientRegistrationWaitingList_,
 		boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
-		boost::shared_ptr<boost::condition_variable> Broker_Client_register_,
+		boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
 		unsigned short port)
 :
 		Broker_Client_Mutex(Broker_Client_Mutex_),
-		Broker_Client_register(Broker_Client_register_),
+		COND_VAR_CLIENT_REQUEST(COND_VAR_CLIENT_REQUEST_),
 		acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
 		clientRegistrationWaitingList(clientRegistrationWaitingList_)
 {
@@ -63,7 +63,7 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 	session_ptr session_;
 	boost::unique_lock< boost::mutex > lock(*Broker_Client_Mutex);//todo remove comment
 	clientRegistrationWaitingList.insert(std::make_pair(request.client_type, request));
-	Broker_Client_register->notify_one();
+	COND_VAR_CLIENT_REQUEST->notify_one();
 	std::cout << " RequestClientRegistration Done, returning" << std::endl;
 }
 
@@ -119,7 +119,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer *server
 		sim_mob::ClientRegistrationRequest candidate;
 		 JsonParser::getTypeAndID(input, candidate.client_type, candidate.clientID);
 		candidate.session_ = sess;
-		JsonParser::getCapabilities(input,candidate.requiredCapabilities);
+		JsonParser::getServices(input,candidate.requiredServices);
 
 	}
 
@@ -168,14 +168,16 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer *server
 		ConnectionHandler::ConnectionHandler(
 				session_ptr session_ ,
 				Broker& broker,
-				BrokerReceiveCallback callback,
+				messageReceiveCallback callback,
 				unsigned int clientID_,
+				unsigned int ClienType_ = 0,
 				unsigned long agentPtr_
 				):theBroker(broker), receiveCallBack(callback)
 
 		{
 			mySession = session_;
 			clientID = clientID_;
+			clientType = ClienType_;
 			agentPtr = agentPtr_;
 		}
 
@@ -217,7 +219,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer *server
 			else
 			{
 				//call the receive handler in the broker
-				CALL_MEMBER_FN(theBroker, receiveCallBack)(message);
+				CALL_MEMBER_FN(theBroker, receiveCallBack)(*this,message);
 
 				mySession->async_read(message,
 								boost::bind(&ConnectionHandler::readHandler, this,

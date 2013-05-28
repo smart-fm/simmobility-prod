@@ -10,20 +10,11 @@
 namespace sim_mob {
 namespace roadrunner {
 
-RoadrunnerMessage::RoadrunnerMessage(std::string data_):data(data_){
+RoadrunnerMessage::RoadrunnerMessage(std::string data_):Message(data_){
 }
 
 RoadrunnerMessage::~RoadrunnerMessage() {
 	// TODO Auto-generated destructor stub
-}
-
-hdlr_ptr RoadrunnerMessage::supplyHandler() {
-	return handler;
-}
-
-void RoadrunnerMessage::setHandler(hdlr_ptr handler_)
-{
-	handler = handler_;
 }
 
 } /* namespace roadrunner */

@@ -14,15 +14,12 @@ namespace sim_mob {
 //Forward Declaration
 namespace roadrunner {
 
-class RoadrunnerMessage : public sim_mob::comm::Message{
+class RoadrunnerMessage : public sim_mob::comm::Message<std::string> {
 	//std::string type of data containing in json format
-	std::string data;
-	hdlr_ptr handler;
+
 public:
 	RoadrunnerMessage(std::string data_);
 	hdlr_ptr supplyHandler();
-//	msg_ptr getData();
-	void setHandler(hdlr_ptr);
 	virtual ~RoadrunnerMessage();
 };
 

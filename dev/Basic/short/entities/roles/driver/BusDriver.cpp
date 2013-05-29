@@ -46,10 +46,10 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(pa
 	ypos_approachingbusstop=-1;
 	demo_passenger_increase = false;
 	allow_boarding_alighting_flag = false;
-	first_frame = 0;
-	last_frame = 0;
-	boardingframe_offset = 0;
-	alightingframe_offset = 0;
+	first_boarding_alighting_ms = 0;
+	last_boarding_alighting_ms = 0;
+	boardingMS_offset = 0;
+	alightingMS_offset = 0;
 
 	if(parent) {
 		if(parent->getAgentSrc() == "BusController") {
@@ -812,17 +812,18 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 
 void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 {
-	uint32_t curr_frame = params.now.frame();
+	uint32_t curr_ms = params.now.ms();
 	int i = 0;
 	int j = 0;
 	int boardingNum = 0;
 	int alightingNum = 0;
-	uint32_t boarding_frame = curr_frame;// set this to curr_frame, later add and advance
-	uint32_t alighting_frame = curr_frame;// set this to curr_frame, later add and advance
-	uint32_t accumulated_boarding_frame = curr_frame;// set this to curr_frame, later add and advance
-	uint32_t accumulated_alighted_frame = curr_frame;// set this to curr_frame, later add and advance
-	uint32_t last_boarding_frame = 0;
-	uint32_t last_alighting_frame = 0;
+	uint32_t boarding_ms = curr_ms;// set this to curr_frame, later add and advance
+	uint32_t alighting_ms = curr_ms;// set this to curr_frame, later add and advance
+	uint32_t accumulated_boarding_ms = curr_ms;// set this to curr_frame, later add and advance
+	uint32_t accumulated_alighted_ms = curr_ms;// set this to curr_frame, later add and advance
+	uint32_t last_boarding_ms = 0;
+	uint32_t last_alighting_ms = 0;
+	const uint32_t baseGranMS = ConfigParams::GetInstance().baseGranMS;// baseGran MS perFrame
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = lastVisited_BusStop.get()->generatedBusStopAgent;
@@ -834,7 +835,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		busline = bustrip->getBusline();
 	}
 
-	first_frame = curr_frame;
+	first_boarding_alighting_ms = curr_ms;
 	if(busstop_sequence_no.get() == 0) // first busstop, only boarding
 	{
 		// determine the boarding frame for each possible persons
@@ -851,20 +852,20 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		for(j = 0; j < boardingNum; j++) {// extract person characteristics and calculate the corresponding boarding frames
 			Person* p = dynamic_cast<Person*>(boarding_waitBusActivities[BoardingNum_Pos[j]]->getParent());
 			if(p) {
-				boarding_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
-				accumulated_boarding_frame += (p->getBoardingCharacteristics()*10);
-				if(boarding_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-					boarding_frame++;// delay one frame tick, doesnt matter(100ms)
-					accumulated_boarding_frame++;// advance also
+				boarding_ms += (p->getBoardingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+				accumulated_boarding_ms += (p->getBoardingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+				if(boarding_ms % 5000 == 0) {// deal with a special case every 5000ms, add one frame tick in case
+					boarding_ms += baseGranMS;// delay one frame tick, doesnt matter(100ms)
+					accumulated_boarding_ms += baseGranMS;// advance also
 				}
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_Frame = boarding_frame;// set BoardingFrame for this WaitBusActivity
+				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
 				boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = this;// set busDriver for this WaitBusActivity
-				boarding_frames.push_back(boarding_frame);
+				boarding_MSs.push_back(boarding_ms);
 				virtualBoarding_Persons.push_back(p);// push this person in the virtual queue
 			}
 		}
-		if(!boarding_frames.empty()) {
-			last_boarding_frame = boarding_frames.back();// store the last_boarding_frame
+		if(!boarding_MSs.empty()) {
+			last_boarding_ms = boarding_MSs.back();// store the last_boarding_ms
 		}
 
 	} else if(busstop_sequence_no.get() == (busStops.size() - 1)) { // last busstop, only alighting, all alighting without any choice
@@ -874,19 +875,19 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p) {
 				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
 				if(passenger) {
-					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
-					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-					if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
-						accumulated_alighted_frame++;// advance also
+					alighting_ms += (p->getAlightingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+					accumulated_alighted_ms += (p->getAlightingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+					if(alighting_ms % 5000 == 0) {// deal with a special case every 50 frames, add one frame tick in case
+						alighting_ms += baseGranMS;;// delay one frame tick, doesnt matter(100ms)
+						accumulated_alighted_ms += baseGranMS;// advance also
 					}
-					passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
-					alighting_frames.push_back(alighting_frame);
+					passenger->alighting_MS = alighting_ms;// set Alighting_MS for this Passenger
+					alighting_MSs.push_back(alighting_ms);
 				}
 			}
 		}
-		if(!alighting_frames.empty()) {
-			last_alighting_frame = alighting_frames.back();// store the last_alighting_frame
+		if(!alighting_MSs.empty()) {
+			last_alighting_ms = alighting_MSs.back();// store the last_alighting_ms
 		}
 
 	} else { // normal busstop, both boarding and alighting
@@ -909,19 +910,19 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 			if(p) {
 				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
 				if(passenger) {
-					alighting_frame += (p->getAlightingCharacteristics()*10);// multiplied by 10 to transfer to frame
-					accumulated_alighted_frame += (p->getAlightingCharacteristics()*10);
-					if(alighting_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-						alighting_frame++;// delay one frame tick, doesnt matter(100ms)
-						accumulated_alighted_frame++;// advance also
+					alighting_ms += (p->getAlightingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+					accumulated_alighted_ms += (p->getAlightingCharacteristics()*1000);// advance also
+					if(alighting_ms % 5000 == 0) {// deal with a special case every 5000ms, add one frame tick in case
+						alighting_ms += baseGranMS;// delay one frame tick, doesnt matter(100ms)
+						accumulated_alighted_ms += baseGranMS;// advance also
 					}
-					passenger->alighting_Frame = alighting_frame;// set AlightingFrame for this Passenger
-					alighting_frames.push_back(alighting_frame);
+					passenger->alighting_MS = alighting_ms;// set Alighting_MS for this Passenger
+					alighting_MSs.push_back(alighting_ms);
 				}
 			}
 		}
-		if(!alighting_frames.empty()) {
-			last_alighting_frame = alighting_frames.back();// store the last_alighting_frame
+		if(!alighting_MSs.empty()) {
+			last_alighting_ms = alighting_MSs.back();// store the last_alighting_ms
 		}
 
 
@@ -939,39 +940,39 @@ void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
 		for(j = 0; j < boardingNum; j++) {// extract person characteristics and calculate the corresponding boarding frames
 			Person* p = dynamic_cast<Person*>(boarding_waitBusActivities[BoardingNum_Pos[j]]->getParent());
 			if(p) {
-				boarding_frame += (p->getBoardingCharacteristics()*10);// multiplied by 10 to transfer to frame
-				accumulated_boarding_frame += (p->getBoardingCharacteristics()*10);
-				if(boarding_frame % 50 == 0) {// deal with a special case every 50 frames(5000ms-->5s), add one frame tick in case
-					boarding_frame++;// delay one frame tick, doesnt matter(100ms)
-					accumulated_boarding_frame++;// advance also
+				boarding_ms += (p->getBoardingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
+				accumulated_boarding_ms += (p->getBoardingCharacteristics()*1000);// advance also
+				if(boarding_ms % 5000 == 0) {// deal with a special case every 5000ms, add one frame tick in case
+					boarding_ms += baseGranMS;// delay one frame tick, doesnt matter(100ms)
+					accumulated_boarding_ms += baseGranMS;// advance also
 				}
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_Frame = boarding_frame;// set BoardingFrame for this WaitBusActivity
+				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
 				boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = this;// set busDriver for this WaitBusActivity
-				boarding_frames.push_back(boarding_frame);
+				boarding_MSs.push_back(boarding_ms);
 				virtualBoarding_Persons.push_back(p);// push this person in the virtual queue,
 				std::cout << "BoardingNum_Pos[j]: " << BoardingNum_Pos[j] << std::endl;
 				std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
 			}
 		}
-		if(!boarding_frames.empty()) {
-			last_boarding_frame = boarding_frames.back();// store the last_boarding_frame
+		if(!boarding_MSs.empty()) {
+			last_boarding_ms = boarding_MSs.back();// store the last_boarding_ms
 		}
 	}
 
 	// no one boarding and alighting
-	if(boarding_frames.empty() && alighting_frames.empty()) {
+	if(boarding_MSs.empty() && alighting_MSs.empty()) {
 		resetBoardingAlightingVariables();// allow_boarding_alighting_flag = false
 		return;
 	}
-	last_frame = (last_boarding_frame > last_alighting_frame) ? last_boarding_frame : last_alighting_frame;// determine the last frame, may be boarding frame or alighting frame
-	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_frame - first_frame) / 10.0 + 0.1f);// set the dwelltime for output, some precision corrected
+	last_boarding_alighting_ms = (last_boarding_ms > last_alighting_ms) ? last_boarding_ms : last_alighting_ms;// determine the last MS, may be boarding MS or alighting MS
+	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_boarding_alighting_ms - first_boarding_alighting_ms) / 1000.0 + 0.1f);// set the dwelltime for output, some precision corrected
 	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this whole loop to check
 }
 
 void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
 {
 	// begin alighting and boarding
-	uint32_t curr_frame = params.now.frame();
+	uint32_t curr_ms = params.now.ms();
 	int i = 0;
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const Busline* busline = nullptr;
@@ -979,27 +980,27 @@ void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
 
 	// first alighting
-	if(!alighting_frames.empty())// not empty for alighting, otherwise only boarding
+	if(!alighting_MSs.empty())// not empty for alighting, otherwise only boarding
 	{
-		for(i = 0; i < alighting_frames.size(); i++) {// individual alighting
-			if(curr_frame == alighting_frames[i]) {
+		for(i = 0; i < alighting_MSs.size(); i++) {// individual alighting
+			if(curr_ms == alighting_MSs[i]) {
 				//busstopAgent->getAlighted_Persons().push_back(bus->passengers_inside_bus[AlightingNum_Pos[i]]);// from the left-hand side
-				(bus->passengers_inside_bus).erase((bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]) - alightingframe_offset);// erase also from left-hand side
+				(bus->passengers_inside_bus).erase((bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]) - alightingMS_offset);// erase also from left-hand side
 				bus->setPassengerCount(bus->getPassengerCount()-1);
-				alightingframe_offset++;
+				alightingMS_offset++;
 			}
 		}
 	}
 	// then boarding
-	if(!boarding_frames.empty())// not empty for boarding, otherwise only alighting
+	if(!boarding_MSs.empty())// not empty for boarding, otherwise only alighting
 	{
-		for(i = 0; i < boarding_frames.size(); i++) {// individual boarding
-			if(curr_frame == boarding_frames[i]) {
+		for(i = 0; i < boarding_MSs.size(); i++) {// individual boarding
+			if(curr_ms == boarding_MSs[i]) {
 				(bus->passengers_inside_bus).push_back(virtualBoarding_Persons[i]);
 				std::cout << "BoardingNum_Pos[i]: " << BoardingNum_Pos[i] << std::endl;
-				boarding_waitBusActivities.erase((boarding_waitBusActivities.begin() + BoardingNum_Pos[i]) - boardingframe_offset);//  erase this Person in the BusStopAgent
+				boarding_waitBusActivities.erase((boarding_waitBusActivities.begin() + BoardingNum_Pos[i]) - boardingMS_offset);//  erase this Person in the BusStopAgent
 				bus->setPassengerCount(bus->getPassengerCount()+1);
-				boardingframe_offset++;
+				boardingMS_offset++;
 			}
 		}
 	}
@@ -1008,17 +1009,17 @@ void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)
 void sim_mob::BusDriver::resetBoardingAlightingVariables()
 {
 	allow_boarding_alighting_flag = false;
-	first_frame = 0;
-	last_frame = 0;
-	boardingframe_offset = 0;
-	alightingframe_offset = 0;
+	first_boarding_alighting_ms = 0;
+	last_boarding_alighting_ms = 0;
+	boardingMS_offset = 0;
+	alightingMS_offset = 0;
 	BUS_STOP_WAIT_TIME = 2;// reset waiting time
 	BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;// reset dwelltime
 	virtualBoarding_Persons.clear();
 	BoardingNum_Pos.clear();
 	AlightingNum_Pos.clear();
-	boarding_frames.clear();
-	alighting_frames.clear();
+	boarding_MSs.clear();
+	alighting_MSs.clear();
 }
 

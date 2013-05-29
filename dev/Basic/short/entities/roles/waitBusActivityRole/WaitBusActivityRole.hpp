@@ -12,7 +12,7 @@
 #include "entities/UpdateParams.hpp"
 
 //TODO: You can't use ../short for this:
-#include "entities/roles/passenger/Passenger.hpp"
+#include "../short/entities/roles/passenger/Passenger.hpp"
 
 namespace sim_mob
 {
@@ -72,8 +72,8 @@ public:
 	std::string getBuslineID() { return buslineid; }
 
 public:
-    //Set by the BusDriver to the frame this Person should board the bus.
-	int boarding_Frame;
+    //Set by the BusDriver to the MS this Person should board the bus.
+	uint32_t boarding_MS;
 
 	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
 	sim_mob::BusDriver* busDriver;

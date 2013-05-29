@@ -122,12 +122,12 @@ public:
 	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
 	std::map<int, int> BoardingNum_Pos;// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent
 	std::map<int, int> AlightingNum_Pos;// record the AlightingNum_Pos map based on the passenger queue in the Bus
-	std::vector<uint32_t> boarding_frames;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
-	std::vector<uint32_t> alighting_frames;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
-	uint32_t first_frame;// the first frame and bus will start boarding and alighting
-	uint32_t last_frame;// the last frame and bus will leaves the BusStop
-	int boardingframe_offset;// temporary boardingframe offset for boarding queue erase purpose
-	int alightingframe_offset;// temporary alightingframe offset for passenger queue erase purpose
+	std::vector<uint32_t> boarding_MSs;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
+	std::vector<uint32_t> alighting_MSs;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
+	uint32_t first_boarding_alighting_ms;// the first frame and bus will start boarding and alighting
+	uint32_t last_boarding_alighting_ms;// the last frame and bus will leaves the BusStop
+	int boardingMS_offset;// temporary boardingMS offset for boarding queue erase purpose
+	int alightingMS_offset;// temporary alightingMS offset for passenger queue erase purpose
 	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
 	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime(boarding and alighting time)
 

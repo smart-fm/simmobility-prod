@@ -33,7 +33,7 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string
 	 busdriver(mtxStrat,nullptr), displayX(0), displayY(0),skip(0),
 	WaitingTime(-1), TimeOfReachingBusStop(0), params(parent->getGenerator())
 {
-	alighting_Frame = 0;
+	alighting_MS = 0;
 }
 void sim_mob::Passenger::setParentBufferedData()
 {
@@ -86,8 +86,9 @@ UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)
 //Main update method
 void sim_mob::Passenger::frame_tick(UpdateParams& p)
 {
-	if(0 != alighting_Frame) {
-		if(alighting_Frame == p.now.frame()) {
+	if(0 != alighting_MS) {
+		if(alighting_MS == p.now.ms()) {
+			alighting_MS = 0;
 			Person* person = dynamic_cast<Person*> (parent);
 			if(person) {
 				if(!person->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?

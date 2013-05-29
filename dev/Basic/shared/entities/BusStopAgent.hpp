@@ -18,8 +18,9 @@
 #include "buffering/Shared.hpp"
 
 //You can't use "../short" for these
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/Role.hpp"
+#include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+//#include "entities/roles/pedestrian/Pedestrian2.hpp"
 
 namespace sim_mob
 {

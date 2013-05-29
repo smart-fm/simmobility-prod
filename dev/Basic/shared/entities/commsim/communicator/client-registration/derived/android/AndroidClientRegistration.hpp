@@ -8,14 +8,15 @@
 #ifndef AndroidClientRegistration_HPP_
 #define AndroidClientRegistration_HPP_
 
-#include "entities/commsim/communicator/client-registration//base/ClinetRegistrationHandler.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
+#include "entities/commsim/communicator/broker/Broker.hpp"
 
 namespace sim_mob {
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
-	AgentsMap usedAgents;
+	sim_mob::AgentsMap usedAgents;
 public:
-	AndroidClientRegistration(ClientType type_ = ANDROID_EMULATOR);
+	AndroidClientRegistration(/*ClientType type_ = ANDROID_EMULATOR*/);
 	bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
 	virtual ~AndroidClientRegistration();
 };

@@ -7,12 +7,12 @@
 
 #ifndef NS3ClientRegistration_HPP_
 #define NS3ClientRegistration_HPP_
-#include "entities/commsim/communicator/external/base/ClinetHandler.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
 namespace sim_mob {
 
 class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
 public:
-	NS3ClientRegistration(ClientType type_ = NS3_SIMULATOR);
+	NS3ClientRegistration(/*ClientType type_ = NS3_SIMULATOR*/);
 	bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request);
 	virtual ~NS3ClientRegistration();
 };

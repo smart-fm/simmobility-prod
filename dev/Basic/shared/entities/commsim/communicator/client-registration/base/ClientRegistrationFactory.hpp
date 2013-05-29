@@ -4,18 +4,15 @@
  *  Created on: May 20, 2013
  *      Author: vahid
  */
+#ifndef CLIENTREGISTRATIONFACTORY_HPP_
+#define CLIENTREGISTRATIONFACTORY_HPP_
 #include<map>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
-#ifndef CLIENTREGISTRATIONFACTORY_HPP_
-#define CLIENTREGISTRATIONFACTORY_HPP_
-#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
-#include "entities/commsim/communicator/client-registration/derived/android/AndroidClientRegistration.hpp"
-#include "entities/commsim/communicator/client-registration/derived/ns3/NS3ClientRegistration.hpp"
-
 namespace sim_mob {
-
+//Forward Declaration
+class ClientRegistrationHandler;
 enum ClientType
 {
 	ANDROID_EMULATOR = 1,

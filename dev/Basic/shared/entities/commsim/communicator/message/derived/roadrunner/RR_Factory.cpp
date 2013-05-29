@@ -68,6 +68,7 @@ std::vector<msg_ptr> RR_Factory::createMessage(std::string input)
 	Json::Value root_;
 	sim_mob::JsonParser::getMessageTypeAndData(input, type, data, root_);
 	boost::shared_ptr<sim_mob::roadrunner::RoadrunnerMessage> msg;
+//	std::vector<msg_ptr >msg;
 	bool success = true;
 	switch(MessageMap[type])
 	{
@@ -105,7 +106,7 @@ std::vector<msg_ptr> RR_Factory::createMessage(std::string input)
 	}
 
 
-	return msg;
+	return result;
 }
 
 } /* namespace roadrunner */

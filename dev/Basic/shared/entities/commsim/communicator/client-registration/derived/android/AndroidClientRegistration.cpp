@@ -9,7 +9,7 @@
 
 namespace sim_mob {
 
-AndroidClientRegistration::AndroidClientRegistration(ClientType type_) : ClientRegistrationHandler(type_){
+AndroidClientRegistration::AndroidClientRegistration(/*ClientType type_) : ClientRegistrationHandler(type_*/){
 	// TODO Auto-generated constructor stub
 
 }
@@ -45,7 +45,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		return false;
 	}
 		//use it to create a client entry
-		boost::shared_ptr<AndroidClientHandler> clientEntry(new AndroidClientHandler());
+		boost::shared_ptr<AndroidClientHandler> clientEntry(new ClientHandler(broker));
 		clientEntry->cnnHandler.reset(new ConnectionHandler(
 				request.session_
 				,broker
@@ -60,25 +60,22 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		clientEntry->agent = freeAgent->first;
 		clientEntry->clientID = request.clientID;
 		clientEntry->client_type = myType;
+		clientEntry->requiredServices = request.requiredServices; //will come handy
 		SIM_MOB_SERVICE srv;
 		BOOST_FOREACH(srv, request.requiredServices)
 		{
 			switch(srv)
 			{
 			case SIMMOB_SRV_TIME:
-				broker.getPublishers()[SIMMOB_SRV_TIME]->Suscribe(COMMEID_TIME, CALLBACK_HANDLER(TimeEventArgs, AndroidClientHandler::OnTime) );
+				broker.getPublishers()[SIMMOB_SRV_TIME]->Subscribe(COMMEID_TIME, clientEntry, CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
 				break;
 			case SIMMOB_SRV_LOCATION:
-				broker.getPublishers()[SIMMOB_SRV_LOCATION]->Suscribe(COMMEID_TIME, CALLBACK_HANDLER(LocationEventArgs, AndroidClientHandler::OnLocation) );
+				broker.getPublishers()[SIMMOB_SRV_LOCATION]->Suscribe(COMMEID_LOCATION, clientEntry->agent, clientEntry  ,CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation) );
 				break;
 			}
-
 		}
-		//todo
 
-
-
-		//add the client entry to broker
+		//also, add the client entry to broker(for message handler purposes)
 		broker.getClientList().insert(std::make_pair(myType,clientEntry));
 
 		//start listening to the handler

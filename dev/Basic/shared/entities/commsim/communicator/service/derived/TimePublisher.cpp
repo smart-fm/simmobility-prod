@@ -12,7 +12,7 @@ namespace sim_mob {
 
 TimePublisher::TimePublisher() {
 	RegisterEvent(COMMEID_TIME);
-	myService = sim_mob::SIMMOB_SRV_TIME;
+//	myService = sim_mob::SIMMOB_SRV_TIME;
 }
 //void TimePublisher::publish(sim_mob::Broker &broker,sim_mob::registeredClient &subscriber, timeslice now){
 //	std::string time = sim_mob::JsonParser::makeTimeData(now.frame());

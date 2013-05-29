@@ -10,6 +10,7 @@
 
 #include "entities/commsim/communicator/message/base/MessageFactory.hpp"
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
+#include "entities/commsim/communicator/message/base/Message.hpp"
 #include "announce/ANNOUNCE_Handler.hpp"
 #include "keyrequest/KEY_REQUEST_Handler.hpp"
 #include "keysend/KEY_SEND_Handler.hpp"

@@ -7,15 +7,14 @@
 
 #ifndef CLINETHANDLER_HPP_
 #define CLINETHANDLER_HPP_
-#include "entities/commsim/communicator/broker/Broker.hpp"
-#include <boost/foreach.hpp>
-
+#include "ClientRegistration.hpp"
+#include "ClientRegistrationFactory.hpp"
 namespace sim_mob {
+class Broker;
 
 class ClientRegistrationHandler {
-	const ClientType myType;
 public:
-	ClientRegistrationHandler(ClientType);
+	ClientRegistrationHandler();
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest) = 0;
 	virtual ~ClientRegistrationHandler();
 };

@@ -8,11 +8,11 @@
 #include "WhoAreYouProtocol.hpp"
 #include "ConnectionServer.hpp"
 #include "Session.hpp"
-#include <json/json.h>
+#include "entities/commsim/communicator/serialization/Serialization.hpp"
 
 namespace sim_mob {
 
-WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, boost::shaerd_ptr<ConnectionServer>server__):sess(sess_),server_(server__),registerSuccess(false){
+WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server_):sess(sess_),server(server_),registerSuccess(false){
 	}
 	void WhoAreYouProtocol::start()
 	{
@@ -64,7 +64,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, boost::shaerd_ptr<Connec
 			sim_mob::ClientRegistrationRequest request = getSubscriptionRequest(response, sess);
 	        getTypeAndID(response, type, id);
 	        std::cout << "response = " << id << " " << type << std::endl;
-			server_->RequestClientRegistration(request);
+			server.RequestClientRegistration(request);
 			std::cout << "registering the client Done" << std::endl;
 			delete this; //first time in my life! people say it is ok.
 

@@ -9,7 +9,7 @@
 
 namespace sim_mob {
 
-ClientRegistrationHandler::ClientRegistrationHandler(ClientType type_): myType(type_){
+ClientRegistrationHandler::ClientRegistrationHandler() {
 	// TODO Auto-generated constructor stub
 
 }

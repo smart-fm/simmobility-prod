@@ -7,13 +7,14 @@
 
 #include "ConnectionServer.hpp"
 #include "Session.hpp"
+#include "WhoAreYouProtocol.hpp"
 namespace sim_mob {
 
 void ConnectionServer::handleNewClient(session_ptr sess)
 {
 	//using boost_shared_ptr won't let the protocol to release(i guess).
 	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
-	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,this);
+	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this);
 	registration->start();
 }
 
@@ -27,7 +28,7 @@ void ConnectionServer::CreatSocketAndAccept() {
 					boost::asio::placeholders::error, new_sess));
 }
 
-ConnectionServer::ConnectionServer(	std::queue<boost::tuple<unsigned int,ClientRegistrationRequest > > &clientRegistrationWaitingList_,
+ConnectionServer::ConnectionServer(	/*std::queue<boost::tuple<unsigned int,ClientRegistrationRequest > >*/ ClientWaitList &clientRegistrationWaitingList_,
 		boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
 		boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
 		unsigned short port)
@@ -63,7 +64,7 @@ void ConnectionServer::handle_accept(const boost::system::error_code& e, session
 	CreatSocketAndAccept();
 }
 //void ConnectionServer::RequestClientRegistration(unsigned int ID, unsigned int type, session_ptr session_)
-void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequest request)
+void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequest &request)
 {
 	unsigned int ID;
 	unsigned int type;

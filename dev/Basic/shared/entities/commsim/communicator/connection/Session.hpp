@@ -17,7 +17,7 @@ namespace sim_mob {
  * and then The serialized data.
  */
 class Session;
-typedef boost::shared_ptr<Session> session_ptr;
+typedef boost::shared_ptr<Session> session_ptr;;
 class Session
 {
 public:

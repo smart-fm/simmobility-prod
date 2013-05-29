@@ -3,7 +3,8 @@
 #include <json/json.h>
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
-#include "entities/commsim/communicator/message/derived/roadrunner/RR_Factory.hpp"
+#include "entities/commsim/communicator/message/derived/roadrunner/RR_Factory.hpp"//todo :temprorary
+#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
 
 namespace sim_mob
 {
@@ -123,7 +124,7 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 	duplicateEntityDoneChecker.erase(agent);
 
 	//search registered clients list looking for this agent. whoever has it, dump him
-	std::pair<unsigned int , registeredClient> client;
+	std::pair<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > client;
 	for(ClientList::iterator it = clientList.begin(); it != clientList.end(); it++)
 	{
 		if(it->second.agent == agent)
@@ -191,35 +192,65 @@ bool Broker::allAgentUpdatesDone()
 }
 
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
+//todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void Broker::processPublishers(timeslice now) {
-	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher;
-	std::pair<unsigned int, registeredClient> client;
-	//iterate through each registered client
-	BOOST_FOREACH(client, clientList) {
-		//get the services client is subscribed to
-		std::set<SIM_MOB_SERVICE> & requiredServices =
-				client.second.requiredServices;
-		SIM_MOB_SERVICE service;
-		//iterate through the client's set of services
-		BOOST_FOREACH(service, requiredServices) {
-			//a small check
-			if (publishers.find(service) == publishers.end()) {
-				continue;
-			}
-			//find a publisher
-			boost::shared_ptr<sim_mob::Publisher> publisher = publishers[service];
-			switch (publisher->myService) {
-			case sim_mob::SIMMOB_SRV_TIME: {
-				publisher->Publish(COMMEID_TIME, TimeEventArgs(timeslice));
-				break;
-			}
-			case sim_mob::SIMMOB_SRV_LOCATION: {
-				publisher->Publish(COMMEID_LOCATION,
-						LocationEventArgs(client.second.agent));
-				break;
-			}
-			}
+	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher_pair;
+	BOOST_FOREACH(publisher, publishers)
+	{
+		//easy reading
+		SIM_MOB_SERVICE service = publisher_pair.first;
+		sim_mob::EventPublisher & publisher = *publisher_pair.second;
+
+		switch (service) {
+		case sim_mob::SIMMOB_SRV_TIME: {
+			publisher.Publish(COMMEID_TIME, TimeEventArgs(now));
+			break;
 		}
+		case sim_mob::SIMMOB_SRV_LOCATION: {
+			//you have to provide context id (agent ptr) for each client
+			//iterate through each registered client
+			std::pair<unsigned int, boost::shared_ptr<sim_mob::ClientHandler> > client;
+
+			BOOST_FOREACH(client, clientList)
+			{
+				if (!client.second->requiredServices.find(
+						SIMMOB_SRV_LOCATION)) {
+					//you didn't signe up for this service
+					continue;
+				}
+				//get the agent id, it is used as context id
+				publisher.Publish(COMMEID_LOCATION, client.second->agent,
+						LocationEventArgs(client.second->agent));
+			}
+			break;
+		}
+		default:
+			break;
+		}
+//	std::pair<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > client;
+//	//iterate through each registered client
+//	BOOST_FOREACH(client, clientList) {
+//		//get the services client is subscribed to
+//		std::set<SIM_MOB_SERVICE> & requiredServices =	client.second.requiredServices;
+//		SIM_MOB_SERVICE service;
+//		//iterate through the client's set of services
+//		BOOST_FOREACH(service, requiredServices) {
+//			//a small check
+//			if (publishers.find(service) == publishers.end()) {
+//				continue;
+//			}
+//			//find a publisher
+//			boost::shared_ptr<sim_mob::Publisher> publisher = publishers[service];
+//			switch (publisher->myService) {
+//			case sim_mob::SIMMOB_SRV_TIME: {
+//				publisher->Publish(COMMEID_TIME, TimeEventArgs(timeslice));
+//				break;
+//			}
+//			case sim_mob::SIMMOB_SRV_LOCATION: {
+//				publisher->Publish(COMMEID_LOCATION,	LocationEventArgs(client.second.agent));
+//				break;
+//			}
+//			}
 	}
 }
 void Broker::processOutgoingData(timeslice now)
@@ -228,8 +259,8 @@ void Broker::processOutgoingData(timeslice now)
 		DataElement dataElement ;
 		while(sendBuffer.pop(dataElement))
 		{
-			ConnectionHandler *cnn = dataElement.get<1>();
-			std::string message =  dataElement.get<2>();
+			ConnectionHandler *cnn = dataElement.get<0>();
+			std::string message =  dataElement.get<1>();
 			cnn->send(message);
 		}
 }
@@ -270,7 +301,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
 	return true;
 }
 
-//iterate the entire subscription list looking for
+//iterate the entire agent registration list looking for
 //those who are not done with their update and check if they are dead.
 //you better hope they are dead otherwise you have to hold the simulation
 //tick waiting for them to finish

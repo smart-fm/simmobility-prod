@@ -8,29 +8,33 @@
 #ifndef WHOAREYOUPROTOCOL_HPP_
 #define WHOAREYOUPROTOCOL_HPP_
 #include <map>
+#include <boost/shared_ptr.hpp>
+#include <boost/asio.hpp>
+
 #include <entities/commsim/communicator/client-registration/base/ClientRegistration.hpp>
-class Session;
-class ConnectionServer;
 
 namespace sim_mob {
+class Session;
+class ConnectionServer;
 
 class WhoAreYouProtocol
 {
 public:
-	WhoAreYouProtocol(session_ptr sess_, boost::shared_ptr<ConnectionServer> server__);
+//	sim_mob::boost::shared_ptr<sim_mob::Session> sess__;
+	WhoAreYouProtocol(boost::shared_ptr<Session> sess_, ConnectionServer &);
 	void start();
 	bool isDone();
 	void getTypeAndID(std::string &input, unsigned int & out_type, unsigned int & out_ID);
-	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string, session_ptr);
+	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string, boost::shared_ptr<Session>);
 	std::string response; //json string containing ID & type of the client
 private:
-	session_ptr sess;
-	ConnectionServer *server_;
+	boost::shared_ptr<Session> sess;
+	ConnectionServer &server;
 	bool registerSuccess;
-	std::map<unsigned int, session_ptr> clientRegistrationWaitingList;
-	void startClientRegistration(session_ptr sess);
-	void WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess);
-	void WhoAreYou_response_handler(const boost::system::error_code& e, session_ptr sess);
+	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
+	void startClientRegistration(boost::shared_ptr<Session> sess);
+	void WhoAreYou_handler(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
+	void WhoAreYou_response_handler(const boost::system::error_code& e, boost::shared_ptr<Session> sess);
 };
 
 } /* namespace sim_mob */

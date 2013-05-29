@@ -10,9 +10,9 @@
 
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
-class Agent;
 
 namespace sim_mob {
+class Agent;
 DECLARE_CUSTOM_CALLBACK_TYPE(LocationEventArgs)
 class LocationEventArgs: public sim_mob::EventArgs {
 	sim_mob::Agent *agent;

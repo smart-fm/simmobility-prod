@@ -15,7 +15,7 @@
 namespace sim_mob {
 class Publisher : public sim_mob::EventPublisher {
 private:
-	sim_mob::SIM_MOB_SERVICE myService;
+//	sim_mob::SIM_MOB_SERVICE myService;
 public:
 	Publisher();
 //	virtual void publish(sim_mob::Broker&, sim_mob::registeredClient&, timeslice) = 0;

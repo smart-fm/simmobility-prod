@@ -17,6 +17,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
+#include<queue>
 
 #include <entities/commsim/communicator/client-registration/base/ClientRegistration.hpp>
 
@@ -29,19 +30,21 @@ class ConnectionServer {
 		boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
 		boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST;
 		boost::mutex server_mutex;
-		void handleNewClient(session_ptr sess);
+		void handleNewClient(boost::shared_ptr<sim_mob::Session> sess);
 		void CreatSocketAndAccept();
-		ConnectionServer(	std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > > &clientRegistrationWaitingList_,
+//		sim_mob::ClientRegistrationRequest t;
+//		std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > > tt;
+		ConnectionServer(	/*std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > >*/ ClientWaitList&clientRegistrationWaitingList_,
 				boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
 				boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
 				unsigned short port = DEFAULT_SERVER_PORT);
 		void start();
 		void io_service_run();
-		void handle_accept(const boost::system::error_code& e, session_ptr sess);
+		void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> sess);
 		void RequestClientRegistration(sim_mob::ClientRegistrationRequest &request);
 
-		void read_handler(const boost::system::error_code& e, std::string &data, session_ptr sess);
-		void general_send_handler(const boost::system::error_code& e, session_ptr sess);
+		void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session> sess);
+		void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> sess);
 		~ConnectionServer();
 
 		boost::thread io_service_thread; //thread to run the io_service

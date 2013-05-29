@@ -6,6 +6,11 @@
  */
 
 #include "ClientRegistrationFactory.hpp"
+//#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
+
+#include "entities/commsim/communicator/client-registration/derived/android/AndroidClientRegistration.hpp"
+#include "entities/commsim/communicator/client-registration/derived/ns3/NS3ClientRegistration.hpp"
+
 #include <boost/assign/list_of.hpp>
 
 namespace sim_mob {

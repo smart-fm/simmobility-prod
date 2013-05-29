@@ -15,7 +15,7 @@ ConnectionHandler::ConnectionHandler(
 		Broker& broker,
 		messageReceiveCallback callback,
 		unsigned int clientID_,
-		unsigned int ClienType_ = 0,
+		unsigned int ClienType_ ,
 		unsigned long agentPtr_
 		):theBroker(broker), receiveCallBack(callback)
 
@@ -49,7 +49,7 @@ void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::st
 	{
 		//will not pass 'message' variable as argument coz it
 		//is global between functions. some function read into it, another function read from it
-		mySession->async_read(message,
+		mySession->async_read(incomingMessage,
 			boost::bind(&ConnectionHandler::readHandler, this,
 					boost::asio::placeholders::error));
 	}
@@ -64,9 +64,9 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 	else
 	{
 		//call the receive handler in the broker
-		CALL_MEMBER_FN(theBroker, receiveCallBack)(*this,message);
+		CALL_MEMBER_FN(theBroker, receiveCallBack)(*this,incomingMessage);
 
-		mySession->async_read(message,
+		mySession->async_read(incomingMessage,
 						boost::bind(&ConnectionHandler::readHandler, this,
 								boost::asio::placeholders::error));
 	}

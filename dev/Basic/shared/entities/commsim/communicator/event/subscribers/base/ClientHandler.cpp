@@ -9,19 +9,16 @@
 
 namespace sim_mob {
 
-ClientHandler::ClientHandler() {
+ClientHandler::ClientHandler(sim_mob::Broker & broker_):broker(broker_) {
 	// TODO Auto-generated constructor stub
 
 }
-
+sim_mob::Broker &ClientHandler::getBroker()
+{
+	return broker;
+}
 ClientHandler::~ClientHandler() {
 	// TODO Auto-generated destructor stub
-}
-
-void OnTime(EventId id,  EventPublisher* sender, const TimeEventArgs& args){
-   std::string timeJson = args.ToJSON();
-   conn.send(timeJson);
-
 }
 
 } /* namespace sim_mob */

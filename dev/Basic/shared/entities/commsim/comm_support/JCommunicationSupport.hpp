@@ -1,5 +1,6 @@
 #pragma once
 #include "entities/commsim/communicator/buffer/BufferContainer.hpp"
+#include "entities/commsim/communicator/broker/Broker.hpp"
 
 
 //this file provides some of the communication
@@ -44,7 +45,22 @@ class Agent;
 template<class T>
 class JCommunicationSupport {
 public:
-	JCommunicationSupport(sim_mob::Broker& managingBroker, sim_mob::Agent& entity_);
+	JCommunicationSupport(sim_mob::Broker& managingBroker, sim_mob::Agent& entity_)
+:	/*CommSupp_Mutex(new boost::shared_mutex),*/
+ 	entity(entity_),
+	communicator(managingBroker),
+ 	outgoing(managingBroker.getSendBuffer()),
+	incomingIsDirty(false),
+	outgoingIsDirty(false),
+	writeIncomingDone(false),
+	readOutgoingDone(false),
+	agentUpdateDone(false),
+	cnt_1(0), cnt_2(0)
+{
+	subscribed = false;
+	subscriptionCallback = &JCommunicationSupport::setSubscribed;
+}
+;
 	virtual ~JCommunicationSupport();
 
 private:
@@ -77,34 +93,158 @@ public:
 	boost::shared_mutex CommSupp_Mutex;
 	std::vector<boost::shared_ptr<boost::shared_mutex> > Broker_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
-	void setSubscribed(bool);
-	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value);
+	void setSubscribed(bool)
+	{
+		subscribed = value;
+	};
+	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value)
+	{
+		Broker_Mutexes = value;
+	};
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-	BufferContainer<T>& getIncoming();
-	void getAndClearIncoming(BufferContainer<T> &values);
-	BufferContainer<T>& getOutgoing();
-	void setIncoming(BufferContainer<T> value);
-	bool popIncoming(T &var);
-//	void setOutgoing(BufferContainer value); we are now writing directly to communicator buffer so this function is dangerous
-	void addIncoming(T value);
-	void addOutgoing(T value);
+	BufferContainer<T>& getIncoming() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		return incoming;
+	};
+	void getAndClearIncoming(BufferContainer<T> &values) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		values = incoming;
+		incoming.clear();
+	};
+	BufferContainer<T>& getOutgoing(){
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		return outgoing;
+	};
+	void setIncoming(BufferContainer<T> value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		incoming = values;
+	};
+	bool popIncoming(T &var)
+	{
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		return incoming.pop(var);
+	};
+////	void setOutgoing(BufferContainer value); we are now writing directly to communicator buffer so this function is dangerous
+//	void addIncoming(T value);
+//	void addOutgoing(T value);
+//
+//	void setwriteIncomingDone(bool value);
+//	void setWriteOutgoingDone(bool value);
+//	void setAgentUpdateDone(bool value);
+//	bool &iswriteIncomingDone();
+//	bool &isreadOutgoingDone();
+//	bool &isAgentUpdateDone();
+//	bool &isOutgoingDirty();
+//	bool &isIncomingDirty();
+//
+//
+//	void init();
+//	void reset();
+//	//this is used to subscribe the drived class
+//	//(which is also an agent) to the communicator agent
+//	virtual bool subscribe(sim_mob::Agent* subscriber,sim_mob::Broker &communicator);
+//	virtual const sim_mob::Agent& getEntity();
 
-	void setwriteIncomingDone(bool value);
-	void setWriteOutgoingDone(bool value);
-	void setAgentUpdateDone(bool value);
-	bool &iswriteIncomingDone();
-	bool &isreadOutgoingDone();
-	bool &isAgentUpdateDone();
-	bool &isOutgoingDirty();
-	bool &isIncomingDirty();
 
 
-	void init();
-	void reset();
+
+void addIncoming(T value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		std::cout << "addIncoming_Acquiring_receive_lock_DONE" << std::endl;
+		incoming.add(value);
+		incomingIsDirty = true;
+	}
+
+	void addOutgoing(T value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		std::cout << "outgoingsize-before[" << outgoing.get().size() << "]" << std::endl;
+		outgoing.add(value);
+		std::cout << "outgoingsize-after[" << outgoing.get().size() << "]" << std::endl;
+		outgoingIsDirty = true;
+	}
+
+
+	void setwriteIncomingDone(bool value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		writeIncomingDone = value;
+	}
+
+	void setWriteOutgoingDone(bool value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		readOutgoingDone = value;
+	}
+
+	void setAgentUpdateDone(bool value) {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[0]));
+		agentUpdateDone = value;
+	}
+
+	bool &iswriteIncomingDone() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		return writeIncomingDone;
+	}
+
+	bool &isreadOutgoingDone() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		return readOutgoingDone;
+	}
+
+	bool &isAgentUpdateDone() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[0]));
+			return agentUpdateDone;
+	}
+
+
+	bool &isOutgoingDirty() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		return outgoingIsDirty;
+	}
+
+	bool &isIncomingDirty() {
+		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		return incomingIsDirty;
+	}
+
+//todo
+
+	void reset(){
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[0]);
+			agentUpdateDone = false ;
+			cnt_1 = cnt_2 = 0;
+		}
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[1]);
+			outgoingIsDirty = false ;
+			readOutgoingDone = false ;
+		}
+		{
+			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[2]);
+			incomingIsDirty = false ;
+			writeIncomingDone = false ;
+		}
+	}
+
+	void init(){
+
+	}
+
 	//this is used to subscribe the drived class
 	//(which is also an agent) to the communicator agent
-	virtual bool subscribe(sim_mob::Agent* subscriber,sim_mob::Broker &communicator);
-	virtual const sim_mob::Agent& getEntity();
-};//end of class  JCommunicationSupport
 
+	bool subscribe(sim_mob::Agent* subscriber, sim_mob::Broker &communicator)
+	{
+//		//todo here you are copying twice while once is possibl, I guess.
+//		subscriptionInfo info = getSubscriptionInfo();
+//		info.setEntity(subscriber);
+
+		return communicator.subscribeEntity(this);
+//		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+	}
+
+	const sim_mob::Agent& getEntity()
+	{
+		return entity;
+	}
+};//end of class  JCommunicationSupport
 };//namespace

@@ -1,27 +1,39 @@
 #pragma once
-//#include "message/Message.hpp"
-//#include "message/MessageReceiver.hpp"
-#include "entities/commsim/communicator/service/services.hpp"
-#include "entities/commsim/communicator/message/base/MessageFactory.hpp"
-#include "entities/commsim/communicator/message/base/MessageQueue.hpp"
 #include "entities/Agent.hpp"
-//broker specific
-#include "SubscriptionIndex.hpp"
-#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClientRegistration.hpp"
+#include "entities/commsim/communicator/service/services.hpp"
+#include "entities/commsim/communicator/message/base/MessageQueue.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClientRegistrationFactory.hpp"
 #include "entities/commsim/communicator/buffer/BufferContainer.hpp"
 
 //external libraries
 #include <boost/thread/condition_variable.hpp>
+
 namespace sim_mob
 {
+//Forward Declarations
+template <class RET,class MSG>
+class MessageFactory;
 
-typedef boost::tuple<unsigned int ,sim_mob::ConnectionHandler*, std::string> DataElement; //<sending agent, connectionHandler-containing socket, data>
+template<class T>
+class Message;
+
+class JCommunicationSupport;
+class Publisher;
+class ConnectionHandler;
+class ConnectionServer;
+class ClientHandler;
+
+typedef std::map<const sim_mob::Agent *, JCommunicationSupport* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
+typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, std::string> DataElement; //<sending agent, connectionHandler-containing socket, data>
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > MessageElement;
 typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<msg_ptr, std::string> > >MessageFactories;//<client type, message factory>
 typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > PublisherList;
-static DataElement makeDataElement(unsigned int sender = 0, sim_mob::ConnectionHandler *socket = 0,std::string &str )
+typedef std::multimap<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > ClientList; //<client type,clienthandler >
+
+static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler> socket ,std::string &str )
 {
-	return boost::make_tuple(sender, socket, str);
+	return boost::make_tuple(socket, str);
 }
 
 
@@ -111,14 +123,11 @@ public:
 	bool isEnabled() const;
 
 	//assign a client from clientList to an agent in the agentList
-//	void assignClient(sim_mob::Entity *agent, std::pair<unsigned int,session_ptr> client);
+//	void assignClient(sim_mob::Entity *agent, std::pair<unsigned int,boost::shared_ptr<sim_mob::Session>> client);
 
-	void processClientRegistrationRequests();
-	void addAgentToWaitingList(sim_mob::JCommunicationSupport & value, subscription &subscription_);
 	bool subscribeEntity(sim_mob::JCommunicationSupport * );
 	void unRegisterEntity(sim_mob::JCommunicationSupport &value);
 	void unRegisterEntity(const sim_mob::Agent * agent);
-	subscriptionC &getSubscriptionList();
 
 protected:
 	///Wait for clients; return "false" to jump out of the loop.

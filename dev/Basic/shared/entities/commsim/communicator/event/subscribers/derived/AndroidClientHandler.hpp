@@ -12,9 +12,9 @@
 
 namespace sim_mob {
 
-class AndroidClientHandler: public sim_mob::ClientHandler {
+class AndroidClientHandler: public ClientHandler {
 public:
-	AndroidClientHandler();
+	AndroidClientHandler(sim_mob::Broker &);
 	virtual ~AndroidClientHandler();
 
     void OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args);

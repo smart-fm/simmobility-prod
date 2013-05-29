@@ -18,7 +18,6 @@ TimeEventArgs::~TimeEventArgs() {
 
 std::string TimeEventArgs::ToJSON() const{
 	std::string mytime = sim_mob::JsonParser::makeTimeData(time.frame());
-	sim_mob::DataElement data = sim_mob::makeDataElement((unsigned int)(subscriber.agent), subscriber.cnnHandler.get(), mytime);
 	return mytime;
 }
 }

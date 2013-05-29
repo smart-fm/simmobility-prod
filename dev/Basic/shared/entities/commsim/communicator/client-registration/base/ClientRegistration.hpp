@@ -7,27 +7,21 @@
 
 #ifndef CLIENTREGISTRATION_HPP_
 #define CLIENTREGISTRATION_HPP_
-
-
+#include <set>
+#include "entities/commsim/communicator/service/services.hpp"
+#include <boost/shared_ptr.hpp>
+namespace sim_mob
+{
+//Forward declaration
+class Session;
 struct ClientRegistrationRequest
 {
 	unsigned int clientID;
 	unsigned int client_type; //ns3, android emulator, FMOD etc
 	std::set<sim_mob::SIM_MOB_SERVICE> requiredServices;
-	sim_mob::session_ptr session_;
-};
-//Forward Declaration
-template<class T>
-class JCommunicationSupport;
-
-struct registeredClient {
-	boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler;
-	sim_mob::JCommunicationSupport* JCommunicationSupport_; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
-	const sim_mob::Agent* agent;
-	unsigned int clientID;
-	unsigned int client_type; //ns3, android emulator, FMOD etc
-	std::set<SIM_MOB_SERVICE> requiredServices;
+	boost::shared_ptr<Session> session_;
 };
 
 typedef std::multimap<unsigned int,ClientRegistrationRequest > ClientWaitList; //<client type,registrationrequestform >
+}
 #endif /* CLIENTREGISTRATION_HPP_ */

@@ -4,6 +4,9 @@ import sys
 import math
 from lxml import objectify
 from lxml import etree
+from geo.helper import ScaleHelper
+from geo.helper import project_coords
+from geo.point import Point
 
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
@@ -11,37 +14,6 @@ from lxml import etree
 #   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
 
 #Note that this program runs about 10x faster on Python3 for some reason
-
-
-#Helper class for UTM scaling
-class ScaleHelper:
-  def __init__(self):
-    self.bounds = [None, None, None, None] #minX,minY,maxX,maxY
-    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
-
-  #Add a point to the bounds
-  def add_point(self, pt):
-    self.bounds[0] = min(x for x in [pt.x, self.bounds[0]] if x is not None)
-    self.bounds[1] = min(y for y in [pt.y, self.bounds[1]] if y is not None)
-    self.bounds[2] = max(x for x in [pt.x, self.bounds[2]] if x is not None)
-    self.bounds[3] = max(y for y in [pt.y, self.bounds[3]] if y is not None)
-
-  #Convert a point to lat/long
-  def convert(self, pt):
-    from LatLongUTMconversion import UTMtoLL
-
-    #Convert this point to an offset "relative" to the center of the bounds, then add this to our UTM center.
-    offset = Point(self.bounds[0]+(self.bounds[2]-self.bounds[0])/2,self.bounds[1]+(self.bounds[3]-self.bounds[1])/2)
-    newPt = Point(self.center.x+(pt.x-offset.x), self.center.y+(pt.y-offset.y))
-
-    #Finally, convert back to lat/lng
-    return UTMtoLL(23, newPt.y, newPt.x, '48N')
-
-  #Get the minimum/maximum points
-  def min_pt(self):
-    return Point(self.bounds[0], self.bounds[1])
-  def max_pt(self):
-    return Point(self.bounds[2], self.bounds[3])
 
 
 #Our container class
@@ -164,18 +136,6 @@ class Shape:
     for pair in pts:
       pair = pair.split(',')
       self.points.append(Point(float(pair[0]), float(pair[1])))
-
-
-class Point:
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-
-  def __repr__(self):
-    return "Point(%f,%f)" % (self.x, self.y)
-
-  def __str__(self):
-    return "(%f,%f)" % (self.x, self.y)
 
 
 
@@ -303,28 +263,6 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
     return globalIdCounter
 
-
-
-def project_coords(wgsRev, utmZone, lat, lon):
-  from LatLongUTMconversion import LLtoUTM
-
-  #Make sure we have both params, convert to float.
-  if not (lat and lon):
-    raise Exception('lat/lon required in project_coords')
-  lat = float(lat)
-  lon = float(lon)
-
-  #Make sure they are using the latest standard
-  if (wgsRev.replace(' ', '') != 'WGS84'):
-    raise Exception('Deprecated WGS specification (only WGS 84 supported)')
-
-  #Now, perform the projection. Make sure our result matches our expectations.
-  (resZone, x, y) = LLtoUTM(23, lat, lon)
-  if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
-    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,utmZone))
-
-  #All is good; return a Point
-  return Point(x,y)
 
 
 def parse_junctions_sumo(j, nodes):

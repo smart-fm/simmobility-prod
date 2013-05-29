@@ -50,6 +50,11 @@ struct MandLaneChgParam {
 	double lane_mintime;
 };
 
+struct AntiGap{
+	double gap;
+	double critial_gap;
+};
+
 const GapAcceptParam GA_parameters[4] = {
 //	      scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
 		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
@@ -329,24 +334,31 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams&
 {
 	bool isCourtesy; //if courtesy merging
 	bool isForced;	// if forced merging
-	double anti_Gap; //anticipated gap
+	double anti_gap; //anticipated gap
+	double critical_anti_gap; //critical anticipated gap
+
 
 	isCourtesy = false;
 	isForced = false;
-	anti_Gap = 0;
+	anti_gap = 0;
+	critical_anti_gap = 0;
 
 	int direction = p.nextLaneIndex - p.currLaneIndex;
 
 	LANE_CHANGE_SIDE lcs = direction>0? LCS_LEFT : LCS_RIGHT;
 
-	anti_Gap = calcAnticipatedGap(p);
+	isCourtesy = ifCourtesyMerging(p);
+	std::cout<<"isCourtesy"<<isCourtesy<<std::endl;
 
-	if(anti_Gap > 0) return lcs;
+	//critical_anti_gap = calcCriticalAnticipatedGap(p);
+
+	if(isCourtesy) return lcs;
+
 
 	return LCS_SAME;
 }
 
-double sim_mob::MITSIM_LC_Model::calcAnticipatedGap(DriverUpdateParams& p)
+bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 {
 	//[0:left,1:right]
 	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
@@ -411,9 +423,23 @@ double sim_mob::MITSIM_LC_Model::calcAnticipatedGap(DriverUpdateParams& p)
 
 	//double veh_length =
 
-	double Gap = dis_lead + dis_lag + (v_lead - v_lag)*p.elapsedSeconds + 0.5*(acc_lead - acc_lag) * p.elapsedSeconds * p.elapsedSeconds;
+	double gap = dis_lead + dis_lag + (v_lead - v_lag)*p.elapsedSeconds + 0.5*(acc_lead - acc_lag) * p.elapsedSeconds * p.elapsedSeconds;
 
-	return Gap;
+	double para[4]={1.82, 1.81, -0.153, 0.0951};
+
+	double v = v_lag - p.perceivedFwdVelocity/100;
+	double dv = v>0? v:0;
+
+	double critical_gap = exp(para[0] + para[1]*dv + para[3]* p.dis2stop/100);
+
+	bool courtesy = gap - critical_gap > 0? true:false;
+	//std::cout<<"antigap="<<gap<<"  critical="<<critical_gap<<std::endl;
+	//std::cout<<"isCourtesy="<<courtesy<<std::endl;
+
+
+
+
+	return courtesy;
 
 	/*
 	//[0:left,1:right]
@@ -451,6 +477,9 @@ double sim_mob::MITSIM_LC_Model::calcAnticipatedGap(DriverUpdateParams& p)
 	return returnVal;
 	*/
 }
+
+
+
 
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l) {

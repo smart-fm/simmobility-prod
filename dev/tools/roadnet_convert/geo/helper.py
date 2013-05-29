@@ -1,15 +1,14 @@
 from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
-from geo.formats import simmob
 from geo.point import Point
 import math
 
 #Distance between 2 nodes/points
 def dist(m, n):
-  #Convert to Point
-  if isinstance(m, simmob.Node):
+  #Convert the various 'Node' types to Point
+  if hasattr(m, 'pos'):
     m = m.pos
-  if isinstance(n, simmob.Node):
+  if hasattr(n, 'pos'):
     n = n.pos
 
   #Calc distance

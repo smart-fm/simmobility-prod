@@ -10,7 +10,7 @@ from geo.helper import dist
 from geo.helper import get_line_dist
 from geo.point import Point
 from geo.helper import DynVect
-from geo.formats import simmob
+from geo.formats import temp
 
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
@@ -26,15 +26,15 @@ def parse_edge_sumo(e, links, lanes):
       raise Exception('Node with from/to should not be internal')
 
     #Add a new edge/link (both with the same "sumo id")
-    res = simmob.Link(e.get('id'), e.get('from'), e.get('to'))
-    primEdge = simmob.Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
+    res = temp.Link(e.get('id'), e.get('from'), e.get('to'))
+    primEdge = temp.Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
     res.segments.append(primEdge)
     links[res.linkId] = res
 
     #Add child Lanes
     laneTags = e.xpath("lane")
     for l in laneTags:
-      newLane = simmob.Lane(l.get('id'), l.get('shape'))
+      newLane = temp.Lane(l.get('id'), l.get('shape'))
       primEdge.lanes.append(newLane)
       lanes[newLane.laneId] = newLane
 
@@ -102,7 +102,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
       toNode = nodeIds[i+1]
 
       #Make an edge
-      e = simmob.Edge(globalIdCounter, fromNode, toNode)
+      e = temp.Edge(globalIdCounter, fromNode, toNode)
       globalIdCounter += 1
       res.segments.append(e)
 
@@ -135,7 +135,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
         #Make the new lane.
         #Lane IDs (here) probably don't matter, since they are only used internally.
-        newLane = simmob.Lane(len(lanes)+100, shapeStr)
+        newLane = temp.Lane(len(lanes)+100, shapeStr)
         e.lanes.append(newLane)
         lanes[newLane.laneId] = newLane
 
@@ -148,7 +148,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
 def parse_junctions_sumo(j, nodes):
     #Add a new Node
-    res = simmob.Node(j.get('id'), j.get('x'), j.get('y'))
+    res = temp.Node(j.get('id'), j.get('x'), j.get('y'))
     nodes[res.nodeId] = res
 
 def parse_nodes_osm(n, nodes):
@@ -156,7 +156,7 @@ def parse_nodes_osm(n, nodes):
     projected = project_coords('WGS 84', 'UTM 48N', n.get('lat'), n.get('lon'))  #Returns a point
 
     #Add a new Node
-    res = simmob.Node(n.get('id'), projected.x, projected.y)
+    res = temp.Node(n.get('id'), projected.x, projected.y)
     nodes[res.nodeId] = res
 
 
@@ -265,7 +265,7 @@ def make_lane_connectors(rn):
         #The looping gets even deeper!
         for fromLaneID in range(len(fromEdge.lanes)):
           for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+            rn.turnings.append(temp.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
 def check_and_flip_and_scale(rn, flipMap):
@@ -352,7 +352,7 @@ def make_lane_edges(rn):
       zeroStart.rotateRight().scaleVectTo(halfW).translate()
       zeroEnd = DynVect(zeroLine[1], zeroLine[0])
       zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-      e.lane_edges.append(simmob.LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
+      e.lane_edges.append(temp.LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
 
       #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
       for i in reversed(range(len(e.lanes))):
@@ -361,7 +361,7 @@ def make_lane_edges(rn):
         currStart.rotateLeft().scaleVectTo(halfW).translate()
         currEnd = DynVect(currLine[1], currLine[0])
         currEnd.rotateRight().scaleVectTo(halfW).translate()
-        e.lane_edges.append(simmob.LaneEdge([currStart.getPos(), currEnd.getPos()]))
+        e.lane_edges.append(temp.LaneEdge([currStart.getPos(), currEnd.getPos()]))
 
 def print_osm_format(rn):
   #Open, start writing
@@ -648,7 +648,7 @@ def write_xml_links(f, rn):
 
 def print_xml_format(rn):
   #Open, start writing
-  f = open('simmob.network.xml', 'w')
+  f = open('temp.network.xml', 'w')
   f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
   f.write('<geo:SimMobility\n')
   f.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
@@ -715,7 +715,7 @@ def parse_all_osm(rootNode, rn):
 
 def run_main(inFileName):
   #Resultant datastructure
-  rn = simmob.RoadNetwork()
+  rn = temp.RoadNetwork()
 
   #Load, parse
   inFile = open(inFileName)

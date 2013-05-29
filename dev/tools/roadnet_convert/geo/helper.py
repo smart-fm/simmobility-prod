@@ -1,6 +1,40 @@
 from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
+from geo.formats import simmob
 from geo.point import Point
+import math
+
+#Distance between 2 nodes/points
+def dist(m, n):
+  #Convert to Point
+  if isinstance(m, simmob.Node):
+    m = m.pos
+  if isinstance(n, simmob.Node):
+    n = n.pos
+
+  #Calc distance
+  dx = n.x - m.x;
+  dy = n.y - m.y;
+  return math.sqrt(dx**2 + dy**2)
+
+
+#Assumes first/second are parallel lines
+def get_line_dist(first, second):
+  #Slope is vertical?
+  dx= first[-1].x-first[0].x
+  if (dx==0):
+    return abs(first[0].y-second[0].y)
+
+  #Otherwise, get y-intercept for each line.
+  m1 = (first[-1].y-first[0].y) / float(dx)
+  m2 = (second[-1].y-second[0].y) / float(dx)
+  m = (m1+m2)/2.0  #We use the average slope just in case the lines aren't *quite* parallel
+  fB = first[0].y - m * first[0].x
+  sB = second[0].y - m * second[0].x
+
+  #And then we have a magic formula:
+  return abs(sB-fB) / math.sqrt(m**2 + 1)
+
 
 #Project coordinates (TODO: currently very rigid)
 def project_coords(wgsRev, utmZone, lat, lon):
@@ -52,3 +86,42 @@ class ScaleHelper:
   def max_pt(self):
     return Point(self.bounds[2], self.bounds[3])
 
+
+#A basic vector (in the geometrical sense)
+class DynVect:
+  def __init__(self, start, end):
+    #Ensure that we copy.
+    self.pos = Point(float(start.x), float(start.y))
+    self.mag = Point(float(end.x)-start.x, float(end.y)-start.y)
+
+  def getPos(self):
+    return self.pos
+
+  def translate(self):
+    self.pos.x += self.mag.x
+    self.pos.y += self.mag.y
+    return self
+
+  def scaleVectTo(self, amount):
+    #Factoring in the unit vector by dividing early is more accurate.
+    factor = amount/self.getMagnitude()
+    self.mag.x = factor * self.mag.x
+    self.mag.y = factor * self.mag.y
+    return self
+
+  def getMagnitude(self):
+    return math.sqrt(self.mag.x**2.0 + self.mag.y**2.0)
+
+  def flipNormal(self, clockwise):
+    sign =  1.0 if clockwise else -1.0
+    newX = self.mag.y*sign
+    newY = -self.mag.x*sign
+    self.mag.x = newX
+    self.mag.y = newY
+    return self
+
+  def rotateRight(self): #Flip this vector 90 degrees clockwise around the origin.
+    return self.flipNormal(True)
+
+  def rotateLeft(self):  #Flip this vector 90 degrees counter-clockwise around the origin.
+    return self.flipNormal(False)

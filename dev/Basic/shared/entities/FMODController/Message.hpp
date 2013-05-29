@@ -23,6 +23,9 @@ public:
 	Message();
 	virtual ~Message();
 	virtual std::string BuildToString() { return msg_;}
+	virtual void CreateMessage(std::string msg) { msg_ = msg;}
+	int GetMessageID() { return messageID_; }
+	static int GetMessageID(std::string msg);
 protected:
 	std::string msg_;
 	int messageID_;
@@ -39,17 +42,18 @@ public:
 	int		seat_num;
 public:
 	virtual std::string BuildToString();
-
 };
 
 class Msg_Vehicle_Init : public Message {
 public:
-	struct Supply_object
+	struct SUPPLY
 	{
 		std::string vehicle_id;
 		std::string node_id;
 	};
-	std::vector<Supply_object> vehicles;
+	std::vector<SUPPLY> vehicles;
+public:
+	virtual void CreateMessage(std::string msg);
 };
 
 class Msg_Offer : public Message {
@@ -68,37 +72,65 @@ public:
 		int travel_distance;
 	};
 	std::vector<OFFER> offers;
+public:
+	virtual void CreateMessage(std::string msg);
 };
 
 class Msg_Accept : public Message {
 public:
 	std::string current_time;
+	std::string client_id;
 	std::string schedule_id;
 	std::string departure_time;
 	std::string arrival_time;
+public:
+	virtual std::string BuildToString();
 };
 
 class Msg_Confirmation : public Message {
 public:
 	std::string client_id;
 	std::string schedule_id;
+public:
+	virtual void CreateMessage(std::string msg);
+};
+
+class Msg_Link_Travel : public Message {
+public:
+	std::string current_time;
+	struct LINK
+	{
+		std::string node1_id;
+		std::string node2_id;
+		std::string way_id;
+		int travel_time;
+	};
+	std::vector<LINK> links;
+public:
+	virtual std::string BuildToString();
 };
 
 class Msg_Vehicle_Stop : public Message {
 public:
+	std::string current_time;
 	std::string vehicle_id;
 	int	event_type;
 	std::string schedule_id;
 	std::string stop_id;
 	std::vector<std::string> boarding_passengers;
 	std::vector<std::string> aligting_passengers;
+public:
+	virtual std::string BuildToString();
 };
 
 class Msg_Vehicle_Pos : public Message {
 public:
+	std::string current_time;
 	std::string vehicle_id;
 	std::string latitude;
 	std::string longtitude;
+public:
+	virtual std::string BuildToString();
 };
 
 class Msg_Schedule : public Message {
@@ -125,6 +157,8 @@ class Msg_Schedule : public Message {
 		int type;
 	};
 	std::vector<ROUTE> routes;
+public:
+	virtual void CreateMessage(std::string msg);
 
 };
 }

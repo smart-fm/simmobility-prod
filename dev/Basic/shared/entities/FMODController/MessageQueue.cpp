@@ -12,6 +12,15 @@ namespace sim_mob {
 namespace FMOD
 {
 
+MessageList operator+(MessageList lst1, MessageList lst2)
+{
+	MessageList ret;
+
+	ret = lst1+lst2;
+
+	return ret;
+}
+
 MessageQueue::MessageQueue() {
 	// TODO Auto-generated constructor stub
 

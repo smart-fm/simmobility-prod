@@ -24,6 +24,7 @@ public:
 	TCPSession(boost::asio::io_service& io_service);
 	virtual ~TCPSession();
 	void pushMessage(std::string data);
+	void pushMessage(MessageList data);
 	MessageList popMessage();
 	boost::asio::ip::tcp::socket& socket();
 	bool ConnectToServer(std::string ip, int port);
@@ -34,7 +35,6 @@ private:
 	void handle_read(const boost::system::error_code& error, size_t bytesTransferred);
 	bool sendData();
 	bool receiveData();
-
 
 private:
 	boost::asio::ip::tcp::socket socket_;

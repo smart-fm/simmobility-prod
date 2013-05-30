@@ -18,6 +18,9 @@ namespace FMOD
 
 typedef std::queue<std::string> MessageList;
 
+
+MessageList operator+(MessageList lst1, MessageList lst2);
+
 class MessageQueue {
 public:
 	MessageQueue();

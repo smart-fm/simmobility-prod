@@ -40,7 +40,8 @@ bool FMODController::frame_init(timeslice now)
 
 Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 {
-	HandleMessages();
+	ProcessMessages();
+
 	return Entity::UpdateStatus::Continue;
 }
 
@@ -74,10 +75,66 @@ void FMODController::StopService()
 	io_service.stop();
 }
 
-void FMODController::HandleMessages()
+void FMODController::ProcessMessages()
 {
+	MessageList Requests = CollectRequest();
+	connectPoint->pushMessage(Requests);
+
+	MessageList retCols;
 	MessageList messages = connectPoint->popMessage();
+	while( messages.size()>0 )
+	{
+		std::string str = messages.front();
+		messages.pop();
+
+		int msgId = Message::GetMessageID(str);
+		if(msgId == 2){
+			HandleVehicleInit(str);
+		}
+		else if(msgId == 5){
+			MessageList ret = HandleOfferMessage(str);
+			retCols = retCols+ret;
+		}
+		else if(msgId == 7){
+			MessageList ret = HandleConfirmMessage(str);
+			retCols = retCols+ret;
+		}
+		else if(msgId == 9){
+			HandleScheduleMessage(str);
+		}
+	}
+
+	connectPoint->pushMessage(retCols);
 }
+
+
+
+MessageList FMODController::CollectRequest()
+{
+	MessageList msgs;
+	return msgs;
+}
+MessageList FMODController::HandleOfferMessage(std::string msg)
+{
+	MessageList msgs;
+	return msgs;
+}
+MessageList FMODController::HandleConfirmMessage(std::string msg)
+{
+	MessageList msgs;
+	return msgs;
+}
+
+void FMODController::HandleScheduleMessage(std::string msg)
+{
+
+}
+
+void FMODController::HandleVehicleInit(std::string msg)
+{
+
+}
+
 
 }
 

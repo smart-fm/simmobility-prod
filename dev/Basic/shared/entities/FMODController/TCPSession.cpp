@@ -40,6 +40,18 @@ void TCPSession::pushMessage(std::string data)
 	sendData();
 }
 
+void TCPSession::pushMessage(MessageList data)
+{
+	while(data.size()>0)
+	{
+		std::string str = data.front();
+		data.pop();
+		msgSendQueue.PushMessage(str);
+	}
+
+	sendData();
+}
+
 MessageList TCPSession::popMessage()
 {
 	MessageList res;

@@ -45,12 +45,20 @@ protected:
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
 	bool StartService();
 	void StopService();
-	void HandleMessages();
+
+private:
+	void ProcessMessages();
+	MessageList CollectRequest();
+	MessageList HandleOfferMessage(std::string msg);
+	MessageList HandleConfirmMessage(std::string msg);
+	void HandleScheduleMessage(std::string msg);
+	void HandleVehicleInit(std::string msg);
 
 private:
 	TCPSessionPtr connectPoint;
 	std::string ipAddress;
 	int port;
+
 private:
 	static FMODController* pInstance;
 	boost::asio::io_service io_service;

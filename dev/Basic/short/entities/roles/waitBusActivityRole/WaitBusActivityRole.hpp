@@ -12,7 +12,7 @@
 #include "entities/UpdateParams.hpp"
 
 //TODO: You can't use ../short for this:
-#include "../short/entities/roles/passenger/Passenger.hpp"
+#include "../passenger/Passenger.hpp"
 
 namespace sim_mob
 {

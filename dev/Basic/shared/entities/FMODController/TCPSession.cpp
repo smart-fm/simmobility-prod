@@ -74,6 +74,11 @@ bool TCPSession::ConnectToServer(std::string ip, int port)
 	return ret;
 }
 
+void TCPSession::Stop()
+{
+	socket_.close();
+}
+
 bool TCPSession::sendData()
 {
 	bool ret = msgSendQueue.PopMessage(messageSnd);

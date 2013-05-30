@@ -27,6 +27,7 @@ public:
 	MessageList popMessage();
 	boost::asio::ip::tcp::socket& socket();
 	bool ConnectToServer(std::string ip, int port);
+	void Stop();
 
 private:
 	void handle_write(const boost::system::error_code& error, size_t bytesTransferred);

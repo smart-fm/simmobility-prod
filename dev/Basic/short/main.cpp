@@ -238,8 +238,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Initialize the aura manager
 	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
 
-	sim_mob::FMOD::FMODController  fmodController;
-	fmodController.Initialzie(Agent::all_agents);
 
 	//////////////////////////////DEBUG CODE START
 #if 0

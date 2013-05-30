@@ -18,11 +18,15 @@ namespace FMOD
 
 class FMODController : public sim_mob::Agent {
 public:
-	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id){}
+	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)){}
 
 	virtual ~FMODController();
 
-	bool Initialzie(std::vector<sim_mob::Entity*>& all_agents);
+	bool CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents);
+	void SetConnection(std::string ipadress, int port) { this->ipAddress=ipadress; this->port=port; }
+
+	static void RegisterController(int id, const MutexStrategy& mtxStrat);
+	static FMODController* Instance();
 
 private:
 	// keep all children agents to communicate with it
@@ -39,10 +43,17 @@ protected:
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
-
+	bool StartService();
+	void StopService();
+	void HandleMessages();
 
 private:
 	TCPSessionPtr connectPoint;
+	std::string ipAddress;
+	int port;
+private:
+	static FMODController* pInstance;
+	boost::asio::io_service io_service;
 
 };
 

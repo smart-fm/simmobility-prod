@@ -24,6 +24,7 @@
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/FMODController/FMODController.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -356,6 +357,38 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
+
+	return true;
+}
+
+bool loadXMLFMODController(TiXmlDocument& document)
+{
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("fmodcontroller").ToElement();
+	if(node == nullptr)	{
+		return false;
+	}
+
+	std::string swit = node->Attribute("switch");
+	if( swit != "true"){
+		return false;
+	}
+
+	TiXmlNode* node1 = node->FirstChild("ipaddress");
+	if(node1 == nullptr)	{
+		return false;
+	}
+
+	TiXmlNode* node2 = node1->NextSibling();
+	if(node2 == nullptr)	{
+		return false;
+	}
+
+	std::string ipAddress = node1->FirstChild()->Value();
+	int port = atoi( node2->FirstChild()->Value() );
+
+	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy);
+	sim_mob::FMOD::FMODController::Instance()->SetConnection(ipAddress, port);
 
 	return true;
 }
@@ -2046,6 +2079,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
     	return "Couldn't load buscontrollers";
+    }
+
+    if(!loadXMLFMODController(document)) {
+    	std::cout << "loadXMLFMODController Failed!" << std::endl;
+    	return "Couldn't load FMOD controller";
     }
 
     //Initialize all BusControllers.

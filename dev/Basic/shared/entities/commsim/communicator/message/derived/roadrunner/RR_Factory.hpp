@@ -19,7 +19,7 @@
 namespace sim_mob {
 namespace roadrunner{
 
-class RR_Factory : public MessageFactory<std::vector<msg_ptr>, std::string>/*, public HandlerFactory*/{
+class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*, public HandlerFactory*/{
 	enum MessageType
 	{
 		ANNOUNCE = 1,
@@ -32,7 +32,7 @@ class RR_Factory : public MessageFactory<std::vector<msg_ptr>, std::string>/*, p
 public:
 	RR_Factory();
 	virtual ~RR_Factory();
-	std::vector<msg_ptr> createMessage(std::string str);
+	bool createMessage(std::string &str, std::vector<msg_ptr>&output);
 	hdlr_ptr  getHandler(MessageType);
 };
 

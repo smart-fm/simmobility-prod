@@ -12,7 +12,7 @@ namespace sim_mob {
 template <class RET,class MSG>
 class MessageFactory {
 public:
-	virtual RET createMessage(MSG) = 0;
+	virtual bool createMessage(MSG,RET ) = 0;
 };
 
 } /* namespace sim_mob */

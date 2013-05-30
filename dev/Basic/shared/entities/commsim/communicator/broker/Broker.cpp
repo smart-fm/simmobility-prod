@@ -49,7 +49,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 publishers.insert( std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
 	 publishers.insert(std::make_pair(SIMMOB_SRV_TIME, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::TimePublisher())));
 	 //current message factory
-	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>, std::string> > factory(new sim_mob::roadrunner::RR_Factory() );
+	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::roadrunner::RR_Factory() );
 	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 	 messageFactories.insert(std::make_pair(ANDROID_EMULATOR, factory) );
 	 messageFactories.insert(std::make_pair(NS3_SIMULATOR, factory) );
@@ -69,8 +69,9 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 	//extract messages from the input string(remember that a message object carries a reference to its handler also)
 //	ConnectionHandler * t = cnnHandler.get();
 //	unsigned int tt = t->clientType;
-	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>, std::string> > m_f = messageFactories[cnnHandler->clientType];
-	std::vector<msg_ptr> messages = m_f->createMessage(input);
+	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	std::vector<msg_ptr> messages;
+	m_f->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)
 	for(std::vector<msg_ptr>::iterator it = messages.begin(); it != messages.end(); it++)
 	{

@@ -29,7 +29,7 @@ class ClientHandler;
 typedef std::map<const sim_mob::Agent *, JCommunicationSupport<std::string>* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, std::string> DataElement; //<sending agent, connectionHandler-containing socket, data>
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > MessageElement;
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>, std::string> > >MessageFactories;//<client type, roadrunner message factory>
+typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > >MessageFactories;//<client type, roadrunner message factory>
 typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > PublisherList;
 typedef std::multimap<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > ClientList; //<client type,clienthandler >
 

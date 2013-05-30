@@ -1,12 +1,12 @@
 //obsolete
-#pragma once
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/assign/list_of.hpp> // for 'map_list_of()'
+//#pragma once
+//#include <boost/multi_index_container.hpp>
+//#include <boost/multi_index/member.hpp>
+//#include <boost/multi_index/ordered_index.hpp>
+//#include <boost/multi_index/random_access_index.hpp>
+//#include <boost/multi_index/composite_key.hpp>
+//#include <boost/multi_index/mem_fun.hpp>
+//#include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
 //#include "entities/commsim/communicator/connection/Connection.hpp"
 

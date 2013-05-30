@@ -131,9 +131,7 @@ void sim_mob::BusStopAgent::unregisterAlightedPerons()
 			{
 				std::cout << "End of trip chain...." << std::endl;
 			}
-			Pedestrian2* pedestrian2 = dynamic_cast<Pedestrian2*> (alighted_Persons[i]->getNextRole());// ? nextRole or currRole
-			if(pedestrian2) {// nextRole is pedestrian
-				//pedestrian2->setAtBusStop(false);
+			if(alighted_Persons[i]->getNextRole()->roleType == Role::RL_PEDESTRIAN) {// if roleType belong to Pedestrian type
 				alighted_Persons.erase(alighted_Persons.begin() + i);// erase this person from the BusStopAgent
 			}
 		}

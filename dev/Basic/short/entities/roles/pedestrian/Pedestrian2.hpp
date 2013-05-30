@@ -66,7 +66,7 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
  */
 class Pedestrian2 : public sim_mob::Role {
 public:
-	Pedestrian2(Agent* parent, std::string roleName = "pedestrian");
+	Pedestrian2(Agent* parent, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

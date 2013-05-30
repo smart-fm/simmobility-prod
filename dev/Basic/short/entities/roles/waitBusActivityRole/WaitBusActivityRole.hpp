@@ -50,7 +50,7 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
 
 class WaitBusActivityRole : public sim_mob::Role {
 public:
-	WaitBusActivityRole(Agent* parent, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
+	WaitBusActivityRole(Agent* parent, Role::type roleType_ = RL_WAITBUSACTITITY, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

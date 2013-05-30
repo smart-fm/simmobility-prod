@@ -28,7 +28,7 @@ class Passenger;
  */
 class BusDriver : public sim_mob::Driver {
 public:
-	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat);
+	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, Role::type roleType_ = RL_BUSDRIVER);
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 

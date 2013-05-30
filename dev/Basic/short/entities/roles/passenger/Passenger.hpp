@@ -40,7 +40,7 @@ struct PassengerUpdateParams : public sim_mob::UpdateParams {
 
 class Passenger : public sim_mob::Role {
 public:
-	Passenger(Agent* parent, MutexStrategy mtxStrat,std::string roleName_ = "passenger");
+	Passenger(Agent* parent, MutexStrategy mtxStrat, Role::type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
 	virtual ~Passenger() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

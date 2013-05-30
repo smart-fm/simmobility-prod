@@ -34,7 +34,7 @@ namespace {
 }//End anonymous namespace
 
 
-sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat) :Driver(parent, mtxStrat), waitAtStopMS(-1), lastTickDistanceToBusStop(-1), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0), lastVisited_Busline(mtxStrat, "0"),
+sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, Role::type roleType_) :Driver(parent, mtxStrat, roleType_), waitAtStopMS(-1), lastTickDistanceToBusStop(-1), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0), lastVisited_Busline(mtxStrat, "0"),
 		lastVisited_BusTrip_SequenceNo(mtxStrat, 0), lastVisited_BusStop(mtxStrat, nullptr), lastVisited_BusStopSequenceNum(mtxStrat, 0), real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0),
 		busstop_sequence_no(mtxStrat, 0), first_busstop(false), last_busstop(false), no_passengers_boarding(0), no_passengers_alighting(0), BUS_STOP_WAIT_TIME(2), BUS_STOP_HOLDING_TIME_SEC(2), BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC(2),
 		dwellTime_record(0), passengerCountOld_display_flag(false), xpos_approachingbusstop(-1), ypos_approachingbusstop(-1), demo_passenger_increase(false), allow_boarding_alighting_flag(false), first_boarding_alighting_ms(0),

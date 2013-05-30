@@ -66,8 +66,8 @@ class ActivityPerformer : public sim_mob::Role {
 public:
 	int remainingTimeToComplete;
 
-	ActivityPerformer(Agent* parent, std::string roleName = "activityRole");
-	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, std::string roleName = "activityRole");
+	ActivityPerformer(Agent* parent, Role::type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
+	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, Role::type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
 	virtual ~ActivityPerformer() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

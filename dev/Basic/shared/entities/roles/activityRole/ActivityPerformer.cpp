@@ -14,14 +14,14 @@
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, std::string roleName) :
-		Role(parent,  roleName), params(parent->getGenerator()), remainingTimeToComplete(0), location(nullptr) {
+sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, Role::type roleType_, std::string roleName) :
+		Role(parent, roleName, roleType_), params(parent->getGenerator()), remainingTimeToComplete(0), location(nullptr) {
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
 }
 
-sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, std::string roleName) :
-		Role(parent, roleName), params(parent->getGenerator()), remainingTimeToComplete(0), location(nullptr) {
+sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity, Role::type roleType_, std::string roleName) :
+		Role(parent, roleName, roleType_), params(parent->getGenerator()), remainingTimeToComplete(0), location(nullptr) {
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
 	activityStartTime = currActivity.startTime;

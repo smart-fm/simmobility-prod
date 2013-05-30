@@ -146,7 +146,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));

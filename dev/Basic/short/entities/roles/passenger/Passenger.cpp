@@ -28,7 +28,7 @@ BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment)
  	 return nullptr;
   }
 
-sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, std::string roleName) : Role(parent,roleName),
+sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, Role::type roleType_, std::string roleName) : Role(parent,roleName,roleType_),
 	 BoardedBus(mtxStrat,false), AlightedBus(mtxStrat,false),
 	 busdriver(mtxStrat,nullptr), displayX(0), displayY(0),skip(0),
 	WaitingTime(-1), TimeOfReachingBusStop(0), params(parent->getGenerator()), alighting_MS(0)

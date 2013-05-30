@@ -91,7 +91,9 @@ public:
 		RL_PEDESTRIAN,
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
-		RL_PASSENGER
+		RL_PASSENGER,
+		RL_WAITBUSACTITITY,
+		RL_UNKNOWN
 	};
 
 	//todo: use this to identify the type of request
@@ -103,10 +105,11 @@ public:
 	};
 
 	const std::string name;
+	const type roleType;
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
-		parent(parent), currResource(nullptr),name(roleName)
+	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr),name(roleName), roleType(roleType_)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}

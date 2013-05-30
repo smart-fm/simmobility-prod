@@ -16,7 +16,7 @@ ConnectionHandler::ConnectionHandler(
 		messageReceiveCallback callback,
 		unsigned int clientID_,
 		unsigned int ClienType_ ,
-		unsigned long agentPtr_
+		unsigned long int agentPtr_
 		):theBroker(broker), receiveCallBack(callback)
 
 {
@@ -64,7 +64,7 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 	else
 	{
 		//call the receive handler in the broker
-		CALL_MEMBER_FN(theBroker, receiveCallBack)(*this,incomingMessage);
+		CALL_MEMBER_FN(theBroker, receiveCallBack)(shared_from_this(),incomingMessage);
 
 		mySession->async_read(incomingMessage,
 						boost::bind(&ConnectionHandler::readHandler, this,

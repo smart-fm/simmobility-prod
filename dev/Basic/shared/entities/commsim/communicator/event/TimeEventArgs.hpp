@@ -19,6 +19,7 @@ class TimeEventArgs: public sim_mob::EventArgs {
 public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();
+	//todo should be a virtual from a base class
 	std::string ToJSON()const;
 	timeslice time;
 };

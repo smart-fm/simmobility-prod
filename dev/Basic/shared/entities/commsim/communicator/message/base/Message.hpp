@@ -30,7 +30,9 @@ class Message
 public:
 	Message();
 	Message(T data_):data(data_){}
-	virtual hdlr_ptr supplyHandler() = 0;
+	hdlr_ptr supplyHandler(){
+		return handler;;
+	}
 	void setHandler( hdlr_ptr handler_)
 	{
 		handler = handler_;

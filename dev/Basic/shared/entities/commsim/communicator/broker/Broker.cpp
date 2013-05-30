@@ -1,10 +1,22 @@
+//external libraries
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
+//core simmobility
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
+//communication simulator
+#include "Common.hpp"
 #include "entities/commsim/communicator/message/derived/roadrunner/RR_Factory.hpp"//todo :temprorary
 #include "entities/commsim/comm_support/JCommunicationSupport.hpp"
+#include "entities/commsim/communicator/connection/ConnectionServer.hpp"
+#include "entities/commsim/communicator/connection/ConnectionHandler.hpp"
+#include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
+#include "entities/commsim/communicator/event/subscribers/base/ClientHandler.hpp"
+//temporary, used for hardcoding publishers in the constructor
+#include "entities/commsim/communicator/service/derived/LocationPublisher.hpp"
+#include "entities/commsim/communicator/service/derived/TimePublisher.hpp"
+
 
 namespace sim_mob
 {
@@ -34,10 +46,10 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 //publishers
-	 publishers.insert(std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::LocationPublisher())));
+	 publishers.insert( std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
 	 publishers.insert(std::make_pair(SIMMOB_SRV_TIME, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::TimePublisher())));
 	 //current message factory
-	 boost::shared_ptr<sim_mob::MessageFactory<msg_ptr, std::string> > factory(new sim_mob::roadrunner::RR_Factory() );
+	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>, std::string> > factory(new sim_mob::roadrunner::RR_Factory() );
 	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 	 messageFactories.insert(std::make_pair(ANDROID_EMULATOR, factory) );
 	 messageFactories.insert(std::make_pair(NS3_SIMULATOR, factory) );
@@ -52,11 +64,13 @@ Broker::~Broker()
  * the Broker what to do when a message arrives(this method is to be called
  * after whoareyou, registration and connectionHandler creation....)
  */
-void Broker::messageReceiveCallback(ConnectionHandler& cnnHandler, std::string input)
+void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
 	//extract messages from the input string(remember that a message object carries a reference to its handler also)
-	std::vector<msg_ptr> messages(messageFactories[cnnHandler.clientType]->createMessage(input));
-
+//	ConnectionHandler * t = cnnHandler.get();
+//	unsigned int tt = t->clientType;
+	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>, std::string> > m_f = messageFactories[cnnHandler->clientType];
+	std::vector<msg_ptr> messages = m_f->createMessage(input);
 //	post the messages into the message queue one by one(add their cnnHandler also)
 	for(std::vector<msg_ptr>::iterator it = messages.begin(); it != messages.end(); it++)
 	{
@@ -64,7 +78,7 @@ void Broker::messageReceiveCallback(ConnectionHandler& cnnHandler, std::string i
 	}
 }
 
-boost::shared_ptr<boost::mutex>  Broker::getBrokerMutex()
+boost::shared_ptr<boost::shared_mutex>  Broker::getBrokerMutex()
 {
 	return Broker_Mutex;
 }
@@ -75,6 +89,11 @@ boost::shared_ptr<boost::mutex>  Broker::getBrokerMutex()
 boost::shared_ptr<boost::shared_mutex> Broker::getBrokerMutexReceive()
 {
 	return Broker_Mutex_Receive;
+}
+
+boost::shared_ptr<boost::mutex>  Broker::getBrokerClientMutex()
+{
+	return Broker_Client_Mutex;
 }
 AgentsMap & Broker::getRegisteredAgents() {
 	return registeredAgents;
@@ -92,26 +111,32 @@ PublisherList & Broker:: getPublishers()
 
 void Broker::processClientRegistrationRequests()
 {
-	boost::unique_lock<boost::mutex> lock(*Broker_Mutex);
-	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;  it++ )
+	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
+	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;/*no ++ here */  )
 	{
 		boost::shared_ptr<ClientRegistrationHandler > handler = clientRegistrationFactory.getHandler((ClientType)(it->first));
 		if(handler->handle(*this,it->second))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//get this request out of registration list.
-			it = clientRegistrationWaitingList.erase(it) ;
+			it_erase =  it++;//keep the erase candidate. dont loose it :)
+			clientRegistrationWaitingList.erase(it_erase) ;
+		}
+		else
+		{
+			it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
 		}
 	}
 }
 
-bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport* value)
+bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport<std::string>* value)
 {
-	registeredAgents.insert(std::make_pair(value->getEntity(), value));
+	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
 	return true;
 }
 
-void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport &value)
+void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport<std::string> &value)
 {
 	unRegisterEntity(&value.getEntity());
 }
@@ -125,11 +150,17 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 
 	//search registered clients list looking for this agent. whoever has it, dump him
 	std::pair<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > client;
-	for(ClientList::iterator it = clientList.begin(); it != clientList.end(); it++)
+	ClientList::iterator it_erase;
+	for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
 	{
-		if(it->second.agent == agent)
+		if(it->second->agent == agent)
 		{
-			it = clientList.erase(it);
+			it_erase = it++;
+			clientList.erase(it_erase);
+		}
+		else
+		{
+			 it++;
 		}
 	}
 }
@@ -168,7 +199,7 @@ bool Broker::allAgentUpdatesDone()
 	for(; it != it_end; it++)
 	{
 
-			sim_mob::JCommunicationSupport &info = *(it->second);//easy read
+			sim_mob::JCommunicationSupport<std::string> &info = *(it->second);//easy read
 			try
 			{
 				if (info.isAgentUpdateDone())
@@ -195,7 +226,7 @@ bool Broker::allAgentUpdatesDone()
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void Broker::processPublishers(timeslice now) {
 	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher_pair;
-	BOOST_FOREACH(publisher, publishers)
+	BOOST_FOREACH(publisher_pair, publishers)
 	{
 		//easy reading
 		SIM_MOB_SERVICE service = publisher_pair.first;
@@ -213,13 +244,16 @@ void Broker::processPublishers(timeslice now) {
 
 			BOOST_FOREACH(client, clientList)
 			{
-				if (!client.second->requiredServices.find(
-						SIMMOB_SRV_LOCATION)) {
+				if (
+						client.second->requiredServices.find(SIMMOB_SRV_LOCATION)
+						==
+						client.second->requiredServices.end()
+								) {
 					//you didn't signe up for this service
 					continue;
 				}
 				//get the agent id, it is used as context id
-				publisher.Publish(COMMEID_LOCATION, client.second->agent,
+				publisher.Publish(COMMEID_LOCATION,(void*) client.second->agent,
 						LocationEventArgs(client.second->agent));
 			}
 			break;
@@ -259,14 +293,14 @@ void Broker::processOutgoingData(timeslice now)
 		DataElement dataElement ;
 		while(sendBuffer.pop(dataElement))
 		{
-			ConnectionHandler *cnn = dataElement.get<0>();
+			boost::shared_ptr<ConnectionHandler> cnn = dataElement.get<0>();
 			std::string message =  dataElement.get<1>();
 			cnn->send(message);
 		}
 }
 
 //checks to see if the subscribed entity(agent) is alive
-bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport & info) {
+bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> & info) {
 //	//some top notch optimizasion! to check if the agent is alive at all?
 //	info.cnt_1++;
 //	if (info.cnt_1 < 1000)

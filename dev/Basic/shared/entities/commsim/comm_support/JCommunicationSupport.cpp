@@ -1,9 +1,9 @@
-#include "JCommunicationSupport.hpp"
-#include "entities/commsim/communicator/broker/Broker.hpp"
+//#include "JCommunicationSupport.hpp"
+//#include "entities/commsim/communicator/broker/Broker.hpp"
 
-
-//using namespace sim_mob;
-namespace sim_mob
-{
-
-};
+//
+////using namespace sim_mob;
+//namespace sim_mob
+//{
+//
+//};

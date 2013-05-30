@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef RRMSGFACTORY_HPP_
-#define RRMSGFACTORY_HPP_
+#ifndef  RR_FACTORY_HPP_
+#define RR_FACTORY_HPP_
 
 #include "entities/commsim/communicator/message/base/MessageFactory.hpp"
 #include "entities/commsim/communicator/serialization/Serialization.hpp"

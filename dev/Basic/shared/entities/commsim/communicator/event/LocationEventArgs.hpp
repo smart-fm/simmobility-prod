@@ -10,14 +10,17 @@
 
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
+#include<iostream>
 
 namespace sim_mob {
 class Agent;
 DECLARE_CUSTOM_CALLBACK_TYPE(LocationEventArgs)
 class LocationEventArgs: public sim_mob::EventArgs {
-	sim_mob::Agent *agent;
 public:
-	LocationEventArgs(sim_mob::Agent *);
+	const sim_mob::Agent *agent;
+	LocationEventArgs(const sim_mob::Agent *);
+	//todo should be a virtual from a base class
+	std::string ToJSON()const;
 	virtual ~LocationEventArgs();
 };
 

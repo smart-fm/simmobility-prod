@@ -4,7 +4,7 @@ namespace sim_mob
 {
 class Broker;
 
-class DriverComm : public Driver, public JCommunicationSupport
+class DriverComm : public Driver, public JCommunicationSupport<std::string>
 {
 	static int totalSendCnt;
 	static int totalReceiveCnt;

@@ -17,10 +17,12 @@ namespace sim_mob
 	enum SIM_MOB_SERVICE
 	{
 		SIMMOB_SRV_TIME,
-		SIMMOB_SRV_LOCATION
+		SIMMOB_SRV_LOCATION,
+		SIMMOB_SRV_UNKNOWN
 	};
-
-
-std::map<std::string, SIM_MOB_SERVICE> ServiceMap = boost::assign::map_list_of("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION);
+	static std::map<std::string, SIM_MOB_SERVICE> ServiceMap =
+					boost::assign::map_list_of
+					("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)
+					("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION);
 }
 #endif /* SERVICES_HPP_ */

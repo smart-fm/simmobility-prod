@@ -97,6 +97,8 @@ std::vector<msg_ptr> RR_Factory::createMessage(std::string input)
 	default:
 		success = false;
 		WarnOut("RR_Factory::createMessage() - Unhandled message type.");
+//		//todo replace properly
+//		std::cout<<"RR_Factory::createMessage() - Unhandled message type." << std::endl;
 	}
 
 	if(success)

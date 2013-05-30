@@ -22,7 +22,7 @@
 //using namespace sim_mob;
 namespace sim_mob
 {
-class Broker;
+//class Broker;
 class Agent;
 
 /*********************************************************************************
@@ -49,23 +49,22 @@ public:
 :	/*CommSupp_Mutex(new boost::shared_mutex),*/
  	entity(entity_),
 	communicator(managingBroker),
- 	outgoing(managingBroker.getSendBuffer()),
 	incomingIsDirty(false),
 	outgoingIsDirty(false),
 	writeIncomingDone(false),
 	readOutgoingDone(false),
 	agentUpdateDone(false),
-	cnt_1(0), cnt_2(0)
+	cnt_1(0), cnt_2(0),type(0)
 {
 	subscribed = false;
 	subscriptionCallback = &JCommunicationSupport::setSubscribed;
 }
 ;
-	virtual ~JCommunicationSupport();
+	virtual ~JCommunicationSupport(){};
 
 private:
 	BufferContainer<T> incoming;
-	BufferContainer<T> &outgoing;
+	BufferContainer<T> outgoing;
 
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
@@ -93,7 +92,7 @@ public:
 	boost::shared_mutex CommSupp_Mutex;
 	std::vector<boost::shared_ptr<boost::shared_mutex> > Broker_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
-	void setSubscribed(bool)
+	void setSubscribed(bool value)
 	{
 		subscribed = value;
 	};
@@ -115,7 +114,7 @@ public:
 		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
 		return outgoing;
 	};
-	void setIncoming(BufferContainer<T> value) {
+	void setIncoming(BufferContainer<T> values) {
 		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
 		incoming = values;
 	};

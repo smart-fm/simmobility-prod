@@ -8,6 +8,7 @@
 #ifndef CLIENTREGISTRATION_HPP_
 #define CLIENTREGISTRATION_HPP_
 #include <set>
+#include<map>
 #include "entities/commsim/communicator/service/services.hpp"
 #include <boost/shared_ptr.hpp>
 namespace sim_mob

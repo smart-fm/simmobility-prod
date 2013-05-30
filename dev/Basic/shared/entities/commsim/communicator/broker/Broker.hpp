@@ -18,16 +18,18 @@ class MessageFactory;
 template<class T>
 class Message;
 
+template<class T>
 class JCommunicationSupport;
+
 class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
 
-typedef std::map<const sim_mob::Agent *, JCommunicationSupport* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
+typedef std::map<const sim_mob::Agent *, JCommunicationSupport<std::string>* > AgentsMap; //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, std::string> DataElement; //<sending agent, connectionHandler-containing socket, data>
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > MessageElement;
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<msg_ptr, std::string> > >MessageFactories;//<client type, message factory>
+typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>, std::string> > >MessageFactories;//<client type, roadrunner message factory>
 typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > PublisherList;
 typedef std::multimap<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > ClientList; //<client type,clienthandler >
 
@@ -62,8 +64,7 @@ private:
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 
-	void messageReceiveCallback(ConnectionHandler&cnnHadler , std::string message);
-	bool deadEntityCheck(sim_mob::JCommunicationSupport & info);
+	bool deadEntityCheck(sim_mob::JCommunicationSupport<std::string> & info);
 	void refineSubscriptionList();
 	///Returns true if enough subscriptions exist to allow the broker to update.
 	bool subscriptionsQualify() const;
@@ -86,10 +87,12 @@ public:
 	void insertSendBuffer(DataElement&);
 	Entity::UpdateStatus update(timeslice now);
 	bool allAgentUpdatesDone();
+	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
 
-	inline boost::shared_ptr<boost::mutex> getBrokerMutex();
+	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutex();
 	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutexSend();
 	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutexReceive();
+	boost::shared_ptr<boost::mutex> getBrokerClientMutex();
 	//set to true when there are enough number of subscribers
 	//this is used by the Broker to
 	//qualifies itself to either
@@ -99,17 +102,9 @@ public:
 	bool brokerInOperation;
 
 
-
-//	bool handleANNOUNCE(std::string);
-//	bool handleKEY_REQUEST(std::string data);
-//	bool handleKEY_SEND(std::string data);
-//	void handleReceiveMessage(std::string);
-
 	void processPublishers(timeslice now);
 	void processOutgoingData(timeslice now);
 	void processIncomingData(timeslice);
-
-	void unicast(const sim_mob::Agent *, std::string);//not used now
 
 	//abstract vitual
 	void load(const std::map<std::string, std::string>& configProps){};
@@ -125,8 +120,8 @@ public:
 	//assign a client from clientList to an agent in the agentList
 //	void assignClient(sim_mob::Entity *agent, std::pair<unsigned int,boost::shared_ptr<sim_mob::Session>> client);
 
-	bool subscribeEntity(sim_mob::JCommunicationSupport * );
-	void unRegisterEntity(sim_mob::JCommunicationSupport &value);
+	bool subscribeEntity(sim_mob::JCommunicationSupport<std::string> * );
+	void unRegisterEntity(sim_mob::JCommunicationSupport<std::string> &value);
 	void unRegisterEntity(const sim_mob::Agent * agent);
 
 protected:

@@ -26,7 +26,7 @@ boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory:
 {
 	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
 	//if handler is already registered && the registered handler is not null
-	std::map<ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientHandlerMap.find(type);
+	std::map<ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
 	if(it != ClientRegistrationHandlerMap.end())
 	{
 		//get the handler ...

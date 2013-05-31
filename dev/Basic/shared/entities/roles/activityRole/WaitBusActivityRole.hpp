@@ -10,16 +10,11 @@
 
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
-
-//TODO: You can't use ../short for this:
-#include "../passenger/Passenger.hpp"
+#include "entities/BusStopAgent.hpp"
 
 namespace sim_mob
 {
-
 class BusDriver;
-class BusStopAgent;
-//class Passenger;
 class PackageUtils;
 class UnPackageUtils;
 
@@ -52,15 +47,6 @@ class WaitBusActivityRole : public sim_mob::Role {
 public:
 	WaitBusActivityRole(Agent* parent, Role::type roleType_ = RL_WAITBUSACTITITY, std::string buslineid = "", std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
-
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-
-	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	bool getRegisteredFlag() { return registered; } // get the registered flag
@@ -74,11 +60,9 @@ public:
 public:
     //Set by the BusDriver to the MS this Person should board the bus.
 	uint32_t boarding_MS;
-
 	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
 	sim_mob::BusDriver* busDriver;
-
-private:
+protected:
 	//Indicates whether or not this Activity has registered with the appropriate BusStopAgent.
 	//An unregistered Activity will not be able to board buses.
 	//BusStopAgents will automatically register every WaitBusActivityRole in their vicinity periodically.
@@ -92,7 +76,6 @@ private:
 	WaitBusActivityRoleUpdateParams params;
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
 };
 
 struct less_than_TimeOfReachingBusStop {

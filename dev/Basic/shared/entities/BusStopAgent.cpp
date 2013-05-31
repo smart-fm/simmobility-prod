@@ -4,6 +4,7 @@
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
 #include "workers/WorkGroup.hpp"
+#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
 
 using std::vector;
 using namespace sim_mob;

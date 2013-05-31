@@ -19,8 +19,6 @@
 
 //You can't use "../short" for these
 #include "entities/roles/Role.hpp"
-#include "../short/entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-//#include "entities/roles/pedestrian/Pedestrian2.hpp"
 
 namespace sim_mob
 {
@@ -29,6 +27,7 @@ namespace sim_mob
 class PackageUtils;
 class UnPackageUtils;
 class WorkGroup;
+class WaitBusActivityRole;
 
 class BusStopAgent  : public sim_mob::Agent
 {

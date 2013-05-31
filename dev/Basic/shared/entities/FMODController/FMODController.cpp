@@ -40,7 +40,13 @@ bool FMODController::frame_init(timeslice now)
 
 Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 {
-	ProcessMessages();
+	static int currTicks = 0;
+	if(currTicks%2 == 0){
+		ProcessMessages();
+	}
+	else if(currTicks%2 == 1){
+		UpdateMessages();
+	}
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -62,6 +68,7 @@ bool FMODController::StartService()
 {
 	bool ret = false;
 	ret = connectPoint->ConnectToServer(ipAddress, port);
+
 	if(ret)	{
 		boost::thread bt( boost::bind(&boost::asio::io_service::run, &io_service) );
 	}
@@ -107,7 +114,34 @@ void FMODController::ProcessMessages()
 	connectPoint->pushMessage(retCols);
 }
 
+void FMODController::UpdateMessages()
+{
+	MessageList retCols, ret;
 
+	ret = CollectVehStops();
+	retCols = retCols+ret;
+	ret = CollectVehPos();
+	retCols = retCols+ret;
+	ret = CollectLinkTravelTime();
+	retCols = retCols+ret;
+
+	connectPoint->pushMessage(retCols);
+}
+MessageList FMODController::CollectVehStops()
+{
+	MessageList msgs;
+	return msgs;
+}
+MessageList FMODController::CollectVehPos()
+{
+	MessageList msgs;
+	return msgs;
+}
+MessageList FMODController::CollectLinkTravelTime()
+{
+	MessageList msgs;
+	return msgs;
+}
 
 MessageList FMODController::CollectRequest()
 {

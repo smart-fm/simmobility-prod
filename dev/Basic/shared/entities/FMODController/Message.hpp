@@ -31,6 +31,17 @@ protected:
 	int messageID_;
 };
 
+class Msg_Initialize : public Message {
+public:
+	std::string start_time;
+	std::string map_type;
+	std::string map_file;
+	std::string map_directory;
+	int version;
+public:
+	virtual std::string BuildToString();
+};
+
 class Msg_Request : public Message {
 public:
 	std::string current_time;

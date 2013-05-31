@@ -128,6 +128,23 @@ void Msg_Confirmation::CreateMessage(std::string msg)
 	schedule_id = root["schedule_id"].asString();
 }
 
+std::string Msg_Initialize::BuildToString()
+{
+	std::string msg;
+	Json::Value Request;
+	Request["map"]["type"] = this->map_type;
+	Request["map"]["file"] = this->map_file;
+	Request["map"]["directory"] = this->map_directory;
+	Request["start_time"] = this->start_time;
+	Request["version"] = this->version;
+
+	std::stringstream buffer;
+	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	msg = buffer.str();
+
+	return msg;
+}
+
 std::string Msg_Request::BuildToString()
 {
 	std::string msg;

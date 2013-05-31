@@ -53,6 +53,10 @@ private:
 	MessageList HandleConfirmMessage(std::string msg);
 	void HandleScheduleMessage(std::string msg);
 	void HandleVehicleInit(std::string msg);
+	void UpdateMessages();
+	MessageList CollectVehStops();
+	MessageList CollectVehPos();
+	MessageList CollectLinkTravelTime();
 
 private:
 	TCPSessionPtr connectPoint;

@@ -3,6 +3,12 @@ from geo.LatLongUTMconversion import UTMtoLL
 from geo.point import Point
 import math
 
+#Assert that all values are non-null
+def assert_non_null(msg, *args):
+  for arg in args:
+    if not arg:
+      raise Exception(msg)
+
 #Distance between 2 nodes/points
 def dist(m, n):
   #Convert the various 'Node' types to Point

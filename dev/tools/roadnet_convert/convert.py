@@ -8,7 +8,7 @@ from geo.helper import ScaleHelper
 from geo.helper import project_coords
 from geo.helper import dist
 from geo.helper import get_line_dist
-from geo.point import Point
+from geo.position import Point
 from geo.helper import DynVect
 from geo.formats import temp
 

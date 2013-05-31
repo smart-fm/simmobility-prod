@@ -1,6 +1,6 @@
 from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
-from geo.point import Point
+from geo.position import Point
 import math
 
 #Assert that all values are non-null
@@ -8,6 +8,18 @@ def assert_non_null(msg, *args):
   for arg in args:
     if not arg:
       raise Exception(msg)
+
+#Convert a dictionary's key/value pairs to lowercase
+def dict_to_lower(orig):
+  res = {}
+  for k,v in orig:
+    k = str(k).lower()
+    v = str(v).lower()
+    if k in orig:
+      raise Exception("Duplicate key (by case) in map: "+k)
+    res[k] = v
+  return res
+
 
 #Distance between 2 nodes/points
 def dist(m, n):

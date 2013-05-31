@@ -1,4 +1,4 @@
-from geo.point import Point
+from geo.position import Point
 
 #TODO: This contains the *current* Road Network format, which is halfway between Sim Mobility and OSM, with lots of temporary data
 #      structures. In the process of replacing it with Sim Mobility and OSM specific ones, and temporary (indexing) data structures on the side.

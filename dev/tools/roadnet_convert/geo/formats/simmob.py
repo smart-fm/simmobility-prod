@@ -1,4 +1,4 @@
-from geo.point import Point
+from geo.position import Point
 from geo.helper import assert_non_null
 
 

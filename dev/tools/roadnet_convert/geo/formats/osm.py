@@ -1,86 +1,38 @@
-from geo.point import Point
+from geo.position import Location
+from geo.helper import assert_non_null
+from geo.helper import dict_to_lower
 
-#TODO: This is currently the same as temp.py
-
-#Our container class
 class RoadNetwork:
+  '''The primary container class for OSM road networks. (See: simmob.py)
+     Note that key/value properties are reduced to lowercase for both keys
+     and values.
+  '''
+
   def __init__(self):
+    self.bounds = []   #[Location,Location], min. point, max. pt.
     self.nodes = {}    #origId => Node
-    self.links = {}    #origId => Link
-    self.lanes = {}    #origId => Lane
-    self.turnings = [] #LaneConnector
+    self.ways = {}     #origId => Way
 
 
-#Simple classes. IDs are always strings
 class Node:
-  def __init__(self, nodeId, xPos, yPos):
-    if not (nodeId and xPos and yPos):
-      raise Exception('Null parameters in Node constructor')
+  def __init__(self, nodeId, lat, lng, props):
+    assert_non_null("Null params", nodeId, lat, lng, props)
     self.nodeId = str(nodeId)
-    self.guid = None
-    self.pos = Point(float(xPos), float(yPos))
-    self.is_uni = None
-
-  def isUni(self):
-    if self.is_uni is None:
-      raise Exception('isUni not defined for Node')
-    return self.is_uni
-
-class Link:
-  def __init__(self, linkId, fromNode, toNode):
-    if not (linkId and fromNode and toNode):
-      raise Exception('Null parameters in Link constructor')
-    self.linkId = str(linkId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.segments = [] #List of segment IDs
-
-class Edge:
-  def __init__(self, edgeId, fromNode, toNode):
-    if not (edgeId and fromNode and toNode):
-      raise Exception('Null parameters in Edge constructor')
-    self.edgeId = str(edgeId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.lanes = []
-    self.lane_edges = []
-
-#Note that "from/toLaneId" are zero-numbered, not actual lane IDs
-class LaneConnector:
-  def __init__(self, fromSegment, toSegment, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
-    self.fromSegment = fromSegment  #These are references
-    self.toSegment = toSegment      #These are references
-    self.fromLaneId = fromLaneId
-    self.toLaneId = toLaneId
-    self.laneFromOrigId = laneFromOrigId
-    self.laneToOrigId = laneToOrigId
-
-class Lane:
-  def __init__(self, laneId, shape):
-    if not (laneId and shape):
-      raise Exception('Null parameters in Lane constructor')
-    self.laneId = str(laneId)
-    self.guid = None
-    self.shape = Shape(shape)
-
-class LaneEdge:
-  def __init__(self, points):
-    self.points = points  #Just an array of Points
+    self.loc = Location(float(lat), float(lng))
+    self.props = dict_to_lower(props)
 
 
-#NOTE on Shapes, from the SUMO user's guide
-#The start and end node are omitted from the shape definition; an example: 
-#    <edge id="e1" from="0" to="1" shape="0,0 0,100"/> 
-#    describes an edge that after starting at node 0, first visits position 0,0 
-#    than goes one hundred meters to the right before finally reaching the position of node 1
-class Shape:
-  def __init__(self, pts):
-    pts = pts.split(' ')
+class Way:
+  '''Ways are somewhat different from Links: they don't have 
+     "from" and "to" Nodes, but rather feature an ordered sequence of Nodes.
+  '''
 
-    self.points = []
-    for pair in pts:
-      pair = pair.split(',')
-      self.points.append(Point(float(pair[0]), float(pair[1])))
+  def __init__(self, wayId, nodes, props):
+    assert_non_null("Null params", wayId, nodes, props)
+    if len(nodes)<2:
+      raise Exception('Way cannot be made with less than 2 Nodes.')
+
+    self.wayId = str(wayId)
+    self.nodes = nodes   #[Node]
+    self.props = dict_to_lower(props)
 

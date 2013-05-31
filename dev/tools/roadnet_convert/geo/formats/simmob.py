@@ -2,13 +2,28 @@ from geo.point import Point
 
 #TODO: This is currently the same as temp.py
 
+#Optional index
+class RNIndex:
+  def __init__(self, rn):
+    #List of all Lane connectors in the network.
+    self.lane_connectors = [] #[LaneConnector]
+    self.lanes = {}    #laneId => Lane
+
+    #Now construct them.
+    self.__build_index(rn)
+
+  def __build_index(self, rn):
+    #TODO: Actually build it.
+
+
 #Our container class
 class RoadNetwork:
   def __init__(self):
-    self.nodes = {}    #origId => Node
-    self.links = {}    #origId => Link
-    self.lanes = {}    #origId => Lane
-    self.turnings = [] #LaneConnector
+    #Contains all Multi-Nodes and Uni-Nodes
+    self.nodes = {}    #{nodeId => Node}
+
+    #Contains all Links
+    self.links = {}    #{linkId => Link}
 
 
 #Simple classes. IDs are always strings

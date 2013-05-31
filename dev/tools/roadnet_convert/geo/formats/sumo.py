@@ -1,73 +1,40 @@
 from geo.point import Point
-
-#TODO: This is currently the same as temp.py
+from geo.helper import assert_non_null
 
 #Our container class
 class RoadNetwork:
+  '''The primary container class for SUMO road networks. (See: simmob.py)
+     At the moment, we only support simple (multi-node only) SUMO networks.
+  '''
+
   def __init__(self):
-    self.nodes = {}    #origId => Node
-    self.links = {}    #origId => Link
-    self.lanes = {}    #origId => Lane
-    self.turnings = [] #LaneConnector
+    self.junctions = {}    #{jnctId => Junction}
+    self.edges = {}    #{edgeId => Edge}
 
 
-#Simple classes. IDs are always strings
-class Node:
-  def __init__(self, nodeId, xPos, yPos):
-    if not (nodeId and xPos and yPos):
-      raise Exception('Null parameters in Node constructor')
+class Junction:
+  '''A Junction fulfils a similar purpose to a simmob.Node'''
+
+  def __init__(self, jnctId, xPos, yPos):
+    assert_non_null("Null args", nodeId, xPos, yPos)
     self.nodeId = str(nodeId)
-    self.guid = None
     self.pos = Point(float(xPos), float(yPos))
-    self.is_uni = None
 
-  def isUni(self):
-    if self.is_uni is None:
-      raise Exception('isUni not defined for Node')
-    return self.is_uni
-
-class Link:
-  def __init__(self, linkId, fromNode, toNode):
-    if not (linkId and fromNode and toNode):
-      raise Exception('Null parameters in Link constructor')
-    self.linkId = str(linkId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.segments = [] #List of segment IDs
 
 class Edge:
-  def __init__(self, edgeId, fromNode, toNode):
-    if not (edgeId and fromNode and toNode):
-      raise Exception('Null parameters in Edge constructor')
+  def __init__(self, edgeId, fromJnct, toJnct):
+    assert_non_null("Null args", edgeId, fromJnct, toJnct)
     self.edgeId = str(edgeId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.lanes = []
-    self.lane_edges = []
+    self.fromJnct = fromJnct
+    self.toJnct = toJnct
+    self.lanes = []  #Lanes in order (closest-to-median first ---I think.)
 
-#Note that "from/toLaneId" are zero-numbered, not actual lane IDs
-class LaneConnector:
-  def __init__(self, fromSegment, toSegment, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
-    self.fromSegment = fromSegment  #These are references
-    self.toSegment = toSegment      #These are references
-    self.fromLaneId = fromLaneId
-    self.toLaneId = toLaneId
-    self.laneFromOrigId = laneFromOrigId
-    self.laneToOrigId = laneToOrigId
 
 class Lane:
   def __init__(self, laneId, shape):
-    if not (laneId and shape):
-      raise Exception('Null parameters in Lane constructor')
+    assert_non_null("Null args", laneId, shape)
     self.laneId = str(laneId)
-    self.guid = None
-    self.shape = Shape(shape)
-
-class LaneEdge:
-  def __init__(self, points):
-    self.points = points  #Just an array of Points
+    self.shape = shape
 
 
 #NOTE on Shapes, from the SUMO user's guide
@@ -75,8 +42,11 @@ class LaneEdge:
 #    <edge id="e1" from="0" to="1" shape="0,0 0,100"/> 
 #    describes an edge that after starting at node 0, first visits position 0,0 
 #    than goes one hundred meters to the right before finally reaching the position of node 1
+#The start and end Nodes are not usually part of the polyline anyway, since lane edges start a 
+#    few meters out from the Intersection.
 class Shape:
   def __init__(self, pts):
+    assert_non_null("Null args", pts)
     pts = pts.split(' ')
 
     self.points = []

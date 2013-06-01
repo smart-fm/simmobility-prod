@@ -120,8 +120,8 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if(acc > aB) acc = aB;
 	if(acc > aC) acc = aC;
 	if(acc > aD) acc = aD;
-	if(acc > aE) acc = aE;
-	if(acc > aF) acc = aF;
+	//if(acc > aE) acc = aE;
+	//if(acc > aF) acc = aF;
 	if(acc > aG) acc = aG;
 	if(acc > aN) acc = aN;
 
@@ -317,7 +317,9 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
 {
 	if(p.turningDirection == LCS_SAME)
 		return maxAcceleration;
-	NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+	//NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+	NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftBack:p.nvRightBack;//change a mistake!!!
+
 	if(!nv.exists())
 		return maxAcceleration;
 

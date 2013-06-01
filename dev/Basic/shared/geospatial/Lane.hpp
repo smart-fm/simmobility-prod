@@ -41,6 +41,13 @@ enum LANE_CHANGE_SIDE {
 	LCS_RIGHT = 1
 };
 
+enum LANE_CHANGE_TYPE {
+	LCT_Courtesy,
+	LCT_Fwd,
+	LCT_Back,
+	LCT_Adj
+};
+
 
 
 #ifndef SIMMOB_DISABLE_MPI

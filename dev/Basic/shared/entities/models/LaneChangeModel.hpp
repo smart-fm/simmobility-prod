@@ -62,7 +62,7 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE executeNGSIMModel(sim_mob::DriverUpdateParams& p);
 	virtual bool ifCourtesyMerging(DriverUpdateParams& p);
 	//virtual double calcCriticalAnticipatedGap(DriverUpdateParams& p);
-	//virtual sim_mob::LANE_CHANGE_SIDE makeCoutesyMerging(sim_mob::DriverUpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	//virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
 
 };

@@ -13,30 +13,30 @@ def parse(inFileName :str) -> sumo.RoadNetwork:
   #For each junction
   junctTags = rootNode.xpath('/net/junction')
   for j in junctTags:
-    __parse_junction(j, rn.junctions)
+    __parse_junction(j, rn)
 
   #For each edge; ignore "internal"
   edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
   for e in edgeTags:
     if e.get('function')=='internal':
       raise Exception('Node with from/to should not be internal')
-    __parse_edge(e, rn.edges)
+    __parse_edge(e, rn)
 
   #Done
   inFile.close()
   return rn
 
 
-def __parse_junction(j, junctions):
+def __parse_junction(j, rn :sumo.RoadNetwork):
     #Add a new Junction
     res = sumo.Junction(j.get('id'), j.get('x'), j.get('y'))
-    junctions[res.jnctId] = res
+    rn.junctions[res.jnctId] = res
 
 
-def __parse_edge(e, edges):
+def __parse_edge(e, rn :sumo.RoadNetwork):
     #Add a new edge
-    res = sumo.Edge(e.get('id'), e.get('from'), e.get('to'))
-    edges[res.edgeId] = res
+    res = sumo.Edge(e.get('id'), rn.nodes[e.get('from')], rn.nodes[e.get('to')])
+    rn.edges[res.edgeId] = res
 
     #Add child Lanes
     laneTags = e.xpath("lane")

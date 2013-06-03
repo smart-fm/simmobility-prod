@@ -22,11 +22,6 @@ def __chk_versn(x:"Error: Python 3 is required; this program will not work with 
 #   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
 
 
-#TODO:
-#   1) In "convert", SUMO should be given one Link per Road Segment.
-
-
-
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
     #TEMP blacklist
@@ -225,33 +220,6 @@ class InOut:
     self.incoming = []
     self.outgoing = []
 
-def make_lane_connectors(rn):
-  #First, make a list of all "incoming" and "outgoing" edges at a given node
-  lookup = {}  #nodeId => InOut
-  for lk in rn.links.values():
-    for e in lk.segments:
-      #Give it an entry
-      if not (e.fromNode in lookup):
-        lookup[e.fromNode] = InOut()
-      if not (e.toNode in lookup):
-        lookup[e.toNode] = InOut()
-
-    #Append
-    lookup[e.toNode].incoming.append(e)
-    lookup[e.fromNode].outgoing.append(e)
-
-  #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
-  for n in rn.nodes.values():
-    for fromEdge in lookup[n.nodeId].incoming:
-      for toEdge in lookup[n.nodeId].outgoing:
-        if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
-          continue
-
-        #The looping gets even deeper!
-        for fromLaneID in range(len(fromEdge.lanes)):
-          for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(temp.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
-
 
 def check_and_flip_and_scale(rn, flipMap):
   #Save the maximum X co-ordinate, minimum Y
@@ -298,55 +266,6 @@ def check_and_flip_and_scale(rn, flipMap):
       p.y = (-minY + p.y) * 100
 
 
-def mostly_parallel(first, second):
-  #Cutoff point for considering lines *not* parallel
-  #You can increase this as your lines skew, but don't go too high.
-  #Cutoff = 3.0
-  Cutoff = 50.0  #TODO: Temp, while we work on OSM data.
-
-  #Both/one vertical?
-  fDx= first[-1].x-first[0].x
-  sDx = second[-1].x-second[0].x
-  if (fDx==0 or sDx==0):
-    return (fDx-sDx) < Cutoff
-
-  #Calculate slope
-  mFirst = float(first[-1].y-first[0].y) / float(fDx)
-  mSecond = (second[-1].y-second[0].y) / float(sDx)
-  return abs(mFirst-mSecond) < Cutoff
-
-
-
-
-def make_lane_edges(rn):
-  for lk in rn.links.values():
-    for e in lk.segments:
-      #All lanes are relative to our Segment line
-      segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
-
-      #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
-      zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
-      if not mostly_parallel(segLine, zeroLine):
-        raise Exception("Can't convert edge %s; lines are not parallel: [%s=>%s] and [%s=>%s]" % (e.edgeId, segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
-
-      #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
-      halfW = get_line_dist(segLine, zeroLine)
-
-      #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
-      zeroStart = DynVect(zeroLine[0], zeroLine[1])
-      zeroStart.rotateRight().scaleVectTo(halfW).translate()
-      zeroEnd = DynVect(zeroLine[1], zeroLine[0])
-      zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-      e.lane_edges.append(temp.LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
-
-      #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
-      for i in reversed(range(len(e.lanes))):
-        currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
-        currStart = DynVect(currLine[0], currLine[1])
-        currStart.rotateLeft().scaleVectTo(halfW).translate()
-        currEnd = DynVect(currLine[1], currLine[0])
-        currEnd.rotateRight().scaleVectTo(halfW).translate()
-        e.lane_edges.append(temp.LaneEdge([currStart.getPos(), currEnd.getPos()]))
 
 def print_osm_format(rn):
   #Open, start writing
@@ -712,6 +631,7 @@ def run_main(inFileName):
 
 
   #Remove junction nodes which aren't referenced by anything else.
+  #TODO: This remains *here*, and might be disabled with a switch.
   nodesPruned = len(rn.nodes)
   remove_unused_nodes(rn.nodes, rn.links)
   nodesPruned -= len(rn.nodes)
@@ -791,4 +711,55 @@ def parse_all_sumo(rootNode, rn):
   edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
   for e in edgeTags:
     parse_edge_sumo(e, rn.links, rn.lanes)
+
+
+def mostly_parallel(first, second):
+  #Cutoff point for considering lines *not* parallel
+  #You can increase this as your lines skew, but don't go too high.
+  #Cutoff = 3.0
+  Cutoff = 50.0  #TODO: Temp, while we work on OSM data.
+
+  #Both/one vertical?
+  fDx= first[-1].x-first[0].x
+  sDx = second[-1].x-second[0].x
+  if (fDx==0 or sDx==0):
+    return (fDx-sDx) < Cutoff
+
+  #Calculate slope
+  mFirst = float(first[-1].y-first[0].y) / float(fDx)
+  mSecond = (second[-1].y-second[0].y) / float(sDx)
+  return abs(mFirst-mSecond) < Cutoff
+
+
+
+
+def make_lane_edges(rn):
+  for lk in rn.links.values():
+    for e in lk.segments:
+      #All lanes are relative to our Segment line
+      segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
+
+      #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
+      zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
+      if not mostly_parallel(segLine, zeroLine):
+        raise Exception("Can't convert edge %s; lines are not parallel: [%s=>%s] and [%s=>%s]" % (e.edgeId, segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
+
+      #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
+      halfW = get_line_dist(segLine, zeroLine)
+
+      #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
+      zeroStart = DynVect(zeroLine[0], zeroLine[1])
+      zeroStart.rotateRight().scaleVectTo(halfW).translate()
+      zeroEnd = DynVect(zeroLine[1], zeroLine[0])
+      zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
+      e.lane_edges.append(temp.LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
+
+      #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
+      for i in reversed(range(len(e.lanes))):
+        currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
+        currStart = DynVect(currLine[0], currLine[1])
+        currStart.rotateLeft().scaleVectTo(halfW).translate()
+        currEnd = DynVect(currLine[1], currLine[0])
+        currEnd.rotateRight().scaleVectTo(halfW).translate()
+        e.lane_edges.append(temp.LaneEdge([currStart.getPos(), currEnd.getPos()]))
 

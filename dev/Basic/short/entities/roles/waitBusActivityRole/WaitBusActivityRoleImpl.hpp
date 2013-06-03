@@ -43,5 +43,8 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
+
+protected:
+	Point2D DisplayOffset;
 };
 }

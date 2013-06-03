@@ -54,7 +54,7 @@ public:
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
-	void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
+	//void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 	std::string getBuslineID() { return buslineid; }
 
 public:
@@ -67,11 +67,9 @@ protected:
 	//An unregistered Activity will not be able to board buses.
 	//BusStopAgents will automatically register every WaitBusActivityRole in their vicinity periodically.
 	bool registered;
-
 	sim_mob::BusStopAgent* busStopAgent;
 	uint32_t TimeOfReachingBusStop;
 	std::string buslineid;
-	Point2D DisplayOffset;
 
 	WaitBusActivityRoleUpdateParams params;
 	friend class PackageUtils;

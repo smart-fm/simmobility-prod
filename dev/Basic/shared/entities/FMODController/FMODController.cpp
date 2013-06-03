@@ -15,6 +15,7 @@ namespace FMOD
 {
 
 FMODController* FMODController::pInstance = nullptr;
+boost::asio::io_service FMODController::io_service;
 
 void FMODController::RegisterController(int id, const MutexStrategy& mtxStrat)
 {
@@ -40,11 +41,13 @@ bool FMODController::frame_init(timeslice now)
 
 Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 {
-	static int currTicks = 0;
-	if(currTicks%2 == 0){
+	frameTicks++;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+
+	if(frameTicks%2 == 0){
 		ProcessMessages();
 	}
-	else if(currTicks%2 == 1){
+	if(curTickMS%updateTiming == 0){
 		UpdateMessages();
 	}
 
@@ -58,9 +61,6 @@ void FMODController::frame_output(timeslice now)
 
 bool FMODController::CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents)
 {
-	Msg_Request request;
-	std::string msg = request.BuildToString();
-	std::cout << msg << std::endl;
 	return true;
 }
 
@@ -71,6 +71,17 @@ bool FMODController::StartService()
 
 	if(ret)	{
 		boost::thread bt( boost::bind(&boost::asio::io_service::run, &io_service) );
+		std::cout << "FMOD communication success" << std::endl;
+
+		Msg_Request request;
+		std::string msg = request.BuildToString();
+		std::cout << msg << std::endl;
+		connectPoint->pushMessage(msg);
+		connectPoint->pushMessage(msg);
+
+	}
+	else {
+		std::cout << "FMOD communication failed" << std::endl;
 	}
 
 	return ret;
@@ -87,7 +98,7 @@ void FMODController::ProcessMessages()
 	MessageList Requests = CollectRequest();
 	connectPoint->pushMessage(Requests);
 
-	MessageList retCols;
+	bool continued=false;
 	MessageList messages = connectPoint->popMessage();
 	while( messages.size()>0 )
 	{
@@ -100,18 +111,21 @@ void FMODController::ProcessMessages()
 		}
 		else if(msgId == 5){
 			MessageList ret = HandleOfferMessage(str);
-			retCols = retCols+ret;
+			connectPoint->pushMessage(ret);
+			continued = true;
 		}
 		else if(msgId == 7){
 			MessageList ret = HandleConfirmMessage(str);
-			retCols = retCols+ret;
+			connectPoint->pushMessage(ret);
+			continued = true;
 		}
 		else if(msgId == 9){
 			HandleScheduleMessage(str);
 		}
-	}
 
-	connectPoint->pushMessage(retCols);
+		if(continued)
+			messages = connectPoint->popMessage();
+	}
 }
 
 void FMODController::UpdateMessages()

@@ -384,11 +384,18 @@ bool loadXMLFMODController(TiXmlDocument& document)
 		return false;
 	}
 
+	TiXmlNode* node3 = node2->NextSibling();
+	if(node3 == nullptr)	{
+		return false;
+	}
+
 	std::string ipAddress = node1->FirstChild()->Value();
 	int port = atoi( node2->FirstChild()->Value() );
+	int updateTiming = atoi( node3->FirstChild()->Value() );
 
 	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy);
-	sim_mob::FMOD::FMODController::Instance()->SetConnection(ipAddress, port);
+	sim_mob::FMOD::FMODController::Instance()->Settings(ipAddress, port, updateTiming);
+	sim_mob::FMOD::FMODController::Instance()->StartService();
 
 	return true;
 }

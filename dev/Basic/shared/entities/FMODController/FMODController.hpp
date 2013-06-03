@@ -18,15 +18,17 @@ namespace FMOD
 
 class FMODController : public sim_mob::Agent {
 public:
-	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)){}
+	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)), frameTicks(0){}
 
 	virtual ~FMODController();
 
 	bool CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents);
-	void SetConnection(std::string ipadress, int port) { this->ipAddress=ipadress; this->port=port; }
+	void Settings(std::string ipadress, int port, int updateTiming) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; }
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
 	static FMODController* Instance();
+	bool StartService();
+	void StopService();
 
 private:
 	// keep all children agents to communicate with it
@@ -43,8 +45,7 @@ protected:
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
-	bool StartService();
-	void StopService();
+
 
 private:
 	void ProcessMessages();
@@ -53,6 +54,7 @@ private:
 	MessageList HandleConfirmMessage(std::string msg);
 	void HandleScheduleMessage(std::string msg);
 	void HandleVehicleInit(std::string msg);
+
 	void UpdateMessages();
 	MessageList CollectVehStops();
 	MessageList CollectVehPos();
@@ -62,10 +64,12 @@ private:
 	TCPSessionPtr connectPoint;
 	std::string ipAddress;
 	int port;
+	int updateTiming;
+	int frameTicks;
 
 private:
 	static FMODController* pInstance;
-	boost::asio::io_service io_service;
+	static boost::asio::io_service io_service;
 
 };
 

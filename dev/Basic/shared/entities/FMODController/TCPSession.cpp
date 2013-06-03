@@ -83,6 +83,10 @@ bool TCPSession::ConnectToServer(std::string ip, int port)
 		std::cerr<<"start: connect error "<<ec.message()<<std::endl;
 		ret = false;
 	}
+	else
+	{
+		receiveData();
+	}
 	return ret;
 }
 

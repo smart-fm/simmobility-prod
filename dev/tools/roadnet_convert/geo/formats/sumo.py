@@ -16,8 +16,8 @@ class Junction:
   '''A Junction fulfils a similar purpose to a simmob.Node'''
 
   def __init__(self, jnctId, xPos, yPos):
-    assert_non_null("Null args", nodeId, xPos, yPos)
-    self.nodeId = str(nodeId)
+    assert_non_null("Null args", jnctId, xPos, yPos)
+    self.jnctId = str(jnctId)
     self.pos = Point(float(xPos), float(yPos))
 
 

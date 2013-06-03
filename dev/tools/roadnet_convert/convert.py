@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import math
@@ -12,31 +12,20 @@ from geo.position import Point
 from geo.helper import DynVect
 from geo.formats import temp
 
+#This line will fail to parse if you are using Python2 (that way at least we fail early).
+def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
+
+
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
 #Note: Run SUMO like so:
 #   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
 
-#Note that this program runs about 10x faster on Python3 for some reason
+
+#TODO:
+#   1) In "convert", SUMO should be given one Link per Road Segment.
 
 
-def parse_edge_sumo(e, links, lanes):
-    #Sanity check
-    if e.get('function')=='internal':
-      raise Exception('Node with from/to should not be internal')
-
-    #Add a new edge/link (both with the same "sumo id")
-    res = temp.Link(e.get('id'), e.get('from'), e.get('to'))
-    primEdge = temp.Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
-    res.segments.append(primEdge)
-    links[res.linkId] = res
-
-    #Add child Lanes
-    laneTags = e.xpath("lane")
-    for l in laneTags:
-      newLane = temp.Lane(l.get('id'), l.get('shape'))
-      primEdge.lanes.append(newLane)
-      lanes[newLane.laneId] = newLane
 
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
@@ -146,10 +135,6 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
 
 
-def parse_junctions_sumo(j, nodes):
-    #Add a new Node
-    res = temp.Node(j.get('id'), j.get('x'), j.get('y'))
-    nodes[res.nodeId] = res
 
 def parse_nodes_osm(n, nodes):
     #Nodes are slightly complicated by the fact that they use lat/long.
@@ -686,17 +671,6 @@ def assign_unique_ids(rn, currId):
 
 
 
-def parse_all_sumo(rootNode, rn):
-  #For each junction
-  junctTags = rootNode.xpath('/net/junction')
-  for j in junctTags:
-    parse_junctions_sumo(j, rn.nodes)
-
-  #For each edge; ignore "internal"
-  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
-  for e in edgeTags:
-    parse_edge_sumo(e, rn.links, rn.lanes)
-
 
 
 def parse_all_osm(rootNode, rn):
@@ -777,4 +751,44 @@ if __name__ == "__main__":
 
 
 
+
+#######################################################################
+## Code that handles "temp." Road Network objects is placed here once I've
+## replicated its functionality in "sumo.", "osm.", etc.
+#######################################################################
+
+def parse_edge_sumo(e, links, lanes):
+    #Sanity check
+    if e.get('function')=='internal':
+      raise Exception('Node with from/to should not be internal')
+
+    #Add a new edge/link (both with the same "sumo id")
+    res = temp.Link(e.get('id'), e.get('from'), e.get('to'))
+    primEdge = temp.Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
+    res.segments.append(primEdge)
+    links[res.linkId] = res
+
+    #Add child Lanes
+    laneTags = e.xpath("lane")
+    for l in laneTags:
+      newLane = temp.Lane(l.get('id'), l.get('shape'))
+      primEdge.lanes.append(newLane)
+      lanes[newLane.laneId] = newLane
+
+def parse_junctions_sumo(j, nodes):
+    #Add a new Node
+    res = temp.Node(j.get('id'), j.get('x'), j.get('y'))
+    nodes[res.nodeId] = res
+
+
+def parse_all_sumo(rootNode, rn):
+  #For each junction
+  junctTags = rootNode.xpath('/net/junction')
+  for j in junctTags:
+    parse_junctions_sumo(j, rn.nodes)
+
+  #For each edge; ignore "internal"
+  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
+  for e in edgeTags:
+    parse_edge_sumo(e, rn.links, rn.lanes)
 

@@ -41,11 +41,14 @@ enum LANE_CHANGE_SIDE {
 	LCS_RIGHT = 1
 };
 
-enum LANE_CHANGE_TYPE {
-	LCT_Courtesy,
-	LCT_Fwd,
-	LCT_Back,
-	LCT_Adj
+enum TARGET_GAP {
+	TG_Same,
+	TG_Left_Fwd,
+	TG_Left_Back,
+	TG_Left_Adj,
+	TG_Right_Fwd,
+	TG_Right_Back,
+	TG_Right_Adj
 };
 
 

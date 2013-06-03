@@ -697,9 +697,9 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
-	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-	LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
-	vehicle->setTurningDirection(lcs);
+	//MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+	//LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
+	//vehicle->setTurningDirection(lcs);
 
 
 	// check current lane has connector to next link

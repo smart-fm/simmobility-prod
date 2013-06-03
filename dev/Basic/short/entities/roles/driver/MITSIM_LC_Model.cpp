@@ -4,7 +4,7 @@
  * LC_Model.cpp
  *
  *  Created on: 2011-8-15
- *      Author: mavswinwxy & Li Zhemin
+ *      Author: mavswinwxy & Li Zhemin & Runmin Xu
  */
 
 #include <boost/random.hpp>
@@ -116,9 +116,10 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 			{1.00 , 0.0 ,  0.000 ,  2.020 , 0.000 , 0.000 , 0.153 ,  0.188 , 0.526},
 			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859},
 			{1.00 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},
-			{1.00 , 0.0 ,  0.000 ,  0.284 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.759},//for test
-			{1.00 , 0.0 ,  0.000 ,  0.487 , 0.000 , 0.000 , 0.038 ,  0.256 , 0.973}};//for test
-			//{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859}};
+			{0.80 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test, courtesy merging
+			{0.80 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},//for test, courtesy merging
+			{0.60 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test,forced merging
+			{0.60 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073}};//for test, forced merging
 
 	  double *a = lcGapModels_[type] ;
 	  double *b = lcGapModels_[type] + 3 ; //beta0
@@ -129,14 +130,22 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 	  double gap = b[0] + b[1] * rem_dist_impact +
 	              b[2] * dv + b[3] * dvNegative + b[4] *  dvPositive;
 
+	  //boost::mt19937 gen;
+	  boost::normal_distribution<> nrand(0,b[5]);
 
-	  double u = gap ;//+ theRandomizer->nrandom(0, b[5]);
+	  boost::variate_generator< boost::mt19937, boost::normal_distribution<> > normal(p.gen, nrand);
+
+	  //std::cout<<"normal rand="<<normal()<<std::endl;
+
+	  double u = gap + normal();
+
 	  double cri_gap ;
 
 	  if (u < -4.0) cri_gap = 0.0183 * a[0] ;      // exp(-4)=0.0183
 	  else if (u > 6.0) cri_gap = 403.4 * a[0] ;   // exp(6)=403.4
 	  else cri_gap = a[0] * exp(u) ;
 
+	  std::cout<<"critical gap="<<cri_gap<<"  type="<<type<<std::endl;
 	  if (cri_gap < a[1]) return a[1] ;
 	  else return cri_gap ;
 }
@@ -342,7 +351,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams&
 	double anti_gap; //anticipated gap
 	double critical_anti_gap; //critical anticipated gap
 
-
 	isCourtesy = false;
 	isForced = false;
 	anti_gap = 0;
@@ -358,14 +366,17 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams&
 	//critical_anti_gap = calcCriticalAnticipatedGap(p);
 
 	if(isCourtesy) {
-		p.turningType = LCT_Courtesy;
 		lcs = makeCourtesyMerging(p);
 		std::cout<<"courtesy change:"<<lcs<<std::endl;
 		return lcs;
 	}else{
-
+		isForced = ifForcedMerging(p);
+		if(isForced){
+			lcs = makeForcedMerging(p);
+			std::cout<<"forced change:"<<lcs<<std::endl;
+			return lcs;
+		}
 	}
-
 
 	return LCS_SAME;
 }
@@ -418,8 +429,6 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 		}
 	}
 
-
-
 	int direction = p.nextLaneIndex - p.currLaneIndex;
 	//[0:left,1:right]
 	int i = direction>0? 0:1;
@@ -454,15 +463,21 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 
 }
 
+bool sim_mob::MITSIM_LC_Model::ifForcedMerging(DriverUpdateParams& p)
+{
+	boost::uniform_int<> zero_to_max(0, RAND_MAX);
+	double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
+	if(randNum < 1/(1+exp(4.27+1.25-5.43))){
+		return true;
+	}
+	return false;
+}
+
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeCourtesyMerging(DriverUpdateParams& p)
 {
-	//std::cout<<"Already MLC"<<std::endl;
 	LaneSide freeLanes = gapAcceptance(p, MLC_C);
 
-	//find which lane it should get to and choose which side to change
-	//now manually set to 1, it should be replaced by target lane index
-	//i am going to fix it.
 	int direction = p.nextLaneIndex - p.currLaneIndex;
 	//direction = 0; //Otherwise drivers always merge.
 	//direction = 1;
@@ -471,7 +486,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeCourtesyMerging(DriverUpdateParam
 	if(direction==0) {
 		return LCS_SAME;
 	}
-
 
 	//current lane isn't target lane
 	if(freeLanes.right && direction<0) {		//target lane on the right and is accessable
@@ -482,11 +496,32 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeCourtesyMerging(DriverUpdateParam
 		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
 		p.isWaiting=true;
-		//LANE_CHANGE_SIDE decision = executeNGSIMModel(p);
 		return LCS_SAME;
 	}
 }
 
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeForcedMerging(DriverUpdateParams& p)
+{
+	LaneSide freeLanes = gapAcceptance(p, MLC_F);
+
+	int direction = p.nextLaneIndex - p.currLaneIndex;
+	//std::cout<<"Already MLC,"<<"Direction:"<<direction<<std::endl;
+	if(direction==0) {
+		return LCS_SAME;
+	}
+
+	//current lane isn't target lane
+	if(freeLanes.right && direction<0) {		//target lane on the right and is accessable
+		p.isWaiting=false;
+		return LCS_RIGHT;
+	} else if(freeLanes.left && direction>0) {	//target lane on the left and is accessable
+		p.isWaiting=false;
+		return LCS_LEFT;
+	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
+		p.isWaiting=true;
+		return LCS_SAME;
+	}
+}
 
 
 //TODO:I think lane index should be a data member in the lane class
@@ -501,6 +536,26 @@ size_t getLaneIndex(const Lane* l) {
 	}
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
+
+
+TARGET_GAP sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
+{
+	double U_Left_Fwd;
+	double U_Left_Back;
+	double U_Left_Adj;
+	double U_Right_Fwd;
+	double U_Right_Back;
+	double U_Right_Adj;
+
+	double GapUtility_[][6] = {
+		  //const	   dis      gap		 gap-vel   dummy  vn
+			{0.00   ,  0.00  ,  0.224 ,  -0.0179 , 2.10 , 0.000 },
+			{-0.772 , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.675 },
+			{-1.23  , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.239 }};
+}
+
+
+
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.
  * While in sim mobility, vehicle approach the target lane in limited speed.
@@ -513,13 +568,13 @@ size_t getLaneIndex(const Lane* l) {
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
-	if(currLaneChangeDir == LCS_SAME)
-	{
-		return 0.0;
-	}
-	else
-	{
-		p.turningType = LCT_Adj;
+	//if(currLaneChangeDir == LCS_SAME)
+	//{
+		//return 0.0;
+	//}
+	//else
+	//{
+		p.targetGap = TG_Same;
 		//1.If too close to node, don't do lane changing, distance should be larger than 3m
 		if(p.dis2stop <= 3) {
 			return 0.0;
@@ -528,6 +583,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		//2.Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		boost::uniform_int<> zero_to_max(0, RAND_MAX);
 		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
+		//std::cout<<"unit rand="<<randNum<<std::endl;
 		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
 
@@ -555,13 +611,13 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 
 		//4.Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {
-			const int lane_shift_velocity = 250;  //TODO: What is our lane changing velocity? Just entering this for now...
+			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
 
 			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 		}
 
 		return 0.0;
-	}
+	//}
 
 
 //	{ //Performing a lane change.
@@ -609,5 +665,5 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 //			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 //		}
 //	}
-	return 0;
+	//return 0;
 }

@@ -119,7 +119,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if(acc > aA) acc = aA;
 	if(acc > aB) acc = aB;
 	if(acc > aC) acc = aC;
-	if(acc > aD) acc = aD;
+	//if(acc > aD) acc = aD;
 	//if(acc > aE) acc = aE;
 	//if(acc > aF) acc = aF;
 	if(acc > aG) acc = aG;

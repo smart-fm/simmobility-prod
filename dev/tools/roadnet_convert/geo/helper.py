@@ -56,25 +56,23 @@ def get_line_dist(first, second):
   return abs(sB-fB) / math.sqrt(m**2 + 1)
 
 
-#Project coordinates (TODO: currently very rigid)
-def project_coords(wgsRev, utmZone, lat, lon):
-  #Make sure we have both params, convert to float.
-  if not (lat and lon):
-    raise Exception('lat/lon required in project_coords')
-  lat = float(lat)
-  lon = float(lon)
+#Project coordinates using WGS 84.
+# Pass a non-nil "zone" to ensure that this point was transformed using that Zone (this is also returned)
+# It should be obvious that transforming points that reside in different zones is a bad idea.
+def project_wgs84(lat, lng, zone):
+  #Convenience constant
+  WGS_Id = 23 #WGS 84
 
-  #Make sure they are using the latest standard
-  if (wgsRev.replace(' ', '') != 'WGS84'):
-    raise Exception('Deprecated WGS specification (only WGS 84 supported)')
+  #Make sure we have both params, convert to float. 
+  assert_non_null("Lat/Lng required in project_coords", lat, lng)
 
-  #Now, perform the projection. Make sure our result matches our expectations.
-  (resZone, x, y) = LLtoUTM(23, lat, lon)
-  if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
-    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,utmZone))
+  #Now, perform the projection, and make sure it maches our expected zone.
+  (resZone, x, y) = LLtoUTM(WGS_Id, float(lat), float(lng))
+  if zone and (resZone != zone):
+    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,zone))
 
-  #All is good; return a Point
-  return Point(x,y)
+  #All is good; return a Point and the zone is resides in.
+  return (Point(x,y), resZone)
 
 
 def remove_unused_nodes(nodes, segments):

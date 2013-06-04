@@ -81,28 +81,15 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),
-    databaseID(databaseID), debugMsgs(std::stringstream::out)
+    databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
 {
-	tripchainInitialized = false;
-	laneID = -1;
-	age = 0;
-	BOARDING_TIME_SEC = 0;
-	ALIGTHING_TIME_SEC = 0;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out),
+	  prevRole(nullptr), currRole(nullptr), nextRole(nullptr), laneID(-1), agentSrc(src),
+	  tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
 {
-	prevRole = 0;
-	currRole = 0;
-	nextRole = 0;
-	laneID = -1;
-	agentSrc = src;
-	tripChain = tcs;
-	tripchainInitialized = false;
-	age = 0;
-	BOARDING_TIME_SEC = 0;
-	ALIGTHING_TIME_SEC = 0;
 	simplyModifyTripChain(tcs);
 	initTripChain();
 }

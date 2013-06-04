@@ -79,13 +79,18 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
-    void setNextRole(sim_mob::Role* newRole);// set NextRole
-    sim_mob::Role* getNextRole() const;// get NextRole
+    // set NextRole
+    void setNextRole(sim_mob::Role* newRole);
+    // get NextRole
+    sim_mob::Role* getNextRole() const;
     bool updatePersonRole(sim_mob::Role* newRole = 0);
-    bool findPersonNextRole();// find Person's NextRole
+    // find Person's NextRole
+    bool findPersonNextRole();
 
-	bool updateNextTripChainItem();// update nextTripChainItem, used only for NextRole
-	bool updateNextSubTrip();// update nextSubTrip, used only for NextRole
+    // update nextTripChainItem, used only for NextRole
+	bool updateNextTripChainItem();
+	// update nextSubTrip, used only for NextRole
+	bool updateNextSubTrip();
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
@@ -123,15 +128,22 @@ public:
 	void setDatabaseId(const std::string& databaseId) {
 		databaseID = databaseId;
 	}
-	void setPersonCharacteristics();// set Person's characteristics by distribution
-	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }// get boarding time secs
-	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }// get alighting time secs
+	// set Person's characteristics by some distribution
+	void setPersonCharacteristics();
+	// get boarding time secs for this person
+	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }
+	// get alighting time secs for this person
+	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }
 
-    std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
-    std::vector<SubTrip>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+	// pointer to current item in trip chain
+    std::vector<TripChainItem*>::iterator currTripChainItem;
+    //pointer to current subtrip in the current trip (if  current item is trip)
+    std::vector<SubTrip>::iterator currSubTrip;
 
-    std::vector<TripChainItem*>::iterator nextTripChainItem; // pointer to next item in trip chain
-    std::vector<SubTrip>::const_iterator nextSubTrip; //pointer to next subtrip in the current trip (if  current item is trip)
+    // pointer to next item in trip chain
+    std::vector<TripChainItem*>::iterator nextTripChainItem;
+    //pointer to next subtrip in the current trip (if  current item is trip)
+    std::vector<SubTrip>::const_iterator nextSubTrip;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -171,8 +183,11 @@ private:
     friend class BoundaryProcessor;
 
     std::string databaseID;
+    // person's age
     unsigned int age;
+    // person's boarding time secs
     double BOARDING_TIME_SEC;
+    // person's alighting time secs
     double ALIGTHING_TIME_SEC;
 
 #ifndef SIMMOB_DISABLE_MPI

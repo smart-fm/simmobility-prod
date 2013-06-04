@@ -1,6 +1,7 @@
 from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
 from geo.position import Point
+from geo.position import Location
 from geo.position import DynVect
 from geo.formats import simmob
 import math
@@ -203,31 +204,48 @@ class IdGenerator:
 
 #Helper class for UTM scaling
 class ScaleHelper:
-  def __init__(self):
-    self.bounds = [None, None, None, None] #minX,minY,maxX,maxY
-    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
+  def __init__(self, outBounds):
+    self.outBounds = bounds #minLocation, maxLocation of output
+    self.inBounds = [None, None] #minPoint, maxPoint of input
+#    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
 
   #Add a point to the bounds
   def add_point(self, pt):
-    self.bounds[0] = min(x for x in [pt.x, self.bounds[0]] if x is not None)
-    self.bounds[1] = min(y for y in [pt.y, self.bounds[1]] if y is not None)
-    self.bounds[2] = max(x for x in [pt.x, self.bounds[2]] if x is not None)
-    self.bounds[3] = max(y for y in [pt.y, self.bounds[3]] if y is not None)
+    if not self.inBounds[0]:
+      self.inBounds[0] = Point(pt.x, pt.y)
+    if not self.inBounds[1]:
+      self.inBounds[1] = Point(pt.x, pt.y)
+
+    #Update
+    self.inBounds[0].x = min(self.inBounds[0].x, pt.x)
+    self.inBounds[0].y = min(self.inBounds[0].y, pt.y)
+    self.inBounds[1].x = max(self.inBounds[1].x, pt.x)
+    self.inBounds[1].y = max(self.inBounds[1].y, pt.y)
 
   #Convert a point to lat/long
   def convert(self, pt):
-    #Convert this point to an offset "relative" to the center of the bounds, then add this to our UTM center.
-    offset = Point(self.bounds[0]+(self.bounds[2]-self.bounds[0])/2,self.bounds[1]+(self.bounds[3]-self.bounds[1])/2)
-    newPt = Point(self.center.x+(pt.x-offset.x), self.center.y+(pt.y-offset.y))
+    #Get the normalized components
+    norm = Point( \
+      (pt.x-self.inBounds[0].x)/(self.inBounds[1].x-self.inBounds[0].x), \
+      (pt.y-self.inBounds[0].y)/(self.inBounds[1].y-self.inBounds[0].y)  \
+    )
 
-    #Finally, convert back to lat/lng
-    return UTMtoLL(23, newPt.y, newPt.x, '48N')
+    #Convert to lat/lng. Note that Latitude scales up (but this should be handled by the same formula).
+    #NOTE: Linear scaling will introduce artifacts, but for now a reverse-transformation
+    #      would be even more problematic.
+    newPt = Point( \
+      (norm.x*(self.outBounds[1].lng-self.outBounds[0].lng)+self.outBounds[0].lng), \
+      (norm.y*(self.outBounds[1].lat-self.outBounds[0].lat)+self.outBounds[0].lat)  \
+    )
+
+    #Done
+    return newPt
 
   #Get the minimum/maximum points
-  def min_pt(self):
-    return Point(self.bounds[0], self.bounds[1])
-  def max_pt(self):
-    return Point(self.bounds[2], self.bounds[3])
+#  def min_pt(self):
+#    return Point(self.bounds[0], self.bounds[1])
+#  def max_pt(self):
+#    return Point(self.bounds[2], self.bounds[3])
 
 
 #A basic vector (in the geometrical sense)

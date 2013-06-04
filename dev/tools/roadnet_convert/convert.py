@@ -16,6 +16,10 @@ from geo.formats import temp
 def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
 
 
+#TODO:
+# The "ScaleHelper" code from print_osm should be in the OSM loader.
+
+
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
 #Note: Run SUMO like so:
@@ -261,59 +265,6 @@ def check_and_flip_and_scale(rn, flipMap):
       else:
         p.x = (-minX + p.x) * 100
       p.y = (-minY + p.y) * 100
-
-
-
-def print_osm_format(rn):
-  #Open, start writing
-  f = open('out.osm', 'w')
-  f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-  f.write('<osm version="0.6" generator="convert.py" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">\n')
-
-  #Here's where it gets tricky: a randomized SUMO network may not be centered on Singapore,
-  #  so we have to scale/translate it. We accomplish this by centering the map on the UTM 48N box.
-  helper = ScaleHelper()
-
-  #Figure out the bounds
-  for n in rn.nodes.values():
-    helper.add_point(n.pos)
-  for lk in rn.links.values():
-    for e in lk.segments:
-      for l in e.lane_edges:
-        for pos in l.points:
-          helper.add_point(pos)
-
-  #Now we can just use the helper as-is
-  (minlat,minlng) = helper.convert(helper.min_pt())
-  (maxlat,maxlng) = helper.convert(helper.max_pt())
-  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (minlat, minlng, maxlat, maxlng))
-
-  #Nodes
-  for n in rn.nodes.values():
-    (lat,lng) = helper.convert(n.pos)
-    f.write(' <node id="%s" lat="%s" lon="%s" visible="true"/>\n' % (n.guid, lat, lng))
-
-  #Ways are tied to segments
-  for lk in rn.links.values():
-    for e in lk.segments:
-      f.write(' <way id="%s" visible="true">\n' % e.guid)
-    
-      #We need to write the Nodes of this Way in order.
-      #For now, SUMO links only have 2 nodes and 1 segment each.
-      fromId = rn.nodes[e.fromNode].guid
-      toId = rn.nodes[e.toNode].guid
-      f.write('  <nd ref="%s"/>\n' % fromId)
-      f.write('  <nd ref="%s"/>\n' % toId)
-
-      #Now write the Way's tags
-      f.write('  <tag k="highway" v="primary"/>\n')
-      f.write('  <tag k="oneway" v="yes"/>\n')
-
-      f.write(' </way>\n')
-    
-  #Done
-  f.write('</osm>\n')
-  f.close()
 
 
 
@@ -762,3 +713,57 @@ def print_old_format(rn):
 
   #Done
   f.close()
+
+
+
+def print_osm_format(rn):
+  #Open, start writing
+  f = open('out.osm', 'w')
+  f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+  f.write('<osm version="0.6" generator="convert.py" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">\n')
+
+  #Here's where it gets tricky: a randomized SUMO network may not be centered on Singapore,
+  #  so we have to scale/translate it. We accomplish this by centering the map on the UTM 48N box.
+  helper = ScaleHelper()
+
+  #Figure out the bounds
+  for n in rn.nodes.values():
+    helper.add_point(n.pos)
+  for lk in rn.links.values():
+    for e in lk.segments:
+      for l in e.lane_edges:
+        for pos in l.points:
+          helper.add_point(pos)
+
+  #Now we can just use the helper as-is
+  (minlat,minlng) = helper.convert(helper.min_pt())
+  (maxlat,maxlng) = helper.convert(helper.max_pt())
+  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (minlat, minlng, maxlat, maxlng))
+
+  #Nodes
+  for n in rn.nodes.values():
+    (lat,lng) = helper.convert(n.pos)
+    f.write(' <node id="%s" lat="%s" lon="%s" visible="true"/>\n' % (n.guid, lat, lng))
+
+  #Ways are tied to segments
+  for lk in rn.links.values():
+    for e in lk.segments:
+      f.write(' <way id="%s" visible="true">\n' % e.guid)
+    
+      #We need to write the Nodes of this Way in order.
+      #For now, SUMO links only have 2 nodes and 1 segment each.
+      fromId = rn.nodes[e.fromNode].guid
+      toId = rn.nodes[e.toNode].guid
+      f.write('  <nd ref="%s"/>\n' % fromId)
+      f.write('  <nd ref="%s"/>\n' % toId)
+
+      #Now write the Way's tags
+      f.write('  <tag k="highway" v="primary"/>\n')
+      f.write('  <tag k="oneway" v="yes"/>\n')
+
+      f.write(' </way>\n')
+    
+  #Done
+  f.write('</osm>\n')
+  f.close()
+

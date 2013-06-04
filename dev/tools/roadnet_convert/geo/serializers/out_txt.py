@@ -57,6 +57,6 @@ def serialize(outFilePath :str, rn :simmob.RoadNetwork):
     currLC_id += 1
 
   #Done
-  f.close()
+  out.close()
 
 

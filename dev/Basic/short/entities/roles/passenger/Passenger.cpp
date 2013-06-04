@@ -107,10 +107,6 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 					AlightedBus.set(true);
 				}
 			}
-//			parent->setToBeRemoved();//removes passenger if destination is reached
-//			busdriver.set(nullptr);// assign this busdriver to Passenger
-//			BoardedBus.set(false);
-//			AlightedBus.set(true);
 		} else {
 			setParentBufferedData();//update passenger coordinates every frame tick
 		}

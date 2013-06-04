@@ -22,125 +22,8 @@ from geo.formats import temp
 def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
 
 
-def remove_unused_nodes(nodes, links):
-  #This function counts the number of Segments which reference a Node. If it's zero, that 
-  # Node is pruned. Else, it's marked as a uni/multi Node based on count.
-  segmentsAt = {} #node => [edge,edge,]
-  for lk in links.values():
-    #Save time later:
-    nodes[lk.segments[0].fromNode].is_uni = False
-    nodes[lk.segments[-1].toNode].is_uni = False
-
-    for e in lk.segments:
-      #Add it if it doesn't exist.
-      fromN = nodes[e.fromNode]
-      toN = nodes[e.toNode]
-      if not fromN in segmentsAt:
-        segmentsAt[fromN] = []
-      if not toN in segmentsAt:
-        segmentsAt[toN] = []
-
-      #Increment
-      segmentsAt[fromN].append(e)
-      segmentsAt[toN].append(e)
-
-  #Now assign the uni/multi Node property:
-  for n in segmentsAt.keys():
-    segs = segmentsAt[n]
-    if len(segs)==0:
-      raise Exception('Empty segment accidentally added.')
-
-    #Don't set it unless it's still unset.
-    if n.is_uni is None:
-      #This should fail:
-      if len(segs)==1:
-        raise Exception('Node should be a MultiNode...')
-        #n.is_uni = True
-
-      #Simple. 
-      #TODO: What if len(segs)==4? We can share Nodes, right?
-      elif len(segs)>2:
-        n.is_uni = False
-
-      #Somewhat harder:
-      else:
-        #The segments here should share one node (this node) and then go to different destinations.
-        n1 = segs[0].fromNode if segs[0].toNode==n.nodeId else segs[0].toNode
-        n2 = segs[1].fromNode if segs[1].toNode==n.nodeId else segs[1].toNode
-        n.is_uni = (n1 != n2)
-
-
-  #Finally, do a quick test for our OSM data:
-  for lk in links.values():
-    seg_nodes = [nodes[lk.segments[0].fromNode]]
-    for e in lk.segments:
-      seg_nodes.append(nodes[e.toNode])
-
-    #Begins and ends at a MultiNode? (This shouldn't fail)
-    if seg_nodes[0].isUni():
-      raise Exception('UniNode found (%s) at start of Segment where a MultiNode was expected.' % seg_nodes[0].nodeId)
-    if seg_nodes[-1].isUni():
-      raise Exception('UniNode found (%s) at end of Segment where a MultiNode was expected.' % seg_nodes[-1].nodeId)
-
-    #Ensure middle nodes are UniNodes. Note that this is not strictly required; we'll just
-    #   have to false-segment the nodes that trigger this. 
-    #NOTE: This currently affects 10% of all Nodes. 
-    #Example: Node 74389907 is a legitimate candidate for Node splitting.
-    for i in range(1, len(seg_nodes)-2):
-      if not seg_nodes[i].isUni():
-        #raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
-        print('ERROR: Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId) 
-
-  #We can cheat a little here: Nodes with no references won't even be in our result set.
-  nodes.clear()
-  for n in segmentsAt.keys():
-    nodes[n.nodeId] = n
-
-
-def check_and_flip_and_scale(rn, flipMap):
-  #Save the maximum X co-ordinate, minimum Y
-  maxX = None
-
-  #Currently SimMobility can't take negative y coords
-  minX = 0
-  minY = 0
-
-  #Iteraet through Edges; check node IDs
-  for lk in rn.links.values():
-    for e in lk.segments:
-      if not ((e.fromNode in rn.nodes) and (e.toNode in rn.nodes)):
-        raise Exception('Edge references unknown Node ID')
-
-  #Iterate through Nodes, Lanes (Shapes) and check all points here too.
-  for n in rn.nodes.values():
-    maxX = max((maxX if maxX else n.pos.x),n.pos.x)
-    minX = min(minX, n.pos.x)
-    minY = min(minY, n.pos.y)
-  for l in rn.lanes.values():
-    for p in l.shape.points:
-      maxX = max((maxX if maxX else p.x),p.x)
-      minX = min(minX, p.x)
-      minY = min(minY, p.y)
-
-  #Add some buffer space to the y-value (for lane edge lines)
-  minX -= 10
-  minY -= 10
-
-  #Now invert all x co-ordinates, and scale by 100 (to cm)
-  for n in rn.nodes.values():
-    if flipMap:
-      n.pos.x = (-minX + maxX - n.pos.x) * 100
-    else:
-      n.pos.x = (-minX + n.pos.x) * 100
-    n.pos.y = (-minY + n.pos.y) * 100
-  for l in rn.lanes.values():
-    for p in l.shape.points:
-      if flipMap:
-        p.x = (-minX + maxX - p.x) * 100
-      else:
-        p.x = (-minX + p.x) * 100
-      p.y = (-minY + p.y) * 100
-
+#TODO: We might want to add a *small* buffer to anything with a "bounds" (e.g., OSM output), as our 
+#      lane points might *barely* overflow this.
 
 
 def run_main(inFileName):
@@ -611,3 +494,127 @@ def assign_unique_ids(rn, currId):
   for l in rn.lanes.values():
     l.guid = currId
     currId += 1
+
+
+
+def remove_unused_nodes(nodes, links):
+  #This function counts the number of Segments which reference a Node. If it's zero, that 
+  # Node is pruned. Else, it's marked as a uni/multi Node based on count.
+  segmentsAt = {} #node => [edge,edge,]
+  for lk in links.values():
+    #Save time later:
+    nodes[lk.segments[0].fromNode].is_uni = False
+    nodes[lk.segments[-1].toNode].is_uni = False
+
+    for e in lk.segments:
+      #Add it if it doesn't exist.
+      fromN = nodes[e.fromNode]
+      toN = nodes[e.toNode]
+      if not fromN in segmentsAt:
+        segmentsAt[fromN] = []
+      if not toN in segmentsAt:
+        segmentsAt[toN] = []
+
+      #Increment
+      segmentsAt[fromN].append(e)
+      segmentsAt[toN].append(e)
+
+  #Now assign the uni/multi Node property:
+  for n in segmentsAt.keys():
+    segs = segmentsAt[n]
+    if len(segs)==0:
+      raise Exception('Empty segment accidentally added.')
+
+    #Don't set it unless it's still unset.
+    if n.is_uni is None:
+      #This should fail:
+      if len(segs)==1:
+        raise Exception('Node should be a MultiNode...')
+        #n.is_uni = True
+
+      #Simple. 
+      #TODO: What if len(segs)==4? We can share Nodes, right?
+      elif len(segs)>2:
+        n.is_uni = False
+
+      #Somewhat harder:
+      else:
+        #The segments here should share one node (this node) and then go to different destinations.
+        n1 = segs[0].fromNode if segs[0].toNode==n.nodeId else segs[0].toNode
+        n2 = segs[1].fromNode if segs[1].toNode==n.nodeId else segs[1].toNode
+        n.is_uni = (n1 != n2)
+
+
+  #Finally, do a quick test for our OSM data:
+  for lk in links.values():
+    seg_nodes = [nodes[lk.segments[0].fromNode]]
+    for e in lk.segments:
+      seg_nodes.append(nodes[e.toNode])
+
+    #Begins and ends at a MultiNode? (This shouldn't fail)
+    if seg_nodes[0].isUni():
+      raise Exception('UniNode found (%s) at start of Segment where a MultiNode was expected.' % seg_nodes[0].nodeId)
+    if seg_nodes[-1].isUni():
+      raise Exception('UniNode found (%s) at end of Segment where a MultiNode was expected.' % seg_nodes[-1].nodeId)
+
+    #Ensure middle nodes are UniNodes. Note that this is not strictly required; we'll just
+    #   have to false-segment the nodes that trigger this. 
+    #NOTE: This currently affects 10% of all Nodes. 
+    #Example: Node 74389907 is a legitimate candidate for Node splitting.
+    for i in range(1, len(seg_nodes)-2):
+      if not seg_nodes[i].isUni():
+        #raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)
+        print('ERROR: Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId) 
+
+  #We can cheat a little here: Nodes with no references won't even be in our result set.
+  nodes.clear()
+  for n in segmentsAt.keys():
+    nodes[n.nodeId] = n
+
+
+
+def check_and_flip_and_scale(rn, flipMap):
+  #Save the maximum X co-ordinate, minimum Y
+  maxX = None
+
+  #Currently SimMobility can't take negative y coords
+  minX = 0
+  minY = 0
+
+  #Iteraet through Edges; check node IDs
+  for lk in rn.links.values():
+    for e in lk.segments:
+      if not ((e.fromNode in rn.nodes) and (e.toNode in rn.nodes)):
+        raise Exception('Edge references unknown Node ID')
+
+  #Iterate through Nodes, Lanes (Shapes) and check all points here too.
+  for n in rn.nodes.values():
+    maxX = max((maxX if maxX else n.pos.x),n.pos.x)
+    minX = min(minX, n.pos.x)
+    minY = min(minY, n.pos.y)
+  for l in rn.lanes.values():
+    for p in l.shape.points:
+      maxX = max((maxX if maxX else p.x),p.x)
+      minX = min(minX, p.x)
+      minY = min(minY, p.y)
+
+  #Add some buffer space to the y-value (for lane edge lines)
+  minX -= 10
+  minY -= 10
+
+  #Now invert all x co-ordinates, and scale by 100 (to cm)
+  for n in rn.nodes.values():
+    if flipMap:
+      n.pos.x = (-minX + maxX - n.pos.x) * 100
+    else:
+      n.pos.x = (-minX + n.pos.x) * 100
+    n.pos.y = (-minY + n.pos.y) * 100
+  for l in rn.lanes.values():
+    for p in l.shape.points:
+      if flipMap:
+        p.x = (-minX + maxX - p.x) * 100
+      else:
+        p.x = (-minX + p.x) * 100
+      p.y = (-minY + p.y) * 100
+
+

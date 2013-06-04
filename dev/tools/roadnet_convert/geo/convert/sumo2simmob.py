@@ -21,7 +21,7 @@ def convert(rn :sumo.RoadNetwork) -> simmob.RoadNetwork:
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for jn in rn.junctions.values():
     newNode = simmob.Node(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
-    res[newNode.nodeId] = newNode
+    res.nodes[newNode.nodeId] = newNode
     jnctLookup[jn.jnctId] = newNode
 
   #Every Edge can be converted by reversing its lanes, generating

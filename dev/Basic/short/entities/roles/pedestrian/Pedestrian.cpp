@@ -132,19 +132,12 @@ double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 
 
 sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	trafficSignal(nullptr), currCrossing(nullptr), cStartX(0), cStartY(0), cEndX(0), cEndY(0),
-	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator())
+	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()), sigColor(sim_mob::Green),
+	startToCross(false), xVel(0), yVel(0), xCollisionVector(0), yCollisionVector(0),
+	atSidewalk(true), atCrossing(false), gotoCrossing(false), crossingCount(0)
 {
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
-
-	//Init
-	sigColor = sim_mob::Green; //Green by default
-
-#if 0
-	sigColor = Signal::Green; //Green by default
-#endif
-
-	startToCross = false;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
 	if (parent) {
@@ -152,18 +145,6 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	} else {
 		speed = 0;
 	}
-
-	xVel = 0;
-	yVel = 0;
-
-	xCollisionVector = 0;
-	yCollisionVector = 0;
-
-	atSidewalk = true;
-	atCrossing = false;
-	gotoCrossing = false;
-	crossingCount = 0;
-
 }
 
 Role* sim_mob::Pedestrian::clone(Person* parent) const

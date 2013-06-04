@@ -75,25 +75,8 @@ double Pedestrian2::agentRadius = 0.5; //Shoulder width of a person is about 0.5
 
 sim_mob::Pedestrian2::Pedestrian2(Agent* parent, Role::type roleType_, std::string roleName) : Role(parent,roleName,roleType_),
 	trafficSignal(nullptr), currCrossing(nullptr),
-	isUsingGenPathMover(true), params(parent->getGenerator()),
+	isUsingGenPathMover(true), params(parent->getGenerator()), sigColor(sim_mob::Green),
 	speed(1.2), xVel(0), yVel(0), xCollisionVector(0), yCollisionVector(0) {
-	//Check non-null parent. Perhaps references may be of use here?
-
-	//Init
-	sigColor = sim_mob::Green; //Green by default
-
-#if 0
-	sigColor = Signal::Green; //Green by default
-#endif
-
-//	//Set default speed in the range of 1.2m/s to 1.6m/s
-//	speed = 1.2;
-//
-//	xVel = 0;
-//	yVel = 0;
-//
-//	xCollisionVector = 0;
-//	yCollisionVector = 0;
 }
 
 //Note that a destructor is not technically needed, but I want to enforce the idea

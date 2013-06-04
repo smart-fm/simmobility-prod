@@ -26,7 +26,7 @@ public:
 	virtual void CreateMessage(std::string msg) { msg_ = msg;}
 	int GetMessageID() { return messageID_; }
 	static int GetMessageID(std::string msg);
-protected:
+public:
 	std::string msg_;
 	int messageID_;
 };

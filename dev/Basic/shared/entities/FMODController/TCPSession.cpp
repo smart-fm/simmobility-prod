@@ -9,13 +9,14 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
+#include "TCPServer.hpp"
 
 namespace sim_mob {
 
 namespace FMOD
 {
 
-TCPSession::TCPSession(boost::asio::io_service& io_service):socket_(io_service) {
+TCPSession::TCPSession(boost::asio::io_service& io_service, TCPServer* parentIn):socket_(io_service), parent(parentIn) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -24,9 +25,9 @@ TCPSession::~TCPSession() {
 	// TODO Auto-generated destructor stub
 }
 
-boost::shared_ptr<TCPSession> TCPSession::create(boost::asio::io_service& io_service)
+boost::shared_ptr<TCPSession> TCPSession::create(boost::asio::io_service& io_service, TCPServer* parent)
 {
-	return boost::shared_ptr<TCPSession>(new TCPSession(io_service));
+	return boost::shared_ptr<TCPSession>(new TCPSession(io_service, parent));
 }
 
 boost::asio::ip::tcp::socket& TCPSession::socket()
@@ -34,10 +35,15 @@ boost::asio::ip::tcp::socket& TCPSession::socket()
 	return socket_;
 }
 
+void TCPSession::Flush()
+{
+	sendData();
+}
+
+
 void TCPSession::pushMessage(std::string data)
 {
 	msgSendQueue.PushMessage(data);
-	sendData();
 }
 
 void TCPSession::pushMessage(MessageList data)
@@ -48,14 +54,15 @@ void TCPSession::pushMessage(MessageList data)
 		data.pop();
 		msgSendQueue.PushMessage(str);
 	}
-
-	sendData();
 }
 
 MessageList TCPSession::popMessage()
 {
 	MessageList res;
-	res = msgReceiveQueue.ReadMessage();
+	std::string msg;
+	if( bool ret = msgReceiveQueue.PopMessage(msg) )
+		res.push(msg);
+
 	return res;
 }
 
@@ -64,12 +71,20 @@ void TCPSession::handle_write(const boost::system::error_code& error, size_t byt
 	if( error == 0 ){
 		sendData();
 	}
+	else{
+		 std::cerr<<"end: send error "<<error.message()<<std::endl;
+		 if(parent) parent->RemoveAClient(this);
+	}
 }
 void TCPSession::handle_read(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
 		msgReceiveQueue.PushMessage(ReceivedBuf.data());
 		receiveData();
+	}
+	else{
+		 std::cerr<<"end: receive error "<<error.message()<<std::endl;
+		 if(parent) parent->RemoveAClient(this);
 	}
 }
 
@@ -110,6 +125,7 @@ bool TCPSession::sendData()
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
 			 std::cerr<<"start: send error "<<err.message()<<std::endl;
+			 if(parent) parent->RemoveAClient(this);
 			 return false;
 		 }
 	}
@@ -130,6 +146,7 @@ bool TCPSession::receiveData()
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
 			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
+			 if(parent) parent->RemoveAClient(this);
 			 return false;
 		 }
 	}

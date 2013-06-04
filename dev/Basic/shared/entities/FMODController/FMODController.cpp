@@ -31,11 +31,12 @@ FMODController* FMODController::Instance()
 }
 FMODController::~FMODController() {
 	// TODO Auto-generated destructor stub
+	StopClientService();
 }
 
 bool FMODController::frame_init(timeslice now)
 {
-	StartService();
+	StartClientService();
 	return true;
 }
 
@@ -64,7 +65,7 @@ bool FMODController::CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents
 	return true;
 }
 
-bool FMODController::StartService()
+bool FMODController::StartClientService()
 {
 	bool ret = false;
 	ret = connectPoint->ConnectToServer(ipAddress, port);
@@ -73,12 +74,18 @@ bool FMODController::StartService()
 		boost::thread bt( boost::bind(&boost::asio::io_service::run, &io_service) );
 		std::cout << "FMOD communication success" << std::endl;
 
-		Msg_Request request;
+		// for initialization
+		Msg_Initialize request;
+		request.messageID_ = 1;
+		request.map_type = "osm";
+		request.map_file = "cityhall/cityhall.osm";
+		request.version = 1;
+		DailyTime startTm = ConfigParams::GetInstance().simStartTime;
+		request.start_time = startTm.toString();
 		std::string msg = request.BuildToString();
 		std::cout << msg << std::endl;
 		connectPoint->pushMessage(msg);
-		connectPoint->pushMessage(msg);
-
+		connectPoint->Flush();
 	}
 	else {
 		std::cout << "FMOD communication failed" << std::endl;
@@ -87,7 +94,7 @@ bool FMODController::StartService()
 	return ret;
 }
 
-void FMODController::StopService()
+void FMODController::StopClientService()
 {
 	connectPoint->Stop();
 	io_service.stop();
@@ -126,6 +133,8 @@ void FMODController::ProcessMessages()
 		if(continued)
 			messages = connectPoint->popMessage();
 	}
+
+	connectPoint->Flush();
 }
 
 void FMODController::UpdateMessages()

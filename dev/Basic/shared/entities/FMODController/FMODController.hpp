@@ -27,8 +27,8 @@ public:
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
 	static FMODController* Instance();
-	bool StartService();
-	void StopService();
+	bool StartClientService();
+	void StopClientService();
 
 private:
 	// keep all children agents to communicate with it

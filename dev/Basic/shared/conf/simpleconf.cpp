@@ -395,7 +395,7 @@ bool loadXMLFMODController(TiXmlDocument& document)
 
 	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy);
 	sim_mob::FMOD::FMODController::Instance()->Settings(ipAddress, port, updateTiming);
-	sim_mob::FMOD::FMODController::Instance()->StartService();
+	sim_mob::FMOD::FMODController::Instance()->StartClientService();
 
 	return true;
 }

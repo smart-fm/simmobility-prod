@@ -22,18 +22,23 @@ public:
 	TCPServer(boost::asio::io_service& io_service,int port);
 	virtual ~TCPServer();
 public:
-  bool isClientConnect() { return connectionList.size()>0;}
+	bool IsClientConnect() { return connectionList.size()>0;}
+	void InsertAClient(boost::shared_ptr<TCPSession> connection);
+	void RemoveAClient(TCPSession* connection);
+	void Close();
 
 private:
+	std::vector<TCPSessionPtr> connectionList;
+	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::shared_mutex mutex;
+	int myPort;
 
-  std::vector<TCPSessionPtr> connectionList;
-  int myPort;
-  void start_accept();
-
-  void handle_accept(boost::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error);
-
-  boost::asio::ip::tcp::acceptor acceptor_;
+private:
+	void StartAccept();
+	void handle_accept(boost::shared_ptr<TCPSession> connection, const boost::system::error_code& error);
 };
+
+typedef boost::shared_ptr<TCPServer> TCPServerPtr;
 
 }
 

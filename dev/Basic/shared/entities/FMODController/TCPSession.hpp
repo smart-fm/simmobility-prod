@@ -17,14 +17,16 @@ namespace sim_mob {
 namespace FMOD
 {
 
+class TCPServer;
 class TCPSession : public boost::enable_shared_from_this<TCPSession> {
 public:
-	static boost::shared_ptr<TCPSession> create(boost::asio::io_service& io_service);
+	static boost::shared_ptr<TCPSession> create(boost::asio::io_service& io_service, TCPServer* parent=0);
 
-	TCPSession(boost::asio::io_service& io_service);
+	TCPSession(boost::asio::io_service& io_service, TCPServer* parent=0);
 	virtual ~TCPSession();
 	void pushMessage(std::string data);
 	void pushMessage(MessageList data);
+	void Flush();
 	MessageList popMessage();
 	boost::asio::ip::tcp::socket& socket();
 	bool ConnectToServer(std::string ip, int port);
@@ -42,6 +44,7 @@ private:
 	MessageQueue msgReceiveQueue;
 	std::string messageSnd;
 	boost::array<char, 1> ReceivedBuf;
+	TCPServer* parent;
 
 };
 

@@ -18,26 +18,54 @@ namespace FMOD
 TCPServer::TCPServer(boost::asio::io_service& io_service,int port)
 		: acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), myPort(port){
 	// TODO Auto-generated constructor stub
-	start_accept();
+	StartAccept();
 }
 
 TCPServer::~TCPServer() {
 	// TODO Auto-generated destructor stub
 }
 
-void TCPServer::start_accept()
+void TCPServer::Close()
 {
-	TCPSessionPtr new_connection = TCPSession::create(acceptor_.get_io_service());
-
-	acceptor_.async_accept(new_connection->socket(),
-								boost::bind(&TCPServer::handle_accept, this, new_connection,
-									boost::asio::placeholders::error));
+	acceptor_.close();
 }
 
-void TCPServer::handle_accept(boost::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error)
+
+void TCPServer::StartAccept()
 {
-	start_accept();
+	TCPSessionPtr connection = TCPSession::create(acceptor_.get_io_service());
+
+	acceptor_.async_accept(connection->socket(),
+						boost::bind(&TCPServer::handle_accept, this, connection, boost::asio::placeholders::error));
 }
+
+void TCPServer::handle_accept(boost::shared_ptr<TCPSession> connection, const boost::system::error_code& error)
+{
+	if( error== 0)
+	{
+		InsertAClient(connection);
+		StartAccept();
+	}
+}
+
+void TCPServer::InsertAClient(boost::shared_ptr<TCPSession> connection)
+{
+	//boost::unique_lock< boost::shared_mutex > lock(mutex);
+	connectionList.push_back(connection);
+}
+void TCPServer::RemoveAClient(TCPSession* connection)
+{
+	//boost::unique_lock< boost::shared_mutex > lock(mutex);
+	std::vector<TCPSessionPtr>::iterator it;
+	for(it=connectionList.begin(); it!=connectionList.end(); it++)
+	{
+		if((*it).get() == connection ){
+			connectionList.erase(it);
+			break;
+		}
+	}
+}
+
 
 }
 } /* namespace sim_mob */

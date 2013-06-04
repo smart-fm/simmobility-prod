@@ -183,6 +183,13 @@ def make_lane_connectors(rn):
             rn.turnings.append(simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
+#Helper for remembering incoming and outgoing Segments at a given Node.
+class InOut:
+  def __init__(self):
+    self.incoming = []
+    self.outgoing = []
+
+
 #Helper class for generating unique IDs
 class IdGenerator:
   def __init__(self, initVal): 

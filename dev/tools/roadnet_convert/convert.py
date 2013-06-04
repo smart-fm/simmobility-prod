@@ -215,10 +215,7 @@ def remove_unused_nodes(nodes, links):
     nodes[n.nodeId] = n
 
 
-class InOut:
-  def __init__(self):
-    self.incoming = []
-    self.outgoing = []
+
 
 
 def check_and_flip_and_scale(rn, flipMap):
@@ -320,57 +317,7 @@ def print_osm_format(rn):
 
 
 
-def print_old_format(rn):
-  #Open, start writing
-  f = open('out.txt', 'w')
-  f.write('("simulation", 0, 0, {"frame-time-ms":"100",})\n')
 
-  #Nodes
-  for n in rn.nodes.values():
-    f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (n.guid, n.pos.x, n.pos.y))
-
-  #Links, edges
-  for lk in rn.links.values():
-    #Write the link (and its forward segments)
-    fromId = rn.nodes[lk.fromNode].guid
-    toId = rn.nodes[lk.toNode].guid
-    f.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[' % (lk.guid, fromId, toId))
-    for e in lk.segments:
-      f.write('%d,' % e.guid)
-    f.write(']",})\n')
-
-    #Write the segments one-by-one
-    for e in lk.segments:
-      fromId = rn.nodes[e.fromNode].guid
-      toId = rn.nodes[e.toNode].guid
-      f.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (e.guid, lk.guid,(250*len(e.lanes)), len(e.lanes), fromId, toId))
-
-      #Lanes are somewhat more messy
-      #Note that "lane_id" here just refers to lane line 0, since lanes are grouped by edges in this output format. (Confusingly)
-      f.write('("lane", 0, %d, {"parent-segment":"%d",' % (e.lanes[0].guid, e.guid))
-
-      #Each lane component
-      i = 0
-      for l in e.lane_edges:
-        f.write('"lane-%d":"[' % (i))
-
-        #Lane lines are mildly more complicated, since we need lane *edge* lines.
-        for p in l.points:
-          f.write('(%d,%d),' % (p.x, p.y))
-        f.write(']",')
-        i+=1
-
-      #And finally
-      f.write('})\n')
-
-  #Write all Lane Connectors
-  currLC_id = 1
-  for lc in rn.turnings:
-    f.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, lc.fromSegment.guid, lc.fromLaneId, lc.toSegment.guid, lc.toLaneId))
-    currLC_id += 1
-
-  #Done
-  f.close()
 
 
 def write_xml_multinodes(f, nodes, links, lanes, turnings):
@@ -763,3 +710,55 @@ def make_lane_edges(rn):
         currEnd.rotateRight().scaleVectTo(halfW).translate()
         e.lane_edges.append(temp.LaneEdge([currStart.getPos(), currEnd.getPos()]))
 
+
+def print_old_format(rn):
+  #Open, start writing
+  f = open('out.txt', 'w')
+  f.write('("simulation", 0, 0, {"frame-time-ms":"100",})\n')
+
+  #Nodes
+  for n in rn.nodes.values():
+    f.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (n.guid, n.pos.x, n.pos.y))
+
+  #Links, edges
+  for lk in rn.links.values():
+    #Write the link (and its forward segments)
+    fromId = rn.nodes[lk.fromNode].guid
+    toId = rn.nodes[lk.toNode].guid
+    f.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[' % (lk.guid, fromId, toId))
+    for e in lk.segments:
+      f.write('%d,' % e.guid)
+    f.write(']",})\n')
+
+    #Write the segments one-by-one
+    for e in lk.segments:
+      fromId = rn.nodes[e.fromNode].guid
+      toId = rn.nodes[e.toNode].guid
+      f.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (e.guid, lk.guid,(250*len(e.lanes)), len(e.lanes), fromId, toId))
+
+      #Lanes are somewhat more messy
+      #Note that "lane_id" here just refers to lane line 0, since lanes are grouped by edges in this output format. (Confusingly)
+      f.write('("lane", 0, %d, {"parent-segment":"%d",' % (e.lanes[0].guid, e.guid))
+
+      #Each lane component
+      i = 0
+      for l in e.lane_edges:
+        f.write('"lane-%d":"[' % (i))
+
+        #Lane lines are mildly more complicated, since we need lane *edge* lines.
+        for p in l.points:
+          f.write('(%d,%d),' % (p.x, p.y))
+        f.write(']",')
+        i+=1
+
+      #And finally
+      f.write('})\n')
+
+  #Write all Lane Connectors
+  currLC_id = 1
+  for lc in rn.turnings:
+    f.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, lc.fromSegment.guid, lc.fromLaneId, lc.toSegment.guid, lc.toLaneId))
+    currLC_id += 1
+
+  #Done
+  f.close()

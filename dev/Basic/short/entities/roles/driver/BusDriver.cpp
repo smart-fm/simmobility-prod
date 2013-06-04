@@ -795,14 +795,14 @@ void sim_mob::BusDriver::IndividualBoardingAlighting_New(Bus* bus)
 
 	// determine the alighting and boarding frames, if allow_boarding_alighting_flag is true, no need to dertermined
 	if((!allow_boarding_alighting_flag) && (curr_frame % 50 != 0)) {// skip the case when (curr_frame % 50 == 0), one time determine the boarding and alighting frames
-		DetermineBoardingAlightingFrame(bus);// in default secs, keep determining the boarding and alighting frames, once determined, allow_boarding_alighting_flag is true
+		DetermineBoardingAlightingMS(bus);// keep determining the boarding and alighting frames, once determined, allow_boarding_alighting_flag is true
 	}
 	if(allow_boarding_alighting_flag) {
 		StartBoardingAlighting(bus);// can support boarding and alighting at the same time
 	}
 }
 
-void sim_mob::BusDriver::DetermineBoardingAlightingFrame(Bus* bus)
+void sim_mob::BusDriver::DetermineBoardingAlightingMS(Bus* bus)
 {
 	uint32_t curr_ms = params.now.ms();
 	int i = 0;

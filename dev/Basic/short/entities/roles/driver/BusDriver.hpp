@@ -63,19 +63,17 @@ public:
 	///if the bus goes to the destination passenger decides to board
 	void BoardingPassengers_Normal(Bus* bus);
 	// new boarding method
-	void IndividualBoardingAlighting_New(Bus* bus);// Yao Jin
-	void DetermineBoardingAlightingFrame(Bus* bus);// Yao Jin
-	void StartBoardingAlighting(Bus* bus);// Yao Jin
-	void resetBoardingAlightingVariables();// reset after leaving the BusStop, Yao Jin
+	// individual boarding and alighting(Yao Jin)
+	void IndividualBoardingAlighting_New(Bus* bus);
+	// determine boarding and alighting MS for possible boarding and alighting persons(Yao Jin)
+	void DetermineBoardingAlightingMS(Bus* bus);
+	// start boarding and alighting based on the boarding and alighting MS
+	// change passenger amount on the Bus(Yao Jin)
+	void StartBoardingAlighting(Bus* bus);
+	// reset some boarding and alighting variables after leaving the BusStop(Yao Jin)
+	void resetBoardingAlightingVariables();
 
     void AlightingPassengers(Bus* bus);
-
-    ///functions for passenger generation with distribution(version 1 implementation of passenger)
-    ///for generating passenger random passenger distribution at a bus stop by bus driver and calling boarding and alighting functions
-   /* double passengerGeneration(Bus* bus);
-	void Board_passengerGeneration(Bus* bus);
-	void Alight_passengerGeneration(Bus* bus);*/
-
 
 
    ///dwell time calculation module
@@ -85,8 +83,11 @@ public:
 	double getPositionX() const;
 	double getPositionY() const;
 
+	// get total waiting time at the BusStop
 	double getWaitTime_BusStop() { return BUS_STOP_WAIT_TIME; }
-	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_TIME = time; }// total waiting time at the BusSTop
+	// set total waiting time at the BusStop
+	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_TIME = time; }
+	// initialize Bus Path by BusTrip information
 	Vehicle* initializePath_bus(bool allocateVehicle);
 	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
 		return last_busStopRealTimes;
@@ -97,39 +98,60 @@ public:
 
 	double lastTickDistanceToBusStop;
 	bool demo_passenger_increase;
-	Shared<const BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
-	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
-	Shared<double> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
-	Shared<double> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
-	Shared<BusStop_RealTimes>* last_busStopRealTimes; // current BusStop real Times, convenient for reset
-	Shared<double> DwellTime_ijk; // set by BusDriver, reset once stop at any busStop
-	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
-	Shared<int> busstop_sequence_no; // set by BusDriver, has 0.1sec delay
-	Shared<std::string> lastVisited_Busline; //get bus line information
+	// can get some passenger count, passenger information and busStop information
+	Shared<const BusStop*> lastVisited_BusStop;
+	// last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
+	Shared<int> lastVisited_BusStopSequenceNum;
+	// set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
+	Shared<double> real_DepartureTime;
+	// set by BusDriver, reset once stop at any busStop
+	Shared<double> real_ArrivalTime;
+	// current BusStop real Times, convenient for reset
+	Shared<BusStop_RealTimes>* last_busStopRealTimes;
+	// set by BusDriver, reset once stop at any busStop
+	Shared<double> DwellTime_ijk;
+	// set by BusDriver(temporary), only needed by BusDriver
+	double dwellTime_record;
+	// set by BusDriver, has 0.1sec delay
+	Shared<int> busstop_sequence_no;
+	//get bus line information
+	Shared<std::string> lastVisited_Busline;
 	Shared<int> lastVisited_BusTrip_SequenceNo;
 	Shared<int> existed_Request_Mode;
 	Shared<double> waiting_Time;
 	double xpos_approachingbusstop,ypos_approachingbusstop;
-	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
+	// can be different for different pair<busLine_id,busTripRun_sequenceNum>
+	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;
 	bool first_busstop;
 	bool last_busstop;
 	bool passengerCountOld_display_flag;
 	size_t no_passengers_boarding;
 	size_t no_passengers_alighting;
 
-
-	bool allow_boarding_alighting_flag;// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined
-	std::vector<sim_mob::Person*> virtualBoarding_Persons;// a virtual queue, will be cleared after BusDriver leaves the BusStop
-	std::map<int, int> BoardingNum_Pos;// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent
-	std::map<int, int> AlightingNum_Pos;// record the AlightingNum_Pos map based on the passenger queue in the Bus
-	std::vector<uint32_t> boarding_MSs;// boarding_frames for possible boarding persons, cleared after leaving the BusStop
-	std::vector<uint32_t> alighting_MSs;// alighting_frames for possible alighting persons, cleared after leaving the BusStop
-	uint32_t first_boarding_alighting_ms;// the first frame and bus will start boarding and alighting
-	uint32_t last_boarding_alighting_ms;// the last frame and bus will leaves the BusStop
-	int boardingMS_offset;// temporary boardingMS offset for boarding queue erase purpose
-	int alightingMS_offset;// temporary alightingMS offset for passenger queue erase purpose
-	double BUS_STOP_HOLDING_TIME_SEC;// holdingtime
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// dwelltime(boarding and alighting time)
+	// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined(reset after BusDriver leaves the BusStop)
+	bool allow_boarding_alighting_flag;
+	// a tempoary boarding queue, will be cleared after BusDriver leaves the BusStop
+	std::vector<sim_mob::Person*> virtualBoarding_Persons;
+	// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
+	std::map<int, int> BoardingNum_Pos;
+	// record the AlightingNum_Pos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
+	std::map<int, int> AlightingNum_Pos;
+	// boarding_MSs for possible boarding persons, cleared after leaving the BusStop
+	std::vector<uint32_t> boarding_MSs;
+	// alighting_MSs for possible alighting persons, cleared after leaving the BusStop
+	std::vector<uint32_t> alighting_MSs;
+	// the first boarding and alighting MS where bus will start boarding and alighting, reset after leaving the BusStop
+	uint32_t first_boarding_alighting_ms;
+	// the last boarding and alighting MS and bus will leaves the BusStop, reset after leaving the BusStop
+	uint32_t last_boarding_alighting_ms;
+	// temporary boardingMS offset for boarding queue erase purpose, reset after leaving the BusStop
+	int boardingMS_offset;
+	// temporary alightingMS offset for passenger queue erase purpose, reset after leaving the BusStop
+	int alightingMS_offset;
+	// holdingtime SECS
+	double BUS_STOP_HOLDING_TIME_SEC;
+	// dwelltime(boarding and alighting time SECS)
+	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
 
 protected:
 	//Override the following behavior
@@ -137,9 +159,12 @@ protected:
 
 //Basic data
 private:
+	// total busStop list
 	std::vector<const BusStop*> busStops;
+	// waiting MS adding at the BusStop
 	double waitAtStopMS;
-	double BUS_STOP_WAIT_TIME;// total waiting time (can be holding time or dwelltime)
+	// total waiting time (can be holding time or dwelltime)
+	double BUS_STOP_WAIT_TIME;
 
 	//Serialization, not implemented
 #ifndef SIMMOB_DISABLE_MPI

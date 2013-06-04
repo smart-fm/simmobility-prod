@@ -26,6 +26,7 @@ class RNIndex:
     #List of all Lane connectors in the network.
     self.lane_connectors = {} #{nodeId => [LaneConnector]}
     self.lanes = {}    #{laneId => Lane}
+    self.segsAtNodes = {}  #{nodeId => [Segment,Segment]}
 
     #Now construct them.
     self.__build_index(rn)
@@ -44,6 +45,18 @@ class RNIndex:
             if not (sg.toNode in lane_connectors):
               lane_connectors[sg.toNode] = []
             lane_connectors[sg.toNode].append(lc)
+
+        #Index "segments at nodes"
+        fromId = sg.fromNode.nodeId
+        toId = sg.toNode.nodeId
+        if not (fromId in segsAtNodes):
+          segsAtNodes[fromId] = []
+        if not (toId in segsAtNodes):
+          segsAtNodes[toId] = []
+        segsAtNodes[fromId].append(sg)
+        segsAtNodes[toId].append(sg)
+
+
 
 
 class Node:

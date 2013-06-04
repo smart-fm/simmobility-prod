@@ -12,10 +12,10 @@ def parse(inFileName :str) -> sumo.RoadNetwork:
   rootNode = objectify.parse(inFile)
 
   #All Nodes
-  zone = None #Ensure we stay in the same zone for all points.
+  #zone = None #Ensure we stay in the same zone for all points.
   nodeTags = rootNode.xpath('/osm/node')
   for n in nodeTags:
-    zone = __parse_nodes_osm(n, rn, zone)
+    __parse_nodes_osm(n, rn)
 
   #All Ways
   wayTags = rootNode.xpath("/osm/way")
@@ -28,16 +28,17 @@ def parse(inFileName :str) -> sumo.RoadNetwork:
   return rn
 
 
-def __parse_node_osm(n, rn, zone):
+def __parse_node_osm(n, rn):
     #Nodes are slightly complicated by the fact that they use lat/long.
-    projected,zone = project_wgs84(n.get('lat'), n.get('lon'), zone)  #Returns a point
+    #NOTE: This is done in "convert"
+    #projected,zone = project_wgs84(n.get('lat'), n.get('lon'), zone)  #Returns a point
 
     #Add a new Node
-    res = osm.Node(n.get('id'), projected.x, projected.y)
+    res = osm.Node(n.get('id'), n.get('lat'), n.get('lon'))
     rn.nodes[res.nodeId] = res
 
     #Return the zone, for reference
-    return zone
+    #return zone
 
 
 def __parse_way_osm(wy, rn, global_id):

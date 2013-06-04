@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+'''This program converts a SUMO traffic network to Sim Mobility format (this includes 
+   flipping the network for driving on the left).
+   Note: Run SUMO like so:
+     ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
+'''
+
 import sys
 import math
 from lxml import objectify
@@ -14,13 +20,6 @@ from geo.formats import temp
 
 #This line will fail to parse if you are using Python2 (that way at least we fail early).
 def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
-
-
-#This program converts a SUMO traffic network to Sim Mobility format (this includes 
-# flipping the network for driving on the left).
-#Note: Run SUMO like so:
-#   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
-
 
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
@@ -140,6 +139,20 @@ def parse_nodes_osm(n, nodes):
     nodes[res.nodeId] = res
 
 
+def parse_all_osm(rootNode, rn):
+  #All nodes
+  nodeTags = rootNode.xpath('/osm/node')
+  for n in nodeTags:
+    parse_nodes_osm(n, rn.nodes)
+
+  #All links
+  linksTags = rootNode.xpath("/osm/way")
+  globalIdCounter = 1000 #For edges
+  for lk in linksTags:
+    globalIdCounter = parse_link_osm(lk, rn.nodes, rn.links, rn.lanes, globalIdCounter)
+
+
+
 def remove_unused_nodes(nodes, links):
   #This function counts the number of Segments which reference a Node. If it's zero, that 
   # Node is pruned. Else, it's marked as a uni/multi Node based on count.
@@ -215,9 +228,6 @@ def remove_unused_nodes(nodes, links):
     nodes[n.nodeId] = n
 
 
-
-
-
 def check_and_flip_and_scale(rn, flipMap):
   #Save the maximum X co-ordinate, minimum Y
   maxX = None
@@ -261,43 +271,6 @@ def check_and_flip_and_scale(rn, flipMap):
       else:
         p.x = (-minX + p.x) * 100
       p.y = (-minY + p.y) * 100
-
-
-
-
-
-#Sim Mobility doesn't strictly require globally unique IDs, but they make debugging easier
-#  (and may be related to a glitch in the StreetDirectory).
-def assign_unique_ids(rn, currId):
-  for n in rn.nodes.values():
-    n.guid = currId
-    currId += 1
-  for lk in rn.links.values():
-    lk.guid = currId
-    currId += 1
-    for e in lk.segments:
-      e.guid = currId
-      currId += 1
-  for l in rn.lanes.values():
-    l.guid = currId
-    currId += 1
-
-
-
-
-
-
-def parse_all_osm(rootNode, rn):
-  #All nodes
-  nodeTags = rootNode.xpath('/osm/node')
-  for n in nodeTags:
-    parse_nodes_osm(n, rn.nodes)
-
-  #All links
-  linksTags = rootNode.xpath("/osm/way")
-  globalIdCounter = 1000 #For edges
-  for lk in linksTags:
-    globalIdCounter = parse_link_osm(lk, rn.nodes, rn.links, rn.lanes, globalIdCounter)
 
 
 
@@ -752,3 +725,20 @@ def write_xml_lanes(f, lanes, est_width):
     f.write('                  </PolyLine>\n')
     f.write('                </Lane>\n')
 
+
+
+#Sim Mobility doesn't strictly require globally unique IDs, but they make debugging easier
+#  (and may be related to a glitch in the StreetDirectory).
+def assign_unique_ids(rn, currId):
+  for n in rn.nodes.values():
+    n.guid = currId
+    currId += 1
+  for lk in rn.links.values():
+    lk.guid = currId
+    currId += 1
+    for e in lk.segments:
+      e.guid = currId
+      currId += 1
+  for l in rn.lanes.values():
+    l.guid = currId
+    currId += 1

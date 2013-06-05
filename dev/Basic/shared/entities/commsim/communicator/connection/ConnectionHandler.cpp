@@ -14,7 +14,7 @@ ConnectionHandler::ConnectionHandler(
 		session_ptr session_ ,
 		Broker& broker,
 		messageReceiveCallback callback,
-		unsigned int clientID_,
+		std::string clientID_,
 		unsigned int ClienType_ ,
 		unsigned long int agentPtr_
 		):theBroker(broker), receiveCallBack(callback)

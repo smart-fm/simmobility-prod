@@ -39,7 +39,7 @@ public:
 	}
 };
 }//namespace comm
-//todo do simething here. the following std::string is spoiling messge's templatization benefits
+//todo do something here. the following std::string is spoiling messge's templatization benefits
 typedef boost::shared_ptr<sim_mob::comm::Message<std::string> > msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
 
 }//namespace sim_mob

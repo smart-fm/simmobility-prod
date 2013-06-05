@@ -65,48 +65,62 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 {
 	std::vector<msg_ptr> result;
 	std::string type, data;
-	Json::Value root_;
-	sim_mob::JsonParser::getMessageTypeAndData(input, type, data, root_);
-	boost::shared_ptr<sim_mob::roadrunner::RoadrunnerMessage> msg;
-//	std::vector<msg_ptr >msg;
-	bool success = true;
-	switch(MessageMap[type])
+	Json::Value root;
+	pckt_header packetHeader;
+	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
 	{
-	case ANNOUNCE:
-		//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
-		//no need to parse the message much:
-		//just update its x,y location, then forward it to nearby agents
+		return false;
+	}
+	if(!sim_mob::JsonParser::getPacketMessages(input,root))
+	{
+		return false;
+	}
+	for (int index = 0; index < root.size(); index++) {
+		msg_header messageHeader;
+		std::string  msgStr =  /*const_cast<std::string&>*/(root[index].asString());
+		if (!sim_mob::JsonParser::parseMessageHeader(msgStr, messageHeader)) {
+			continue;
+		}
 
-		//create a message
-		msg.reset(new sim_mob::roadrunner::MSG_ANNOUNCE(data));
-		//... and then assign the handler pointer to message's member
-		msg->setHandler(getHandler(ANNOUNCE));
-		result.push_back(msg);
-		break;
+		switch (MessageMap[messageHeader.msg_type]) {
+		case ANNOUNCE:{
+			//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
+			//no need to parse the message much:
+			//just update its x,y location, then forward it to nearby agents
 
-	case KEY_REQUEST:
-		//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
-		//just extract the receiver and forward the string to it without modifications
-		//create a message
-		msg.reset(new sim_mob::roadrunner::MSG_KEY_REQUEST(data));
-		//... and then assign the handler pointer to message's member
-		break;
-	case KEY_SEND:
-		msg.reset(new sim_mob::roadrunner::MSG_KEY_SEND(data));
-		break;
-	default:
-		success = false;
-		WarnOut("RR_Factory::createMessage() - Unhandled message type.");
+			//create a message
+			msg_ptr msg(new sim_mob::roadrunner::MSG_ANNOUNCE(msgStr));
+			//... and then assign the handler pointer to message's member
+			msg->setHandler(getHandler(ANNOUNCE));
+			output.push_back(msg);
+			break;
+		}
+
+		case KEY_REQUEST:{
+			//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
+			//just extract the receiver and forward the string to it without modifications
+
+			//create a message
+			msg_ptr msg(new sim_mob::roadrunner::MSG_KEY_REQUEST(msgStr));
+			//... and then assign the handler pointer to message's member
+			msg->setHandler(getHandler(KEY_REQUEST));
+			output.push_back(msg);
+			break;
+		}
+		case KEY_SEND:{
+			//create a message
+			msg_ptr msg(new sim_mob::roadrunner::MSG_KEY_SEND(msgStr));
+			//... and then assign the handler pointer to message's member
+			msg->setHandler(getHandler(KEY_SEND));
+			output.push_back(msg);
+			break;
+		}
+		default:
+			WarnOut("RR_Factory::createMessage() - Unhandled message type.");
 //		//todo replace properly
 //		std::cout<<"RR_Factory::createMessage() - Unhandled message type." << std::endl;
-	}
-
-	if(success)
-	{
-		msg->setHandler(getHandler(MessageMap[type]));
-		result.push_back(msg);
-	}
-
+		}
+	}		//for loop
 
 	return true;
 }

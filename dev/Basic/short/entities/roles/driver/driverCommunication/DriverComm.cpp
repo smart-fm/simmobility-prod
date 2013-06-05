@@ -95,12 +95,13 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 void DriverComm::frame_init(UpdateParams& p) {
 	Driver::frame_init(p);
 //	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
-	subscribed = subscribe(this->parent, this->communicator);
+	Register(this->parent, this->communicator);
 }
 ;
 void DriverComm::frame_tick(UpdateParams& p) {
 
 	Driver::frame_tick(p);
+	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
 //	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
 //	{
 //		sendModule(p.now);
@@ -109,6 +110,11 @@ void DriverComm::frame_tick(UpdateParams& p) {
 ////	{
 //		receiveModule(p.now);
 ////	}
+//	if(!registered)
+//	{
+//		return;
+//	}
+//	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
 	setAgentUpdateDone(true);
 
 }

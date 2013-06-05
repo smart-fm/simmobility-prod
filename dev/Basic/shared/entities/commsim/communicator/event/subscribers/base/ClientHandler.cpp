@@ -18,8 +18,8 @@ sim_mob::Broker &ClientHandler::getBroker()
 	return broker;
 }
 
-void ClientHandler::OnLocation(EventId id, EventPublisher* sender, const LocationEventArgs& args){
-	 std::string locJson = args.ToJSON();
+void ClientHandler::OnLocation(EventId id, Context context, EventPublisher* sender, const LocationEventArgs& argums){
+	 std::string locJson = argums.ToJSON();
    sim_mob::DataElement data = sim_mob::makeDataElement(cnnHandler, locJson);
    //now send to broker's buffer
    getBroker().insertSendBuffer(data);

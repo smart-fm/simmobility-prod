@@ -56,8 +56,8 @@ public:
 	agentUpdateDone(false),
 	cnt_1(0), cnt_2(0),type(0)
 {
-	subscribed = false;
-	subscriptionCallback = &JCommunicationSupport::setSubscribed;
+	registered = false;
+	registrationCallback = &JCommunicationSupport::registrationCallBack;
 }
 ;
 	virtual ~JCommunicationSupport(){};
@@ -77,28 +77,29 @@ private:
 	std::string agentIdentification;
 	sim_mob::Agent &entity;//the entity this class is actually referring to
 	//future use:
-	unsigned int type;//do you want to subscribe as a pedestrian, driver,....
+	unsigned int type;//do you want to register as a pedestrian, driver,....
 
 protected:
 	sim_mob::Broker& communicator;
 
 
 public:
-	bool subscribed;
-	void (JCommunicationSupport::*subscriptionCallback)(bool);
+	bool registered;
+	void (JCommunicationSupport::*registrationCallback)(bool,std::vector<boost::shared_ptr<boost::shared_mutex> > &);
 	//general purpose counter
 	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
 	int cnt_2;
 	boost::shared_mutex CommSupp_Mutex;
 	std::vector<boost::shared_ptr<boost::shared_mutex> > Broker_Mutexes;
 //	subscriptionInfo getSubscriptionInfo();
-	void setSubscribed(bool value)
+	void setregistered(bool value)
 	{
-		subscribed = value;
+		registered = value;
 	};
 	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value)
 	{
 		Broker_Mutexes = value;
+//		Print() << "COMM::setMutexes=>Broker Mutexes : " << Broker_Mutexes[0] << " " << Broker_Mutexes[1] << " " << Broker_Mutexes[2] << std::endl;
 	};
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	BufferContainer<T>& getIncoming() {
@@ -123,29 +124,6 @@ public:
 		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
 		return incoming.pop(var);
 	};
-////	void setOutgoing(BufferContainer value); we are now writing directly to communicator buffer so this function is dangerous
-//	void addIncoming(T value);
-//	void addOutgoing(T value);
-//
-//	void setwriteIncomingDone(bool value);
-//	void setWriteOutgoingDone(bool value);
-//	void setAgentUpdateDone(bool value);
-//	bool &iswriteIncomingDone();
-//	bool &isreadOutgoingDone();
-//	bool &isAgentUpdateDone();
-//	bool &isOutgoingDirty();
-//	bool &isIncomingDirty();
-//
-//
-//	void init();
-//	void reset();
-//	//this is used to subscribe the drived class
-//	//(which is also an agent) to the communicator agent
-//	virtual bool subscribe(sim_mob::Agent* subscriber,sim_mob::Broker &communicator);
-//	virtual const sim_mob::Agent& getEntity();
-
-
-
 
 void addIncoming(T value) {
 		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
@@ -228,17 +206,26 @@ void addIncoming(T value) {
 
 	}
 
-	//this is used to subscribe the drived class
+	//this is used to register the drived class
 	//(which is also an agent) to the communicator agent
 
-	bool subscribe(sim_mob::Agent* subscriber, sim_mob::Broker &communicator)
+	bool Register(sim_mob::Agent* registerr, sim_mob::Broker &communicator)
 	{
 //		//todo here you are copying twice while once is possibl, I guess.
 //		subscriptionInfo info = getSubscriptionInfo();
-//		info.setEntity(subscriber);
+//		info.setEntity(registerr);
 
-		return communicator.subscribeEntity(this);
-//		std::cout << "agent[" << &getEntity() << "] was subscribed with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+		return communicator.registerEntity(this);
+//		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
+	}
+
+	void registrationCallBack(bool result, std::vector<boost::shared_ptr<boost::shared_mutex> > &Broker_Mutexes_)
+	{
+//		Print() << "COMM::registrationCallBack=>Broker Mutexes : " << Broker_Mutexes_[0] << " " << Broker_Mutexes_[1] << " " << Broker_Mutexes_[2] << std::endl;
+		if(result)
+		{
+			setMutexes(Broker_Mutexes_);
+		}
 	}
 
 	const sim_mob::Agent& getEntity()

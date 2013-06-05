@@ -110,12 +110,13 @@ public:
       try
       {
     	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
-    	  std::cout << "inbound_data_[" << archive_data << "]" << std::endl;
+//    	  std::cout << "inbound_data_[" << archive_data << "]" << std::endl;
     	  input = archive_data;
       }
       catch (std::exception& e)
       {
         // Unable to decode data.
+    	std::cout << "Something wrong in the handle_read_data" << std::endl;
         boost::system::error_code error(boost::asio::error::invalid_argument);
         boost::get<0>(handler)(error);
         return;

@@ -27,14 +27,16 @@ class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler
 	std::string incomingMessage;
 public:
 	//metadata
-	unsigned int clientID, agentPtr, clientType;//some of such data is duplicated in the broker client list entries
+	//some of such data is duplicated in the broker client list entries
+	unsigned int agentPtr,clientType;
+	std::string clientID;
 	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
 	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(
 			boost::shared_ptr<Session> session_ ,
 			Broker& broker,
 			messageReceiveCallback callback,
-			unsigned int clientID_ = 0,
+			std::string clientID_ = 0,
 			unsigned int ClienType_ = 0,
 			unsigned long int agentPtr_ = 0l
 			);

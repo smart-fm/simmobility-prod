@@ -50,7 +50,8 @@ private:
 	ClientList clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
 	PublisherList publishers;
-	static const unsigned int MIN_CLIENTS = 1; //minimum number of subscribed clients
+	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
+	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
 	sim_mob::BufferContainer<sim_mob::DataElement> sendBuffer;//apparently useless for this demo
 	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
 	/*
@@ -64,12 +65,13 @@ private:
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 
-	bool deadEntityCheck(sim_mob::JCommunicationSupport<std::string> & info);
+	bool deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info);
 	void refineSubscriptionList();
 	///Returns true if enough subscriptions exist to allow the broker to update.
 	bool subscriptionsQualify() const;
 	///Returns true if enough clients exist to allow the broker to update.
 	bool clientsQualify() const;
+	bool brokerCanProceed()const;
 
 public:
 	boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
@@ -89,9 +91,10 @@ public:
 	bool allAgentUpdatesDone();
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
 
-	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutex();
-	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutexSend();
-	inline boost::shared_ptr<boost::shared_mutex> getBrokerMutexReceive();
+	boost::shared_ptr<boost::shared_mutex> getBrokerMutex();
+	boost::shared_ptr<boost::shared_mutex> getBrokerMutexSend();
+	boost::shared_ptr<boost::shared_mutex> getBrokerMutexReceive();
+	std::vector<boost::shared_ptr<boost::shared_mutex > > & getBrokerMutexCollection();
 	boost::shared_ptr<boost::mutex> getBrokerClientMutex();
 	//set to true when there are enough number of subscribers
 	//this is used by the Broker to
@@ -99,7 +102,7 @@ public:
 	//-process in/out messages
 	//-block the update function and wait for enough number of agents&clients to register
 	//-return from update() in order not to block &disturb the simulation
-	bool brokerInOperation;
+	bool brokerCanTickForward;//used to help deciding whether Broker tick forward or block the simulation
 
 
 	void processPublishers(timeslice now);
@@ -120,8 +123,8 @@ public:
 	//assign a client from clientList to an agent in the agentList
 //	void assignClient(sim_mob::Entity *agent, std::pair<unsigned int,boost::shared_ptr<sim_mob::Session>> client);
 
-	bool subscribeEntity(sim_mob::JCommunicationSupport<std::string> * );
-	void unRegisterEntity(sim_mob::JCommunicationSupport<std::string> &value);
+	bool registerEntity(sim_mob::JCommunicationSupport<std::string> * );
+	void unRegisterEntity(sim_mob::JCommunicationSupport<std::string> *value);
 	void unRegisterEntity(const sim_mob::Agent * agent);
 
 protected:

@@ -8,6 +8,7 @@
 #include "ConnectionServer.hpp"
 #include "Session.hpp"
 #include "WhoAreYouProtocol.hpp"
+#include "logging/Log.hpp"
 namespace sim_mob {
 
 void ConnectionServer::handleNewClient(session_ptr sess)
@@ -70,9 +71,12 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 	unsigned int type;
 	session_ptr session_;
 	boost::unique_lock< boost::mutex > lock(*Broker_Client_Mutex);//todo remove comment
-	clientRegistrationWaitingList.insert(std::make_pair(request.client_type, request));
+	std::pair<std::string,ClientRegistrationRequest > p(request.client_type, request);
+	clientRegistrationWaitingList.insert(p);
+	ClientWaitList::iterator it = clientRegistrationWaitingList.begin();
+	Print() << it->second.session_.get() << std::endl;
 	COND_VAR_CLIENT_REQUEST->notify_one();
-	std::cout << " RequestClientRegistration Done, returning" << std::endl;
+//	std::cout << " RequestClientRegistration Done, returning" << std::endl;
 }
 
 void ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr sess) {

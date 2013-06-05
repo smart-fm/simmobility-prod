@@ -42,7 +42,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 mutex_collection.push_back(Broker_Mutex_Send);
 	 mutex_collection.push_back(Broker_Mutex_Receive);
 	 sendBuffer.setOwnerMutex(Broker_Mutex_Send);
-	 brokerInOperation = false;
+	 brokerCanTickForward = false;
 
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 //publishers
@@ -92,6 +92,12 @@ boost::shared_ptr<boost::shared_mutex> Broker::getBrokerMutexReceive()
 	return Broker_Mutex_Receive;
 }
 
+std::vector<boost::shared_ptr<boost::shared_mutex > > & Broker::getBrokerMutexCollection()
+{
+	return mutex_collection;
+}
+
+
 boost::shared_ptr<boost::mutex>  Broker::getBrokerClientMutex()
 {
 	return Broker_Client_Mutex;
@@ -112,34 +118,47 @@ PublisherList & Broker:: getPublishers()
 
 void Broker::processClientRegistrationRequests()
 {
-	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+//	Print() << "Processing ClientRegistrationRequests(" << clientRegistrationWaitingList.size() << std::endl;
+//	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+//	Print() << "Processing ClientRegistrationRequests after Mutex" << std::endl;
+	boost::shared_ptr<ClientRegistrationHandler > handler;
 	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
 	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;/*no ++ here */  )
 	{
-		boost::shared_ptr<ClientRegistrationHandler > handler = clientRegistrationFactory.getHandler((ClientType)(it->first));
+//		Print() << "Processing ClientRegistrationRequests in loop" << std::endl;
+		handler.reset();
+		handler = clientRegistrationFactory.getHandler((ClientTypeMap[it->first]));
 		if(handler->handle(*this,it->second))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//get this request out of registration list.
 			it_erase =  it++;//keep the erase candidate. dont loose it :)
 			clientRegistrationWaitingList.erase(it_erase) ;
+			//note: if needed,remember to do the necessary work in the
+			//corresponding agent w.r.t the result of handle()
+			//do this through a callback to agent's reuest
 		}
 		else
 		{
 			it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
 		}
 	}
+//	Print() << "Processing ClientRegistrationRequests Done" << std::endl;
 }
 
-bool  Broker::subscribeEntity(sim_mob::JCommunicationSupport<std::string>* value)
+bool  Broker::registerEntity(sim_mob::JCommunicationSupport<std::string>* value)
 {
+	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
+	//is established. That feed back will be done through agent's registrationCallBack()
+	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
+	value->registrationCallBack(true,mutex_collection);
 	return true;
 }
 
-void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport<std::string> &value)
+void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport<std::string> *value)
 {
-	unRegisterEntity(&value.getEntity());
+	unRegisterEntity(&value->getEntity());
 }
 
 void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
@@ -194,19 +213,41 @@ Entity::UpdateStatus Broker::frame_tick(timeslice now){
 
 bool Broker::allAgentUpdatesDone()
 {
+	Print() << "-------------------allAgentUpdatesDone " << registeredAgents.size() << " -------------------" << std::endl;
+
 //	boost::unique_lock< boost::shared_mutex > lock(*NS3_Communicator_Mutex);
-	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end());
+	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
 
-	for(; it != it_end; it++)
+	int i = 0;
+	while(it != it_end)
 	{
-
-			sim_mob::JCommunicationSupport<std::string> &info = *(it->second);//easy read
+		Print() << "Broker::allAgentUpdatesDone::loop=> " << i << std::endl;
+		sim_mob::JCommunicationSupport<std::string> *info = (it->second);//easy read
 			try
 			{
-				if (info.isAgentUpdateDone())
+				if(!info->registered)
+				{
+					//these agents are not actually participating, just get past them
+					boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutex, boost::try_to_lock);
+					if(!lock)
+					{
+						int i = 0;
+					}
+					duplicateEntityDoneChecker.insert(it->first);
+					Print() << "Agent " << it->first << " gets a pass" << std::endl;
+					it++;
+					continue;
+				}
+				else
+				if (info->isAgentUpdateDone())
 				{
 					boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutex);
+					Print() << "Agent " << it->first << " gets a pass##" << std::endl;
 					duplicateEntityDoneChecker.insert(it->first);
+				}
+				else
+				{
+					Print() << "Agent is registered but its update not done : " <<  it->first << std::endl;
 				}
 			}
 			catch(std::exception& e)
@@ -214,13 +255,20 @@ bool Broker::allAgentUpdatesDone()
 				Print() << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
 				{
+//					Print()<< "Unregistering Agent " << &info->getEntity() << std::endl;
+					it++;
 					unRegisterEntity(info);
+					continue;
 				}
 				else
 					throw std::runtime_error("Unknown Error checking entity");
 			}
+			it++;
 	}
-	return(duplicateEntityDoneChecker.size() >= registeredAgents.size());
+	bool res = (duplicateEntityDoneChecker.size() >= registeredAgents.size());
+	Print() << "\nallAgentUpdatesDone=> " << registeredAgents.size() << " " << duplicateEntityDoneChecker.size() << std::endl;
+	Print() << "---------------------------------------------------------------" << std::endl;
+	return res;
 }
 
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
@@ -254,8 +302,7 @@ void Broker::processPublishers(timeslice now) {
 					continue;
 				}
 				//get the agent id, it is used as context id
-				publisher.Publish(COMMEID_LOCATION,(void*) client.second->agent,
-						LocationEventArgs(client.second->agent));
+				publisher.Publish(COMMEID_LOCATION,(void*) client.second->agent,LocationEventArgs(client.second->agent));
 			}
 			break;
 		}
@@ -301,22 +348,24 @@ void Broker::processOutgoingData(timeslice now)
 }
 
 //checks to see if the subscribed entity(agent) is alive
-bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> & info) {
-//	//some top notch optimizasion! to check if the agent is alive at all?
+bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info) {
 //	info.cnt_1++;
 //	if (info.cnt_1 < 1000)
 //		return false;
-	//you or your worker are probably dead already. you just don't know it
+	if(!info)
+	{
+		throw std::runtime_error("Invalid JCommunicationSupport\n");
+	}
 	try {
 
-		if (!(info.getEntity().currWorker)) {
+		if (!(info->getEntity().currWorker)) {
 			Print() << "currWorker dead" << std::endl;
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info.getEntity().currWorker->getEntities();
+				info->getEntity().currWorker->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
@@ -326,7 +375,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> & info)
 		for (std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
-			if (*it == &(info.getEntity()))
+			if (*it == &(info->getEntity()))
 				return false;
 		}
 	} catch (std::exception& e) {
@@ -369,18 +418,22 @@ void Broker::refineSubscriptionList() {
 //todo:  put a better condition here. this is just a placeholder
 bool Broker::subscriptionsQualify() const
 {
-	return clientList.size() >= MIN_CLIENTS;
+	return registeredAgents.size() >= MIN_AGENTS;
 }
 //todo:  put a better condition here. this is just a placeholder
 bool Broker::clientsQualify() const
 {
 	return clientList.size() >= MIN_CLIENTS;
 }
-
+bool Broker::brokerCanProceed() const
+{
+	return (subscriptionsQualify() && clientsQualify());
+}
 bool Broker::waitForClients()
 {
-	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
 
+	boost::unique_lock<boost::mutex> lock(*Broker_Client_Mutex);
+	processClientRegistrationRequests();
 	/**if:
 	 * 1- number of subscribers is too low
 	 * 2-there is no client(emulator) waiting in the queue
@@ -388,20 +441,22 @@ bool Broker::waitForClients()
 	 * then:
 	 *  wait for enough number of clients and agents to join
 	 */
-	while(!(subscriptionsQualify() && clientsQualify() && brokerInOperation)) {
+	while(!(/*brokerCanProceed() && */brokerCanTickForward)) {
+		Print()<< "Broker Blocking" << std::endl;
 		COND_VAR_CLIENT_REQUEST->wait(lock);
+//		Print()<< "Broker notified, processing Client Registration" << std::endl;
 		processClientRegistrationRequests();
-//		processEntityWaitingList();
+		if(brokerCanProceed())
+		{
+			//now that you are qualified(have enough number of subscribers), then
+			//you are considered to authorize ticking through rather than BLOCKING.
+			brokerCanTickForward = true;
+		}
 	}
+	Print()<< "Broker NOT Blocking" << std::endl;
 
-	//now that you are qualified(have enough number of subscribers), then
-	//you are considered to have already started operating.
-	if(subscriptionsQualify()) {
-		brokerInOperation = true;
-	}
-
-	//broker started before but is no more qualified to run
-	if(brokerInOperation && (!subscriptionsQualify())) {
+	//broker started before but suddenly is no more qualified to run
+	if(brokerCanTickForward && (!subscriptionsQualify())) {
 		//don't block, just cooperate & don't do anything until this simulation ends
 		//TODO: This might be why our client eventually gives up.
 		return false;
@@ -413,7 +468,9 @@ bool Broker::waitForClients()
 
 void Broker::waitForUpdates()
 {
+	int i = 0;
 	while(!allAgentUpdatesDone()) {
+		Print() << "allAgentUpdatesDone=> " << i << std::endl;
 		refineSubscriptionList();
 	}
 }
@@ -425,6 +482,7 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	if(now.frame() == 0) {
 		connection->start();
 	}
+	Print() << "Broker tick:"<< now.frame() << " - after connection start" << std::endl;
 
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
@@ -432,21 +490,30 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	if (!waitForClients()) {
 		return UpdateStatus(UpdateStatus::RS_CONTINUE);
 	}
+	Print() << "Broker tick:"<< now.frame() << " - after waitForClients" << std::endl;
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
+	Print() << "Broker tick:"<< now.frame() << " - after processIncomingData" << std::endl;
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
+//	if(now.frame() == 105)
+//	{
+//		int i = 0;
+//	}
 	waitForUpdates();
+	Print() << "Broker tick:"<< now.frame() << " - after waitForUpdates" << std::endl;
 	//step-5: signal the publishers to publish their data
 	processPublishers(now);
+	Print() << "Broker tick:"<< now.frame() << " - after processPublishers" << std::endl;
 
 	//step-6: Now send what has been prepared by different sources to their corresponding destications(clients)
-	processOutgoingData(now);
+//	processOutgoingData(now);
+	Print() << "Broker tick:"<< now.frame() << " - after processOutgoingData" << std::endl;
 
 	//step-7: final steps that should be taken before leaving the tick
-	//this method may have already been called through waitForClients()
-	//we just see if anything is left off
-	processClientRegistrationRequests();
+//	//this method may have already been called through waitForClients()
+//	//we just see if anything is left off
+//	processClientRegistrationRequests();
 	//prepare for next tick.
 	duplicateEntityDoneChecker.clear();
 //	return proudly

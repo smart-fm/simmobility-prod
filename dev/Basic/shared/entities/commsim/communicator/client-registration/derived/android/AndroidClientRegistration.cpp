@@ -10,6 +10,7 @@
 #include "entities/commsim/communicator/connection/ConnectionHandler.hpp"
 #include "entities/commsim/communicator/service/base/Publisher.hpp"
 #include "entities/commsim/communicator/broker/Common.hpp"
+#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
 namespace sim_mob {
 
 AndroidClientRegistration::AndroidClientRegistration(/*ClientType type_) : ClientRegistrationHandler(type_*/){
@@ -19,7 +20,7 @@ AndroidClientRegistration::AndroidClientRegistration(/*ClientType type_) : Clien
 
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
 {
-	boost::unique_lock< boost::mutex > lock(*broker.getBrokerClientMutex());
+//	boost::unique_lock< boost::mutex > lock(*broker.getBrokerClientMutex());
 	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
@@ -92,7 +93,13 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 		//add this agent to the list of the agents who are associated with a android emulator client
 		usedAgents.insert( *freeAgent);
+		//tell the agent you are registered
+//		Print() << "AndroidClientRegistration::handle=>Broker Mutexes : " << broker.getBrokerMutexCollection()[0] << " " << broker.getBrokerMutexCollection()[1] << " " << broker.getBrokerMutexCollection()[2] << std::endl;
+		std::vector<boost::shared_ptr<boost::shared_mutex > > & mutexes = broker.getBrokerMutexCollection();
+//		Print() << "AndroidClientRegistration::handle=>       mutexes : " << broker.getBrokerMutexCollection()[0] << " " << broker.getBrokerMutexCollection()[1] << " " << broker.getBrokerMutexCollection()[2] << std::endl;
 
+		freeAgent->second->setregistered(true);
+		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
 		return true;
 }
 AndroidClientRegistration::~AndroidClientRegistration() {

@@ -48,7 +48,12 @@ BufferContainer& operator=(BufferContainer& other)
 
 
 void add(T value) {
-	boost::unique_lock< boost::shared_mutex > lock(*Owner_Mutex);
+
+	boost::unique_lock< boost::shared_mutex > lock(*Owner_Mutex, boost::try_to_lock);
+	if(!lock)
+	{
+		int i =0;
+	}
 	buffer.push_back(value);
 }
 

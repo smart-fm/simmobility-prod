@@ -24,7 +24,7 @@ public:
 	WhoAreYouProtocol(boost::shared_ptr<Session> sess_, ConnectionServer &);
 	void start();
 	bool isDone();
-	void getTypeAndID(std::string &input, unsigned int & out_type, unsigned int & out_ID);
+//	void getTypeAndID(std::string &input, std::string & out_type, std::string & out_ID);
 	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string, boost::shared_ptr<Session>);
 	std::string response; //json string containing ID & type of the client
 private:

@@ -11,6 +11,7 @@
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
@@ -153,7 +154,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		    int x = boost::lexical_cast<int>( lanepointer->second );
 		    laneID = x;
 		} catch( boost::bad_lexical_cast const& ) {
-		    std::cout << "Error: input string was not valid" << std::endl;
+		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
 

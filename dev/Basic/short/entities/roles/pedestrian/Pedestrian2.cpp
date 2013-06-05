@@ -132,83 +132,85 @@ UpdateParams& sim_mob::Pedestrian2::make_frame_tick_params(timeslice now)
 
 
 //Main update method
+//=======
 //void sim_mob::Pedestrian2::frame_tick(UpdateParams& p)
 //{
-////	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
-////
-////	//Is this the first frame tick?
-////	if (p2.skipThisFrame) {
-////		return;
-////	}
-////
-////	double vel = 0;
-////
-////	int signalGreen = 3;
-////	signalGreen = sim_mob::Green; //Green by default
-////
-////#if 0
-////	signalGreen = Signal::Green; //Green by default
-////#endif
-////	if(pedMovement.isAtCrossing()){
-////		//Check whether to start to cross or not
-////		updatePedestrianSignal();
-////
-////		if (sigColor == signalGreen) //Green phase
-////			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
-////		else
-////			vel = 0;
-////	}
-////	else {
-////		if (!pedMovement.isDoneWithEntireRoute())
-////			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
-////		else
-////		{
-////			parent->setToBeRemoved();
-////		}
-////	}
-////
-////		pedMovement.advance(vel);
-////
-////		parent->xPos.set(pedMovement.getPosition().x);
-////		parent->yPos.set(pedMovement.getPosition().y);
+//	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
+//
+//	//Is this the first frame tick?
+//	if (p2.skipThisFrame) {
+//		return;
+//	}
+//
+//	double vel = 0;
+//
+//	int signalGreen = 3;
+//	signalGreen = sim_mob::Green; //Green by default
+//
+//#if 0
+//	signalGreen = Signal::Green; //Green by default
+//#endif
+//	if(pedMovement.isAtCrossing()){
+//		//Check whether to start to cross or not
+//		updatePedestrianSignal();
+//
+//		if (sigColor == signalGreen) //Green phase
+//			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+//		else
+//			vel = 0;
+//	}
+//	else {
+//		if (!pedMovement.isDoneWithEntireRoute())
+//			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+//		else
+//		{
+//			parent->setToBeRemoved();
+//		}
+//	}
+//
+//		pedMovement.advance(vel);
+//
+//		parent->xPos.set(pedMovement.getPosition().x);
+//		parent->yPos.set(pedMovement.getPosition().y);
 //
 //}
-
+//
 //void sim_mob::Pedestrian2::frame_tick_med(UpdateParams& p){
 //	/*to be implemented by supply team to move the pedestrian after each time tick
 //	 *
 //	 */
 //}
-
+//
 //void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 //{
-////	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
-////		return;
-////	}
-////
-////	if (ConfigParams::GetInstance().is_run_on_many_computers) {
-////		return;
-////	}
-////
-//////	std::ostringstream stream;
-//////	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
-//////	std::string s=stream.str();
-//////	CommunicationDataManager::GetInstance()->sendTrafficData(s);
-////
-////	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
+//		return;
+//	}
+//
+//	if (ConfigParams::GetInstance().using_MPI) {
+//		return;
+//	}
+//
+////	std::ostringstream stream;
+////	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
+////	std::string s=stream.str();
+////	CommunicationDataManager::GetInstance()->sendTrafficData(s);
+//
+//	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 //}
-
+//
 //void sim_mob::Pedestrian2::frame_tick_output_mpi(timeslice now)
 //{
-////	if (now.frame() < 1 || now.frame() < parent->getStartTime())
-////		return;
-////
-////	if (this->parent->isFake) {
-////		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-////	} else {
-////		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-////	}
+//	if (now.frame() < 1 || now.frame() < parent->getStartTime())
+//		return;
+//
+//	if (this->parent->isFake) {
+//		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+//	} else {
+//		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+//	}
 //}
+//>>>>>>> master
 
 /*---------------------Perception-related functions----------------------*/
 

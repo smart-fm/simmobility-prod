@@ -118,7 +118,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 				setOrigin(p2);
 			}
 		} else {
-			LogOut("ERROR: Vehicle could not be created for driver; no route!" <<std::endl);
+			Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
 		}
 	}
 
@@ -197,7 +197,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers || ConfigParams::GetInstance().OutputDisabled()) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI || ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
 
@@ -1006,7 +1006,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	}
 
 	if( !minQueueLengthLane){
-		Print()<<"ERROR: best target lane was not set!" <<std::endl;
+		Warn() <<"ERROR: best target lane was not set!" <<std::endl;
 	}
 	return minQueueLengthLane;
 }

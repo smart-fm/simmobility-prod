@@ -13,6 +13,7 @@
 #include "geospatial/aimsun/Section.hpp"
 #include "geospatial/aimsun/Crossing.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "logging/Log.hpp"
 
 //add by xuyan
 #include "geospatial/RoadNetwork.hpp"
@@ -375,8 +376,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 		}
 	}
 
-	std::cout << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY()
-			<< std::endl;
+	Warn() << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY() << std::endl;
 	return 0;
 }
 

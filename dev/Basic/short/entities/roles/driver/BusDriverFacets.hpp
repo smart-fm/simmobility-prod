@@ -12,6 +12,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "BusDriver.hpp"
 
+
 namespace sim_mob {
 
 class BusDriver;

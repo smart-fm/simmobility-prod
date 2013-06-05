@@ -40,14 +40,24 @@ class Person;
  */
 class TripChainItem {
 public:
-	//Type of location of this trip chain item.
-	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
+	/**
+	 * Type of location of this trip chain item.
+	 *
+	 * \note
+	 * If you make changes in the following enum, you have to manually make required modifications
+	 * in the xml reader too.
+	 */
 	enum LocationType {
 		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
 	};
 
-	//Type of this trip chain item.
-	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
+	/**
+	 * Type of this trip chain item.
+	 *
+	 * \note
+	 * If you make changes in the following enum, you have to manually make required modifications
+	 * in the xml reader too.
+	 */
 	enum ItemType {
 		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
 	};

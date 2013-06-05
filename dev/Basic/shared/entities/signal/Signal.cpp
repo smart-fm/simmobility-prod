@@ -490,7 +490,7 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 	isNewCycle = false;
 
 
-	buffer_output(now, "");
+//	buffer_output(now, "");
 	//outputTrafficLights(now,"");
 
 
@@ -519,7 +519,8 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 		newCycleUpdate();
 		initializePhases();
 	}
-
+	//and now deliver your efforts to the destination:
+	buffer_output(now, "");
 //	outputToVisualizer(frameNumber);
 //Not mine, don't know much about what benefit it has to the outside world
 	return UpdateStatus::Continue;

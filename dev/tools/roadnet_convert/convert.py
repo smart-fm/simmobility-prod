@@ -1,203 +1,60 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import math
 from lxml import objectify
 from lxml import etree
+from geo.helper import ScaleHelper
+from geo.helper import project_coords
+from geo.helper import dist
+from geo.helper import get_line_dist
+from geo.position import Point
+from geo.helper import DynVect
+from geo.formats import temp
+
+#This line will fail to parse if you are using Python2 (that way at least we fail early).
+def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
+
 
 #This program converts a SUMO traffic network to Sim Mobility format (this includes 
 # flipping the network for driving on the left).
 #Note: Run SUMO like so:
 #   ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
 
-#Note that this program runs about 10x faster on Python3 for some reason
-
-
-#Our container class
-class RoadNetwork:
-  def __init__(self):
-    self.nodes = {}    #origId => Node
-    self.links = {}    #origId => Link
-    self.lanes = {}    #origId => Lane
-    self.turnings = [] #LaneConnector
-
-
-#Simple classes. IDs are always strings
-class Node:
-  def __init__(self, nodeId, xPos, yPos):
-    if not (nodeId and xPos and yPos):
-      raise Exception('Null parameters in Node constructor')
-    self.nodeId = str(nodeId)
-    self.guid = None
-    self.pos = Point(float(xPos), float(yPos))
-    self.is_uni = None
-
-  def isUni(self):
-    if self.is_uni is None:
-      raise Exception('isUni not defined for Node')
-    return self.is_uni
-
-class Link:
-  def __init__(self, linkId, fromNode, toNode):
-    if not (linkId and fromNode and toNode):
-      raise Exception('Null parameters in Link constructor')
-    self.linkId = str(linkId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.segments = [] #List of segment IDs
-
-class Edge:
-  def __init__(self, edgeId, fromNode, toNode):
-    if not (edgeId and fromNode and toNode):
-      raise Exception('Null parameters in Edge constructor')
-    self.edgeId = str(edgeId)
-    self.guid = None
-    self.fromNode = str(fromNode)
-    self.toNode = str(toNode)
-    self.lanes = []
-    self.lane_edges = []
-
-#Note that "from/toLaneId" are zero-numbered, not actual lane IDs
-class LaneConnector:
-  def __init__(self, fromSegment, toSegment, fromLaneId, toLaneId, laneFromOrigId, laneToOrigId):
-    self.fromSegment = fromSegment  #These are references
-    self.toSegment = toSegment      #These are references
-    self.fromLaneId = fromLaneId
-    self.toLaneId = toLaneId
-    self.laneFromOrigId = laneFromOrigId
-    self.laneToOrigId = laneToOrigId
-
-class Lane:
-  def __init__(self, laneId, shape):
-    if not (laneId and shape):
-      raise Exception('Null parameters in Lane constructor')
-    self.laneId = str(laneId)
-    self.guid = None
-    self.shape = Shape(shape)
-
-class LaneEdge:
-  def __init__(self, points):
-    self.points = points  #Just an array of Points
-
-#A basic vector (in the geometrical sense)
-class DynVect:
-  def __init__(self, start, end):
-    #Ensure that we copy.
-    self.pos = Point(float(start.x), float(start.y))
-    self.mag = Point(float(end.x)-start.x, float(end.y)-start.y)
-
-  def getPos(self):
-    return self.pos
-
-  def translate(self):
-    self.pos.x += self.mag.x
-    self.pos.y += self.mag.y
-    return self
-
-  def scaleVectTo(self, amount):
-    #Factoring in the unit vector by dividing early is more accurate.
-    factor = amount/self.getMagnitude()
-    self.mag.x = factor * self.mag.x
-    self.mag.y = factor * self.mag.y
-    return self
-
-  def getMagnitude(self):
-    return math.sqrt(self.mag.x**2.0 + self.mag.y**2.0)
-
-  def flipNormal(self, clockwise):
-    sign =  1.0 if clockwise else -1.0
-    newX = self.mag.y*sign
-    newY = -self.mag.x*sign
-    self.mag.x = newX
-    self.mag.y = newY
-    return self
-
-  def rotateRight(self): #Flip this vector 90 degrees clockwise around the origin.
-    return self.flipNormal(True)
-
-  def rotateLeft(self):  #Flip this vector 90 degrees counter-clockwise around the origin.
-    return self.flipNormal(False)
-
-
-#NOTE on Shapes, from the SUMO user's guide
-#The start and end node are omitted from the shape definition; an example: 
-#    <edge id="e1" from="0" to="1" shape="0,0 0,100"/> 
-#    describes an edge that after starting at node 0, first visits position 0,0 
-#    than goes one hundred meters to the right before finally reaching the position of node 1
-class Shape:
-  def __init__(self, pts):
-    pts = pts.split(' ')
-
-    self.points = []
-    for pair in pts:
-      pair = pair.split(',')
-      self.points.append(Point(float(pair[0]), float(pair[1])))
-
-
-class Point:
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-
-  def __repr__(self):
-    return "Point(%f,%f)" % (self.x, self.y)
-
-  def __str__(self):
-    return "(%f,%f)" % (self.x, self.y)
-
-
-
-def parse_edge_sumo(e, links, lanes):
-    #Sanity check
-    if e.get('function')=='internal':
-      raise Exception('Node with from/to should not be internal')
-
-    #Add a new edge/link (both with the same "sumo id")
-    res = Link(e.get('id'), e.get('from'), e.get('to'))
-    primEdge = Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
-    res.segments.append(primEdge)
-    links[res.linkId] = res
-
-    #Add child Lanes
-    laneTags = e.xpath("lane")
-    for l in laneTags:
-      newLane = Lane(l.get('id'), l.get('shape'))
-      primEdge.lanes.append(newLane)
-      lanes[newLane.laneId] = newLane
 
 
 def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
     #TEMP blacklist
-    lkId = lk.get('id')
-    if (lkId=='121879126' or lkId=='112128548' or lkId=='41661873'):
-      return globalIdCounter
+    #lkId = lk.get('id')
+    #if (lkId=='121879126' or lkId=='112128548' or lkId=='41661873'):
+    #  return globalIdCounter
 
     #TEMP: Skip everything except primary highways
     tag = lk.xpath("tag[@k='highway']")
-    if len(tag) > 0:
-      if (tag[0].get('v')!='primary'):
-        return globalIdCounter
+    if len(tag) == 0:
+      return globalIdCounter
+    if (tag[0].get('v')!='primary'):
+      return globalIdCounter
 
     #Skip footways.
-    tag = lk.xpath("tag[@k='highway']")
-    if len(tag) > 0:
-      if (tag[0].get('v')=='footway'):
-        return globalIdCounter
+    #tag = lk.xpath("tag[@k='highway']")
+    #if len(tag) > 0:
+    #  if (tag[0].get('v')=='footway'):
+    #    return globalIdCounter
 
     #Skip anything with a post code (likely a building), or a "residential" land use tag.
-    if len(lk.xpath("tag[@k='addr:postcode']"))>0:
-      return globalIdCounter
-    tag = lk.xpath("tag[@k='landuse']")
-    if len(tag) > 0:
-      if (tag[0].get('v')=='residential'):
-        return globalIdCounter
+    #if len(lk.xpath("tag[@k='addr:postcode']"))>0:
+    #  return globalIdCounter
+    #tag = lk.xpath("tag[@k='landuse']")
+    #if len(tag) > 0:
+    #  if (tag[0].get('v')=='residential'):
+    #    return globalIdCounter
 
     #Remove service highways.
-    tag = lk.xpath("tag[@k='highway']")
-    if len(tag) > 0:
-      if (tag[0].get('v')=='service'):
-        return globalIdCounter
+    #tag = lk.xpath("tag[@k='highway']")
+    #if len(tag) > 0:
+    #  if (tag[0].get('v')=='service'):
+    #    return globalIdCounter
 
     #First, build up a series of Node IDs
     nodeIds = []
@@ -229,7 +86,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
       toNode = nodeIds[i+1]
 
       #Make an edge
-      e = Edge(globalIdCounter, fromNode, toNode)
+      e = temp.Edge(globalIdCounter, fromNode, toNode)
       globalIdCounter += 1
       res.segments.append(e)
 
@@ -262,7 +119,7 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
         #Make the new lane.
         #Lane IDs (here) probably don't matter, since they are only used internally.
-        newLane = Lane(len(lanes)+100, shapeStr)
+        newLane = temp.Lane(len(lanes)+100, shapeStr)
         e.lanes.append(newLane)
         lanes[newLane.laneId] = newLane
 
@@ -273,39 +130,13 @@ def parse_link_osm(lk, nodes, links, lanes, globalIdCounter):
 
 
 
-def project_coords(wgsRev, utmZone, lat, lon):
-  from LatLongUTMconversion import LLtoUTM
-
-  #Make sure we have both params, convert to float.
-  if not (lat and lon):
-    raise Exception('lat/lon required in project_coords')
-  lat = float(lat)
-  lon = float(lon)
-
-  #Make sure they are using the latest standard
-  if (wgsRev.replace(' ', '') != 'WGS84'):
-    raise Exception('Deprecated WGS specification (only WGS 84 supported)')
-
-  #Now, perform the projection. Make sure our result matches our expectations.
-  (resZone, x, y) = LLtoUTM(23, lat, lon)
-  if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
-    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (utmZone, resZone))
-
-  #All is good; return a Point
-  return Point(x,y)
-
-
-def parse_junctions_sumo(j, nodes):
-    #Add a new Node
-    res = Node(j.get('id'), j.get('x'), j.get('y'))
-    nodes[res.nodeId] = res
 
 def parse_nodes_osm(n, nodes):
     #Nodes are slightly complicated by the fact that they use lat/long.
     projected = project_coords('WGS 84', 'UTM 48N', n.get('lat'), n.get('lon'))  #Returns a point
 
     #Add a new Node
-    res = Node(n.get('id'), projected.x, projected.y)
+    res = temp.Node(n.get('id'), projected.x, projected.y)
     nodes[res.nodeId] = res
 
 
@@ -389,33 +220,6 @@ class InOut:
     self.incoming = []
     self.outgoing = []
 
-def make_lane_connectors(rn):
-  #First, make a list of all "incoming" and "outgoing" edges at a given node
-  lookup = {}  #nodeId => InOut
-  for lk in rn.links.values():
-    for e in lk.segments:
-      #Give it an entry
-      if not (e.fromNode in lookup):
-        lookup[e.fromNode] = InOut()
-      if not (e.toNode in lookup):
-        lookup[e.toNode] = InOut()
-
-    #Append
-    lookup[e.toNode].incoming.append(e)
-    lookup[e.fromNode].outgoing.append(e)
-
-  #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
-  for n in rn.nodes.values():
-    for fromEdge in lookup[n.nodeId].incoming:
-      for toEdge in lookup[n.nodeId].outgoing:
-        if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
-          continue
-
-        #The looping gets even deeper!
-        for fromLaneID in range(len(fromEdge.lanes)):
-          for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
-
 
 def check_and_flip_and_scale(rn, flipMap):
   #Save the maximum X co-ordinate, minimum Y
@@ -462,73 +266,57 @@ def check_and_flip_and_scale(rn, flipMap):
       p.y = (-minY + p.y) * 100
 
 
-def mostly_parallel(first, second):
-  #Cutoff point for considering lines *not* parallel
-  #You can increase this as your lines skew, but don't go too high.
-  #Cutoff = 3.0
-  Cutoff = 50.0  #TODO: Temp, while we work on OSM data.
 
-  #Both/one vertical?
-  fDx= first[-1].x-first[0].x
-  sDx = second[-1].x-second[0].x
-  if (fDx==0 or sDx==0):
-    return (fDx-sDx) < Cutoff
+def print_osm_format(rn):
+  #Open, start writing
+  f = open('out.osm', 'w')
+  f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+  f.write('<osm version="0.6" generator="convert.py" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">\n')
 
-  #Calculate slope
-  mFirst = float(first[-1].y-first[0].y) / float(fDx)
-  mSecond = (second[-1].y-second[0].y) / float(sDx)
-  return abs(mFirst-mSecond) < Cutoff
+  #Here's where it gets tricky: a randomized SUMO network may not be centered on Singapore,
+  #  so we have to scale/translate it. We accomplish this by centering the map on the UTM 48N box.
+  helper = ScaleHelper()
 
-
-
-#Assumes first/second are parallel lines
-def get_line_dist(first, second):
-  #Slope is vertical?
-  dx= first[-1].x-first[0].x
-  if (dx==0):
-    return abs(first[0].y-second[0].y)
-
-  #Otherwise, get y-intercept for each line.
-  m1 = (first[-1].y-first[0].y) / float(dx)
-  m2 = (second[-1].y-second[0].y) / float(dx)
-  m = (m1+m2)/2.0  #We use the average slope just in case the lines aren't *quite* parallel
-  fB = first[0].y - m * first[0].x
-  sB = second[0].y - m * second[0].x
-
-  #And then we have a magic formula:
-  return abs(sB-fB) / math.sqrt(m**2 + 1)
-
-
-
-def make_lane_edges(rn):
+  #Figure out the bounds
+  for n in rn.nodes.values():
+    helper.add_point(n.pos)
   for lk in rn.links.values():
     for e in lk.segments:
-      #All lanes are relative to our Segment line
-      segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
+      for l in e.lane_edges:
+        for pos in l.points:
+          helper.add_point(pos)
 
-      #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
-      zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
-      if not mostly_parallel(segLine, zeroLine):
-        raise Exception("Can't convert edge %s; lines are not parallel: [%s=>%s] and [%s=>%s]" % (e.edgeId, segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
+  #Now we can just use the helper as-is
+  (minlat,minlng) = helper.convert(helper.min_pt())
+  (maxlat,maxlng) = helper.convert(helper.max_pt())
+  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (minlat, minlng, maxlat, maxlng))
 
-      #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
-      halfW = get_line_dist(segLine, zeroLine)
+  #Nodes
+  for n in rn.nodes.values():
+    (lat,lng) = helper.convert(n.pos)
+    f.write(' <node id="%s" lat="%s" lon="%s" visible="true"/>\n' % (n.guid, lat, lng))
 
-      #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
-      zeroStart = DynVect(zeroLine[0], zeroLine[1])
-      zeroStart.rotateRight().scaleVectTo(halfW).translate()
-      zeroEnd = DynVect(zeroLine[1], zeroLine[0])
-      zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-      e.lane_edges.append(LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
+  #Ways are tied to segments
+  for lk in rn.links.values():
+    for e in lk.segments:
+      f.write(' <way id="%s" visible="true">\n' % e.guid)
+    
+      #We need to write the Nodes of this Way in order.
+      #For now, SUMO links only have 2 nodes and 1 segment each.
+      fromId = rn.nodes[e.fromNode].guid
+      toId = rn.nodes[e.toNode].guid
+      f.write('  <nd ref="%s"/>\n' % fromId)
+      f.write('  <nd ref="%s"/>\n' % toId)
 
-      #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
-      for i in reversed(range(len(e.lanes))):
-        currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
-        currStart = DynVect(currLine[0], currLine[1])
-        currStart.rotateLeft().scaleVectTo(halfW).translate()
-        currEnd = DynVect(currLine[1], currLine[0])
-        currEnd.rotateRight().scaleVectTo(halfW).translate()
-        e.lane_edges.append(LaneEdge([currStart.getPos(), currEnd.getPos()]))
+      #Now write the Way's tags
+      f.write('  <tag k="highway" v="primary"/>\n')
+      f.write('  <tag k="oneway" v="yes"/>\n')
+
+      f.write(' </way>\n')
+    
+  #Done
+  f.write('</osm>\n')
+  f.close()
 
 
 
@@ -649,20 +437,6 @@ def write_xml_nodes(f, rn):
   f.write('      </Nodes>\n')
 
 
-#Distance between 2 nodes/points
-def dist(m, n):
-  #Convert to Point
-  if isinstance(m, Node):
-    m = m.pos
-  if isinstance(n, Node):
-    n = n.pos
-
-  #Calc distance
-  dx = n.x - m.x;
-  dy = n.y - m.y;
-  return math.sqrt(dx**2 + dy**2);
-
-
 
 def write_xml_lane_edge_polylines(f, lane_edges):
   #Relatively simple layout
@@ -778,7 +552,7 @@ def write_xml_links(f, rn):
 
 def print_xml_format(rn):
   #Open, start writing
-  f = open('simmob.network.xml', 'w')
+  f = open('temp.network.xml', 'w')
   f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
   f.write('<geo:SimMobility\n')
   f.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
@@ -816,17 +590,6 @@ def assign_unique_ids(rn, currId):
 
 
 
-def parse_all_sumo(rootNode, rn):
-  #For each junction
-  junctTags = rootNode.xpath('/net/junction')
-  for j in junctTags:
-    parse_junctions_sumo(j, rn.nodes)
-
-  #For each edge; ignore "internal"
-  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
-  for e in edgeTags:
-    parse_edge_sumo(e, rn.links, rn.lanes)
-
 
 
 def parse_all_osm(rootNode, rn):
@@ -845,7 +608,7 @@ def parse_all_osm(rootNode, rn):
 
 def run_main(inFileName):
   #Resultant datastructure
-  rn = RoadNetwork()
+  rn = temp.RoadNetwork()
 
   #Load, parse
   inFile = open(inFileName)
@@ -868,6 +631,7 @@ def run_main(inFileName):
 
 
   #Remove junction nodes which aren't referenced by anything else.
+  #TODO: This remains *here*, and might be disabled with a switch.
   nodesPruned = len(rn.nodes)
   remove_unused_nodes(rn.nodes, rn.links)
   nodesPruned -= len(rn.nodes)
@@ -890,6 +654,9 @@ def run_main(inFileName):
   #  easier visual verification with our old GUI.
   print_old_format(rn)
 
+  #Also print in OSM format, for round-trip checking.
+  print_osm_format(rn)
+
   #Now print the network in XML format, for use with the actual software.
   print_xml_format(rn)
 
@@ -904,4 +671,95 @@ if __name__ == "__main__":
 
 
 
+
+#######################################################################
+## Code that handles "temp." Road Network objects is placed here once I've
+## replicated its functionality in "sumo.", "osm.", etc.
+#######################################################################
+
+def parse_edge_sumo(e, links, lanes):
+    #Sanity check
+    if e.get('function')=='internal':
+      raise Exception('Node with from/to should not be internal')
+
+    #Add a new edge/link (both with the same "sumo id")
+    res = temp.Link(e.get('id'), e.get('from'), e.get('to'))
+    primEdge = temp.Edge(res.linkId, res.fromNode, res.toNode) #Each sumo link has one "primary edge"
+    res.segments.append(primEdge)
+    links[res.linkId] = res
+
+    #Add child Lanes
+    laneTags = e.xpath("lane")
+    for l in laneTags:
+      newLane = temp.Lane(l.get('id'), l.get('shape'))
+      primEdge.lanes.append(newLane)
+      lanes[newLane.laneId] = newLane
+
+def parse_junctions_sumo(j, nodes):
+    #Add a new Node
+    res = temp.Node(j.get('id'), j.get('x'), j.get('y'))
+    nodes[res.nodeId] = res
+
+
+def parse_all_sumo(rootNode, rn):
+  #For each junction
+  junctTags = rootNode.xpath('/net/junction')
+  for j in junctTags:
+    parse_junctions_sumo(j, rn.nodes)
+
+  #For each edge; ignore "internal"
+  edgeTags = rootNode.xpath("/net/edge[(@from)and(@to)]")
+  for e in edgeTags:
+    parse_edge_sumo(e, rn.links, rn.lanes)
+
+
+def mostly_parallel(first, second):
+  #Cutoff point for considering lines *not* parallel
+  #You can increase this as your lines skew, but don't go too high.
+  #Cutoff = 3.0
+  Cutoff = 50.0  #TODO: Temp, while we work on OSM data.
+
+  #Both/one vertical?
+  fDx= first[-1].x-first[0].x
+  sDx = second[-1].x-second[0].x
+  if (fDx==0 or sDx==0):
+    return (fDx-sDx) < Cutoff
+
+  #Calculate slope
+  mFirst = float(first[-1].y-first[0].y) / float(fDx)
+  mSecond = (second[-1].y-second[0].y) / float(sDx)
+  return abs(mFirst-mSecond) < Cutoff
+
+
+
+
+def make_lane_edges(rn):
+  for lk in rn.links.values():
+    for e in lk.segments:
+      #All lanes are relative to our Segment line
+      segLine = [rn.nodes[e.fromNode].pos, rn.nodes[e.toNode].pos]
+
+      #We need the lane widths. To do this geometrically, first take lane line one (-1) and compare the slopes:
+      zeroLine = [e.lanes[-1].shape.points[0],e.lanes[-1].shape.points[-1]]
+      if not mostly_parallel(segLine, zeroLine):
+        raise Exception("Can't convert edge %s; lines are not parallel: [%s=>%s] and [%s=>%s]" % (e.edgeId, segLine[0], segLine[-1], zeroLine[0], zeroLine[-1]))
+
+      #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
+      halfW = get_line_dist(segLine, zeroLine)
+
+      #Add lane line 1 (actually -1, since sumo lists are in reverse order) shifted RIGHT to give us line zero
+      zeroStart = DynVect(zeroLine[0], zeroLine[1])
+      zeroStart.rotateRight().scaleVectTo(halfW).translate()
+      zeroEnd = DynVect(zeroLine[1], zeroLine[0])
+      zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
+      e.lane_edges.append(temp.LaneEdge([zeroStart.getPos(), zeroEnd.getPos()]))
+
+      #Now add each remaining lane (including 1, again) shifted LEFT to give us their expected location.
+      for i in reversed(range(len(e.lanes))):
+        currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
+        currStart = DynVect(currLine[0], currLine[1])
+        currStart.rotateLeft().scaleVectTo(halfW).translate()
+        currEnd = DynVect(currLine[1], currLine[0])
+        currEnd.rotateRight().scaleVectTo(halfW).translate()
+        e.lane_edges.append(temp.LaneEdge([currStart.getPos(), currEnd.getPos()]))
 

@@ -9,6 +9,7 @@
 
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
@@ -157,7 +158,7 @@ void sim_mob::BusDriverMovement::frame_init(UpdateParams& p) {
 				if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 					busStops = bustrip->getBusRouteInfo().getBusStops();
 					if (busStops.empty()) {
-						std::cout<< "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
+						Warn() << "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
 						// This case can be true, so use the BusStops found by Path instead
 						busStops = findBusStopInPath(parentBusDriver->vehicle->getCompletePath());
 					}
@@ -591,7 +592,7 @@ void sim_mob::BusDriverMovement::frame_tick(UpdateParams& p) {
 void sim_mob::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
 	if (parentBusDriver->vehicle->isDone()
-			|| ConfigParams::GetInstance().is_run_on_many_computers) {
+			|| ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 

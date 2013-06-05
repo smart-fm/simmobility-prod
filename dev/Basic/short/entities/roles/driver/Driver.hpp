@@ -186,9 +186,7 @@ public:
 //	virtual double updatePositionOnLink(DriverUpdateParams& p);
 //	virtual double linkDriving(DriverUpdateParams& p);
 //
-//	//TODO: Eventually move these into the medium/ folder.
 //	sim_mob::Vehicle* initializePath(bool allocateVehicle);
-	void initializePathMed();
 
 //	void resetPath(DriverUpdateParams& p);
 //	void setOrigin(DriverUpdateParams& p);

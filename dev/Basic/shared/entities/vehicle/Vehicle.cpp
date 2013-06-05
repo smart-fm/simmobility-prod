@@ -10,6 +10,8 @@
 #include "Vehicle.hpp"
 #include "geospatial/RoadSegment.hpp"
 
+#include "logging/Log.hpp"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -167,7 +169,7 @@ DPoint sim_mob::Vehicle::getPosition() const {
 
 	//Temp
 	if (isInIntersection() && (posInIntersection.x == 0 || posInIntersection.y == 0)) {
-		LogOut("WARNING: Vehicle is in intersection without a position!" <<std::endl);
+		Warn() <<"WARNING: Vehicle is in intersection without a position!" <<std::endl;
 	}
 
 	DPoint origPos = fwdMovement.getPosition();

@@ -230,7 +230,7 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	if (parentDriver->vehicle && parentDriver->vehicle->hasPath()) {
 		setOrigin(parentDriver->params);
 	} else {
-		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
+		Warn() << "ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl ;
 	}
 }
 
@@ -302,7 +302,7 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
-	if (parentDriver->vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (parentDriver->vehicle->isDone() || ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 
@@ -319,6 +319,8 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
 	}
 
+	const bool inLane = parentDriver->vehicle && (!parentDriver->vehicle->isInIntersection());
+
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
 			<<","<<parentAgent->getId()
@@ -328,6 +330,9 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->width)
+			<<"\",\"curr-segment\":\""<<(inLane?parentDriver->vehicle->getCurrLane()->getRoadSegment():0x0)
+			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
+			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
 			<<"\"})"<<std::endl);
 }
 
@@ -838,7 +843,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
-		LogOut("WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl);
+		Warn() <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
 

@@ -5,7 +5,6 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "util/GeomHelpers.hpp"
-#include "partitions/PartitionManager.hpp"
 
 using namespace sim_mob;
 

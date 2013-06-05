@@ -292,7 +292,8 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 	for (soci::rowset<Lane>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
 		if(sections_.count(it->TMP_AtSectionID)==0) {
-			throw std::runtime_error("Lane at Invalid Section");
+			sim_mob::Warn() <<"Lane at Invalid Section\n";
+			continue;
 		}
 
 		//Convert meters to cm
@@ -377,13 +378,19 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
+	//Avoid errors
+	tripchains_.clear();
+	if (storedProc.empty()) {
+		return;
+	}
+
 	//Our SQL statement
 	std::string sql_str = "select * from " + storedProc;
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers)
+	if (config.using_MPI)
 	{
 		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 		int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
@@ -402,7 +409,6 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 #endif
 
 	//Retrieve a rowset for this set of trip chains.
-	tripchains_.clear();
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
 //	std::cout << " Found "
 	//Execute as a rowset to avoid repeatedly building the query.
@@ -647,7 +653,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
-	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
@@ -656,7 +662,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers) {
+	if (config.using_MPI) {
 		LoadBoundarySegments();
 	}
 #endif
@@ -742,7 +748,7 @@ Section& GetSection(Node& start, Node& end)
 			return **it;
 		}
 	}
-	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
+	sim_mob::Warn() <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
 	throw std::runtime_error("Can't find section in temporary cleanup function.");
 }
 void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
@@ -822,7 +828,7 @@ bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t r
 			resCrossing.back()->yPos = vec.getY();
 		}
 	} catch (std::exception& ex) {
-		std::cout <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
+		sim_mob::Warn() <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
 		baseCrossing.clear();
 		resCrossing.clear();
 		return false;
@@ -1837,9 +1843,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			}
 		}
 		if (!nextSection) {
-			std::cout <<"PATH ERROR:\n";
-			std::cout <<"  Starting at Node: " <<src.fromNode->id <<"\n";
-			std::cout <<"  Currently at Node: " <<currSec->toNode->id <<"\n";
+			sim_mob::Warn() <<"PATH ERROR:\n"
+							<<"  Starting at Node: " <<src.fromNode->id <<"\n"
+							<<"  Currently at Node: " <<currSec->toNode->id <<"\n";
 			throw std::runtime_error("No path reachable from RoadSegment.");
 		}
 		currSec = nextSection;
@@ -2045,7 +2051,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().is_run_on_many_computers)
+	if (ConfigParams::GetInstance().using_MPI)
 	{
 		loader.TransferBoundaryRoadSegment();
 	}

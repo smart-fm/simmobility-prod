@@ -2,7 +2,6 @@ from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
 from geo.position import Point
 from geo.position import Location
-from geo.position import DynVect
 from geo.formats import simmob
 import math
 
@@ -195,7 +194,7 @@ class IdGenerator:
     self.currVal = initVal-1 #Because of how we increment
 
   #Get the next assignable ID (and increment).
-  def next(self) => str:
+  def next(self) -> str:
     self.currVal += 1
     return str(self.currVal)
 

@@ -1,9 +1,9 @@
 from geo.formats import osm
 from lxml import objectify
-from helper import IdGenerator
+from geo.helper import IdGenerator
 
 
-def parse(inFileName :str) -> sumo.RoadNetwork:
+def parse(inFileName :str) -> osm.RoadNetwork:
   '''Parse an OSM network file.'''
   rn = osm.RoadNetwork()
 

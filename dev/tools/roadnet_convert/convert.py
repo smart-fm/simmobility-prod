@@ -10,15 +10,14 @@ import sys
 import math
 from lxml import objectify
 from lxml import etree
-from geo.helper import ScaleHelper
-from geo.helper import project_coords
-from geo.helper import dist
-from geo.helper import get_line_dist
+import geo.helper
+from geo.convert import sumo2simmob
+from geo.convert import osm2simmob
+from geo import parsers
+from geo import formats
 from geo.position import Point
 from geo.helper import DynVect
-from geo.formats import simmob
-from geo.formats import sumo
-from geo.formats import osm
+from geo.helper import ScaleHelper
 
 #This line will fail to parse if you are using Python2 (that way at least we fail early).
 def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
@@ -34,9 +33,11 @@ def run_main(inFileName, outFileName):
 
   #Try to parse and convert
   if inFileName.endswith('.sumo.xml'):
-    rn = sumo2simmob(sumo.parse(inFileName))
+    snet = parsers.sumo.parse(inFileName)
+    rn = sumo2simmob.convert(snet)
   elif inFileName.endswith('.osm'):
-    rn = osm2simmob(osm.parse(inFileName))
+    onet = parsers.osm.parse(inFileName)
+    rn = osm2simmob.convert(onet)
 
   if not rn:
     raise Exception('Unknown road network format: ' + inFileName)

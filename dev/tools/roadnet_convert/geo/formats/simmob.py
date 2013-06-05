@@ -1,6 +1,5 @@
 from geo.position import Point
-from geo.helper import assert_non_null
-
+import geo.helper
 
 #Our container class
 class RoadNetwork:
@@ -63,7 +62,7 @@ class Node:
   '''A Node. All Nodes are UniNodes unless subclassed (e.g., as Intersection).'''
 
   def __init__(self, nodeId, xPos, yPos):
-    assert_non_null("Null args", nodeId, xPos, yPos)
+    helper.assert_non_null("Null args", nodeId, xPos, yPos)
     self.nodeId = str(nodeId)
     self.pos = Point(float(xPos), float(yPos))
 
@@ -79,7 +78,7 @@ class Intersection(Node):
 
 class Link:
   def __init__(self, linkId, fromNode, toNode):
-    assert_non_null("Null args", linkId, fromNode, toNode)
+    helper.assert_non_null("Null args", linkId, fromNode, toNode)
     self.linkId = str(linkId)
     self.fromNode = fromNode
     self.toNode = toNode
@@ -87,7 +86,7 @@ class Link:
 
 class Segment:
   def __init__(self, segId, fromNode, toNode):
-    assert_non_null("Null args", edgeId, fromNode, toNode)
+    helper.assert_non_null("Null args", edgeId, fromNode, toNode)
     self.segId = str(segId)
     self.fromNode = fromNode
     self.toNode = toNode
@@ -108,7 +107,7 @@ class Lane:
   '''A Lane. Drivers will drive on Lanes.'''
 
   def __init__(self, laneId, laneNumber, parentSeg, polyline):
-    assert_non_null("Null args", laneId, laneNumber, parentSeg, polyline)
+    helper.assert_non_null("Null args", laneId, laneNumber, parentSeg, polyline)
     self.laneId = str(laneId)
     self.laneNumber = laneNumber  #The number of that lane; 0 is closest to the median.
     self.parentSeg = parentSeg
@@ -119,7 +118,7 @@ class LaneEdge:
   '''A Lane edge. Drivers will drive *between* two LaneEdges.'''
 
   def __init__(self, laneEdgeNumber, parentSeg, polyline):
-    assert_non_null("Null args", laneEdgeNumber, parentSeg, polyline)
+    helper.assert_non_null("Null args", laneEdgeNumber, parentSeg, polyline)
     self.laneEdgeNumber = laneEdgeNumber #The number of that edge line; 0 represents the median.
     self.parentSeg = parentSeg
     self.polyline = polyline #An array of points

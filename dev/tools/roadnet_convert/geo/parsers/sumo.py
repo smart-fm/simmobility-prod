@@ -35,7 +35,7 @@ def __parse_junction(j, rn :geo.formats.sumo.RoadNetwork):
 
 def __parse_edge(e, rn :geo.formats.sumo.RoadNetwork):
     #Add a new edge
-    res = geo.formats.sumo.Edge(e.get('id'), rn.nodes[e.get('from')], rn.nodes[e.get('to')])
+    res = geo.formats.sumo.Edge(e.get('id'), rn.junctions[e.get('from')], rn.junctions[e.get('to')])
     rn.edges[res.edgeId] = res
 
     #Add child Lanes

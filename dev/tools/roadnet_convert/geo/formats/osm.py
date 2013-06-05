@@ -15,7 +15,7 @@ class RoadNetwork:
 
 class Node:
   def __init__(self, nodeId, lat, lng, props):
-    geo.helper.assert_non_null("Null params", nodeId, lat, lng, props)
+    geo.helper.assert_non_null(nodeId, lat, lng, props, msg="Null args in Node constructor")
     self.nodeId = str(nodeId)
     self.loc = Location(float(lat), float(lng))
     self.props = geo.helper.dict_to_lower(props)
@@ -27,7 +27,7 @@ class Way:
   '''
 
   def __init__(self, wayId, nodes, props):
-    geo.helper.assert_non_null("Null params", wayId, nodes, props)
+    geo.helper.assert_non_null(wayId, nodes, props, msg="Null args in Way constructor")
     if len(nodes)<2:
       raise Exception('Way cannot be made with less than 2 Nodes.')
 

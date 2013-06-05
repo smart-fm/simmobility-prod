@@ -6,9 +6,9 @@ import geo.formats.simmob
 import math
 
 #Assert that all values are non-null
-def assert_non_null(msg, *args):
+def assert_non_null(*args, msg="Unexpected null value"):
   for arg in args:
-    if not arg:
+    if arg is None:
       raise Exception(msg)
 
 #Convert a dictionary's key/value pairs to lowercase
@@ -63,7 +63,7 @@ def project_wgs84(lat, lng, zone):
   WGS_Id = 23 #WGS 84
 
   #Make sure we have both params, convert to float. 
-  assert_non_null("Lat/Lng required in project_coords", lat, lng)
+  assert_non_null(lat, lng, msg="Lat/Lng required in project_coords")
 
   #Now, perform the projection, and make sure it maches our expected zone.
   (resZone, x, y) = LLtoUTM(WGS_Id, float(lat), float(lng))

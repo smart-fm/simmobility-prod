@@ -3,7 +3,7 @@
 '''This program converts a SUMO traffic network to Sim Mobility format (this includes 
    flipping the network for driving on the left).
    Note: Run SUMO like so:
-     ~/sumo/bin/netgenerate --rand -o sumo.net.xml --rand.iterations=200 --random -L 2
+     ~/sumo/bin/netgenerate --rand -o random.sumo.xml --rand.iterations=200 --random -L 2
 '''
 
 import sys
@@ -16,7 +16,9 @@ from geo.helper import dist
 from geo.helper import get_line_dist
 from geo.position import Point
 from geo.helper import DynVect
-from geo.formats import temp
+from geo.formats import simmob
+from geo.formats import sumo
+from geo.formats import osm
 
 #This line will fail to parse if you are using Python2 (that way at least we fail early).
 def __chk_versn(x:"Error: Python 3 is required; this program will not work with Python 2"): pass
@@ -26,29 +28,18 @@ def __chk_versn(x:"Error: Python 3 is required; this program will not work with 
 #      lane points might *barely* overflow this.
 
 
-def run_main(inFileName):
-  #Resultant datastructure
-  rn = temp.RoadNetwork()
+def run_main(inFileName, outFileName):
+  #Resultant datastructure  
+  rn = None  #simmob.RoadNetwork
 
-  #Load, parse
-  inFile = open(inFileName)
-  doc = objectify.parse(inFile)
+  #Try to parse and convert
+  if inFileName.endswith('.sumo.xml'):
+    rn = sumo2simmob(sumo.parse(inFileName))
+  elif inFileName.endswith('.osm'):
+    rn = osm2simmob(osm.parse(inFileName))
 
-  #What kind of file is this?
-  format = 'U'  #U[nknown], [S]umo, [O]penStreetMap
-  if len(doc.xpath("/net"))>0:
-    format = 'S'
-  elif len(doc.xpath("/osm"))>0:
-    format = 'O'
-
-  #Parse edges, lanes, nodes
-  if format=='S':
-    parse_all_sumo(doc, rn)
-  elif format=='O':
-    parse_all_osm(doc, rn)
-  else:
+  if not rn:
     raise Exception('Unknown road network format: ' + inFileName)
-
 
   #Remove junction nodes which aren't referenced by anything else.
   #TODO: This remains *here*, and might be disabled with a switch.
@@ -57,36 +48,23 @@ def run_main(inFileName):
   nodesPruned -= len(rn.nodes)
   print("Pruned unreferenced nodes: %d" % nodesPruned)
 
-  #Give these unique output IDs
-  assign_unique_ids(rn, 1000)
-
-  #Check network properties; flip X coordinates
-  check_and_flip_and_scale(rn, format=='S')
-
-  #Create N+1 lane edges from N lanes
-  make_lane_edges(rn)
-
-  #Create lane connectors from/to every lane *except* going backwards. This is an 
-  # oversimplification, but it applies to all generated SUMO networks.
-  make_lane_connectors(rn)
-
   #Before printing the XML network, we should print an "out.txt" file for 
   #  easier visual verification with our old GUI.
-  print_old_format(rn)
+  simmob.serialize(rn, outFileName+".out.txt")
 
   #Also print in OSM format, for round-trip checking.
-  print_osm_format(rn)
+  osm.serialize(rn, outFileName+".osm")
 
   #Now print the network in XML format, for use with the actual software.
-  print_xml_format(rn)
+  osm.serialize(rn, outFileName+".simmob.xml")
 
 
 if __name__ == "__main__":
-  if len(sys.argv) < 2:
-    print ('Usage:\n' , sys.argv[0] , '<in_file.net.xml>')
+  if len(sys.argv) < 3:
+    print ('Usage:\n' , sys.argv[0] , '<in_file.net.xml>,  <out_file.X>')
     sys.exit(0)
 
-  run_main(sys.argv[1])
+  run_main(sys.argv[1], sys.argv[2])
   print("Done")
 
 

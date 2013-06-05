@@ -111,6 +111,10 @@ void sim_mob::Conflux::updateUnsignalized() {
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
+	if (person->lastUpdatedFrame < currFrameNumber.frame()) {
+		//if the person is moved for the first time in this tick
+		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	}
 
 	const sim_mob::RoadSegment* segBeforeUpdate = person->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = person->getCurrLane();

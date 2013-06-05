@@ -190,7 +190,7 @@ namespace sim_mob {
 			else{
 				density = numQueueingInSegment(true)/(movingLength/100.0);
 			}
-			Print()<<"calculate density: "<< "moving: "<<numMovingInSegment(true)
+			Print()<<"segStats laneInf: "<< laneInfinity->getLaneID()	<<" | calculate density: "<< "moving: "<<numMovingInSegment(true)
 					<<" | "<<"queuing: "<<numQueueingInSegment(true)<<std::endl;
 		/*if(density > 0.25) {
 				debugMsgs<<"Error in segment Density | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"

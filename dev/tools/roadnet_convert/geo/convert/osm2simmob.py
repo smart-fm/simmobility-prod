@@ -1,13 +1,11 @@
-from geo.formats import osm
-from geo.formats import simmob
+import geo.formats.osm
+import geo.formats.simmob
 from geo.helper import IdGenerator
-from geo.helper import make_lane_edges_from_lane_lines
-from geo.helper import make_lane_connectors
+import geo.helper
 
-
-def convert(rn :osm.RoadNetwork) -> simmob.RoadNetwork:
+def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   '''Convert an OSM Road Network to a Sim Mobility network.'''
-  res = simmob.RoadNetwork()
+  res = geo.formats.simmob.RoadNetwork()
 
   #Simple GUID
   global_id = IdGenerator(1000)
@@ -72,7 +70,7 @@ def convert(rn :osm.RoadNetwork) -> simmob.RoadNetwork:
 
   #Generate lane connectors from/to all Lanes.
   #TODO: Will this work?
-  #make_lane_connectors(res)
+  #geo.helper.make_lane_connectors(res)
 
   #Some consistency checks
   __check_multi_uni(res.links)

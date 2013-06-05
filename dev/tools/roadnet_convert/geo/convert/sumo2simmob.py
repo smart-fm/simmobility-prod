@@ -1,13 +1,12 @@
-from geo.formats import sumo
-from geo.formats import simmob
+import geo.formats.sumo
+import geo.formats.simmob
+import geo.helper
 from geo.helper import IdGenerator
-from geo.helper import make_lane_edges_from_lane_lines
-from geo.helper import make_lane_connectors
 
 
-def convert(rn :sumo.RoadNetwork) -> simmob.RoadNetwork:
+def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   '''Convert a SUMO Road Network to a Sim Mobility network.'''
-  res = simmob.RoadNetwork()
+  res = geo.formats.simmob.RoadNetwork()
 
   #Simple GUID
   global_id = IdGenerator(1000)
@@ -20,7 +19,7 @@ def convert(rn :sumo.RoadNetwork) -> simmob.RoadNetwork:
   #TODO: Currently we do not consider UniNodes for SUMO networks.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for jn in rn.junctions.values():
-    newNode = simmob.Node(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
+    newNode = geo.formats.simmob.Node(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
     res.nodes[newNode.nodeId] = newNode
     jnctLookup[jn.jnctId] = newNode
 
@@ -29,8 +28,8 @@ def convert(rn :sumo.RoadNetwork) -> simmob.RoadNetwork:
   #TODO: UniNode support would also require Links longer than 1 segment.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for ed in rn.edges.values():
-    newSeg = simmob.Segment(global_id.next(), jnctLookup[ed.fromJnct], jnctLookup[ed.toJnct])
-    newLink = simmob.Link(global_id.next(), newSeg.fromNode, newSeg.toNode)
+    newSeg = geo.formats.simmob.Segment(global_id.next(), jnctLookup[ed.fromJnct], jnctLookup[ed.toJnct])
+    newLink = geo.formats.simmob.Link(global_id.next(), newSeg.fromNode, newSeg.toNode)
     newLink.segments.append(newSeg)
     res.links[newLink.linkId] = newLink
 
@@ -47,14 +46,14 @@ def convert(rn :sumo.RoadNetwork) -> simmob.RoadNetwork:
       poly = [Point(-100*p1.x, 100*p1.y), Point(-100*p2.x, 100*p2.y)]
 
       #Create it.
-      newSeg.lanes.append(simmob.Lane(global_id.next(), lnNum, newSeg, poly))
+      newSeg.lanes.append(geo.formats.simmob.Lane(global_id.next(), lnNum, newSeg, poly))
       lnNum += 1
 
     #Create and assign lane edges
-    make_lane_edges_from_lane_lines(newSeg, global_id)
+    geo.helper.make_lane_edges_from_lane_lines(newSeg, global_id)
 
   #Generate lane connectors from/to all Lanes.
-  make_lane_connectors(res)
+  geo.helper.make_lane_connectors(res)
 
   return res
 

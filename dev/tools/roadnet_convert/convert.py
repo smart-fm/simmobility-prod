@@ -10,11 +10,15 @@ import sys
 import math
 from lxml import objectify
 from lxml import etree
+
 import geo.helper
-from geo.convert import sumo2simmob
-from geo.convert import osm2simmob
-from geo import parsers
-from geo import formats
+import geo.convert.sumo2simmob
+import geo.convert.osm2simmob
+import geo.parsers.sumo
+import geo.parsers.osm
+import geo.formats.simmob
+import geo.formats.sumo
+import geo.formats.osm
 from geo.position import Point
 from geo.helper import DynVect
 from geo.helper import ScaleHelper
@@ -33,11 +37,11 @@ def run_main(inFileName, outFileName):
 
   #Try to parse and convert
   if inFileName.endswith('.sumo.xml'):
-    snet = parsers.sumo.parse(inFileName)
-    rn = sumo2simmob.convert(snet)
+    snet = geo.parsers.sumo.parse(inFileName)
+    rn = geo.convert.sumo2simmob.convert(snet)
   elif inFileName.endswith('.osm'):
-    onet = parsers.osm.parse(inFileName)
-    rn = osm2simmob.convert(onet)
+    onet = geo.parsers.osm.parse(inFileName)
+    rn = geo.convert.osm2simmob.convert(onet)
 
   if not rn:
     raise Exception('Unknown road network format: ' + inFileName)

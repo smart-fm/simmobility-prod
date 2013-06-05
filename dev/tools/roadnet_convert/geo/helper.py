@@ -2,7 +2,7 @@ from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
 from geo.position import Point
 from geo.position import Location
-from geo.formats import simmob
+import geo.formats.simmob
 import math
 
 #Assert that all values are non-null
@@ -138,7 +138,7 @@ def make_lane_edges_from_lane_lines(seg, global_id):
   zeroStart.rotateRight().scaleVectTo(halfW).translate()
   zeroEnd = DynVect(zeroLine[1], zeroLine[0])
   zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-  seg.lane_edges.append(simmob.LaneEdge(global_id.next(), 0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
+  seg.lane_edges.append(geo.formats.simmob.LaneEdge(global_id.next(), 0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
 
   #Now just shift each lane left to make our lane edges.
   lnEdNum = 1
@@ -148,7 +148,7 @@ def make_lane_edges_from_lane_lines(seg, global_id):
     currStart.rotateLeft().scaleVectTo(halfW).translate()
     currEnd = DynVect(currLine[1], currLine[0])
     currEnd.rotateRight().scaleVectTo(halfW).translate()
-    seg.lane_edges.append(simmob.LaneEdge(global_id.next(), lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
+    seg.lane_edges.append(geo.formats.simmob.LaneEdge(global_id.next(), lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
     lnEdNum += 1
 
 
@@ -178,7 +178,7 @@ def make_lane_connectors(rn):
         #The looping gets even deeper!
         for fromLaneID in range(len(fromEdge.lanes)):
           for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+            rn.turnings.append(geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
 
 
 #Helper for remembering incoming and outgoing Segments at a given Node.

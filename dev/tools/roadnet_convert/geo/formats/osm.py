@@ -1,6 +1,5 @@
 from geo.position import Location
-from geo.helper import assert_non_null
-from geo.helper import dict_to_lower
+import geo.helper
 
 class RoadNetwork:
   '''The primary container class for OSM road networks. (See: simmob.py)
@@ -16,10 +15,10 @@ class RoadNetwork:
 
 class Node:
   def __init__(self, nodeId, lat, lng, props):
-    assert_non_null("Null params", nodeId, lat, lng, props)
+    geo.helper.assert_non_null("Null params", nodeId, lat, lng, props)
     self.nodeId = str(nodeId)
     self.loc = Location(float(lat), float(lng))
-    self.props = dict_to_lower(props)
+    self.props = geo.helper.dict_to_lower(props)
 
 
 class Way:
@@ -28,7 +27,7 @@ class Way:
   '''
 
   def __init__(self, wayId, nodes, props):
-    assert_non_null("Null params", wayId, nodes, props)
+    geo.helper.assert_non_null("Null params", wayId, nodes, props)
     if len(nodes)<2:
       raise Exception('Way cannot be made with less than 2 Nodes.')
 

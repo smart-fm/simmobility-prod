@@ -1,11 +1,11 @@
-from geo.formats import osm
 from lxml import objectify
+import geo.formats.osm
 from geo.helper import IdGenerator
 
 
-def parse(inFileName :str) -> osm.RoadNetwork:
+def parse(inFileName :str) -> geo.formats.osm.RoadNetwork:
   '''Parse an OSM network file.'''
-  rn = osm.RoadNetwork()
+  rn = geo.formats.osm.RoadNetwork()
 
   #Open, parse, 
   inFile = open(inFileName)
@@ -34,7 +34,7 @@ def __parse_node_osm(n, rn):
     #projected,zone = project_wgs84(n.get('lat'), n.get('lon'), zone)  #Returns a point
 
     #Add a new Node
-    res = osm.Node(n.get('id'), n.get('lat'), n.get('lon'))
+    res = geo.formats.osm.Node(n.get('id'), n.get('lat'), n.get('lon'))
     rn.nodes[res.nodeId] = res
 
     #Return the zone, for reference
@@ -93,7 +93,7 @@ def __parse_way_osm(wy, rn, global_id):
       numLanes = int(numLanesTag[0].get('v'))
 
     #Add a new Way
-    res = osm.Way(wy.get('id'), nodeIds[0], nodeIds[-1])
+    res = geo.formats.osm.Way(wy.get('id'), nodeIds[0], nodeIds[-1])
     rn.ways[res.wayId] = res
 
 

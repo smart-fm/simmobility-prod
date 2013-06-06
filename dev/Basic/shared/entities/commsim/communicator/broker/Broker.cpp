@@ -26,9 +26,15 @@ namespace sim_mob
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }
-void Broker::insertSendBuffer(DataElement& value)
+bool Broker::insertSendBuffer(DataElement& value)
 {
+	//a small validation
+	if(value.get<0>()->agentPtr == 0)
+	{
+		return false;
+	}
 	sendBuffer.add(value);
+	return true;
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), EventListener()
@@ -129,6 +135,9 @@ void Broker::insertClientList(unsigned int clientType, boost::shared_ptr<sim_mob
 	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList.insert(std::make_pair(clientType, clientHandler));
+	Print()<< "ClientHandler inserted: agent[" <<
+			clientHandler->agent << " : " << clientHandler->cnnHandler->agentPtr << "]  "
+					"clientID[" << clientHandler->clientID << "]" << std::endl;
 }
 
 void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)
@@ -200,7 +209,6 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 	duplicateEntityDoneChecker.erase(agent);
 
 	//search registered clients list looking for this agent. whoever has it, dump him
-	std::pair<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > client;
 	ClientList::iterator it_erase;
 	for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
 	{
@@ -223,13 +231,20 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 				}
 			}
 			//erase him from the list
-			clientList.erase(it_erase);
+			//clientList.erase(it_erase);
+			//don't erase it here. it may already have something to send
+			//invalidate it and clean it up when necessary
+			//invalidation 1:
+			it_erase->second->agent = 0;
+			it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
+
 		}
 		else
 		{
 			 it++;
 		}
 	}
+	Print()<< "Broker::unRegisterEntity UNlocking mutex_clientList " << std::endl;
 }
 
 void Broker::processIncomingData(timeslice now)
@@ -390,6 +405,7 @@ void Broker::processOutgoingData(timeslice now)
 		{
 			boost::shared_ptr<ConnectionHandler> cnn = dataElement.get<0>();
 			std::string message =  dataElement.get<1>();
+			Print() << "Broker sending to agent[" << cnn->agentPtr << "]  client["  << cnn->clientID << "] " << std::endl;
 			cnn->send(message);
 		}
 }
@@ -565,16 +581,69 @@ Entity::UpdateStatus Broker::update(timeslice now)
 //	Print() << "Broker tick:"<< now.frame() << " - after processOutgoingData" << std::endl;
 
 	//step-7: final steps that should be taken before leaving the tick
-//	//this method may have already been called through waitForClients()
-//	//we just see if anything is left off
-//	processClientRegistrationRequests();
 	//prepare for next tick.
-	duplicateEntityDoneChecker.clear();
+	cleanup();//
 //	return proudly
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 
 }
 
+void Broker::removeClient(ClientList::iterator it_erase)
+{
+	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
+	if(!it_erase->second)
+	{
+		return;
+	}
+	//delete the connection handler inside the client handler
+	if(it_erase->second->cnnHandler)
+	{
+//		it_erase->second->cnnHandler.reset();
+	}
+	//delete the clientHandler
+//	it_erase->second.reset();
+	//remove it from the list
+	clientList.erase(it_erase);
+	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
+}
+void Broker::cleanup()
+{
+	//for internal use
+	duplicateEntityDoneChecker.clear();
+	return;
+
+	//note:this part is supposed to delete clientList entries for the dead agents
+	//But there is a complication on deleting connection handler
+	//there is a chance the sockets are deleted before a send ACK arrives
+
+	{
+		ClientList::iterator it_erase;
+		for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
+		{
+			//hehehe, sorry for duplication/safe perfection
+			if(it->second == 0)
+			{
+				it_erase = it++;
+				removeClient(it_erase);
+				continue;
+			}
+			if(it->second->agent == 0)
+			{
+				it_erase = it++;
+				removeClient(it_erase);
+				continue;
+			}
+			if(it->second->cnnHandler->agentPtr == 0)
+			{
+				it_erase = it++;
+				removeClient(it_erase);
+				continue;
+			}
+			it++;
+		}
+	}
+
+}
 //void Broker::unicast(const sim_mob::Agent * agent, std::string data)
 //{
 //	//find the connection handler

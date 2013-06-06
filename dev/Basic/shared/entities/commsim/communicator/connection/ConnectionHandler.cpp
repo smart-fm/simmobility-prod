@@ -74,6 +74,7 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 
 void ConnectionHandler::send(std::string str)
 {
+	std::cout << "Writing to agent[" << agentPtr << "]  client["  << clientID << "] " << std::endl;
 	mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 }
 void ConnectionHandler::sendHandler(const boost::system::error_code& e) {

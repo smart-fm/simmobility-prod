@@ -97,8 +97,10 @@ public:
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
 	void processClientRegistrationRequests();
-	void insertSendBuffer(DataElement&);
+	bool insertSendBuffer(DataElement&);
 	Entity::UpdateStatus update(timeslice now);
+	void removeClient(ClientList::iterator it_erase);
+	void cleanup();
 	bool allAgentUpdatesDone();
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
 //	boost::shared_ptr<boost::shared_mutex> getBrokerMutex();

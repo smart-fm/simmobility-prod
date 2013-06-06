@@ -20,7 +20,6 @@ AndroidClientRegistration::AndroidClientRegistration(/*ClientType type_) : Clien
 
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
 {
-//	boost::unique_lock< boost::mutex > lock(*broker.getBrokerClientMutex());
 	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
@@ -56,10 +55,13 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 				,broker
 				,&Broker::messageReceiveCallback
 				,request.clientID
+				,ANDROID_EMULATOR
 				,(unsigned long int)(freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
 				)
 
 		);
+
+//		Print()<< "Connection handler for agent "
 
 		clientEntry->JCommunicationSupport_ = freeAgent->second;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
@@ -86,7 +88,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.getClientList().insert(std::make_pair(ANDROID_EMULATOR,clientEntry));
+		broker.insertClientList(ANDROID_EMULATOR,clientEntry);
 
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
@@ -94,10 +96,6 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		//add this agent to the list of the agents who are associated with a android emulator client
 		usedAgents.insert( *freeAgent);
 		//tell the agent you are registered
-//		Print() << "AndroidClientRegistration::handle=>Broker Mutexes : " << broker.getBrokerMutexCollection()[0] << " " << broker.getBrokerMutexCollection()[1] << " " << broker.getBrokerMutexCollection()[2] << std::endl;
-		std::vector<boost::shared_ptr<boost::shared_mutex > > & mutexes = broker.getBrokerMutexCollection();
-//		Print() << "AndroidClientRegistration::handle=>       mutexes : " << broker.getBrokerMutexCollection()[0] << " " << broker.getBrokerMutexCollection()[1] << " " << broker.getBrokerMutexCollection()[2] << std::endl;
-
 		freeAgent->second->setregistered(true);
 		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
 		return true;

@@ -85,55 +85,55 @@ protected:
 
 public:
 	bool registered;
-	void (JCommunicationSupport::*registrationCallback)(bool,std::vector<boost::shared_ptr<boost::shared_mutex> > &);
+	void (JCommunicationSupport::*registrationCallback)(bool);
 	//general purpose counter
 	int cnt_1;//i use this one to control/limit the number of times communicator faces the 'update not done'
 	int cnt_2;
-	boost::shared_mutex CommSupp_Mutex;
-	std::vector<boost::shared_ptr<boost::shared_mutex> > Broker_Mutexes;
+
+	boost::shared_mutex mutex;
+	boost::shared_mutex mutex_outgoing;
+	boost::shared_mutex mutex_incoming;
 //	subscriptionInfo getSubscriptionInfo();
 	void setregistered(bool value)
 	{
 		registered = value;
 	};
-	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value)
-	{
-		Broker_Mutexes = value;
-//		Print() << "COMM::setMutexes=>Broker Mutexes : " << Broker_Mutexes[0] << " " << Broker_Mutexes[1] << " " << Broker_Mutexes[2] << std::endl;
-	};
+//	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value)
+//	{
+//		Broker_Mutexes = value;
+////		Print() << "COMM::setMutexes=>Broker Mutexes : " << Broker_Mutexes[0] << " " << Broker_Mutexes[1] << " " << Broker_Mutexes[2] << std::endl;
+//	};
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	BufferContainer<T>& getIncoming() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
 		return incoming;
 	};
 	void getAndClearIncoming(BufferContainer<T> &values) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
 		values = incoming;
 		incoming.clear();
 	};
 	BufferContainer<T>& getOutgoing(){
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 		return outgoing;
 	};
 	void setIncoming(BufferContainer<T> values) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		incoming = values;
 	};
 	bool popIncoming(T &var)
 	{
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		return incoming.pop(var);
 	};
 
 void addIncoming(T value) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		std::cout << "addIncoming_Acquiring_receive_lock_DONE" << std::endl;
 		incoming.add(value);
 		incomingIsDirty = true;
 	}
 
 	void addOutgoing(T value) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 		std::cout << "outgoingsize-before[" << outgoing.get().size() << "]" << std::endl;
 		outgoing.add(value);
 		std::cout << "outgoingsize-after[" << outgoing.get().size() << "]" << std::endl;
@@ -142,43 +142,43 @@ void addIncoming(T value) {
 
 
 	void setwriteIncomingDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		writeIncomingDone = value;
 	}
 
 	void setWriteOutgoingDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 		readOutgoingDone = value;
 	}
 
 	void setAgentUpdateDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[0]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex);
 		agentUpdateDone = value;
 	}
 
 	bool &iswriteIncomingDone() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		return writeIncomingDone;
 	}
 
 	bool &isreadOutgoingDone() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 		return readOutgoingDone;
 	}
 
 	bool &isAgentUpdateDone() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[0]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex);
 			return agentUpdateDone;
 	}
 
 
 	bool &isOutgoingDirty() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[1]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 		return outgoingIsDirty;
 	}
 
 	bool &isIncomingDirty() {
-		boost::unique_lock< boost::shared_mutex > lock(*(Broker_Mutexes[2]));
+		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 		return incomingIsDirty;
 	}
 
@@ -186,20 +186,21 @@ void addIncoming(T value) {
 
 	void reset(){
 		{
-			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[0]);
+			boost::unique_lock< boost::shared_mutex > lock(mutex);
 			agentUpdateDone = false ;
 			cnt_1 = cnt_2 = 0;
 		}
 		{
-			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[1]);
+			boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
 			outgoingIsDirty = false ;
 			readOutgoingDone = false ;
 		}
 		{
-			boost::unique_lock< boost::shared_mutex > lock(*Broker_Mutexes[2]);
+			boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
 			incomingIsDirty = false ;
 			writeIncomingDone = false ;
 		}
+
 	}
 
 	void init(){
@@ -219,13 +220,9 @@ void addIncoming(T value) {
 //		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 	}
 
-	void registrationCallBack(bool result, std::vector<boost::shared_ptr<boost::shared_mutex> > &Broker_Mutexes_)
+	void registrationCallBack(bool registered)
 	{
-//		Print() << "COMM::registrationCallBack=>Broker Mutexes : " << Broker_Mutexes_[0] << " " << Broker_Mutexes_[1] << " " << Broker_Mutexes_[2] << std::endl;
-		if(result)
-		{
-			setMutexes(Broker_Mutexes_);
-		}
+		setregistered(registered);
 	}
 
 	const sim_mob::Agent& getEntity()

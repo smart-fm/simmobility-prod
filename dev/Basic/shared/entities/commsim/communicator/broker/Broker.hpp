@@ -39,9 +39,11 @@ static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler>
 }
 
 
-class Broker  : public sim_mob::Agent//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent, public EventListener//, public sim_mob::MessageReceiver
 {
 public:
+	static int diedAgents;
+	static int subscribedAgents;
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	~Broker();
 private:
@@ -73,29 +75,37 @@ private:
 	bool clientsQualify() const;
 	bool brokerCanProceed()const;
 
+	/**
+	 * Handles the agent finished event.
+	 */
+	void OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
+
 public:
-	boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
-	boost::shared_ptr<boost::shared_mutex> Broker_Mutex;
-	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Send;
-	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Receive;
-	std::vector<boost::shared_ptr<boost::shared_mutex > > mutex_collection;
+
+//	boost::shared_ptr<boost::shared_mutex> Broker_Mutex;
+//	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Send;
+//	boost::shared_ptr<boost::shared_mutex> Broker_Mutex_Receive;
+//	std::vector<boost::shared_ptr<boost::shared_mutex > > mutex_collection;
+	boost::mutex mutex_client_request;
+	boost::mutex mutex_clientList;
 	boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST;
 
 	AgentsMap & getRegisteredAgents();
 	ClientWaitList & getClientWaitingList();
 	ClientList & getClientList();
+	void insertClientList(unsigned int , boost::shared_ptr<sim_mob::ClientHandler>);
+	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
 	void processClientRegistrationRequests();
 	void insertSendBuffer(DataElement&);
 	Entity::UpdateStatus update(timeslice now);
 	bool allAgentUpdatesDone();
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
-
-	boost::shared_ptr<boost::shared_mutex> getBrokerMutex();
-	boost::shared_ptr<boost::shared_mutex> getBrokerMutexSend();
-	boost::shared_ptr<boost::shared_mutex> getBrokerMutexReceive();
-	std::vector<boost::shared_ptr<boost::shared_mutex > > & getBrokerMutexCollection();
-	boost::shared_ptr<boost::mutex> getBrokerClientMutex();
+//	boost::shared_ptr<boost::shared_mutex> getBrokerMutex();
+//	boost::shared_ptr<boost::shared_mutex> getBrokerMutexSend();
+//	boost::shared_ptr<boost::shared_mutex> getBrokerMutexReceive();
+//	std::vector<boost::shared_ptr<boost::shared_mutex > > & getBrokerMutexCollection();
+//	boost::shared_ptr<boost::mutex> getBrokerClientMutex();
 	//set to true when there are enough number of subscribers
 	//this is used by the Broker to
 	//qualifies itself to either
@@ -134,6 +144,8 @@ protected:
 
 	//Is this Broker currently enabled?
 	bool enabled;
+private:
+	bool firstTime;
 
 
 };

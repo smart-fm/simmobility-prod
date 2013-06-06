@@ -26,6 +26,10 @@
 
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
+#include "event/args/EventArgs.hpp"
+#include "event/EventPublisher.hpp"
+
+
 
 namespace sim_mob
 {
@@ -54,6 +58,25 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
+#define AGENT_LIFE_EVENT_STARTED_ID 3000
+#define AGENT_LIFE_EVENT_FINISHED_ID 3001
+
+DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
+class AgentLifeEventArgs: public EventArgs {
+public:
+	AgentLifeEventArgs(Agent* agent);
+	AgentLifeEventArgs(const AgentLifeEventArgs& orig);
+	virtual ~AgentLifeEventArgs();
+
+	/**
+	 * Gets the unit affected by the action.
+	 * @return
+	 */
+	const Agent* GetAgent() const;
+private:
+	Agent* agent;
+};
+
 /**
  * Basic Agent class.
  *
@@ -65,8 +88,10 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity/*, public sim_mob::CommunicationSupport*/ {
+class Agent : public sim_mob::Entity, public EventPublisher/*, public sim_mob::CommunicationSupport*/ {
 public:
+	static int createdAgents;
+	static int diedAgents;
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
 	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),

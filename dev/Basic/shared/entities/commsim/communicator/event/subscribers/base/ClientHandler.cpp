@@ -27,6 +27,10 @@ void ClientHandler::OnLocation(EventId id, Context context, EventPublisher* send
 
 void ClientHandler::OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args){
    std::string timeJson = args.ToJSON();
+   if(args.time.frame() > 158)
+   {
+	   int i = 0;
+   }
    sim_mob::DataElement data = sim_mob::makeDataElement(cnnHandler, timeJson);
    //now send to broker's buffer
    getBroker().insertSendBuffer(data);

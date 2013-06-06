@@ -9,6 +9,7 @@
 #include "Session.hpp"
 #include "WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
+#include "entities/commsim/communicator/broker/Broker.hpp"
 namespace sim_mob {
 
 void ConnectionServer::handleNewClient(session_ptr sess)
@@ -29,17 +30,11 @@ void ConnectionServer::CreatSocketAndAccept() {
 					boost::asio::placeholders::error, new_sess));
 }
 
-ConnectionServer::ConnectionServer(	/*std::queue<boost::tuple<unsigned int,ClientRegistrationRequest > >*/ ClientWaitList &clientRegistrationWaitingList_,
-		boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
-		boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
-		unsigned short port)
+ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port)
 :
-		Broker_Client_Mutex(Broker_Client_Mutex_),
-		COND_VAR_CLIENT_REQUEST(COND_VAR_CLIENT_REQUEST_),
-		acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
-		clientRegistrationWaitingList(clientRegistrationWaitingList_)
+		broker(broker_),
+		acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
-
 }
 
 void ConnectionServer::start()
@@ -70,12 +65,8 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 	unsigned int ID;
 	unsigned int type;
 	session_ptr session_;
-	boost::unique_lock< boost::mutex > lock(*Broker_Client_Mutex);//todo remove comment
 	std::pair<std::string,ClientRegistrationRequest > p(request.client_type, request);
-	clientRegistrationWaitingList.insert(p);
-	ClientWaitList::iterator it = clientRegistrationWaitingList.begin();
-	Print() << it->second.session_.get() << std::endl;
-	COND_VAR_CLIENT_REQUEST->notify_one();
+	broker.insertClientWaitingList(p);
 //	std::cout << " RequestClientRegistration Done, returning" << std::endl;
 }
 

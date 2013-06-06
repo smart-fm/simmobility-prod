@@ -2023,14 +2023,14 @@ void sim_mob::Driver::saveCurrTrafficSignal() {
 
 void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
-	std::cout << "setTrafficSignalParams ";
+//	std::cout << "setTrafficSignalParams ";
 	if (!trafficSignal) {
-		std::cout << "->[signal is null] " << std::endl;
+//		std::cout << "->[signal is null] " << std::endl;
 			p.trafficColor = sim_mob::Green;
 
 		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
-		std::cout << "->[signal is NOT null] " << std::endl;
+//		std::cout << "->[signal is NOT null] " << std::endl;
 		sim_mob::TrafficColor color;
 
 		if (vehicle->hasNextSegment(false)) {

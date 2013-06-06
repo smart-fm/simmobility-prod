@@ -23,6 +23,7 @@
 
 namespace sim_mob {
 class Session;
+class Broker;
 
 class ConnectionServer {
 
@@ -34,10 +35,7 @@ class ConnectionServer {
 		void CreatSocketAndAccept();
 //		sim_mob::ClientRegistrationRequest t;
 //		std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > > tt;
-		ConnectionServer(	/*std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > >*/ ClientWaitList&clientRegistrationWaitingList_,
-				boost::shared_ptr<boost::mutex> Broker_Client_Mutex_,
-				boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST_,
-				unsigned short port = DEFAULT_SERVER_PORT);
+		ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
 		void start();
 		void io_service_run();
 		void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> sess);
@@ -51,9 +49,8 @@ class ConnectionServer {
 		boost::asio::io_service io_service_;
 	private:
 		const static unsigned int DEFAULT_SERVER_PORT = 6745;
-
 		boost::asio::ip::tcp::acceptor acceptor_;
-		ClientWaitList &clientRegistrationWaitingList; //<client type,registrationrequestform >
+		sim_mob::Broker &broker;
 };
 
 } /* namespace sim_mob */

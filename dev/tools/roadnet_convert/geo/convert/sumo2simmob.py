@@ -20,7 +20,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   #TODO: Currently we do not consider UniNodes for SUMO networks.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for jn in rn.junctions.values():
-    newNode = geo.formats.simmob.Node(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
+    newNode = geo.formats.simmob.Intersection(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
     res.nodes[newNode.nodeId] = newNode
     jnctLookup[jn.jnctId] = newNode
 

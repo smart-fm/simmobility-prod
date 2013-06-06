@@ -1,4 +1,5 @@
 from geo.formats import simmob
+import geo.helper
 
 
 def serialize(rn :simmob.RoadNetwork, outFilePath :str):
@@ -10,25 +11,25 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
   rnIndex = simmob.RNIndex(rn)
 
   #There's a nested dispatch for most of this (just how XML tends to work).
-  f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
-  f.write('<geo:SimMobility\n')
-  f.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
-  f.write('    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \n')
-  f.write('    xsi:schemaLocation="http://www.smart.mit.edu/geo   ../../Basic/shared/geospatial/xmlLoader/geo10.xsd">\n\n')
+  out.write('<?xml version="1.0" encoding="utf-8" ?>\n')
+  out.write('<geo:SimMobility\n')
+  out.write('    xmlns:geo="http://www.smart.mit.edu/geo"\n')
+  out.write('    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \n')
+  out.write('    xsi:schemaLocation="http://www.smart.mit.edu/geo   ../../Basic/shared/geospatial/xmlLoader/geo10.xsd">\n\n')
 
-  f.write('    <GeoSpatial>\n')
-  f.write('    <RoadNetwork>\n')
-  __write_xml_nodes(f, rn, rnIndex)
-  __write_xml_links(f, rn, rnIndex)
-  f.write('    </RoadNetwork>\n')
-  f.write('    </GeoSpatial>\n')
-  f.write('</geo:SimMobility>\n')
+  out.write('    <GeoSpatial>\n')
+  out.write('    <RoadNetwork>\n')
+  __write_xml_nodes(out, rn, rnIndex)
+  __write_xml_links(out, rn, rnIndex)
+  out.write('    </RoadNetwork>\n')
+  out.write('    </GeoSpatial>\n')
+  out.write('</geo:SimMobility>\n')
 
   #Done
   out.close()
 
 
-def __write_xml_nodes(f, rn):
+def __write_xml_nodes(f, rn, rnIndex):
   #Write Nodes
   f.write('      <Nodes>\n')
   f.write('        <UniNodes>\n')
@@ -48,7 +49,7 @@ def __write_xml_uninodes(f, rn, rnIndex):
 
     #The header is the same as for Multi-Nodes
     f.write('          <UniNode>\n')
-    f.write('            <nodeID>%d</nodeID>\n' % n.nodeId)
+    f.write('            <nodeID>%s</nodeID>\n' % n.nodeId)
     f.write('            <location>\n')
     f.write('              <xPos>%d</xPos>\n' % n.pos.x)
     f.write('              <yPos>%d</yPos>\n' % n.pos.y)
@@ -58,7 +59,7 @@ def __write_xml_uninodes(f, rn, rnIndex):
     if not (n.nodeId in rnIndex.segsAtNodes):
       raise Exception("UniNode without Road segments")
     if len(rnIndex.segsAtNodes[n.nodeId]) != 2:
-      raise Exception("UniNode requires exactly 2 Road segments")
+      raise Exception("UniNode requires exactly 2 Road segments; instead, has %d" % len(rnIndex.segsAtNodes[n.nodeId]))
 
     #The order of these *might* matter (it certainly does later for Connectors) so figure it out.
     firstSeg = rnIndex.segsAtNodes[n.nodeId][0]
@@ -101,7 +102,7 @@ def __write_xml_multinodes(f, rn, rnIndex):
     if not isinstance(n, simmob.Intersection):
       continue
     f.write('          <Intersection>\n')
-    f.write('            <nodeID>%d</nodeID>\n' % n.nodeId)
+    f.write('            <nodeID>%s</nodeID>\n' % n.nodeId)
     f.write('            <location>\n')
     f.write('              <xPos>%d</xPos>\n' % n.pos.x)
     f.write('              <yPos>%d</yPos>\n' % n.pos.y)
@@ -111,14 +112,14 @@ def __write_xml_multinodes(f, rn, rnIndex):
     f.write('            <roadSegmentsAt>\n')
     if (n.nodeId in rnIndex.segsAtNodes):
       for sg in rnIndex.segsAtNodes[n.nodeId]:
-        f.write('              <segmentID>%d</segmentID>\n' % sg.segId)
+        f.write('              <segmentID>%s</segmentID>\n' % sg.segId)
     f.write('            </roadSegmentsAt>\n')
 
     #Write connectors
     f.write('            <Connectors>\n')
     for sg in rnIndex.segsAtNodes[n.nodeId]:
       f.write('              <MultiConnectors>\n')
-      f.write('                <RoadSegment>%d</RoadSegment>\n' % rs.guid)
+      f.write('                <RoadSegment>%s</RoadSegment>\n' % sg.segId)
       f.write('                <Connectors>\n')
       for lc in sg.lane_connectors.values():
         f.write('                  <Connector>\n')
@@ -138,10 +139,10 @@ def __write_xml_links(f, rn, rnIndex):
   f.write('      <Links>\n')
   for lk in rn.links.values():
     f.write('        <Link>\n')
-    f.write('          <linkID>%d</linkID>\n' % lk.guid)
+    f.write('          <linkID>%s</linkID>\n' % lk.linkId)
     f.write('          <roadName/>\n')
-    f.write('          <StartingNode>%d</StartingNode>\n' % rn.nodes[lk.fromNode].guid)
-    f.write('          <EndingNode>%d</EndingNode>\n' % rn.nodes[lk.toNode].guid)
+    f.write('          <StartingNode>%s</StartingNode>\n' % lk.fromNode.nodeId)
+    f.write('          <EndingNode>%s</EndingNode>\n' % lk.toNode.nodeId)
     f.write('          <Segments>\n')
     for seg in lk.segments:
       __write_xml_segment(f, seg, rn, rnIndex)
@@ -152,19 +153,19 @@ def __write_xml_links(f, rn, rnIndex):
 
 def __write_xml_segment(f, seg, rn, rnIndex):
   #Each Link has only 1 segment
-  seg_width = dist(seg.lane_edges[0].points[0],seg.lane_edges[-1].points[0])
+  seg_width = geo.helper.dist(seg.lane_edges[0].polyline[0],seg.lane_edges[-1].polyline[0])
   f.write('            <Segment>\n')
-  f.write('              <segmentID>%d</segmentID>\n' % seg.segId)
-  f.write('              <startingNode>%d</startingNode>\n' % seg.fromNode.nodeId)
-  f.write('              <endingNode>%d</endingNode>\n' % seg.toNode.nodeId)
+  f.write('              <segmentID>%s</segmentID>\n' % seg.segId)
+  f.write('              <startingNode>%s</startingNode>\n' % seg.fromNode.nodeId)
+  f.write('              <endingNode>%s</endingNode>\n' % seg.toNode.nodeId)
   f.write('              <maxSpeed>60</maxSpeed>\n')
-  f.write('              <Length>%d</Length>\n' % dist(seg.fromNode,seg.toNode))
+  f.write('              <Length>%d</Length>\n' % geo.helper.dist(seg.fromNode,seg.toNode))
   f.write('              <Width>%d</Width>\n' % seg_width)
   f.write('              <polyline>\n')
   f.write('                <PolyPoint>\n')
   f.write('                  <pointID>0</pointID>\n')
   f.write('                  <location>\n')
-  f.write('                    <xPos>%d</xPos>\n' % se.fromNode.pos.x)
+  f.write('                    <xPos>%d</xPos>\n' % seg.fromNode.pos.x)
   f.write('                    <yPos>%d</yPos>\n' % seg.fromNode.pos.y)
   f.write('                  </location>\n')
   f.write('                </PolyPoint>\n')
@@ -196,7 +197,7 @@ def __write_xml_lane_edge_polylines(f, lane_edges):
     curr_id += 1
     f.write('                  <polyline>\n')
     pt_id = 0
-    for p in le.points:
+    for p in le.polyline:
       f.write('                    <PolyPoint>\n')
       f.write('                      <pointID>%d</pointID>\n' % pt_id)
       pt_id += 1
@@ -213,7 +214,7 @@ def __write_xml_lanes(f, lanes, est_width):
   #Lanes just have a lot of properties; we fake nearly all of them.
   for l in lanes:
     f.write('                <Lane>\n')
-    f.write('                  <laneID>%d</laneID>\n' % l.guid)
+    f.write('                  <laneID>%s</laneID>\n' % l.laneId)
     f.write('                  <width>%d</width>\n' % est_width)
     f.write('                  <can_go_straight>true</can_go_straight>\n')
     f.write('                  <can_turn_left>true</can_turn_left>\n')
@@ -233,7 +234,7 @@ def __write_xml_lanes(f, lanes, est_width):
     f.write('                  <is_u_turn_allowed>false</is_u_turn_allowed>\n')
     f.write('                  <PolyLine>\n')
     pt_id = 0
-    for p in l.shape.points:
+    for p in l.polyline:
       f.write('                    <PolyPoint>\n')
       f.write('                      <pointID>%d</pointID>\n' % pt_id)
       pt_id += 1

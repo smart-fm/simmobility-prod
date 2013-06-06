@@ -73,7 +73,7 @@ class Intersection(Node):
   '''
 
   def __init__(self, nodeId, xPos, yPos):
-    super(Inersection,self).__init__(nodeId, xPos, yPos)
+    super(Intersection,self).__init__(nodeId, xPos, yPos)
 
 
 class Link:

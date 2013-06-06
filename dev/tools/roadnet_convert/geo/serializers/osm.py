@@ -30,37 +30,37 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str, outBounds :'[Location,Lo
   for lk in rn.links.values():
     for seg in lk.segments:
       for l in seg.lane_edges:
-        for pos in l.points:
+        for pos in l.polyline:
           helper.add_point(pos)
 
   #Now we can just use the helper as-is
-  f.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (latLngBounds[0].lat, latLngBounds[0].lng, latLngBounds[1].lat, latLngBounds[1].lng))
+  out.write('<bounds minlat="%f" minlon="%f" maxlat="%f" maxlon="%f"/>' % (outBounds[0].lat, outBounds[0].lng, outBounds[1].lat, outBounds[1].lng))
 
   #Nodes
   for n in rn.nodes.values():
-    (lat,lng) = helper.convert(n.pos)
-    f.write(' <node id="%s" lat="%s" lon="%s" visible="true"/>\n' % (n.nodeId, lat, lng))
+    loc = helper.convert(n.pos)
+    out.write(' <node id="%s" lat="%s" lon="%s" visible="true"/>\n' % (n.nodeId, loc.lat, loc.lng))
 
   #Ways are tied to segments
   for lk in rn.links.values():
     for seg in lk.segments:
-      f.write(' <way id="%s" visible="true">\n' % seg.segId)
+      out.write(' <way id="%s" visible="true">\n' % seg.segId)
     
       #We need to write the Nodes of this Way in order.
       #For now, SUMO links only have 2 nodes and 1 segment each.
       #TODO: Deal with this better, esp. with regards to UniNodes.
-      f.write('  <nd ref="%s"/>\n' % e.fromNode.nodeId)
-      f.write('  <nd ref="%s"/>\n' % e.toNode.nodeId)
+      out.write('  <nd ref="%s"/>\n' % seg.fromNode.nodeId)
+      out.write('  <nd ref="%s"/>\n' % seg.toNode.nodeId)
 
       #Now write the Way's tags
       #TODO: Better customization of output tags.
-      f.write('  <tag k="highway" v="primary"/>\n')
-      f.write('  <tag k="oneway" v="yes"/>\n')
+      out.write('  <tag k="highway" v="primary"/>\n')
+      out.write('  <tag k="oneway" v="yes"/>\n')
 
-      f.write(' </way>\n')
+      out.write(' </way>\n')
 
   #Done
-  f.write('</osm>\n')
+  out.write('</osm>\n')
   out.close()
 
 

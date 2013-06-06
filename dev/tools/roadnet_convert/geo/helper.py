@@ -205,7 +205,7 @@ class IdGenerator:
 #Helper class for UTM scaling
 class ScaleHelper:
   def __init__(self, outBounds):
-    self.outBounds = bounds #minLocation, maxLocation of output
+    self.outBounds = outBounds #minLocation, maxLocation of output
     self.inBounds = [None, None] #minPoint, maxPoint of input
 #    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
 
@@ -223,7 +223,7 @@ class ScaleHelper:
     self.inBounds[1].y = max(self.inBounds[1].y, pt.y)
 
   #Convert a point to lat/long
-  def convert(self, pt):
+  def convert(self, pt :Point) -> Location:
     #Get the normalized components
     norm = Point( \
       (pt.x-self.inBounds[0].x)/(self.inBounds[1].x-self.inBounds[0].x), \
@@ -233,13 +233,13 @@ class ScaleHelper:
     #Convert to lat/lng. Note that Latitude scales up (but this should be handled by the same formula).
     #NOTE: Linear scaling will introduce artifacts, but for now a reverse-transformation
     #      would be even more problematic.
-    newPt = Point( \
+    newLoc = Location( \
       (norm.x*(self.outBounds[1].lng-self.outBounds[0].lng)+self.outBounds[0].lng), \
       (norm.y*(self.outBounds[1].lat-self.outBounds[0].lat)+self.outBounds[0].lat)  \
     )
 
     #Done
-    return newPt
+    return newLoc
 
   #Get the minimum/maximum points
 #  def min_pt(self):

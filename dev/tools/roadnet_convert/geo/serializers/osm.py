@@ -2,7 +2,7 @@ from geo.formats import simmob
 from geo.helper import ScaleHelper
 
 
-def serialize(outFilePath :str, rn :simmob.RoadNetwork, outBounds :'[Location,Location] (min,max)'):
+def serialize(rn :simmob.RoadNetwork, outFilePath :str, outBounds :'[Location,Location] (min,max)'):
   '''Serialize a Road Network to Open Street Map's OSM format.
      Note that a generalized network may include data that never had an associated lat/lng
      bounding box. Thus, it is impossible to reverse the UTM transform, since we won't know 
@@ -16,14 +16,13 @@ def serialize(outFilePath :str, rn :simmob.RoadNetwork, outBounds :'[Location,Lo
   '''
 
   #The header starts out innocently enough...
+  print("Saving file:", outFilePath)
   out = open(outFilePath, 'w')
   out.write('<?xml version="1.0" encoding="UTF-8"?>\n')
   out.write('<osm version="0.6" generator="convert.py" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">\n')
 
   #Now we need to know the network bounds as well as a reverse transformation.
-  #We'll cheat a bit for now and center it on Singapore.
-  latLngBounds = [Location(1.264,103.646), Location(1.438,103.992)]
-  helper = ScaleHelper(outBounds, latLngBounds)
+  helper = ScaleHelper(outBounds)
 
   #Figure out the bounds
   for n in rn.nodes.values():

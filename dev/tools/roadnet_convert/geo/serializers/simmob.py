@@ -1,8 +1,9 @@
 from geo.formats import simmob
 
 
-def serialize(outFilePath :str, rn :simmob.RoadNetwork):
+def serialize(rn :simmob.RoadNetwork, outFilePath :str):
   '''Serialize a Road Network to Sim Mobility's XML format.'''
+  print("Saving file:", outFilePath)
   out = open(outFilePath, 'w')
 
   #We'll need an index (naturally)

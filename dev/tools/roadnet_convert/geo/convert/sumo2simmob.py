@@ -2,6 +2,7 @@ import geo.formats.sumo
 import geo.formats.simmob
 import geo.helper
 from geo.helper import IdGenerator
+from geo.position import Point
 
 
 def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
@@ -28,7 +29,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   #TODO: UniNode support would also require Links longer than 1 segment.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for ed in rn.edges.values():
-    newSeg = geo.formats.simmob.Segment(global_id.next(), jnctLookup[ed.fromJnct], jnctLookup[ed.toJnct])
+    newSeg = geo.formats.simmob.Segment(global_id.next(), jnctLookup[ed.fromJnct.jnctId], jnctLookup[ed.toJnct.jnctId])
     newLink = geo.formats.simmob.Link(global_id.next(), newSeg.fromNode, newSeg.toNode)
     newLink.segments.append(newSeg)
     res.links[newLink.linkId] = newLink

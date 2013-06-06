@@ -36,24 +36,24 @@ class RNIndex:
       for sg in lk.segments:
         #Index all Lanes
         for ln in sg.lanes:
-          lanes[ln.laneId] = ln
+          self.lanes[ln.laneId] = ln
 
         #Index all Connectors
         for lcGrp in sg.lane_connectors.values():
           for lc in lcGrp:
-            if not (sg.toNode in lane_connectors):
-              lane_connectors[sg.toNode] = []
-            lane_connectors[sg.toNode].append(lc)
+            if not (sg.toNode in self.lane_connectors):
+              self.lane_connectors[sg.toNode] = []
+            self.lane_connectors[sg.toNode].append(lc)
 
         #Index "segments at nodes"
         fromId = sg.fromNode.nodeId
         toId = sg.toNode.nodeId
-        if not (fromId in segsAtNodes):
-          segsAtNodes[fromId] = []
-        if not (toId in segsAtNodes):
-          segsAtNodes[toId] = []
-        segsAtNodes[fromId].append(sg)
-        segsAtNodes[toId].append(sg)
+        if not (fromId in self.segsAtNodes):
+          self.segsAtNodes[fromId] = []
+        if not (toId in self.segsAtNodes):
+          self.segsAtNodes[toId] = []
+        self.segsAtNodes[fromId].append(sg)
+        self.segsAtNodes[toId].append(sg)
 
 
 
@@ -86,7 +86,7 @@ class Link:
 
 class Segment:
   def __init__(self, segId, fromNode, toNode):
-    geo.helper.assert_non_null(edgeId, fromNode, toNode, msg="Null args in Segment constructor")
+    geo.helper.assert_non_null(segId, fromNode, toNode, msg="Null args in Segment constructor")
     self.segId = str(segId)
     self.fromNode = fromNode
     self.toNode = toNode

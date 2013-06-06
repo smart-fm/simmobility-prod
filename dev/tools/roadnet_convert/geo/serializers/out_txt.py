@@ -1,37 +1,38 @@
 from geo.formats import simmob
 
 
-def serialize(outFilePath :str, rn :simmob.RoadNetwork):
+def serialize(rn :simmob.RoadNetwork, outFilePath :str):
   '''Serialize a Road Network to Sim Mobility's old "out.txt" format.'''
+  print("Saving file:", outFilePath)
   out = open(outFilePath, 'w')
   out.write('("simulation", 0, 0, {"frame-time-ms":"100",})\n')  #frame-time doesn't matter, but it's required.
 
   #Nodes
   for n in rn.nodes.values():
     if isinstance(n, simmob.Intersection):
-      out.write('("multi-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (n.nodeId, n.pos.x, n.pos.y))
+      out.write('("multi-node", 0, %s, {"xPos":"%d","yPos":"%d"})\n' % (n.nodeId, n.pos.x, n.pos.y))
     else:
-      out.write('("uni-node", 0, %d, {"xPos":"%d","yPos":"%d"})\n' % (n.nodeId, n.pos.x, n.pos.y))
+      out.write('("uni-node", 0, %s, {"xPos":"%d","yPos":"%d"})\n' % (n.nodeId, n.pos.x, n.pos.y))
 
   #Links, edges
   for lk in rn.links.values():
     #Write the link (and its forward segments)
     fromId = lk.fromNode.nodeId
     toId = lk.toNode.nodeId
-    out.write('("link", 0, %d, {"road-name":"","start-node":"%d","end-node":"%d","fwd-path":"[' % (lk.linkId, fromId, toId))
+    out.write('("link", 0, %s, {"road-name":"","start-node":"%s","end-node":"%s","fwd-path":"[' % (lk.linkId, fromId, toId))
     for seg in lk.segments:
-      out.write('%d,' % seg.segId)
+      out.write('%s,' % seg.segId)
     out.write(']",})\n')
 
     #Write the segments one-by-one
     for seg in lk.segments:
       fromId = seg.fromNode.nodeId
       toId = seg.toNode.nodeId
-      out.write('("road-segment", 0, %d, {"parent-link":"%d","max-speed":"65","width":"%d","lanes":"%d","from-node":"%d","to-node":"%d"})\n' % (seg.segId, lk.linkId,(250*len(seg.lanes)), len(seg.lanes), fromId, toId))
+      out.write('("road-segment", 0, %s, {"parent-link":"%s","max-speed":"65","width":"%d","lanes":"%d","from-node":"%s","to-node":"%s"})\n' % (seg.segId, lk.linkId,(250*len(seg.lanes)), len(seg.lanes), fromId, toId))
 
       #Lanes are somewhat more messy
       #Note that "lane_id" here just refers to lane line 0, since lanes are grouped by edges in this output format. (Confusingly)
-      out.write('("lane", 0, %d, {"parent-segment":"%d",' % (seg.lanes[0].laneId, seg.segId))
+      out.write('("lane", 0, %s, {"parent-segment":"%s",' % (seg.lanes[0].laneId, seg.segId))
 
       #Each lane component
       i = 0
@@ -39,7 +40,7 @@ def serialize(outFilePath :str, rn :simmob.RoadNetwork):
         out.write('"lane-%d":"[' % (i))
 
         #Lane lines are mildly more complicated, since we need lane *edge* lines.
-        for p in l.points:
+        for p in l.polyline:
           out.write('(%d,%d),' % (p.x, p.y))
         out.write(']",')
         i+=1

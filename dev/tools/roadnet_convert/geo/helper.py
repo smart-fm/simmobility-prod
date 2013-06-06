@@ -79,6 +79,7 @@ def remove_unused_nodes(nodes, segments):
      Node is pruned.
   '''
 
+  #Note: I *think* that using "node" (not ID) as a key will work here.
   nodesAt = {} #node => [segment, segment,]
   for s in segments.values():
     #Add it if it doesn't exist.
@@ -88,8 +89,8 @@ def remove_unused_nodes(nodes, segments):
       nodesAt[s.toNode] = []
 
     #Increment
-    nodesAt[e.fromNode].append(e)
-    nodesAt[e.toNode].append(e)
+    nodesAt[s.fromNode].append(s)
+    nodesAt[s.toNode].append(s)
 
   #We can cheat a little here: Nodes with no references won't even be in our result set.
   nodes.clear()
@@ -138,17 +139,17 @@ def make_lane_edges_from_lane_lines(seg, global_id):
   zeroStart.rotateRight().scaleVectTo(halfW).translate()
   zeroEnd = DynVect(zeroLine[1], zeroLine[0])
   zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-  seg.lane_edges.append(geo.formats.simmob.LaneEdge(global_id.next(), 0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
+  seg.lane_edges.append(geo.formats.simmob.LaneEdge(0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
 
   #Now just shift each lane left to make our lane edges.
   lnEdNum = 1
-  for i in range(len(lanes)):
-    currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
+  for i in range(len(seg.lanes)):
+    currLine = [seg.lanes[i].polyline[0],seg.lanes[i].polyline[-1]]
     currStart = DynVect(currLine[0], currLine[1])
     currStart.rotateLeft().scaleVectTo(halfW).translate()
     currEnd = DynVect(currLine[1], currLine[0])
     currEnd.rotateRight().scaleVectTo(halfW).translate()
-    seg.lane_edges.append(geo.formats.simmob.LaneEdge(global_id.next(), lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
+    seg.lane_edges.append(geo.formats.simmob.LaneEdge(lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
     lnEdNum += 1
 
 
@@ -170,6 +171,8 @@ def make_lane_connectors(rn):
 
   #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
   for n in rn.nodes.values():
+    if not n.nodeId in lookup:
+      continue
     for fromEdge in lookup[n.nodeId].incoming:
       for toEdge in lookup[n.nodeId].outgoing:
         if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):

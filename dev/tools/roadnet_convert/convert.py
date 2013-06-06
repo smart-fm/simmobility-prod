@@ -19,7 +19,11 @@ import geo.parsers.osm
 import geo.formats.simmob
 import geo.formats.sumo
 import geo.formats.osm
+import geo.serializers.simmob
+import geo.serializers.osm
+import geo.serializers.out_txt
 from geo.position import Point
+from geo.position import Location
 from geo.helper import DynVect
 from geo.helper import ScaleHelper
 
@@ -49,19 +53,19 @@ def run_main(inFileName, outFileName):
   #Remove junction nodes which aren't referenced by anything else.
   #TODO: This remains *here*, and might be disabled with a switch.
   nodesPruned = len(rn.nodes)
-  remove_unused_nodes(rn.nodes, rn.links)
+  geo.helper.remove_unused_nodes(rn.nodes, rn.links)
   nodesPruned -= len(rn.nodes)
   print("Pruned unreferenced nodes: %d" % nodesPruned)
 
   #Before printing the XML network, we should print an "out.txt" file for 
   #  easier visual verification with our old GUI.
-  simmob.serialize(rn, outFileName+".out.txt")
+  geo.serializers.out_txt.serialize(rn, outFileName+".out.txt")
 
   #Also print in OSM format, for round-trip checking.
-  osm.serialize(rn, outFileName+".osm")
+  geo.serializers.osm.serialize(rn, outFileName+".osm", [Location(1.264,103.646), Location(1.438,103.992)])   #We'll cheat a bit for now and center it on Singapore.
 
   #Now print the network in XML format, for use with the actual software.
-  osm.serialize(rn, outFileName+".simmob.xml")
+  geo.serializers.simmob.serialize(rn, outFileName+".simmob.xml")
 
 
 if __name__ == "__main__":

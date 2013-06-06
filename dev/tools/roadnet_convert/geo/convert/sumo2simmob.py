@@ -9,6 +9,11 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   '''Convert a SUMO Road Network to a Sim Mobility network.'''
   res = geo.formats.simmob.RoadNetwork()
 
+  #Get the min/max X values, as we need these to reverse the network.
+  minX,maxX = __get_min_max_x(rn)  #[min,max]
+  if minX is None or maxX is None:
+    raise Exception("Can't get min/max; at least one point must exist!")
+
   #Simple GUID
   global_id = IdGenerator(1000)
 
@@ -20,7 +25,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   #TODO: Currently we do not consider UniNodes for SUMO networks.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for jn in rn.junctions.values():
-    newNode = geo.formats.simmob.Intersection(global_id.next(), -100*jn.pos.x, 100*jn.pos.y)
+    newNode = geo.formats.simmob.Intersection(global_id.next(), 100*__mirror(jn.pos.x,minX,maxX), 100*jn.pos.y)
     res.nodes[newNode.nodeId] = newNode
     jnctLookup[jn.jnctId] = newNode
 
@@ -44,7 +49,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
       #Don't forget to reverse/scale out polyline points
       p1 = ln.shape.points[0]
       p2 = ln.shape.points[-1]
-      poly = [Point(-100*p1.x, 100*p1.y), Point(-100*p2.x, 100*p2.y)]
+      poly = [Point(100*__mirror(p1.x,minX,maxX), 100*p1.y), Point(100*__mirror(p2.x,minX,maxX), 100*p2.y)]
 
       #Create it.
       newSeg.lanes.append(geo.formats.simmob.Lane(global_id.next(), lnNum, newSeg, poly))
@@ -59,8 +64,24 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   return res
 
 
+def __mirror(x, minX, maxX):
+  return maxX - (x-minX)
 
 
+def __get_min_max_x(rn :geo.formats.sumo.RoadNetwork):
+  res = None
+  for jn in rn.junctions.values():
+    if res is None:
+      res = [jn.pos.x,jn.pos.x]
+    res[0] = min(jn.pos.x, res[0])
+    res[1] = max(jn.pos.x, res[1])
 
+  for ed in rn.edges.values():
+    for ln in ed.lanes:
+      for pt in ln.shape.points:
+        res[0] = min(pt.x, res[0])
+        res[1] = max(pt.x, res[1])
+
+  return (res[0],res[1]) if res else (None,None)
 
 

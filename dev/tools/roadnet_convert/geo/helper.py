@@ -133,6 +133,7 @@ def make_lane_edges_from_lane_lines(seg, global_id):
 
   #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
   halfW = get_line_dist(refLine, zeroLine)
+  halfW = 3.5*100 / 2 #Temp; we're getting very narrow lanes otherwise.
 
   #Add lane 0 shifted RIGHT to give us lane edge zero
   zeroStart = DynVect(zeroLine[0], zeroLine[1])

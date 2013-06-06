@@ -45,6 +45,50 @@ set (Basic_VERSION_MINOR 1)
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
+
+##################################################
+## CPack Configuration
+##################################################
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Sim Mobility simulation environment.")
+SET(CPACK_PACKAGE_NAME "simmobility")
+SET(CPACK_PACKAGE_VENDOR "Singapore-MIT Alliance for Research and Technology (SMART)")
+SET(CPACK_GENERATOR "DEB")
+#SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/license.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "0") #Never increase this.
+SET(CPACK_PACKAGE_VERSION_MINOR "0") #Never increase this.
+SET(CPACK_PACKAGE_VERSION_PATCH "1") #Increase this only when you plan to upload the generated *.deb to our Apt repository.
+SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+#SET(CPACK_STRIP_FILES "bin/SimMobility_Short")  #Note: this will fail on Windows (don't use CPack on Windows!)
+#SET(CPACK_SOURCE_STRIP_FILES "")                #Note: this will fail on Windows (don't use CPack on Windows!)
+#SET(CPACK_PACKAGE_EXECUTABLES "SimMobility_Short" "SimMobility short-term")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")  #TODO: We should use "dpkg --print-architecture"
+SET(CPACK_PACKAGE_CONTACT "seth@smart.mit.edu")
+
+#This is where it starts to get complicated
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS
+  "libtinyxml-dev (>= 2.6.2),"
+  "libsoci-core-gcc (>= 3.2),"
+  "libsoci-core-gcc-dev (>= 3.2),"
+  "libsoci-postgresql-gcc-dev (>= 3.2),"
+  "libboost-all-dev (>= 1.49),"
+  "libxerces-c-dev (>= 3.1.1),"
+  "xsdcxx (>= 3.3.0),"
+  "libpq-dev (>= 9.1.9),"
+  "libjsoncpp-dev (>= 0.6.0),"
+  "cmake"  #We check the version earlier; leave this line last.
+)
+
+INCLUDE(CPack)
+
+##################################################
+## End CPack Configuration
+##################################################
+
+
+
 #Special case flag: required on OSX due to a (somewhat) glitchy libstdc++
 #IF(USING_OSX)
 #  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -D_GLIBCXX_FULLY_DYNAMIC_STRING=1")

@@ -13,6 +13,7 @@
 #include <boost/tuple/tuple_comparison.hpp>
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -78,6 +79,13 @@ struct AgentConstraints {
 	int startingAutoAgentID;
 	std::set<unsigned int> manualAgentIDs;
 };
+
+
+//Helper: convert a relative schema to an absolute one.
+std::string finagle_schema(const std::string& path) {
+	boost::filesystem::path abs_path = boost::filesystem::absolute(path);
+	return abs_path.string();
+}
 
 
 //Helper sort
@@ -1802,6 +1810,41 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		cout <<"Manual override used for demo intersection." <<endl;
 		cout <<"*******************************************" <<endl;
 	}
+
+	//Check if we have options for a manual schema specification.
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("xsd_schema_files").FirstChild("road_network").ToElement();
+	if (node) {
+		bool triedOnce = false;
+		node = node->FirstChild("option")->ToElement();
+		while (node) {
+			triedOnce = true;
+			const char* optVal = node->Attribute("value");
+			if (optVal) {
+				//See if the file exists.
+				try {
+					std::ifstream xsd_file(optVal);
+					if (xsd_file.good()) {
+						ConfigParams::GetInstance().roadNetworkXsdSchemaFile = finagle_schema(optVal);
+						break;
+					}
+				} catch (std::exception& ex) {}  //Opening files can sometimes fail with exceptions.
+			}
+			node = node->NextSibling("option")->ToElement();
+		}
+
+		//Did we find nothing?
+		if (triedOnce && ConfigParams::GetInstance().roadNetworkXsdSchemaFile.empty()) {
+			Warn() <<"Warning: No viable options for road_network schema file." <<std::endl;
+		}
+	}
+
+
+	//Output
+	const std::string schem = ConfigParams::GetInstance().roadNetworkXsdSchemaFile;
+	Print() <<"XML (road network) schema file: "  <<(schem.empty()?"<default>":schem) <<std::endl;
+
+
 
 	//Misc.: disable dynamic dispatch?
 	handle = TiXmlHandle(&document);

@@ -235,8 +235,8 @@ class ScaleHelper:
     #NOTE: Linear scaling will introduce artifacts, but for now a reverse-transformation
     #      would be even more problematic.
     newLoc = Location( \
-      (norm.x*(self.outBounds[1].lng-self.outBounds[0].lng)+self.outBounds[0].lng), \
-      (norm.y*(self.outBounds[1].lat-self.outBounds[0].lat)+self.outBounds[0].lat)  \
+      (norm.y*(self.outBounds[1].lat-self.outBounds[0].lat)+self.outBounds[0].lat), \
+      (norm.x*(self.outBounds[1].lng-self.outBounds[0].lng)+self.outBounds[0].lng)  \
     )
 
     #Done

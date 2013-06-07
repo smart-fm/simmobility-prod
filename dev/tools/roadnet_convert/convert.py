@@ -11,6 +11,8 @@ import math
 from lxml import objectify
 from lxml import etree
 
+#TODO: I realize now that naming every file the same "e.g., "something.sumo, somethingelse.sumo" was not
+#      the best idea; need to clean up the package structure at some point. ~Seth
 import geo.helper
 import geo.convert.sumo2simmob
 import geo.convert.osm2simmob

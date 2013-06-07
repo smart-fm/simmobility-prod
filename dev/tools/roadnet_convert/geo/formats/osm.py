@@ -33,5 +33,5 @@ class Way:
 
     self.wayId = str(wayId)
     self.nodes = nodes   #[Node]
-    self.props = dict_to_lower(props)
+    self.props = geo.helper.dict_to_lower(props)
 

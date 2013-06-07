@@ -15,7 +15,7 @@ def parse(inFileName :str) -> geo.formats.osm.RoadNetwork:
   #zone = None #Ensure we stay in the same zone for all points.
   nodeTags = rootNode.xpath('/osm/node')
   for n in nodeTags:
-    __parse_nodes_osm(n, rn)
+    __parse_node_osm(n, rn)
 
   #All Ways
   wayTags = rootNode.xpath("/osm/way")
@@ -34,7 +34,7 @@ def __parse_node_osm(n, rn):
     #projected,zone = project_wgs84(n.get('lat'), n.get('lon'), zone)  #Returns a point
 
     #Add a new Node
-    res = geo.formats.osm.Node(n.get('id'), n.get('lat'), n.get('lon'))
+    res = geo.formats.osm.Node(n.get('id'), n.get('lat'), n.get('lon'), {})
     rn.nodes[res.nodeId] = res
 
     #Return the zone, for reference
@@ -74,15 +74,15 @@ def __parse_way_osm(wy, rn, global_id):
     #    return
 
     #First, build up a series of Node IDs
-    nodeIds = []
+    nodes = []
     for ndItem in wy.iter("nd"):
       nId = ndItem.get('ref')
       if not nId:
         raise Exception('No "ref" for "nd" in "way"')
-      nodeIds.append(nId)
+      nodes.append(rn.nodes[nId])
 
     #Ensure we have at least two points.
-    if len(nodeIds) < 2:
+    if len(nodes) < 2:
       print('Warning: Skipping an OSM Way, as it does not have at least 2 node refs: %s' % wy.get('id'))
       return
 
@@ -93,7 +93,7 @@ def __parse_way_osm(wy, rn, global_id):
       numLanes = int(numLanesTag[0].get('v'))
 
     #Add a new Way
-    res = geo.formats.osm.Way(wy.get('id'), nodeIds[0], nodeIds[-1])
+    res = geo.formats.osm.Way(wy.get('id'), nodes, {})
     rn.ways[res.wayId] = res
 
 

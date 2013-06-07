@@ -9,10 +9,15 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   '''Convert a SUMO Road Network to a Sim Mobility network.'''
   res = geo.formats.simmob.RoadNetwork()
 
-  #Get the min/max X values, as we need these to reverse the network.
-  minX,maxX = __get_min_max_x(rn)  #[min,max]
-  if minX is None or maxX is None:
+  #Get the min/max X values, as we need these to reverse the network (minY is also needed; maxY is harmless)
+  minX,maxX,minY,maxY,error = __get_min_max(rn)
+  if error:
     raise Exception("Can't get min/max; at least one point must exist!")
+
+  #We cheat a bit by shifting the minimum x/y values a few meters into the minimum (in case of lane edge expansion, etc.)
+  #TODO: We might want to translate the entire network *after* converting it (this is not specific to SUMO). For now, we cheat.
+  tempMinX = minX - 3.5*10  #10 lanes
+  tempMinY = minY - 3.5*10  #10 lanes
 
   #Simple GUID
   global_id = IdGenerator(1000)
@@ -25,7 +30,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   #TODO: Currently we do not consider UniNodes for SUMO networks.
   #TODO: We *can* preserve sumo IDs later, with the "orig-id" tag (or something similar)
   for jn in rn.junctions.values():
-    newNode = geo.formats.simmob.Intersection(global_id.next(), 100*__mirror(jn.pos.x,minX,maxX), 100*jn.pos.y)
+    newNode = geo.formats.simmob.Intersection(global_id.next(), 100*__trans(__mirror(jn.pos.x,minX,maxX), tempMinX), 100*__trans(jn.pos.y, tempMinY))
     res.nodes[newNode.nodeId] = newNode
     jnctLookup[jn.jnctId] = newNode
 
@@ -49,7 +54,8 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
       #Don't forget to reverse/scale out polyline points
       p1 = ln.shape.points[0]
       p2 = ln.shape.points[-1]
-      poly = [Point(100*__mirror(p1.x,minX,maxX), 100*p1.y), Point(100*__mirror(p2.x,minX,maxX), 100*p2.y)]
+      poly = [Point(100*__trans(__mirror(p1.x,minX,maxX),tempMinX), 100*__trans(p1.y,tempMinY)), \
+              Point(100*__trans(__mirror(p2.x,minX,maxX),tempMinX), 100*__trans(p2.y,tempMinY))]
 
       #Create it.
       newSeg.lanes.append(geo.formats.simmob.Lane(global_id.next(), lnNum, newSeg, poly))
@@ -65,23 +71,32 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
 
 
 def __mirror(x, minX, maxX):
+  res = maxX - (x-minX)
   return maxX - (x-minX)
 
+def __trans(val, minVal):
+  '''Translate a value so that it becomes positive (based on the minimum observed value)'''
+  return val-minVal if minVal<0 else val
 
-def __get_min_max_x(rn :geo.formats.sumo.RoadNetwork):
+
+def __get_min_max(rn :geo.formats.sumo.RoadNetwork):
   res = None
   for jn in rn.junctions.values():
     if res is None:
-      res = [jn.pos.x,jn.pos.x]
+      res = [jn.pos.x,jn.pos.x,jn.pos.y,jn.pos.y, False]
     res[0] = min(jn.pos.x, res[0])
     res[1] = max(jn.pos.x, res[1])
+    res[2] = min(jn.pos.y, res[2])
+    res[3] = max(jn.pos.y, res[3])
 
   for ed in rn.edges.values():
     for ln in ed.lanes:
       for pt in ln.shape.points:
         res[0] = min(pt.x, res[0])
         res[1] = max(pt.x, res[1])
+        res[2] = min(pt.y, res[2])
+        res[3] = max(pt.y, res[3])
 
-  return (res[0],res[1]) if res else (None,None)
+  return res if res else (None,None,None,None,True)
 
 

@@ -81,13 +81,6 @@ struct AgentConstraints {
 };
 
 
-//Helper: convert a relative schema to an absolute one.
-std::string finagle_schema(const std::string& path) {
-	boost::filesystem::path abs_path = boost::filesystem::absolute(path);
-	return abs_path.string();
-}
-
-
 //Helper sort
 bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
@@ -1822,15 +1815,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			const char* optVal = node->Attribute("value");
 			if (optVal) {
 				//See if the file exists.
-				try {
-					std::ifstream xsd_file(optVal);
-					if (xsd_file.good()) {
-						ConfigParams::GetInstance().roadNetworkXsdSchemaFile = finagle_schema(optVal);
-						break;
-					}
-				} catch (std::exception& ex) {}  //Opening files can sometimes fail with exceptions.
+				if (boost::filesystem::exists(optVal)) {
+					//Convert it to an absolute path.
+					boost::filesystem::path abs_path = boost::filesystem::absolute(optVal);
+					ConfigParams::GetInstance().roadNetworkXsdSchemaFile = abs_path.string();
+					break;
+				}
 			}
-			node = node->NextSibling("option")->ToElement();
+			TiXmlNode* sib = node->NextSibling("option");
+			node = sib ? sib->ToElement() : nullptr;
 		}
 
 		//Did we find nothing?

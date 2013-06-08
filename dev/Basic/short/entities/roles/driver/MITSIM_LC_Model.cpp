@@ -540,6 +540,12 @@ size_t getLaneIndex(const Lane* l) {
 
 TARGET_GAP sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 {
+	double GapParam[][6] = {
+		  //const	   dis2gap  gap-size  gap-vel   dummy  vn
+			{-1.23  , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.239 },	//back
+			{0.00   ,  0.00  ,  0.224 ,  -0.0179 , 2.10 , 0.000 },  //adj
+			{-0.772 , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.675 }};	//fwd
+
 	double U_Left_Fwd;
 	double U_Left_Back;
 	double U_Left_Adj;
@@ -547,11 +553,106 @@ TARGET_GAP sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	double U_Right_Back;
 	double U_Right_Adj;
 
-	double GapUtility_[][6] = {
-		  //const	   dis      gap		 gap-vel   dummy  vn
-			{0.00   ,  0.00  ,  0.224 ,  -0.0179 , 2.10 , 0.000 },
-			{-0.772 , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.675 },
-			{-1.23  , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.239 }};
+	const Lane* lane[2] = {p.leftLane, p.rightLane};
+
+	const Lane* rightLane	= p.rightLane;
+
+	NearestVehicle * nv[2][4];
+	nv[0][0] = &p.nvLeftBack2;
+	nv[0][1] = &p.nvLeftBack;
+	nv[0][2] = &p.nvLeftFwd;
+	nv[0][3] = &p.nvLeftFwd2;
+	nv[1][0] = &p.nvRightBack2;
+	nv[1][1] = &p.nvRightBack;
+	nv[1][2] = &p.nvRightFwd;
+	nv[1][3] = &p.nvRightFwd2;
+
+	double dis[2][4];
+	for(int i=0;i<2;i++){
+		for(int j=0; j<4; j++){
+			dis[i][j] = (nv[i][j]->exists())? nv[i][j]->distance/100 : 50;
+		}
+	}
+
+	double vel[2][4];
+	for(int i=0;i<2;i++){
+		for(int j=0; j<4; j++){
+			vel[i][j] = (nv[i][j]->exists())? nv[i][j]->driver->fwdVelocity/100 : 0;
+		}
+
+	}
+
+	boost::uniform_int<> zero_to_max(0, RAND_MAX);
+	double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
+
+	double U[2][3];
+	for(int i=0;i<2;i++){
+			U[i][0] = GapParam[0][0] + GapParam[0][1]*dis[i][1] + GapParam[0][2]*(dis[i][0] - dis[i][1]) + GapParam[0][3]*(vel[i][0]-vel[i][1]) + ((!nv[i][0]->exists())? GapParam[0][4]:0) + GapParam[0][5] * randNum;
+			U[i][1] = GapParam[1][0] + GapParam[1][1]*0 + GapParam[1][2]*(dis[i][1] + dis[i][2]) + GapParam[1][3]*(vel[i][1]-vel[i][2]) + ((!nv[i][1]->exists() || !nv[i][2]->exists())? GapParam[1][4]:0) + GapParam[1][5] * randNum;
+			U[i][2] = GapParam[2][0] + GapParam[2][1]*dis[i][2] + GapParam[2][2]*(dis[i][3] - dis[i][2]) + GapParam[2][3]*(vel[i][2]-vel[i][3]) + ((!nv[i][3]->exists())? GapParam[2][4]:0) + GapParam[2][5] * randNum;
+			if(!lane[i]) U[i][0] = U[i][1] = U[i][2] = -MAX_NUM;
+	}
+
+	std::cout<<"Utility=";
+	for(int i=0; i<2; i++){
+		for(int j=0;j<3;j++){
+			std::cout<<U[i][j]<<",";
+		}
+	}
+	std::cout<<std::endl;
+
+	double logsum = 0.0;
+	double cdf[2][3];
+	double prob[2][3];
+	for(int i=0; i<2; i++){
+		for(int j=0;j<3;j++){
+			logsum += exp(U[i][j]);
+			cdf[i][j] = logsum;
+		}
+	}
+
+	std::cout<<"prob=";
+	for(int i=0; i<2; i++){
+		for(int j=0;j<3;j++){
+			prob[i][j]= exp(U[i][j])/logsum;
+			std::cout<<prob[i][j]<<",";
+		}
+	}
+	std::cout<<std::endl;
+
+	TARGET_GAP tg = TG_Same;
+	double rnd = (double)(zero_to_max(p.gen)%1000)/1000;
+
+	if(rnd >= 0 && rnd < cdf[0][0]){
+		tg = TG_Left_Back;
+	}else if(rnd >= cdf[0][0] && rnd < cdf[0][1]){
+		tg = TG_Left_Adj;
+	}else if(rnd >= cdf[0][1] && rnd < cdf[0][2]){
+		tg = TG_Left_Fwd;
+	}else if(rnd >= cdf[0][2] && rnd < cdf[1][0]){
+		tg = TG_Right_Back;
+	}else if(rnd >= cdf[1][0] && rnd < cdf[1][1]){
+		tg = TG_Right_Adj;
+	}else if(rnd >= cdf[1][1] && rnd < cdf[1][2]){
+		tg = TG_Right_Fwd;
+	}
+
+	std::cout<<"target_gap="<<tg<<std::endl;
+
+	return tg;
+
+	/*
+	const NearestVehicle * nvLeftFwd	= &p.nvLeftFwd;
+	const NearestVehicle * nvLeftFwd2 	= &p.nvLeftFwd2;
+	const NearestVehicle * nvLeftBack 	= &p.nvLeftBack;
+	const NearestVehicle * nvLeftBack2 	= &p.nvLeftBack2;
+	const NearestVehicle * nvRightFwd 	= &p.nvRightFwd;
+	const NearestVehicle * nvRightFwd2 	= &p.nvRightFwd2;
+	const NearestVehicle * nvRightBack 	= &p.nvRightBack;
+	const NearestVehicle * nvRightBack2 = &p.nvRightBack2;
+*/
+
+
 }
 
 
@@ -607,7 +708,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 			decision = makeMandatoryLaneChangingDecision(p);
 		}
 
-		//decision = LCS_LEFT;
+		TARGET_GAP l = chooseTargetGap(p);
+		std::cout<<"decision="<<decision<<std::endl;
 
 		//4.Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {

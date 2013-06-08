@@ -42,13 +42,13 @@ enum LANE_CHANGE_SIDE {
 };
 
 enum TARGET_GAP {
-	TG_Same,
-	TG_Left_Fwd,
-	TG_Left_Back,
-	TG_Left_Adj,
-	TG_Right_Fwd,
-	TG_Right_Back,
-	TG_Right_Adj
+	TG_Same = 0,
+	TG_Left_Fwd = -3,
+	TG_Left_Back = -1,
+	TG_Left_Adj = -2,
+	TG_Right_Fwd = 3,
+	TG_Right_Back = 1,
+	TG_Right_Adj  = 2
 };
 
 

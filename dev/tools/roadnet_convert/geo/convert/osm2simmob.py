@@ -25,6 +25,7 @@ class __Node:
 class __Way:
   def __init__(self):
     self.nodes = [] #List of Nodes in order. First and last will be multi; rest will be uni.
+    self.numLanes = 1 #Number of lanes (default "guess" is >0)
 
 
 
@@ -44,17 +45,17 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   global_id = IdGenerator(1000)
 
   #Map between old and new Nodes
-  ndLookup = {} #OSM Node ID => (generated) Node
+  ndLookup = {} #__Node => (generated) Node
 
   #Thanks to our pre-processing step, __Nodes are now trivial.
-  for nodeId,node in rn.nodes:
+  for nodeId,node in rn.nodes.items():
     newNode = None
     if node.is_uni():
       newNode = geo.formats.simmob.Node(global_id.next(), node.x, node.y)
     else:
       newNode = geo.formats.simmob.Intersection(global_id.next(), node.x, node.y)
     res.nodes[newNode.nodeId] = newNode
-    ndLookup[nodeId] = newNode
+    ndLookup[node] = newNode
 
   #__Ways define Links, with each UniNode representing a Segment (We can't handle polylines that well currently).
   for wy in rn.ways:
@@ -63,83 +64,55 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
       raise Exception("OSM Ways must have >=2 Nodes listed.")
 
     #Make the Link first.
-    lnk = geo.formats.simmob.Link(global_id.next(), wy.nodes[0], wy.nodes[-1])
+    lnk = geo.formats.simmob.Link(global_id.next(), ndLookup[wy.nodes[0]], ndLookup[wy.nodes[-1]])
     res.links[lnk.linkId] = lnk
 
     #Now, make a Segment for each pair of Nodes
     prevNode = None
     for nd in wy.nodes:
       if prevNode:
-        seg = geo.formats.simmob.Segment(global_id.next(), prevNode, nd)
+        seg = geo.formats.simmob.Segment(global_id.next(), ndLookup[prevNode], ndLookup[nd])
         lnk.segments.append(seg)
       prevNode = nd
 
+    #We need Lane polylines for each Segment.
+    for seg in lnk.segments:
+      #We create two vectors, one at the fromNode and one at the toNode. 
+      LaneWidth = 3.4
+      startVec = DynVect(seg.fromNode.pos, seg.toNode.pos)
+      endVec = DynVect(seg.toNode.pos, seg.fromNode.pos)
 
+      #We can provide a simple "intersection" buffer if the total lane length allows it.
+      #TODO: This is not strictly correct; a 6m lane with a UniNode will fail when it could have succeded.
+      BufferSize = 10.0
+      if (startVec.getMagnitude() > 1.1*BufferSize):
+        if isinstance(seg.fromNode, geo.formats.simmob.Intersection):
+          startVec.scaleVectTo(BufferSize/2.0).translate()
+        if isinstance(seg.toNode, geo.formats.simmob.Intersection):
+          endVec.scaleVectTo(BufferSize/2.0).translate()
 
+      #Point both away from the median line.
+      #These are incremented by a faux-lane-width in order to generate basic lane sizes.
+      startVec.scaleVectTo(LaneWidth/2.0).rotateLeft().translate().scaleVectTo(LaneWidth)
+      endVec.scaleVectTo(LaneWidth/2.0).rotateRight().translate().scaleVectTo(LaneWidth)
 
-  #Now add one segment/link per node pair. (For now Sim Mobility does not handle polylines that well).
-  #TODO: We might not be handling UniNodes that well here.
-  for wy in rn.ways.values():
-    #Retrieve the nodes
-    if len(wy.nodes)<2:
-      raise Exception("OSM Ways must have >=2 Nodes listed.")
-    fromNode = wy.nodes[0]
-    toNode = wy.nodes[-1]
+      #Add child Lanes for each Segment
+      laneNum = 1
+      for lIt in range(wy.numLanes):
+        #Make a polyline array
+        poly = [startVec.getPos(), endVec.getPos()]
 
-    #Convert from OSM to SimMob Nodes
-    fromNode = ndLookup[fromNode.nodeId]
-    toNode = ndLookup[toNode.nodeId]
+        #Make the new lane.
+        #Lane IDs (here) probably don't matter, since they are only used internally.
+        newLane = geo.formats.simmob.Lane(global_id.next(), laneNum, seg, poly)
+        seg.lanes.append(newLane)
+        laneNum += 1
 
-    #Make a Segment
-    seg = geo.formats.simmob.Segment(global_id.next(), fromNode, toNode)
-    #res.segments.append(seg)
-
-    #Make a Link that contains it.
-    lnk = geo.formats.simmob.Link(global_id.next(), fromNode, toNode)
-    lnk.segments.append(seg)
-    res.links[lnk.linkId] = lnk
-
-    #Sanity check
-    #if not (fromNode in nodes and toNode in nodes):
-    #  raise Exception('Way references unknown Nodes')
-
-    #We create two vectors, one at the fromNode and one at the toNode. 
-    LaneWidth = 3.4
-    startVec = DynVect(fromNode.pos, toNode.pos)
-    endVec = DynVect(toNode.pos, fromNode.pos)
-
-    #We can provide a simple "intersection" buffer if the total lane length allows it.
-    BufferSize = 10.0
-    if (startVec.getMagnitude() > 1.1*BufferSize):
-       startVec.scaleVectTo(BufferSize/2.0).translate()
-       endVec.scaleVectTo(BufferSize/2.0).translate()
-
-    #Point both away from the median line.
-    #These are incremented by a faux-lane-width in order to generate basic lane sizes.
-    startVec.scaleVectTo(LaneWidth/2.0).rotateLeft().translate().scaleVectTo(LaneWidth)
-    endVec.scaleVectTo(LaneWidth/2.0).rotateRight().translate().scaleVectTo(LaneWidth)
-
-    #Retrieve or guess the number of lanes
-    numLanes = 2
-    if "lanes" in wy.props:
-      numLanes = int(wy.props["lanes"])
-
-    #Add child Lanes for each Segment
-    laneNum = 1
-    for lIt in range(numLanes):
-      #Make a polyline array
-      poly = [startVec.getPos(), endVec.getPos()]
-
-      #Make the new lane.
-      #Lane IDs (here) probably don't matter, since they are only used internally.
-      newLane = geo.formats.simmob.Lane(global_id.next(), laneNum, seg, poly)
-      seg.lanes.append(newLane)
-      laneNum += 1
-
+      #Create and assign lane edges
+      geo.helper.make_lane_edges_from_lane_lines(seg, global_id)
 
   #Generate lane connectors from/to all Lanes.
-  #TODO: Will this work?
-  #geo.helper.make_lane_connectors(res)
+  geo.helper.make_lane_connectors(res)
 
   #At this point, we need to fix any negative components (x,y)  ---the Y component will certainly be negative.
   minMax = __get_or_fix_points(res, None)
@@ -152,7 +125,7 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
 
 
 
-def __preprocess_osm(rn :osm.formats.osm.RoadNetwork) ->__RoadNetwork:
+def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
   res = __RoadNetwork()
 
   #Every Node can be converted by projecting, then scaling by a factor of 100.
@@ -161,7 +134,7 @@ def __preprocess_osm(rn :osm.formats.osm.RoadNetwork) ->__RoadNetwork:
   zone = None
   for nd in rn.nodes.values():
     projected,zone = geo.helper.project_wgs84(nd.loc.lat, nd.loc.lng, zone)
-    res.nodes.[nd.nodeId] = __Node(100*projected.x, -100*projected.y)
+    res.nodes[nd.nodeId] = __Node(100*projected.x, -100*projected.y)
 
   #We now iterate through every Way from the original OSM network, marking start and end nodes
   #  in addition to counting the number of Ways at each Node.
@@ -180,6 +153,11 @@ def __preprocess_osm(rn :osm.formats.osm.RoadNetwork) ->__RoadNetwork:
   #We iterate through each Way again, this time splitting it into actual __Ways based on is_uni()'s return value.
   currWay = None
   for wy in rn.ways.values():
+    #Retrieve the number of lanes.
+    numLanes = 1 #Guess: 1
+    if "lanes" in wy.props:
+      numLanes = int(wy.props["lanes"])
+
     for nd in wy.nodes:
       #Always count the current Node in the current Way
       currNode = res.nodes[nd.nodeId]
@@ -187,7 +165,7 @@ def __preprocess_osm(rn :osm.formats.osm.RoadNetwork) ->__RoadNetwork:
         currWay.nodes.append(currNode)
 
       #Done with the current Way?
-      if !node.is_uni():
+      if not currNode.is_uni():
         #Finalize the current (old) way.
         if currWay:
           res.ways.append(currWay)
@@ -196,6 +174,7 @@ def __preprocess_osm(rn :osm.formats.osm.RoadNetwork) ->__RoadNetwork:
         #NOTE: If this is the last Node, then "currWay" will just be useless (this is normal!)
         currWay = __Way()
         currWay.nodes.append(currNode)
+        currWay.numLanes = numLanes
 
   return res
 
@@ -235,7 +214,6 @@ def __get_or_fix(pt :Point, minMax :'[minX,maxX,minY,maxY]', fix :bool):
 
 def __check_multi_uni(rn, links):
   #Check if Multi/Uni nodes are assigned properly.
-  #TODO: This is a temporary function; we need to incorporate it later.
   segmentsAt = {} #nodeID => [segment,segment,...]
   nodeType = {} #nodeID => Uni(true)/Multi(false)
   for lk in links.values():
@@ -267,7 +245,6 @@ def __check_multi_uni(rn, links):
         raise Exception('Node should be a MultiNode...')
 
       #Simple. 
-      #TODO: What if len(segs)==4? We can share Nodes, right?
       elif len(segs)>2:
         nodeType[n.nodeId] = False
 
@@ -290,10 +267,7 @@ def __check_multi_uni(rn, links):
     if nodeType[seg_nodes[-1].nodeId]:
       raise Exception('UniNode found (%s) at end of Segment where a MultiNode was expected.' % seg_nodes[-1].nodeId)
 
-    #Ensure middle nodes are UniNodes. Note that this is not strictly required; we'll just
-    #   have to false-segment the nodes that trigger this. 
-    #NOTE: This currently affects 10% of all Nodes. 
-    #Example: Node 74389907 is a legitimate candidate for Node splitting.
+    #Ensure middle nodes are UniNodes.
     for i in range(1, len(seg_nodes)-2):
       if not nodeType[seg_nodes[i].nodeId]:
         raise Exception('Non-uni node (%s) in middle of a Segment.' % seg_nodes[i].nodeId)

@@ -72,17 +72,16 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
       numLanes = int(wy.props["lanes"])
 
     #Add child Lanes for each Segment
+    laneNum = 1
     for lIt in range(numLanes):
-      #Fake the shape; we'll have to translate it right back unfortunately.
-      shapeStr = '%f,%f %f,%f' % (startVec.getPos().x, startVec.getPos().y, endVec.getPos().x, endVec.getPos().y)
-      startVec.translate()
-      endVec.translate()
+      #Make a polyline array
+      poly = [startVec.getPos(), endVec.getPos()]
 
       #Make the new lane.
       #Lane IDs (here) probably don't matter, since they are only used internally.
-      newLane = temp.Lane(len(lanes)+100, shapeStr)
-      e.lanes.append(newLane)
-      lanes[newLane.laneId] = newLane
+      newLane = geo.formats.simmob.Lane(global_id.next(), laneNum, seg, poly)
+      seg.lanes.append(newLane)
+      laneNum += 1
 
 
   #Generate lane connectors from/to all Lanes.
@@ -90,12 +89,12 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   #geo.helper.make_lane_connectors(res)
 
   #Some consistency checks
-  __check_multi_uni(res.links)
+  __check_multi_uni(res, res.links)
 
   return res
 
 
-def __check_multi_uni(links):
+def __check_multi_uni(rn, links):
   #Check if Multi/Uni nodes are assigned properly.
   #TODO: This is a temporary function; we need to incorporate it later.
   segmentsAt = {} #nodeID => [segment,segment,...]
@@ -113,8 +112,8 @@ def __check_multi_uni(links):
         segmentsAt[sg.toNode] = []
 
       #Increment
-      segmentsAt[sg.fromNode].append(e)
-      segmentsAt[sg.toNode].append(e)
+      segmentsAt[sg.fromNode].append(sg)
+      segmentsAt[sg.toNode].append(sg)
 
   #Now double-check the Multi/Uni values.
   for n in segmentsAt.keys():
@@ -142,9 +141,9 @@ def __check_multi_uni(links):
 
   #Finally, do our consistency checks.
   for lk in links.values():
-    seg_nodes = [nodes[lk.segments[0].fromNode]]
+    seg_nodes = [rn.nodes[lk.segments[0].fromNode.nodeId]]
     for e in lk.segments:
-      seg_nodes.append(nodes[e.toNode])
+      seg_nodes.append(rn.nodes[e.toNode.nodeId])
 
     #Begins and ends at a MultiNode? (This shouldn't fail)
     if nodeType[seg_nodes[0].nodeId]:

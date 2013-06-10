@@ -9,7 +9,7 @@
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
 #include <stdexcept>
-//#include "Serialization.hpp"
+//#include "entities/commsim/communicator/service/services.hpp"
 #include "logging/Log.hpp"
 
 namespace sim_mob {
@@ -66,7 +66,7 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 	std::vector<msg_ptr> result;
 	std::string type, data;
 	Json::Value root;
-	pckt_header packetHeader;
+	sim_mob::pckt_header packetHeader;
 	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
 	{
 		return false;

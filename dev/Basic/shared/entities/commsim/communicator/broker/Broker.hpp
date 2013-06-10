@@ -32,6 +32,7 @@ typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg
 typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > >MessageFactories;//<client type, roadrunner message factory>
 typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > PublisherList;
 typedef std::multimap<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > ClientList; //<client type,clienthandler >
+typedef std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<Json::Value> > SEND_BUFFER;
 
 static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler> socket ,std::string &str )
 {
@@ -54,7 +55,8 @@ private:
 	PublisherList publishers;
 	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
 	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
-	sim_mob::BufferContainer<sim_mob::DataElement> sendBuffer;//apparently useless for this demo
+//	sim_mob::BufferContainer<sim_mob::DataElement> sendBuffer;
+	SEND_BUFFER sendBuffer;
 	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
 	/*
 	 * important note: we put a map of factories for future cases
@@ -97,7 +99,8 @@ public:
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
 	void processClientRegistrationRequests();
-	bool insertSendBuffer(DataElement&);
+//	bool insertSendBuffer(DataElement&);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
 	Entity::UpdateStatus update(timeslice now);
 	void removeClient(ClientList::iterator it_erase);
 	void cleanup();

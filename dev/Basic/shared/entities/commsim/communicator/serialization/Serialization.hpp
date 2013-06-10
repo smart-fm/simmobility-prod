@@ -10,81 +10,75 @@
 #include "logging/Log.hpp"
 #include <set>
 #include <json/json.h>
-namespace sim_mob
-{
+namespace sim_mob {
 
-class JsonParser
-{
+class JsonParser {
 public:
 	//todo find a way for this hardcoding
-	static sim_mob::SIM_MOB_SERVICE getServiceType(std::string type)
-	{
+	static sim_mob::SIM_MOB_SERVICE getServiceType(std::string type) {
 //		Print() << "Inside getServiceType, input '" << type << "'" ;
-			if(ServiceMap.find(type) == sim_mob::ServiceMap.end())
-			{
-				return SIMMOB_SRV_UNKNOWN;
-			}
+		if (ServiceMap.find(type) == sim_mob::ServiceMap.end()) {
+			return SIMMOB_SRV_UNKNOWN;
+		}
 //			Print() << "   returning output '" << sim_mob::ServiceMap[type] << "'" << std::endl;
-			return sim_mob::ServiceMap[type];
+		return sim_mob::ServiceMap[type];
 	}
 
-	static bool parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root){
+	static bool parsePacketHeader(std::string& input, pckt_header &output,
+			Json::Value &root) {
 		Json::Value packet_header;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
-		if(not parsedSuccess)
-		{
-			std::cout << "Parsing Packet Header for '" << input << "' Failed" << std::endl;
+		if (not parsedSuccess) {
+			std::cout << "Parsing Packet Header for '" << input << "' Failed"
+					<< std::endl;
 			return false;
 		}
 		int i = 0;
-		if(root.isMember("PACKET_HEADER"))
-		{
+		if (root.isMember("PACKET_HEADER")) {
 			packet_header = root["PACKET_HEADER"];
-		}
-		else
-		{
+		} else {
 
-			std::cout << "Packet header not found.Parsing '" << input << "' Failed" << std::endl;
+			std::cout << "Packet header not found.Parsing '" << input
+					<< "' Failed" << std::endl;
 			return false;
 		}
-		i += packet_header.isMember("SENDER") ? 2 : 0;
-		i += packet_header.isMember("SENDER_TYPE") ? 4 : 0;
+//		i += packet_header.isMember("SENDER") ? 2 : 0;
+//		i += packet_header.isMember("SENDER_TYPE") ? 4 : 0;
 		i += packet_header.isMember("NOF_MESSAGES") ? 8 : 0;
-		i += packet_header.isMember("PACKET_SIZE") ? 16 : 0;
-		if(!(
-				(packet_header.isMember("SENDER"))
-				&&(packet_header.isMember("SENDER_TYPE"))
-				&&(packet_header.isMember("NOF_MESSAGES"))
-				&&(packet_header.isMember("PACKET_SIZE"))
-				))
-		{
-			std::cout << "Packet header incomplete[" << i << "].Parsing '" << input << "' Failed" << std::endl;
+//		i += packet_header.isMember("PACKET_SIZE") ? 16 : 0;
+		if (!(
+//				(packet_header.isMember("SENDER"))
+//				&&
+//				(packet_header.isMember("SENDER_TYPE"))
+//				&&
+		(packet_header.isMember("NOF_MESSAGES"))
+//				&&
+//				(packet_header.isMember("PACKET_SIZE"))
+		)) {
+			std::cout << "Packet header incomplete[" << i << "].Parsing '"
+					<< input << "' Failed" << std::endl;
 			return false;
 		}
-		output.sender_id = packet_header["SENDER"].asString();
-		output.sender_type = packet_header["SENDER_TYPE"].asString();
+//		output.sender_id = packet_header["SENDER"].asString();
+//		output.sender_type = packet_header["SENDER_TYPE"].asString();
 		output.nof_msgs = packet_header["NOF_MESSAGES"].asString();
-		output.size_bytes = packet_header["PACKET_SIZE"].asString();
+//		output.size_bytes = packet_header["PACKET_SIZE"].asString();
 		return true;
 	}
 
-	static bool parseMessageHeader(std::string& input, msg_header &output){
+	static bool parseMessageHeader(std::string& input, msg_header &output) {
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
-		if(not parsedSuccess)
-		{
+		if (not parsedSuccess) {
 			std::cout << "Parsing '" << input << "' Failed" << std::endl;
 			return false;
 		}
-		if(!(
-				(root.isMember("SENDER"))
-				&&(root.isMember("SENDER_TYPE"))
-				&&(root.isMember("MESSAGE_TYPE"))
-				))
-		{
-			std::cout << "Message Header incomplete. Parsing '" << input << "' Failed" << std::endl;
+		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
+				&& (root.isMember("MESSAGE_TYPE")))) {
+			std::cout << "Message Header incomplete. Parsing '" << input
+					<< "' Failed" << std::endl;
 			return false;
 		}
 		output.sender_id = root["SENDER"].asString();
@@ -93,22 +87,18 @@ public:
 		return true;
 	}
 
-	static bool getPacketMessages(std::string& input,Json::Value &output)
-	{
+	static bool getPacketMessages(std::string& input, Json::Value &output) {
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
-		if(not parsedSuccess)
-		{
+		if (not parsedSuccess) {
 			std::cout << "Parsing '" << input << "' Failed" << std::endl;
 			return false;
 		}
-		if(!(
-				(root.isMember("DATA"))
-				&&(root["DATA"].isArray())
-			))
-		{
-			std::cout << "A 'DATA' section with correct format was not found in the message. Parsing '" << input << "' Failed" << std::endl;
+		if (!((root.isMember("DATA")) && (root["DATA"].isArray()))) {
+			std::cout
+					<< "A 'DATA' section with correct format was not found in the message. Parsing '"
+					<< input << "' Failed" << std::endl;
 			return false;
 		}
 		//actual job
@@ -117,38 +107,36 @@ public:
 	}
 
 	//used for whoami id, type and required services(optional)
-	static bool get_WHOAMI(std::string& input, std::string & type, std::string & ID, std::set<sim_mob::SIM_MOB_SERVICE> &requiredServices)
-	{
-		Print() << "Inside get_WHOAMI, input'"<< input << "'" << std::endl;
+	static bool get_WHOAMI(std::string& input, std::string & type,
+			std::string & ID,
+			std::set<sim_mob::SIM_MOB_SERVICE> &requiredServices) {
+		Print() << "Inside get_WHOAMI, input'" << input << "'" << std::endl;
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
-		if(not parsedSuccess)
-		{
+		if (not parsedSuccess) {
 			std::cout << "Parsing [   " << input << "   ] Failed" << std::endl;
 			return false;
 		}
-		if(!root.isMember("WHOAMI"))
-		{
-			std::cout << "No WHOAMI section.Parsing '" << input << "' Failed" << std::endl;
+
+//		if(!root.isMember("WHOAMI"))
+//		{
+//			std::cout << "No WHOAMI section.Parsing '" << input << "' Failed" << std::endl;
+//			return false;
+//		}
+//		Json::Value whoami = root["WHOAMI"];
+		if (!((root.isMember("ID")) && (root.isMember("TYPE")))) {
+			Print() << "WHOAMI format incomplete.Parsing '" << input
+					<< "' Failed" << std::endl;
 			return false;
 		}
-		Json::Value whoami = root["WHOAMI"];
-		if(!(
-				(whoami.isMember("ID"))
-				&&(whoami.isMember("TYPE"))
-				))
-		{
-			Print() << "WHOAMI format incomplete.Parsing '" << input << "' Failed" << std::endl;
-			return false;
-		}
-		ID = whoami["ID"].asString();
-		type =  whoami["TYPE"].asString();
+		ID = root["ID"].asString();
+		type = root["TYPE"].asString();
 //		Print() << "Inside get_WHOAMI :'" << whoami.toStyledString() << "'" << std::endl;
 
-		if (!whoami["REQUIRED_SERVICES"].isNull()) {
-			if (whoami["REQUIRED_SERVICES"].isArray()) {
-				const Json::Value services = whoami["REQUIRED_SERVICES"];
+		if (!root["REQUIRED_SERVICES"].isNull()) {
+			if (root["REQUIRED_SERVICES"].isArray()) {
+				const Json::Value services = root["REQUIRED_SERVICES"];
 //				Print() << "services :'" << services.toStyledString() << "'" << std::endl;
 				for (unsigned int index = 0; index < services.size(); index++) {
 					std::string type = services[index].asString();
@@ -160,77 +148,96 @@ public:
 		return true;
 	}
 
-	static bool get_WHOAMI_Services(std::string& input, std::set<sim_mob::SIM_MOB_SERVICE> & services)
-	{
+	static bool get_WHOAMI_Services(std::string& input,
+			std::set<sim_mob::SIM_MOB_SERVICE> & services) {
 
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
-		if(! parsedSuccess)
-		{
+		if (!parsedSuccess) {
 			std::cout << "Parsing [" << input << "] Failed" << std::endl;
 			return false;
 		}
-		if(!root.isMember("services"))
-		{
-			std::cout << "Parsing services in [" << input << "] Failed" << std::endl;
+		if (!root.isMember("services")) {
+			std::cout << "Parsing services in [" << input << "] Failed"
+					<< std::endl;
 			return false;
 		}
 		const Json::Value array = root["services"];
-		for(unsigned int index=0; index<array.size(); index++)
-		{
+		for (unsigned int index = 0; index < array.size(); index++) {
 //			getServiceType(array[index].asString());
 			services.insert(getServiceType(array[index].asString()));
 		}
 	}
 
-	static std::string makeWhoAreYou()
-	{
-		Json::Value whoAreYou;
-		whoAreYou["MessageType"] = "WhoAreYou";
+	static Json::Value createPacketHeader(pckt_header pHeader_) {
+		Json::Value header;
+		header["NOF_MESSAGES"] = pHeader_.nof_msgs;
+		return header;
+	}
+	static Json::Value createMessageHeader(msg_header mHeader_) {
+		Json::Value header;
+		header["SENDER"] = mHeader_.sender_id;
+		header["SENDER_TYPE"] = mHeader_.sender_type;
+		header["MESSAGE_TYPE"] = mHeader_.msg_type;
+		return header;
+	}
+	static std::string makeWhoAreYouPacket() {
+		Json::Value whoAreYou_Packet_Header = createPacketHeader(
+				pckt_header("1"));
+		Json::Value whoAreYou = createMessageHeader(
+				msg_header("0", "SIMMOBILITY", "WHOAREYOU"));
+		//no more fiels is needed
+		Json::Value packet;
+		packet["DATA"].append(whoAreYou);
+		packet["PACKET_HEADER"] = whoAreYou_Packet_Header;
 		Json::FastWriter writer;
 
-		std::ostringstream out("");
-		return writer.write(whoAreYou);
+		return writer.write(packet);
 	}
 //	just conveys the tick
-	static std::string makeTimeData(unsigned int tick)
-	{
-		Json::Value time;
-		time["MessageType"] = "TimeData";
-		Json::Value breakDown;
-		breakDown["tick"] = tick;
-		time["TimeData"] = breakDown;
+	static Json::Value makeTimeData(unsigned int tick) {
+		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TimeData"));
+		time["tick"] = tick;
+		return time;
+	}
+
+	static std::string makeTimeDataString(unsigned int tick) {
+		Json::Value time = makeTimeData(tick);
 		Json::FastWriter writer;
 		return writer.write(time);
 	}
-	static std::string makeLocationData(int x, int y)
-	{
 
-		Json::Value time;
-		time["MessageType"] = "LocationData";
-		Json::Value breakDown;
-		breakDown["x"] = x;
-		breakDown["y"] = y;
-		time["LocationData"] = breakDown;
+	static std::string makeLocationDataString(int x, int y) {
+		Json::Value loc = makeLocationData(x,y);
 		Json::FastWriter writer;
-		return writer.write(time);
+		return writer.write(loc);
+	}
+
+	static Json::Value makeLocationData(int x, int y) {
+
+		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LocationData"));
+		loc["x"] = x;
+		loc["y"] = y;
+
+		return loc;
 	}
 	//@originalMessage input
 	//@extractedType output
 	//@extractedData output
 	//@root output
-	static bool getMessageTypeAndData(std::string &originalMessage, std::string &extractedType, std::string &extractedData, Json::Value &root_)
-	{
+	static bool getMessageTypeAndData(std::string &originalMessage,
+			std::string &extractedType, std::string &extractedData,
+			Json::Value &root_) {
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(originalMessage, root, false);
-		if(not parsedSuccess)
-		{
-			std::cout << "Parsing [" << originalMessage << "] Failed" << std::endl;
+		if (not parsedSuccess) {
+			std::cout << "Parsing [" << originalMessage << "] Failed"
+					<< std::endl;
 			return false;
 		}
-		extractedType = root["MessageType"].asString();
+		extractedType = root["MESSAGE_TYPE"].asString();
 		//the rest of the message is actually named after the type name
 		extractedData = root[extractedType.c_str()].asString();
 		root_ = root;
@@ -240,7 +247,6 @@ public:
 
 }
 
-
 /*
  * **************packet structure **************************
  * note:
@@ -248,71 +254,50 @@ public:
  * b)DATA section is an array of messages
  * c)each message contain message meta data elements(SENDER,SENDER_TYPE,MESSAGE_TYPE) and message specific data under a section called MESSAGE_TYPE
 
-1-sample packets exchanged between client and server(version2, multiple messages in a single packet) :
+ 1-sample packets exchanged between client and server(version2, multiple messages in a single packet) :
 {
     "PACKET_HEADER": {
-        "SENDER"  : "cloient-or-server-id",
-        "SENDER_TYPE" : "cloient-or-server-type",
-        "NOF_MESSAGES" : 1,
-        "PACKET_SIZE" : 123
-
+        "NOF_MESSAGES": "2"
     },
-    "DATA":[
+    "DATA": [
         {
-            "SENDER" : "cloient-or-server-id_1",
-            "SENDER_TYPE" : "cloient-or-server-type_1",
-            "MESSAGE_TYPE" : "TYPE_XXX",
-            "TYPE_XXX" :{
-            (message data here)
-            }
-
-        }
-        ,
-
+            "MESSAGE_TYPE": "TimeData",
+            "tick": 108
+        },
         {
-            "SENDER" : "cloient-or-server-id_2",
-            "SENDER_TYPE" : "cloient-or-server-type_2",
-            "MESSAGE_TYPE" : "TYPE_YYY",
-            "TYPE_YYY" :{
-            (message data here)
-            }
-
+            "MESSAGE_TYPE": "LocationData",
+            "x": 37280691,
+            "y": 14371911
         }
-        ]
+    ]
 }
 
-2- general message structure exchanged between clients and server:
+ 2- general message structure exchanged between clients and server:
 
-        {
-            "MessageType" : "type-name",
-            "type-name" :
-                {
-                    "value-name" : data
-                }
-        }
+ {
+ "MESSAGE_TYPE" : "type-name",
+ "type-name" :
+ {
+ "value-name" : data
+ }
+ }
 
  //       sample :
 
  * packet name : whoareyou
  * sending direction: server->client
 
-{
+ {
     "PACKET_HEADER": {
-        "SENDER"  : "BROKER_MAIN",
-        "SENDER_TYPE" : "SIMMOB_BROKER",
-        "NOF_MESSAGES" : 1,
-        "PACKET_SIZE" : 123
-
+        "NOF_MESSAGES": "1"
     },
-    "DATA":[
+    "DATA": [
         {
-            "SENDER" : "BROKER_MAIN",
-            "SENDER_TYPE" : "SIMMOB_BROKER",
-            "MESSAGE_TYPE" : "WHOAREYOU",
-            "WHOAREYOU" :{}               <--(no data required in this case)
-
+            "MESSAGE_TYPE": "WHOAREYOU",
+            "SENDER": "0",
+            "SENDER_TYPE": "SIMMOBILITY"
         }
-        ]
+    ]
 }
 
  * packet name : whoami
@@ -324,53 +309,46 @@ public:
 
  {
     "PACKET_HEADER": {
-        "SENDER"  : "client-id-X",
-        "SENDER_TYPE" : "client-type-XX",
-        "NOF_MESSAGES" : 1,
-        "PACKET_SIZE" : 123
-
+        "NOF_MESSAGES": "1"
     },
-    "DATA":[
+    "DATA": [
         {
-            "SENDER" : "client-id-X",
-            "SENDER_TYPE" : "ANDROID_EMULATOR",
-            "MESSAGE_TYPE" : "WHOAMI",
-            "WHOAMI" :{
-                "SENDER" : "client-id-X",
-                "SENDER_TYPE" : "ANDROID_EMULATOR",
-        	    "REQUIRED_SERVICES" : [
-        							    "TIME",
-        							    "LOCATION"
-        						      ]
-            }
-
+            "SENDER": "114",
+            "SENDER_TYPE": "ANDROID_EMULATOR",
+            "MESSAGE_TYPE": "WHOAMI",
+            "ID": "114",
+            "TYPE": "ANDROID_EMULATOR",
+            "REQUIRED_SERVICES": [
+                "SIMMOB_SRV_TIME",
+                "SIMMOB_SRV_LOCATION"
+            ]
         }
-        ]
+    ]
 }
 
 
-before continuing, please note the possible scenarios(depending on configuration settings and available implementations) :
-            simmobility                or                simmobility
-               /     \                                       |
-              /       \                                      |
-          android      ns3                                android
+ before continuing, please note the possible scenarios(depending on configuration settings and available implementations) :
+ simmobility                or                simmobility
+ /     \                                       |
+ /       \                                      |
+ android      ns3                                android
 
  * packet name : announce
  * sending direction:
  * usage-1) client->server 		(FROM:android TO: simMobility DESCRIPTION: android client asks simmobility to deliver the message to the other android recipients)
  * usage-2) server->client 		(FROM:simMobility TO: ns3  DESCRIPTION: simmobility delegates the network transfering of messages to ns3)
-{
-    "MSG_TYPE" : "ANNOUNCE",
-    "ANNOUNCE" : {
-        "SENDER" : "client-id-X",
-        "RECEIVER" :[
-            "client-id-W",
-            "client-id-Y",
-            "client-id-Z"
-            ],
-        "DATA" : "opaque-data"
-    }
-}
+ {
+ "MSG_TYPE" : "ANNOUNCE",
+ "ANNOUNCE" : {
+ "SENDER" : "client-id-X",
+ "RECEIVER" :[
+ "client-id-W",
+ "client-id-Y",
+ "client-id-Z"
+ ],
+ "DATA" : "opaque-data"
+ }
+ }
 
  * packet name : announce_received
  * sending direction:
@@ -380,15 +358,30 @@ before continuing, please note the possible scenarios(depending on configuration
  *
  * usage-2)server->client : (FROM:simmobility TO:android,
  * DESCRIPTION: simmobility transfers this message(which has been sent by ns3) to the corresponding android)
-{
-    "MSG_TYPE" : "ANNOUNCE",
-    "ANNOUNCE" : {
-        "SENDER" : "client-id-X",
-        "RECEIVER" :[
-            "client-id-W"
-            ],
-        "DATA" : "opaque-data"
-    }
+ {
+ "MSG_TYPE" : "ANNOUNCE",
+ "ANNOUNCE" : {
+ "SENDER" : "client-id-X",
+ "RECEIVER" :[
+ "client-id-W"
+ ],
+ "DATA" : "opaque-data"
+ }
+ }
+
+ ///////////NEXT VERSION of ANNOUNCE
+  {
+    "PACKET_HEADER": {
+        "NOF_MESSAGES": "1"
+    },
+    "DATA": [
+        {
+            "MESSAGE_TYPE": "MULTICAST_ANNOUNCE",
+            "SENDER": "client_id_x",
+            "SENDER_TYPE": "ANDROID_EMULATOR",
+            "ANNOUNCE_DATA" : "XXX"
+        }
+    ]
 }
 
  */

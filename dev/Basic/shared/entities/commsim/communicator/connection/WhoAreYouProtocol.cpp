@@ -43,14 +43,14 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 	}
 
 	void WhoAreYouProtocol::startClientRegistration(session_ptr sess) {
-		std::string str = JsonParser::makeWhoAreYou();
-//		std::cout<< " WhoAreYou protocol Sending [" << str << "]" <<  std::endl;
+		std::string str = JsonParser::makeWhoAreYouPacket();
+//		Print()<< " WhoAreYou protocol Sending [" << str << "]" <<  std::endl;
 		sess->async_write(str,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler, this,
 						boost::asio::placeholders::error, sess));
 	}
 	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess) {
-//		std::cout<< " WhoAreYou_handler readring" << std::endl;
+//		Print()<< " WhoAreYou_handler readring" << std::endl;
 		sess->async_read(response,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
 						boost::asio::placeholders::error, sess));
@@ -63,7 +63,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 		}
 		else
 		{
-//			std::cout<< " WhoAreYou_handler read Done [" << response << "]"  << std::endl;
+			Print()<< " WhoAreYou_handler incoming '" << response << "'"  << std::endl;
 			//response string is successfully populated
 			unsigned int id = -1 , type = -1;
 
@@ -77,14 +77,14 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 					unsigned int i = 0;
 					std::string str = root[i].toStyledString();
 //					Print()<< "Message is: '" << str << "'" << std::endl;
-					if(sim_mob::JsonParser::parseMessageHeader(str,mHeader))
+					if((sim_mob::JsonParser::parseMessageHeader(str,mHeader))&&(mHeader.msg_type == "WHOAMI"))
 					{
 //				        getTypeAndID(response, type, id);
-//				        std::cout << "response = " << id << " " << type << std::endl;
+//				        Print() << "response = " << id << " " << type << std::endl;
 				        sim_mob::ClientRegistrationRequest request = getSubscriptionRequest(str, sess);
 //				        Print() << "sim_mob::ClientRegistrationRequest.reqServ.size() = " << request.requiredServices.size() << std::endl;
 				        server.RequestClientRegistration(request);
-//						std::cout << "registering the client Done" << std::endl;
+//						Print() << "registering the client Done" << std::endl;
 						delete this; //first time in my life! people say it is ok.
 
 					}

@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 
@@ -84,12 +85,14 @@ public:
     else
     {
       std::istringstream is(std::string(inbound_header_, header_length));
+      Print() << "Inbound header is '" << is << "'" << std::endl;
       std::size_t inbound_data_size = 0;
       if (!(is >> std::hex >> inbound_data_size))
       {
         std::cout << "ERROR in session-Handle_read_header" << std::endl;
         return;
       }
+      Print() << "Inbound data size is '" << inbound_data_size << "'" << std::endl;
       inbound_data_.resize(inbound_data_size);
 
       void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
@@ -130,7 +133,7 @@ private:
   boost::asio::ip::tcp::socket socket_;
 
   /// The size of a fixed length header.
-  enum { header_length = 8 };
+  enum { header_length = 16 };
 
   /// Holds an outbound header.
   std::string outbound_header_;

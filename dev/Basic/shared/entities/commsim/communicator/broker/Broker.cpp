@@ -26,15 +26,32 @@ namespace sim_mob
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }
-bool Broker::insertSendBuffer(DataElement& value)
+//todo if need be, do a template specialization to accommodate both
+//insertBuffer implementations for different types of sendBuffer
+//bool Broker::insertSendBuffer(DataElement& value)
+//{
+//	//a small validation
+//	if(value.get<0>()->agentPtr == 0)
+//	{
+//		return false;
+//	}
+//	sendBuffer.add(value);
+//	return true;
+//}
+
+bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, Json::Value &value )
 {
-	//a small validation
-	if(value.get<0>()->agentPtr == 0)
-	{
+	if (cnnHandler->agentPtr == 0) {
 		return false;
 	}
-	sendBuffer.add(value);
-	return true;
+//	if(sendBuffer.find(cnnHandler) != sendBuffer.end())
+//	{
+//		;
+//		sendBuffer[cnnHandler] = t;
+////		sendBuffer.insert(std::make_pair(cnnHandler,sim_mob::BufferContainer<Json::Value>()));
+//	}
+//	sim_mob::BufferContainer<Json::Value> & t  = sendBuffer[cnnHandler];
+	sendBuffer[cnnHandler].add(value);
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), EventListener()
@@ -185,6 +202,11 @@ bool  Broker::registerEntity(sim_mob::JCommunicationSupport<std::string>* value)
 {
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
+	//tdo: testing. comment the following condition after testing
+	if(registeredAgents.size() > 0)
+	{
+		return 0;
+	}
 	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
 	value->registrationCallBack(true);
@@ -397,18 +419,55 @@ void Broker::processPublishers(timeslice now) {
 //			}
 	}
 }
+//void Broker::processOutgoingData(timeslice now)
+//{
+////	now send what you have to send:
+//		DataElement dataElement ;
+//		while(sendBuffer.pop(dataElement))
+//		{
+//			boost::shared_ptr<ConnectionHandler> cnn = dataElement.get<0>();
+//			std::string message =  dataElement.get<1>();
+//			Print() << "Broker sending to agent[" << cnn->agentPtr << "]  client["  << cnn->clientID << "] " << std::endl;
+//			cnn->send(message);
+//		}
+//}
+
 void Broker::processOutgoingData(timeslice now)
 {
 //	now send what you have to send:
-		DataElement dataElement ;
-		while(sendBuffer.pop(dataElement))
+	for(SEND_BUFFER::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++)
+	{
+		sim_mob::BufferContainer<Json::Value> & buffer = it->second;
+		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
+
+		//build a jsoncpp structure comprising of a header and data array(containing messages)
+		Json::Value packet;
+		Json::Value header;
+		Json::Value packetData;
+		Json::Value msg;
+
+		packetData.clear();
+		while(buffer.pop(msg))
 		{
-			boost::shared_ptr<ConnectionHandler> cnn = dataElement.get<0>();
-			std::string message =  dataElement.get<1>();
-			Print() << "Broker sending to agent[" << cnn->agentPtr << "]  client["  << cnn->clientID << "] " << std::endl;
-			cnn->send(message);
+			packetData.append(msg);
 		}
+		int nof_messages;
+		if(!(nof_messages = packetData.size()))
+		{
+			continue;
+		}
+		header = JsonParser::createPacketHeader(pckt_header(nof_messages));
+		packet.clear();
+		packet["PACKET_HEADER"] = header;
+		packet["DATA"] = packetData;
+
+		//convert the jsoncpp packet to a json string
+		Json::FastWriter writer;
+		std::string str = writer.write(packet);
+		cnn->send(str);
+	}
 }
+
 
 //checks to see if the subscribed entity(agent) is alive
 bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info) {

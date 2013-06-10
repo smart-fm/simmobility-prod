@@ -8,6 +8,7 @@
 #include "ConnectionHandler.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "Session.hpp"
+#include "entities/commsim/communicator/serialization/Serialization.hpp"
 
 namespace sim_mob {
 ConnectionHandler::ConnectionHandler(
@@ -29,12 +30,16 @@ ConnectionHandler::ConnectionHandler(
 void ConnectionHandler::start()
 {
 
-	Json::Value ready;
-	ready["MessageType"] = "Ready";
+
+	Json::Value packet;
+	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1));
+	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","Ready"));
+	packet["PACKET_HEADER"] = packet_header;
+	packet["DATA"].append(msg);//no other data element needed
 	Json::FastWriter writer;
 
-	std::string str = writer.write(ready);
-
+	std::string str = writer.write(packet);
+//	mySession->socket().cancel();//cancel the previous read that belonged to whoareyou protocol
 	mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
 }
 
@@ -63,6 +68,7 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 	}
 	else
 	{
+		Print() << "ConnectionHandler::readHandler incoming'" << incomingMessage << "'" << std::endl;
 		//call the receive handler in the broker
 		CALL_MEMBER_FN(theBroker, receiveCallBack)(shared_from_this(),incomingMessage);
 
@@ -74,7 +80,7 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 
 void ConnectionHandler::send(std::string str)
 {
-	std::cout << "Writing to agent[" << agentPtr << "]  client["  << clientID << "] " << std::endl;
+	std::cout << "Writing to agent'" << agentPtr << "]  client["  << clientID << "] string'" << str << "'" << std::endl;
 	mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 }
 void ConnectionHandler::sendHandler(const boost::system::error_code& e) {

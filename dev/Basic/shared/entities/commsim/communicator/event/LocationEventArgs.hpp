@@ -11,6 +11,7 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include<iostream>
+#include "entities/commsim/communicator/serialization/Serialization.hpp"
 
 namespace sim_mob {
 class Agent;
@@ -20,7 +21,7 @@ public:
 	const sim_mob::Agent *agent;
 	LocationEventArgs(const sim_mob::Agent *);
 	//todo should be a virtual from a base class
-	std::string ToJSON()const;
+	/*std::string*/ Json::Value ToJSON()const;
 	virtual ~LocationEventArgs();
 };
 

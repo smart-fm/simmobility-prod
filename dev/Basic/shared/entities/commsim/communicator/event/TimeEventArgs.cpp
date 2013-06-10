@@ -6,7 +6,6 @@
  */
 
 #include "TimeEventArgs.hpp"
-#include "entities/commsim/communicator/serialization/Serialization.hpp"
 
 namespace sim_mob {
 
@@ -16,8 +15,8 @@ TimeEventArgs::TimeEventArgs(timeslice time_): time(time_){
 TimeEventArgs::~TimeEventArgs() {
 }
 
-std::string TimeEventArgs::ToJSON() const{
-	std::string mytime = sim_mob::JsonParser::makeTimeData(time.frame());
+Json::Value TimeEventArgs::ToJSON() const{
+	Json::Value mytime = sim_mob::JsonParser::makeTimeData(time.frame());
 	return mytime;
 }
 }

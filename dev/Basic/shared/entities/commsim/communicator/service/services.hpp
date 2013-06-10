@@ -12,6 +12,7 @@
 //#include "derived/LocationPublisher.hpp"
 #include <boost/assign/list_of.hpp>
 #include <map>
+#include <sstream>
 namespace sim_mob
 {
 	enum SIM_MOB_SERVICE
@@ -38,19 +39,58 @@ namespace sim_mob
 
 	struct msg_header
 	{
+		//data
 		std::string
 		sender_id
 		,sender_type
 		,msg_type;
+		//constructor
+		msg_header(){}
+		msg_header(
+				std::string	 	sender_id_
+				,std::string	sender_type_
+				,std::string	msg_type_
+				)
+		:
+			sender_id(sender_id_)
+		,sender_type(sender_type_)
+		,msg_type(msg_type_)
+
+		{}
+
 	};
 
 	struct pckt_header
 	{
+		//data
 		std::string
 		sender_id
 		,sender_type
 		,nof_msgs
 		,size_bytes;
+		//constructor(s)
+		pckt_header(){}
+		pckt_header(
+				/*std::string		sender_id_
+				,std::string	sender_type_
+				,*/std::string	nof_msgs_
+//				,std::string	size_bytes_
+				)
+		:
+		/*sender_id(sender_id_)
+		,sender_type(sender_type_)
+		,*/nof_msgs(nof_msgs_)
+//		,size_bytes(size_bytes_)
+		{}
+
+		pckt_header(
+				int	nof_msgs_
+				)
+		{
+			std::ostringstream out;
+			out << nof_msgs_;
+			nof_msgs = out.str();
+		}
 	};
 }
 

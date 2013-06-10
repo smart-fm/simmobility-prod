@@ -8,6 +8,7 @@
 #ifndef TIMEEVENTARGS_HPP_
 #define TIMEEVENTARGS_HPP_
 
+#include "entities/commsim/communicator/serialization/Serialization.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "metrics/Frame.hpp"
@@ -20,7 +21,7 @@ public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();
 	//todo should be a virtual from a base class
-	std::string ToJSON()const;
+	Json::Value ToJSON()const;
 	timeslice time;
 };
 

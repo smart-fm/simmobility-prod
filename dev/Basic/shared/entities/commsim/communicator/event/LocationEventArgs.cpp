@@ -7,7 +7,6 @@
 
 #include "LocationEventArgs.hpp"
 #include "entities/Agent.hpp"
-#include "entities/commsim/communicator/serialization/Serialization.hpp"
 
 namespace sim_mob {
 
@@ -15,7 +14,10 @@ LocationEventArgs::LocationEventArgs(const sim_mob::Agent * agent_) :agent(agent
 	// TODO Auto-generated constructor stub
 
 }
-std::string LocationEventArgs::ToJSON()const{
+//std::string LocationEventArgs::ToJSON()const{
+//	return JsonParser::makeLocationData(agent->xPos.get(), agent->yPos.get());
+//}
+Json::Value LocationEventArgs::ToJSON()const{
 	return JsonParser::makeLocationData(agent->xPos.get(), agent->yPos.get());
 }
 LocationEventArgs::~LocationEventArgs() {

@@ -96,11 +96,15 @@ bool get_work_in_progress()
 	return work_in_progress;
 }
 
-std::vector<T>& get() {
-	boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);
+const std::vector<T>& get() const{
+//	boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);
 	return buffer;
 }
 
+ std::vector<T>& get() {
+	boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);
+	return buffer;
+}
 
 bool pop(T & var) {
 	boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);

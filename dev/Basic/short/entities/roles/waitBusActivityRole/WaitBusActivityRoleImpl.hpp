@@ -11,10 +11,8 @@
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
 
-//TODO: You can't use ../short for this:
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
-//#include "entities/roles/passenger/Passenger.hpp"
 
 namespace sim_mob
 {

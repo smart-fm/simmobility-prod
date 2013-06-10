@@ -352,6 +352,8 @@ bool sim_mob::Person::updatePersonRole()
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
 
+		if(str==0) return false;
+
 		sim_mob::Role* newRole = rf.createRole(tci, str, this);
 		changeRole(newRole);
 }

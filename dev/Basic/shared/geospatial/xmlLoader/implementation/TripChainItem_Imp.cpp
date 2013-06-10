@@ -13,6 +13,8 @@ sim_mob::TripChainItem::ItemType GetTripChainItemType(std::string name)
 		return sim_mob::TripChainItem::IT_TRIP;
 	} else if (name == "IT_ACTIVITY") {
 		return sim_mob::TripChainItem::IT_ACTIVITY;
+	} else if( name == "IT_FMODSIM"){
+		return sim_mob::TripChainItem::IT_FMODSIM;
 	}
 
 	throw std::runtime_error("Unknown TripChain item type.");
@@ -35,6 +37,7 @@ sim_mob::TripChainItem* sim_mob::xml::TripChainItem_t_pimpl::post_TripChainItem_
 void sim_mob::xml::TripChainItem_t_pimpl::personID (std::string value)
 {
 	model.personID = value;
+	std::cout << "A tripchain Item for person " << model.personID << " is being read" << std::endl;
 }
 
 void sim_mob::xml::TripChainItem_t_pimpl::itemType (std::string value)
@@ -45,6 +48,11 @@ void sim_mob::xml::TripChainItem_t_pimpl::itemType (std::string value)
 void sim_mob::xml::TripChainItem_t_pimpl::sequenceNumber (unsigned int value)
 {
 	model.sequenceNumber = value;
+}
+
+void sim_mob::xml::TripChainItem_t_pimpl::requestTime (long long value)
+{
+	model.requestTime = value;
 }
 
 void sim_mob::xml::TripChainItem_t_pimpl::startTime (const ::std::string& value)

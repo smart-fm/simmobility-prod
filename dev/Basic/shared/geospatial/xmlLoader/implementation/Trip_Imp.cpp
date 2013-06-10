@@ -40,6 +40,7 @@ sim_mob::TripChainItem* sim_mob::xml::Trip_t_pimpl::post_Trip_t ()
 	res->personID = temp->personID;
 	res->itemType = temp->itemType;
 	res->sequenceNumber = temp->sequenceNumber;
+	res->requestTime = temp->requestTime;
 	res->startTime = temp->startTime;
 	res->endTime = temp->endTime;
 	delete temp;

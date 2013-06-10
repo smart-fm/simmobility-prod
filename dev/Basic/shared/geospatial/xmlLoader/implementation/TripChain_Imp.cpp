@@ -14,7 +14,7 @@ std::pair<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::xml::Trip
 	return model;
 }
 
-void sim_mob::xml::TripChain_t_pimpl::personID (std::string value)
+void sim_mob::xml::TripChain_t_pimpl::personID (const ::std::string& value)
 {
 	model.first = value;
 }

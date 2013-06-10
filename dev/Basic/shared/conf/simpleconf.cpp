@@ -211,20 +211,24 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-
+	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
 	//The current agent we are working on.
 	Person* person = nullptr;
 	std::string trip_mode;
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-
-		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-		addOrStashEntity(person, active_agents, pending_agents);
-		//Reset for the next (possible) Agent
-		person = nullptr;
+		if( tc->itemType != TripChainItem::IT_FMODSIM){
+			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+			addOrStashEntity(person, active_agents, pending_agents);
+			//Reset for the next (possible) Agent
+			person = nullptr;
+		}
+		else {
+			//insert to FMOD controller so that collection of requests
+		}
 	}//outer for loop(map)
 }
 

@@ -15,7 +15,7 @@ def convert(rn :geo.formats.sumo.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
     raise Exception("Can't get min/max; at least one point must exist!")
 
   #We cheat a bit by shifting the minimum x/y values a few meters into the minimum (in case of lane edge expansion, etc.)
-  #TODO: We might want to translate the entire network *after* converting it (this is not specific to SUMO). For now, we cheat.
+  #TODO: We might want to translate the entire network *after* converting it (this is not specific to SUMO; in fact, it's how OSM does it.). For now, we cheat.
   tempMinX = minX - 3.5*10  #10 lanes
   tempMinY = minY - 3.5*10  #10 lanes
 

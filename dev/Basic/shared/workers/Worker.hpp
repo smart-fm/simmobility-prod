@@ -37,6 +37,7 @@
 #include "geospatial/Link.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "event/EventManager.hpp"
 
 namespace sim_mob
 {
@@ -88,6 +89,8 @@ public:
 	void scheduleForBred(Entity* entity);
 
 	int getAgentSize(bool includeToBeAdded=false);
+        
+        EventManager& GetEventManager();
 
 protected:
 	virtual void perform_main(timeslice currTime);
@@ -147,6 +150,7 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
+        EventManager eventManager;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

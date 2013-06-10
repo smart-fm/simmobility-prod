@@ -32,7 +32,7 @@ class Agent;
 class WorkGroup;
 
 #ifndef SIMMOB_DISABLE_MPI
-class BoundaryProcessor;
+class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
 #endif
@@ -156,6 +156,7 @@ private:
 	//Internal update function for handling frame_init(), frame_tick(), etc.
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
+public:
 	//for mid-term link travel time computation
 	struct travelStats
 	{
@@ -299,6 +300,7 @@ public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
+
 	bool isCallFrameInit() const {
 		return call_frame_init;
 	}
@@ -309,6 +311,10 @@ public:
 
 	friend class BoundaryProcessor;
 
+
+	/**
+	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
+	 */
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	/**

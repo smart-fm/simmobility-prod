@@ -25,6 +25,8 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/FMODController/FMODController.hpp"
+#include "password/password.hpp"
+
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -213,7 +215,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-
+	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
 	//The current agent we are working on.
 	Person* person = nullptr;
 	std::string trip_mode;
@@ -221,13 +223,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
-		std::cout << "id of tripchain item in this iteration is " << it_map->first << std::endl;
+		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-
-		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-		addOrStashEntity(person, active_agents, pending_agents);
-		//Reset for the next (possible) Agent
-		person = nullptr;
+		if( tc->itemType != TripChainItem::IT_FMODSIM){
+			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+			addOrStashEntity(person, active_agents, pending_agents);
+			//Reset for the next (possible) Agent
+			person = nullptr;
+		}
+		else {
+			//insert to FMOD controller so that collection of requests
+		}
 	}//outer for loop(map)
 }
 
@@ -422,8 +428,8 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
-        	std::cout << "catch the loop error try!" << std::endl;
-            std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
+        	Warn() << "catch the loop error try!\n"
+        		   << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
             return false;
         }
 	}
@@ -510,8 +516,8 @@ bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
             }
             catch (boost::bad_lexical_cast &)
             {
-            	std::cout << "catch the loop error try!" << std::endl;
-                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
+            	Warn() << "catch the loop error try!\n"
+            		   << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
                 return false;
             }
 	}
@@ -535,9 +541,11 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		if (!name || !value) {
 			return false;
 		}
+		if(strcmp(name,"password") == 0) continue;
 		string pair = (connectionString.empty()?"":" ") + string(name) + "=" + string(value);
 		connectionString += pair;
 	}
+	connectionString += (connectionString.empty()?"":" ") + string("password = ") + sim_mob::simple_password::load(string());
 
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();
@@ -1894,7 +1902,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if (totalRuntime%baseGran != 0) {
     	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
-    if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
+    if (totalWarmup != 0 && totalWarmup < baseGran) {
+    	Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
+    }
     if (totalWarmup%baseGran != 0) {
     	Warn() <<"Total warmup (" <<totalWarmup <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
@@ -1923,7 +1933,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
-    	if (config.is_run_on_many_computers) {
+    	if (config.using_MPI) {
 			sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 			std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
 

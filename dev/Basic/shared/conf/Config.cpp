@@ -83,7 +83,7 @@ sim_mob::WorkGroup* WorkGroupFactory::getItem()
 		//Create it. For now, this is bound to the old "ConfigParams" structure; we can change this later once both files build in parallel.
 		const ConfigParams& cf = ConfigParams::GetInstance();
 		PartitionManager* partMgr = nullptr;
-		if (!cf.MPI_Disabled() && cf.is_run_on_many_computers) {
+		if (!cf.MPI_Disabled() && cf.using_MPI) {
 			partMgr = &PartitionManager::instance();
 		}
 		if (agentWG) {

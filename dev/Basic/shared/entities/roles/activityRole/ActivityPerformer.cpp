@@ -29,8 +29,10 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Acti
 	location = currActivity.location;
 }
 
+//xuyan: Error, Do not what to do, comment out
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
+
 	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
 	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");

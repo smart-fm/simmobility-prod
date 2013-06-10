@@ -2725,6 +2725,9 @@ namespace sim_mob
       sequenceNumber (unsigned int);
 
       virtual void
+      requestTime (long long);
+
+      virtual void
       startTime (const ::std::string&);
 
       virtual void
@@ -2745,6 +2748,9 @@ namespace sim_mob
       sequenceNumber_parser (::xml_schema::unsigned_int_pskel&);
 
       void
+      requestTime_parser (::xml_schema::integer_pskel&);
+
+      void
       startTime_parser (::xml_schema::string_pskel&);
 
       void
@@ -2754,6 +2760,7 @@ namespace sim_mob
       parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::integer_pskel& /* requestTime */,
                ::xml_schema::string_pskel& /* startTime */,
                ::xml_schema::string_pskel& /* endTime */);
 
@@ -2777,6 +2784,7 @@ namespace sim_mob
       ::xml_schema::string_pskel* personID_parser_;
       ::sim_mob::xml::TripchainItemType_pskel* itemType_parser_;
       ::xml_schema::unsigned_int_pskel* sequenceNumber_parser_;
+      ::xml_schema::integer_pskel* requestTime_parser_;
       ::xml_schema::string_pskel* startTime_parser_;
       ::xml_schema::string_pskel* endTime_parser_;
     };
@@ -2834,6 +2842,7 @@ namespace sim_mob
       parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::integer_pskel& /* requestTime */,
                ::xml_schema::string_pskel& /* startTime */,
                ::xml_schema::string_pskel& /* endTime */,
                ::xml_schema::integer_pskel& /* tripID */,
@@ -2903,6 +2912,7 @@ namespace sim_mob
       parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::integer_pskel& /* requestTime */,
                ::xml_schema::string_pskel& /* startTime */,
                ::xml_schema::string_pskel& /* endTime */,
                ::xml_schema::integer_pskel& /* tripID */,
@@ -3032,6 +3042,7 @@ namespace sim_mob
       parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
                ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::integer_pskel& /* requestTime */,
                ::xml_schema::string_pskel& /* startTime */,
                ::xml_schema::string_pskel& /* endTime */,
                ::xml_schema::string_pskel& /* description */,
@@ -3075,7 +3086,7 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      personID (long long);
+      personID (const ::std::string&);
 
       virtual void
       Trip (sim_mob::TripChainItem*);
@@ -3089,7 +3100,7 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      personID_parser (::xml_schema::integer_pskel&);
+      personID_parser (::xml_schema::string_pskel&);
 
       void
       Trip_parser (::sim_mob::xml::Trip_t_pskel&);
@@ -3098,7 +3109,7 @@ namespace sim_mob
       Activity_parser (::sim_mob::xml::Activity_t_pskel&);
 
       void
-      parsers (::xml_schema::integer_pskel& /* personID */,
+      parsers (::xml_schema::string_pskel& /* personID */,
                ::sim_mob::xml::Trip_t_pskel& /* Trip */,
                ::sim_mob::xml::Activity_t_pskel& /* Activity */);
 
@@ -3119,7 +3130,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
-      ::xml_schema::integer_pskel* personID_parser_;
+      ::xml_schema::string_pskel* personID_parser_;
       ::sim_mob::xml::Trip_t_pskel* Trip_parser_;
       ::sim_mob::xml::Activity_t_pskel* Activity_parser_;
     };
@@ -3402,7 +3413,7 @@ namespace sim_mob
       TrafficColor (sim_mob::TrafficColor);
 
       virtual void
-      Duration (short);
+      Duration (unsigned char);
 
       virtual std::pair<sim_mob::TrafficColor,short>
       post_ColorDuration_t () = 0;
@@ -3413,11 +3424,11 @@ namespace sim_mob
       TrafficColor_parser (::sim_mob::xml::TrafficColor_t_pskel&);
 
       void
-      Duration_parser (::xml_schema::short_pskel&);
+      Duration_parser (::xml_schema::unsigned_byte_pskel&);
 
       void
       parsers (::sim_mob::xml::TrafficColor_t_pskel& /* TrafficColor */,
-               ::xml_schema::short_pskel& /* Duration */);
+               ::xml_schema::unsigned_byte_pskel& /* Duration */);
 
       // Constructor.
       //
@@ -3437,7 +3448,7 @@ namespace sim_mob
 
       protected:
       ::sim_mob::xml::TrafficColor_t_pskel* TrafficColor_parser_;
-      ::xml_schema::short_pskel* Duration_parser_;
+      ::xml_schema::unsigned_byte_pskel* Duration_parser_;
     };
 
     class ColorSequence_t_pskel: public ::xml_schema::complex_content

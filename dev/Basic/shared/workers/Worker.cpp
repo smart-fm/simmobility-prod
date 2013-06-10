@@ -502,6 +502,8 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	}
 
 #endif
+        //updates the event manager.
+        eventManager.Update(currTime);
 }
 
 bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
@@ -543,4 +545,9 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 		return true;
 	}
 	return false;
+}
+
+
+EventManager& sim_mob::Worker::GetEventManager(){
+    return eventManager;
 }

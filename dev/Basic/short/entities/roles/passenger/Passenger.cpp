@@ -88,7 +88,7 @@ void sim_mob::Passenger::frame_tick(UpdateParams& p)
 
 void sim_mob::Passenger::frame_tick_output(const UpdateParams& p)
 {
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 

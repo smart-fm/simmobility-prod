@@ -179,7 +179,7 @@ void sim_mob::Pedestrian2::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigParams::GetInstance().using_MPI) {
 		return;
 	}
 

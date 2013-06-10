@@ -316,13 +316,14 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    TripChains_t_p.parsers (TripChain_t_p);
 
-	    TripChain_t_p.parsers (integer_p,
+	    TripChain_t_p.parsers (string_p,
 	                           Trip_t_p,
 	                           Activity_t_p);
 
 	    Trip_t_p.parsers (string_p,
 	                      TripchainItemType_p,
 	                      unsigned_int_p,
+	                      integer_p,
 	                      string_p,
 	                      string_p,
 	                      integer_p,
@@ -337,6 +338,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    SubTrip_t_p.parsers (string_p,
 	                         TripchainItemType_p,
 	                         unsigned_int_p,
+	                         integer_p,
 	                         string_p,
 	                         string_p,
 	                         integer_p,
@@ -352,6 +354,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    Activity_t_p.parsers (string_p,
 	                          TripchainItemType_p,
 	                          unsigned_int_p,
+	                          integer_p,
 	                          string_p,
 	                          string_p,
 	                          string_p,
@@ -396,7 +399,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                               ColorDuration_t_p);
 
 	    ColorDuration_t_p.parsers (TrafficColor_t_p,
-	    		short_p);
+	    		unsigned_byte_p);
 
 	    crossings_maps_t_p.parsers (crossings_map_t_p);
 

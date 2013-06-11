@@ -19,7 +19,7 @@ class Broker;
 class Handler
 {
 public:
-	virtual void handle(msg_ptr message_,boost::shared_ptr<sim_mob::Broker>) = 0;
+	virtual void handle(msg_ptr message_,Broker*) = 0;
 };
 }//namespace
 #endif /* HANDLER_HPP_ */

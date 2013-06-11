@@ -63,7 +63,7 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 //todo improve the function to handle array of messages stored in the input string
  bool RR_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
 {
-	std::vector<msg_t> result;
+//	std::vector<msg_t> result;
 	std::string type, data;
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

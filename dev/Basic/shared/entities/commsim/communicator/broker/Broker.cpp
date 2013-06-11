@@ -148,10 +148,24 @@ ClientList & Broker::getClientList(){
 }
 
 
-void Broker::insertClientList(unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> clientHandler){
+void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> clientHandler){
 	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	clientList.insert(std::make_pair(clientType, clientHandler));
+	clientList[clientType][clientID] = clientHandler;
+////	clientList.insert(std::make_pair(clientType, std::make_pair(clientHandler->clientID,clientHandler)));
+//	ClientList::iterator it_type = clientList.find(clientType);
+//	if(it_type != clientList.end())
+//	{
+//		it_type->second[clientHandler->clientID] = clientHandler;
+////		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_id = it_type->second.find(clientHandler->clientID);
+//	}
+//	else
+//	{
+////		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > input(clientHandler->clientID , clientHandler);
+////		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = ;
+//		clientList[clientType][clientHandler->clientID] = clientHandler;
+//	}
+//	std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > = clientList[clientType];
 	Print()<< "ClientHandler inserted: agent[" <<
 			clientHandler->agent << " : " << clientHandler->cnnHandler->agentPtr << "]  "
 					"clientID[" << clientHandler->clientID << "]" << std::endl;
@@ -231,41 +245,49 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 	duplicateEntityDoneChecker.erase(agent);
 
 	//search registered clients list looking for this agent. whoever has it, dump him
-	ClientList::iterator it_erase;
-	for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
+	for(ClientList::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
 	{
-		if(it->second->agent == agent)
-		{
-			it_erase = it++;
-			//unsubscribe from all publishers he is subscribed to
-			sim_mob::ClientHandler * clientHandler = it_erase->second.get();
-			sim_mob::SIM_MOB_SERVICE srv;
-			BOOST_FOREACH(srv, clientHandler->requiredServices)
-			{
-				switch(srv)
-				{
-				case SIMMOB_SRV_TIME:
-					publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_TIME,clientHandler);
-					break;
-				case SIMMOB_SRV_LOCATION:
-					publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
-					break;
-				}
-			}
-			//erase him from the list
-			//clientList.erase(it_erase);
-			//don't erase it here. it may already have something to send
-			//invalidate it and clean it up when necessary
-			//invalidation 1:
-			it_erase->second->agent = 0;
-			it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
+		std::map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator
+			it_clientID(it_clientType->second.begin()),
+			it_clientID_end(it_clientType->second.end()),
+			it_erase;
 
-		}
-		else
+		for(; it_clientID != it_clientID_end; )
 		{
-			 it++;
-		}
-	}
+			if(it_clientID->second->agent == agent)
+			{
+				it_erase = it_clientID++;
+				//unsubscribe from all publishers he is subscribed to
+				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
+				sim_mob::SIM_MOB_SERVICE srv;
+				BOOST_FOREACH(srv, clientHandler->requiredServices)
+				{
+					switch(srv)
+					{
+					case SIMMOB_SRV_TIME:
+						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_TIME,clientHandler);
+						break;
+					case SIMMOB_SRV_LOCATION:
+						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						break;
+					}
+				}
+				//erase him from the list
+				//clientList.erase(it_erase);
+				//don't erase it here. it may already have something to send
+				//invalidate it and clean it up when necessary
+				//invalidation 1:
+				it_erase->second->agent = 0;
+				it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
+
+			}
+			else
+			{
+				it_clientID++;
+			}
+		}//inner loop
+
+	}//outer loop
 	Print()<< "Broker::unRegisterEntity UNlocking mutex_clientList " << std::endl;
 }
 
@@ -276,7 +298,7 @@ void Broker::processIncomingData(timeslice now)
 	while(receiveQueue.pop(msgTuple))
 	{
 		msg_ptr &msg = msgTuple.get<1>();
-		msg->supplyHandler()->handle(msg,shared_from_this());
+		msg->supplyHandler()->handle(msg,this);
 	}
 }
 
@@ -371,66 +393,25 @@ void Broker::processPublishers(timeslice now) {
 			break;
 		}
 		case sim_mob::SIMMOB_SRV_LOCATION: {
-			//you have to provide context id (agent ptr) for each client
-			//iterate through each registered client
-			std::pair<unsigned int, boost::shared_ptr<sim_mob::ClientHandler> > client;
 
-			BOOST_FOREACH(client, clientList)
+			//get to each client handler, look at his requred service and then publish for him
+			std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientsByType;
+			std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientsByID;
+			BOOST_FOREACH(clientsByType, clientList)
 			{
-				if (
-						client.second->requiredServices.find(SIMMOB_SRV_LOCATION)
-						==
-						client.second->requiredServices.end()
-								) {
-					//you didn't signe up for this service
-					continue;
+				BOOST_FOREACH(clientsByID, clientsByType.second)
+				{
+					boost::shared_ptr<sim_mob::ClientHandler> & cHandler = clientsByID.second;//easy read
+					publisher.Publish(COMMEID_LOCATION,(void*) cHandler->agent,LocationEventArgs(cHandler->agent));
 				}
-				//get the agent id, it is used as context id
-				publisher.Publish(COMMEID_LOCATION,(void*) client.second->agent,LocationEventArgs(client.second->agent));
 			}
 			break;
 		}
 		default:
 			break;
 		}
-//	std::pair<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > client;
-//	//iterate through each registered client
-//	BOOST_FOREACH(client, clientList) {
-//		//get the services client is subscribed to
-//		std::set<SIM_MOB_SERVICE> & requiredServices =	client.second.requiredServices;
-//		SIM_MOB_SERVICE service;
-//		//iterate through the client's set of services
-//		BOOST_FOREACH(service, requiredServices) {
-//			//a small check
-//			if (publishers.find(service) == publishers.end()) {
-//				continue;
-//			}
-//			//find a publisher
-//			boost::shared_ptr<sim_mob::Publisher> publisher = publishers[service];
-//			switch (publisher->myService) {
-//			case sim_mob::SIMMOB_SRV_TIME: {
-//				publisher->Publish(COMMEID_TIME, TimeEventArgs(timeslice));
-//				break;
-//			}
-//			case sim_mob::SIMMOB_SRV_LOCATION: {
-//				publisher->Publish(COMMEID_LOCATION,	LocationEventArgs(client.second.agent));
-//				break;
-//			}
-//			}
 	}
 }
-//void Broker::processOutgoingData(timeslice now)
-//{
-////	now send what you have to send:
-//		DataElement dataElement ;
-//		while(sendBuffer.pop(dataElement))
-//		{
-//			boost::shared_ptr<ConnectionHandler> cnn = dataElement.get<0>();
-//			std::string message =  dataElement.get<1>();
-//			Print() << "Broker sending to agent[" << cnn->agentPtr << "]  client["  << cnn->clientID << "] " << std::endl;
-//			cnn->send(message);
-//		}
-//}
 
 void Broker::processOutgoingData(timeslice now)
 {
@@ -659,21 +640,21 @@ Entity::UpdateStatus Broker::update(timeslice now)
 
 void Broker::removeClient(ClientList::iterator it_erase)
 {
-	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
-	if(!it_erase->second)
-	{
-		return;
-	}
-	//delete the connection handler inside the client handler
-	if(it_erase->second->cnnHandler)
-	{
-//		it_erase->second->cnnHandler.reset();
-	}
-	//delete the clientHandler
-//	it_erase->second.reset();
-	//remove it from the list
-	clientList.erase(it_erase);
-	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
+//	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
+//	if(!it_erase->second)
+//	{
+//		return;
+//	}
+//	//delete the connection handler inside the client handler
+//	if(it_erase->second->cnnHandler)
+//	{
+////		it_erase->second->cnnHandler.reset();
+//	}
+//	//delete the clientHandler
+////	it_erase->second.reset();
+//	//remove it from the list
+//	clientList.erase(it_erase);
+//	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
 }
 void Broker::cleanup()
 {
@@ -685,44 +666,34 @@ void Broker::cleanup()
 	//But there is a complication on deleting connection handler
 	//there is a chance the sockets are deleted before a send ACK arrives
 
-	{
-		ClientList::iterator it_erase;
-		for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
-		{
-			//hehehe, sorry for duplication/safe perfection
-			if(it->second == 0)
-			{
-				it_erase = it++;
-				removeClient(it_erase);
-				continue;
-			}
-			if(it->second->agent == 0)
-			{
-				it_erase = it++;
-				removeClient(it_erase);
-				continue;
-			}
-			if(it->second->cnnHandler->agentPtr == 0)
-			{
-				it_erase = it++;
-				removeClient(it_erase);
-				continue;
-			}
-			it++;
-		}
-	}
+//	{
+//		ClientList::iterator it_erase;
+//		for(ClientList::iterator it = clientList.begin(); it != clientList.end(); /*no it++ here */)
+//		{
+//			//hehehe, sorry for duplication/safe perfection
+//			if(it->second == 0)
+//			{
+//				it_erase = it++;
+//				removeClient(it_erase);
+//				continue;
+//			}
+//			if(it->second->agent == 0)
+//			{
+//				it_erase = it++;
+//				removeClient(it_erase);
+//				continue;
+//			}
+//			if(it->second->cnnHandler->agentPtr == 0)
+//			{
+//				it_erase = it++;
+//				removeClient(it_erase);
+//				continue;
+//			}
+//			it++;
+//		}
+//	}
 
 }
-//void Broker::unicast(const sim_mob::Agent * agent, std::string data)
-//{
-//	//find the connection handler
-//	agentIterator it = agentSubscribers_.find(agent);
-//	if(it == agentSubscribers_.end()) {
-//		Print() << "unicast Failed. Agent not Found" << std::endl;
-//	}
-////	ConnectionHandler handler = it->handler;
-//	it->handler->send(data);
-//}
 
 }//namespace
 

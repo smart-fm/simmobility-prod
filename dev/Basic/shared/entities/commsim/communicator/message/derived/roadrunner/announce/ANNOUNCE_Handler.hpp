@@ -19,7 +19,7 @@ class HDL_ANNOUNCE : public Handler {
 
 public:
 //	HDL_ANNOUNCE();
-	void handle(msg_ptr message_,boost::shared_ptr<Broker>);
+	void handle(msg_ptr message_,Broker*);
 };
 }/* namespace roadrunner */
 } /* namespace sim_mob */

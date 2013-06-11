@@ -19,7 +19,7 @@ class HDL_KEY_SEND : public Handler {
 
 public:
 //	HDL_KEY_SEND();
-	void handle(msg_ptr message_,boost::shared_ptr<Broker>);
+	void handle(msg_ptr message_,Broker*);
 };
 }/* namespace roadrunner */
 } /* namespace sim_mob */

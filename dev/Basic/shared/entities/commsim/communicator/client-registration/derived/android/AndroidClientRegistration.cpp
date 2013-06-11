@@ -88,7 +88,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.insertClientList(ANDROID_EMULATOR,clientEntry);
+		broker.insertClientList(clientEntry->clientID, ANDROID_EMULATOR,clientEntry);
 
 
 		//add this agent to the list of the agents who are associated with a android emulator client

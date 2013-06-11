@@ -31,7 +31,7 @@ typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, std::string>
 typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > MessageElement;
 typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > >MessageFactories;//<client type, roadrunner message factory>
 typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > PublisherList;
-typedef std::multimap<unsigned int , boost::shared_ptr<sim_mob::ClientHandler> > ClientList; //<client type,clienthandler >
+typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList; //multimap<client type, map<clientID,clienthandler > >
 typedef std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<Json::Value> > SEND_BUFFER;
 
 static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler> socket ,std::string &str )
@@ -40,7 +40,7 @@ static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler>
 }
 
 
-class Broker  : public sim_mob::Agent, public enable_shared_from_this<Broker> , public EventListener//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>*/ , public EventListener//, public sim_mob::MessageReceiver
 {
 public:
 	static int diedAgents;
@@ -95,7 +95,7 @@ public:
 	AgentsMap & getRegisteredAgents();
 	ClientWaitList & getClientWaitingList();
 	ClientList & getClientList();
-	void insertClientList(unsigned int , boost::shared_ptr<sim_mob::ClientHandler>);
+	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>);
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
 	void processClientRegistrationRequests();

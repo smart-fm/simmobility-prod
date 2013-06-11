@@ -18,7 +18,7 @@ class MSG_ANNOUNCE : public sim_mob::roadrunner::RoadrunnerMessage {
 	//...
 public:
 	Handler * newHandler();
-	MSG_ANNOUNCE(std::string data_);
+	MSG_ANNOUNCE(msg_data_t data_);
 };
 
 }/* namespace roadrunner */

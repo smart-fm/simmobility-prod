@@ -12,7 +12,7 @@ class Handler;
 namespace roadrunner
 {
 class HDL_ANNOUNCE;
-MSG_ANNOUNCE::MSG_ANNOUNCE(std::string data_): RoadrunnerMessage(data_)
+MSG_ANNOUNCE::MSG_ANNOUNCE(msg_data_t data_): RoadrunnerMessage(data_)
 {
 
 }

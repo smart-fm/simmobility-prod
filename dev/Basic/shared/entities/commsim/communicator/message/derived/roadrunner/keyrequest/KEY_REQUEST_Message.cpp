@@ -12,7 +12,7 @@ class Handler;
 namespace roadrunner
 {
 class HDL_KEY_REQUEST;
-MSG_KEY_REQUEST::MSG_KEY_REQUEST(std::string data_): RoadrunnerMessage(data_)
+MSG_KEY_REQUEST::MSG_KEY_REQUEST(msg_data_t& data_): RoadrunnerMessage(data_)
 {
 
 }

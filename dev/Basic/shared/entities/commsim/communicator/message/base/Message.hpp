@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include<boost/shared_ptr.hpp>
+#include<json/json.h>
+#include "logging/Log.hpp"
 
 namespace sim_mob
 {
@@ -37,10 +39,16 @@ public:
 	{
 		handler = handler_;
 	}
+	T& getData()
+	{
+		return data;
+	}
 };
 }//namespace comm
 //todo do something here. the following std::string is spoiling messge's templatization benefits
-typedef boost::shared_ptr<sim_mob::comm::Message<std::string> > msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
+typedef Json::Value msg_data_t;
+typedef sim_mob::comm::Message<msg_data_t> msg_t;
+typedef boost::shared_ptr<msg_t> msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
 
 }//namespace sim_mob
 

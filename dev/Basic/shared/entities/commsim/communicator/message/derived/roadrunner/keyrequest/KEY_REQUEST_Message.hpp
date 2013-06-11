@@ -18,7 +18,7 @@ class MSG_KEY_REQUEST : public sim_mob::roadrunner::RoadrunnerMessage {
 	//...
 public:
 	Handler * newHandler();
-	MSG_KEY_REQUEST(std::string data_);
+	MSG_KEY_REQUEST(msg_data_t& data_);
 };
 
 }/* namespace roadrunner */

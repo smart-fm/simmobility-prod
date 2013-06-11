@@ -19,10 +19,10 @@
 namespace sim_mob {
 namespace roadrunner{
 
-class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*, public HandlerFactory*/{
+class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*MessageFactory<output, input>y*/{
 	enum MessageType
 	{
-		ANNOUNCE = 1,
+		MULTICAST_ANNOUNCE = 1,
 		KEY_REQUEST = 2,
 		KEY_SEND = 3
 	};

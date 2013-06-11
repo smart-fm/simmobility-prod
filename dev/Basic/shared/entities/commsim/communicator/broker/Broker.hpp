@@ -40,7 +40,7 @@ static DataElement makeDataElement(boost::shared_ptr<sim_mob::ConnectionHandler>
 }
 
 
-class Broker  : public sim_mob::Agent, public EventListener//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent, public enable_shared_from_this<Broker> , public EventListener//, public sim_mob::MessageReceiver
 {
 public:
 	static int diedAgents;

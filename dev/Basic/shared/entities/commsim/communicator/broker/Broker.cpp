@@ -276,7 +276,7 @@ void Broker::processIncomingData(timeslice now)
 	while(receiveQueue.pop(msgTuple))
 	{
 		msg_ptr &msg = msgTuple.get<1>();
-		msg->supplyHandler()->handle(msg);
+		msg->supplyHandler()->handle(msg,shared_from_this());
 	}
 }
 

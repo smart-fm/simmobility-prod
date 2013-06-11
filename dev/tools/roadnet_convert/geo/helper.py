@@ -74,19 +74,20 @@ def project_wgs84(lat, lng, zone):
   return (Point(x,y), resZone)
 
 
-def remove_unused_nodes(nodes, segments):
+def remove_unused_nodes(nodes, links):
   '''This function counts the number of RoadSegments which reference a Node. If it's zero, that 
      Node is pruned.
   '''
 
   #Note: I *think* that using "node" (not ID) as a key will work here.
   nodesAt = {} #node => [segment, segment,]
-  for s in segments.values():
-    #Add it if it doesn't exist.
-    if not s.fromNode in nodesAt:
-      nodesAt[s.fromNode] = []
-    if not s.toNode in nodesAt:
-      nodesAt[s.toNode] = []
+  for lnk in links.values():
+    for s in lnk.segments:
+      #Add it if it doesn't exist.
+      if not s.fromNode in nodesAt:
+        nodesAt[s.fromNode] = []
+      if not s.toNode in nodesAt:
+        nodesAt[s.toNode] = []
 
     #Increment
     nodesAt[s.fromNode].append(s)

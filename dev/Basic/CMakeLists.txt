@@ -46,6 +46,22 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
 
+#Helpful date macro, from:
+#  http://www.cmake.org/pipermail/cmake/2009-February/027014.html
+MACRO (TODAY RESULT)
+    IF (WIN32)
+        EXECUTE_PROCESS(COMMAND "date" "/T" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
+    ELSEIF(UNIX)
+        EXECUTE_PROCESS(COMMAND "date" "+%d/%m/%Y" OUTPUT_VARIABLE ${RESULT}) 
+        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
+    ELSE (WIN32)
+        MESSAGE(SEND_ERROR "date not implemented")
+        SET(${RESULT} 000000)
+    ENDIF (WIN32)
+ENDMACRO (TODAY)
+
+
 ##################################################
 ## CPack Configuration
 ##################################################
@@ -56,10 +72,27 @@ SET(CPACK_PACKAGE_VENDOR "Singapore-MIT Alliance for Research and Technology (SM
 SET(CPACK_GENERATOR "DEB")
 #SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/license.txt")
+
+#Regarding the package version, we use the format "X.Y.Z.B", where "X", "Y", and "Z" follow
+# traditional library numbering policy and "B" is the "build version" (today's date).
+#Note that "B" is omitted for "Release" builds, which has the nice effect that, most of the 
+# time, you should never have to modify anything and your *deb installs will work just fine for
+# developers and users alike. 
+#Reference: http://programmers.stackexchange.com/a/25015
+TODAY(CPACK_PACKAGE_VERSION_NIGHTLY) #This will automatically handle date numbering for you.
 SET(CPACK_PACKAGE_VERSION_MAJOR "0") #Never increase this.
 SET(CPACK_PACKAGE_VERSION_MINOR "0") #Never increase this.
 SET(CPACK_PACKAGE_VERSION_PATCH "1") #Increase this only when you plan to upload the generated *.deb to our Apt repository.
+
+#Base String:
 SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
+#+Build
+IF (NOT CMAKE_BUILD_TYPE MATCHES "Release") #Match the empty build type too.
+  SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}.${CPACK_PACKAGE_VERSION_NIGHTLY}")
+ENDIF()
+
+#More stuff
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
 #SET(CPACK_STRIP_FILES "bin/SimMobility_Short")  #Note: this will fail on Windows (don't use CPack on Windows!)
 #SET(CPACK_SOURCE_STRIP_FILES "")                #Note: this will fail on Windows (don't use CPack on Windows!)
@@ -68,18 +101,23 @@ SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")  #TODO: We should use "dpkg --pri
 SET(CPACK_PACKAGE_CONTACT "seth@smart.mit.edu")
 
 #This is where it starts to get complicated
+SET(COMMA ",")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libtinyxml-dev (>= 2.5.3)"
-  "libsoci-core-gcc-dev (>= 3.0.0)"
-  "libsoci-postgresql-gcc (>= 3.0.0)"
-  "libboost-all-dev (>= 1.40)"
-  "libxerces-c-dev (>= 3.1.0)"
-  "xsdcxx (>= 3.3.0)"
-  "libpq-dev (>= 8.4.17)"
-  "libjsoncpp-dev (>= 0.6.0)"
-  "cmake"  #We check the version earlier; leave this line last.
+           "libtinyxml-dev (>= 2.5.3)"
+  ${COMMA} "libsoci-core-gcc-dev (>= 3.0.0)"
+  ${COMMA} "libsoci-postgresql-gcc (>= 3.0.0)"
+  ${COMMA} "libboost-all-dev (>= 1.40)"
+  ${COMMA} "libxerces-c-dev (>= 3.1.0)"
+  ${COMMA} "xsdcxx (>= 3.3.0)"
+  ${COMMA} "libpq-dev (>= 8.4.17)"
+  ${COMMA} "libjsoncpp-dev (>= 0.6.0~rc2)"
+  ${COMMA} "cmake"  #We check the version earlier; leave this line last.
 )
 
+#Make sure to flatten the DEPENDS array before using it.
+string(REPLACE ";" "" CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
+
+#Now bring everything together and generate the packing information.
 INCLUDE(CPack)
 
 ##################################################

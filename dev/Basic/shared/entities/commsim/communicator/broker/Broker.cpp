@@ -41,6 +41,9 @@ bool Broker::isEnabled() const { return enabled; }
 
 bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, Json::Value &value )
 {
+	if(!cnnHandler) {
+		return false;
+	}
 	if (cnnHandler->agentPtr == 0) {
 		return false;
 	}
@@ -60,7 +63,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	//Various Initializations
 //	mutex_client_request.reset(new boost::mutex);
 //	mutex_clientList.reset(new boost::mutex);
-	COND_VAR_CLIENT_REQUEST.reset(new boost::condition_variable);
+//	COND_VAR_CLIENT_REQUEST.reset(new boost::condition_variable);
 	connection.reset(new ConnectionServer(*this));
 //	 Broker_Mutex.reset(new boost::shared_mutex);
 //	 Broker_Mutex_Send.reset(new boost::shared_mutex);
@@ -102,7 +105,20 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 //	post the messages into the message queue one by one(add their cnnHandler also)
 	for(std::vector<msg_ptr>::iterator it = messages.begin(); it != messages.end(); it++)
 	{
-		receiveQueue.post(boost::make_tuple(cnnHandler,*it));
+
+		msg_data_t &data = it->get()->getData();
+		std::string type = data["MESSAGE_TYPE"].asString();
+		if(type == "CLIENT_MESSAGES_DONE")
+		{
+
+			//update() will wait until all clients send this message for each tick
+			clientDoneChecker.insert(cnnHandler);
+			COND_VAR_CLIENT_DONE.notify_one();
+		}
+		else
+		{
+			receiveQueue.post(boost::make_tuple(cnnHandler,*it));
+		}
 	}
 }
 
@@ -114,58 +130,53 @@ void Broker::OnAgentFinished(EventId eventId, EventPublisher* sender, const Agen
 	//const_cast<Agent*>(agent)->UnSubscribe(AGENT_LIFE_EVENT_FINISHED_ID, this);
 }
 
-//boost::shared_ptr<boost::shared_mutex>  Broker::getBrokerMutex()
-//{
-//	return Broker_Mutex;
-//}
-// boost::shared_ptr<boost::shared_mutex> Broker::getBrokerMutexSend()
-// {
-// 	return Broker_Mutex_Send;
-// }
-//boost::shared_ptr<boost::shared_mutex> Broker::getBrokerMutexReceive()
-//{
-//	return Broker_Mutex_Receive;
-//}
-//
-//std::vector<boost::shared_ptr<boost::shared_mutex > > & Broker::getBrokerMutexCollection()
-//{
-//	return mutex_collection;
-//}
-//
-//boost::shared_ptr<boost::mutex>  Broker::getBrokerClientMutex()
-//{
-//	return mutex_client_request;
-//}
-
 AgentsMap & Broker::getRegisteredAgents() {
 	return registeredAgents;
 }
+
 ClientWaitList & Broker::getClientWaitingList(){
 	return clientRegistrationWaitingList;
 }
+
 ClientList & Broker::getClientList(){
 	return clientList;
 }
 
 
+bool Broker::getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output)
+{
+
+	//use try catch to use map's .at() and search only once
+	try
+	{
+		ClientType clientType_ = ClientTypeMap.at(clientType);
+		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
+		try
+		{
+			output = inner.at(clientId); //this is what we are looking for
+			return true;
+		}
+		catch(std::out_of_range e)
+		{
+			Print() << "Client " <<  clientId << " of type " <<  clientType << " not found" << std::endl;
+			return false;
+		}
+
+	}
+	catch(std::out_of_range e)
+	{
+
+		Print() << "Client type" <<  clientType << " not found" << std::endl;
+		return false;
+	}
+	//program never reaches here :)
+	return false;
+}
+
 void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> clientHandler){
 	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
-////	clientList.insert(std::make_pair(clientType, std::make_pair(clientHandler->clientID,clientHandler)));
-//	ClientList::iterator it_type = clientList.find(clientType);
-//	if(it_type != clientList.end())
-//	{
-//		it_type->second[clientHandler->clientID] = clientHandler;
-////		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_id = it_type->second.find(clientHandler->clientID);
-//	}
-//	else
-//	{
-////		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > input(clientHandler->clientID , clientHandler);
-////		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = ;
-//		clientList[clientType][clientHandler->clientID] = clientHandler;
-//	}
-//	std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > = clientList[clientType];
 	Print()<< "ClientHandler inserted: agent[" <<
 			clientHandler->agent << " : " << clientHandler->cnnHandler->agentPtr << "]  "
 					"clientID[" << clientHandler->clientID << "]" << std::endl;
@@ -174,7 +185,7 @@ void Broker::insertClientList(std::string clientID, unsigned int clientType, boo
 void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)
 {
 	clientRegistrationWaitingList.insert(p);
-	COND_VAR_CLIENT_REQUEST->notify_one();
+	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
 PublisherList & Broker::getPublishers()
@@ -413,6 +424,27 @@ void Broker::processPublishers(timeslice now) {
 	}
 }
 
+void Broker::sendReadyToReceive()
+{
+//	typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList;
+	std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
+	std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
+	msg_header msg_header_;
+	BOOST_FOREACH(clientByType, clientList)
+	{
+		BOOST_FOREACH(clientByID, clientByType.second)
+		{
+			clnHandler = clientByID.second;
+			msg_header_.msg_type = "READY_TO_RECEIVE";
+			msg_header_.sender_id = "0";
+			msg_header_.sender_type = "SIMMOBILITY";
+			Json::Value msg = JsonParser::createMessageHeader(msg_header_);
+			insertSendBuffer(clnHandler->cnnHandler, msg);
+		}
+	}
+}
+
 void Broker::processOutgoingData(timeslice now)
 {
 //	now send what you have to send:
@@ -546,7 +578,7 @@ bool Broker::waitForClientsConnection()
 	 */
 	while(!(/*brokerCanProceed() && */brokerCanTickForward)) {
 		Print()<< "Broker Blocking" << std::endl;
-		COND_VAR_CLIENT_REQUEST->wait(lock);
+		COND_VAR_CLIENT_REQUEST.wait(lock);
 //		Print()<< "Broker notified, processing Client Registration" << std::endl;
 		processClientRegistrationRequests();
 		if(brokerCanProceed())
@@ -578,10 +610,46 @@ void Broker::waitForAgentsUpdates()
 	}
 }
 
-
-void Broker::waitForClientsToSendAndSayDone()
+bool Broker::allClientsAreDone()
 {
-
+	//	typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList;
+		std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
+		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
+		msg_header msg_header_;
+		BOOST_FOREACH(clientByType, clientList)
+		{
+			BOOST_FOREACH(clientByID, clientByType.second)
+			{
+				clnHandler = clientByID.second;
+				if(!clnHandler)
+				{
+					continue;
+				}
+				if(!(clnHandler->cnnHandler))
+				{
+					continue;
+				}
+				if(!(clnHandler->cnnHandler->is_open()))
+				{
+					continue;
+				}
+				if(!(clnHandler->agent))
+				{
+					continue;
+				}
+				if(!(clnHandler->cnnHandler->agentPtr))
+				{
+					continue;
+				}
+				//but
+				if(clientDoneChecker.end() == clientDoneChecker.find(clnHandler->cnnHandler))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
 }
 
 Entity::UpdateStatus Broker::update(timeslice now)
@@ -622,14 +690,22 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	processPublishers(now);
 //	Print() << "Broker tick:"<< now.frame() << " - after processPublishers" << std::endl;
 
-	//step-6: Now send what has been prepared by different sources to their corresponding destications(clients)
+//	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
+	sendReadyToReceive();
+	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	processOutgoingData(now);
 //	Print() << "Broker tick:"<< now.frame() << " - after processOutgoingData" << std::endl;
 
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forward
-	waitForClientsToSendAndSayDone();
+	{
+		while(!allClientsAreDone())
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+			COND_VAR_CLIENT_DONE.wait(lock);
+		}
+	}
 	//step-8: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();//
@@ -660,6 +736,7 @@ void Broker::cleanup()
 {
 	//for internal use
 	duplicateEntityDoneChecker.clear();
+	clientDoneChecker.clear();
 	return;
 
 	//note:this part is supposed to delete clientList entries for the dead agents

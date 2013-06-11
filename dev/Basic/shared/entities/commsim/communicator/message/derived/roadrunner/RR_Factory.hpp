@@ -15,6 +15,7 @@
 //#include "keyrequest/KEY_REQUEST_Handler.hpp"
 //#include "keysend/KEY_SEND_Handler.hpp"
 #include "multicast/MULTICAST_Handler.hpp"
+#include "unicast/UNICAST_Handler.hpp"
 #include <map>
 
 namespace sim_mob {

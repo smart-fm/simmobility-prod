@@ -27,49 +27,52 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 
 //	step-1: Find the target agent
 	Json::Value &data = message_->getData();
-
-	Print() << "HDL_MULTICAST::handle is handling a mesage" << std::endl;
-	if(data.isMember("SENDER_TYPE") && data.isMember("SENDER"))
+	msg_header msg_header_;
+	if(sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
 	{
-		Print() << "Sender : " << data["SENDER"] << "  sender_type : " << data["SENDER_TYPE"] << std::endl;
+		Print() << "Sender : " << msg_header_.sender_id << "  sender_type : " << msg_header_.sender_type << std::endl;
+	}
+	else
+	{
+		Print() << "HDL_MULTICAST::handle: message header incomplete" << std::endl;
+		return;
 	}
 
 	//	find the agent from the client
 	//but,to get to the agent, find the client hander first
 
-	std::string sender_id(data["SENDER"].asString()) ; //easy read
-	std::string sender_type = data["SENDER_TYPE"].asString(); //easy read
+	std::string sender_id(msg_header_.sender_id) ; //easy read
+	std::string sender_type(msg_header_.sender_type); //easy read
 	ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	ClientList & clients = broker->getClientList();
-	//use try catch to use map's .at() and search only once
-	try
+	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
-		Print() << "HDL_MULTICAST::handle 1" << std::endl;
-		clientType = ClientTypeMap.at(sender_type);
-		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clients[clientType];
-		Print() << "HDL_MULTICAST::handle 2" << std::endl;
-		try
-		{
-			clnHandler = inner.at(sender_id); //this is what we are looking for
-			Print() << "HDL_MULTICAST::handle 3" << std::endl;
-		}
-		catch(std::out_of_range e)
-		{
-			Print() << "Client " <<  sender_id << " of type " <<  sender_type << " not found" << std::endl;
-			Print() << "HDL_MULTICAST::handle 4" << std::endl;
-			return;
-		}
-
-		Print() << "HDL_MULTICAST::handle 5" << std::endl;
-	}
-	catch(std::out_of_range e)
-	{
-
-		Print() << "HDL_MULTICAST::handle 6" << std::endl;
-		Print() << "Client type" <<  sender_type << " not found" << std::endl;
+		Print() << "HDL_MULTICAST::handle failed" << std::endl;
 		return;
 	}
+//	//use try catch to use map's .at() and search only once
+//	try
+//	{
+//		clientType = ClientTypeMap.at(sender_type);
+//		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clients[clientType];
+//		try
+//		{
+//			clnHandler = inner.at(sender_id); //this is what we are looking for
+//		}
+//		catch(std::out_of_range e)
+//		{
+//			Print() << "Client " <<  sender_id << " of type " <<  sender_type << " not found" << std::endl;
+//			return;
+//		}
+//
+//	}
+//	catch(std::out_of_range e)
+//	{
+//
+//		Print() << "Client type" <<  sender_type << " not found" << std::endl;
+//		return;
+//	}
 
 	//now find the agent
 
@@ -80,7 +83,6 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		return;
 	}
 
-	Print() << "HDL_MULTICAST::handle 7" << std::endl;
 	//step-2: get the agents around you
 	std::vector<const Agent*> nearby_agents_1 = AuraManager::instance().agentsInRect(
 
@@ -98,7 +100,6 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 						)
 
 						);
-	Print() << "HDL_MULTICAST::handle 8" << std::endl;
 	//if no agent found or only one found and that is the original_agent
 	if((nearby_agents_1.size() == 0) || ( (nearby_agents_1.size() == 1)&&(nearby_agents_1[0] == original_agent)) )
 	{
@@ -106,7 +107,6 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		return;
 	}
 
-	Print() << "HDL_MULTICAST::handle 9" << std::endl;
 	//get the original agent out
 	std::vector<const Agent*>::iterator it_find = std::find(nearby_agents_1.begin(), nearby_agents_1.end(), original_agent);
 	if(it_find != nearby_agents_1.end())
@@ -119,20 +119,17 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;
 	BOOST_FOREACH(clientTypes , clients)
 	{
-		Print() << "HDL_MULTICAST::handle 10" << std::endl;
 		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
 		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
 		//step-3: for each agent find the client handler
 		BOOST_FOREACH(clientIds , inner)
 		{
-			Print() << "HDL_MULTICAST::handle 11" << std::endl;
 			boost::shared_ptr<sim_mob::ClientHandler> clnHander  = clientIds.second;
 			const sim_mob::Agent * agent = clnHander->agent;
 			if(std::find(nearby_agents_1.begin(), nearby_agents_1.end(), agent) == nearby_agents_1.end())
 			{
 				continue;
 			}
-			Print() << "HDL_MULTICAST::handle 12" << std::endl;
 			Print() << "Oh, found a communicating agent around" << std::endl;
 			//step-4: fabricate a message for each(core data is taken from the original message)
 				//actually, you dont need to modify any of
@@ -141,7 +138,6 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 			//so we go streight to next step
 			//step-5: insert messages into send buffer
 			broker->insertSendBuffer(clnHander->cnnHandler,data);
-			Print() << "HDL_MULTICAST::handle 13" << std::endl;
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
 }//handle()

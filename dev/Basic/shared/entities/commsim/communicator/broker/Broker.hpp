@@ -67,6 +67,7 @@ private:
 	 */
 	MessageFactories messageFactories; //<client type, message factory>
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
+	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
 	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 
 	bool deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info);
@@ -90,11 +91,14 @@ public:
 //	std::vector<boost::shared_ptr<boost::shared_mutex > > mutex_collection;
 	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
-	boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST;
+	boost::mutex mutex_clientDone;
+	boost::condition_variable COND_VAR_CLIENT_REQUEST;
+	boost::condition_variable COND_VAR_CLIENT_DONE;
 
 	AgentsMap & getRegisteredAgents();
 	ClientWaitList & getClientWaitingList();
 	ClientList & getClientList();
+	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output);
 	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>);
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
@@ -121,6 +125,7 @@ public:
 
 
 	void processPublishers(timeslice now);
+	void sendReadyToReceive();
 	void processOutgoingData(timeslice now);
 	void processIncomingData(timeslice);
 
@@ -146,7 +151,7 @@ protected:
 	///Wait for clients; return "false" to jump out of the loop.
 	bool waitForClientsConnection();
 	void waitForAgentsUpdates();
-	void waitForClientsToSendAndSayDone();
+	bool allClientsAreDone();
 
 	//Is this Broker currently enabled?
 	bool enabled;

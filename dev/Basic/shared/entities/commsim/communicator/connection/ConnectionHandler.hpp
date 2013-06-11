@@ -46,6 +46,7 @@ public:
 	void readHandler(const boost::system::error_code& e);
 	void send(std::string str);
 	void sendHandler(const boost::system::error_code& e) ;
+	bool is_open();
 };//ConnectionHandler
 
 } /* namespace sim_mob */

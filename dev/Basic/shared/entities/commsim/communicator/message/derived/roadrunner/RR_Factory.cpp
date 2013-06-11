@@ -40,6 +40,9 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 		case MULTICAST:
 			handler.reset(new sim_mob::roadrunner::HDL_MULTICAST());
 			break;
+		case UNICAST:
+			handler.reset(new sim_mob::roadrunner::HDL_UNICAST());
+			break;
 //		case KEY_REQUEST:
 //			handler.reset(new sim_mob::roadrunner::HDL_KEY_REQUEST);
 //			break;

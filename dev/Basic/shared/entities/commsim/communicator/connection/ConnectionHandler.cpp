@@ -88,4 +88,8 @@ void ConnectionHandler::send(std::string str)
 void ConnectionHandler::sendHandler(const boost::system::error_code& e) {
 	std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
 }
+
+bool ConnectionHandler::is_open(){
+	return mySession->socket().is_open();
+}
 } /* namespace sim_mob */

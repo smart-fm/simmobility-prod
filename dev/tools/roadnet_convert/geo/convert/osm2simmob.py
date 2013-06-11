@@ -183,13 +183,15 @@ def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
       res.nodes[nd.nodeId].count += 1
 
   #We iterate through each Way again, this time splitting it into actual __Ways based on is_uni()'s return value.
-  currWay = None
   for wy in rn.ways.values():
     #Retrieve the number of lanes.
     numLanes = 1 #Guess: 1
     if "lanes" in wy.props:
       numLanes = int(wy.props["lanes"])
+      if numLanes<1:
+        print("Error, cannot have",numLanes,"lanes.")
 
+    currWay = None
     for nd in wy.nodes:
       #Always count the current Node in the current Way
       currNode = res.nodes[nd.nodeId]

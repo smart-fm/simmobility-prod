@@ -24,6 +24,23 @@ sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
 		TripChainItem(entId, type, start, end, seqNumber,requestTime), tripID(tripId), fromLocation(
 				from), fromLocationType(getLocationType(fromLocType)), toLocation(to), toLocationType(getLocationType(toLocType))
 {
+	if( fromLocationType == TripChainItem::LT_NODE )
+	{
+		fromLocation = WayPoint( (Node*)from );
+	}
+	else if( fromLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		fromLocation = WayPoint( (BusStop*)from );
+	}
+
+	if( toLocationType == TripChainItem::LT_NODE )
+	{
+		toLocation = WayPoint( (Node*)to );
+	}
+	else if( toLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		toLocation = WayPoint( (BusStop*)to );
+	}
 }
 
 
@@ -76,7 +93,7 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	}
 }
 bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
-	person->originNode = person->destNode = location;
+	person->originNode = person->destNode = WayPoint(location);
 	return true;
 }
 

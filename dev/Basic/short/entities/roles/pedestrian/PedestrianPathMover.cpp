@@ -6,6 +6,7 @@
  */
 
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
+#include "geospatial/BusStop.hpp"
 #include <boost/random.hpp>
 
 using boost::unordered_map;
@@ -33,7 +34,7 @@ sim_mob::PedestrianPathMover::~PedestrianPathMover() {
 	// TODO Auto-generated destructor stub
 }
 
-void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
+/*void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 	pedestrian_path = path;
 	pedestrian_path_iter = pedestrian_path.begin();
 
@@ -63,6 +64,112 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				}
 			}
 
+		}
+		else if (wp->type_ == WayPoint::CROSSING)
+		{
+			POLYLINEPOINTS p = getCrossingPolylinePoints(wp);
+
+			if(wp->directionReverse)
+			{
+				for(POLYLINEPOINTS_REVERSE_ITERATOR itt = p.rbegin(); itt != p.rend(); ++itt)
+				{
+					polylinePoints.push_back(*itt);
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+					polylinePoint_wayPoint_map[*itt] = wp;
+				}
+			}
+			else
+				for(POLYLINEPOINTS_ITERATOR itt = p.begin(); itt != p.end(); ++itt)
+				{
+					polylinePoints.push_back(*itt);
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+					polylinePoint_wayPoint_map[*itt] = wp;
+				}
+		}
+	} //end of for
+
+	//Sanity check.
+	if (polylinePoints.empty()) {
+		throw std::runtime_error("Cannot set pedestrian path: no path!");
+	}
+
+	//Save it.
+	isDoneWithEntirePath = false;
+	currPolylineStartpoint = polylinePoints.begin();
+	currPolylineEndpoint = polylinePoints.begin() + 1;
+	currentWaypoint = polylinePoint_wayPoint_map[*currPolylineStartpoint];
+	nextWaypoint = polylinePoint_wayPoint_map[*currPolylineEndpoint];
+}*/
+
+void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
+	pedestrian_path = path;
+	pedestrian_path_iter = pedestrian_path.begin();
+	bool first=false;
+
+	// set polyline points array and map
+	for(PEDESTRIAN_PATH_ITERATOR it = pedestrian_path.begin(); it != pedestrian_path.end(); ++it)
+	{
+		WayPoint *wp = &(*it);
+
+		if (wp->type_ == WayPoint::SIDE_WALK)
+		{
+			const POLYLINEPOINTS *p = &(wp->lane_->getPolyline());
+			if (wp->directionReverse)
+			{
+				//polylinePoints.insert(polylinePoints.end(),p->end(),p->begin());
+				for(POLYLINEPOINTS_REVERSE_ITERATOR itt = p->rbegin(); itt != p->rend(); ++itt)
+				{
+					polylinePoints.push_back(*itt);
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+					polylinePoint_wayPoint_map[*itt] = wp;
+				}
+			}
+			else {
+				for(POLYLINEPOINTS_ITERATOR itt = p->begin(); itt != p->end(); ++itt)
+				{
+					polylinePoints.push_back(*itt);
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+					polylinePoint_wayPoint_map[*itt] = wp;
+				}
+			}
+
+		}
+		else if (wp->type_ == WayPoint::BUS_STOP)
+		{
+				int x= wp->busStop_->xPos;
+				int y= wp->busStop_->yPos;
+				polylinePoints.push_back(Point2D(x,y));
+			    polylinePoint_wayPoint_map[Point2D(x,y)] = wp;
+		}
+		else if (wp->type_ == WayPoint::ROAD_SEGMENT)
+		{
+			/*const  RoadSegment* rs =wp->roadSegment_;
+			vector<sim_mob::Lane* >::const_iterator i;
+			for ( i = rs->getLanes().begin(); i !=rs->getLanes().end(); ++i)
+			{
+				if (((*i)->is_pedestrian_lane()))
+				{
+					  const POLYLINEPOINTS *p=&((*i)->getPolyline());
+					  if (wp->directionReverse)
+					  {
+						 for(POLYLINEPOINTS_REVERSE_ITERATOR itt = p->rbegin(); itt != p->rend(); ++itt)
+						 {
+							polylinePoints.push_back(*itt);
+							std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+							polylinePoint_wayPoint_map[*itt] = wp;
+						 }
+					  }
+					  else
+					  {
+						  for(POLYLINEPOINTS_ITERATOR itt = p->begin(); itt != p->end(); ++itt)
+						  {
+							  polylinePoints.push_back(*itt);
+							  std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+							  polylinePoint_wayPoint_map[*itt] = wp;
+						  }
+					  }
+				}
+			}*/
 		}
 		else if (wp->type_ == WayPoint::CROSSING)
 		{

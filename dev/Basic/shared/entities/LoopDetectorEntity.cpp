@@ -583,8 +583,9 @@ LoopDetectorEntity::Impl::reset(Lane const & lane)
 LoopDetectorEntity::LoopDetectorEntity(Signal const & signal, MutexStrategy const & mutexStrategy)
   : Agent(mutexStrategy)
   , node_(signal.getNode())
-  , pimpl_(nullptr)
+  , pimpl_(0)
 {
+	tempLoopImpl = 0;
 }
 
 LoopDetectorEntity::~LoopDetectorEntity()
@@ -605,6 +606,8 @@ LoopDetectorEntity::init(Signal const & signal)
 {
 
     pimpl_ = new Impl(signal, *this);
+    tempLoopImpl = pimpl_;
+    std::cout << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
 }
 
 /* virtual */ void

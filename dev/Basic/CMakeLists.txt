@@ -69,14 +69,13 @@ SET(CPACK_PACKAGE_CONTACT "seth@smart.mit.edu")
 
 #This is where it starts to get complicated
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libtinyxml-dev (>= 2.6.2)"
-  "libsoci-core-gcc (>= 3.2)"
-  "libsoci-core-gcc-dev (>= 3.2)"
-  "libsoci-postgresql-gcc-dev (>= 3.2)"
-  "libboost-all-dev (>= 1.49)"
-  "libxerces-c-dev (>= 3.1.1)"
+  "libtinyxml-dev (>= 2.5.3)"
+  "libsoci-core-gcc-dev (>= 3.0.0)"
+  "libsoci-postgresql-gcc (>= 3.0.0)"
+  "libboost-all-dev (>= 1.40)"
+  "libxerces-c-dev (>= 3.1.0)"
   "xsdcxx (>= 3.3.0)"
-  "libpq-dev (>= 9.1.9)"
+  "libpq-dev (>= 8.4.17)"
   "libjsoncpp-dev (>= 0.6.0)"
   "cmake"  #We check the version earlier; leave this line last.
 )

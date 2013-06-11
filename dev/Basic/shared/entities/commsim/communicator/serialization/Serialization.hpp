@@ -389,7 +389,7 @@ public:
     },
     "DATA": [
         {
-            "MESSAGE_TYPE": "MULTICAST_ANNOUNCE",
+            "MESSAGE_TYPE": "MULTICAST",
             "SENDER": "client_id_x",
             "SENDER_TYPE": "ANDROID_EMULATOR",
             "ANNOUNCE_DATA" : "XXX"

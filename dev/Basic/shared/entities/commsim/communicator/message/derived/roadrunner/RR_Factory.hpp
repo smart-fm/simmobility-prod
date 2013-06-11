@@ -11,9 +11,10 @@
 #include "entities/commsim/communicator/message/base/MessageFactory.hpp"
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
 #include "entities/commsim/communicator/message/base/Message.hpp"
-#include "announce/ANNOUNCE_Handler.hpp"
-#include "keyrequest/KEY_REQUEST_Handler.hpp"
-#include "keysend/KEY_SEND_Handler.hpp"
+//#include "announce/ANNOUNCE_Handler.hpp"
+//#include "keyrequest/KEY_REQUEST_Handler.hpp"
+//#include "keysend/KEY_SEND_Handler.hpp"
+#include "multicast/MULTICAST_Handler.hpp"
 #include <map>
 
 namespace sim_mob {
@@ -22,9 +23,11 @@ namespace roadrunner{
 class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*MessageFactory<output, input>y*/{
 	enum MessageType
 	{
-		MULTICAST_ANNOUNCE = 1,
-		KEY_REQUEST = 2,
-		KEY_SEND = 3
+		MULTICAST = 1,
+		UNICAST = 2,
+		ANNOUNCE = 3,
+		KEY_REQUEST = 4,
+		KEY_SEND = 5
 	};
 	std::map<std::string, RR_Factory::MessageType> MessageMap;
 	//This map is used as a cache to avoid repetitive handler creation in heap

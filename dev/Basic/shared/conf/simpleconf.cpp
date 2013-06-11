@@ -23,6 +23,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "password/password.hpp"
 
@@ -195,7 +196,8 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+	//if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {{
+	if(1){
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);
@@ -240,7 +242,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
 	// This will only generate an error if someone actually tries to load an agent of this type.
 	const RoleFactory& rf = config.getRoleFactory();
-	bool knownFole = rf.isKnownRole(agentType);
+	bool knownRole = rf.isKnownRole(agentType);
 
 	//Attempt to load either "agentType"+s or "agentType"+es (drivers, buses).
 	// This allows ungrammatical terms like "driveres", but it's probably better than being too restrictive.
@@ -251,7 +253,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	}
 
 	//If at least one elemnt of an unknown type exists, it's an error.
-	if (node && !knownFole) {
+	if (node && !knownRole) {
 		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}
@@ -2184,7 +2186,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	PrintDB_Network_ptrBased();
     	std::cout <<"------------------\n";
    // }
-    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
+    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
@@ -2214,6 +2216,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //they should be handled with in the signal constructor, not here
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
+    }
+
+    if(BusStopAgent::HasBusStopAgents()) {
+    	BusStopAgent::PlaceAllBusStopAgents(active_agents);
     }
 
     std::vector<Signal*>& all_signals = Signal::all_signals_;
@@ -2379,7 +2385,6 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 			msg <<"Aborting on Config error: \n" <<errorMsg;
 			throw std::runtime_error(msg.str().c_str());
 		}
-
 		delete doc;
 	}
 }

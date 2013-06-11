@@ -40,6 +40,34 @@ using std::vector;
 using namespace sim_mob;
 
 
+Point2D WayPoint::location()
+{
+	Point2D pnt(0,0);
+	if(type_ == NODE )
+	{
+		pnt = node_->location;
+	}
+	else if(type_ == BUS_STOP )
+	{
+		pnt = Point2D(busStop_->xPos, busStop_->yPos );
+	}
+	return pnt;
+}
+
+int WayPoint::getID()
+{
+	int id = -1;
+	if(type_==NODE )
+	{
+		id = node_->getID();
+	}
+	else if(type_==BUS_STOP)
+	{
+		id = busStop_->id;
+	}
+	return id;
+}
+
 StreetDirectory sim_mob::StreetDirectory::instance_;
 
 
@@ -99,6 +127,7 @@ const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross
 
 const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 {
+
 	map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter) {
         return nullptr;
@@ -166,6 +195,7 @@ void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 
     if (signals_.count(node) == 0) {
         signals_.insert(std::make_pair(node, &signal));
+        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
     }
 }
 

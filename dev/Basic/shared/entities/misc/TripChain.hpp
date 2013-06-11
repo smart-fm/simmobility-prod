@@ -11,6 +11,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -104,6 +105,7 @@ public:
 /**
  * \author Seth N. Hetu
  * \author Harish
+ * \author zhang huai peng
  */
 class Trip: public sim_mob::TripChainItem {
 
@@ -112,9 +114,9 @@ class Trip: public sim_mob::TripChainItem {
 
 public:
 	std::string tripID;
-	const sim_mob::Node* fromLocation;
+	WayPoint fromLocation;
 	TripChainItem::LocationType fromLocationType;
-	const sim_mob::Node* toLocation;
+	WayPoint toLocation;
 	TripChainItem::LocationType toLocationType;
 
 	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
@@ -145,6 +147,7 @@ private:
 
 /**
  * \author Harish
+ * \author zhang huai peng
  */
 class SubTrip: public sim_mob::Trip {
 public:

@@ -8,11 +8,12 @@
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
-#include "entities/misc/BusTrip.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
 #include <boost/random.hpp>
+#include "DriverRequestParams.hpp"
+#include "RoleFacets.hpp"
 
 namespace sim_mob {
 
@@ -22,58 +23,12 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-
-namespace {
-//Helper for DriverRequestParams::
-void push_non_null(std::vector<sim_mob::BufferedBase*>& vect, sim_mob::BufferedBase* item) {
-	if (item) { vect.push_back(item); }
-}
-} //End anon namespace
-
-
-/**
- * Return type for DriverRequestParams::asVector()
- */
-struct DriverRequestParams {
-	DriverRequestParams() :
-		existedRequest_Mode(nullptr), lastVisited_Busline(nullptr), lastVisited_BusTrip_SequenceNo(nullptr),
-		busstop_sequence_no(nullptr), real_ArrivalTime(nullptr), DwellTime_ijk(nullptr),
-		lastVisited_BusStop(nullptr), last_busStopRealTimes(nullptr), waiting_Time(nullptr)
-	{}
-
-	sim_mob::Shared<int>* existedRequest_Mode;
-	sim_mob::Shared<std::string>* lastVisited_Busline;
-	sim_mob::Shared<int>* lastVisited_BusTrip_SequenceNo;
-	sim_mob::Shared<int>* busstop_sequence_no;
-	sim_mob::Shared<double>* real_ArrivalTime;
-	sim_mob::Shared<double>* DwellTime_ijk;
-	sim_mob::Shared<const sim_mob::BusStop*>* lastVisited_BusStop;
-	sim_mob::Shared<BusStop_RealTimes>* last_busStopRealTimes;
-	sim_mob::Shared<double>* waiting_Time;
-
-	//Return all properties as a vector of BufferedBase types (useful for iteration)
-	std::vector<sim_mob::BufferedBase*> asVector() const {
-		std::vector<sim_mob::BufferedBase*> res;
-		push_non_null(res, existedRequest_Mode);
-		push_non_null(res, lastVisited_Busline);
-		push_non_null(res, lastVisited_BusTrip_SequenceNo);
-		push_non_null(res, busstop_sequence_no);
-		push_non_null(res, real_ArrivalTime);
-		push_non_null(res, DwellTime_ijk);
-		push_non_null(res, lastVisited_BusStop);
-		push_non_null(res, last_busStopRealTimes);
-		push_non_null(res, waiting_Time);
-		return res;
-	}
-};
-
-
 /**
  * Role that a person may fulfill.
  *
  * \author Seth N. Hetu
  * \author Xu Yan
- * \author huaipeng
+ *
  *
  * Allows Person agents to swap out roles easily,
  * without re-creating themselves or maintaining temporarily irrelevant data.
@@ -103,10 +58,17 @@ public:
 	};
 
 	const std::string name;
+
 public:
 	//NOTE: Don't forget to call this from sub-classes!
 	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
-		parent(parent), currResource(nullptr),name(roleName)
+		parent(parent), currResource(nullptr),name(roleName), dynamic_seed(0), behaviorFacet(nullptr), movementFacet(nullptr)
+	{
+		//todo consider putting a runtime error for empty or zero length rolename
+	}
+
+	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string()) :
+		parent(parent), currResource(nullptr),name(roleName), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -118,27 +80,14 @@ public:
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}
 
-	///Called the first time an Agent's update() method is successfully called.
-	/// This will be the tick of its startTime, rounded down(?).
-	virtual void frame_init(UpdateParams& p) = 0;
-
-	///Perform each frame's update tick for this Agent.
-	virtual void frame_tick(UpdateParams& p) = 0;
-
-	///Generate output for this frame's tick for this Agent.
-	virtual void frame_tick_output(const UpdateParams& p) = 0;
-
-	//generate output with fake attributes for MPI
-	virtual void frame_tick_output_mpi(timeslice now) = 0;
-
-	///Create the UpdateParams (or, more likely, sub-class) which will hold all
-	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
-
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
+	///Create the UpdateParams (or, more likely, sub-class) which will hold all
+	///  the temporary information for this time tick.
+	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
 
 	///Return a request list for asychronous communication.
 	///  Subclasses of Role should override this method if they want to enable
@@ -150,7 +99,8 @@ public:
 	}
 
 	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
-	virtual Vehicle* getResource() { return currResource; }
+	Vehicle* getResource() { return currResource; }
+	void setResource(Vehicle* currResource) { this->currResource = currResource; }
 
 	Agent* getParent()
 	{
@@ -197,10 +147,21 @@ public:
 		return one_try;
 	}
 
+	BehaviorFacet* Behavior() const {
+		return behaviorFacet;
+	}
+
+	MovementFacet* Movement() const {
+		return movementFacet;
+	}
+
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
+
+	BehaviorFacet* behaviorFacet;
+	MovementFacet* movementFacet;
 
 	//add by xuyan
 protected:

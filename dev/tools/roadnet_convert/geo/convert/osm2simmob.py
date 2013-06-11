@@ -4,6 +4,7 @@ from geo.helper import IdGenerator
 from geo.helper import DynVect
 from geo.position import Point
 import geo.helper
+import sys
 
 
 #Some minimal helper classes to help with conversion.
@@ -26,7 +27,7 @@ class __Way:
   def __init__(self):
     self.nodes = [] #List of Nodes in order. First and last will be multi; rest will be uni.
     self.numLanes = 1 #Number of lanes (default "guess" is >0)
-
+    self.DEBUG_ITEM = ""  #Original Way ID (don't rely on this).
 
 
 def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
@@ -65,15 +66,25 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
 
     #Make the Link first.
     lnk = geo.formats.simmob.Link(global_id.next(), ndLookup[wy.nodes[0]], ndLookup[wy.nodes[-1]])
-    res.links[lnk.linkId] = lnk
+    valid = True
 
     #Now, make a Segment for each pair of Nodes
     prevNode = None
     for nd in wy.nodes:
       if prevNode:
+        #TODO: This catches errors which should be caught earlier but aren't (mysteriously).
+        if geo.helper.dist(ndLookup[prevNode], ndLookup[nd])<=sys.float_info.epsilon:
+          print("Warning, Way", wy.DEBUG_ITEM, "contains a pair of Nodes which are too close. This Link will be skipped")
+          valid = False
+          break
         seg = geo.formats.simmob.Segment(global_id.next(), ndLookup[prevNode], ndLookup[nd])
         lnk.segments.append(seg)
       prevNode = nd
+
+    #If there was some error, we skip this Link.
+    if not valid:
+      continue
+    res.links[lnk.linkId] = lnk
 
     #We need Lane polylines for each Segment.
     for seg in lnk.segments:
@@ -136,6 +147,27 @@ def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
     projected,zone = geo.helper.project_wgs84(nd.loc.lat, nd.loc.lng, zone)
     res.nodes[nd.nodeId] = __Node(100*projected.x, -100*projected.y)
 
+  #Before moving on, we scan through the list of Ways and remove all Nodes which are directly on top of each other.
+  # This will avoid divide-by-zero errors later.
+  #TODO: This doesn't actually seem to catch any errors! (NOTE: It is still necessary for *actual* errors).
+  pruned_nodes = []
+  for wy in rn.ways.values():
+    prevNode = None
+    new_node_list = []
+    for nd in wy.nodes:
+      if prevNode:
+        if geo.helper.dist(res.nodes[prevNode.nodeId], res.nodes[nd.nodeId])<=sys.float_info.epsilon:
+          pruned_nodes.append(nd.nodeId)
+          continue
+      new_node_list.append(nd)
+      prevNode = nd
+    if len(new_node_list) != len(wy.nodes):
+      wy.nodes = new_node_list
+
+  if len(pruned_nodes)>0:
+    print("Warning: The following Nodes were pruned (too close to other Nodes) :",pruned_nodes)
+
+
   #We now iterate through every Way from the original OSM network, marking start and end nodes
   #  in addition to counting the number of Ways at each Node.
   for wy in rn.ways.values():
@@ -175,6 +207,7 @@ def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
         currWay = __Way()
         currWay.nodes.append(currNode)
         currWay.numLanes = numLanes
+        currWay.DEBUG_ITEM = wy.wayId
 
   return res
 

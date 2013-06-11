@@ -32,8 +32,8 @@ def dist(m, n):
     n = n.pos
 
   #Calc distance
-  dx = n.x - m.x;
-  dy = n.y - m.y;
+  dx = float(n.x) - m.x;
+  dy = float(n.y) - m.y;
   return math.sqrt(dx**2 + dy**2)
 
 

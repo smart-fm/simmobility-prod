@@ -101,7 +101,7 @@ void DriverComm::frame_init(UpdateParams& p) {
 void DriverComm::frame_tick(UpdateParams& p) {
 
 	Driver::frame_tick(p);
-	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
+//	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
 //	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
 //	{
 //		sendModule(p.now);

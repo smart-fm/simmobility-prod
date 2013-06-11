@@ -75,13 +75,15 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 	{
 		return false;
 	}
+	Print() << "nof_messages = " << root.size() << std::endl;
 	for (int index = 0; index < root.size(); index++) {
+		Print() << "index " << index << std::endl;
 		msg_header messageHeader;
-		std::string  msgStr =  /*const_cast<std::string&>*/(root[index].asString());
-		if (!sim_mob::JsonParser::parseMessageHeader(msgStr, messageHeader)) {
+		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
+		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
-
+		Print() << "switch case" << std::endl;
 		switch (MessageMap[messageHeader.msg_type]) {
 		case ANNOUNCE:{
 			//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}

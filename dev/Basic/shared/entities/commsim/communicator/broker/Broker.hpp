@@ -144,8 +144,9 @@ public:
 
 protected:
 	///Wait for clients; return "false" to jump out of the loop.
-	bool waitForClients();
-	void waitForUpdates();
+	bool waitForClientsConnection();
+	void waitForAgentsUpdates();
+	void waitForClientsToSendAndSayDone();
 
 	//Is this Broker currently enabled?
 	bool enabled;

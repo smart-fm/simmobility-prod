@@ -33,6 +33,8 @@ private:
 	bool registerSuccess;
 	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
 	void startClientRegistration(boost::shared_ptr<Session> sess);
+	void temp_handler_1(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
+	void temp_handler_2(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
 	void WhoAreYou_handler(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
 	void WhoAreYou_response_handler(const boost::system::error_code& e, boost::shared_ptr<Session> sess);
 };

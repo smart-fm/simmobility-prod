@@ -203,10 +203,10 @@ bool  Broker::registerEntity(sim_mob::JCommunicationSupport<std::string>* value)
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
 	//tdo: testing. comment the following condition after testing
-	if(registeredAgents.size() > 0)
-	{
-		return 0;
-	}
+//	if(registeredAgents.size() > 0)
+//	{
+//		return 0;
+//	}
 	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
 	value->registrationCallBack(true);
@@ -305,7 +305,7 @@ bool Broker::allAgentUpdatesDone()
 	int i = 0;
 	while(it != it_end)
 	{
-		Print() << "Broker::allAgentUpdatesDone::loop=> " << i << std::endl;
+//		Print() << "Broker::allAgentUpdatesDone::loop=> " << i << std::endl;
 		sim_mob::JCommunicationSupport<std::string> *info = (it->second);//easy read
 			try
 			{
@@ -318,7 +318,7 @@ bool Broker::allAgentUpdatesDone()
 //						int i = 0;
 //					}
 					duplicateEntityDoneChecker.insert(it->first);
-					Print() << "Agent " << it->first << " gets a pass" << std::endl;
+//					Print() << "Agent " << it->first << " gets a pass" << std::endl;
 					it++;
 					continue;
 				}
@@ -326,7 +326,7 @@ bool Broker::allAgentUpdatesDone()
 				if (info->isAgentUpdateDone())
 				{
 //					boost::unique_lock< boost::shared_mutex > lock(Broker_Mutex);
-					Print() << "Agent " << it->first << " gets a pass##" << std::endl;
+//					Print() << "Agent " << it->first << " gets a pass##" << std::endl;
 					duplicateEntityDoneChecker.insert(it->first);
 				}
 				else
@@ -551,9 +551,9 @@ bool Broker::brokerCanProceed() const
 {
 	return (subscriptionsQualify() && clientsQualify());
 }
-bool Broker::waitForClients()
+bool Broker::waitForClientsConnection()
 {
-	Print()<< "Broker::waitForClients locking mutex_client_request " << std::endl;
+	Print()<< "Broker::waitForClientsConnection locking mutex_client_request " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
 	/**if:
@@ -588,13 +588,19 @@ bool Broker::waitForClients()
 	return true;
 }
 
-void Broker::waitForUpdates()
+void Broker::waitForAgentsUpdates()
 {
 	int i = 0;
 	while(!allAgentUpdatesDone()) {
 		Print() << "allAgentUpdatesDone=> " << i << std::endl;
 		refineSubscriptionList();
 	}
+}
+
+
+void Broker::waitForClientsToSendAndSayDone()
+{
+
 }
 
 Entity::UpdateStatus Broker::update(timeslice now)
@@ -620,17 +626,17 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	if (!waitForClients()) {
+	if (!waitForClientsConnection()) {
 		return UpdateStatus(UpdateStatus::RS_CONTINUE);
 	}
-//	Print() << "Broker tick:"<< now.frame() << " - after waitForClients" << std::endl;
+//	Print() << "Broker tick:"<< now.frame() << " - after waitForClientsConnection" << std::endl;
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
 //	Print() << "Broker tick:"<< now.frame() << " - after processIncomingData" << std::endl;
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
-	//waitForUpdates();
-//	Print() << "Broker tick:"<< now.frame() << " - after waitForUpdates" << std::endl;
+	waitForAgentsUpdates();
+//	Print() << "Broker tick:"<< now.frame() << " - after waitForAgentsUpdates" << std::endl;
 	//step-5: signal the publishers to publish their data
 	processPublishers(now);
 //	Print() << "Broker tick:"<< now.frame() << " - after processPublishers" << std::endl;
@@ -639,7 +645,11 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	processOutgoingData(now);
 //	Print() << "Broker tick:"<< now.frame() << " - after processOutgoingData" << std::endl;
 
-	//step-7: final steps that should be taken before leaving the tick
+	//step-7:
+	//the clients will now send whatever they want to send(into the incoming messagequeue)
+	//followed by a Done! message.That is when Broker can go forward
+	waitForClientsToSendAndSayDone();
+	//step-8: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();//
 //	return proudly

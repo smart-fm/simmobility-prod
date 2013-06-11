@@ -62,6 +62,7 @@ void ConnectionServer::handle_accept(const boost::system::error_code& e, session
 //void ConnectionServer::RequestClientRegistration(unsigned int ID, unsigned int type, session_ptr session_)
 void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequest &request)
 {
+	Print() << "Inside ConnectionServer::RequestClientRegistration" << std::endl;
 	unsigned int ID;
 	unsigned int type;
 	session_ptr session_;

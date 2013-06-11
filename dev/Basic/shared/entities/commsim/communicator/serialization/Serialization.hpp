@@ -67,6 +67,18 @@ public:
 		return true;
 	}
 
+	static bool parseMessageHeader(Json::Value & root, msg_header &output) {
+		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
+				&& (root.isMember("MESSAGE_TYPE")))) {
+			std::cout << "Message Header incomplete. Parsing  Failed" << std::endl;
+			return false;
+		}
+		output.sender_id = root["SENDER"].asString();
+		output.sender_type = root["SENDER_TYPE"].asString();
+		output.msg_type = root["MESSAGE_TYPE"].asString();
+		return true;
+	}
+
 	static bool parseMessageHeader(std::string& input, msg_header &output) {
 		Json::Value root;
 		Json::Reader reader;
@@ -75,16 +87,17 @@ public:
 			std::cout << "Parsing '" << input << "' Failed" << std::endl;
 			return false;
 		}
-		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
-				&& (root.isMember("MESSAGE_TYPE")))) {
-			std::cout << "Message Header incomplete. Parsing '" << input
-					<< "' Failed" << std::endl;
-			return false;
-		}
-		output.sender_id = root["SENDER"].asString();
-		output.sender_type = root["SENDER_TYPE"].asString();
-		output.msg_type = root["MESSAGE_TYPE"].asString();
-		return true;
+		return parseMessageHeader(root,output);
+//		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
+//				&& (root.isMember("MESSAGE_TYPE")))) {
+//			std::cout << "Message Header incomplete. Parsing '" << input
+//					<< "' Failed" << std::endl;
+//			return false;
+//		}
+//		output.sender_id = root["SENDER"].asString();
+//		output.sender_type = root["SENDER_TYPE"].asString();
+//		output.msg_type = root["MESSAGE_TYPE"].asString();
+//		return true;
 	}
 
 	static bool getPacketMessages(std::string& input, Json::Value &output) {

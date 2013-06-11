@@ -47,16 +47,18 @@ void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::st
 {
 	if(e)
 	{
-		std::cerr << "Connection Not Ready [" << e.message() << "] Trying Again" << std::endl;
+		std::cerr << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
 		mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
 	}
 	else
 	{
 		//will not pass 'message' variable as argument coz it
 		//is global between functions. some function read into it, another function read from it
+		Print() << "Ready Message Sent" << std::endl;
 		mySession->async_read(incomingMessage,
 			boost::bind(&ConnectionHandler::readHandler, this,
 					boost::asio::placeholders::error));
+
 	}
 }
 

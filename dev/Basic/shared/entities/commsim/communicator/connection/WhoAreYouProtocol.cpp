@@ -44,13 +44,32 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 
 	void WhoAreYouProtocol::startClientRegistration(session_ptr sess) {
 		std::string str = JsonParser::makeWhoAreYouPacket();
-//		Print()<< " WhoAreYou protocol Sending [" << str << "]" <<  std::endl;
+		Print()<< " WhoAreYouProtocol::startClientRegistration'" << str << "'" <<  std::endl;
 		sess->async_write(str,
-				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler, this,
+				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler/*temp_handler_1*/, this,
 						boost::asio::placeholders::error, sess));
 	}
+
+//	void WhoAreYouProtocol::temp_handler_1(const boost::system::error_code& e,session_ptr sess) {
+//				Print()<< " temp_handler_1 reading" << std::endl;
+//				sess->async_read(response,
+//						boost::bind(&WhoAreYouProtocol::temp_handler_2, this,
+//								boost::asio::placeholders::error, sess));
+//
+//	}
+//
+//	void WhoAreYouProtocol::temp_handler_2(const boost::system::error_code& e,session_ptr sess) {
+//		Print()<< " temp_handler_2 response'" << response << "'" << std::endl;
+//		std::string str = JsonParser::makeWhoAreYouPacket();
+//		Print()<< "temp_handler_2 '" << str << "'" <<  std::endl;
+//		sess->async_write(str,
+//				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler, this,
+//						boost::asio::placeholders::error, sess));
+//
+//	}
+
 	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess) {
-//		Print()<< " WhoAreYou_handler readring" << std::endl;
+		Print()<< " WhoAreYou_handler response'" << response << "'" << std::endl;
 		sess->async_read(response,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
 						boost::asio::placeholders::error, sess));

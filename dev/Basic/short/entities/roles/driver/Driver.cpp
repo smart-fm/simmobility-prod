@@ -2043,7 +2043,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
-			std::cout << "getDriverLight " << color << std::endl;
+//			std::cout << "getDriverLight " << color << std::endl;
 		} else {
 			/*vahid:
 			 * Basically,there is no notion of left, right forward any more.

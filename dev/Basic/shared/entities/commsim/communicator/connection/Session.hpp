@@ -64,12 +64,23 @@ public:
   template <typename Handler>
   void async_read(std::string &input, Handler handler)
   {
+	  input.clear();
+	  	for(int i= 0; i !=header_length; i++)
+	  	{
+	  		inbound_header_[i] = '\0';
+	  	}
+  	Print() << "Inbound header before reading : #\n";
+  	for(int i= 0; i !=8; i++)
+  	{
+  		Print() << i << ":->'" << inbound_header_[i] ;
+  		Print() << "'<-" << std::endl;;
+  	}
+  	Print() << "#" << std::endl;
+  	Print() << "Now reading" << std::endl;
 //	  std::vector<char>* t
     // Issue a read operation to read exactly the number of bytes in a header.
     void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
     boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,this, boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
-
-
   }
 
   /// Handle a completed read of a message header. The handler is passed using
@@ -84,10 +95,19 @@ public:
     }
     else
     {
+    	Print() << "Inbound header after reading : *\n";
+    	for(int i= 0; i !=header_length; i++)
+    	{
+    		Print() << i << ":->'" << inbound_header_[i] << "'<-" << std::endl;
+    	}
+    	Print() << "*" << std::endl;
       std::istringstream is(std::string(inbound_header_, header_length));
       Print() << "Inbound header is '" << is << "'" << std::endl;
       std::size_t inbound_data_size = 0;
-      if (!(is >> std::hex >> inbound_data_size))
+      is >> std::hex >> inbound_data_size;
+      is.clear();
+      is.str("");
+      if (!(inbound_data_size))
       {
         std::cout << "ERROR in session-Handle_read_header" << std::endl;
         return;
@@ -113,8 +133,9 @@ public:
       try
       {
     	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
-//    	  std::cout << "inbound_data_[" << archive_data << "]" << std::endl;
+    	  std::cout << "inbound_data_'" << archive_data << "'" << std::endl;
     	  input = archive_data;
+    	  archive_data.clear();
       }
       catch (std::exception& e)
       {
@@ -133,7 +154,7 @@ private:
   boost::asio::ip::tcp::socket socket_;
 
   /// The size of a fixed length header.
-  enum { header_length = 16 };
+  enum { header_length = 8 };
 
   /// Holds an outbound header.
   std::string outbound_header_;

@@ -90,14 +90,15 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		//also, add the client entry to broker(for message handler purposes)
 		broker.insertClientList(ANDROID_EMULATOR,clientEntry);
 
-		//start listening to the handler
-		clientEntry->cnnHandler->start();
 
 		//add this agent to the list of the agents who are associated with a android emulator client
 		usedAgents.insert( *freeAgent);
 		//tell the agent you are registered
 		freeAgent->second->setregistered(true);
 		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
+
+		//start listening to the handler
+		clientEntry->cnnHandler->start();
 		return true;
 }
 AndroidClientRegistration::~AndroidClientRegistration() {

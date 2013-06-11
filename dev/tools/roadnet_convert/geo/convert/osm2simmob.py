@@ -126,8 +126,8 @@ def convert(rn :geo.formats.osm.RoadNetwork) -> geo.formats.simmob.RoadNetwork:
   geo.helper.make_lane_connectors(res)
 
   #At this point, we need to fix any negative components (x,y)  ---the Y component will certainly be negative.
-  minMax = __get_or_fix_points(res, None)
-  __get_or_fix_points(res, minMax)
+#  minMax = __get_or_fix_points(res, None)
+#  __get_or_fix_points(res, minMax)
 
   #Some consistency checks
   __check_multi_uni(res, res.links)
@@ -145,7 +145,7 @@ def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
   zone = None
   for nd in rn.nodes.values():
     projected,zone = geo.helper.project_wgs84(nd.loc.lat, nd.loc.lng, zone)
-    res.nodes[nd.nodeId] = __Node(100*projected.x, -100*projected.y)
+    res.nodes[nd.nodeId] = __Node(100*projected.x, 100*projected.y)
 
   #Before moving on, we scan through the list of Ways and remove all Nodes which are directly on top of each other.
   # This will avoid divide-by-zero errors later.
@@ -213,38 +213,6 @@ def __preprocess_osm(rn :geo.formats.osm.RoadNetwork) ->__RoadNetwork:
 
   return res
 
-
-def __get_or_fix_points(rn :geo.formats.simmob.RoadNetwork, minMax :'[minX,maxX,minY,maxY]'):
-  #Are we fixing or measuring?
-  fix = True if minMax else False
-  
-  #Find every "point" and either measure or fix it.
-  for nd in rn.nodes.values():
-    minMax = __get_or_fix(nd.pos, minMax, fix)
-  for lnk in rn.links.values():
-    for sg in lnk.segments:
-      for ln in sg.lanes:
-        for pt in ln.polyline:
-          minMax = __get_or_fix(pt, minMax, fix)
-      for le in sg.lane_edges:
-        for pt in le.polyline:
-          minMax = __get_or_fix(pt, minMax, fix)
-
-
-def __get_or_fix(pt :Point, minMax :'[minX,maxX,minY,maxY]', fix :bool):
-  if fix:
-    #Cheat a bit (add 1m to each minimum)
-    #TODO: Check sumo2simmob; we need to consolidate these.
-    pt.x = minMax[1] - (pt.x-minMax[0]) + 100
-    pt.y = minMax[3] - (pt.y-minMax[2]) + 100
-  else:
-    if minMax:
-      minMax[0] = min(minMax[0], pt.x)
-      minMax[1] = max(minMax[1], pt.x)
-      minMax[2] = min(minMax[2], pt.y)
-      minMax[3] = max(minMax[3], pt.y)
-    else:
-      minMax = [pt.x,pt.x, pt.y,pt.y]
 
 
 def __check_multi_uni(rn, links):

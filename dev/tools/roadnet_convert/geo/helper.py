@@ -74,6 +74,56 @@ def project_wgs84(lat, lng, zone):
   return (Point(x,y), resZone)
 
 
+#Get the minimum Point (x,y) in this network.
+def get_global_min(rn :geo.formats.simmob.RoadNetwork) ->Point:
+  globMin = None
+  
+  #Find every "point" and test it.
+  for nd in rn.nodes.values():
+    if not globMin:
+      globMin = Point(nd.pos.x, nd.pos.y)
+    globMin.x = min(globMin.x, nd.pos.x)
+    globMin.y = min(globMin.y, nd.pos.y)
+  for lnk in rn.links.values():
+    for sg in lnk.segments:
+      for ln in sg.lanes:
+        for pt in ln.polyline:
+          globMin.x = min(globMin.x, pt.x)
+          globMin.y = min(globMin.y, pt.y)
+      for le in sg.lane_edges:
+        for pt in le.polyline:
+          globMin.x = min(globMin.x, pt.x)
+          globMin.y = min(globMin.y, pt.y)
+  return globMin
+
+
+#Translate every point by (x,y), ignoring x or y if either is >=0
+def translate_network(rn :geo.formats.simmob.RoadNetwork, transPt :Point):
+  #Mutate our input value.
+  if transPt.x>0:
+    transPt.x = 0
+  if transPt.y>0:
+    transPt.y = 0
+  if (transPt.x==0) and (transPt.y==0):
+    return
+
+  #Find every "point" and translate it.
+  for nd in rn.nodes.values():
+    nd.pos.x -= transPt.x
+    nd.pos.y -= transPt.y
+  for lnk in rn.links.values():
+    for sg in lnk.segments:
+      for ln in sg.lanes:
+        for pt in ln.polyline:
+          pt.x -= transPt.x
+          pt.y -= transPt.y
+      for le in sg.lane_edges:
+        for pt in le.polyline:
+          pt.x -= transPt.x
+          pt.y -= transPt.y
+
+
+
 def remove_unused_nodes(nodes, links):
   '''This function counts the number of RoadSegments which reference a Node. If it's zero, that 
      Node is pruned.

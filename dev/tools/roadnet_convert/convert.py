@@ -52,12 +52,16 @@ def run_main(inFileName, outFileName):
   if not rn:
     raise Exception('Unknown road network format: ' + inFileName)
 
-  #Remove junction nodes which aren't referenced by anything else.
+  #Remove nodes which aren't referenced by anything else.
   #TODO: This remains *here*, and might be disabled with a switch.
   nodesPruned = len(rn.nodes)
   geo.helper.remove_unused_nodes(rn.nodes, rn.links)
   nodesPruned -= len(rn.nodes)
   print("Pruned unreferenced nodes: %d" % nodesPruned)
+
+  #Translate our network so that all (x,y) points are positive.
+  globMin = geo.helper.get_global_min(rn)
+  geo.helper.translate_network(rn, globMin)
 
   #Before printing the XML network, we should print an "out.txt" file for 
   #  easier visual verification with our old GUI.

@@ -23,7 +23,7 @@ public:
 	virtual ~FMODController();
 
 	bool InsertFMODItems(const std::string& personID, TripChainItem* item);
-	void Settings(std::string ipadress, int port, int updateTiming) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; }
+	void Settings(std::string ipadress, int port, int updateTiming, std::string mapFile) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile;}
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
 	static FMODController* Instance();
@@ -34,8 +34,8 @@ private:
 	std::map<Link*, double> linkTravelTimes;
 	std::map<std::string, TripChainItem*> all_items;
 	// keep all children agents to communicate with it
-	std::vector<Entity*> all_persons;
-	std::vector<Entity*> all_drivers;
+	std::vector<Agent*> all_persons;
+	std::vector<Agent*> all_drivers;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -63,8 +63,12 @@ private:
 	MessageList CollectLinkTravelTime();
 
 private:
+	void GeneratePerson(timeslice now);
+
+private:
 	TCPSessionPtr connectPoint;
 	std::string ipAddress;
+	std::string mapFile;
 	int port;
 	int updateTiming;
 	int frameTicks;

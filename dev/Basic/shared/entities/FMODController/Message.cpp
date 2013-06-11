@@ -277,6 +277,16 @@ void Msg_Schedule::CreateMessage(std::string msg)
 		stop.stop_id = item["stop"].asString();
 		stop.arrival_time = item["arrival_time"].asString();
 		stop.depature_time = item["depature_time"].asString();
+		Json::Value arrPassengers = item["board_passengers"];
+		for(int k=0; k<arrPassengers.size(); k++){
+			Json::Value val = arrPassengers[k];
+			stop.boardingpassengers.push_back(val.asString());
+		}
+		arrPassengers = item["alight_passengers"];
+		for(int k=0; k<arrPassengers.size(); k++){
+			Json::Value val = arrPassengers[k];
+			stop.alightingpassengers.push_back(val.asString());
+		}
 		stop_schdules.push_back(stop);
 	}
 
@@ -286,7 +296,7 @@ void Msg_Schedule::CreateMessage(std::string msg)
 		Json::Value item = arrPassengers[i];
 		PASSENGER pass;
 		pass.client_id = item["client_id"].asString();
-		pass.price = item["arrival_time"].asInt();
+		pass.price = item["price"].asInt();
 		passengers.push_back(pass);
 	}
 

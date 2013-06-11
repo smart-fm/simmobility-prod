@@ -154,6 +154,8 @@ class Msg_Schedule : public Message {
 		std::string stop_id;
 		std::string arrival_time;
 		std::string depature_time;
+		std::vector< std::string > boardingpassengers;
+		std::vector< std::string > alightingpassengers;
 	};
 	std::vector<STOP> stop_schdules;
 	struct PASSENGER

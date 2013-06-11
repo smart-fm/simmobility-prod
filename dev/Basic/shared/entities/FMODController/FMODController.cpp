@@ -8,6 +8,7 @@
 #include <boost/thread.hpp>
 #include "FMODController.hpp"
 #include "Message.hpp"
+#include "entities/Person.hpp"
 
 namespace sim_mob {
 
@@ -45,6 +46,8 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	frameTicks++;
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 
+	GeneratePerson(now);
+
 	if(frameTicks%2 == 0){
 		ProcessMessages();
 	}
@@ -66,6 +69,37 @@ bool FMODController::InsertFMODItems(const std::string& personID, TripChainItem*
 	return true;
 }
 
+void FMODController::GeneratePerson(timeslice now)
+{
+	DailyTime currTm( now.ms() );
+
+	typedef std::map<std::string, TripChainItem*>::iterator TCMapIt;
+	for (TCMapIt it=all_items.begin(); it!=all_items.end(); it++) {
+
+		Print() << "Size of tripchain item for person " << it->first << std::endl;
+		TripChainItem* tc = it->second;
+
+		if(it->second==nullptr)
+			continue;
+
+		if( tc->sequenceNumber > 0 )	{
+			if( tc->startTime.getValue() > currTm.getValue() ){
+
+				std::vector<sim_mob::TripChainItem*>  tcs;
+				tcs.push_back(tc);
+
+				sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+				all_persons.push_back(person);
+
+				tc->sequenceNumber--;
+			}
+		}
+		else{
+			all_items[it->first]=nullptr;
+		}
+	}
+}
+
 bool FMODController::StartClientService()
 {
 	bool ret = false;
@@ -79,7 +113,7 @@ bool FMODController::StartClientService()
 		Msg_Initialize request;
 		request.messageID_ = 1;
 		request.map_type = "osm";
-		request.map_file = "cityhall/cityhall.osm";
+		request.map_file = mapFile; //"cityhall/cityhall.osm";
 		request.version = 1;
 		DailyTime startTm = ConfigParams::GetInstance().simStartTime;
 		request.start_time = startTm.toString();

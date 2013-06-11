@@ -98,7 +98,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr), travelStatsMap(mtxStrat)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -295,7 +295,8 @@ void sim_mob::Agent::initTravelStats(const Link* link, double entryTime)
 }
 
 void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
-	travelStatsMap.insert(std::make_pair(exitTime, ts));
+	std::map<double, travelStats>& travelMap = travelStatsMap.getRW();
+	travelMap.insert(std::make_pair(exitTime, ts));
 }
 
 #ifndef SIMMOB_DISABLE_MPI

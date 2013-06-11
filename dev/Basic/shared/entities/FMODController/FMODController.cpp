@@ -60,8 +60,9 @@ void FMODController::frame_output(timeslice now)
 
 }
 
-bool FMODController::CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents)
+bool FMODController::InsertFMODItems(const std::string& personID, TripChainItem* item)
 {
+	all_items[personID] = item;
 	return true;
 }
 

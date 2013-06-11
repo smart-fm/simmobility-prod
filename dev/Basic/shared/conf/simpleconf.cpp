@@ -222,7 +222,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
 		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
 		if( tc->itemType != TripChainItem::IT_FMODSIM){
@@ -233,6 +232,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		}
 		else {
 			//insert to FMOD controller so that collection of requests
+			sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
 		}
 	}//outer for loop(map)
 }

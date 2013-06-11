@@ -22,7 +22,7 @@ public:
 
 	virtual ~FMODController();
 
-	bool CollectFMODAgents(std::vector<sim_mob::Entity*>& all_agents);
+	bool InsertFMODItems(const std::string& personID, TripChainItem* item);
 	void Settings(std::string ipadress, int port, int updateTiming) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; }
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
@@ -31,6 +31,8 @@ public:
 	void StopClientService();
 
 private:
+	std::map<Link*, double> linkTravelTimes;
+	std::map<std::string, TripChainItem*> all_items;
 	// keep all children agents to communicate with it
 	std::vector<Entity*> all_persons;
 	std::vector<Entity*> all_drivers;

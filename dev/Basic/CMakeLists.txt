@@ -386,7 +386,7 @@ ENDIF()
 #TODO: We currently install *all* header files in Shared.
 #FILE(GLOB_RECURSE GeoHeaderFiles "${CMAKE_CURRENT_SOURCE_DIR}/shared/*.hpp")
 #INSTALL(FILES ${GeoHeaderFiles} DESTINATION include/sim_mob)
-install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp" PATTERN "conf/settings/*.h")
 
 #Install the library too.
 INSTALL(TARGETS simmob_geoxml

@@ -167,6 +167,18 @@ def __mostly_parallel(first, second):
   return abs(mFirst-mSecond) < Cutoff
 
 
+def get_lane_widths(lane_edges):
+  '''Retrieve the width of each lane based on lane edges.'''
+  res = []
+  prevLE = None
+  for le in lane_edges:
+    if prevLE:
+      #Just the starting points should be sufficient.
+      res.append(geo.helper.dist(prevLE[0], le[0]))
+    prevLE = le
+  return res
+
+
 #Expand lanes halfway in each direction to make lane edges.
 #NOTE: This function assumes that the Segment's line is roughly 1/2 a lane's 
 #      distance from lane line 0, and is (somewhat) parallel.

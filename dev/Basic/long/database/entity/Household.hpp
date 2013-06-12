@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class Household {
         public:
-            Household(int id = INVALID_ID, float income = .0f, 
+            Household(int id = INVALID_ID, float income = .0f,
                     int numberOfMembers = 0);
             virtual ~Household();
 
@@ -25,7 +25,7 @@ namespace sim_mob {
              * @return id.
              */
             int GetId() const;
-            
+
             /**
              * Gets the building identifier.
              * @return id.
@@ -67,7 +67,7 @@ namespace sim_mob {
              * @return income value.
              */
             float GetIncome() const;
-            
+
             /**
              * Gets the race of the Household.
              * @return race value.
@@ -75,12 +75,36 @@ namespace sim_mob {
             Race GetRace() const;
 
             /**
+             * Gets the importance of distance of CDB to this household
+             * @return weight of the distance to CDB.
+             */
+            float GetWeightDistanceToCDB() const;
+
+            /**
+             * Gets the importance of unit size to this household.
+             * @return weight of the unit size.
+             */
+            float GetWeightUnitSize() const;
+
+            /**
+             * Gets the importance of income to this household.
+             * @return weight of the income.
+             */
+            float GetWeightIncome() const;
+
+            /**
+             * Gets the weight that represents the urgency to buy a new home.
+             * @return weight urgency to buy.
+             */
+            float GetWeightUrgencyToBuy() const;
+            
+            /**
              * Assign operator.
              * @param source to assign.
              * @return Household instance reference.
              */
-            Household& operator=( const Household& source );
-            
+            Household& operator=(const Household& source);
+
             /**
              * Operator to print the Household data.  
              */
@@ -94,7 +118,11 @@ namespace sim_mob {
                         << "\"cars\":\"" << data.numberOfCars << "\","
                         << "\"head-age\":\"" << data.headAge << "\","
                         << "\"income\":\"" << data.income << "\","
-                        << "\"race\":\"" << data.race << "\""
+                        << "\"race\":\"" << data.race << "\","
+                        << "\"weightDistanceToCDB\":\"" << data.weightDistanceToCDB << "\","
+                        << "\"weightSize\":\"" << data.weightUnitSize << "\","
+                        << "\"weightIncome\":\"" << data.weightIncome << "\","
+                        << "\"weightUrgencyToBuy\":\"" << data.weightUrgencyToBuy << "\""
                         << "}";
             }
 
@@ -109,6 +137,10 @@ namespace sim_mob {
             int numberOfCars;
             int headAge;
             float income;
+            float weightIncome; // importance that this household has for the income (should be always 1).
+            float weightDistanceToCDB; // importance that this household has for the distance to CDB.
+            float weightUnitSize; // importance that this household has for the size of the unit.
+            float weightUrgencyToBuy; // represents the urgency that the HH has to buy a new home.
             Race race;
         };
     }

@@ -8,13 +8,20 @@
  */
 
 #include "Household.hpp"
+#include "util/Utils.hpp"
+
+#define WEIGHT_MIN 0.0f
+#define WEIGHT_MAX 1.0f
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Household::Household(int id, float income, int numberOfMembers) : id(id), 
-        headAge(0), income(income), numberOfCars(0), numberOfChildren(0), 
-        numberOfWorkers(0), numberOfMembers(numberOfMembers), buildingId(-1) {
+Household::Household(int id, float income, int numberOfMembers) : id(id),
+headAge(0), income(income), numberOfCars(0), numberOfChildren(0),
+numberOfWorkers(0), numberOfMembers(numberOfMembers), buildingId(-1),
+weightIncome(1.0f), weightUnitSize(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
+weightDistanceToCDB(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
+weightUrgencyToBuy(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
 }
 
 Household& Household::operator=(const Household& source) {
@@ -27,6 +34,10 @@ Household& Household::operator=(const Household& source) {
     this->numberOfMembers = source.numberOfMembers;
     this->numberOfWorkers = source.numberOfWorkers;
     this->race = source.race;
+    this->weightDistanceToCDB = source.weightDistanceToCDB;
+    this->weightUnitSize = source.weightUnitSize;
+    this->weightIncome = source.weightIncome;
+    this->weightUrgencyToBuy = source.weightUrgencyToBuy;
     return *this;
 }
 
@@ -67,4 +78,20 @@ float Household::GetIncome() const {
 
 Race Household::GetRace() const {
     return race;
+}
+
+float Household::GetWeightDistanceToCDB() const {
+    return weightDistanceToCDB;
+}
+
+float Household::GetWeightUnitSize() const {
+    return weightUnitSize;
+}
+
+float Household::GetWeightIncome() const {
+    return weightIncome;
+}
+
+float Household::GetWeightUrgencyToBuy() const {
+    return weightUrgencyToBuy;
 }

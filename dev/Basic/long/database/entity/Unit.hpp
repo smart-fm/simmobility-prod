@@ -112,8 +112,14 @@ namespace sim_mob {
              * @return owner endpoint.
              */
             UnitHolder* GetOwner();
-            
-             /**
+
+            /**
+             * Gets the weight that represents the relation between quality and price.
+             * @return weight for relation between quality and price.
+             */
+            float GetWeightPriceQuality() const;
+
+            /**
              * Operator to print the Unit data.  
              */
             friend ostream& operator<<(ostream& strm, const Unit& data) {
@@ -124,7 +130,8 @@ namespace sim_mob {
                         << "\"fixedCost\":\"" << data.fixedCost << "\","
                         << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
                         << "\"distanceToCDB\":\"" << data.distanceToCDB << "\","
-                        << "\"size\":\"" << data.size << "\""
+                        << "\"size\":\"" << data.size << "\","
+                        << "\"weightPriceQuality\":\"" << data.weightPriceQuality << "\""
                         << "}";
             }
         private:
@@ -149,6 +156,7 @@ namespace sim_mob {
             float hedonicPrice;
             float distanceToCDB;
             float size;
+            float weightPriceQuality;
             UnitHolder* owner;
             mutable shared_mutex mutex;
         };

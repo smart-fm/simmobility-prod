@@ -148,6 +148,7 @@ void perform_main() {
     //create all households.
     for (int i = 0; i < DATA_SIZE; i++) {
         Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
+        LogOut("Household: " << (*hh) << endl);
         HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
         //LogOut("Household: " << (*hh) << endl);
         //add agents units.

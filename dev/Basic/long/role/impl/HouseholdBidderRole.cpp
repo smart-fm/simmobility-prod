@@ -82,6 +82,7 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                                 CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
                                 HouseholdBidderRole::OnWakeUp));
                         UnFollowMarket();
+                        DeleteBidsCounter(unit->GetId());
                     }
                     break;
                 }
@@ -90,6 +91,12 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                     LogOut("Bidder: [" << GetParent()->getId() <<
                             "] bid: " << msg->GetBid() <<
                             " was not accepted " << endl);
+                    IncrementBidsCounter(msg->GetBid().GetUnitId());
+                    break;
+                }
+                case BETTER_OFFER:
+                {
+                    DeleteBidsCounter(msg->GetBid().GetUnitId());
                     break;
                 }
                 default:break;
@@ -140,7 +147,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         // Exists some unit to bid.
         if (unit) {
             MessageReceiver* owner = dynamic_cast<MessageReceiver*> (unit->GetOwner());
-            float bidValue = maxSurplus + CalculateWP();
+            float bidValue = maxSurplus + CalculateWP(*unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 owner->Post(LTMID_BID, GetParent(),
                         new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
@@ -154,15 +161,14 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
 
 float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
     float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
-    float wp = CalculateWP();
-    float b = (askingPrice + (float) pow(askingPrice - wp, 0.5));
-    return (float) ((pow(b, 2) - wp * b) / (-askingPrice + b));
+    return pow(askingPrice, hh->GetWeightUrgencyToBuy() + 1) /
+            ((float) GetBidsCounter(unit.GetId()) * unit.GetWeightPriceQuality());
 }
 
-float HouseholdBidderRole::CalculateWP() {
-    return (float) ((hh->GetIncome() * 1.0f) +
-            (hh->GetNumberOfMembers() * 2.0f));
-    return .0f;
+float HouseholdBidderRole::CalculateWP(const Unit& unit) {
+    return (float) ((hh->GetWeightIncome() * hh->GetIncome()) +
+            (hh->GetWeightDistanceToCDB() * unit.GetDistanceToCDB()) +
+            (hh->GetWeightUnitSize() * unit.GetSize()));
 }
 
 void HouseholdBidderRole::FollowMarket() {
@@ -175,4 +181,27 @@ void HouseholdBidderRole::FollowMarket() {
 void HouseholdBidderRole::UnFollowMarket() {
     market->UnSubscribe(LTEID_HM_UNIT_ADDED, this);
     market->UnSubscribe(LTEID_HM_UNIT_REMOVED, this);
+}
+
+int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
+    BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
+    if (mapItr != bidsPerUnit.end()) {
+        return mapItr->second;
+    } else {
+        bidsPerUnit.insert(BidCounterEntry(unitId, 1));
+        return 1;
+    }
+}
+
+void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
+    BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
+    if (mapItr != bidsPerUnit.end()) {
+        (mapItr->second)++;
+    } else {
+        bidsPerUnit.insert(BidCounterEntry(unitId, 1));
+    }
+}
+
+void HouseholdBidderRole::DeleteBidsCounter(UnitId unitId) {
+    bidsPerUnit.erase(unitId);
 }

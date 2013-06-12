@@ -75,13 +75,13 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
                         // that his bid was not accepted.
                         //reply to sender.
                         maxBidOfDay->GetBidder()->Post(LTMID_BID_RSP, GetParent(),
-                                new BidMessage(Bid(*maxBidOfDay), NOT_ACCEPTED));
+                                new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER));
                         maxBidsOfDay.erase(unit->GetId());
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(BidEntry(unit->GetId(), msg->GetBid()));
                     } else {
                         sender.Post(LTMID_BID_RSP, GetParent(),
-                                new BidMessage(Bid(msg->GetBid()), NOT_ACCEPTED));
+                                new BidMessage(Bid(msg->GetBid()), BETTER_OFFER));
                     }
                 } else {
                     sender.Post(LTMID_BID_RSP, GetParent(),
@@ -130,11 +130,9 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
 void HouseholdSellerRole::AdjustNotSelledUnits() {
     list<Unit*> units;
     GetParent()->GetUnits(units);
-    for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
-            itr++) {
+    for (list<Unit*>::iterator itr = units.begin(); itr != units.end(); itr++) {
         if ((*itr)->IsAvailable()) {
             AdjustUnitParams((**itr));
         }
     }
 }
-

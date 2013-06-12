@@ -210,7 +210,7 @@ public:
 	}
 //	just conveys the tick
 	static Json::Value makeTimeData(unsigned int tick) {
-		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TimeData"));
+		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TIME_DATA"));
 		time["tick"] = tick;
 		return time;
 	}
@@ -229,7 +229,7 @@ public:
 
 	static Json::Value makeLocationData(int x, int y) {
 
-		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LocationData"));
+		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA"));
 		loc["x"] = x;
 		loc["y"] = y;
 
@@ -274,11 +274,11 @@ public:
     },
     "DATA": [
         {
-            "MESSAGE_TYPE": "TimeData",
+            "MESSAGE_TYPE": "TIME_DATA",
             "tick": 108
         },
         {
-            "MESSAGE_TYPE": "LocationData",
+            "MESSAGE_TYPE": "LOCATION_DATA",
             "x": 37280691,
             "y": 14371911
         }

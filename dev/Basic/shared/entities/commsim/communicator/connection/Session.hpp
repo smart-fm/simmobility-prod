@@ -69,14 +69,14 @@ public:
 	  	{
 	  		inbound_header_[i] = '\0';
 	  	}
-  	Print() << "Inbound header before reading : #\n";
-  	for(int i= 0; i !=8; i++)
-  	{
-  		Print() << i << ":->'" << inbound_header_[i] ;
-  		Print() << "'<-" << std::endl;;
-  	}
-  	Print() << "#" << std::endl;
-  	Print() << "Now reading" << std::endl;
+//  	Print() << "Inbound header before reading : #\n";
+//  	for(int i= 0; i !=8; i++)
+//  	{
+//  		Print() << i << ":->'" << inbound_header_[i] ;
+//  		Print() << "'<-" << std::endl;;
+//  	}
+//  	Print() << "#" << std::endl;
+//  	Print() << "Now reading" << std::endl;
 //	  std::vector<char>* t
     // Issue a read operation to read exactly the number of bytes in a header.
     void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
@@ -95,12 +95,12 @@ public:
     }
     else
     {
-    	Print() << "Inbound header after reading : *\n";
-    	for(int i= 0; i !=header_length; i++)
-    	{
-    		Print() << i << ":->'" << inbound_header_[i] << "'<-" << std::endl;
-    	}
-    	Print() << "*" << std::endl;
+//    	Print() << "Inbound header after reading : *\n";
+//    	for(int i= 0; i !=header_length; i++)
+//    	{
+//    		Print() << i << ":->'" << inbound_header_[i] << "'<-" << std::endl;
+//    	}
+//    	Print() << "*" << std::endl;
       std::istringstream is(std::string(inbound_header_, header_length));
       Print() << "Inbound header is '" << is << "'" << std::endl;
       std::size_t inbound_data_size = 0;
@@ -112,7 +112,7 @@ public:
         std::cout << "ERROR in session-Handle_read_header" << std::endl;
         return;
       }
-      Print() << "Inbound data size is '" << inbound_data_size << "'" << std::endl;
+//      Print() << "Inbound data size is '" << inbound_data_size << "'" << std::endl;
       inbound_data_.resize(inbound_data_size);
 
       void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;

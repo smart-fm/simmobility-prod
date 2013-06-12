@@ -93,12 +93,12 @@ Broker::~Broker()
  * the callback function called by connection handlers to ask
  * the Broker what to do when a message arrives(this method is to be called
  * after whoareyou, registration and connectionHandler creation....)
+ * anyway, what is does is :extract messages from the input string
+ * (remember that a message object carries a reference to its handler also(except for "CLIENT_MESSAGES_DONE" messages)
  */
 void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-	//extract messages from the input string(remember that a message object carries a reference to its handler also)
-//	ConnectionHandler * t = cnnHandler.get();
-//	unsigned int tt = t->clientType;
+
 	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
 	std::vector<msg_ptr> messages;
 	m_f->createMessage(input, messages);
@@ -110,10 +110,12 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 		std::string type = data["MESSAGE_TYPE"].asString();
 		if(type == "CLIENT_MESSAGES_DONE")
 		{
-
+			Print() << "Broker::messageReceiveCallback=> mutex_clientDone locking" << std::endl;
+			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			//update() will wait until all clients send this message for each tick
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
+			Print() << "Broker::messageReceiveCallback=> mutex_clientDone Unlocking" << std::endl;
 		}
 		else
 		{
@@ -174,18 +176,23 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 }
 
 void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> clientHandler){
-	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
+//	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
+	Print() << "Broker::insertClientList=> mutex_clientList locking" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
-	Print()<< "ClientHandler inserted: agent[" <<
-			clientHandler->agent << " : " << clientHandler->cnnHandler->agentPtr << "]  "
-					"clientID[" << clientHandler->clientID << "]" << std::endl;
+	Print() << "Broker::insertClientList=> mutex_clientList UNlocking" << std::endl;
+//	Print()<< "ClientHandler inserted: agent[" <<
+//			clientHandler->agent << " : " << clientHandler->cnnHandler->agentPtr << "]  "
+//					"clientID[" << clientHandler->clientID << "]" << std::endl;
 }
 
 void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)
 {
+	Print() << "Broker::insertClientWaitingList=> mutex_client_request locking" << std::endl;
+	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
+	Print() << "Broker::insertClientWaitingList=> mutex_client_request Unlocking" << std::endl;
 }
 
 PublisherList & Broker::getPublishers()
@@ -248,7 +255,7 @@ void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport<std::string> *valu
 
 void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 {
-	Print()<< "Broker::unRegisterEntity locking mutex_clientList " << std::endl;
+	Print()<< "Broker::unRegisterEntity =>locking mutex_clientList " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	//search agent's list looking for this agent
 	registeredAgents.erase(agent); //hopefully the agent is there
@@ -431,6 +438,9 @@ void Broker::sendReadyToReceive()
 	std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
+	{
+		Print()<< "Broker::sendReadyToReceive=>locking mutex_clientList" << std::endl;
+		boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	BOOST_FOREACH(clientByType, clientList)
 	{
 		BOOST_FOREACH(clientByID, clientByType.second)
@@ -442,6 +452,8 @@ void Broker::sendReadyToReceive()
 			Json::Value msg = JsonParser::createMessageHeader(msg_header_);
 			insertSendBuffer(clnHandler->cnnHandler, msg);
 		}
+	}
+	Print()<< "Broker::sendReadyToReceive=> UNlocking mutex_clientList" << std::endl;
 	}
 }
 
@@ -566,9 +578,12 @@ bool Broker::brokerCanProceed() const
 }
 bool Broker::waitForClientsConnection()
 {
+	{
 	Print()<< "Broker::waitForClientsConnection locking mutex_client_request " << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
+	Print()<< "Broker::waitForClientsConnection UNlocking mutex_client_request " << std::endl;
+	}
 	/**if:
 	 * 1- number of subscribers is too low
 	 * 2-there is no client(emulator) waiting in the queue
@@ -577,7 +592,9 @@ bool Broker::waitForClientsConnection()
 	 *  wait for enough number of clients and agents to join
 	 */
 	while(!(/*brokerCanProceed() && */brokerCanTickForward)) {
-		Print()<< "Broker Blocking" << std::endl;
+		Print()<< "Broker::waitForClientsConnection locking mutex_client_request- " << std::endl;
+		boost::unique_lock<boost::mutex> lock(mutex_client_request);
+		Print()<< "Broker Blocking for requests" << std::endl;
 		COND_VAR_CLIENT_REQUEST.wait(lock);
 //		Print()<< "Broker notified, processing Client Registration" << std::endl;
 		processClientRegistrationRequests();
@@ -587,8 +604,9 @@ bool Broker::waitForClientsConnection()
 			//you are considered to authorize ticking through rather than BLOCKING.
 			brokerCanTickForward = true;
 		}
+		Print()<< "Broker::waitForClientsConnection UNlocking mutex_client_request- " << std::endl;
 	}
-	Print()<< "Broker NOT Blocking" << std::endl;
+	Print()<< "Broker NOT Blocking for requests" << std::endl;
 
 	//broker started before but suddenly is no more qualified to run
 	if(brokerCanTickForward && (!subscriptionsQualify())) {
@@ -609,7 +627,14 @@ void Broker::waitForAgentsUpdates()
 		refineSubscriptionList();
 	}
 }
-
+bool Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &clnHandler)
+{
+	if(clientDoneChecker.end() == clientDoneChecker.find(clnHandler->cnnHandler))
+	{
+		return false;
+	}
+	return true;
+}
 bool Broker::allClientsAreDone()
 {
 	//	typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList;
@@ -617,6 +642,8 @@ bool Broker::allClientsAreDone()
 		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 		msg_header msg_header_;
+		Print()<< "Broker::allClientsAreDone locking mutex_clientList " << std::endl;
+		boost::unique_lock<boost::mutex> lock(mutex_clientList);
 		BOOST_FOREACH(clientByType, clientList)
 		{
 			BOOST_FOREACH(clientByID, clientByType.second)
@@ -643,12 +670,14 @@ bool Broker::allClientsAreDone()
 					continue;
 				}
 				//but
-				if(clientDoneChecker.end() == clientDoneChecker.find(clnHandler->cnnHandler))
+				if(!isClientDone(clnHandler))
 				{
+					Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList " << std::endl;
 					return false;
 				}
 			}
 		}
+		Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList " << std::endl;
 		return true;
 }
 
@@ -657,20 +686,8 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	Print() << "Broker tick:"<< now.frame() << "\n";
 	//step-1 : open the door to ouside world
 	if(now.frame() == 0) {
-		/*if (firstTime) {
-			AgentsMap::iterator it = registeredAgents.begin(), it_end(
-					registeredAgents.end()), it_erase;
-			while (it != it_end) {
-				const_cast<Agent*>(it->first)->Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
-						CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
-				Broker::subscribedAgents++;
-				it++;
-			}
-			firstTime = false;
-		}*/
 		connection->start();
 	}
-//	Print() << "Broker tick:"<< now.frame() << " - after connection start" << std::endl;
 
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
@@ -678,34 +695,21 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	if (!waitForClientsConnection()) {
 		return UpdateStatus(UpdateStatus::RS_CONTINUE);
 	}
-//	Print() << "Broker tick:"<< now.frame() << " - after waitForClientsConnection" << std::endl;
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
-//	Print() << "Broker tick:"<< now.frame() << " - after processIncomingData" << std::endl;
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
 	waitForAgentsUpdates();
-//	Print() << "Broker tick:"<< now.frame() << " - after waitForAgentsUpdates" << std::endl;
 	//step-5: signal the publishers to publish their data
 	processPublishers(now);
-//	Print() << "Broker tick:"<< now.frame() << " - after processPublishers" << std::endl;
-
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	processOutgoingData(now);
-//	Print() << "Broker tick:"<< now.frame() << " - after processOutgoingData" << std::endl;
-
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forward
-	{
-		while(!allClientsAreDone())
-		{
-			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-			COND_VAR_CLIENT_DONE.wait(lock);
-		}
-	}
+	waitForClientsDone();
 	//step-8: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();//
@@ -731,6 +735,31 @@ void Broker::removeClient(ClientList::iterator it_erase)
 //	//remove it from the list
 //	clientList.erase(it_erase);
 //	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
+}
+void Broker::waitForClientsDone()
+{
+	Print()<< "Broker::waitForClientsDone locking mutex_clientDone " << std::endl;
+	boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+	Print()<< "Broker Blocking for clients" << std::endl;
+	while(!allClientsAreDone())
+	{
+
+		boost::shared_ptr<sim_mob::ConnectionHandler> ch;
+		BOOST_FOREACH(ch, clientDoneChecker)
+		{
+			Print()<< ch->clientID << " is done" << std::endl;
+		}
+
+		COND_VAR_CLIENT_DONE.wait(lock);
+		Print()<< "New list of done clients" << std::endl;
+		BOOST_FOREACH(ch, clientDoneChecker)
+		{
+			Print()<< ch->clientID << " is done" << std::endl;
+		}
+
+	}
+	Print()<< "Broker::waitForClientsDone UNlocking mutex_clientDone " << std::endl;
+	Print()<< "Broker NOT Blocking for clients" << std::endl;
 }
 void Broker::cleanup()
 {

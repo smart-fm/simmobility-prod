@@ -17,7 +17,7 @@ namespace roadrunner {
 
 RR_Factory::RR_Factory() {
 	// TODO Auto-generated constructor stub
-	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
+	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 
 }
 RR_Factory::~RR_Factory() {}
@@ -90,10 +90,6 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 		Print() << "switch case(" << messageHeader.msg_type << ")" << std::endl;
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
-			//{"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
-			//no need to parse the message much:
-			//just update its x,y location, then forward it to nearby agents
-
 			//create a message
 			msg_ptr msg(new sim_mob::roadrunner::MSG_MULTICAST(curr_json));
 			//... and then assign the handler pointer to message's member
@@ -101,6 +97,23 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 			output.push_back(msg);
 			break;
 		}
+		case UNICAST:{
+			//create a message
+			msg_ptr msg(new sim_mob::roadrunner::MSG_UNICAST(curr_json));
+			//... and then assign the handler pointer to message's member
+			msg->setHandler(getHandler(UNICAST));
+			output.push_back(msg);
+			break;
+		}
+		case CLIENT_MESSAGES_DONE:{
+			//create a message
+			msg_ptr msg(new sim_mob::roadrunner::MSG_CLIENTDONE(curr_json));
+			//... and then assign the handler pointer to message's member
+//			msg->setHandler(getHandler()); no handler!
+			output.push_back(msg);
+			break;
+		}
+
 
 //		case KEY_REQUEST:{
 //			//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}

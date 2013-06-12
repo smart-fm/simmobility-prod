@@ -33,7 +33,7 @@ void ConnectionHandler::start()
 
 	Json::Value packet;
 	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1));
-	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","Ready"));
+	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY"));
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed
 	Json::FastWriter writer;

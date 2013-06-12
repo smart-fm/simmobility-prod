@@ -16,6 +16,7 @@
 //#include "keysend/KEY_SEND_Handler.hpp"
 #include "multicast/MULTICAST_Handler.hpp"
 #include "unicast/UNICAST_Handler.hpp"
+#include "clientdone/CLIENTDONE_Message.hpp"
 #include <map>
 
 namespace sim_mob {
@@ -28,7 +29,8 @@ class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*M
 		UNICAST = 2,
 		ANNOUNCE = 3,
 		KEY_REQUEST = 4,
-		KEY_SEND = 5
+		KEY_SEND = 5,
+		CLIENT_MESSAGES_DONE = 6
 	};
 	std::map<std::string, RR_Factory::MessageType> MessageMap;
 	//This map is used as a cache to avoid repetitive handler creation in heap

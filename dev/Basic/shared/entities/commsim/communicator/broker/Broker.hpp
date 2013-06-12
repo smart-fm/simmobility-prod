@@ -107,6 +107,7 @@ public:
 	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
 	Entity::UpdateStatus update(timeslice now);
 	void removeClient(ClientList::iterator it_erase);
+	void waitForClientsDone();
 	void cleanup();
 	bool allAgentUpdatesDone();
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
@@ -151,6 +152,7 @@ protected:
 	///Wait for clients; return "false" to jump out of the loop.
 	bool waitForClientsConnection();
 	void waitForAgentsUpdates();
+	bool isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &);
 	bool allClientsAreDone();
 
 	//Is this Broker currently enabled?

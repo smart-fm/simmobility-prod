@@ -961,6 +961,7 @@ void sim_mob::BusDriver::DetermineBoardingAlightingMS(Bus* bus)
 	last_boarding_alighting_ms = (last_boarding_ms > last_alighting_ms) ? last_boarding_ms : last_alighting_ms;// determine the last MS, may be boarding MS or alighting MS
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_boarding_alighting_ms - first_boarding_alighting_ms) / 1000.0 + 0.1f);// set the dwelltime for output, some precision corrected
 	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this whole loop to check
+	waitAtStopMS = 0;// reset waitAtStopMS after boarding alighting MS is determined
 }
 
 void sim_mob::BusDriver::StartBoardingAlighting(Bus* bus)

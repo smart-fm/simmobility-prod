@@ -117,6 +117,10 @@ struct WayPoint
         const Node* node_;
     };
 
+    Point2D location();
+
+    int getID();
+
     ///If true, this indicates the the current WayPoint represents a reverse traversal of the given type.
     ///  This usually means that a RoadSegment should be traversed in reverse. Note that this only has meaning
     ///   in the walking graph.
@@ -124,7 +128,7 @@ struct WayPoint
 
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
     // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.
-    WayPoint() : type_(INVALID), directionReverse(false) {}
+    WayPoint() : type_(INVALID), directionReverse(false), node_(nullptr){}
     explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane),directionReverse(false) {}
     explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road),directionReverse(false) {}
     explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop),directionReverse(false) {}

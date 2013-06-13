@@ -742,8 +742,8 @@ SimRTree::BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent)
 SimRTree::BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent)
 {
 	SimRTree::BoundingBox box;
-	box.edges[0].first = box.edges[0].second = agent->originNode->location.getX();
-	box.edges[1].first = box.edges[1].second = agent->originNode->location.getY();
+	box.edges[0].first = box.edges[0].second = agent->originNode.location().getX();
+	box.edges[1].first = box.edges[1].second = agent->originNode.location().getY();
 
 	//	std::cout << "Agent:xPos" << agent->xPos.get();
 	//	std::cout << ",Agent:yPos" << agent->yPos.get() << std::endl;

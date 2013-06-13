@@ -8,8 +8,8 @@ using std::string;
 using namespace sim_mob;
 
 sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start,
-		DailyTime end, unsigned int seqNumber) :
-		personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber)
+		DailyTime end, unsigned int seqNumber, int requestTm) :
+		personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm)
 {
 }
 
@@ -18,19 +18,36 @@ sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""), 
 {
 }
 
-sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
+sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber, int requestTime,
 		DailyTime start, DailyTime end, std::string tripId, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType) :
-		TripChainItem(entId, type, start, end, seqNumber), tripID(tripId), fromLocation(
+		TripChainItem(entId, type, start, end, seqNumber,requestTime), tripID(tripId), fromLocation(
 				from), fromLocationType(getLocationType(fromLocType)), toLocation(to), toLocationType(getLocationType(toLocType))
 {
+	if( fromLocationType == TripChainItem::LT_NODE )
+	{
+		fromLocation = WayPoint( (Node*)from );
+	}
+	else if( fromLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		fromLocation = WayPoint( (BusStop*)from );
+	}
+
+	if( toLocationType == TripChainItem::LT_NODE )
+	{
+		toLocation = WayPoint( (Node*)to );
+	}
+	else if( toLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	{
+		toLocation = WayPoint( (BusStop*)to );
+	}
 }
 
 
-sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,
+sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,int requestTime,
 		DailyTime start, DailyTime end, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
-		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, "", from, fromLocType, to, toLocType),
+		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
 		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
 }
@@ -69,12 +86,14 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 		return IT_TRIP;
 	} else if (itemType == "BusTrip") {
 		return IT_BUSTRIP;
+	}else if(itemType == "FMOD" ) {
+		return IT_FMODSIM;
 	} else {
 		throw std::runtime_error("Unknown trip chain item type.");
 	}
 }
 bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
-	person->originNode = person->destNode = location;
+	person->originNode = person->destNode = WayPoint(location);
 	return true;
 }
 

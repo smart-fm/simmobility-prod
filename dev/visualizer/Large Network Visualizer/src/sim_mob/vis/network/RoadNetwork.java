@@ -505,13 +505,13 @@ public class RoadNetwork {
 	    
 	    //Ensure nodes exist
 	    if (parent==null) {
-	    	throw new IOException("Unknown Link id: " + Long.toHexString(parentLinkID));
+	    	throw new IOException("Unknown Link id: 0x" + Long.toHexString(parentLinkID));
 	    }
 	    if (fromNode==null) {
-	    	throw new IOException("Unknown node id: " + Long.toHexString(fromNodeID));
+	    	throw new IOException("Unknown from-node id: 0x" + Long.toHexString(fromNodeID) + " (" + Utility.ParseLongOptionalHex(pRes.properties.get("from-node")) + ")");
 	    }
 	    if (toNode==null) {
-	    	throw new IOException("Unknown node id: " + Long.toHexString(toNodeID));
+	    	throw new IOException("Unknown to-node id: 0x" + Long.toHexString(toNodeID) + " (" + Utility.ParseLongOptionalHex(pRes.properties.get("to-node")) + ")");
 	    }
 	    
 	    //Create a new Link, save it

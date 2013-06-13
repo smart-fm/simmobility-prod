@@ -97,7 +97,6 @@ public class Utility {
 			input = input.substring(2);
 			radix = 0x10;
 		}
-	
 		
 		return Long.parseLong(input, radix);
 	}

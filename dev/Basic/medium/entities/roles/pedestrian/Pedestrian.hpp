@@ -23,7 +23,7 @@ class Pedestrian : public sim_mob::Role {
 public:
 	int remainingTimeToComplete;
 
-	Pedestrian(Agent* parent) {}
+	Pedestrian(Agent* parent): Role(parent) {}
 	virtual ~Pedestrian() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const {

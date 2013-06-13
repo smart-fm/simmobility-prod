@@ -26,6 +26,7 @@ sim_mob::SubTrip sim_mob::xml::SubTrip_t_pimpl::post_SubTrip_t ()
 	model.startTime = temp->startTime;
 	model.endTime = temp->endTime;
 	model.sequenceNumber = temp->sequenceNumber;
+	model.requestTime = temp->requestTime;
 	////////////////////////////////////////////////
 
 	model.tripID = temp->tripID;

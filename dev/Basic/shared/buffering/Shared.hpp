@@ -26,10 +26,10 @@ enum MutexStrategy {
  * \author Seth N. Hetu
  * \author Xu Yan
  *
- * A Buffered datum handle multiple readers and a single writer without
+ * A Buffered datum handles multiple readers and a single writer without
  * locking. The "flip" method is used to update the current value after calling "set".
  *
- * A Locked datum handle multiple readers and a single writer through locking. The "set" and "get"
+ * A Locked datum handles multiple readers and a single writer through locking. The "set" and "get"
  *  methods ensure mutual exclusion. The "flip" method is an artifact of BufferedBase and does nothing.
  *
  * The spoken semantics of this template are sensible; for example:

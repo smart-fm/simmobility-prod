@@ -24,6 +24,8 @@
 #include "entities/AuraManager.hpp"
 #include "unit-tests/dao/DaoTests.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "util/Utils.hpp"
+#include "util/Math.hpp"
 
 using std::cout;
 using std::endl;
@@ -193,6 +195,14 @@ void perform_main() {
     entities.clear();
 }
 
+double f(double x){
+    return (x*x);
+}
+
+double d(double x){
+    return (2*x);
+}
+
 int main(int argc, char* argv[]) {
     Logger::log_init("");
     time_t now;
@@ -211,6 +221,7 @@ int main(int argc, char* argv[]) {
     LogOut("Long-term simulation complete. In " << diffTime << " seconds."
             << endl);
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
+     
     Logger::log_done();
     return 0;
 }

@@ -196,7 +196,7 @@ int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
 void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
     BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
     if (mapItr != bidsPerUnit.end()) {
-        (mapItr->second)++;
+        (mapItr->second)++ ;
     } else {
         bidsPerUnit.insert(BidCounterEntry(unitId, 1));
     }

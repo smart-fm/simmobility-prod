@@ -10,7 +10,6 @@
 #include "Utils.hpp"
 
 using namespace sim_mob;
-using namespace sim_mob::long_term;
 
 // Thread local random numbers. 
 boost::thread_specific_ptr<boost::mt19937> floatProvider;

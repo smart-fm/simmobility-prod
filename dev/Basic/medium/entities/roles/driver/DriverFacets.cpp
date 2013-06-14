@@ -102,6 +102,7 @@ void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 
 void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+	Print() << 'dynamic_cast result: ' << p2.now.frame() << std::endl;
 
 	const Lane* laneInfinity = nullptr;
 	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
@@ -456,6 +457,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 				<< "|canGoToNextRdSeg failed"
 				<< "|nextRdSeg: " << nextRdSeg->getStartEnd() << "|nextRdSeg id: " << nextRdSeg->getSegmentID()
 				<< "|lane: " << currLane->getLaneID()
+				<< "|nextLaneInNextSegment: " << nextLaneInNextSegment->getLaneID()
 				<< "|last Accept: "<< getLastAccept(nextLaneInNextSegment)
 				<< "|accept rate: "<< getAcceptRate(nextLaneInNextSegment)
 				<< "|elapsedSeconds: " << p.elapsedSeconds

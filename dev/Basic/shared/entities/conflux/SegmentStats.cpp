@@ -597,7 +597,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick() {
 void SegmentStats::printAgents() {
 	debugMsgs << "\nSegment " << "[" << roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
 			<< "|length " << roadSegment->computeLaneZeroLength() << std::endl;
-	std::cout << debugMsgs.str();
+	Print() << debugMsgs.str();
 	debugMsgs.str("");
 		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();

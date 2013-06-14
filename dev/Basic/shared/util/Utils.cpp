@@ -35,3 +35,30 @@ int Utils::GenerateInt(int min, int max) {
     boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > gen(*(intProvider.get()), distribution);
     return gen();
 }
+
+StopWatch::StopWatch() : now(0), end(0), running(false) {
+}
+
+void StopWatch::Start() {
+    if (!running) {
+        //get start time of the simulation.
+        time(&now);
+        running = true;
+    }
+
+
+}
+
+void StopWatch::Stop() {
+    if (running) {
+        time(&end);
+        running = false;
+    }
+}
+
+double StopWatch::GetTime() {
+    if (!running) {
+        return difftime(end, now);
+    }
+    return -1.0f;
+}

@@ -26,6 +26,7 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Utils.hpp"
 #include "util/Math.hpp"
+#include "util/Statistics.hpp"
 
 using std::cout;
 using std::endl;
@@ -141,7 +142,7 @@ void perform_main() {
     WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
     WorkGroup::InitAllGroups();
     agentWorkers->initWorkers(nullptr);
-    
+
     HousingMarket market;
     agentWorkers->assignAWorker(&market);
     //create all units.
@@ -177,17 +178,17 @@ void perform_main() {
 
     LogOut("Finalizing workgroups: " << endl);
     WorkGroup::FinalizeAllWorkGroups();
-    
+
     LogOut("Destroying agents: " << endl);
     //destroy all agents.
-    for (list<HouseholdAgent*>::iterator itr = agents.begin(); 
+    for (list<HouseholdAgent*>::iterator itr = agents.begin();
             itr != agents.end(); itr++) {
         HouseholdAgent* ag = *(itr);
         safe_delete_item(ag);
     }
     agents.clear();
-    
-    for (list<Household*>::iterator itr = entities.begin(); 
+
+    for (list<Household*>::iterator itr = entities.begin();
             itr != entities.end(); itr++) {
         Household* ag = *(itr);
         safe_delete_item(ag);
@@ -195,33 +196,22 @@ void perform_main() {
     entities.clear();
 }
 
-double f(double x){
-    return (x*x);
-}
-
-double d(double x){
-    return (2*x);
-}
-
 int main(int argc, char* argv[]) {
     Logger::log_init("");
-    time_t now;
-    time_t end;
-
+    StopWatch watch;
     //get start time of the simulation.
-    time(&now);
+    watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         LogOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
         perform_main();
     }
-    //get start time of the simulation.
-    time(&end);
-    double diffTime = difftime(end, now);
-    LogOut("Long-term simulation complete. In " << diffTime << " seconds."
+    watch.Stop();
+    LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
             << endl);
+    Statistics::Print();
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
-     
+
     Logger::log_done();
     return 0;
 }

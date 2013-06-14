@@ -13,6 +13,7 @@
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "util/Statistics.hpp"
 
 
 using namespace sim_mob;
@@ -83,6 +84,7 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                                 HouseholdBidderRole::OnWakeUp));
                         UnFollowMarket();
                         DeleteBidsCounter(unit->GetId());
+                        Statistics::Increment(Statistics::N_ACCEPTED_BIDS);
                     }
                     break;
                 }
@@ -99,9 +101,15 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                     DeleteBidsCounter(msg->GetBid().GetUnitId());
                     break;
                 }
+                case NOT_AVAILABLE:
+                {
+                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    break;
+                }
                 default:break;
             }
             waitingForResponse = false;
+            Statistics::Increment(Statistics::N_BID_RESPONSES);
             break;
         }
         default:break;
@@ -149,6 +157,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
             MessageReceiver* owner = dynamic_cast<MessageReceiver*> (unit->GetOwner());
             float bidValue = maxSurplus + CalculateWP(*unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
+                //Statistics::Increment(Statistics::N_BIDS);
                 owner->Post(LTMID_BID, GetParent(),
                         new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
                         GetParent(), bidValue, now)));

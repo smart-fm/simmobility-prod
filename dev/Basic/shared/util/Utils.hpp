@@ -33,4 +33,33 @@ namespace sim_mob {
          */
         static int GenerateInt(int min, int max);
     };
+
+    /**
+     * This class measures the running time of something.
+     */
+    class StopWatch {
+    public:
+        StopWatch();
+
+        /**
+         * Starts the watch.
+         */
+        void Start();
+
+        /**
+         * Stops the watch.
+         */
+        void Stop();
+        
+        /**
+         * Gets the time taken between the last Start-Stop call.
+         * @return time in seconds or -1 if the watch is running.
+         */
+        double GetTime();
+        
+    private:
+        time_t now;
+        time_t end;
+        volatile bool running;
+    };
 }

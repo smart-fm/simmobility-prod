@@ -9,7 +9,8 @@
 #include <math.h>
 #include "HouseholdSellerRole.hpp"
 #include "message/LT_Message.hpp"
-#include "agent/impl/HouseholdAgent.hpp" 
+#include "agent/impl/HouseholdAgent.hpp"
+#include "util/Statistics.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -87,7 +88,12 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
                     sender.Post(LTMID_BID_RSP, GetParent(),
                             new BidMessage(Bid(msg->GetBid()), NOT_ACCEPTED));
                 }
+            } else {
+                // Sellers is not the owner of the unit or unit is not available.
+                sender.Post(LTMID_BID_RSP, GetParent(),
+                        new BidMessage(Bid(msg->GetBid()), NOT_AVAILABLE));
             }
+            Statistics::Increment(Statistics::N_BIDS);
             break;
         }
         default:break;

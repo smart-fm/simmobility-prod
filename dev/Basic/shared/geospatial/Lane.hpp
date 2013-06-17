@@ -270,7 +270,7 @@ public:
         }
 
     ///Return the laneID.
-    ///NOTE: This will probably end up being the "tranlated" lane ID, instead of the "raw" lane ID.
+    ///NOTE: This will probably end up being the "translated" lane ID, instead of the "raw" lane ID.
     unsigned int getLaneID() const {
     	return laneID_;
     }

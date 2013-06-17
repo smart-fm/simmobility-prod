@@ -8,10 +8,14 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/BusController.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 
 #include "geospatial/Lane.hpp"
 #include "geospatial/Node.hpp"
@@ -39,6 +43,37 @@ void sim_mob::ActivityPerformer::packProxy(PackageUtils& packageUtil) {
 }
 
 void sim_mob::ActivityPerformer::unpackProxy(UnPackageUtils& unpackageUtil) {
+}
+
+/**
+ * Serialization for Class Pedestrain2
+ */
+void sim_mob::Pedestrian2::pack(PackageUtils& packageUtil) {
+}
+
+void sim_mob::Pedestrian2::unpack(UnPackageUtils& unpackageUtil) {
+}
+
+void sim_mob::Pedestrian2::packProxy(PackageUtils& packageUtil) {
+}
+
+void sim_mob::Pedestrian2::unpackProxy(UnPackageUtils& unpackageUtil) {
+}
+
+/**
+ * Serialization for Class BusController
+ */
+
+void sim_mob::BusController::pack(PackageUtils& packageUtil) {
+}
+
+void sim_mob::BusController::unpack(UnPackageUtils& unpackageUtil) {
+}
+
+void sim_mob::BusController::packProxy(PackageUtils& packageUtil) {
+}
+
+void sim_mob::BusController::unpackProxy(UnPackageUtils& unpackageUtil) {
 }
 
 /**
@@ -618,6 +653,115 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	targetLaneIndex = buffer;
 
 }
+
+/**
+ * Serialize Class DriverUpdateParams
+ */
+void DriverUpdateParams::pack(PackageUtils& package, const DriverUpdateParams* params) {
+
+	if (params == NULL)
+	{
+		bool is_NULL = true;
+		package << (is_NULL);
+		return;
+	}
+	else
+	{
+		bool is_NULL = false;
+		package << (is_NULL);
+	}
+
+//	package << (params->frameNumber);
+//	package << (params->currTimeMS);
+
+	sim_mob::Lane::pack(package, params->currLane);
+	package << (params->currLaneIndex);
+//	package << (params->fromLaneIndex);
+	sim_mob::Lane::pack(package, params->leftLane);
+	sim_mob::Lane::pack(package, params->rightLane);
+
+	package << (params->currSpeed);
+	package << (params->currLaneOffset);
+	package << (params->currLaneLength);
+//	package << (params->isTrafficLightStop);
+
+	package << (params->trafficSignalStopDistance);
+	package << (params->elapsedSeconds);
+	package << (params->perceivedFwdVelocity);
+	package << (params->perceivedLatVelocity);
+	package << (params->perceivedFwdVelocityOfFwdCar);
+	package << (params->perceivedLatVelocityOfFwdCar);
+	package << (params->perceivedAccelerationOfFwdCar);
+	package << (params->perceivedDistToFwdCar);
+
+	package << (params->laneChangingVelocity);
+	package << (params->isCrossingAhead);
+	package << (params->isApproachingToIntersection);
+	package << (params->crossingFwdDistance);
+
+	package << (params->space);
+	package << (params->a_lead);
+	package << (params->v_lead);
+	package << (params->space_star);
+	package << (params->distanceToNormalStop);
+
+	package << (params->dis2stop);
+	package << (params->isWaiting);
+
+	package << (params->justChangedToNewSegment);
+	package << (params->TEMP_lastKnownPolypoint);
+	package << (params->justMovedIntoIntersection);
+	package << (params->overflowIntoIntersection);
+}
+
+void DriverUpdateParams::unpack(UnPackageUtils& unpackage, DriverUpdateParams* params) {
+	bool is_NULL = false;
+	unpackage >> is_NULL;
+	if (is_NULL) {
+		return;
+	}
+
+//	unpackage >> params->frameNumber;
+//	unpackage >> params->currTimeMS;
+
+//	params->frameNumber = unpackage.unpackBasicData<double> ();
+//	params->currTimeMS = unpackage.unpackBasicData<double> ();
+
+	params->currLane = sim_mob::Lane::unpack(unpackage);
+	unpackage >> params->currLaneIndex;
+//	unpackage >> params->fromLaneIndex;
+	params->leftLane = sim_mob::Lane::unpack(unpackage);
+	params->rightLane = sim_mob::Lane::unpack(unpackage);
+
+	unpackage >> params->currSpeed;
+	unpackage >> params->currLaneOffset;
+	unpackage >> params->currLaneLength;
+//	unpackage >> params->isTrafficLightStop;
+
+//	params->currSpeed = unpackage.unpackBasicData<double> ();
+//	params->currLaneOffset = unpackage.unpackBasicData<double> ();
+//	params->currLaneLength = unpackage.unpackBasicData<double> ();
+//	params->isTrafficLightStop = unpackage.unpackBasicData<bool> ();
+
+	unpackage >> params->trafficSignalStopDistance;
+	unpackage >> params->elapsedSeconds;
+	unpackage >> params->perceivedFwdVelocity;
+	unpackage >> params->perceivedLatVelocity;
+	unpackage >> params->perceivedFwdVelocityOfFwdCar;
+	unpackage >> params->perceivedLatVelocityOfFwdCar;
+	unpackage >> params->perceivedAccelerationOfFwdCar;
+	unpackage >> params->perceivedDistToFwdCar;
+
+//	params->trafficSignalStopDistance = unpackage.unpackBasicData<double> ();
+//	params->elapsedSeconds = unpackage.unpackBasicData<double> ();
+//	params->perceivedFwdVelocity = unpackage.unpackBasicData<double> ();
+//	params->perceivedLatVelocity = unpackage.unpackBasicData<double> ();
+//	params->perceivedFwdVelocityOfFwdCar = unpackage.unpackBasicData<double> ();
+//	params->perceivedLatVelocityOfFwdCar = unpackage.unpackBasicData<double> ();
+//	params->perceivedAccelerationOfFwdCar = unpackage.unpackBasicData<double> ();
+//	params->perceivedDistToFwdCar = unpackage.unpackBasicData<double> ();
+}
+
 
 }
 

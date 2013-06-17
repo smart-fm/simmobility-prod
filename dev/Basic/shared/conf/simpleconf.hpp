@@ -91,6 +91,9 @@ public:
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 
+	///If empty, use the default provided in "xsi:schemaLocation".
+	std::string roadNetworkXsdSchemaFile;
+
 	DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.

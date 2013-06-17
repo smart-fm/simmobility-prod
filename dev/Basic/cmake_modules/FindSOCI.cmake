@@ -48,6 +48,7 @@ else ()
       ~/Library/Frameworks
       /Library/Frameworks
       /usr/local/lib
+      /usr/local/lib64
       /usr/lib
       /sw/lib
       /opt/local/lib

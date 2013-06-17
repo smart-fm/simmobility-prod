@@ -13,6 +13,7 @@
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 namespace sim_mob
 {
@@ -128,6 +129,7 @@ public:
 	void setDatabaseId(const std::string& databaseId) {
 		databaseID = databaseId;
 	}
+
 	// set Person's characteristics by some distribution
 	void setPersonCharacteristics();
 	// get boarding time secs for this person
@@ -144,6 +146,24 @@ public:
     std::vector<TripChainItem*>::iterator nextTripChainItem;
     //pointer to next subtrip in the current trip (if  current item is trip)
     std::vector<SubTrip>::const_iterator nextSubTrip;
+
+	double getRemainingTimeThisTick() const {
+		return remainingTimeThisTick;
+	}
+
+	void setRemainingTimeThisTick(double remainingTimeThisTick) {
+		this->remainingTimeThisTick = remainingTimeThisTick;
+	}
+
+    const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
+
+    enum Permission //to be renamed later
+    	{
+    		NONE=0,
+    		GRANTED,
+    		DENIED
+    	};
+    Permission canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -178,6 +198,9 @@ private:
     //to mark the first call to update function
     bool first_update_tick;
 
+    //Used by confluxes to move the person for his tick duration across link and sub-trip boundaries
+    double remainingTimeThisTick;
+
     ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;
@@ -199,6 +222,8 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 
 #endif
+
+	friend class Conflux;
 };
 
 }

@@ -2070,7 +2070,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
  */
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
-	//int upsegCtr;
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
@@ -2083,11 +2082,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		sim_mob::MultiNode* start = dynamic_cast<sim_mob::MultiNode*>((*it)->getStart());
 		sim_mob::MultiNode* end = dynamic_cast<sim_mob::MultiNode*>((*it)->getEnd());
 		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
-
-		if ((*it)->getSegments().empty()) {
-			//std::cout <<"ERROR_2907" <<std::endl;
-			//continue;
-		}
 
 		roadSegmentsAt[start].insert((*it)->getSegments().front());
 		roadSegmentsAt[end].insert((*it)->getSegments().back());
@@ -2117,7 +2111,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				if(lnk->getEnd() == (*i))
 				{
 					//NOTE: There will *only* be upstream segments in this case.
-			//		debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
+					//debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
 					upSegs = lnk->getSegments();
 					//downSegs = lnk->getRevSegments();
 					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
@@ -2126,7 +2120,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				else if (lnk->getStart() == (*i))
 				{
 					//NOTE: There will *only* be downstream segments in this case.
-			//		debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
+					//debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
 					//upSegs = lnk->getRevSegments();
 					downSegs = lnk->getSegments();
 					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
@@ -2140,24 +2134,15 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 					if((*segIt)->parentConflux == nullptr)
 					{
 						// assign only if not already assigned
-						//upsegCtr++;
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-			//			debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
+						//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
 						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment [" << (*segIt)->getStart()->getID() << "->" << (*segIt)->getEnd()->getID() << "]";
 						throw std::runtime_error(debugMsgs.str());
 					}
-				}
-
-				// create AgentKeeper for downstream segments by sending true for isDownstream
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = downSegs.begin();
-						segIt != downSegs.end(); segIt++)
-				{
-					conflux->segmentAgentsDownstream.insert(std::make_pair((*segIt), new SegmentStats(*segIt, true)));
-			//		debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tDownstream";
 				}
 
 			} // for

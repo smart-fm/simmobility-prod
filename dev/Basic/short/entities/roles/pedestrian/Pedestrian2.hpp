@@ -28,13 +28,15 @@
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 
-#include "PedestrianPathMover.hpp"
+#include "entities/roles/pedestrian/PedestrianPathMover.hpp"
+#include "Pedestrian2Facets.hpp"
 
 using std::vector;
 
 namespace sim_mob
 {
-
+class Pedestrian2Behavior;
+class Pedestrian2Movement;
 class PackageUtils;
 class UnPackageUtils;
 
@@ -68,49 +70,49 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
  */
 class Pedestrian2 : public sim_mob::Role {
 public:
-	Pedestrian2(Agent* parent, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
+	Pedestrian2(Agent* parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_med(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
+//	virtual void frame_init(UpdateParams& p);
+//	virtual void frame_tick(UpdateParams& p);
+//	virtual void frame_tick_med(UpdateParams& p);
+//	virtual void frame_tick_output(const UpdateParams& p);
+//	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	bool isOnCrossing() const;
+	//bool isOnCrossing() const;
 
 private:
-	//Movement-related variables
-	double speed;
-	double xVel;
-	double yVel;
-
-	const Signal* trafficSignal;
-	const Crossing* currCrossing;
-	int sigColor; //0-red, 1-yellow, 2-green
-
-	//For collisions
-	double xCollisionVector;
-	double yCollisionVector;
-	static double collisionForce;
-	static double agentRadius;
+//	//Movement-related variables
+//	double speed;
+//	double xVel;
+//	double yVel;
+//
+//	const Signal* trafficSignal;
+//	const Crossing* currCrossing;
+//	int sigColor; //0-red, 1-yellow, 2-green
+//
+//	//For collisions
+//	double xCollisionVector;
+//	double yCollisionVector;
+//	static double collisionForce;
+//	static double agentRadius;
 
 	//The following methods are to be moved to agent's sub-systems in future
-	void setSubPath();
-	void updatePedestrianSignal();
-	void checkForCollisions();
-	bool checkGapAcceptance();
+//	void setSubPath();
+//	void updatePedestrianSignal();
+//	void checkForCollisions();
+//	bool checkGapAcceptance();
 
-	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
-	PedestrianPathMover pedMovement;
-
-	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
-	bool isUsingGenPathMover;
+//	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
+//	PedestrianPathMover pedMovement;
+//
+//	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
+//	bool isUsingGenPathMover;
 
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.

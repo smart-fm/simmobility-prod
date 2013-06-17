@@ -22,7 +22,10 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/AuraManager.hpp"
-#include "agent/LT_Agent.hpp"
+#include "unit-tests/dao/DaoTests.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
+#include "util/Utils.hpp"
+#include "util/Math.hpp"
 
 using std::cout;
 using std::endl;
@@ -34,7 +37,7 @@ using namespace sim_mob::long_term;
 
 //Current software version.
 const string SIMMOB_VERSION = string(
-        SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+        SIMMOB_VERSION_MAJOR) + "." + SIMMOB_VERSION_MINOR;
 
 //Start time of program
 timeval start_time;
@@ -107,18 +110,25 @@ int TEST_HH [][4] = {
     {11, 145, 1948, 30}
 };
 
-float UNIT_FIXED_COST = 1.0f;
+float UNIT_FIXED_COST = 0.1f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 1000
+#define MAX_ITERATIONS 1
 #define TICK_STEP 1
 #define DAYS 365
-#define WORKERS 4
+#define WORKERS 2
 #define DATA_SIZE 30
 
+/**
+ * Runs all unit-tests.
+ */
+void RunTests() {
+    unit_tests::DaoTests tests;
+    tests.TestAll();
+}
 
 void perform_main() {
-    
+
     LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
@@ -126,7 +136,7 @@ void perform_main() {
     ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
     ConfigParams::GetInstance().defaultWrkGrpAssignment =
             WorkGroup::ASSIGN_ROUNDROBIN;
-    
+
     //Work Group specifications
     WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
     WorkGroup::InitAllGroups();
@@ -135,28 +145,33 @@ void perform_main() {
     HousingMarket market;
     agentWorkers->assignAWorker(&market);
     //create all units.
-    list<LT_Agent*> agents;
+    list<HouseholdAgent*> agents;
+    list<Household*> entities;
     //create all households.
     for (int i = 0; i < DATA_SIZE; i++) {
-        LT_Agent* hh = new LT_Agent((TEST_HH[i][0]), &market,
-                TEST_HH[i][1], TEST_HH[i][2]);
+        Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
+        LogOut("Household: " << (*hh) << endl);
+        HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
+        //LogOut("Household: " << (*hh) << endl);
         //add agents units.
         for (int j = 0; j < DATA_SIZE; j++) {
             if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
                 Unit* unit = new Unit((TEST_UNITS[j][0]), true,
                         UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
-                hh->AddUnit(unit);
+                hhAgent->AddUnit(unit);
+                LogOut("Unit: " << (*unit) << endl);
             }
         }
-        agents.push_back(hh);
-        agentWorkers->assignAWorker(hh);
+        agents.push_back(hhAgent);
+        agentWorkers->assignAWorker(hhAgent);
+        entities.push_back(hh);
     }
     //Start work groups and all threads.
     WorkGroup::StartAllWorkGroups();
 
     LogOut("Started all workgroups." << endl);
     for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-        LogOut("Time: " << currTick << endl);
+        LogOut("Day: " << currTick << endl);
         WorkGroup::WaitAllGroups();
     }
 
@@ -165,12 +180,27 @@ void perform_main() {
     
     LogOut("Destroying agents: " << endl);
     //destroy all agents.
-    for (list<LT_Agent*>::iterator itr = agents.begin(); 
+    for (list<HouseholdAgent*>::iterator itr = agents.begin(); 
             itr != agents.end(); itr++) {
-        LT_Agent* ag = *(itr);
+        HouseholdAgent* ag = *(itr);
         safe_delete_item(ag);
     }
     agents.clear();
+    
+    for (list<Household*>::iterator itr = entities.begin(); 
+            itr != entities.end(); itr++) {
+        Household* ag = *(itr);
+        safe_delete_item(ag);
+    }
+    entities.clear();
+}
+
+double f(double x){
+    return (x*x);
+}
+
+double d(double x){
+    return (2*x);
 }
 
 int main(int argc, char* argv[]) {
@@ -182,6 +212,7 @@ int main(int argc, char* argv[]) {
     time(&now);
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         LogOut("Simulation #:  " << (i + 1) << endl);
+        //RunTests();
         perform_main();
     }
     //get start time of the simulation.
@@ -190,6 +221,7 @@ int main(int argc, char* argv[]) {
     LogOut("Long-term simulation complete. In " << diffTime << " seconds."
             << endl);
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
+     
     Logger::log_done();
     return 0;
 }

@@ -310,3 +310,10 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	}
 	return laneEdgePolylines_cached[laneID];
 }
+
+
+std::string sim_mob::RoadSegment::getStartEnd() const {
+	std::stringstream startEndIDs;
+	startEndIDs << "[" << getStart()->getID() << "," << getEnd()->getID() << "]";
+	return startEndIDs.str();
+}

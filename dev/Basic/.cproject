@@ -165,6 +165,7 @@
 			<target name="CMake [D.1] Short" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>cmake</buildCommand>
 				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
+				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>
@@ -215,4 +216,5 @@
 			</target>
 		</buildTargets>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

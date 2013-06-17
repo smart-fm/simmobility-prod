@@ -134,6 +134,11 @@ void sim_mob::PartitionManager::loadInBoundarySegment(string boundary_segment_id
 	boundary_processor->loadInBoundarySegment(boundary_segment_id, boundary);
 }
 
+void sim_mob::PartitionManager::setBoundaryProcessor(BoundaryProcessor* boundary_tool)
+{
+	boundary_processor = boundary_tool;
+}
+
 //void sim_mob::PartitionManager::updateRandomSeed()
 //{
 //	std::vector<Entity*> all_agents = Agent::all_agents;

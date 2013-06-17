@@ -687,11 +687,10 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	if(person) {
 		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		if(rdSeg) {
-			ag->setCurrSegment(rdSeg);
-			rdSeg->getParentConflux()->addAgent(ag);
+			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
 		else {
-			std::cout << "\n Agent ID: " << ag->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
+			std::cout << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
 		}
 	}
 }
@@ -716,7 +715,14 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
 	}
 	else if (role == "busdriver") {
-		throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
+		vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
+		std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
+		std::vector<const RoadSegment*>::iterator itor;
+		for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
+			path.push_back(WayPoint(*itor));
+		}
 	}
 
 	/*
@@ -727,8 +733,15 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	if(path.size() > 0) {
 		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
 		 // you will get into.
-		if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-			rdSeg = path.at(1).roadSegment_;
+		if (role == "busdriver") {
+			if(path[0].type_ == WayPoint::ROAD_SEGMENT) {
+			rdSeg = path.at(0).roadSegment_;
+			}
+		}
+		else {
+			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+				rdSeg = path.at(1).roadSegment_;
+			}
 		}
 	}
 

@@ -107,10 +107,15 @@ Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
-	,Signal(node,mtxStrat,id)
+  :  Signal(node,mtxStrat,id)
 	/*, node_(node)*/
 {
+	tempLoop = 0;
+	loopDetector_ = new LoopDetectorEntity(*this, mtxStrat);
+	tempLoop = loopDetector_;
+	std::cout << "Created loopdetectorEntity[" << loopDetector_ << "]" << std::endl;
+
+
 	setSignalType(type_);
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
@@ -485,7 +490,7 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 	isNewCycle = false;
 
 
-	buffer_output(now, "");
+//	buffer_output(now, "");
 	//outputTrafficLights(now,"");
 
 
@@ -514,7 +519,8 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 		newCycleUpdate();
 		initializePhases();
 	}
-
+	//and now deliver your efforts to the destination:
+	buffer_output(now, "");
 //	outputToVisualizer(frameNumber);
 //Not mine, don't know much about what benefit it has to the outside world
 	return UpdateStatus::Continue;

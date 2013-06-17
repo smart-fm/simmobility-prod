@@ -106,7 +106,8 @@ public:
    virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
    virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
    void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
-   bool frame_init(timeslice){}
+   //xuyan: no return here
+   bool frame_init(timeslice){return false;}
    sim_mob::Entity::UpdateStatus frame_tick(timeslice){ return UpdateStatus::Continue; }
    void frame_output(timeslice){}
 
@@ -128,6 +129,7 @@ class Signal_SCATS  : public sim_mob::Signal {
 	friend class sim_mob::xml::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
+void *tempLoop;
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/

@@ -13,7 +13,7 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 BidMessage::BidMessage(const Bid& bid)
-: bid(bid), response(NOT_AVAILABLE) {
+: bid(bid), response(NOT_ACCEPTED) {
 }
 
 BidMessage::BidMessage(const Bid& bid, BidResponse response)

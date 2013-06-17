@@ -59,7 +59,7 @@ public:
 	 * in the xml reader too.
 	 */
 	enum ItemType {
-		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM
 	};
 
 	std::string personID;//replaces entityID
@@ -67,11 +67,12 @@ public:
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
+	int requestTime;
 
 	//TripChainItem();
 	TripChainItem(std::string entId= "", std::string type="Trip",
 				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-				unsigned int seqNumber=0);
+				unsigned int seqNumber=0, int requestTime=-1);
 	virtual ~TripChainItem() {}
 
 	static LocationType getLocationType(std::string locType);
@@ -118,10 +119,10 @@ public:
 	WayPoint toLocation;
 	TripChainItem::LocationType toLocationType;
 
-	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0,
+	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-			std::string tripId = "", void* from=nullptr, std::string fromLocType="node",
-			void* to=nullptr, std::string toLocType="node");
+			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
+			Node* to=nullptr, std::string toLocType="node");
 	virtual ~Trip() {}
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -155,9 +156,9 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), void* from=nullptr,
-			std::string fromLocType="node", void* to=nullptr, std::string toLocType="node",
+	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	const std::string getMode() const ;
 //	{

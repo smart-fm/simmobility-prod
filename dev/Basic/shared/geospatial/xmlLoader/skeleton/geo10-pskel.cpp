@@ -1673,6 +1673,12 @@ namespace sim_mob
     }
 
     void TripChainItem_t_pskel::
+    requestTime_parser (::xml_schema::integer_pskel& p)
+    {
+      this->requestTime_parser_ = &p;
+    }
+
+    void TripChainItem_t_pskel::
     startTime_parser (::xml_schema::string_pskel& p)
     {
       this->startTime_parser_ = &p;
@@ -1688,12 +1694,14 @@ namespace sim_mob
     parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
+             ::xml_schema::integer_pskel& requestTime,
              ::xml_schema::string_pskel& startTime,
              ::xml_schema::string_pskel& endTime)
     {
       this->personID_parser_ = &personID;
       this->itemType_parser_ = &itemType;
       this->sequenceNumber_parser_ = &sequenceNumber;
+      this->requestTime_parser_ = &requestTime;
       this->startTime_parser_ = &startTime;
       this->endTime_parser_ = &endTime;
     }
@@ -1703,6 +1711,7 @@ namespace sim_mob
     : personID_parser_ (0),
       itemType_parser_ (0),
       sequenceNumber_parser_ (0),
+      requestTime_parser_ (0),
       startTime_parser_ (0),
       endTime_parser_ (0)
     {
@@ -1751,6 +1760,7 @@ namespace sim_mob
     parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
+             ::xml_schema::integer_pskel& requestTime,
              ::xml_schema::string_pskel& startTime,
              ::xml_schema::string_pskel& endTime,
              ::xml_schema::integer_pskel& tripID,
@@ -1763,6 +1773,7 @@ namespace sim_mob
       this->personID_parser_ = &personID;
       this->itemType_parser_ = &itemType;
       this->sequenceNumber_parser_ = &sequenceNumber;
+      this->requestTime_parser_ = &requestTime;
       this->startTime_parser_ = &startTime;
       this->endTime_parser_ = &endTime;
       this->tripID_parser_ = &tripID;
@@ -1809,6 +1820,7 @@ namespace sim_mob
     parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
+             ::xml_schema::integer_pskel& requestTime,
              ::xml_schema::string_pskel& startTime,
              ::xml_schema::string_pskel& endTime,
              ::xml_schema::integer_pskel& tripID,
@@ -1824,6 +1836,7 @@ namespace sim_mob
       this->personID_parser_ = &personID;
       this->itemType_parser_ = &itemType;
       this->sequenceNumber_parser_ = &sequenceNumber;
+      this->requestTime_parser_ = &requestTime;
       this->startTime_parser_ = &startTime;
       this->endTime_parser_ = &endTime;
       this->tripID_parser_ = &tripID;
@@ -1909,6 +1922,7 @@ namespace sim_mob
     parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::TripchainItemType_pskel& itemType,
              ::xml_schema::unsigned_int_pskel& sequenceNumber,
+             ::xml_schema::integer_pskel& requestTime,
              ::xml_schema::string_pskel& startTime,
              ::xml_schema::string_pskel& endTime,
              ::xml_schema::string_pskel& description,
@@ -1921,6 +1935,7 @@ namespace sim_mob
       this->personID_parser_ = &personID;
       this->itemType_parser_ = &itemType;
       this->sequenceNumber_parser_ = &sequenceNumber;
+      this->requestTime_parser_ = &requestTime;
       this->startTime_parser_ = &startTime;
       this->endTime_parser_ = &endTime;
       this->description_parser_ = &description;
@@ -1946,7 +1961,7 @@ namespace sim_mob
     //
 
     void TripChain_t_pskel::
-    personID_parser (::xml_schema::integer_pskel& p)
+    personID_parser (::xml_schema::string_pskel& p)
     {
       this->personID_parser_ = &p;
     }
@@ -1964,7 +1979,7 @@ namespace sim_mob
     }
 
     void TripChain_t_pskel::
-    parsers (::xml_schema::integer_pskel& personID,
+    parsers (::xml_schema::string_pskel& personID,
              ::sim_mob::xml::Trip_t_pskel& Trip,
              ::sim_mob::xml::Activity_t_pskel& Activity)
     {
@@ -2132,14 +2147,14 @@ namespace sim_mob
     }
 
     void ColorDuration_t_pskel::
-    Duration_parser (::xml_schema::short_pskel& p)
+    Duration_parser (::xml_schema::unsigned_byte_pskel& p)
     {
       this->Duration_parser_ = &p;
     }
 
     void ColorDuration_t_pskel::
     parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
-             ::xml_schema::short_pskel& Duration)
+             ::xml_schema::unsigned_byte_pskel& Duration)
     {
       this->TrafficColor_parser_ = &TrafficColor;
       this->Duration_parser_ = &Duration;
@@ -6695,6 +6710,11 @@ namespace sim_mob
     }
 
     void TripChainItem_t_pskel::
+    requestTime (long long)
+    {
+    }
+
+    void TripChainItem_t_pskel::
     startTime (const ::std::string&)
     {
     }
@@ -6740,6 +6760,16 @@ namespace sim_mob
 
         if (this->sequenceNumber_parser_)
           this->sequenceNumber_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "requestTime" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->requestTime_parser_;
+
+        if (this->requestTime_parser_)
+          this->requestTime_parser_->pre ();
 
         return true;
       }
@@ -6794,6 +6824,17 @@ namespace sim_mob
       {
         if (this->sequenceNumber_parser_)
           this->sequenceNumber (this->sequenceNumber_parser_->post_unsigned_int ());
+
+        return true;
+      }
+
+      if (n == "requestTime" && ns.empty ())
+      {
+        if (this->requestTime_parser_){
+        	long long val = this->requestTime_parser_->post_integer ();
+        	std::cout << val << std::endl;
+          this->requestTime (val);
+        }
 
         return true;
       }
@@ -7305,7 +7346,7 @@ namespace sim_mob
     //
 
     void TripChain_t_pskel::
-    personID (long long)
+    personID (const ::std::string&)
     {
     }
 
@@ -7372,7 +7413,7 @@ namespace sim_mob
       if (n == "personID" && ns.empty ())
       {
         if (this->personID_parser_)
-          this->personID (this->personID_parser_->post_integer ());
+          this->personID (this->personID_parser_->post_string ());
 
         return true;
       }
@@ -7747,7 +7788,7 @@ namespace sim_mob
     }
 
     void ColorDuration_t_pskel::
-    Duration (short)
+    Duration (unsigned char)
     {
     }
 
@@ -7802,7 +7843,7 @@ namespace sim_mob
       if (n == "Duration" && ns.empty ())
       {
         if (this->Duration_parser_)
-          this->Duration (this->Duration_parser_->post_short ());
+          this->Duration (this->Duration_parser_->post_unsigned_byte ());
 
         return true;
       }

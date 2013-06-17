@@ -72,6 +72,7 @@ private:
 	int port;
 	int updateTiming;
 	int frameTicks;
+	Msg_Vehicle_Init msgVehInit;
 
 private:
 	static FMODController* pInstance;

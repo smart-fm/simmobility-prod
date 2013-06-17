@@ -224,7 +224,7 @@ void FMODController::HandleScheduleMessage(std::string msg)
 
 void FMODController::HandleVehicleInit(std::string msg)
 {
-
+	msgVehInit.CreateMessage(msg);
 }
 
 

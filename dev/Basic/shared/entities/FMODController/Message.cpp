@@ -56,6 +56,7 @@ void Msg_Vehicle_Init::CreateMessage(std::string msg)
 
 	Json::Value arrVeh;
 	arrVeh = root["supply"];
+	vehicles.clear();
 	for(int i=0; i<arrVeh.size(); i++)
 	{
 		Json::Value item = arrVeh[i];

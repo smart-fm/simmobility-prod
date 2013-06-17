@@ -82,9 +82,6 @@ namespace sim_mob {
      *      defaultQueries[GET_BY_ID] = SELECT * FROM..WHERE..";
      * NOTE: all parameters values for prepared statements are used like "field = :myfield"
      * 
-     * Optional:
-     *  - Operator<< defined
-     *  - Friendship to the concrete Dao. (nice to have)
      * 
      * Attention: The given connection is not managed by the DAO implementation.
      * 

@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include <boost/unordered_map.hpp>
 #include "database/entity/Bid.hpp"
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
@@ -67,7 +68,7 @@ namespace sim_mob {
              */
             void AdjustNotSelledUnits();
         private:
-            typedef map<UnitId, Bid> Bids; 
+            typedef boost::unordered_map<UnitId, Bid> Bids; 
             typedef pair<UnitId, Bid> BidEntry;
             friend class HouseholdAgent;
             HousingMarket* market;

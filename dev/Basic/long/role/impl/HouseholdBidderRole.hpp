@@ -7,6 +7,7 @@
  * Created on May 16, 2013, 5:13 PM
  */
 #pragma once
+#include <boost/unordered_map.hpp>
 #include "role/LT_Role.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
@@ -144,7 +145,7 @@ namespace sim_mob {
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
-            typedef map<UnitId, int> BidsCounterMap; // bids made per unit.  
+            typedef boost::unordered_map<UnitId, int> BidsCounterMap; // bids made per unit.  
             typedef pair<UnitId, int> BidCounterEntry;
             BidsCounterMap bidsPerUnit;
         };

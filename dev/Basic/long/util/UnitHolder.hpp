@@ -7,15 +7,14 @@
  * Created on March 12, 2013, 2:36 PM
  */
 #pragma once
-#include <map>
+#include <boost/unordered_map.hpp>
 #include <list>
 #include "database/entity/Unit.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
-
-        using std::map;
+        
         using std::pair;
         using std::list;
 
@@ -106,7 +105,7 @@ namespace sim_mob {
             
         private:
             typedef pair<UnitId, Unit*> HoldingUnitsEntry;
-            typedef map<UnitId, Unit*> HoldingUnits;
+            typedef boost::unordered_map<UnitId, Unit*> HoldingUnits;
             HoldingUnits holdingUnits;
             int id;
             mutable shared_mutex unitsListMutex;

@@ -1,10 +1,10 @@
-from geo.formats import sumo
+import geo.formats.sumo
 from lxml import objectify
 
 
-def parse(inFileName :str) -> sumo.RoadNetwork:
+def parse(inFileName :str) -> geo.formats.sumo.RoadNetwork:
   '''Parse a SUMO network file.'''
-  rn = sumo.RoadNetwork()
+  rn = geo.formats.sumo.RoadNetwork()
 
   #Open, parse, 
   inFile = open(inFileName)
@@ -27,21 +27,21 @@ def parse(inFileName :str) -> sumo.RoadNetwork:
   return rn
 
 
-def __parse_junction(j, rn :sumo.RoadNetwork):
+def __parse_junction(j, rn :geo.formats.sumo.RoadNetwork):
     #Add a new Junction
-    res = sumo.Junction(j.get('id'), j.get('x'), j.get('y'))
+    res = geo.formats.sumo.Junction(j.get('id'), j.get('x'), j.get('y'))
     rn.junctions[res.jnctId] = res
 
 
-def __parse_edge(e, rn :sumo.RoadNetwork):
+def __parse_edge(e, rn :geo.formats.sumo.RoadNetwork):
     #Add a new edge
-    res = sumo.Edge(e.get('id'), rn.nodes[e.get('from')], rn.nodes[e.get('to')])
+    res = geo.formats.sumo.Edge(e.get('id'), rn.junctions[e.get('from')], rn.junctions[e.get('to')])
     rn.edges[res.edgeId] = res
 
     #Add child Lanes
     laneTags = e.xpath("lane")
     for l in laneTags:
-      newLane = sumo.Lane(l.get('id'), sumo.Shape(l.get('shape')))
+      newLane = geo.formats.sumo.Lane(l.get('id'), geo.formats.sumo.Shape(l.get('shape')))
       res.lanes.append(newLane)
 
 

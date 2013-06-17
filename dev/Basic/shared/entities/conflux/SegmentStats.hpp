@@ -10,7 +10,7 @@
 
 namespace sim_mob {
 
-struct cmp_person_remainingTimeThisTick : public std::greater_equal<Person*> {
+struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
 
@@ -49,10 +49,13 @@ public:
 
 	LaneStats(const sim_mob::Lane* laneInSegment, bool isLaneInfinity = false) :
 		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
+	~LaneStats() {
+		safe_delete_item(laneParams);
+	}
 
 	void addPerson(sim_mob::Person* p);
 	void updateQueueStatus(sim_mob::Person* p);
-	void removePerson(sim_mob::Person* p);
+	void removePerson(sim_mob::Person* p, bool wasQueuing);
 	void clear();
 	sim_mob::Person* dequeue();
 	unsigned int getQueuingAgentsCount();
@@ -144,12 +147,17 @@ private:
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
+	~SegmentStats() {
+		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
+			safe_delete_item(i->second);
+		}
+	}
 
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
 	void absorbAgents(sim_mob::SegmentStats* segStats);
-	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag);
+	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
@@ -185,6 +193,7 @@ public:
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
 	void sortPersons_DecreasingRemTime(const Lane* l);
+	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment
 	void printAgents();

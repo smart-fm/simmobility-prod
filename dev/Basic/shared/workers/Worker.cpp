@@ -443,6 +443,10 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	}
 #else
 
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		(*it)->resetOutputBounds();
+	}
 	//All workers perform the same tasks for their set of managedConfluxes.
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{

@@ -1,14 +1,14 @@
 from geo.LatLongUTMconversion import LLtoUTM
 from geo.LatLongUTMconversion import UTMtoLL
 from geo.position import Point
-from geo.position import DynVect
-from geo.formats import simmob
+from geo.position import Location
+import geo.formats.simmob
 import math
 
 #Assert that all values are non-null
-def assert_non_null(msg, *args):
+def assert_non_null(*args, msg="Unexpected null value"):
   for arg in args:
-    if not arg:
+    if arg is None:
       raise Exception(msg)
 
 #Convert a dictionary's key/value pairs to lowercase
@@ -32,8 +32,8 @@ def dist(m, n):
     n = n.pos
 
   #Calc distance
-  dx = n.x - m.x;
-  dy = n.y - m.y;
+  dx = float(n.x) - m.x;
+  dy = float(n.y) - m.y;
   return math.sqrt(dx**2 + dy**2)
 
 
@@ -55,43 +55,93 @@ def get_line_dist(first, second):
   return abs(sB-fB) / math.sqrt(m**2 + 1)
 
 
-#Project coordinates (TODO: currently very rigid)
-def project_coords(wgsRev, utmZone, lat, lon):
-  #Make sure we have both params, convert to float.
-  if not (lat and lon):
-    raise Exception('lat/lon required in project_coords')
-  lat = float(lat)
-  lon = float(lon)
+#Project coordinates using WGS 84.
+# Pass a non-nil "zone" to ensure that this point was transformed using that Zone (this is also returned)
+# It should be obvious that transforming points that reside in different zones is a bad idea.
+def project_wgs84(lat, lng, zone):
+  #Convenience constant
+  WGS_Id = 23 #WGS 84
 
-  #Make sure they are using the latest standard
-  if (wgsRev.replace(' ', '') != 'WGS84'):
-    raise Exception('Deprecated WGS specification (only WGS 84 supported)')
+  #Make sure we have both params, convert to float. 
+  assert_non_null(lat, lng, msg="Lat/Lng required in project_coords")
 
-  #Now, perform the projection. Make sure our result matches our expectations.
-  (resZone, x, y) = LLtoUTM(23, lat, lon)
-  if (utmZone.replace(' ', '') != "UTM"+resZone.replace(' ', '')):
-    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,utmZone))
+  #Now, perform the projection, and make sure it maches our expected zone.
+  (resZone, x, y) = LLtoUTM(WGS_Id, float(lat), float(lng))
+  if zone and (resZone != zone):
+    raise Exception('Resultant UTM zone (%s) does not match expected zone (%s).' % (resZone,zone))
 
-  #All is good; return a Point
-  return Point(x,y)
+  #All is good; return a Point and the zone is resides in.
+  return (Point(x,y), resZone)
 
 
-def remove_unused_nodes(nodes, segments):
+#Get the minimum Point (x,y) in this network.
+def get_global_min(rn :geo.formats.simmob.RoadNetwork) ->Point:
+  globMin = None
+  
+  #Find every "point" and test it.
+  for nd in rn.nodes.values():
+    if not globMin:
+      globMin = Point(nd.pos.x, nd.pos.y)
+    globMin.x = min(globMin.x, nd.pos.x)
+    globMin.y = min(globMin.y, nd.pos.y)
+  for lnk in rn.links.values():
+    for sg in lnk.segments:
+      for ln in sg.lanes:
+        for pt in ln.polyline:
+          globMin.x = min(globMin.x, pt.x)
+          globMin.y = min(globMin.y, pt.y)
+      for le in sg.lane_edges:
+        for pt in le.polyline:
+          globMin.x = min(globMin.x, pt.x)
+          globMin.y = min(globMin.y, pt.y)
+  return globMin
+
+
+#Translate every point by (x,y), ignoring x or y if either is >=0
+def translate_network(rn :geo.formats.simmob.RoadNetwork, transPt :Point):
+  #Mutate our input value.
+  if transPt.x>0:
+    transPt.x = 0
+  if transPt.y>0:
+    transPt.y = 0
+  if (transPt.x==0) and (transPt.y==0):
+    return
+
+  #Find every "point" and translate it.
+  for nd in rn.nodes.values():
+    nd.pos.x -= transPt.x
+    nd.pos.y -= transPt.y
+  for lnk in rn.links.values():
+    for sg in lnk.segments:
+      for ln in sg.lanes:
+        for pt in ln.polyline:
+          pt.x -= transPt.x
+          pt.y -= transPt.y
+      for le in sg.lane_edges:
+        for pt in le.polyline:
+          pt.x -= transPt.x
+          pt.y -= transPt.y
+
+
+
+def remove_unused_nodes(nodes, links):
   '''This function counts the number of RoadSegments which reference a Node. If it's zero, that 
      Node is pruned.
   '''
 
+  #Note: I *think* that using "node" (not ID) as a key will work here.
   nodesAt = {} #node => [segment, segment,]
-  for s in segments.values():
-    #Add it if it doesn't exist.
-    if not s.fromNode in nodesAt:
-      nodesAt[s.fromNode] = []
-    if not s.toNode in nodesAt:
-      nodesAt[s.toNode] = []
+  for lnk in links.values():
+    for s in lnk.segments:
+      #Add it if it doesn't exist.
+      if not s.fromNode in nodesAt:
+        nodesAt[s.fromNode] = []
+      if not s.toNode in nodesAt:
+        nodesAt[s.toNode] = []
 
     #Increment
-    nodesAt[e.fromNode].append(e)
-    nodesAt[e.toNode].append(e)
+    nodesAt[s.fromNode].append(s)
+    nodesAt[s.toNode].append(s)
 
   #We can cheat a little here: Nodes with no references won't even be in our result set.
   nodes.clear()
@@ -117,6 +167,18 @@ def __mostly_parallel(first, second):
   return abs(mFirst-mSecond) < Cutoff
 
 
+def get_lane_widths(lane_edges):
+  '''Retrieve the width of each lane based on lane edges.'''
+  res = []
+  prevLE = None
+  for le in lane_edges:
+    if prevLE:
+      #Just the starting points should be sufficient.
+      res.append(geo.helper.dist(prevLE[0], le[0]))
+    prevLE = le
+  return res
+
+
 #Expand lanes halfway in each direction to make lane edges.
 #NOTE: This function assumes that the Segment's line is roughly 1/2 a lane's 
 #      distance from lane line 0, and is (somewhat) parallel.
@@ -134,23 +196,24 @@ def make_lane_edges_from_lane_lines(seg, global_id):
 
   #Now that we know the lines are parallel, get the distance between them. This should be half the lane width
   halfW = get_line_dist(refLine, zeroLine)
+  halfW = 3.5*100 / 2 #Temp; we're getting very narrow lanes otherwise.
 
   #Add lane 0 shifted RIGHT to give us lane edge zero
   zeroStart = DynVect(zeroLine[0], zeroLine[1])
   zeroStart.rotateRight().scaleVectTo(halfW).translate()
   zeroEnd = DynVect(zeroLine[1], zeroLine[0])
   zeroEnd.rotateLeft().scaleVectTo(halfW).translate()
-  seg.lane_edges.append(simmob.LaneEdge(global_id.next(), 0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
+  seg.lane_edges.append(geo.formats.simmob.LaneEdge(0, seg, [zeroStart.getPos(), zeroEnd.getPos()]))
 
   #Now just shift each lane left to make our lane edges.
   lnEdNum = 1
-  for i in range(len(lanes)):
-    currLine = [e.lanes[i].shape.points[0],e.lanes[i].shape.points[-1]]
+  for i in range(len(seg.lanes)):
+    currLine = [seg.lanes[i].polyline[0],seg.lanes[i].polyline[-1]]
     currStart = DynVect(currLine[0], currLine[1])
     currStart.rotateLeft().scaleVectTo(halfW).translate()
     currEnd = DynVect(currLine[1], currLine[0])
     currEnd.rotateRight().scaleVectTo(halfW).translate()
-    seg.lane_edges.append(simmob.LaneEdge(global_id.next(), lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
+    seg.lane_edges.append(geo.formats.simmob.LaneEdge(lnEdNum, seg, [currStart.getPos(), currEnd.getPos()]))
     lnEdNum += 1
 
 
@@ -172,6 +235,8 @@ def make_lane_connectors(rn):
 
   #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
   for n in rn.nodes.values():
+    if not n.nodeId in lookup:
+      continue
     for fromEdge in lookup[n.nodeId].incoming:
       for toEdge in lookup[n.nodeId].outgoing:
         if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
@@ -180,7 +245,14 @@ def make_lane_connectors(rn):
         #The looping gets even deeper!
         for fromLaneID in range(len(fromEdge.lanes)):
           for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+            rn.turnings.append(geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+
+
+#Helper for remembering incoming and outgoing Segments at a given Node.
+class InOut:
+  def __init__(self):
+    self.incoming = []
+    self.outgoing = []
 
 
 #Helper class for generating unique IDs
@@ -189,38 +261,55 @@ class IdGenerator:
     self.currVal = initVal-1 #Because of how we increment
 
   #Get the next assignable ID (and increment).
-  def next(self) => str:
+  def next(self) -> str:
     self.currVal += 1
     return str(self.currVal)
 
 
 #Helper class for UTM scaling
 class ScaleHelper:
-  def __init__(self):
-    self.bounds = [None, None, None, None] #minX,minY,maxX,maxY
-    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
+  def __init__(self, outBounds):
+    self.outBounds = outBounds #minLocation, maxLocation of output
+    self.inBounds = [None, None] #minPoint, maxPoint of input
+#    self.center = project_coords('WGS 84', 'UTM 48N', 1.305, 103.851)  #Singapore, roughly
 
   #Add a point to the bounds
   def add_point(self, pt):
-    self.bounds[0] = min(x for x in [pt.x, self.bounds[0]] if x is not None)
-    self.bounds[1] = min(y for y in [pt.y, self.bounds[1]] if y is not None)
-    self.bounds[2] = max(x for x in [pt.x, self.bounds[2]] if x is not None)
-    self.bounds[3] = max(y for y in [pt.y, self.bounds[3]] if y is not None)
+    if not self.inBounds[0]:
+      self.inBounds[0] = Point(pt.x, pt.y)
+    if not self.inBounds[1]:
+      self.inBounds[1] = Point(pt.x, pt.y)
+
+    #Update
+    self.inBounds[0].x = min(self.inBounds[0].x, pt.x)
+    self.inBounds[0].y = min(self.inBounds[0].y, pt.y)
+    self.inBounds[1].x = max(self.inBounds[1].x, pt.x)
+    self.inBounds[1].y = max(self.inBounds[1].y, pt.y)
 
   #Convert a point to lat/long
-  def convert(self, pt):
-    #Convert this point to an offset "relative" to the center of the bounds, then add this to our UTM center.
-    offset = Point(self.bounds[0]+(self.bounds[2]-self.bounds[0])/2,self.bounds[1]+(self.bounds[3]-self.bounds[1])/2)
-    newPt = Point(self.center.x+(pt.x-offset.x), self.center.y+(pt.y-offset.y))
+  def convert(self, pt :Point) -> Location:
+    #Get the normalized components
+    norm = Point( \
+      (pt.x-self.inBounds[0].x)/(self.inBounds[1].x-self.inBounds[0].x), \
+      (pt.y-self.inBounds[0].y)/(self.inBounds[1].y-self.inBounds[0].y)  \
+    )
 
-    #Finally, convert back to lat/lng
-    return UTMtoLL(23, newPt.y, newPt.x, '48N')
+    #Convert to lat/lng. Note that Latitude scales up (but this should be handled by the same formula).
+    #NOTE: Linear scaling will introduce artifacts, but for now a reverse-transformation
+    #      would be even more problematic.
+    newLoc = Location( \
+      (norm.y*(self.outBounds[1].lat-self.outBounds[0].lat)+self.outBounds[0].lat), \
+      (norm.x*(self.outBounds[1].lng-self.outBounds[0].lng)+self.outBounds[0].lng)  \
+    )
+
+    #Done
+    return newLoc
 
   #Get the minimum/maximum points
-  def min_pt(self):
-    return Point(self.bounds[0], self.bounds[1])
-  def max_pt(self):
-    return Point(self.bounds[2], self.bounds[3])
+#  def min_pt(self):
+#    return Point(self.bounds[0], self.bounds[1])
+#  def max_pt(self):
+#    return Point(self.bounds[2], self.bounds[3])
 
 
 #A basic vector (in the geometrical sense)

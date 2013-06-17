@@ -147,11 +147,11 @@ public:
 		return one_try;
 	}
 
-	BehaviorFacet* Behavior() {
+	BehaviorFacet* Behavior() const {
 		return behaviorFacet;
 	}
 
-	MovementFacet* Movement() {
+	MovementFacet* Movement() const {
 		return movementFacet;
 	}
 

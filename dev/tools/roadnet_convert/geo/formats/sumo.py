@@ -1,5 +1,5 @@
 from geo.position import Point
-from geo.helper import assert_non_null
+import geo.helper
 
 #Our container class
 class RoadNetwork:
@@ -16,14 +16,14 @@ class Junction:
   '''A Junction fulfils a similar purpose to a simmob.Node'''
 
   def __init__(self, jnctId, xPos, yPos):
-    assert_non_null("Null args", jnctId, xPos, yPos)
+    geo.helper.assert_non_null(jnctId, xPos, yPos, msg="Null args in Junction constructor")
     self.jnctId = str(jnctId)
     self.pos = Point(float(xPos), float(yPos))
 
 
 class Edge:
   def __init__(self, edgeId, fromJnct, toJnct):
-    assert_non_null("Null args", edgeId, fromJnct, toJnct)
+    geo.helper.assert_non_null(edgeId, fromJnct, toJnct, msg="Null args in Edge constructor")
     self.edgeId = str(edgeId)
     self.fromJnct = fromJnct
     self.toJnct = toJnct
@@ -32,7 +32,7 @@ class Edge:
 
 class Lane:
   def __init__(self, laneId, shape):
-    assert_non_null("Null args", laneId, shape)
+    geo.helper.assert_non_null(laneId, shape, msg="Null args in Lane constructor")
     self.laneId = str(laneId)
     self.shape = shape
 
@@ -46,7 +46,7 @@ class Lane:
 #    few meters out from the Intersection.
 class Shape:
   def __init__(self, pts):
-    assert_non_null("Null args", pts)
+    geo.helper.assert_non_null(pts, msg="Null args in Shape constructor")
     pts = pts.split(' ')
 
     self.points = []

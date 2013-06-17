@@ -442,6 +442,7 @@ int main(int argc, char* argv[])
 	//}
 
 	//Perform main loop
+	clock_t simStartTime = clock();
 	int returnVal = performMainMed(configFileName) ? 0 : 1;
 
 	//Close log file, return.
@@ -449,7 +450,7 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
-
+	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;
 }
 

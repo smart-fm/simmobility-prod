@@ -312,6 +312,9 @@ public:
 	friend class BoundaryProcessor;
 
 
+	friend class ShortTermBoundaryProcessor;
+
+
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
 	 */

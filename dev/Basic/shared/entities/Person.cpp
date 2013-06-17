@@ -81,14 +81,14 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),remainingTimeThisTick(0.0),
-	requestedNextSegment(nullptr), canMoveToNextSegment(false), databaseID(databaseID), debugMsgs(std::stringstream::out)
+	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out)
 {
 	tripchainInitialized = false;
 	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(false), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
 {
 	prevRole = 0;
 	currRole = 0;
@@ -237,7 +237,7 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
-		currRole->Behavior()->frame_init(*curr_params);
+		currRole->Movement()->frame_init(*curr_params);
 	}
 
 	return true;
@@ -254,7 +254,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->Behavior()->frame_tick(*curr_params);
+		currRole->Movement()->frame_tick(*curr_params);
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -293,7 +293,7 @@ void sim_mob::Person::frame_output(timeslice now)
 {
 	//Save the output
 	if (!isToBeRemoved()) {
-		currRole->Behavior()->frame_tick_output(*curr_params);
+		currRole->Movement()->frame_tick_output(*curr_params);
 	}
 
 	//TODO: Still risky.

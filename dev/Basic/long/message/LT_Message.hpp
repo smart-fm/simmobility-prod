@@ -8,7 +8,7 @@
  */
 #pragma once
 #include "Common.h"
-#include "model/Bid.hpp"
+#include "database/entity/Bid.hpp"
 #include "message/Message.hpp"
 
 namespace sim_mob {
@@ -19,9 +19,10 @@ namespace sim_mob {
          * Represents a bid response.
          */
         enum BidResponse {
-            NOT_AVAILABLE,
             ACCEPTED,
-            NOT_ACCEPTED
+            NOT_ACCEPTED,
+            BETTER_OFFER,// not accepted because the seller has a better offer
+            NOT_AVAILABLE,// means that the seller is not the owner of the unit or that unit is not available.
         };
 
         /**
@@ -46,15 +47,9 @@ namespace sim_mob {
              * @return {@link Bid} instance.
              */
             const Bid& GetBid()const;
-        protected:
-
-            virtual int GetId() {
-                return 13;
-            }
         private:
             Bid bid;
             BidResponse response;
-
         };
     }
 }

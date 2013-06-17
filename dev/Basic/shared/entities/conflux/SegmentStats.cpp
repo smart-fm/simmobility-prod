@@ -351,17 +351,32 @@ namespace sim_mob {
 
 	void sim_mob::LaneStats::addPerson(sim_mob::Person* p) {
 		laneAgents.push_back(p);
-		if (p->isQueuing) {
+		if (p->isQueuing && !laneInfinity) {
 			queueCount++;
 		}
 	}
 
 	void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p) {
-		if(p->isQueuing) {
-			queueCount++;
-		}
-		else {
-			queueCount--;
+		if(!laneInfinity) {
+			if(p->isQueuing) {
+				queueCount++;
+			}
+			else {
+				if(queueCount > 0) {
+					queueCount--;
+				}
+				else {
+					debugMsgs << "Error in updateQueueStatus(): queueCount cannot be lesser than 0 in lane."
+							<< "\nlane:" << lane->getLaneID()
+							<< "|Segment: " << lane->getRoadSegment()->getStartEnd()
+							<< "|Person: " << p->getId()
+							<< "\nQueuing: " << queueCount
+							<< "|Total: " << laneAgents.size() << std::endl;
+					Print() << debugMsgs.str();
+					throw std::runtime_error(debugMsgs.str());
+
+				}
+			}
 		}
 	}
 
@@ -370,8 +385,20 @@ namespace sim_mob {
 		if(pIt != laneAgents.end()){
 			laneAgents.erase(pIt);
 		}
-		if(wasQueuing) {
-			queueCount--;
+		if(wasQueuing && !laneInfinity) {
+			if(queueCount > 0) {
+				queueCount--;
+			}
+			else {
+				debugMsgs << "Error in removePerson(): queueCount cannot be lesser than 0 in lane."
+						<< "\nlane:" << lane->getLaneID()
+						<< "|Segment: " << lane->getRoadSegment()->getStartEnd()
+						<< "|Person: " << p->getId()
+						<< "\nQueuing: " << queueCount
+						<< "|Total: " << laneAgents.size() << std::endl;
+				Print() << debugMsgs.str();
+				throw std::runtime_error(debugMsgs.str());
+			}
 		}
 	}
 
@@ -381,11 +408,22 @@ namespace sim_mob {
 		}
 		sim_mob::Person* p = laneAgents.front();
 		laneAgents.pop_front();
-		if(queueCount > 0) {
-			// we have removed a queuing agent
-			queueCount--;
+		if(!laneInfinity){
+			if(queueCount > 0) {
+				// we have removed a queuing agent
+				queueCount--;
+			}
+			else {
+				debugMsgs << "Error in dequeue(): queueCount cannot be lesser than 0 in lane."
+						<< "\nlane:" << lane->getLaneID()
+						<< "|Segment: " << lane->getRoadSegment()->getStartEnd()
+						<< "|Person: " << p->getId()
+						<< "\nQueuing: " << queueCount
+						<< "|Total: " << laneAgents.size() << std::endl;
+				Print() << debugMsgs.str();
+				throw std::runtime_error(debugMsgs.str());
+			}
 		}
-
 		return p;
 	}
 
@@ -645,11 +683,7 @@ void LaneStats::sortPersons_DecreasingRemTime() {
 	if(isLaneInfinity()) {
 		//ordering is required only if we have more than 1 person in the deque
 		if(laneAgents.size() > 1) {
-			debugMsgs << "	 sorting | size: "<<laneAgents.size()<< "|";
-			printAgents();
 			std::sort(laneAgents.begin(), laneAgents.end(), cmp_person_remainingTimeThisTick_obj);
-			debugMsgs << "After sorting";
-			printAgents();
 		}
 	}
 }

@@ -67,6 +67,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
+	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame() << std::endl;
 	currFrameNumber = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -144,27 +145,15 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
 		if(dequeuedPerson != person) {
 			segStatsBfrUpdt->printAgents();
-			debugMsgs << "==========================================================="<<std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "Error in conflux: " << multiNode->getID() << ". Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId() << std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "Person " << person->getId() << ": "
-					<< "segment: " << segBeforeUpdate->getStartEnd()<<std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "|lane: " << ( !(laneBeforeUpdate)? -1: laneBeforeUpdate->getLaneID())<< std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "|Frame " << ( !(person->curr_params)? 1000: person->curr_params->now.frame()) << std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "Dequeued Person " << dequeuedPerson->getId() << ": "
-					<< "conflux: " << ( !(dequeuedPerson->getCurrSegment())? -1:dequeuedPerson->getCurrSegment()->getParentConflux()->getMultiNode()->getID())
-					<< "|segment: " << ( !(dequeuedPerson->getCurrSegment())? "nullptr":dequeuedPerson->getCurrSegment()->getStartEnd())<<std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "|lane: " << ( !(dequeuedPerson->getCurrLane())? -1:dequeuedPerson->getCurrLane()->getLaneID())<<std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "|vehicle segment: " << ( !(dequeuedPerson->getRole()->getResource())? "nullptr": dequeuedPerson->getRole()->getResource()->getCurrSegment()->getStartEnd())
-					<< "|vehicle lane: " << ( !(dequeuedPerson->getRole()->getResource())? -1: dequeuedPerson->getRole()->getResource()->getCurrLane()->getLaneID()) << std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs << "|Frame " << lastUpdatedFrame << std::endl;
+			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
+					<< "\n Person " << person->getId() << ": segment: " << segBeforeUpdate->getStartEnd()
+					<< "|lane: " << laneBeforeUpdate->getLaneID()
+					<< "|Frame: " << currFrameNumber.frame()
+					<< "\n Person " << dequeuedPerson->getId() << ": "
+					<< "segment: " << dequeuedPerson->getCurrSegment()->getStartEnd()
+					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
+					<< "|Frame: " << dequeuedPerson->lastUpdatedFrame;
+
 			Print() << debugMsgs.str();
 			throw std::runtime_error(debugMsgs.str());
 		}
@@ -566,14 +555,8 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 */
 
 	while(person->remainingTimeThisTick > 0.0) {
-		debugMsgs << "Frame: " << now.frame() << "|ms: " << now.ms()
-				<< "|Person: " << person->getId()
-				<< "|remainingTimeThisTick: " << person->remainingTimeThisTick
-				<< "|currSegment: " << person->currSegment->getStartEnd()
-				<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
-				<< "|isQueuing: " << person->isQueuing
-				<< "|segLength: "<< person->getCurrSegment()->computeLaneZeroLength()
-				<< "|Conflux: " << multiNode->getID() <<std::endl;
+		debugMsgs << "Person: " << person->getId()
+				<< "|remainingTimeThisTick: " << person->remainingTimeThisTick << std::endl;
 		Print() << debugMsgs.str();
 		debugMsgs.str("");
 

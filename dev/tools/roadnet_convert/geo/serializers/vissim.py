@@ -96,17 +96,19 @@ def __write_vissim_connectors(out, rn :simmob.RoadNetwork, start_lc_id :int):
       #Connectors in VISSIM are from segment to segment, and (seem) to line up lanes evenly (e.g., lane 1,2,3 => lane 1,2,3). 
       #TODO: For now, this simplification works for our Sim Mobility network. 
       seg_connect = {} #{toSegment,__SegConn}
-      for lc in seg.lane_connectors.values():
-        if not lc.toSegment in seg_connect:
-          seg_connect[lc.toSegment] = __SegConn()
-        seg_connect[lc.toSegment].add_conn(lc.fromLane.laneNumber, lc.toLane.laneNumber)
+      for lcGrp in seg.lane_connectors.values():
+        for lc in lcGrp:
+          if not lc.toSegment in seg_connect:
+            seg_connect[lc.toSegment] = __SegConn()
+          seg_connect[lc.toSegment].add_conn(lc.fromLane.laneNumber, lc.toLane.laneNumber)
 
       #Now add a VISSIM connector for each Segment connector.
-      for toSeg,sc in seg_connect:
+      for toSeg,sc in seg_connect.items():
         #Get a range of arrays (e.g., [1,2,3]). Might be empty.
         lanes = sc.get_lane_range()
         if len(lanes)==0:
           continue
+        lane_str = ' '.join(str(x) for x in lanes)
 
         #We also need to estimate the "OVER" quadrant of interior points. This is massively obnoxious, because I don't really 
         #  understand the criteria for it. For now, we just follow some heuristics:
@@ -125,10 +127,10 @@ def __write_vissim_connectors(out, rn :simmob.RoadNetwork, start_lc_id :int):
         stopLineDist = (geo.helper.dist(seg.fromNode, seg.toNode)/100)
         if stopLineDist > 10.0:
           stopLineDist -= 10.0
-        out.write('  FROM LINK %s LANES %s AT %s\n' % (seg.segId, ' '.join(lanes), stopLineDist))
+        out.write('  FROM LINK %s LANES %s AT %s\n' % (seg.segId, lane_str, stopLineDist))
           
         #TODO:
-        if len(over)>0:
+        if len(over_pts)>0:
           for pt in over_pts:
             out.write('  OVER %s %s %s' % (pt.x, pt.y, 0.00000))
           out.write('  \n')
@@ -137,7 +139,7 @@ def __write_vissim_connectors(out, rn :simmob.RoadNetwork, start_lc_id :int):
         stopLineDist = (geo.helper.dist(lc.toSegment.fromNode, lc.toSegment.toNode)/100)
         if stopLineDist > 10.0:
           stopLineDist = 10.0
-        out.write('  TO LINK %s LANES %s AT %s  BEHAVIORTYPE %s  DISPLAYTYPE %s  ALL\n' % (toSeg.segId, ' '.join(lanes), stopLineDist, 1, 1))
+        out.write('  TO LINK %s LANES %s AT %s  BEHAVIORTYPE %s  DISPLAYTYPE %s  ALL\n' % (toSeg.segId, lane_str, stopLineDist, 1, 1))
 
         #Not sure what these mean.
         out.write('  DX_EMERG_STOP %s DX_LANE_CHANGE %s\n' % (5.000, 200.000))

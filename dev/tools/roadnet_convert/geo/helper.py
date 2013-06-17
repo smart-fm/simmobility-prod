@@ -243,10 +243,13 @@ def make_lane_connectors(rn):
         if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
           continue
 
+        if not toEdge.segId in fromEdge.lane_connectors:
+          fromEdge.lane_connectors[toEdge.segId] = []
+
         #The looping gets even deeper!
         for fromLane in fromEdge.lanes:
           for toLane in toEdge.lanes:
-            fromEdge.lane_connectors[toEdge.segId] = geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLane, toLane)
+            fromEdge.lane_connectors[toEdge.segId].append(geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLane, toLane))
 
 
 #Helper for remembering incoming and outgoing Segments at a given Node.

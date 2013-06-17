@@ -53,9 +53,10 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
 
   #Write all Lane Connectors
   currLC_id = 1
-  for lc in rnIndex.lane_connectors.values():
-    out.write('("lane-connector", 0, %d, {"from-segment":"%d","from-lane":"%d","to-segment":"%d","to-lane":"%d",})\n' % (currLC_id, lc.fromSegment.segId, lc.fromLane.laneNumber, lc.toSegment.segId, lc.toLane.laneNumber))
-    currLC_id += 1
+  for lcGrp in rnIndex.lane_connectors.values():
+    for lc in lcGrp:
+      out.write('("lane-connector", 0, %d, {"from-segment":"%s","from-lane":"%d","to-segment":"%s","to-lane":"%d",})\n' % (currLC_id, lc.fromSegment.segId, lc.fromLane.laneNumber, lc.toSegment.segId, lc.toLane.laneNumber))
+      currLC_id += 1
 
   #Done
   out.close()

@@ -149,9 +149,11 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			debugMsgs << "Error in conflux: " << multiNode->getID() << ". Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId() << std::endl;
 			Print() << debugMsgs.str();
 			debugMsgs << "Person " << person->getId() << ": "
-					<< "segment: " << segBeforeUpdate->getStartEnd()
-					<< "|lane: " << ( !(laneBeforeUpdate)? -1: laneBeforeUpdate->getLaneID())
-					<< "|Frame " << person->curr_params->now.frame() << std::endl;
+					<< "segment: " << segBeforeUpdate->getStartEnd()<<std::endl;
+			Print() << debugMsgs.str();
+			debugMsgs << "|lane: " << ( !(laneBeforeUpdate)? -1: laneBeforeUpdate->getLaneID())<< std::endl;
+			Print() << debugMsgs.str();
+			debugMsgs << "|Frame " << ( !(person->curr_params)? 1000: person->curr_params->now.frame()) << std::endl;
 			Print() << debugMsgs.str();
 			debugMsgs << "Dequeued Person " << dequeuedPerson->getId() << ": "
 					<< "conflux: " << ( !(dequeuedPerson->getCurrSegment())? -1:dequeuedPerson->getCurrSegment()->getParentConflux()->getMultiNode()->getID())
@@ -622,6 +624,13 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
 			if(now.frame() > nxtConflux->lastUpdatedFrame) {
+				//this is a hack to count the number of agents trying to loop back to the same
+				//conflux again in the same frame tick
+				if(nxtConflux == this){
+					person->setRemainingTimeThisTick(0.0);
+					Print()<<"Person "<<person->getId()<<" loops back to conflux "<< this->multiNode->getID()<<std::endl;
+					break;
+				}
 				// nxtConflux is not processed for the current tick yet
 				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment)) {
 					person->setCurrSegment(person->requestedNextSegment);

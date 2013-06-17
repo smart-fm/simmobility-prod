@@ -224,14 +224,14 @@ def make_lane_connectors(rn):
   for lk in rn.links.values():
     for e in lk.segments:
       #Give it an entry
-      if not (e.fromNode in lookup):
-        lookup[e.fromNode] = InOut()
-      if not (e.toNode in lookup):
-        lookup[e.toNode] = InOut()
+      if not (e.fromNode.nodeId in lookup):
+        lookup[e.fromNode.nodeId] = InOut()
+      if not (e.toNode.nodeId in lookup):
+        lookup[e.toNode.nodeId] = InOut()
 
     #Append
-    lookup[e.toNode].incoming.append(e)
-    lookup[e.fromNode].outgoing.append(e)
+    lookup[e.toNode.nodeId].incoming.append(e)
+    lookup[e.fromNode.nodeId].outgoing.append(e)
 
   #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
   for n in rn.nodes.values():
@@ -239,13 +239,14 @@ def make_lane_connectors(rn):
       continue
     for fromEdge in lookup[n.nodeId].incoming:
       for toEdge in lookup[n.nodeId].outgoing:
+        #No U-turns
         if (fromEdge.fromNode==toEdge.toNode and fromEdge.toNode==toEdge.fromNode):
           continue
 
         #The looping gets even deeper!
-        for fromLaneID in range(len(fromEdge.lanes)):
-          for toLaneID in range(len(toEdge.lanes)):
-            rn.turnings.append(geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLaneID, toLaneID, fromEdge.lanes[fromLaneID].laneId, toEdge.lanes[toLaneID].laneId))
+        for fromLane in fromEdge.lanes:
+          for toLane in toEdge.lanes:
+            fromEdge.lane_connectors[toEdge.segId] = geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLane, toLane)
 
 
 #Helper for remembering incoming and outgoing Segments at a given Node.

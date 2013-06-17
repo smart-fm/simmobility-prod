@@ -21,7 +21,7 @@ class WhoAreYouProtocol
 {
 public:
 //	sim_mob::boost::shared_ptr<sim_mob::Session> sess__;
-	WhoAreYouProtocol(boost::shared_ptr<Session> sess_, ConnectionServer &);
+	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &);
 	void start();
 	bool isDone();
 //	void getTypeAndID(std::string &input, std::string & out_type, std::string & out_ID);
@@ -32,11 +32,9 @@ private:
 	ConnectionServer &server;
 	bool registerSuccess;
 	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
-	void startClientRegistration(boost::shared_ptr<Session> sess);
-	void temp_handler_1(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
-	void temp_handler_2(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
-	void WhoAreYou_handler(const boost::system::error_code& e,boost::shared_ptr<Session> sess);
-	void WhoAreYou_response_handler(const boost::system::error_code& e, boost::shared_ptr<Session> sess);
+	void startClientRegistration(boost::shared_ptr<Session> &sess);
+	void WhoAreYou_handler(const boost::system::error_code& e,boost::shared_ptr<Session> &sess);
+	void WhoAreYou_response_handler(const boost::system::error_code& e, boost::shared_ptr<Session>& sess);
 };
 
 } /* namespace sim_mob */

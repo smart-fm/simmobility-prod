@@ -61,17 +61,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 ,enabled(true), firstTime(true) //If a Broker is created, we assume it is enabled.
 {
 	//Various Initializations
-//	mutex_client_request.reset(new boost::mutex);
-//	mutex_clientList.reset(new boost::mutex);
-//	COND_VAR_CLIENT_REQUEST.reset(new boost::condition_variable);
 	connection.reset(new ConnectionServer(*this));
-//	 Broker_Mutex.reset(new boost::shared_mutex);
-//	 Broker_Mutex_Send.reset(new boost::shared_mutex);
-//	 Broker_Mutex_Receive.reset(new boost::shared_mutex);
-//	 mutex_collection.push_back(Broker_Mutex);
-//	 mutex_collection.push_back(Broker_Mutex_Send);
-//	 mutex_collection.push_back(Broker_Mutex_Receive);
-//	 sendBuffer.setOwnerMutex(Broker_Mutex_Send);
 	 brokerCanTickForward = false;
 
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
@@ -175,7 +165,7 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 	return false;
 }
 
-void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> clientHandler){
+void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler){
 //	Print()<< "Broker::insertClientList locking mutex_clientList " << std::endl;
 	Print() << "Broker::insertClientList=> mutex_clientList locking" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
@@ -210,7 +200,7 @@ void Broker::processClientRegistrationRequests()
 	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;/*no ++ here */  )
 	{
 //		Print() << "Processing ClientRegistrationRequests in loop" << std::endl;
-		handler.reset();
+//		handler.reset();
 		handler = clientRegistrationFactory.getHandler((ClientTypeMap[it->first]));
 		if(handler->handle(*this,it->second))
 		{
@@ -688,7 +678,6 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	if(now.frame() == 0) {
 		connection->start();
 	}
-
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)

@@ -10,6 +10,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include "logging/Log.hpp"
+
 namespace sim_mob {
 
 //Macro used for callbacks
@@ -37,10 +39,11 @@ public:
 			boost::shared_ptr<Session> session_ ,
 			Broker& broker,
 			messageReceiveCallback callback,
-			std::string clientID_ = "",
+			std::string clientID_ = "'\0'",
 			unsigned int ClienType_ = 0,
-			unsigned long int agentPtr_ = 0l
+			unsigned int agentPtr_ = 0
 			);
+	~ConnectionHandler();
 	void start();
 	void readyHandler(const boost::system::error_code &e, std::string str);
 	void readHandler(const boost::system::error_code& e);

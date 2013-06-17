@@ -17,7 +17,7 @@ ConnectionHandler::ConnectionHandler(
 		messageReceiveCallback callback,
 		std::string clientID_,
 		unsigned int ClienType_ ,
-		unsigned long int agentPtr_
+		unsigned int agentPtr_
 		):theBroker(broker), receiveCallBack(callback)
 
 {
@@ -25,8 +25,12 @@ ConnectionHandler::ConnectionHandler(
 	clientID = clientID_;
 	clientType = ClienType_;
 	agentPtr = agentPtr_;
+//	incomingMessage = "'\0'";
 }
 
+ConnectionHandler::~ConnectionHandler(){
+	mySession.reset();
+}
 void ConnectionHandler::start()
 {
 

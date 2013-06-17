@@ -99,7 +99,7 @@ public:
 	ClientWaitList & getClientWaitingList();
 	ClientList & getClientList();
 	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output);
-	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>);
+	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>&);
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 	PublisherList &getPublishers();
 	void processClientRegistrationRequests();

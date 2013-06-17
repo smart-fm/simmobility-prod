@@ -50,7 +50,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 		//use it to create a client entry
 		boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
-		clientEntry->cnnHandler.reset(new ConnectionHandler(
+		boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler(new ConnectionHandler(
 				request.session_
 				,broker
 				,&Broker::messageReceiveCallback
@@ -58,8 +58,8 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 				,ANDROID_EMULATOR
 				,(unsigned long int)(freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
 				)
-
-		);
+				);
+		clientEntry->cnnHandler = cnnHandler;
 
 //		Print()<< "Connection handler for agent "
 
@@ -89,7 +89,8 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 		//also, add the client entry to broker(for message handler purposes)
 		broker.insertClientList(clientEntry->clientID, ANDROID_EMULATOR,clientEntry);
-
+//		Print() << "clientEntry[" << clientEntry << "].use_count(" << clientEntry.use_count() << ")" << std::endl;
+//		Print() << "clientEntry.cnnhandler[" << clientEntry->cnnHandler << "].use_count(" << clientEntry->cnnHandler.use_count() << ")" << std::endl;
 
 		//add this agent to the list of the agents who are associated with a android emulator client
 		usedAgents.insert( *freeAgent);

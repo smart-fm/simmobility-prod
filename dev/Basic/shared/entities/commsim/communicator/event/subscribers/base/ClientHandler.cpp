@@ -40,6 +40,8 @@ void ClientHandler::OnTime(EventId id, EventPublisher* sender, const TimeEventAr
 }
 
 ClientHandler::~ClientHandler() {
+
+	cnnHandler.reset();
 	// TODO Auto-generated destructor stub
 }
 

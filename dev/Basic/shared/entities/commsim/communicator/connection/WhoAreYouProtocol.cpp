@@ -13,7 +13,7 @@
 
 namespace sim_mob {
 
-WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server_):sess(sess_),server(server_),registerSuccess(false){
+WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_):sess(sess_),server(server_),registerSuccess(false){
 	}
 	void WhoAreYouProtocol::start()
 	{
@@ -42,7 +42,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 		return candidate;
 	}
 
-	void WhoAreYouProtocol::startClientRegistration(session_ptr sess) {
+	void WhoAreYouProtocol::startClientRegistration(session_ptr &sess) {
 		std::string str = JsonParser::makeWhoAreYouPacket();
 		Print()<< " WhoAreYouProtocol::startClientRegistration'" << str << "'" <<  std::endl;
 		sess->async_write(str,
@@ -50,7 +50,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 						boost::asio::placeholders::error, sess));
 	}
 
-	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e,session_ptr sess) {
+	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e,session_ptr& sess) {
 		if(e)
 		{
 			Print()<< "Failed to send whoareu message" <<  std::endl;
@@ -63,7 +63,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr sess_, ConnectionServer &server
 		}
 	}
 
-	void WhoAreYouProtocol::WhoAreYou_response_handler(const boost::system::error_code& e, session_ptr sess) {
+	void WhoAreYouProtocol::WhoAreYou_response_handler(const boost::system::error_code& e, session_ptr& sess) {
 		if(e)
 		{
 			std::cerr << "WhoAreYou_response_handler Fail [" << e.message() << "]" << std::endl;

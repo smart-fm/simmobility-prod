@@ -174,7 +174,7 @@ def get_lane_widths(lane_edges):
   for le in lane_edges:
     if prevLE:
       #Just the starting points should be sufficient.
-      res.append(geo.helper.dist(prevLE[0], le[0]))
+      res.append(geo.helper.dist(prevLE.polyline[0], le.polyline[0]))
     prevLE = le
   return res
 

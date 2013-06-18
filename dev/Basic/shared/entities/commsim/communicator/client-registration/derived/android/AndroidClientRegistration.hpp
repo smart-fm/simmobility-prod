@@ -16,7 +16,7 @@ namespace sim_mob {
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 	sim_mob::AgentsMap usedAgents;
 public:
-	AndroidClientRegistration(/*ClientType type_ = ANDROID_EMULATOR*/);
+	AndroidClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::ANDROID_EMULATOR*/);
 	bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
 	virtual ~AndroidClientRegistration();
 };

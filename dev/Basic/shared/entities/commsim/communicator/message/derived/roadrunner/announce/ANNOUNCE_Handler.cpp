@@ -39,7 +39,7 @@ void HDL_ANNOUNCE::handle(msg_ptr message_,Broker* broker){
 
 	std::string sender_id(data["SENDER"].asString()) ; //easy read
 	std::string sender_type = data["SENDER_TYPE"].asString(); //easy read
-	ClientType clientType;
+	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	ClientList & clients = broker->getClientList();
 	//use try catch to use map's .at() and search only once

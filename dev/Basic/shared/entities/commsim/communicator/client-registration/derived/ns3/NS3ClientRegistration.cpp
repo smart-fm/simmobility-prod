@@ -9,7 +9,7 @@
 #include "entities/commsim/communicator/event/subscribers/base/ClientHandler.hpp"
 namespace sim_mob {
 
-NS3ClientRegistration::NS3ClientRegistration(/*ClientType type_) : ClientRegistrationHandler(type_*/) {
+NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_) : ClientRegistrationHandler(type_*/) {
 	// TODO Auto-generated constructor stub
 
 }

@@ -16,17 +16,17 @@
 namespace sim_mob {
 
 ClientRegistrationFactory::ClientRegistrationFactory() {
-	ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ANDROID_EMULATOR)("NS3_SIMULATOR", NS3_SIMULATOR);
+	ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 	// TODO Auto-generated constructor stub
 
 }
 
 //gets a handler either from a cache or by creating a new one
-boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory::getHandler(ClientType type)
+boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory::getHandler(ConfigParams::ClientType type)
 {
 	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
 	//if handler is already registered && the registered handler is not null
-	std::map<ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
+	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
 	if(it != ClientRegistrationHandlerMap.end())
 	{
 		//get the handler ...
@@ -38,10 +38,10 @@ boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory:
 		bool typeFound = true;
 		switch(type)
 		{
-		case ANDROID_EMULATOR:
+		case ConfigParams::ANDROID_EMULATOR:
 			handler.reset(new sim_mob::AndroidClientRegistration());
 			break;
-		case NS3_SIMULATOR:
+		case ConfigParams::NS3_SIMULATOR:
 			handler.reset(new sim_mob::NS3ClientRegistration);
 			break;
 		default:

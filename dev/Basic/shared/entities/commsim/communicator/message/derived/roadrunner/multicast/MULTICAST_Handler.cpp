@@ -43,7 +43,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 
 	std::string sender_id(msg_header_.sender_id) ; //easy read
 	std::string sender_type(msg_header_.sender_type); //easy read
-	ClientType clientType;
+	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	ClientList & clients = broker->getClientList();
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))

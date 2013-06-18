@@ -21,12 +21,12 @@ enum ClientType
 	//add your client type here
 };*/
 class ClientRegistrationFactory {
-//	std::map<std::string, ClientType> ClientTypeMap; //a map for ... for... for easy mapping between string and enum
+//	std::map<std::string, ConfigParams::ClientType> ClientTypeMap; //a map for ... for... for easy mapping between string and enum
 	//This map is used as a cache to avoid repetitive handler creation in heap
-	std::map<sim_mob::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
 	ClientRegistrationFactory();
-	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(ClientType type);
+	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(ConfigParams::ClientType type);
 	virtual ~ClientRegistrationFactory();
 };
 

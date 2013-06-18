@@ -230,6 +230,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	}//outer for loop(map)
 }
 
+bool isAndroidClientEnabled(TiXmlHandle& handle)
+{
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
+	ConfigParams::GetInstance().androidClientEnabled = false;
+	std::string androidYesNo = std::string(node->Attribute("enabled"));
+	if (androidYesNo == "yes") {
+		return true;
+	}
+	return false;
+}
+
 void loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -1784,14 +1795,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 	//Communication Simulator (optional)
 	ConfigParams::GetInstance().commSimEnabled = false;
+	std::string commSimYesNo;
 	handle = TiXmlHandle(&document);
-	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication_simulator").ToElement();
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
 	if (node) {
-		std::string commSimYesNo = std::string(node->Attribute("value"));
+		commSimYesNo = std::string(node->Attribute("enabled"));
 		if (commSimYesNo == "yes") {
 			ConfigParams::GetInstance().commSimEnabled = true;
 			//createCommunicator();
 		}
+	}
+
+	if(commSimYesNo == "yes")
+	{
+		ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle);
 	}
 
 

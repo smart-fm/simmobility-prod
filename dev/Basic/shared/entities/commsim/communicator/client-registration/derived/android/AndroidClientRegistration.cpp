@@ -13,7 +13,7 @@
 #include "entities/commsim/comm_support/JCommunicationSupport.hpp"
 namespace sim_mob {
 
-AndroidClientRegistration::AndroidClientRegistration(/*ClientType type_) : ClientRegistrationHandler(type_*/){
+AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_) : ClientRegistrationHandler(type_*/){
 	// TODO Auto-generated constructor stub
 
 }
@@ -55,7 +55,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 				,broker
 				,&Broker::messageReceiveCallback
 				,request.clientID
-				,ANDROID_EMULATOR
+				,ConfigParams::ANDROID_EMULATOR
 				,(unsigned long int)(freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
 				)
 				);
@@ -67,7 +67,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = freeAgent->first;
 		clientEntry->clientID = request.clientID;
-		clientEntry->client_type = ANDROID_EMULATOR;
+		clientEntry->client_type = ConfigParams::ANDROID_EMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
 		SIM_MOB_SERVICE srv;
 		BOOST_FOREACH(srv, request.requiredServices)
@@ -88,7 +88,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.insertClientList(clientEntry->clientID, ANDROID_EMULATOR,clientEntry);
+		broker.insertClientList(clientEntry->clientID, ConfigParams::ANDROID_EMULATOR,clientEntry);
 //		Print() << "clientEntry[" << clientEntry << "].use_count(" << clientEntry.use_count() << ")" << std::endl;
 //		Print() << "clientEntry.cnnhandler[" << clientEntry->cnnHandler << "].use_count(" << clientEntry->cnnHandler.use_count() << ")" << std::endl;
 

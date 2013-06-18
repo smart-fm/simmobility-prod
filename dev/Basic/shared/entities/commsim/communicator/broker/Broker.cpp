@@ -58,7 +58,7 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), EventListener()
-,enabled(true), firstTime(true) //If a Broker is created, we assume it is enabled.
+,enabled(false), firstTime(true) //If a Broker is created, we assume it is enabled.
 {
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
@@ -71,8 +71,8 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 //current message factory
 	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::roadrunner::RR_Factory() );
 	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-	 messageFactories.insert(std::make_pair(ANDROID_EMULATOR, factory) );
-	 messageFactories.insert(std::make_pair(NS3_SIMULATOR, factory) );
+	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, factory) );
+	 messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, factory) );
 }
 
 
@@ -141,7 +141,7 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 	//use try catch to use map's .at() and search only once
 	try
 	{
-		ClientType clientType_ = ClientTypeMap.at(clientType);
+		ConfigParams::ClientType clientType_ = ClientTypeMap.at(clientType);
 		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
 		try
 		{

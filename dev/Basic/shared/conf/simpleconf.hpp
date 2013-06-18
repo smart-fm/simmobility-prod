@@ -78,7 +78,14 @@ enum DAY_OF_WEEK {
 };
 
 class ConfigParams : private boost::noncopyable {
+
 public:
+	enum ClientType
+	{
+		ANDROID_EMULATOR = 1,
+		NS3_SIMULATOR = 2,
+		//add your client type here
+	};
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
@@ -131,7 +138,7 @@ public:
 
 	//Is our communication simulator enabled?
 	bool commSimEnabled;
-
+	bool androidClientEnabled;
 	// temporary maps
 	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 

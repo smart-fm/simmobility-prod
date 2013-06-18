@@ -10,6 +10,7 @@
 //include publishing services that you provide in simmobility
 //#include "derived/TimePublisher.hpp"
 //#include "derived/LocationPublisher.hpp"
+#include "conf/simpleconf.hpp"
 #include <boost/assign/list_of.hpp>
 #include <map>
 #include <sstream>
@@ -26,16 +27,16 @@ namespace sim_mob
 					("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)
 					("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION);
 
-	enum ClientType
-	{
-		ANDROID_EMULATOR = 1,
-		NS3_SIMULATOR = 2,
-		//add your client type here
-	};
-	static std::map<std::string, ClientType>	ClientTypeMap =
+//	enum ConfigParams::ClientType
+//	{
+//		ANDROID_EMULATOR = 1,
+//		NS3_SIMULATOR = 2,
+//		//add your client type here
+//	};
+	static std::map<std::string, ConfigParams::ClientType>	ClientTypeMap =
 			boost::assign::map_list_of
-			("ANDROID_EMULATOR", ANDROID_EMULATOR)
-			("NS3_SIMULATOR", NS3_SIMULATOR);
+			("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)
+			("NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 
 	struct msg_header
 	{

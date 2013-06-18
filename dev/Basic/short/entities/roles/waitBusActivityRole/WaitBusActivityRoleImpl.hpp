@@ -15,6 +15,7 @@
 
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
 
 namespace sim_mob
 {
@@ -32,19 +33,43 @@ class UnPackageUtils;
 
 class WaitBusActivityRoleImpl : public sim_mob::WaitBusActivityRole {
 public:
-	WaitBusActivityRoleImpl(Agent* parent);
+	WaitBusActivityRoleImpl(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr);
 	virtual ~WaitBusActivityRoleImpl();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
+//	//Virtual overrides
+//	virtual void frame_init(UpdateParams& p);
+//	virtual void frame_tick(UpdateParams& p);
+//	virtual void frame_tick_output(const UpdateParams& p);
+//	virtual void frame_tick_output_mpi(timeslice now);
+
+//protected:
+//	Point2D DisplayOffset;
+};
+
+class WaitBusActivityRoleBehaviorImpl : public sim_mob::WaitBusActivityRoleBehavior {
+public:
+	WaitBusActivityRoleBehaviorImpl(sim_mob::Person* parentAgent = nullptr);
+	virtual ~WaitBusActivityRoleBehaviorImpl();
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(timeslice now);
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+};
 
-protected:
-	Point2D DisplayOffset;
+class WaitBusActivityRoleMovementImpl : public sim_mob::WaitBusActivityRoleMovement {
+public:
+	WaitBusActivityRoleMovementImpl(sim_mob::Person* parentAgent = nullptr);
+	virtual ~WaitBusActivityRoleMovementImpl();
+
+	//Virtual overrides
+	virtual void frame_init(UpdateParams& p);
+	virtual void frame_tick(UpdateParams& p);
+	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_tick_output_mpi(timeslice now);
+	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 };
 }

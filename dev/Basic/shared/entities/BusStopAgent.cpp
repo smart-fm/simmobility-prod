@@ -5,6 +5,7 @@
 #include "entities/AuraManager.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -107,9 +108,10 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		 	Person* p = const_cast<Person *>(person);
 		 	WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*>(p->getRole()) : nullptr;
 		 	if(waitbusactivityRole) {
-		 		if((!waitbusactivityRole->getRegisteredFlag()) && (waitbusactivityRole->getBusStopAgent() == this)) {// not registered and waiting in this BusStopAgent
+		 		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (waitbusactivityRole->Movement());
+		 		if((!waitbusactivityRoleMovement->getRegisteredFlag()) && (waitbusactivityRoleMovement->getBusStopAgent() == this)) {// not registered and waiting in this BusStopAgent
 		 			boarding_WaitBusActivities.push_back(waitbusactivityRole);
-		 			waitbusactivityRole->setRegisteredFlag(true);// set this person's role to be registered
+		 			waitbusactivityRoleMovement->setRegisteredFlag(true);// set this person's role to be registered
 		 		}
 		 	}
 		}

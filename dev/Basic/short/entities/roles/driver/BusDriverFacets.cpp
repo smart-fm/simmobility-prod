@@ -795,7 +795,8 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	{
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
-			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
+			WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[i]->Movement());
+			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
 			{
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;
@@ -813,8 +814,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					boarding_ms += baseGranMS;// delay one frame tick, doesnt matter(100ms)
 					accumulated_boarding_ms += baseGranMS;// advance also
 				}
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = parentBusDriver;// set busDriver for this WaitBusActivity
+				WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[BoardingNum_Pos[j]]->Movement());
+				waitbusactivityrolemovement->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
+				waitbusactivityrolemovement->busDriver = parentBusDriver;// set busDriver for this WaitBusActivity
 				boarding_MSs.push_back(boarding_ms);
 				virtualBoarding_Persons.push_back(p);// push this person in the virtual queue
 			}
@@ -892,7 +894,8 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
-			if(boarding_waitBusActivities[i]->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
+			WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[i]->Movement());
+			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
 			{
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;
@@ -910,8 +913,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					boarding_ms += baseGranMS;// delay one frame tick, doesnt matter(100ms)
 					accumulated_boarding_ms += baseGranMS;// advance also
 				}
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
-				boarding_waitBusActivities[BoardingNum_Pos[j]]->busDriver = parentBusDriver;// set busDriver for this WaitBusActivity
+				WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[BoardingNum_Pos[j]]->Movement());
+				waitbusactivityrolemovement->boarding_MS = boarding_ms;// set Boarding_MS for this WaitBusActivity
+				waitbusactivityrolemovement->busDriver = parentBusDriver;// set busDriver for this WaitBusActivity
 				boarding_MSs.push_back(boarding_ms);
 				virtualBoarding_Persons.push_back(p);// push this person in the virtual queue,
 				std::cout << "BoardingNum_Pos[j]: " << BoardingNum_Pos[j] << std::endl;

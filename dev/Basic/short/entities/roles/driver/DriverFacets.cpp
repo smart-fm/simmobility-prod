@@ -213,9 +213,6 @@ sim_mob::DriverMovement::~DriverMovement()
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
-
-	//Our vehicle
-//	safe_delete_item(vehicle);
 }
 
 void sim_mob::DriverMovement::frame_init(UpdateParams& p) {

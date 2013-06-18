@@ -8,6 +8,7 @@
 #include "Pedestrian2Facets.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 
 using namespace sim_mob;
 
@@ -63,8 +64,12 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 }
 
 void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
+	if(parentAgent) {
+		parentAgent->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+	}
 	setSubPath();
-	dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
+
+	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
@@ -97,7 +102,26 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
-			parentAgent->setToBeRemoved();
+			//Person* person = dynamic_cast<Person*> (parent);
+			if(parentAgent && (parentAgent->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
+				if(!parentAgent->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+				{
+					std::cout << "End of trip chain...." << std::endl;
+				}
+				Passenger* passenger = dynamic_cast<Passenger*> (parentAgent->getNextRole());
+				if(passenger) {// nextRole is passenger
+					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", parentAgent);
+					parentAgent->changeRole(newRole);
+					newRole->Movement()->frame_init(p);
+					return;
+//					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+//					passenger->BoardedBus.set(true);
+//					passenger->AlightedBus.set(false);
+				}
+			} else {// not at the busstop, set to be removed
+				parentAgent->setToBeRemoved();
+			}
 		}
 	}
 
@@ -108,20 +132,20 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
-	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
-		return;
-	}
+	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
+	//		return;
+	//	}
 
-	if (ConfigParams::GetInstance().using_MPI) {
-		return;
-	}
+		if (ConfigParams::GetInstance().using_MPI) {
+			return;
+		}
 
-//	std::ostringstream stream;
-//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
-//	std::string s=stream.str();
-//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
+	//	std::ostringstream stream;
+	//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
+	//	std::string s=stream.str();
+	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-	LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<parentAgent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parentAgent->yPos.get()<<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<parentAgent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parentAgent->yPos.get()<<"\",})"<<std::endl);
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick_output_mpi(timeslice now) {

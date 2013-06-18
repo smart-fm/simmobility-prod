@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -30,6 +32,7 @@ namespace sim_mob
 class Lane;
 class BusRoute;
 class Busline;
+class BusStopAgent;
 
    //
 /**
@@ -42,11 +45,9 @@ class BusStop : public sim_mob::RoadItem {
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem() {lane_location = 0;
-	busCapacityAsLength = 0;
-	parentSegment_ = 0;
-//	xPos = yPos = 0;
-	}
+	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0), parentSegment_(nullptr),
+		generatedBusStopAgent(nullptr), is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
+	{}
 
 public:
 	///Which RoadItem and lane is this bus stop located at?
@@ -85,7 +86,6 @@ public:
         return parentSegment_;
     }
     void setParentSegment(RoadSegment *rs) { parentSegment_ = rs;} //virtual from RoadItem
-
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
 
@@ -93,6 +93,7 @@ public:
 public:
     std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
 	sim_mob::RoadSegment* parentSegment_;
+	BusStopAgent* generatedBusStopAgent;// pointer to the generated BusStopAgent
 	std::string busstopno_;
 		double xPos;
 		double yPos;

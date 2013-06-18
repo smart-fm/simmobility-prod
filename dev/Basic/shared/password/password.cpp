@@ -42,9 +42,16 @@ void saveBinary(std::string value)
 
 void loadBinary(std::string & value)
 {
-  std::ifstream file("shared/password/password");
-  boost::archive::binary_iarchive ia(file);
-  ia >> value;
+	try
+	{
+		std::ifstream file("shared/password/password");
+		boost::archive::binary_iarchive ia(file);
+		ia >> value;
+	}
+	catch(...)
+	{
+
+	}
 }
 
 void save(std::string source)

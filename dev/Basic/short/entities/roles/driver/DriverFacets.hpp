@@ -68,34 +68,6 @@ public:
 protected:
 	Driver* parentDriver;
 
-//Buffered data
-public:
-//	Shared<const Lane*> currLane_;
-//	Shared<double> currLaneOffset_;
-//	Shared<double> currLaneLength_;
-//	Shared<bool> isInIntersection;
-//
-//	//need to store these values in the double buffer, because it is needed by other drivers.
-//	Shared<double> latMovement;
-//	Shared<double> fwdVelocity;
-//	Shared<double> latVelocity;
-//	Shared<double> fwdAccel;
-//	Shared<LANE_CHANGE_SIDE> turningDirection;
-	//Vehicle* getVehicle() { return vehicle; }
-
-//public:
-//	double startTime;
-//	bool isAleadyStarted;
-
-////Basic data
-//protected:
-//	//unsigned int currTimeMS;
-//	//Pointer to the vehicle this driver is controlling.
-//	Vehicle* vehicle;
-//	//This should be done through the Role class itself; for now, I'm just forcing
-//	//  it so that we can get the mid-term working. ~Seth
-//	virtual Vehicle* getResource() { return vehicle; }
-
 protected:
 	//Update models
 	LaneChangeModel* lcModel;
@@ -106,15 +78,6 @@ private:
 	//Sample stored data which takes reaction time into account.
 
 	int lastIndex;
-//	size_t reacTime;
-//	FixedDelayed<double> *perceivedFwdVel;
-//	FixedDelayed<double> *perceivedFwdAcc;
-//	FixedDelayed<double> *perceivedVelOfFwdCar;
-//	FixedDelayed<double> *perceivedAccOfFwdCar;
-//	FixedDelayed<double> *perceivedDistToFwdCar;
-//	FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
-//	FixedDelayed<double> *perceivedDistToTrafficSignal;
-
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 	                                     //so distance in last frame need to be remembered.
 

@@ -80,22 +80,23 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr),remainingTimeThisTick(0.0),
-	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out)
+	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr), remainingTimeThisTick(0.0),
+	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
 {
-	tripchainInitialized = false;
-	laneID = -1;
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out)
+	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
+	  databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
 {
-	prevRole = 0;
-	currRole = 0;
-	laneID = -1;
-	agentSrc = src;
-	tripChain = tcs;
-	tripchainInitialized = false;
+//	prevRole = 0;
+//	currRole = 0;
+//	laneID = -1;
+//	agentSrc = src;
+//	tripChain = tcs;
+//	tripchainInitialized = false;
 #ifndef SIMMOB_USE_CONFLUXES
 	simplyModifyTripChain(tcs);
 #endif
@@ -124,7 +125,9 @@ void sim_mob::Person::initTripChain(){
 }
 
 sim_mob::Person::~Person() {
+	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
+	safe_delete_item(nextRole);
 }
 
 
@@ -344,7 +347,28 @@ bool sim_mob::Person::changeRoleRequired_Activity(/*sim_mob::Activity &activity*
 	return true;
 }
 
-bool sim_mob::Person::updatePersonRole()
+bool sim_mob::Person::findPersonNextRole()
+{
+	if(!updateNextTripChainItem())
+	{
+		safe_delete_item(nextRole);
+		return false;
+	}
+	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
+	// it's better to avoid possible errors (e.g., if the equality operator is defined)
+	// by saving it until the next time tick.
+	//safe_delete_item(prevRole);
+	safe_delete_item(nextRole);
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+
+	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
+	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
+
+	nextRole = rf.createRole(tci, str, this);
+	return true;
+}
+
+bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 {
 	if(!((!currRole) ||(changeRoleRequired(*(*(this->currTripChainItem)))))) return false;
 		//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
@@ -352,15 +376,16 @@ bool sim_mob::Person::updatePersonRole()
 		// by saving it until the next time tick.
 		safe_delete_item(prevRole);
 		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-		prevRole = currRole;
+//		prevRole = currRole;
 
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
 
-		if(str==0) return false;
+		if(newRole == 0)
+			newRole = rf.createRole(tci, str, this);
 
-		sim_mob::Role* newRole = rf.createRole(tci, str, this);
 		changeRole(newRole);
+		return true;
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
@@ -376,13 +401,17 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		}
 	}
 
+//	if(!first_update_tick) {
+//		updateNextTripChainItem();
+//	}
+
 	first_update_tick = false;
 
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
 	setNextPathPlanned(false);
 
 	//Create a new Role based on the trip chain type
-	updatePersonRole();
+	updatePersonRole(nextRole);
 
 	//Update our origin/dest pair.
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) { //put if to avoid & evade bustrips, can be removed when everything is ok
@@ -624,6 +653,58 @@ bool sim_mob::Person::replaceATripChainItem(TripChainItem* rep, TripChainItem* n
 
 }
 
+bool sim_mob::Person::updateNextSubTrip()
+{
+	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
+	if(!trip) return false;
+	if (currSubTrip == trip->getSubTrips().end())//just a routine check
+		return false;
+
+	nextSubTrip = currSubTrip + 1;
+
+	if (nextSubTrip == trip->getSubTrips().end())
+		return false;
+	return true;
+}
+
+bool sim_mob::Person::updateNextTripChainItem()
+{
+	bool res = false;
+	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		//dont advance to next tripchainItem immediately, check the subtrip first
+		res = updateNextSubTrip();
+	}
+
+	if(res)
+	{
+		nextTripChainItem = currTripChainItem;
+		return res;
+	}
+
+	//no, it is not the subtrip we need to advance, it is the tripchain item
+	nextTripChainItem = currTripChainItem + 1;
+	if(nextTripChainItem != tripChain.end())
+		if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+			//	std::cout << "processing Activity";
+		}
+	//but tripchainitems are also over, get out !
+	if(nextTripChainItem == tripChain.end()) return false;
+
+	//so far, advancing the tripchainitem has been successful
+
+	//Also set the currSubTrip to the beginning of trip , just in case
+	if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*nextTripChainItem);//easy reading
+			if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
+			nextSubTrip =  trip->getSubTrips().begin();
+	}
+
+	return true;
+}
+
 //advance to the next subtrip inside the current TripChainItem
 bool sim_mob::Person::advanceCurrentSubTrip()
 {
@@ -704,8 +785,9 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 			this->currWorker->stopManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
-
+	prevRole = currRole;
 	currRole = newRole;
+	std::cout << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);
@@ -718,4 +800,61 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
+}
+
+void sim_mob::Person::setNextRole(sim_mob::Role* newRole)
+{
+	nextRole = newRole;
+}
+
+sim_mob::Role* sim_mob::Person::getNextRole() const {
+	return nextRole;
+}
+
+void sim_mob::Person::setPersonCharacteristics()
+{
+	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));
+	boost::uniform_int<> ageRange(20, 60);
+	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAge(gen, ageRange);
+	age = (unsigned int)varAge();
+	if(age >= 20 && age < 30)
+	{
+		boost::uniform_int<> BoardingTime(3, 7);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(3, 7);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >=30 && age < 40)
+	{
+		boost::uniform_int<> BoardingTime(4, 8);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(4, 8);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 40 && age < 50)
+	{
+		boost::uniform_int<> BoardingTime(5, 9);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(5, 9);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 50 && age <= 60)
+	{
+		boost::uniform_int<> BoardingTime(6, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(6, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
 }

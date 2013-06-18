@@ -298,6 +298,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 			try {
 				newSegPt = normal_intersect(bstopPoint, roadSegVec);
 			} catch (std::exception& ex) {
+				Warn() <<"Normal intersection could not be found for bus stop: " <<bstop->id <<std::endl
+				       <<ex.what() <<std::endl;
 				continue;
 			}
 
@@ -482,6 +484,8 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 								try {
 									candMidPt = normal_intersect(bstopPoint, laneSegVect);
 								} catch (std::exception& ex) {
+									Warn() <<"Normal intersection could not be found for bus stop: " <<bstop->id <<std::endl
+									       <<ex.what() <<std::endl;
 									error = true;
 									continue;
 								}

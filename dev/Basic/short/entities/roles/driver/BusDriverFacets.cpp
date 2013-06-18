@@ -305,7 +305,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(parentBusDriver->vehicle);
 
-			std::cout << "real_ArrivalTime value: " << parentBusDriver->real_ArrivalTime.get() << "  DwellTime_ijk: " << parentBusDriver->DwellTime_ijk.get() << std::endl;
+			//std::cout << "real_ArrivalTime value: " << parentBusDriver->real_ArrivalTime.get() << "  DwellTime_ijk: " << parentBusDriver->DwellTime_ijk.get() << std::endl;
 			parentBusDriver->real_ArrivalTime.set(p.now.ms());// BusDriver set RealArrival Time, set once(the first time comes in)
 			bus->TimeOfBusreachingBusstop=p.now.ms();
 
@@ -378,8 +378,8 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	}
 	if (isBusLeavingBusStop()
 			|| (waitAtStopMS >= BUS_STOP_WAIT_TIME)) {
-		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
-				<< std::endl;
+//		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
+//				<< std::endl;
 		waitAtStopMS = -1;
 		resetBoardingAlightingVariables();// reset boarding alighting variables when leaving bus stop
 		parentBusDriver->vehicle->setAcceleration(busAccelerating(p) * 100);
@@ -569,7 +569,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 						// one easy way to fix it
 						double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
 
-						std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
+						//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
 
 						distance = actualDistance
 								- BusDistfromStart.getMagnitude();
@@ -783,7 +783,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
-	std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
+	//std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
 	//Person* person = dynamic_cast<Person*>(parent);
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(parentAgent->currTripChainItem));
 	if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
@@ -919,7 +919,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 				boarding_MSs.push_back(boarding_ms);
 				virtualBoarding_Persons.push_back(p);// push this person in the virtual queue,
 				std::cout << "BoardingNum_Pos[j]: " << BoardingNum_Pos[j] << std::endl;
-				std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
+				//std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
 			}
 		}
 		if(!boarding_MSs.empty()) {

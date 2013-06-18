@@ -213,10 +213,10 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
-		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		int iSize = busStopRealTime_tripK_1.size();
-		for(int i = 0; i < iSize; i++)
-			std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << std::endl;
+//		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
+//		int iSize = busStopRealTime_tripK_1.size();
+//		for(int i = 0; i < iSize; i++)
+//			std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << std::endl;
 	}
 }
 

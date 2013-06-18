@@ -64,10 +64,6 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 }
 
 void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
-//	setSubPath();
-//	dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
-
-	//Person* person = dynamic_cast<Person*> (parent);
 	if(parentAgent) {
 		parentAgent->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -77,44 +73,6 @@ void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
-//	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
-//
-//	//Is this the first frame tick?
-//	if (p2.skipThisFrame) {
-//		return;
-//	}
-//
-//	double vel = 0;
-//
-//	int signalGreen = 3;
-//	signalGreen = sim_mob::Green; //Green by default
-//
-//#if 0
-//	signalGreen = Signal::Green; //Green by default
-//#endif
-//	if(pedMovement.isAtCrossing()){
-//		//Check whether to start to cross or not
-//		updatePedestrianSignal();
-//
-//		if (sigColor == signalGreen) //Green phase
-//			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
-//		else
-//			vel = 0;
-//	}
-//	else {
-//		if (!pedMovement.isDoneWithEntireRoute())
-//			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
-//		else
-//		{
-//			parentAgent->setToBeRemoved();
-//		}
-//	}
-//
-//		pedMovement.advance(vel);
-//
-//		parentAgent->xPos.set(pedMovement.getPosition().x);
-//		parentAgent->yPos.set(pedMovement.getPosition().y);
-
 	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
 
 	//Is this the first frame tick?

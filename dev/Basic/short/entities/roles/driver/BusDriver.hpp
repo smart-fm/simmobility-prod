@@ -38,30 +38,8 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Overrides
-//	virtual void frame_init(UpdateParams& p);
-//	virtual void frame_tick(UpdateParams& p);
-//	virtual void frame_tick_output(const UpdateParams& p);
-//	virtual void frame_tick_output_mpi(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual sim_mob::DriverRequestParams getDriverRequestParams();
-
-//	// new boarding method
-//	// individual boarding and alighting(Yao Jin)
-//	void IndividualBoardingAlighting_New(Bus* bus);
-//	// determine boarding and alighting MS for possible boarding and alighting persons(Yao Jin)
-//	void DetermineBoardingAlightingMS(Bus* bus);
-//	// start boarding and alighting based on the boarding and alighting MS
-//	// change passenger amount on the Bus(Yao Jin)
-//	void StartBoardingAlighting(Bus* bus);
-//	// reset some boarding and alighting variables after leaving the BusStop(Yao Jin)
-//	void resetBoardingAlightingVariables();
-//
-//    void AlightingPassengers(Bus* bus);
-//
-//
-//   ///dwell time calculation module
-//	double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
-//	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
@@ -96,50 +74,9 @@ public:
 	double xpos_approachingbusstop,ypos_approachingbusstop;
 	// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;
-//	bool first_busstop;
-//	bool last_busstop;
-//	bool passengerCountOld_display_flag;
-//	size_t no_passengers_boarding;
-//	size_t no_passengers_alighting;
-
-//	// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined(reset after BusDriver leaves the BusStop)
-//	bool allow_boarding_alighting_flag;
-//	// a tempoary boarding queue, will be cleared after BusDriver leaves the BusStop
-//	std::vector<sim_mob::Person*> virtualBoarding_Persons;
-//	// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
-//	std::map<int, int> BoardingNum_Pos;
-//	// record the AlightingNum_Pos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
-//	std::map<int, int> AlightingNum_Pos;
-//	// boarding_MSs for possible boarding persons, cleared after leaving the BusStop
-//	std::vector<uint32_t> boarding_MSs;
-//	// alighting_MSs for possible alighting persons, cleared after leaving the BusStop
-//	std::vector<uint32_t> alighting_MSs;
-//	// the first boarding and alighting MS where bus will start boarding and alighting, reset after leaving the BusStop
-//	uint32_t first_boarding_alighting_ms;
-//	// the last boarding and alighting MS and bus will leaves the BusStop, reset after leaving the BusStop
-//	uint32_t last_boarding_alighting_ms;
-//	// temporary boardingMS offset for boarding queue erase purpose, reset after leaving the BusStop
-//	int boardingMS_offset;
-//	// temporary alightingMS offset for passenger queue erase purpose, reset after leaving the BusStop
-//	int alightingMS_offset;
-//	// holdingtime SECS
-//	double BUS_STOP_HOLDING_TIME_SEC;
-//	// dwelltime(boarding and alighting time SECS)
-//	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
-
-//protected:
-//	//Override the following behavior
-//	virtual double linkDriving(DriverUpdateParams& p);
 
 //Basic data
 private:
-//	// total busStop list
-//	std::vector<const BusStop*> busStops;
-//	// waiting MS adding at the BusStop
-//	double waitAtStopMS;
-//	// total waiting time (can be holding time or dwelltime)
-//	double BUS_STOP_WAIT_TIME;
-
 	//Serialization, not implemented
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;
@@ -153,7 +90,4 @@ public:
 #endif
 
 };
-
-
-
 }

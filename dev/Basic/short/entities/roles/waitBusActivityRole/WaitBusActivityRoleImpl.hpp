@@ -37,15 +37,6 @@ public:
 	virtual ~WaitBusActivityRoleImpl();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-
-//	//Virtual overrides
-//	virtual void frame_init(UpdateParams& p);
-//	virtual void frame_tick(UpdateParams& p);
-//	virtual void frame_tick_output(const UpdateParams& p);
-//	virtual void frame_tick_output_mpi(timeslice now);
-
-//protected:
-//	Point2D DisplayOffset;
 };
 
 class WaitBusActivityRoleBehaviorImpl : public sim_mob::WaitBusActivityRoleBehavior {

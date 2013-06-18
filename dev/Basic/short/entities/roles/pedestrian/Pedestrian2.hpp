@@ -76,44 +76,10 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-//	virtual void frame_init(UpdateParams& p);
-//	virtual void frame_tick(UpdateParams& p);
-//	virtual void frame_tick_med(UpdateParams& p);
-//	virtual void frame_tick_output(const UpdateParams& p);
-//	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	//bool isOnCrossing() const;
-
 private:
-//	//Movement-related variables
-//	double speed;
-//	double xVel;
-//	double yVel;
-//
-//	const Signal* trafficSignal;
-//	const Crossing* currCrossing;
-//	int sigColor; //0-red, 1-yellow, 2-green
-//
-//	//For collisions
-//	double xCollisionVector;
-//	double yCollisionVector;
-//	static double collisionForce;
-//	static double agentRadius;
-
-	//The following methods are to be moved to agent's sub-systems in future
-//	void setSubPath();
-//	void updatePedestrianSignal();
-//	void checkForCollisions();
-//	bool checkGapAcceptance();
-
-//	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
-//	PedestrianPathMover pedMovement;
-//
-//	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
-//	bool isUsingGenPathMover;
-
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	PedestrianUpdateParams2 params;

@@ -35,6 +35,12 @@ int Message::GetMessageID(std::string msg)
 	return ID;
 }
 
+void Message::CreateMessage(std::string msg)
+{
+	messageID_ = GetMessageID( msg );
+	msg_ = msg;
+}
+
 void Msg_Vehicle_Init::CreateMessage(std::string msg)
 {
 	Message::CreateMessage(msg);
@@ -151,11 +157,13 @@ std::string Msg_Request::BuildToString()
 	std::string msg;
 	Json::Value Request;
 	Request["current_time"] = this->current_time;
-	Request["client_id"] = this->client_id;
-	Request["orgin"] = this->origin;
-	Request["destination"] = this->destination;
-	Request["departure_time_early"] = this->departure_time_early;
-	Request["depature_time_late"] = this->departure_time_late;
+	Request["client_id"] = this->request.client_id;
+	Request["orgin"] = this->request.origin;
+	Request["destination"] = this->request.destination;
+	Request["departure_time_early"] = this->request.departure_time_early;
+	Request["depature_time_late"] = this->request.departure_time_late;
+	Request["arriavl_time_early"] = this->request.arrival_time_early;
+	Request["arrival_time_late"] = this->request.arrival_time_late;
 	Request["seat_num"] = this->seat_num;
 
 	std::stringstream buffer;

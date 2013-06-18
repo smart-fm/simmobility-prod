@@ -23,7 +23,7 @@ public:
 	Message();
 	virtual ~Message();
 	virtual std::string BuildToString() { return msg_;}
-	virtual void CreateMessage(std::string msg) { msg_ = msg;}
+	virtual void CreateMessage(std::string msg);
 	int GetMessageID() { return messageID_; }
 	static int GetMessageID(std::string msg);
 public:
@@ -42,14 +42,21 @@ public:
 	virtual std::string BuildToString();
 };
 
+struct Request
+{
+	int client_id;
+	int origin;
+	int destination;
+	std::string departure_time_early;
+	std::string departure_time_late;
+	std::string arrival_time_early;
+	std::string arrival_time_late;
+};
+
 class Msg_Request : public Message {
 public:
 	std::string current_time;
-	std::string client_id;
-	std::string origin;
-	std::string destination;
-	std::string departure_time_early;
-	std::string departure_time_late;
+	Request request;
 	int		seat_num;
 public:
 	virtual std::string BuildToString();

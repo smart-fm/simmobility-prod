@@ -33,6 +33,7 @@ public:
 private:
 	std::map<Link*, double> linkTravelTimes;
 	std::map<std::string, TripChainItem*> all_items;
+	std::map<Request*, TripChainItem*> all_requests;
 	// keep all children agents to communicate with it
 	std::vector<Agent*> all_persons;
 	std::vector<Agent*> all_drivers;
@@ -50,8 +51,8 @@ protected:
 
 
 private:
-	void ProcessMessages();
-	MessageList CollectRequest();
+	void ProcessMessages(timeslice now);
+	MessageList GenerateRequest(timeslice now);
 	MessageList HandleOfferMessage(std::string msg);
 	MessageList HandleConfirmMessage(std::string msg);
 	void HandleScheduleMessage(std::string msg);
@@ -63,7 +64,8 @@ private:
 	MessageList CollectLinkTravelTime();
 
 private:
-	void GeneratePerson(timeslice now);
+	void CollectPerson();
+	void CollectRequest();
 
 private:
 	TCPSessionPtr connectPoint;

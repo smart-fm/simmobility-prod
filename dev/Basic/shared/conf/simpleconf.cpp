@@ -198,8 +198,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	//if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {{
-	if(1){
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);
@@ -227,6 +226,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		TripChainItem* tc = it_map->second.front();
 		if( tc->itemType != TripChainItem::IT_FMODSIM){
 			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+			person->setPersonCharacteristics();
 			addOrStashEntity(person, active_agents, pending_agents);
 			//Reset for the next (possible) Agent
 			person = nullptr;
@@ -2269,10 +2269,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //they should be handled with in the signal constructor, not here
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
-    }
-
-    if(BusStopAgent::HasBusStopAgents()) {
-    	BusStopAgent::PlaceAllBusStopAgents(active_agents);
     }
 
     std::vector<Signal*>& all_signals = Signal::all_signals_;

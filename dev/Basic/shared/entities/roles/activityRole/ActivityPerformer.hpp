@@ -67,9 +67,8 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 class ActivityPerformer : public sim_mob::Role {
 public:
 	int remainingTimeToComplete;
-
-	ActivityPerformer(sim_mob::Agent* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string());
-	ActivityPerformer(sim_mob::Agent* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = "activityRole");
+	ActivityPerformer(sim_mob::Agent* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_ACTIVITY);
+	ActivityPerformer(sim_mob::Agent* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, Role::type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
 	virtual ~ActivityPerformer() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

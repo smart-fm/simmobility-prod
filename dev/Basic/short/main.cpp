@@ -39,9 +39,11 @@
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -145,10 +147,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-		//rf.registerRole("passenger",new sim_mob::Passenger(nullptr));
 
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
+		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+		rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
 		//cannot allocate an object of abstract type
 //		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
@@ -228,6 +231,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		agentWorkers->assignAWorker(*it);
 	}
+
+	//Assign all BusStopAgents
+	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
+	BusStopAgent::AssignAllBusStopAgents(*agentWorkers);
 
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {

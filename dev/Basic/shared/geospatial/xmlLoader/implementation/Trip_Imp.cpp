@@ -1,4 +1,5 @@
 #include "geo10-pimpl.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace sim_mob::xml;
 
@@ -40,6 +41,7 @@ sim_mob::TripChainItem* sim_mob::xml::Trip_t_pimpl::post_Trip_t ()
 	res->personID = temp->personID;
 	res->itemType = temp->itemType;
 	res->sequenceNumber = temp->sequenceNumber;
+	res->requestTime = temp->requestTime;
 	res->startTime = temp->startTime;
 	res->endTime = temp->endTime;
 	delete temp;
@@ -55,7 +57,7 @@ void sim_mob::xml::Trip_t_pimpl::tripID (long long value)
 
 void sim_mob::xml::Trip_t_pimpl::fromLocation (unsigned int value)
 {
-	model.fromLocation = book.getNode(value);
+	model.fromLocation = sim_mob::WayPoint( book.getNode(value) );
 }
 
 void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
@@ -65,7 +67,7 @@ void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
 
 void sim_mob::xml::Trip_t_pimpl::toLocation (unsigned int value)
 {
-	model.toLocation = book.getNode(value);
+	model.toLocation = sim_mob::WayPoint(book.getNode(value));
 }
 
 void sim_mob::xml::Trip_t_pimpl::toLocationType (std::string value)

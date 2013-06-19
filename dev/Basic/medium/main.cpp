@@ -17,11 +17,13 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "entities/models/LaneChangeModel.hpp"
 #include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 //#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -35,6 +37,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "logging/Log.hpp"
+#include "entities/BusController.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -153,8 +156,10 @@ bool performMainMed(const std::string& configFileName) {
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
+
 
 	//No built-in models available to the medium term (yet).
 	Config::BuiltInModels builtIn;
@@ -203,6 +208,10 @@ bool performMainMed(const std::string& configFileName) {
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		// agentWorkers->assignAWorker(*it);
 		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+	}
+
+	if(BusController::HasBusControllers()){
+		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too
@@ -433,6 +442,7 @@ int main(int argc, char* argv[])
 	//}
 
 	//Perform main loop
+	clock_t simStartTime = clock();
 	int returnVal = performMainMed(configFileName) ? 0 : 1;
 
 	//Close log file, return.
@@ -440,7 +450,7 @@ int main(int argc, char* argv[])
 		Logger::log_done();
 	}
 	cout << "Done" << endl;
-
+	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;
 }
 

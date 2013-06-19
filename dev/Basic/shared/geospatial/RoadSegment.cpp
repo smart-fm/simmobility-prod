@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoadSegment.hpp"
 
@@ -307,4 +309,11 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 		//}
 	}
 	return laneEdgePolylines_cached[laneID];
+}
+
+
+std::string sim_mob::RoadSegment::getStartEnd() const {
+	std::stringstream startEndIDs;
+	startEndIDs << "[" << getStart()->getID() << "," << getEnd()->getID() << "]";
+	return startEndIDs.str();
 }

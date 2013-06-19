@@ -497,6 +497,7 @@ public:
 	virtual void personID (std::string);
 	virtual void itemType (std::string);
 	virtual void sequenceNumber (unsigned int);
+	virtual void requestTime (long long);
 	virtual void startTime (const ::std::string&);
 	virtual void endTime (const ::std::string&);
 
@@ -567,7 +568,7 @@ public:
 	virtual void pre ();
 	virtual std::pair<std::string, std::vector<sim_mob::TripChainItem*> > post_TripChain_t ();
 
-	virtual void personID (std::string);
+	virtual void personID (const ::std::string&);
 	virtual void Trip (sim_mob::TripChainItem*);
 	virtual void Activity (sim_mob::TripChainItem*);
 

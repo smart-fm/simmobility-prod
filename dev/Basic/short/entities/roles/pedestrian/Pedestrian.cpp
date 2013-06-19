@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
  * Pedestrian.cpp
@@ -132,19 +134,12 @@ double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 
 
 sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	trafficSignal(nullptr), currCrossing(nullptr), cStartX(0), cStartY(0), cEndX(0), cEndY(0),
-	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator())
+	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()), sigColor(sim_mob::Green),
+	startToCross(false), xVel(0), yVel(0), xCollisionVector(0), yCollisionVector(0),
+	atSidewalk(true), atCrossing(false), gotoCrossing(false), crossingCount(0)
 {
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
-
-	//Init
-	sigColor = sim_mob::Green; //Green by default
-
-#if 0
-	sigColor = Signal::Green; //Green by default
-#endif
-
-	startToCross = false;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
 	if (parent) {
@@ -152,18 +147,6 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
 	} else {
 		speed = 0;
 	}
-
-	xVel = 0;
-	yVel = 0;
-
-	xCollisionVector = 0;
-	yCollisionVector = 0;
-
-	atSidewalk = true;
-	atCrossing = false;
-	gotoCrossing = false;
-	crossingCount = 0;
-
 }
 
 Role* sim_mob::Pedestrian::clone(Person* parent) const
@@ -329,8 +312,20 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(timeslice now)
 void sim_mob::Pedestrian::setSubPath() {
 	if(atSidewalk){
 		const StreetDirectory& stdir = StreetDirectory::instance();
-		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
+		//vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
 
+		StreetDirectory::VertexDesc source, destination;
+		if(parent->originNode.type_==WayPoint::NODE)
+			source = stdir.WalkingVertex(*parent->originNode.node_);
+		else if(parent->originNode.type_==WayPoint::BUS_STOP)
+			source = stdir.WalkingVertex(*parent->originNode.busStop_);
+
+		if(parent->destNode.type_==WayPoint::NODE)
+			destination = stdir.WalkingVertex(*parent->destNode.node_);
+		else if(parent->destNode.type_==WayPoint::BUS_STOP)
+			destination = stdir.WalkingVertex(*parent->destNode.busStop_);
+
+		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 		//Used to debug pedestrian walking paths.
 		/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
 		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
@@ -402,7 +397,7 @@ void sim_mob::Pedestrian::setSubPath() {
 
 			//	LogOut("noteForDebug setSubPath run atSideWalk binary 1"<<std::endl);
 
-				if(segWithDirection.path.front()->getEnd() == parent->originNode) {
+				if(segWithDirection.path.front()->getEnd() == parent->originNode.node_) {
 
 				//	LogOut("noteForDebug setSubPath run atSideWalk binary 1.1"<<std::endl);
 
@@ -442,7 +437,20 @@ void sim_mob::Pedestrian::setSubPath() {
 
 		//LogOut("noteForDebug setSubPath run atCrossing"<<std::endl);
 		const StreetDirectory& stdir = StreetDirectory::instance();
-		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
+		//vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*parent->originNode), stdir.WalkingVertex(*parent->destNode));
+		StreetDirectory::VertexDesc source, destination;
+		if(parent->originNode.type_==WayPoint::NODE)
+			source = stdir.WalkingVertex(*parent->originNode.node_);
+		else if(parent->originNode.type_==WayPoint::BUS_STOP)
+			source = stdir.WalkingVertex(*parent->originNode.busStop_);
+
+		if(parent->destNode.type_==WayPoint::NODE)
+			destination = stdir.WalkingVertex(*parent->destNode.node_);
+		else if(parent->destNode.type_==WayPoint::BUS_STOP)
+			destination = stdir.WalkingVertex(*parent->destNode.busStop_);
+
+		vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
+
 		bool isPassedCrossing=false;
 		vector<const Crossing*> newCrossings;
 		if(currCrossings.empty()){
@@ -580,7 +588,7 @@ bool sim_mob::Pedestrian::isAtBusStop() {
 
 bool sim_mob::Pedestrian::isDestReached() {
 	if(atSidewalk){
-		if(fwdMovement.isDoneWithEntireRoute() && (currPath.back()->getEnd()==parent->destNode||currPath.back()->getStart()==parent->destNode)){
+		if(fwdMovement.isDoneWithEntireRoute() && (currPath.back()->getEnd()==parent->destNode.node_||currPath.back()->getStart()==parent->destNode.node_)){
 			return true;
 		}
 	}

@@ -8,6 +8,7 @@
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+#include "geospatial/Link.hpp"
 
 
 namespace sim_mob
@@ -16,18 +17,13 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 
-//Needed to prevent a declaration error.
-class NearestVehicle {};
-
 
 namespace medium
 {
 class Driver;
 
 ///Simple struct to hold parameters which only exist for a single update tick.
-/// \author Wang Xinyuan
-/// \author Li Zhemin
-/// \author Seth N. Hetu
+/// \author Melani
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen), secondsInTick(0.0),
@@ -35,17 +31,8 @@ struct DriverUpdateParams : public UpdateParams {
 
 	virtual void reset(timeslice now, const Driver& owner);
 
-	//const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
-	//size_t currLaneIndex; //Cache of currLane's index. //melani-Oct-31
-	//size_t nextLaneIndex; //for lane changing model
-
-	//double currLaneOffset;
-	//double currLaneLength;
-	double secondsInTick;
+	double secondsInTick;	//tickSize
 	double elapsedSeconds;	//time elapsed in the current tick
-
-	//Handles state information
-	//double overflowIntoIntersection;
 };
 
 

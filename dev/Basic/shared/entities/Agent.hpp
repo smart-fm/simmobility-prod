@@ -60,6 +60,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  * \author LIM Fung Chai
  * \author Wang Xinyuan
  * \author Xu Yan
+ * \author zhang huai peng
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
@@ -155,6 +156,7 @@ private:
 	//Internal update function for handling frame_init(), frame_tick(), etc.
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
+public:
 	//for mid-term link travel time computation
 	struct travelStats
 	{
@@ -173,8 +175,8 @@ private:
 
 public:
 	//The agent's start/end nodes.
-	const Node* originNode;
-	const Node* destNode;
+	WayPoint originNode;
+	WayPoint destNode;
 
 //	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
@@ -187,6 +189,7 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
+
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -249,6 +252,7 @@ public:
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
+	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
@@ -296,7 +300,18 @@ public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
+	bool isCallFrameInit() const {
+		return call_frame_init;
+	}
+
+	void setCallFrameInit(bool callFrameInit) {
+		call_frame_init = callFrameInit;
+	}
+
+	friend class BoundaryProcessor;
+
 	friend class ShortTermBoundaryProcessor;
+
 
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version

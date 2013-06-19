@@ -11,6 +11,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -58,7 +59,7 @@ public:
 	 * in the xml reader too.
 	 */
 	enum ItemType {
-		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM
 	};
 
 	std::string personID;//replaces entityID
@@ -66,11 +67,12 @@ public:
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
+	int requestTime;
 
 	//TripChainItem();
 	TripChainItem(std::string entId= "", std::string type="Trip",
 				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-				unsigned int seqNumber=0);
+				unsigned int seqNumber=0, int requestTime=-1);
 	virtual ~TripChainItem() {}
 
 	static LocationType getLocationType(std::string locType);
@@ -103,6 +105,7 @@ public:
 /**
  * \author Seth N. Hetu
  * \author Harish
+ * \author zhang huai peng
  */
 class Trip: public sim_mob::TripChainItem {
 
@@ -111,12 +114,12 @@ class Trip: public sim_mob::TripChainItem {
 
 public:
 	std::string tripID;
-	const sim_mob::Node* fromLocation;
+	WayPoint fromLocation;
 	TripChainItem::LocationType fromLocationType;
-	const sim_mob::Node* toLocation;
+	WayPoint toLocation;
 	TripChainItem::LocationType toLocationType;
 
-	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0,
+	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
 			Node* to=nullptr, std::string toLocType="node");
@@ -144,6 +147,7 @@ private:
 
 /**
  * \author Harish
+ * \author zhang huai peng
  */
 class SubTrip: public sim_mob::Trip {
 public:
@@ -152,7 +156,7 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,
+	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");

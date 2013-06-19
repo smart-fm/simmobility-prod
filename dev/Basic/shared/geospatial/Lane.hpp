@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -268,7 +270,7 @@ public:
         }
 
     ///Return the laneID.
-    ///NOTE: This will probably end up being the "tranlated" lane ID, instead of the "raw" lane ID.
+    ///NOTE: This will probably end up being the "translated" lane ID, instead of the "raw" lane ID.
     unsigned int getLaneID() const {
     	return laneID_;
     }

@@ -155,7 +155,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//}
 */
 	//=====================================incident==============================================
-	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
+//	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
 	if(parentAgent->canMoveToNextSegment == Person::GRANTED) {
 		Print()	<< "|Permission: Granted"
 				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()

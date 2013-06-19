@@ -142,7 +142,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if((segBeforeUpdate != segAfterUpdate) || (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate))
 	{
-		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
+		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate, isQueuingBeforeUpdate);
 		if(dequeuedPerson != person) {
 			segStatsBfrUpdt->printAgents();
 			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()

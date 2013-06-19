@@ -11,6 +11,7 @@
 #include "message/LT_Message.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
+#include "util/Math.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -31,6 +32,7 @@ void HouseholdSellerRole::Update(timeslice now) {
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             if ((*itr)->IsAvailable()) {
+                CalculateUnitExpectations(*(*itr));
                 market->AddUnit((*itr));
             }
         }
@@ -127,6 +129,8 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
             unit = GetParent()->RemoveUnit(unit->GetId());
+            // clean all expectations for the unit.
+            unitExpectations.erase(unit->GetId());
         }
     }
     // notify winners.
@@ -142,3 +146,39 @@ void HouseholdSellerRole::AdjustNotSelledUnits() {
         }
     }
 }
+
+inline double ExpectationFunction(double* x, double* params) {
+    double price = params[0];
+    double theta = params[1];
+    double alpha = params[2];
+    double v = x[0]; // last expectation (V(t+1))
+    // Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
+    double bidsDistribution = v / price;
+    // Calculates the probability of not having any bid greater than v.
+    double priceProb = pow(Math::E, -((theta / pow(price, alpha)) * (1 - bidsDistribution)));
+    // Calculates expected maximum bid.
+    double expectedMaxBid = (pow(price, 2 * alpha + 1) *
+            (price * (theta * pow(price, -alpha) - 1)) + pow(Math::E, (theta * pow(price, -alpha * ((v / price) - 1)))) *
+            (price - theta * v * pow(price, -alpha))) / (theta * theta);
+    return (v * priceProb + (1 - priceProb) * expectedMaxBid);
+}
+
+void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
+    ExpectationEntry entry;
+    double expectation = unit.GetReservationPrice();
+
+    for (int i = 0; i < (2 * TIME_UNIT); i++) {
+        LogOut("Expectation on: [" << i << std::setprecision(15) <<
+                "] Unit: [" << unit.GetId() <<
+                "] value: [" << expectation <<
+                "] reservationPrice: [" << unit.GetReservationPrice() <<
+                "] hedonicPrice: [" << unit.GetHedonicPrice() <<
+                "] theta: [" << hh->GetWeightExpectedEvents() <<
+                "] alpha: [" <<  hh->GetWeightPriceImportance() <<
+                "]"<< endl);
+        expectation = Math::Newton(ExpectationFunction,
+                expectation, (double[]) {
+            (double) unit.GetHedonicPrice(), (double) hh->GetWeightExpectedEvents(), (double) hh->GetWeightPriceImportance()}, .0001f, 100);
+    }
+}
+

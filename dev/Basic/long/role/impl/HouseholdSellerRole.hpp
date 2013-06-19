@@ -59,16 +59,28 @@ namespace sim_mob {
             virtual void AdjustUnitParams(Unit& unit);
             
         private:
+            
             /**
              * Notify the bidders that have their bid were accepted.
              */
             void NotifyWinnerBidders();
+            
             /**
              * Adjust parameters of all units that were not selled.
              */
             void AdjustNotSelledUnits();
+            
+            /**
+             * Calculates the unit expectations to the maximum period of time 
+             * that the seller is expecting to be in the market.
+             * @param unit to cal
+             */
+            void CalculateUnitExpectations(const Unit& unit);
+        
         private:
+            typedef list<float> ExpectationEntry;
             typedef boost::unordered_map<UnitId, Bid> Bids; 
+            typedef boost::unordered_map<UnitId, ExpectationEntry> Expectations; 
             typedef pair<UnitId, Bid> BidEntry;
             friend class HouseholdAgent;
             HousingMarket* market;
@@ -77,6 +89,7 @@ namespace sim_mob {
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
+            Expectations unitExpectations;
         };
     }
 }

@@ -195,6 +195,13 @@ void perform_main() {
     }
     entities.clear();
 }
+/*double func( double* x, double* params){
+    return x[0]*x[0];
+}
+
+double deriv(double* x, double* params){
+    return 2*x[0];
+}*/
 
 int main(int argc, char* argv[]) {
     Logger::log_init("");
@@ -207,8 +214,14 @@ int main(int argc, char* argv[]) {
         perform_main();
     }
     watch.Stop();
+    
+    //double result = Math::Newton(func, deriv, 10, 0, .0001f, 30);
+    //double resul1 = Math::Newton(func, 10, 0, .0001f, 30);
     LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
             << endl);
+    LogOut("Result: " << result << endl);
+    LogOut("Result1: " << resul1 << endl);
+    
     Statistics::Print();
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
 

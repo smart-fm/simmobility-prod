@@ -43,5 +43,16 @@ using std::ostream;
  */
 #define MIN_AGE_TO_WORK 18
 
+/**
+ * TIME UNITS
+ */
+#define TIME_UNIT_DAILY 1 
+#define TIME_UNIT_WEEKLY 7
+#define TIME_UNIT_MONTHLY 30 
+#define TIME_UNIT_YEARLY 365 
+
+#define TIME_UNIT TIME_UNIT_WEEKLY
+
+
 
 

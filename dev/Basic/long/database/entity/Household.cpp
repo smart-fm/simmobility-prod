@@ -21,7 +21,9 @@ headAge(0), income(income), numberOfCars(0), numberOfChildren(0),
 numberOfWorkers(0), numberOfMembers(numberOfMembers), buildingId(-1),
 weightIncome(1.0f), weightUnitSize(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
 weightDistanceToCDB(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
-weightUrgencyToBuy(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
+weightUrgencyToBuy(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
+weightExpectedEvents(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
+weightPriceImportance(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
 }
 
 Household& Household::operator=(const Household& source) {
@@ -38,6 +40,8 @@ Household& Household::operator=(const Household& source) {
     this->weightUnitSize = source.weightUnitSize;
     this->weightIncome = source.weightIncome;
     this->weightUrgencyToBuy = source.weightUrgencyToBuy;
+    this->weightExpectedEvents = source.weightExpectedEvents;
+    this->weightPriceImportance = source.weightPriceImportance;
     return *this;
 }
 
@@ -94,4 +98,12 @@ float Household::GetWeightIncome() const {
 
 float Household::GetWeightUrgencyToBuy() const {
     return weightUrgencyToBuy;
+}
+
+float Household::GetWeightExpectedEvents() const {
+    return weightExpectedEvents;
+}
+
+float Household::GetWeightPriceImportance() const {
+    return weightPriceImportance;
 }

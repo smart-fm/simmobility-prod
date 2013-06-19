@@ -98,6 +98,18 @@ namespace sim_mob {
              */
             float GetWeightUrgencyToBuy() const;
             
+             /**
+             * Gets the number of bids that the seller is expecting to have in a specific time period.
+             * @return expected events weight.
+             */
+            float GetWeightExpectedEvents() const;
+
+            /**
+             * Gets the importance of the price to attracting people.
+             * @return weight price importance.
+             */
+            float GetWeightPriceImportance() const;
+            
             /**
              * Assign operator.
              * @param source to assign.
@@ -122,7 +134,9 @@ namespace sim_mob {
                         << "\"weightDistanceToCDB\":\"" << data.weightDistanceToCDB << "\","
                         << "\"weightSize\":\"" << data.weightUnitSize << "\","
                         << "\"weightIncome\":\"" << data.weightIncome << "\","
-                        << "\"weightUrgencyToBuy\":\"" << data.weightUrgencyToBuy << "\""
+                        << "\"weightUrgencyToBuy\":\"" << data.weightUrgencyToBuy << "\","
+                        << "\"weightExpectedEvents\":\"" << data.weightExpectedEvents << "\","
+                        << "\"weightPriceImportance\":\"" << data.weightPriceImportance << "\""
                         << "}";
             }
 
@@ -137,10 +151,14 @@ namespace sim_mob {
             int numberOfCars;
             int headAge;
             float income;
+            // Weights when he is looking for a HOME (TODO: change this to ROLE?)
             float weightIncome; // importance that this household has for the income (should be always 1).
             float weightDistanceToCDB; // importance that this household has for the distance to CDB.
             float weightUnitSize; // importance that this household has for the size of the unit.
             float weightUrgencyToBuy; // represents the urgency that the HH has to buy a new home.
+            // Weights when he is selling his HOME (TODO: change this to ROLE?)
+            float weightExpectedEvents; // represents the number of bids that the seller is expecting to have in a specific time period.
+            float weightPriceImportance; // represents the importance of the price to attracting people.
             Race race;
         };
     }

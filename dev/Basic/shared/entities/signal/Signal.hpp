@@ -129,6 +129,7 @@ class Signal_SCATS  : public sim_mob::Signal {
 	friend class sim_mob::xml::Signal_t_pimpl;
 friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
+void *tempLoop;
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/

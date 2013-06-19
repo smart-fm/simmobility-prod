@@ -1,5 +1,6 @@
 
 #include "DriverComm.hpp"
+#include "DriverCommFacets.hpp"
 #include "entities/Person.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
@@ -9,7 +10,8 @@ namespace sim_mob
 
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
-sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat):Driver(parent,mtxStrat), JCommunicationSupport(*managingBroker, *parent)
+sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
+		Driver(parent,mtxStrat,behavior, movement), JCommunicationSupport(*managingBroker, *parent)
 {}
 
 sim_mob::DriverComm::~DriverComm()
@@ -17,11 +19,25 @@ sim_mob::DriverComm::~DriverComm()
 
 Role* sim_mob::DriverComm::clone(Person* parent) const
 {
-	Role* role = 0;
-	role = new DriverComm(parent, &this->communicator, parent->getMutexStrategy());
-
-	return role;
+	DriverCommBehavior* behavior = new DriverCommBehavior(parent);
+	DriverCommMovement* movement = new DriverCommMovement(parent);
+	DriverComm* driver = new DriverComm(parent, &this->communicator, parent->getMutexStrategy(), behavior, movement);
+	behavior->setParentDriver(driver);
+	movement->setParentDriver(driver);
+	behavior->setParentDriverComm(driver);
+	movement->setParentDriverComm(driver);
+	return driver;
 }
+sim_mob::Agent * DriverComm::getParentAgent()
+{
+	return parent;
+}
+
+sim_mob::Broker &DriverComm::getBroker()
+{
+	return communicator;
+}
+
 #if 0
 void sim_mob::DriverComm::receiveModule(timeslice now)
 {
@@ -92,40 +108,40 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 }
 #endif
 //Virtual implementations
-void DriverComm::frame_init(UpdateParams& p) {
-	Driver::frame_init(p);
-//	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
-	Register(this->parent, this->communicator);
-}
-;
-void DriverComm::frame_tick(UpdateParams& p) {
-
-	Driver::frame_tick(p);
-//	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
-//	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
-//	{
-//		sendModule(p.now);
-//	}
-////	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
+//void DriverComm::frame_init(UpdateParams& p) {
+//	Driver::frame_init(p);
+////	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
+//	Register(this->parent, this->communicator);
+//}
+//;
+//void DriverComm::frame_tick(UpdateParams& p) {
+//
+//	Driver::frame_tick(p);
+////	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
+////	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
 ////	{
-//		receiveModule(p.now);
+////		sendModule(p.now);
 ////	}
-//	if(!registered)
-//	{
-//		return;
-//	}
-//	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
-	setAgentUpdateDone(true);
-
-}
-;
-void DriverComm::frame_tick_output(const UpdateParams& p) {
-	Driver::frame_tick_output(p);
-}
-;
-void DriverComm::frame_tick_output_mpi(timeslice now) {
-	Driver::frame_tick_output_mpi(now);
-}
+//////	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
+//////	{
+////		receiveModule(p.now);
+//////	}
+////	if(!registered)
+////	{
+////		return;
+////	}
+////	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
+//	setAgentUpdateDone(true);
+//
+//}
+//;
+//void DriverComm::frame_tick_output(const UpdateParams& p) {
+//	Driver::frame_tick_output(p);
+//}
+//;
+//void DriverComm::frame_tick_output_mpi(timeslice now) {
+//	Driver::frame_tick_output_mpi(now);
+//}
 ;
 }//namespace sim_mob
 

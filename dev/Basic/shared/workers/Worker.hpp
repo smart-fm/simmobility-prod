@@ -94,7 +94,6 @@ public:
 protected:
 	virtual void perform_main(timeslice currTime);
 	virtual void perform_flip();
-	virtual void perform_handover();
 
 
 private:

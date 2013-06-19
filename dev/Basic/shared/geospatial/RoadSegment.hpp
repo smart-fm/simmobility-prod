@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -77,6 +79,7 @@ public:
 	//void setLanes(const std::vector<sim_mob::Lane*>& ln) { this->lanes = ln; }
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
+	std::string getStartEnd() const;
 
 public:
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, const SupplyParams* sParams=nullptr, unsigned long id=-1) :

@@ -55,6 +55,12 @@ public:
         return instance_;
     }
 
+    static AuraManager &
+    instance2()
+    {
+    	return instance2_;
+    }
+
     /**
      * Called every frame, this method builds a spatial index of the positions of all agents.
      *
@@ -128,6 +134,7 @@ private:
     // No need to define the dtor.
 
     static AuraManager instance_;
+    static AuraManager instance2_;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;

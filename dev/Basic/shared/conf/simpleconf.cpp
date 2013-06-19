@@ -13,6 +13,7 @@
 #include <boost/tuple/tuple_comparison.hpp>
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -22,6 +23,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "password/password.hpp"
 
@@ -213,20 +215,25 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-
+	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
 	//The current agent we are working on.
 	Person* person = nullptr;
 	std::string trip_mode;
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-//		std::cout << "Size of tripchain item in this iteration is " << it_map->second.size() << std::endl;
+		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
-
-		person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-		addOrStashEntity(person, active_agents, pending_agents);
-		//Reset for the next (possible) Agent
-		person = nullptr;
+		if( tc->itemType != TripChainItem::IT_FMODSIM){
+			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+			person->setPersonCharacteristics();
+			addOrStashEntity(person, active_agents, pending_agents);
+			//Reset for the next (possible) Agent
+			person = nullptr;
+		}
+		else {
+			//insert to FMOD controller so that collection of requests
+		}
 	}//outer for loop(map)
 }
 
@@ -241,14 +248,14 @@ bool isAndroidClientEnabled(TiXmlHandle& handle)
 	return false;
 }
 
-void loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
 	// This will only generate an error if someone actually tries to load an agent of this type.
 	const RoleFactory& rf = config.getRoleFactory();
-	bool knownFole = rf.isKnownRole(agentType);
+	bool knownRole = rf.isKnownRole(agentType);
 
 	//Attempt to load either "agentType"+s or "agentType"+es (drivers, buses).
 	// This allows ungrammatical terms like "driveres", but it's probably better than being too restrictive.
@@ -259,10 +266,9 @@ void loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	}
 
 	//If at least one elemnt of an unknown type exists, it's an error.
-	if (node && !knownFole) {
-		std::stringstream msg;
-		msg <<"Unexpected agent type: " <<"agentType";
-		throw std::runtime_error(msg.str().c_str());
+	if (node && !knownRole) {
+		std::cout <<"Unexpected agent type: " <<agentType <<endl;
+		return false;
 	}
 
 
@@ -368,6 +374,8 @@ void loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
+
+	return true;
 }
 
 bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
@@ -386,17 +394,19 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
         try {
             int timeValue = boost::lexical_cast<int>(timeAttr);
             if (timeValue < 0) {
-            	throw std::runtime_error("buscontrollers must have positive time attributes in the config file.");
+                std::cerr << "buscontrollers must have positive time attributes in the config file." << std::endl;
+                return false;
             }
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
             sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
         } catch (boost::bad_lexical_cast &) {
-        	throw std::runtime_error("catch the loop error try; buscontrollers must have 'time' attributes with numerical values in the config file.");
+        	Warn() << "catch the loop error try!\n"
+        		   << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
+            return false;
         }
 	}
 	return true;
 }
-
 
 bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 {
@@ -1585,15 +1595,6 @@ void printRoadNetwork_console()
 	std::cout << "Testing Road Network Done\n";
 }
 
-/*
-bool createCommunicator()
-{
-//	sim_mob::NS3_Communicator::all_NS3_cummunication_agents.push_back(new sim_mob::NS3_Communicator(ConfigParams::GetInstance().mutexStategy));
-	//since at present communicator is a singleton, we just enable it :)
-		Broker::GetInstance().enable();
-		return true;
-}*/
-
 
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
@@ -1841,6 +1842,41 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		cout <<"*******************************************" <<endl;
 	}
 
+	//Check if we have options for a manual schema specification.
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("xsd_schema_files").FirstChild("road_network").ToElement();
+	if (node) {
+		bool triedOnce = false;
+		node = node->FirstChild("option")->ToElement();
+		while (node) {
+			triedOnce = true;
+			const char* optVal = node->Attribute("value");
+			if (optVal) {
+				//See if the file exists.
+				if (boost::filesystem::exists(optVal)) {
+					//Convert it to an absolute path.
+					boost::filesystem::path abs_path = boost::filesystem::absolute(optVal);
+					ConfigParams::GetInstance().roadNetworkXsdSchemaFile = abs_path.string();
+					break;
+				}
+			}
+			TiXmlNode* sib = node->NextSibling("option");
+			node = sib ? sib->ToElement() : nullptr;
+		}
+
+		//Did we find nothing?
+		if (triedOnce && ConfigParams::GetInstance().roadNetworkXsdSchemaFile.empty()) {
+			Warn() <<"Warning: No viable options for road_network schema file." <<std::endl;
+		}
+	}
+
+
+	//Output
+	const std::string schem = ConfigParams::GetInstance().roadNetworkXsdSchemaFile;
+	Print() <<"XML (road network) schema file: "  <<(schem.empty()?"<default>":schem) <<std::endl;
+
+
+
 	//Misc.: disable dynamic dispatch?
 	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("disable_dynamic_dispatch").ToElement();
@@ -2003,8 +2039,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
     			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
     		}
-
-
 //#else
  //   		geo::InitAndLoadXML(XML_OutPutFileName);
 //#endif
@@ -2107,15 +2141,27 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 					constraints);
 			cout << "Loaded Database Agents (from Trip Chains)." << endl;
 		} else if ((*it) == "drivers") {
-			loadXMLAgents(document, active_agents, pending_agents, "driver", constraints);
-			loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints);
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"driver", constraints)) {
+				return "Couldn't load drivers";
+			}
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"busdriver", constraints)) {
+				return "Couldn't load bus drivers";
+			}
 			cout << "Loaded Driver Agents (from config file)." << endl;
 
 		} else if ((*it) == "pedestrians") {
-			loadXMLAgents(document, active_agents, pending_agents,"pedestrian", constraints);
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"pedestrian", constraints)) {
+				return "Couldn't load pedestrians";
+			}
 			cout << "Loaded Pedestrian Agents (from config file)." << endl;
 		} else if ((*it) == "passengers") {
-			loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints);
+			if (!loadXMLAgents(document, active_agents, pending_agents,
+					"passenger", constraints)) {
+				return "Couldn't load passengers";
+			}
 			cout << "Loaded Passenger Agents (from config file)." << endl;
 		} else {
 			return string("Unknown item in load_agents: ") + (*it);
@@ -2173,7 +2219,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	PrintDB_Network_ptrBased();
     	std::cout <<"------------------\n";
    // }
-    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
+    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
@@ -2368,7 +2414,6 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 			msg <<"Aborting on Config error: \n" <<errorMsg;
 			throw std::runtime_error(msg.str().c_str());
 		}
-
 		delete doc;
 	}
 }

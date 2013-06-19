@@ -99,6 +99,9 @@ public:
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
 
+	///If empty, use the default provided in "xsi:schemaLocation".
+	std::string roadNetworkXsdSchemaFile;
+
 	DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.
@@ -163,6 +166,7 @@ public:
 	std::string connectionString;
 
 	bool using_MPI;
+	bool is_run_on_many_computers;
 	bool is_simulation_repeatable;
 
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
@@ -306,7 +310,7 @@ private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false),
+		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
 		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
 	{}

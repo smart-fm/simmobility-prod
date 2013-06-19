@@ -134,6 +134,7 @@ void sim_mob::AgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgent
 		sim_mob::Person* ag = new sim_mob::Person("XML_Def", cfg.mutexStrategy(), it->id);
 		ag->setConfigProperties(it->properties);
 		ag->setStartTime(it->startTimeMs);
+		Print()<<"Person created (loadAgents): "<<ag->getId()<<" | startTime: "<<ag->getStartTime()<<std::endl;
 		res.push_back(ag);
 	}
 }

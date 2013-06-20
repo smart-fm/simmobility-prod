@@ -8,8 +8,12 @@
 
 import sys
 import math
-from lxml import objectify
-from lxml import etree
+
+try:
+  from lxml import objectify
+  from lxml import etree
+except ImportError:
+  raise Exception("lxml module does not exist\n(Hint: try \"sudo apt-get install python-lxml\" on Ubuntu.)")
 
 #TODO: I realize now that naming every file the same "e.g., "something.sumo, somethingelse.sumo" was not
 #      the best idea; need to clean up the package structure at some point. ~Seth

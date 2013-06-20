@@ -7,6 +7,8 @@
 
 #include "TimeEventArgs.hpp"
 
+#include "conf/simpleconf.hpp"
+
 namespace sim_mob {
 
 TimeEventArgs::TimeEventArgs(timeslice time_): time(time_){
@@ -16,7 +18,7 @@ TimeEventArgs::~TimeEventArgs() {
 }
 
 Json::Value TimeEventArgs::ToJSON() const{
-	Json::Value mytime = sim_mob::JsonParser::makeTimeData(time.frame());
+	Json::Value mytime = sim_mob::JsonParser::makeTimeData(time.frame(), ConfigParams::GetInstance().baseGranMS);
 	return mytime;
 }
 }

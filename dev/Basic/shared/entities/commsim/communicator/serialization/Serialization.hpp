@@ -209,14 +209,15 @@ public:
 		return writer.write(packet);
 	}
 //	just conveys the tick
-	static Json::Value makeTimeData(unsigned int tick) {
+	static Json::Value makeTimeData(unsigned int tick, unsigned int elapsedMs) {
 		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TIME_DATA"));
 		time["tick"] = tick;
+		time["elapsed_ms"] = elapsedMs;
 		return time;
 	}
 
-	static std::string makeTimeDataString(unsigned int tick) {
-		Json::Value time = makeTimeData(tick);
+	static std::string makeTimeDataString(unsigned int tick, unsigned int elapsedMs) {
+		Json::Value time = makeTimeData(tick, elapsedMs);
 		Json::FastWriter writer;
 		return writer.write(time);
 	}

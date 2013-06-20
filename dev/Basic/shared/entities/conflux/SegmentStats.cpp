@@ -541,7 +541,7 @@ namespace sim_mob {
 
 	void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber){
 		segDensity = getDensity(true);
-		Print()<<"Density: "<<segDensity<<std::endl;
+//		Print()<<"Density: "<<segDensity<<std::endl;
 		segVehicleSpeed = speed_density_function(true, segDensity);
 		//need to update segPedSpeed in future
 		std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator it = laneStatsMap.begin();

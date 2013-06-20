@@ -155,7 +155,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//}
 */
 	//=====================================incident==============================================
-//	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
+	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
 	if(parentAgent->canMoveToNextSegment == Person::GRANTED) {
 		Print()	<< "|Permission: Granted"
 				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
@@ -525,7 +525,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
 	}
 
-	/*DebugStream << "Frame: " << p.now.frame()
+/*	DebugStream << "Frame: " << p.now.frame()
 				<< "| nextRdSeg: ["<<nextRdSeg->getStart()->getID()<<","<<nextRdSeg->getEnd()->getID()<<"]"
 				<<" | queueCount: " << vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true)
 				<<" | movingCount: "<<vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)

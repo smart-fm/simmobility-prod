@@ -30,6 +30,8 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
+//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
+#include "entities/commsim/communicator/broker/Broker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -233,6 +235,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			//insert to FMOD controller so that collection of requests
 		}
 	}//outer for loop(map)
+}
+
+bool isAndroidClientEnabled(TiXmlHandle& handle)
+{
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
+	ConfigParams::GetInstance().androidClientEnabled = false;
+	std::string androidYesNo = std::string(node->Attribute("enabled"));
+	if (androidYesNo == "yes") {
+		return true;
+	}
+	return false;
 }
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
@@ -1740,6 +1753,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
 	int agentWgSize = ReadValue(handle, "agent");
 	int signalWgSize = ReadValue(handle, "signal");
+	int commWgSize = ReadValue(handle, "Android_Communication");
 
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
@@ -1780,6 +1794,26 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+	//Communication Simulator (optional)
+	ConfigParams::GetInstance().commSimEnabled = false;
+	std::string commSimYesNo;
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
+	if (node) {
+		commSimYesNo = std::string(node->Attribute("enabled"));
+		if (commSimYesNo == "yes") {
+			ConfigParams::GetInstance().commSimEnabled = true;
+			//createCommunicator();
+		}
+	}
+
+	if(commSimYesNo == "yes")
+	{
+		ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle);
+	}
+
+
+
 	//Busline Control strategy (optional)
 	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("busline_control_type").ToElement();
@@ -1796,8 +1830,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	} else {
 		ConfigParams::GetInstance().busline_control_type = "no_control";// if no setting for this variable: also no control
 	}
-
-
 
 
 	//Miscellaneous settings
@@ -1915,6 +1947,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.granDecompTicks = granDecomp/baseGran;
     	config.agentWorkGroupSize = agentWgSize;
     	config.signalWorkGroupSize = signalWgSize;
+    	config.commWorkGroupSize = commWgSize;
     	config.simStartTime = DailyTime(simStartStr);
     	config.mutexStategy = mtStrat;
     	config.signalTimingMode = signalTimingMode;
@@ -2001,6 +2034,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
 //#ifdef SIMMOB_PARTIAL_XML_READER
+
+
     		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
     			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
     		}
@@ -2145,8 +2180,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
-
-
 
     //Display
     std::cout <<"Config parameters:\n";

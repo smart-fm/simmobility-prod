@@ -726,6 +726,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 //{
 //
 //}
+
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;

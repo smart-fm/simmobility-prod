@@ -46,9 +46,9 @@ void MessageReceiver::Post(MessageType type, MessageReceiver* sender,
     SendMessage(type, sender, message, true);
 }
 
-bool MessageReceiver::Send(MessageType type, MessageReceiver& sender,
-        const Message& message) {
+bool MessageReceiver::Send(MessageType type, MessageReceiver& sender, const Message& message) {
     SendMessage(type, &sender, const_cast<Message*> (&message), false);
+    return true;
 }
 
 bool MessageReceiver::HasMessages() {
@@ -56,8 +56,7 @@ bool MessageReceiver::HasMessages() {
     return ContainsMessages();
 }
 
-bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender,
-        Message* message, bool async) {
+bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender, Message* message, bool async) {
     if (sender && message) {
         if (async) {
             messages.push(new MessageEntry(type, new MessageData(sender, message)));
@@ -65,6 +64,7 @@ bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender,
             HandleMessage(type, *sender, *message);
         }
     }
+    return true;
 }
 
 bool MessageReceiver::ContainsMessages(){

@@ -224,6 +224,9 @@ IF (SIMMOB_LATEST_STANDARD)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ELSE (SIMMOB_LATEST_STANDARD)
+  #Avoid "C++0x compatibility" warnings.
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
+
   #Needed for profiling Agent updates (timing)
   #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
   #  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_XOPEN_SOURCE=700")
@@ -300,6 +303,11 @@ find_package(XercesC REQUIRED)
 include_directories(${XERCESC_INCLUDE_DIR})
 LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
 
+#Find JsonCpp
+find_package(JsonCpp REQUIRED)
+include_directories(${JSONCPP_INCLUDE_DIR})
+LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})
@@ -360,6 +368,13 @@ FILE(GLOB_RECURSE SharedCode_HPP shared/*.hpp)
 #Remove tests
 FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*.c")
 LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
+
+#Remove geospatial/xmlreader
+FILE(GLOB_RECURSE SharedCode_geo_xmlLoader "shared/geospatial/xmlLoader/*.cpp")
+#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_geo_xmlLoader})
+#Remove shared/conf/xmlreader
+FILE(GLOB_RECURSE SharedCode_conf_xmlLoader "shared/conf/xmlLoader/*.cpp")
+#LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_conf_xmlLoader})
 
 #All code has access to "shared/"
 include_directories("${PROJECT_SOURCE_DIR}/shared")

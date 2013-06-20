@@ -99,6 +99,9 @@ private:
 	size_t targetLaneIndex;
 
 	const Lane* nextLaneInNextLink;
+private:
+	double distanceToNextStop();
+	bool sArriveStop();
 
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.

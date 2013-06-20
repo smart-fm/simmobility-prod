@@ -85,6 +85,13 @@ void sim_mob::PassengerMovement::frame_init(UpdateParams& p) {
 		parentAgent->xPos.set(OriginBusStop->xPos);
 		parentAgent->yPos.set(OriginBusStop->yPos);
 	}
+	else if(parentAgent->originNode.type_==WayPoint::NODE)
+	{
+		const Node* node = parentAgent->originNode.node_;
+		parentAgent->xPos.set(node->getLocation().getX());
+		parentAgent->yPos.set(node->getLocation().getY());
+	}
+
 	DestBusStop=nullptr;
 	if(parentAgent->destNode.type_ == WayPoint::NODE )
 	{
@@ -355,7 +362,7 @@ bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(BusDriver* busdriver)
 
 void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decide which line to board based on shortest path
  {
-	 if(parentPassenger->BoardedBus.get()==false)
+	 if(OriginBusStop!=nullptr && parentPassenger->BoardedBus.get()==false)
 	 {
 		 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
          int prev=0;

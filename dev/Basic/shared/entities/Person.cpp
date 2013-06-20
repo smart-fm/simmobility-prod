@@ -490,7 +490,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 				else if((subChainItem2->mode=="Walk") && (subChainItem1->mode=="BusTravel"))
 				{
 					BusStopFinder finder(subChainItem1->fromLocation.node_, subChainItem1->toLocation.node_);
-					if(finder.getSourceBusStop())
+					if(finder.getSourceBusStop() && finder.getDestinationBusStop())
 					{
 						source = WayPoint(finder.getDestinationBusStop());
 						destination = subChainItem2->fromLocation;

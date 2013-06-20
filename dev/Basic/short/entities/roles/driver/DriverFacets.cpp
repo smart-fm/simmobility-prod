@@ -549,6 +549,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
+
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
@@ -610,6 +611,30 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		}
 	}
 
+	double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+	std::cout << "distance to stop : " << distance << std::endl;
+	if(distance<300) // check whether need stop here
+	{
+		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
+		const Node* stop = currSegment->getEnd();
+		const Node* stop1 = currSegment->getStart();
+		bool isFound = false;
+		static int count = 0;
+		parentDriver->vehicle->stopsList.push_back(58950);
+		for(int i = 0; i<parentDriver->vehicle->stopsList.size(); i++){
+			if( parentDriver->vehicle->stopsList[i]==stop->getID()){
+				isFound = true;
+			}
+		}
+		if(isFound ){
+			if( count++ < 1000 ){
+				parentDriver->vehicle->setAcceleration(-5000);
+				parentDriver->vehicle->setVelocity(0);
+				p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
+				return updatePositionOnLink(p);
+			}
+		}
+	}
 
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
@@ -1009,7 +1034,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 1;
+		int startlaneID = 0;
 
 		if(parentP->laneID != -1)
 		{

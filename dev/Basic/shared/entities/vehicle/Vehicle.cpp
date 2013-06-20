@@ -217,6 +217,14 @@ double sim_mob::Vehicle::getDistanceToSegmentStart() const {
 	return dis.getMagnitude();
 }
 
+double sim_mob::Vehicle::getDistanceToSegmentEnd() const {
+	throw_if_error();
+	DynamicVector dis(this->getX(), this->getY(),
+			this->getCurrSegment()->getEnd()->location.getX(),
+			this->getCurrSegment()->getEnd()->location.getY());
+	return dis.getMagnitude();
+}
+
 double sim_mob::Vehicle::getCurrLinkLaneZeroLength() const {
 	throw_if_error();
 	return fwdMovement.getTotalRoadSegmentLength();

@@ -14,6 +14,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
+#include "logging/Log.hpp"
 
 
 namespace sim_mob

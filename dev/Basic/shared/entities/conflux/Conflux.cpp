@@ -553,7 +553,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 				<< "|isQueuing: " << person->isQueuing
 				<< "|segLength: "<< person->getCurrSegment()->computeLaneZeroLength()
 				<< "|Conflux: " << multiNode->getID() <<std::endl;
-		std::cout << debugMsgs.str();
+		Print() << debugMsgs.str();
 		debugMsgs.str("");
 
 		if (!person->isToBeRemoved()) {
@@ -598,7 +598,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					<< "|currFrame:" << now.frame()
 					<< "|requestedNextSegment: [" << person->requestedNextSegment->getStart()->getID() <<","<< person->requestedNextSegment->getEnd()->getID() << "]"
 					<< std::endl;
-			std::cout << debugMsgs.str();
+			Print() << debugMsgs.str();
 			debugMsgs.str("");
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.

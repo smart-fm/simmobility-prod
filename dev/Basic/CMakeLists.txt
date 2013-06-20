@@ -98,7 +98,7 @@ SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSIO
 #SET(CPACK_SOURCE_STRIP_FILES "")                #Note: this will fail on Windows (don't use CPack on Windows!)
 #SET(CPACK_PACKAGE_EXECUTABLES "SimMobility_Short" "SimMobility short-term")
 SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")  #TODO: We should use "dpkg --print-architecture"
-SET(CPACK_PACKAGE_CONTACT "seth@smart.mit.edu")
+SET(CPACK_PACKAGE_CONTACT "Seth N. Hetu <seth@smart.mit.edu>")
 
 #This is where it starts to get complicated
 SET(COMMA ",")
@@ -386,7 +386,7 @@ ENDIF()
 #TODO: We currently install *all* header files in Shared.
 #FILE(GLOB_RECURSE GeoHeaderFiles "${CMAKE_CURRENT_SOURCE_DIR}/shared/*.hpp")
 #INSTALL(FILES ${GeoHeaderFiles} DESTINATION include/sim_mob)
-install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY shared/ DESTINATION include/sim_mob FILES_MATCHING PATTERN "*.hpp" PATTERN "conf/settings/*.h")
 
 #Install the library too.
 INSTALL(TARGETS simmob_geoxml

@@ -22,6 +22,7 @@ import geo.formats.simmob
 import geo.formats.sumo
 import geo.formats.osm
 import geo.serializers.simmob
+import geo.serializers.vissim
 import geo.serializers.osm
 import geo.serializers.out_txt
 from geo.position import Point
@@ -69,6 +70,9 @@ def run_main(inFileName, outFileName):
 
   #Also print in OSM format, for round-trip checking.
   geo.serializers.osm.serialize(rn, outFileName+".osm", [Location(1.264,103.646), Location(1.438,103.992)])   #We'll cheat a bit for now and center it on Singapore.
+
+  #And VISSIM
+  geo.serializers.vissim.serialize(rn, outFileName+".inp")
 
   #Now print the network in XML format, for use with the actual software.
   geo.serializers.simmob.serialize(rn, outFileName+".simmob.xml")

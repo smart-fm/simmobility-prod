@@ -121,11 +121,12 @@ def __write_xml_multinodes(f, rn, rnIndex):
       f.write('              <MultiConnectors>\n')
       f.write('                <RoadSegment>%s</RoadSegment>\n' % sg.segId)
       f.write('                <Connectors>\n')
-      for lc in sg.lane_connectors.values():
-        f.write('                  <Connector>\n')
-        f.write('                    <laneFrom>%d</laneFrom>\n' % lc.laneFrom.laneId)
-        f.write('                    <laneTo>%d</laneTo>\n' % lc.laneTo.laneId)
-        f.write('                  </Connector>\n')
+      for lcGrp in sg.lane_connectors.values():
+        for lc in lcGrp:
+          f.write('                  <Connector>\n')
+          f.write('                    <laneFrom>%s</laneFrom>\n' % lc.fromLane.laneId)
+          f.write('                    <laneTo>%s</laneTo>\n' % lc.toLane.laneId)
+          f.write('                  </Connector>\n')
       f.write('                </Connectors>\n')
       f.write('              </MultiConnectors>\n')
     f.write('            </Connectors>\n')

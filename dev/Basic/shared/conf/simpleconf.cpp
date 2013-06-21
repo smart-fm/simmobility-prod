@@ -236,6 +236,9 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
 		}
 	}//outer for loop(map)
+
+	if( sim_mob::FMOD::FMODController::Instance() )
+		sim_mob::FMOD::FMODController::Instance()->Initialize();
 }
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)

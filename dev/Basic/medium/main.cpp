@@ -214,6 +214,10 @@ bool performMainMed(const std::string& configFileName) {
 		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
+	if(sim_mob::FMOD::FMODController::Instance()){
+		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
+	}
+
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
 		signalStatusWorkers->assignAWorker(*it);

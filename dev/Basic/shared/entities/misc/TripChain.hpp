@@ -168,6 +168,32 @@ public:
 	virtual ~SubTrip() {}
 };
 
+class FMODTrip : public sim_mob::SubTrip {
+public:
+	struct STOP
+	{
+		std::string stop_id;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< std::string > boardingpassengers;
+		std::vector< std::string > alightingpassengers;
+	};
+	std::vector<STOP> stop_schdules;
+	struct PASSENGER
+	{
+		std::string client_id;
+		int price;
+	};
+	std::vector<PASSENGER> passengers;
+	struct ROUTE
+	{
+		std::string id;
+		int type;
+	};
+	std::vector<ROUTE> routes;
+	virtual ~FMODTrip() {}
+};
+
 
 //Non-member comparison functions
 bool operator==(const SubTrip& s1, const SubTrip& s2);

@@ -106,8 +106,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-	unsigned int start = getStartTime();
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
 		//consider putting this in IT_TRIP clause
@@ -379,7 +378,10 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 //		prevRole = currRole;
 
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
+
+		const sim_mob::SubTrip* str = 0;
+		if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
+			str =  &(*currSubTrip);
 
 		if(newRole == 0)
 			newRole = rf.createRole(tci, str, this);
@@ -732,7 +734,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
 	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
 	//first check if you just need to advance the subtrip
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{
 		//dont advance to next tripchainItem immidiately, check the subtrip first
 		res = advanceCurrentSubTrip();
@@ -755,7 +757,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//so far, advancing the tripchainitem has been successful
 
 	//Also set the currSubTrip to the beginning of trip , just in case
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 		currSubTrip = resetCurrSubTrip();
 
 	return true;

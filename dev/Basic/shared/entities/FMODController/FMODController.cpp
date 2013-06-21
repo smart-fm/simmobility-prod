@@ -48,12 +48,15 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	frameTicks++;
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 
+
 	if(frameTicks%2 == 0){
 		ProcessMessages(now);
 	}
 	if(curTickMS%updateTiming == 0){
 		UpdateMessages();
 	}
+
+	DispatchActivityAgents(now);
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -76,12 +79,14 @@ void FMODController::CollectPerson()
 
 		sim_mob::TripChainItem* tc = it->second;
 		tc->personID = boost::lexical_cast<std::string>( it->first->client_id );
-		tc->startTime = DailyTime(it->first->departure_time_early)+DailyTime(tc->requestTime*60*1000/2.0);
+		tc->startTime = DailyTime(it->first->departure_time_early); //+DailyTime(tc->requestTime*60*1000/2.0);
+
 		std::vector<sim_mob::TripChainItem*>  tcs;
 		tcs.push_back(tc);
 
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
 		all_persons.push_back(person);
+		//person->setStartTime( tc->startTime.getValue() );
 	}
 }
 
@@ -113,8 +118,8 @@ void FMODController::CollectRequest()
 				request->destination = tc->toLocation.getID();
 
 				cur += tm;
-				request->departure_time_early = (cur-bias).toString();
-				request->departure_time_late = (cur+bias).toString();
+				request->departure_time_early = DailyTime(cur.getValue()-tc->requestTime*60*1000/2).toString();;
+				request->departure_time_late = DailyTime(cur.getValue()+tc->requestTime*60*1000/2).toString();;
 
 				all_requests.insert( std::make_pair(request, tc) );
 			}
@@ -123,6 +128,12 @@ void FMODController::CollectRequest()
 			all_items[it->first]=nullptr;
 		}
 	}
+}
+
+void FMODController::Initialize()
+{
+	CollectRequest();
+	CollectPerson();
 }
 
 
@@ -148,9 +159,6 @@ bool FMODController::StartClientService()
 		connectPoint->pushMessage(msg);
 		connectPoint->pushMessage(msg);
 		connectPoint->Flush();
-
-		CollectPerson();
-		CollectRequest();
 	}
 	else {
 		std::cout << "FMOD communication failed" << std::endl;
@@ -205,16 +213,14 @@ void FMODController::ProcessMessages(timeslice now)
 
 void FMODController::UpdateMessages()
 {
-	MessageList retCols, ret;
+	MessageList ret;
 
 	ret = CollectVehStops();
-	retCols = retCols+ret;
+	connectPoint->pushMessage(ret);
 	ret = CollectVehPos();
-	retCols = retCols+ret;
+	connectPoint->pushMessage(ret);
 	ret = CollectLinkTravelTime();
-	retCols = retCols+ret;
-
-	connectPoint->pushMessage(retCols);
+	connectPoint->pushMessage(ret);
 }
 MessageList FMODController::CollectVehStops()
 {
@@ -243,9 +249,10 @@ MessageList FMODController::GenerateRequest(timeslice now)
 	for (RequestMap it=all_requests.begin(); it!=all_requests.end(); it++) {
 
 		DailyTime tm(it->first->departure_time_early);
+		tm.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 		DailyTime dias(1*3600*1000);
-		tm -= dias;
-		if( tm.getValue() > (curr+base).getValue() ){
+
+		if( tm.getValue() > (curr.getValue()-dias.getValue() )){
 			Msg_Request request;
 			request.messageID_ = 4;
 			request.request = *it->first;
@@ -277,6 +284,33 @@ void FMODController::HandleVehicleInit(std::string msg)
 	msgVehInit.CreateMessage(msg);
 }
 
+void FMODController::DispatchActivityAgents(timeslice now)
+{
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	std::vector<Agent*>::iterator it;
+	for(it=all_persons.begin(); it!=all_persons.end(); it++){
+		if( (*it)->getStartTime() < curTickMS ){
+			currWorker->scheduleForBred( (*it) );
+			it = all_persons.erase(it);
+			return;
+		}
+	}
+
+	sim_mob::Node* from = new sim_mob::Node(0,0,54744);
+	sim_mob::Node* to = new sim_mob::Node(0,0,83620);
+	sim_mob::TripChainItem* tc = new sim_mob::Trip();
+	std::vector<sim_mob::TripChainItem*>  tcs;
+	tcs.push_back(tc);
+
+	sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+
+	for(it=all_drivers.begin(); it!=all_drivers.end(); it++){
+		if( (*it)->getStartTime() < curTickMS ){
+			currWorker->scheduleForBred( (*it) );
+			it = all_drivers.erase(it);
+		}
+	}
+}
 
 }
 

@@ -29,6 +29,7 @@ public:
 	static FMODController* Instance();
 	bool StartClientService();
 	void StopClientService();
+	void Initialize();
 
 private:
 	std::map<Link*, double> linkTravelTimes;
@@ -62,6 +63,8 @@ private:
 	MessageList CollectVehStops();
 	MessageList CollectVehPos();
 	MessageList CollectLinkTravelTime();
+
+	void DispatchActivityAgents(timeslice now);
 
 private:
 	void CollectPerson();

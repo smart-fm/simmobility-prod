@@ -242,6 +242,10 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		signalStatusWorkers->assignAWorker(*it);
 	}
 
+	if(sim_mob::FMOD::FMODController::Instance()){
+		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
+	}
+
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
@@ -375,6 +379,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
+
 			PrintOut(msg.str());
 		} else {
 			//We don't need to lock this output if general output is disabled, since Agents won't

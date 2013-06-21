@@ -144,7 +144,8 @@ bool FMODController::StartClientService()
 		DailyTime startTm = ConfigParams::GetInstance().simStartTime;
 		request.start_time = startTm.toString();
 		std::string msg = request.BuildToString();
-		//std::cout << msg << std::endl;
+		std::cout << "FMOD Controller send message :" << msg << std::endl;
+		connectPoint->pushMessage(msg);
 		connectPoint->pushMessage(msg);
 		connectPoint->Flush();
 

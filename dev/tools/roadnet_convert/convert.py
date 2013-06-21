@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/local/bin/python3.2
 
 '''This program converts a SUMO traffic network to Sim Mobility format (this includes 
    flipping the network for driving on the left).

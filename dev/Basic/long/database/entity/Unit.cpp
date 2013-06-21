@@ -27,9 +27,9 @@ float CalculateHedonicPrice(float distanceToCDB, float size, float fixedCost) {
 Unit::Unit(UnitId id, bool available, float fixedCost,
         float distanceToCDB, float size) : id(id), available(available),
 fixedCost(fixedCost), distanceToCDB(distanceToCDB), size(size),
-hedonicPrice(CalculateHedonicPrice(distanceToCDB, size, fixedCost)), owner(nullptr),
+hedonicPrice(/*CalculateHedonicPrice(distanceToCDB, size, fixedCost)*/4), owner(nullptr),
 weightPriceQuality(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
-    reservationPrice = (hedonicPrice * 1.2f);
+    reservationPrice = hedonicPrice; /*(hedonicPrice * 1.2f)*/;
 }
 
 Unit::Unit() : id(INVALID_ID), available(false),

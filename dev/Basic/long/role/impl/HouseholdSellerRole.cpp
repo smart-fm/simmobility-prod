@@ -147,38 +147,46 @@ void HouseholdSellerRole::AdjustNotSelledUnits() {
     }
 }
 
-inline double ExpectationFunction(double* x, double* params) {
-    double price = params[0];
+inline double ExpectationFunction(double x, double* params) {
+    double v = params[0];
     double theta = params[1];
     double alpha = params[2];
-    double v = x[0]; // last expectation (V(t+1))
+    double price = x; // last expectation (V(t+1))
     // Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
     double bidsDistribution = v / price;
     // Calculates the probability of not having any bid greater than v.
     double priceProb = pow(Math::E, -((theta / pow(price, alpha)) * (1 - bidsDistribution)));
     // Calculates expected maximum bid.
-    double expectedMaxBid = (pow(price, 2 * alpha + 1) *
-            (price * (theta * pow(price, -alpha) - 1)) + pow(Math::E, (theta * pow(price, -alpha * ((v / price) - 1)))) *
-            (price - theta * v * pow(price, -alpha))) / (theta * theta);
-    return (v * priceProb + (1 - priceProb) * expectedMaxBid);
+    double p1 = pow(price, 2 * alpha + 1);
+    double p2 = (price * (theta * pow(price, -alpha) - 1));
+    double p3 = pow(Math::E, (theta * pow(price, -alpha)* (bidsDistribution - 1)));
+    double p4 = (price - theta * v * pow(price, -alpha));
+    double expectedMaxBid = (p1 * (p2 + p3 * p4)) / (theta * theta);
+    return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01f * price);
 }
 
 void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationEntry entry;
-    double expectation = unit.GetReservationPrice();
-
+    double price = 20; //unit.GetReservationPrice();
+    double expectation = 4;
+    //double initialExpectation = unit.GetHedonicPrice();
+    double theta = 1.0f; // hh->GetWeightExpectedEvents()
+    double alpha = 2.0f; //hh->GetWeightPriceImportance()
     for (int i = 0; i < (2 * TIME_UNIT); i++) {
+      double price1 = Math::FindMaxArg(ExpectationFunction,
+                price, (double[]) {
+            expectation, theta, alpha
+        }, .001f, 100000);
+        expectation = ExpectationFunction(price1, (double[]) {
+            expectation, theta, alpha
+        });
         LogOut("Expectation on: [" << i << std::setprecision(15) <<
                 "] Unit: [" << unit.GetId() <<
-                "] value: [" << expectation <<
-                "] reservationPrice: [" << unit.GetReservationPrice() <<
-                "] hedonicPrice: [" << unit.GetHedonicPrice() <<
-                "] theta: [" << hh->GetWeightExpectedEvents() <<
-                "] alpha: [" <<  hh->GetWeightPriceImportance() <<
-                "]"<< endl);
-        expectation = Math::Newton(ExpectationFunction,
-                expectation, (double[]) {
-            (double) unit.GetHedonicPrice(), (double) hh->GetWeightExpectedEvents(), (double) hh->GetWeightPriceImportance()}, .0001f, 100);
+                "] expectation: [" << expectation <<
+                "] price: [" << price <<
+                "] theta: [" << theta <<
+                "] alpha: [" << alpha <<
+                "]" << endl);
     }
 }
 

@@ -13,6 +13,7 @@ namespace sim_mob {
     class Math {
     public:
         static double E;
+        static double PI;
     public:
         typedef double (*Function)(double x, double* params);
 

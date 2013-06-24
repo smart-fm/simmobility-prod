@@ -287,27 +287,56 @@ void FMODController::HandleVehicleInit(std::string msg)
 void FMODController::DispatchActivityAgents(timeslice now)
 {
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
-	std::vector<Agent*>::iterator it;
-	for(it=all_persons.begin(); it!=all_persons.end(); it++){
+	std::vector<Agent*>::iterator it=all_persons.begin();
+	while(it!=all_persons.end()){
 		if( (*it)->getStartTime() < curTickMS ){
 			currWorker->scheduleForBred( (*it) );
 			it = all_persons.erase(it);
-			return;
+		}
+		else{
+			it++;
 		}
 	}
 
-	sim_mob::Node* from = new sim_mob::Node(0,0,54744);
-	sim_mob::Node* to = new sim_mob::Node(0,0,83620);
-	sim_mob::TripChainItem* tc = new sim_mob::Trip();
-	std::vector<sim_mob::TripChainItem*>  tcs;
-	tcs.push_back(tc);
+	static int kk = 0;
+	if( kk == 0){
+		kk++;
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		sim_mob::Node* node1 = const_cast<sim_mob::Node*>(stdir.getNode(45666));
+		sim_mob::Node* node2 = const_cast<sim_mob::Node*>(stdir.getNode(58950));
+		sim_mob::Node* node3 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
+		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
 
-	sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+		DailyTime start(curTickMS);
+		start += ConfigParams::GetInstance().simStartTime;
+		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node1, "node", node4, "node");
 
-	for(it=all_drivers.begin(); it!=all_drivers.end(); it++){
+		SubTrip::STOP* stop = new SubTrip::STOP();
+		stop->stop_id = 58950;
+		stop->alightingpassengers.push_back(1);
+		SubTrip subTrip1("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node2, "node", "Car");
+		subTrip1.stop = stop;
+		((Trip*)tc)->addSubTrip(subTrip1);
+		SubTrip subTrip2("-1", "Trip", 0, -1, start, DailyTime(), node2, "node", node3, "node", "Car");
+		((Trip*)tc)->addSubTrip(subTrip2);
+		SubTrip subTrip3("-1", "Trip", 0, -1, start, DailyTime(), node3, "node", node4, "node", "Car");
+		((Trip*)tc)->addSubTrip(subTrip3);
+
+		std::vector<sim_mob::TripChainItem*>  tcs;
+		tcs.push_back(tc);
+
+		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+		all_drivers.push_back(person);
+	}
+
+	it = all_drivers.begin();
+	while(it!=all_drivers.end()){
 		if( (*it)->getStartTime() < curTickMS ){
 			currWorker->scheduleForBred( (*it) );
 			it = all_drivers.erase(it);
+		}
+		else{
+			++it;
 		}
 	}
 }

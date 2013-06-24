@@ -109,6 +109,10 @@ const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& poin
     return pimpl_ ? pimpl_->getBusStop(point) : nullptr;
 }
 
+const sim_mob::Node* sim_mob::StreetDirectory::getNode(const int id) const
+{
+	return pimpl_ ? pimpl_->getNode(id) : nullptr;
+}
 
 StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point2D& point) const
 {

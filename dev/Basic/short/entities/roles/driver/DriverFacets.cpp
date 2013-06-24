@@ -612,7 +612,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 	double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
-	std::cout << "distance to stop : " << distance << std::endl;
+	//std::cout << "distance to stop : " << distance << std::endl;
 	if(distance<300) // check whether need stop here
 	{
 		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
@@ -620,7 +620,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		const Node* stop1 = currSegment->getStart();
 		bool isFound = false;
 		static int count = 0;
-		parentDriver->vehicle->stopsList.push_back(58950);
+		//parentDriver->vehicle->stopsList.push_back(58950);
 		for(int i = 0; i<parentDriver->vehicle->stopsList.size(); i++){
 			if( parentDriver->vehicle->stopsList[i]==stop->getID()){
 				isFound = true;
@@ -712,6 +712,8 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 		return false;
 	}
 
+
+
 	//oh! we really dont neeeeeeeeed all this! r u going to repeat these two iterations for all the corresponding drivers?
 //	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
 //	int index = -1;
@@ -755,6 +757,34 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 //		}
 //	}
 	return false;
+}
+
+double sim_mob::DriverMovement::dwellTimeCalculation(int A, int B, int delta_bay, int delta_full,int Pfront, int no_of_passengers)
+{
+	//assume single channel passenger movement
+	 double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+	 double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
+	 double alpha3 = 3.5;//door opening and closing times
+	 double alpha4 = 1.0;
+	 double beta1 = 0.7;//fixed parameters
+	 double beta2 = 0.7;
+	 double beta3 = 5;
+	 double DTijk = 0.0;
+	 bool bus_crowdness_factor;
+	int no_of_seats = 40;
+	if (no_of_passengers > no_of_seats) //standees are present
+		alpha1 += 0.5; //boarding time increase if standees are present
+	if (no_of_passengers > no_of_seats)
+		bus_crowdness_factor = 1;
+	else
+		bus_crowdness_factor = 0;
+	double PTijk_front = alpha1 * Pfront * A + alpha2 * B+ alpha3 * bus_crowdness_factor * B;
+	double PTijk_rear = alpha4 * (1 - Pfront) * A;
+	double PT;
+	PT = std::max(PTijk_front, PTijk_rear);
+	DTijk = beta1 + PT + beta2 * delta_bay + beta3 * delta_full;
+	std::cout<<"Dwell__time "<<DTijk<<std::endl;
+	return DTijk;
 }
 
 //update left and right lanes of the current lane
@@ -1026,6 +1056,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+
 		}
 
 		//For now, empty paths aren't supported.
@@ -1050,6 +1081,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if (allocateVehicle) {
 			res = new Vehicle(path, startlaneID, length, width);
 		}
+
+		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		if(subTrip->stop && res){
+			res->stopsList.push_back( subTrip->stop->stop_id );
+		}
+
 	}
 
 	//to indicate that the path to next activity is already planned

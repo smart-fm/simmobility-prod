@@ -156,6 +156,15 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
+	struct STOP
+	{
+		unsigned int stop_id;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< unsigned int > boardingpassengers;
+		std::vector< unsigned int > alightingpassengers;
+	}* stop;
+
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
@@ -168,31 +177,26 @@ public:
 	virtual ~SubTrip() {}
 };
 
-class FMODTrip : public sim_mob::SubTrip {
+/*class FMODTrip : public sim_mob::SubTrip {
+
 public:
+
 	struct STOP
 	{
-		std::string stop_id;
+		unsigned int stop_id;
 		std::string arrival_time;
 		std::string depature_time;
 		std::vector< std::string > boardingpassengers;
 		std::vector< std::string > alightingpassengers;
-	};
-	std::vector<STOP> stop_schdules;
-	struct PASSENGER
-	{
-		std::string client_id;
-		int price;
-	};
-	std::vector<PASSENGER> passengers;
-	struct ROUTE
-	{
-		std::string id;
-		int type;
-	};
-	std::vector<ROUTE> routes;
+	} stop;
+
+	FMODTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			std::string mode="", STOP stop=STOP(), bool isPrimary=true, std::string ptLineId="");
+
 	virtual ~FMODTrip() {}
-};
+};*/
 
 
 //Non-member comparison functions

@@ -34,6 +34,23 @@ def __write_vehicle_types_and_classes(out):
   out.write('    <VEHTYPES/>\n')
   out.write('    <VEHCLASSES/>\n')
 
+
+def __write_zones(out, rn):
+  #Currently nothing
+  out.write('    <ZONES/>\n')
+
+
+def __write_link_types(out, rn):
+  #Currently we only need 1
+  out.write('    <LINKTYPES>\n')
+  out.write('      <LINKTYPE\n')
+  out.write('        NO = "%s"\n' % 42)
+  out.write('        NAME = "%s"\n' % 'Principal Arterial')
+  out.write('        DRIVINGBEHAVIOR = "%s"\n' % 'Urban')
+  out.write('      />\n')
+  out.write('    </LINKTYPES>\n')
+
+
 def __write_nodes(out, rn, rnInd):
   out.write('    <NODES>\n')
   for n in rn.nodes:
@@ -93,13 +110,42 @@ def _write_node_lane_turns(out, n, rnInd):
         out.write('        />\n')
 
 
+def __write_links(out, rn):
+  out.write('    <LINKS>\n')
+
+  #We need a reverse lookup of Links. 
+  rev_look = {}  #{(fromNodeID,toNodeID)=>Link}
+  for lnk in rn.links.values():
+    rev_look[(lnk.fromNode.nodeId,lnk.toNode.nodeId)] = lnk
+
+  #Now, save each link:
+  for lnk in rn.links.values():
+      #We need the maximum number of lanes of the start/end segments, since we group segments as links.
+      numLanes = max(len(lnk.segments[0].lanes),len(lnk.segments[-1].lanes))
+
+      #Write it.
+      out.write('      <LINK\n')
+      out.write('        ID = "%s"\n' % lnk.linkId)
+      out.write('        FROMNODENO = "%s"\n' % lnk.fromNode.nodeId)
+      out.write('        TONODENO = "%s"\n' % lnk.toNode.nodeId)
+      out.write('        LINKTYPENO = "%s"\n' % 42)
+      out.write('        SPEED = "%s"\n' % 55) #Just a guess
+      out.write('        NUMLANES = "%s"\n' % numLanes)
+
+      #Reverse exists?
+      revKey = (lnk.toNode.nodeId,lnk.fromNode.nodeId)
+      if revKey in rev_look:
+        out.write('        REVERSELINK = "%s"\n' % rev_look[revKey].linkId)
+
+      out.write('      />\n')
+
+  out.write('    </LINKS>\n')
 
 
-
-
-
-
-
-
+def __write_stops_lines_signals(out, rn):
+  #For now, nothing.
+  out.write('    <PTSTOPS/>\n')
+  out.write('    <PTLINES/>\n')
+  out.write('    <SIGNALCONTROLS/>\n')
 
 

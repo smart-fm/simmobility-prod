@@ -73,19 +73,15 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	resetPositionOfLastUpdatedAgentOnLanes();
 
 	//reset the remaining times of persons in lane infinity if required.
-	resetRemTimesInLaneInfinities();
+	resetPersonRemTimesInVQ();
 
 	//sort the virtual queues before starting to move agents for this tick
-	//for now, virtual queues are the lane infinities of the first road segment (in the driving direction) of each link
-	SegmentStats* segStats = nullptr;
-	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i!=upstreamSegmentsMap.end(); i++) {
-		segStats = findSegStats(*(i->second.begin()));
-		segStats->sortPersons_DecreasingRemTime(segStats->laneInfinity);
+	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
+		sortPersons_DecreasingRemTime(i->second);
 	}
-	segStats = nullptr; //reset so that this isn't accidentally used elsewhere
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
-		updateUnsignalized(); //TODO: Update Signalized must be implemented
+		updateUnsignalized(); //TODO: Update Signalized must be implemented and called here
 	}
 	else {
 		updateUnsignalized();
@@ -102,12 +98,10 @@ void sim_mob::Conflux::updateSignalized() {
 
 void sim_mob::Conflux::updateUnsignalized() {
 	initCandidateAgents();
-	sim_mob::Person* ag = agentClosestToIntersection();
-	while (ag) {
-		updateAgent(ag);
-
-		// get next Person to update
-		ag = agentClosestToIntersection();
+	sim_mob::Person* person = agentClosestToIntersection();
+	while (person) {
+		updateAgent(person);
+		person = agentClosestToIntersection(); // get next Person to update
 	}
 }
 
@@ -162,13 +156,12 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
 		}
 		else {
-			// If we don't know which lane the Person has to go to, we add him to lane infinity.
-			// NOTE: One possible scenario for this is a Person who is starting on a new trip chain item.
-			// Adding to virtual queue of the next unprocessed link takes place here
-			person->setCurrLane(segStatsAftrUpdt->laneInfinity);
+			/* We wouldn't know which lane the person has to go to if the person wants to enter a link
+			 * which belongs to a conflux that is not processed for this tick yet.
+			 * We add this person to the virtual queue for that link here*/
 			person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
-			segStatsAftrUpdt->addAgent(segStatsAftrUpdt->laneInfinity, person);
-			laneAfterUpdate = segStatsAftrUpdt->laneInfinity;
+			std::deque<Person*> vq = virtualQueuesMap.at(segAfterUpdate->getLink());
+			vq.push_back(person); //add this person to virtual queue
 		}
 	}
 	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate)
@@ -178,7 +171,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	// set the position of the last updated Person in his current lane (after update)
 	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, person->getCurrLane());
-
 }
 
 double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle){
@@ -240,9 +232,9 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
  * Note: This may include
  * 1. newly starting persons who (were supposed to, but) did not get added to the simulation
  * in the previous tick due to traffic congestion in their starting segment.
- * 2. Persons who got added to and remained in laneInfinity (virtual queue) in the previous tick
+ * 2. Persons who got added to and remained virtual queue in the previous tick
  */
-void sim_mob::Conflux::resetRemTimesInLaneInfinities() {
+void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 	SegmentStats* segStats = nullptr;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
@@ -250,44 +242,43 @@ void sim_mob::Conflux::resetRemTimesInLaneInfinities() {
 			std::deque<sim_mob::Person*> personsInLaneInfinity = segStats->getAgents(segStats->laneInfinity);
 			for(std::deque<sim_mob::Person*>::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
 				if ((*personIt)->lastUpdatedFrame < currFrameNumber.frame()) {
-					//if the person is moved for the first time in this tick
+					//if the person is going to be moved for the first time in this tick
 					(*personIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 				}
+			}
+		}
+	}
+
+	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
+		for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
+			if ((*pIt)->lastUpdatedFrame < currFrameNumber.frame()) {
+				//if the person is going to be moved for the first time in this tick
+				(*pIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 			}
 		}
 	}
 }
 
 void sim_mob::Conflux::resetOutputBounds() {
-	outputBounds.clear();
+	vqBounds.clear();
+	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* firstSeg = nullptr;
 	sim_mob::SegmentStats* segStats = nullptr;
-	unsigned int outputEstimate = 0;
-	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
-		firstSeg = *(i->second.begin());
+	int outputEstimate = 0;
+	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
+		lnk = i->first;
+		firstSeg = lnk->getSegments().front();
 		segStats = findSegStats(firstSeg);
 		outputEstimate = segStats->computeExpectedOutputPerTick();
-		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
-		outputBounds.insert(std::make_pair(firstSeg, outputEstimate));
+		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of newly starting agents
+		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size(); // decrement num. of agents already in virtual queue
+		outputEstimate = (outputEstimate>0? outputEstimate : 0);
+		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 	}
 }
 
-bool sim_mob::Conflux::hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg) {
-	return (outputBounds.at(rdSeg) > 0);
-}
-
-void sim_mob::Conflux::decrementBound(const sim_mob::RoadSegment* rdSeg) {
-	try {
-		if(outputBounds.at(rdSeg)) {
-			unsigned int bound = outputBounds.at(rdSeg);
-			bound = (bound > 0)? bound-1 : 0;
-			outputBounds[rdSeg] = bound;
-		}
-	}
-	catch(std::exception& e) {
-		debugMsgs << "decrementBound() called for segment " << rdSeg->getStartEnd() << " from invalid conflux " << multiNode->getID();
-		throw std::runtime_error(debugMsgs.str());
-	}
+bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
+	return (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 }
 
 double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg) {
@@ -529,7 +520,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	Role* personRole = person->getRole();
 	if (!person->curr_params) {
 		person->curr_params = &personRole->make_frame_tick_params(now);
-		Print() << 'updated person->curr_params: ' << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
+		Print() << "updated person->curr_params: " << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
 	}
 	person->lastUpdatedFrame = currFrameNumber.frame();
 
@@ -555,10 +546,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 */
 
 	while(person->remainingTimeThisTick > 0.0) {
-		debugMsgs << "Person: " << person->getId()
-				<< "|remainingTimeThisTick: " << person->remainingTimeThisTick << std::endl;
-		Print() << debugMsgs.str();
-		debugMsgs.str("");
+		Print() << "Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick << std::endl;
 
 		if (!person->isToBeRemoved()) {
 			personRole->Movement()->frame_tick(*person->curr_params);
@@ -597,13 +585,11 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			Conflux* nxtConflux = person->requestedNextSegment->getParentConflux();
 			SegmentStats* nxtSegStats = findSegStats(person->requestedNextSegment);
 
-			debugMsgs << "nxtConflux:" << nxtConflux->getMultiNode()->getID()
+			Print() << "nxtConflux:" << nxtConflux->getMultiNode()->getID()
 					<< "|lastUpdatedFrame:" << nxtConflux->lastUpdatedFrame
 					<< "|currFrame:" << now.frame()
 					<< "|requestedNextSegment: [" << person->requestedNextSegment->getStart()->getID() <<","<< person->requestedNextSegment->getEnd()->getID() << "]"
 					<< std::endl;
-			Print() << debugMsgs.str();
-			debugMsgs.str("");
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
 			if(now.frame() > nxtConflux->lastUpdatedFrame) {
@@ -614,8 +600,9 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					Print()<<"Person "<<person->getId()<<" loops back to conflux "<< this->multiNode->getID()<<std::endl;
 					break;
 				}
+
 				// nxtConflux is not processed for the current tick yet
-				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment)) {
+				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment->getLink())) {
 					person->setCurrSegment(person->requestedNextSegment);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the lane infinity of nxtSegStats
 					person->requestedNextSegment = nullptr;
@@ -627,7 +614,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			}
 			else if(now.frame() == nxtConflux->lastUpdatedFrame) {
 				// nxtConflux is processed for the current tick. Can move to the next link.
-				// handled by setting person->canMoveToNextSegment = true
+				// handled by setting person->canMoveToNextSegment = GRANTED
 				person->requestedNextSegment = nullptr;
 			}
 			else {
@@ -692,8 +679,8 @@ void sim_mob::Conflux::resetSegmentFlows() {
 
 UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person)
 {
-	//We give the Agent the benefit of the doubt here and simply call frame_init().
-	//This allows them to override the start_time if it seems appropriate (e.g., if they
+	// We give the Agent the benefit of the doubt here and simply call frame_init().
+	// This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
 	bool calledFrameInit = false;
 	if (person->isCallFrameInit()) {

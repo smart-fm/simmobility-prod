@@ -36,6 +36,32 @@ namespace aimsun
 class Loader;
 }
 
+struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
+  bool operator() (const Person* x, const Person* y) const;
+};
+
+bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, const Person* y) const {
+	if ((!x) || (!y)) {
+		std::stringstream debugMsgs;
+		debugMsgs
+				<< "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
+				<< "|x: " << (x ? x->getId() : 0) << "|y: "
+				<< (y ? y->getId() : 0);
+		throw std::runtime_error(debugMsgs.str());
+	}
+	//We want greater remaining time in this tick to translate into a higher priority.
+	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
+}
+
+//Sort all agents in lane (based on remaining time this tick)
+void sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
+	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
+	//ordering is required only if we have more than 1 person in the deque
+	if(personList.size() > 1) {
+		std::sort(personList.begin(), personList.end(), cmp_person_remainingTimeThisTick_obj);
+	}
+}
+
 class Conflux : public sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;
@@ -50,6 +76,12 @@ private:
 	 * stores std::map<link which flows into the multinode, segments on the link>
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
+
+	/*
+	 * virtual queues are used to hold vehicles which come from previous conflux when the current conflux is not
+	 * processed for the current tick. Each link in the conflux has a virtual queue
+	 */
+	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
 
 	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
@@ -73,10 +105,10 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
-	/* For each downstream link (or rather, the first segment of the downstream link), this map stores the number of persons that can be allowed
-	 * to enter from this conflux to that link in the current tick.
+	/* For each downstream link, this map stores the number of persons that can be
+	 * accepted by that link in this conflux in this tick
 	 */
-	std::map<const sim_mob::RoadSegment*, unsigned int> outputBounds;
+	std::map<sim_mob::Link*, unsigned int> vqBounds;
 
 	/*holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
@@ -117,9 +149,7 @@ private:
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing);
 
-	void decrementBound(const sim_mob::RoadSegment* rdSeg);
-
-	void resetRemTimesInLaneInfinities();
+	void resetPersonRemTimesInVQ();
 
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
 protected:
@@ -170,7 +200,7 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
-	bool hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg);
+	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 
 	// adds the agent into this conflux
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);

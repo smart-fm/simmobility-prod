@@ -53,7 +53,7 @@ def __write_link_types(out, rn):
 
 def __write_nodes(out, rn, rnInd):
   out.write('    <NODES>\n')
-  for n in rn.nodes:
+  for n in rn.nodes.values():
     #For now, only intersections
     if isinstance(n, simmob.Intersection):
       #Write the basic Node data:
@@ -65,17 +65,17 @@ def __write_nodes(out, rn, rnInd):
       out.write('        CONTROLTYPE = "%s">\n' % "Unknown")
 
       #Lanes are just a list of which lanes actually meet at that junction.
-      out.write('        <LANES>"\n')
+      out.write('        <LANES>\n')
       _write_node_lanes(out, n, rnInd)
-      out.write('        </LANES>"\n')
+      out.write('        </LANES>\n')
 
       #Lane Turns connect these
-      out.write('        <LANETURNS>"\n')
+      out.write('        <LANETURNS>\n')
       _write_node_lane_turns(out, n, rnInd)
-      out.write('        </LANETURNS>"\n')
+      out.write('        </LANETURNS>\n')
 
       #Crosswalks aren't important.
-      out.write('        <CROSSWALKS/>"\n')
+      out.write('        <CROSSWALKS/>\n')
 
       #Done
       out.write('      </NODE>\n')
@@ -88,26 +88,27 @@ def _write_node_lanes(out, n, rnInd):
   for seg in rnInd.segsAtNodes[n.nodeId]:
     for ln in seg.lanes:
       out.write('        <LANE\n')
-      out.write('          LINKID = "%s"\n' % rnInd.segParents[seg.segId])
+      out.write('          LINKID = "%s"\n' % rnInd.segParents[seg.segId].linkId)
       out.write('          INDEX = "%s"\n' % ln.laneNumber)
       out.write('          POCKET = "%s"\n' % 'false')
       out.write('          POCKETLENGTH = "%s"\n' % 0.0000)
       out.write('          WIDTH = "%s"\n' % 3.5) #TODO: Actual lane width.
-      out.write('        />"\n')
+      out.write('        />\n')
 
 
 def _write_node_lane_turns(out, n, rnInd):
   #These are relatively simple, and match our LaneConnector format. But we use "links" instead of segments, again.
   for seg in rnInd.segsAtNodes[n.nodeId]:
-    for lc in seg.lane_connectors.values():
-      #We only care where lc.fromSeg matches the current segment (otherwise we're on the opposite end of the Segment).
-      if lc.fromSegment.segId == seg.segId:
-        out.write('        <LANETURN\n')
-        out.write('          FROMLINKID = "%s"\n' % rnInd.segParents[lc.fromSegment.segId])
-        out.write('          FROMLANEINDEX = "%s"\n' % lc.fromLane.laneNumber)
-        out.write('          TOLINKID = "%s"\n' % rnInd.segParents[lc.toSegment.segId])
-        out.write('          TOLANEINDEX = "%s"\n' % lc.toLane.laneNumber)
-        out.write('        />\n')
+    for lcGrp in seg.lane_connectors.values():
+      for lc in lcGrp:
+        #We only care where lc.fromSeg matches the current segment (otherwise we're on the opposite end of the Segment).
+        if lc.fromSegment.segId == seg.segId:
+          out.write('        <LANETURN\n')
+          out.write('          FROMLINKID = "%s"\n' % rnInd.segParents[lc.fromSegment.segId].linkId)
+          out.write('          FROMLANEINDEX = "%s"\n' % lc.fromLane.laneNumber)
+          out.write('          TOLINKID = "%s"\n' % rnInd.segParents[lc.toSegment.segId].linkId)
+          out.write('          TOLANEINDEX = "%s"\n' % lc.toLane.laneNumber)
+          out.write('        />\n')
 
 
 def __write_links(out, rn):

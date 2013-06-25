@@ -299,28 +299,33 @@ void FMODController::DispatchActivityAgents(timeslice now)
 	}
 
 	static int kk = 0;
-	if( kk == 0){
-		kk++;
+	if( kk++ == 0){
 		const StreetDirectory& stdir = StreetDirectory::instance();
 		sim_mob::Node* node1 = const_cast<sim_mob::Node*>(stdir.getNode(45666));
 		sim_mob::Node* node2 = const_cast<sim_mob::Node*>(stdir.getNode(58950));
 		sim_mob::Node* node3 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
 		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
 
-		DailyTime start(curTickMS);
+		DailyTime start(5*60*1000);
 		start += ConfigParams::GetInstance().simStartTime;
 		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node1, "node", node4, "node");
 
-		SubTrip::STOP* stop = new SubTrip::STOP();
-		stop->stop_id = 58950;
-		stop->alightingpassengers.push_back(1);
-		SubTrip subTrip1("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node2, "node", "Car");
-		subTrip1.stop = stop;
-		((Trip*)tc)->addSubTrip(subTrip1);
-		SubTrip subTrip2("-1", "Trip", 0, -1, start, DailyTime(), node2, "node", node3, "node", "Car");
-		((Trip*)tc)->addSubTrip(subTrip2);
-		SubTrip subTrip3("-1", "Trip", 0, -1, start, DailyTime(), node3, "node", node4, "node", "Car");
-		((Trip*)tc)->addSubTrip(subTrip3);
+		FMODSchedule* schedule = new FMODSchedule();
+		schedule->routes.push_back(node1);
+		schedule->routes.push_back(node2);
+		schedule->routes.push_back(node3);
+		schedule->routes.push_back(node4);
+
+		FMODSchedule::STOP stop;
+		stop.stop_id = 58950;
+		stop.dwell_time = 0;
+		stop.alightingpassengers.push_back(1);
+		stop.alightingpassengers.push_back(2);
+		schedule->stop_schdules.push_back(stop);
+
+		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node4, "node", "Car");
+		subTrip.schedule = schedule;
+		((Trip*)tc)->addSubTrip(subTrip);
 
 		std::vector<sim_mob::TripChainItem*>  tcs;
 		tcs.push_back(tc);

@@ -159,6 +159,8 @@ private:
 
 	void findCrossing(DriverUpdateParams& p);
 
+	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
+
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 

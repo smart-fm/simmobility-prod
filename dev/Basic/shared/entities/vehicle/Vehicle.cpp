@@ -22,23 +22,23 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) :
-	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false) {
+	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false) {
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false){
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr){
 	fwdMovement.setPath(path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle() :
 	length(400), width(200), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0),
-	error_state(true), turningDirection(LCS_SAME), isQueuing(false)
+	error_state(true), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr)
 {
 }
 
@@ -46,7 +46,7 @@ sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id), fwdMovement(copyFrom.fwdMovement),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
 			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing) {
+					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing), schedule(copyFrom.schedule) {
 }
 
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID) {

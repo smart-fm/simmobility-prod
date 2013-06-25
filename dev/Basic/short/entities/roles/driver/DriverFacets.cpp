@@ -611,29 +611,12 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		}
 	}
 
-	double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
-	//std::cout << "distance to stop : " << distance << std::endl;
-	if(distance<300) // check whether need stop here
-	{
-		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
-		const Node* stop = currSegment->getEnd();
-		const Node* stop1 = currSegment->getStart();
-		bool isFound = false;
-		static int count = 0;
-		//parentDriver->vehicle->stopsList.push_back(58950);
-		for(int i = 0; i<parentDriver->vehicle->stopsList.size(); i++){
-			if( parentDriver->vehicle->stopsList[i]==stop->getID()){
-				isFound = true;
-			}
-		}
-		if(isFound ){
-			if( count++ < 1000 ){
-				parentDriver->vehicle->setAcceleration(-5000);
-				parentDriver->vehicle->setVelocity(0);
-				p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
-				return updatePositionOnLink(p);
-			}
-		}
+	FMODSchedule* schedule = parentDriver->vehicle->schedule;
+	if(processFMODSchedule(schedule, p)){
+		parentDriver->vehicle->setAcceleration(-5000);
+		parentDriver->vehicle->setVelocity(0);
+		p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
+		return updatePositionOnLink(p);
 	}
 
 	//Check if we should change lanes.
@@ -697,6 +680,50 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 //			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
 	return updatePositionOnLink(p);
 }
+
+bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
+{
+	bool ret = false;
+	if(schedule) // check whether need stop here
+	{
+		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
+		const Node* stop = currSegment->getEnd();
+		bool isFound = false;
+		static int count = 0;
+		double dwell_time = 0;
+		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+		if( distance<300 ){
+			for(int i = 0; i<schedule->stop_schdules.size(); i++){
+				if( schedule->stop_schdules[i].stop_id==stop->getID()){
+					isFound = true;
+					dwell_time = schedule->stop_schdules[i].dwell_time;
+					if(dwell_time==0){
+						int passengersnum = schedule->stop_schdules[i].alightingpassengers.size()+schedule->stop_schdules[i].boardingpassengers.size();
+						dwell_time = schedule->stop_schdules[i].dwell_time = this->dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
+
+						//boarding and alighting
+						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
+						const Node* node = seg->getEnd();
+					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)));
+					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+					 	{
+					 		std::cout << "agent id : " << (*it)->getId() << std::endl;
+					 	}
+					}
+
+					dwell_time -= p.elapsedSeconds;
+					schedule->stop_schdules[i].dwell_time = dwell_time;
+				}
+			}
+		}
+
+		if(isFound && dwell_time>0.0){
+			ret = true;
+		}
+	}
+	return ret;
+}
+
 
 void sim_mob::DriverMovement::setParentBufferedData() {
 	parentAgent->xPos.set(parentDriver->vehicle->getX());
@@ -1039,9 +1066,28 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
 		Person* parentP = dynamic_cast<Person*> (parentAgent);
+		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+
 		if (!parentP || parentP->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+
+			if(subTrip->schedule==nullptr){
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+			}
+			else {
+				std::vector<Node*>& routes = subTrip->schedule->routes;
+				std::vector<Node*>::iterator first = routes.begin();
+				std::vector<Node*>::iterator second = first;
+				std::vector<WayPoint>::iterator it;
+
+				path.clear();
+				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+					path.insert( path.end(), subPath.begin(), subPath.end());
+				}
+			}
+
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -1082,9 +1128,9 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			res = new Vehicle(path, startlaneID, length, width);
 		}
 
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
-		if(subTrip->stop && res){
-			res->stopsList.push_back( subTrip->stop->stop_id );
+		if(subTrip->schedule && res){
+			int stopid = subTrip->schedule->stop_schdules[0].stop_id;
+			res->schedule = subTrip->schedule ;
 		}
 
 	}

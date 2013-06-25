@@ -62,7 +62,7 @@ public:
 	const double length;  ///<length of the vehicle
 	const double width;   ///<width of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
-	std::vector<unsigned int> stopsList;
+	FMODSchedule* schedule;
 
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);

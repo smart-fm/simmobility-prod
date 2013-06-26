@@ -158,7 +158,7 @@ public:
 	};
 	std::vector<STOP> stop_schdules;
 	std::vector<Node*> routes;
-	std::vector<int> insidepassengers;
+	std::vector<const Person*> insidepassengers;
 };
 /**
  * \author Harish

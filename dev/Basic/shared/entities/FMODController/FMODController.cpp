@@ -319,9 +319,15 @@ void FMODController::DispatchActivityAgents(timeslice now)
 		FMODSchedule::STOP stop;
 		stop.stop_id = 58950;
 		stop.dwell_time = 0;
-		stop.alightingpassengers.push_back(1);
-		stop.alightingpassengers.push_back(2);
-		schedule->stop_schdules.push_back(stop);
+		stop.boardingpassengers.push_back(27);
+		stop.boardingpassengers.push_back(30);
+
+		FMODSchedule::STOP stpB;
+		stpB.stop_id = 66508;
+		stpB.alightingpassengers.push_back(27);
+		stpB.alightingpassengers.push_back(30);
+		schedule->stop_schdules.push_back(stpB);
+
 
 		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node4, "node", "Car");
 		subTrip.schedule = schedule;

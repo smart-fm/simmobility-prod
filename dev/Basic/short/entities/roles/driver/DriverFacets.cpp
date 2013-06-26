@@ -7,6 +7,7 @@
 
 #include "DriverFacets.hpp"
 #include "BusDriver.hpp"
+#include "algorithm"
 
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
@@ -692,14 +693,16 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		static int count = 0;
 		double dwell_time = 0;
 		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+
 		if( distance<300 ){
 			for(int i = 0; i<schedule->stop_schdules.size(); i++){
-				if( schedule->stop_schdules[i].stop_id==stop->getID()){
+				FMODSchedule::STOP& stopSchedule = schedule->stop_schdules[i];
+				if( stopSchedule.stop_id==stop->getID()){
 					isFound = true;
-					dwell_time = schedule->stop_schdules[i].dwell_time;
+					dwell_time = stopSchedule.dwell_time;
 					if(dwell_time==0){
-						int passengersnum = schedule->stop_schdules[i].alightingpassengers.size()+schedule->stop_schdules[i].boardingpassengers.size();
-						dwell_time = schedule->stop_schdules[i].dwell_time = this->dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
+						int passengersnum = stopSchedule.alightingpassengers.size()+stopSchedule.boardingpassengers.size();
+						dwell_time = stopSchedule.dwell_time = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
 
 						//boarding and alighting
 						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
@@ -708,6 +711,45 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
 					 		std::cout << "agent id : " << (*it)->getId() << std::endl;
+
+					 		//boarding
+							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
+							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
+							{
+								const Person* p = dynamic_cast<const Person*>( (*it) );
+								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+
+								if (!passenger)
+								  continue;
+
+								schedule->insidepassengers.push_back( p );
+								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
+								if(passenger_movement) {
+									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
+									passenger_movement->alighting_MS = 1;
+								}
+					 	 	}
+
+							//alighting
+							vector<int>& alightingpeople = stopSchedule.alightingpassengers;
+							if( std::find(alightingpeople.begin(), alightingpeople.end(), (*it)->getId() ) != alightingpeople.end() )
+							{
+								const Person* p = dynamic_cast<const Person*>( (*it) );
+								vector<const Person*>::iterator itPerson = std::find( schedule->insidepassengers.begin(), schedule->insidepassengers.end(), p);
+								if( itPerson != schedule->insidepassengers.end() )
+								{
+									Passenger* passenger =p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+									if (!passenger)
+										continue;
+
+									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
+									if(passenger_movement) {
+										passenger_movement->PassengerAlightBus(this->getParentDriver());
+									}
+
+									schedule->insidepassengers.erase(itPerson);
+								}
+							}
 					 	}
 					}
 

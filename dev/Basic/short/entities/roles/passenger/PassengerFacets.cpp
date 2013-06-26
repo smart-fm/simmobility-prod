@@ -68,8 +68,8 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 //	}
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
-		parentAgent->xPos.set(parentPassenger->busdriver.get()->getPositionX());
-		parentAgent->yPos.set(parentPassenger->busdriver.get()->getPositionY());
+		parentAgent->xPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().x);
+		parentAgent->yPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().y);
 	}
 }
 
@@ -224,24 +224,34 @@ Point2D sim_mob::PassengerMovement::getDestPosition()
 	return Point2D((DestBusStop->xPos),(DestBusStop->yPos));
 }
 
-bool sim_mob::PassengerMovement::PassengerAlightBus(BusDriver* busdriver)
+bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 {
-	Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-	int xpos_approachingbusstop=busdriver->xpos_approachingbusstop;
-	int ypos_approachingbusstop=busdriver->ypos_approachingbusstop;
-	 if (xpos_approachingbusstop-getDestPosition().getX()==0 && ypos_approachingbusstop-getDestPosition().getY()==0)
-	 {
-    	 //alight-delete passenger agent from list
-    	 bus->setPassengerCount(bus->getPassengerCount()-1);
-    	 parentPassenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
-    	 parentPassenger->AlightedBus.set(true);
-    	 parentPassenger->BoardedBus.set(false);
-    	 parentAgent->xPos.set(xpos_approachingbusstop);
-    	 parentAgent->yPos.set(ypos_approachingbusstop);
-    	 displayX = xpos_approachingbusstop;
-    	 displayY = ypos_approachingbusstop;
-    	 return true;
-	 }
+	BusDriver* busdriver = dynamic_cast<BusDriver*>( driver );
+	if(busdriver) {
+		Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
+		int xpos_approachingbusstop=busdriver->xpos_approachingbusstop;
+		int ypos_approachingbusstop=busdriver->ypos_approachingbusstop;
+		 if (xpos_approachingbusstop-getDestPosition().getX()==0 && ypos_approachingbusstop-getDestPosition().getY()==0)
+		 {
+			 //alight-delete passenger agent from list
+			 bus->setPassengerCount(bus->getPassengerCount()-1);
+			 parentPassenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
+			 parentPassenger->AlightedBus.set(true);
+			 parentPassenger->BoardedBus.set(false);
+			 parentAgent->xPos.set(xpos_approachingbusstop);
+			 parentAgent->yPos.set(ypos_approachingbusstop);
+			 displayX = xpos_approachingbusstop;
+			 displayY = ypos_approachingbusstop;
+			 return true;
+		 }
+	}
+	else {
+		parentPassenger->busdriver.set(nullptr);//passenger should store the bus driver
+		parentPassenger->BoardedBus.set(false);//to indicate passenger has boarded bus
+		parentPassenger->AlightedBus.set(true);//to indicate whether passenger has alighted bus
+		parentAgent->xPos.set(driver->getVehicle()->getPosition().x);
+		parentAgent->yPos.set(driver->getVehicle()->getPosition().y);
+	}
      return false;
 }
 
@@ -335,28 +345,36 @@ BusStop* sim_mob::PassengerMovement::setBusStopXY(const Node* node)//to find the
  	 return bs1;
   }
 
-bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(BusDriver* busdriver)
+bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(Driver* driver)
  {
- 	for(int i=0;i<BuslinesToTake.size();i++)
- 	{
- 		 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
- 		if(BuslinesToTake[i]->getBusLineID()==bus->getBusLineID())//boards if approaching busline of approaching busline
- 		//is in the pre-decided busline list
- 		{
- 		  if(bus->getPassengerCount()+1<=bus->getBusCapacity())
- 		 {
- 			Person* p=dynamic_cast<Person*>(this->getParent());
- 			bus->passengers_inside_bus.push_back(p);
- 			bus->setPassengerCount(bus->getPassengerCount()+1);
- 			parentPassenger->busdriver.set(busdriver);//passenger should store the bus driver
- 			parentPassenger->BoardedBus.set(true);//to indicate passenger has boarded bus
- 			parentPassenger->AlightedBus.set(false);//to indicate whether passenger has alighted bus
- 	        findWaitingTime(bus);
- 	        BuslinesToTake.clear();
- 			return true;
- 		 }
- 		}
- 	}
+	BusDriver* busdriver = dynamic_cast<BusDriver*>( driver );
+	if(busdriver){
+		for(int i=0;i<BuslinesToTake.size();i++)
+		{
+			 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
+			if(BuslinesToTake[i]->getBusLineID()==bus->getBusLineID())//boards if approaching busline of approaching busline
+			//is in the pre-decided busline list
+			{
+			  if(bus->getPassengerCount()+1<=bus->getBusCapacity())
+			 {
+				Person* p=dynamic_cast<Person*>(this->getParent());
+				bus->passengers_inside_bus.push_back(p);
+				bus->setPassengerCount(bus->getPassengerCount()+1);
+				parentPassenger->busdriver.set(busdriver);//passenger should store the bus driver
+				parentPassenger->BoardedBus.set(true);//to indicate passenger has boarded bus
+				parentPassenger->AlightedBus.set(false);//to indicate whether passenger has alighted bus
+				findWaitingTime(bus);
+				BuslinesToTake.clear();
+				return true;
+			 }
+			}
+		}
+	}
+	else {
+		parentPassenger->busdriver.set(busdriver);//passenger should store the bus driver
+		parentPassenger->BoardedBus.set(true);//to indicate passenger has boarded bus
+		parentPassenger->AlightedBus.set(false);//to indicate whether passenger has alighted bus
+	}
  	return false;
   }
 

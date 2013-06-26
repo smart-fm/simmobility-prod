@@ -112,16 +112,21 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aB = calcYieldingRate(p, targetSpeed, maxLaneSpeed);
 	double aC = waitExitLaneRate(p);
 	double aD = calcAdjacentRate(p);
-	double aE = calcBackwardRate(p);
-	double aF = calcForwardRate(p);
+	//check if NGSIM Model, otherwise no need to check forward & backward gaps
+	if(ConfigParams::GetInstance().drivingModel == 1){
+		double aE = calcBackwardRate(p);
+		double aF = calcForwardRate(p);
+		if(acc > aE) acc = aE;
+		if(acc > aF) acc = aF;
+	}
 	double aG = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
 	double aN = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwdNextLink);
 	if(acc > aA) acc = aA;
 	if(acc > aB) acc = aB;
 	if(acc > aC) acc = aC;
 	if(acc > aD) acc = aD;
-	if(acc > aE) acc = aE;
-	if(acc > aF) acc = aF;
+//	if(acc > aE) acc = aE;
+//	if(acc > aF) acc = aF;
 	if(acc > aG) acc = aG;
 	if(acc > aN) acc = aN;
 
@@ -130,23 +135,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
-//	p.space = p.perceivedDistToFwdCar/100;
-	double minSpace = nv.distance;
-
-	if(p.nvLeftFwd.exists()){
-		if(p.nvLeftFwd.distance < minSpace && p.nvLeftFwd.driver->turningDirection == LCS_RIGHT && p.nvLeftFwd.driver->latVelocity < -50){
-			minSpace = p.nvLeftFwd.distance;
-			nv = p.nvLeftFwd;
-		}
-	}
-	if(p.nvRightFwd.exists()){
-		if(p.nvRightFwd.distance < minSpace && p.nvRightFwd.driver->turningDirection == LCS_LEFT && p.nvRightFwd.driver->latVelocity > 50){
-			minSpace = p.nvRightFwd.distance;
-			nv = p.nvRightFwd;
-		}
-	}
-
-	p.space = nv.distance/100;
+	p.space = p.perceivedDistToFwdCar/100;
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.

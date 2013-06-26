@@ -703,6 +703,7 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 
 
 	// check current lane has connector to next link
+	p.isMLC = false;
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
@@ -753,9 +754,10 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 					if (mitsim_lc_model) {
 						LANE_CHANGE_SIDE lcs = LCS_SAME;
 //						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-						std::cout<<"Have to MLC"<<std::endl;
+						//std::cout<<"Have to MLC"<<std::endl;
 						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 						vehicle->setTurningDirection(lcs);
+						p.isMLC = true;
 					} else {
 						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
 					}
@@ -771,22 +773,28 @@ if ( (params.now.ms()/1000.0 - startTime > 10) &&  vehicle->getDistanceMovedInSe
 	//MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
 	//LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeDiscretionaryLaneChangingDecision(p);
 	//vehicle->setTurningDirection(lcs);
-
+	//if(!isChangingLane){
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
 	
 	vehicle->setLatVelocity(newLatVel);
-	if(vehicle->getLatVelocity()>0)
+	if(vehicle->getLatVelocity()>0){
 		vehicle->setTurningDirection(LCS_LEFT);
-	else if(vehicle->getLatVelocity()<0)
+		//isChangingLane = true;
+	}else if(vehicle->getLatVelocity()<0){
 		vehicle->setTurningDirection(LCS_RIGHT);
-	else
+		//isChangingLane = true;
+	}else{
 		vehicle->setTurningDirection(LCS_SAME);
+		//isChangingLane = false;
+	}
+
 	//when vehicle stops, don't do lane changing
 //	if (vehicle->getVelocity() <= 0) {
 //		vehicle->setLatVelocity(0);
 //	}
+	//}
 	
 	p.turningDirection = vehicle->getTurningDirection();
 
@@ -1966,6 +1974,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 		if (remainder >= 0) {
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual == LCS_LEFT ? p.leftLane : p.rightLane);
+			//isChangingLane = false;
 			syncCurrLaneCachedInfo(p);
 
 			vehicle->shiftToNewLanePolyline(actual == LCS_LEFT);

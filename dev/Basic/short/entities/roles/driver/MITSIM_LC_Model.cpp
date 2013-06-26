@@ -116,10 +116,10 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 			{1.00 , 0.0 ,  0.000 ,  2.020 , 0.000 , 0.000 , 0.153 ,  0.188 , 0.526},
 			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859},
 			{1.00 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},
-			{0.80 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test, courtesy merging
-			{0.80 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},//for test, courtesy merging
-			{0.60 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test,forced merging
-			{0.60 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073}};//for test, forced merging
+			{0.60 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test, courtesy merging
+			{0.60 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},//for test, courtesy merging
+			{0.20 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test,forced merging
+			{0.20 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073}};//for test, forced merging
 
 	  double *a = lcGapModels_[type] ;
 	  double *b = lcGapModels_[type] + 3 ; //beta0
@@ -253,6 +253,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 		return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
 
+	//choose target gap, for both left and right
 	TARGET_GAP* tg = chooseTargetGap(p);
 
 	//calculate the utility of both sides
@@ -344,12 +345,17 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
 		p.isWaiting=true;
-		LANE_CHANGE_SIDE decision = executeNGSIMModel(p);
-		if(decision == LCS_SAME){
-			TARGET_GAP* tg = chooseTargetGap(p);
-			p.targetGap = (direction > 0)? tg[0] : tg[1];
+		//check if using NGSIM Model
+		if(ConfigParams::GetInstance().drivingModel == 1){
+			//std::cout<<"configNGSIM"<<std::endl;
+			LANE_CHANGE_SIDE decision = executeNGSIMModel(p);
+			if(decision == LCS_SAME){
+				TARGET_GAP* tg = chooseTargetGap(p);
+				p.targetGap = (direction > 0)? tg[0] : tg[1];
+			}
+			return decision;
 		}
-		return decision;
+		return LCS_SAME;
 	}
 }
 
@@ -370,16 +376,15 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams&
 
 	LANE_CHANGE_SIDE lcs = direction>0? LCS_LEFT : LCS_RIGHT;
 
+	//check if courtesy merging
 	isCourtesy = ifCourtesyMerging(p);
-	//std::cout<<"isCourtesy"<<isCourtesy<<std::endl;
-
-	//critical_anti_gap = calcCriticalAnticipatedGap(p);
 
 	if(isCourtesy) {
 		lcs = makeCourtesyMerging(p);
 		//std::cout<<"courtesy change:"<<lcs<<std::endl;
 		return lcs;
 	}else{
+		//check if forced merging
 		isForced = ifForcedMerging(p);
 		if(isForced){
 			lcs = makeForcedMerging(p);
@@ -417,7 +422,6 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 				otherDistance[i].lead= fwd->distance;
 				otherAcc[i].lead = fwd->driver->fwdAccel.get();
 			}
-//check otherDistance[i].lead if <= 0 return
 
 			if(!back->exists()){//no vehicle behind
 				otherSpeed[i].lag=-5000;
@@ -454,7 +458,6 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 	double acc_lead = otherAcc[i].lead/100.0;
 	double acc_lag = otherAcc[i].lag/100.0;
 
-	//double veh_length =
 
 	double gap = dis_lead + dis_lag + (v_lead - v_lag)*p.elapsedSeconds + 0.5*(acc_lead - acc_lag) * p.elapsedSeconds * p.elapsedSeconds;
 
@@ -463,11 +466,11 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p)
 	double v = v_lag - p.perceivedFwdVelocity/100;
 	double dv = v>0? v:0;
 
+	//calculate critical gap for courtesy merging
 	double critical_gap = exp(para[0] + para[1]*dv + para[3]* p.dis2stop/100);
 
 	bool courtesy = gap - critical_gap > 0? true:false;
-	//std::cout<<"antigap="<<gap<<"  critical="<<critical_gap<<std::endl;
-	//std::cout<<"isCourtesy="<<courtesy<<std::endl;
+
 
 	return courtesy;
 
@@ -527,7 +530,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeForcedMerging(DriverUpdateParams&
 	} else if(freeLanes.left && direction>0) {	//target lane on the left and is accessable
 		p.isWaiting=false;
 		return LCS_LEFT;
-	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
+	} else {
 		p.isWaiting=true;
 		return LCS_SAME;
 	}
@@ -567,6 +570,7 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 	const Lane* rightLane	= p.rightLane;
 
+	//nearest vehicles
 	NearestVehicle * nv[2][4];
 	nv[0][0] = &p.nvLeftBack2;
 	nv[0][1] = &p.nvLeftBack;
@@ -595,6 +599,7 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	boost::uniform_int<> zero_to_max(0, RAND_MAX);
 	double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
 
+	//calculate the utilities of nearby gaps
 	double U[2][3];
 	for(int i=0;i<2;i++){
 			U[i][0] = GapParam[0][0] + GapParam[0][1]*dis[i][1] + GapParam[0][2]*(dis[i][0] - dis[i][1]) + GapParam[0][3]*(vel[i][0]-vel[i][1]) + ((!nv[i][0]->exists())? GapParam[0][4]:0) + GapParam[0][5] * randNum;
@@ -603,14 +608,15 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 			if(!lane[i]) U[i][0] = U[i][1] = U[i][2] = -MAX_NUM;
 	}
 
-	std::cout<<"Utility=";
+	/*std::cout<<"Utility=";
 	for(int i=0; i<2; i++){
 		for(int j=0;j<3;j++){
 			std::cout<<U[i][j]<<",";
 		}
 	}
-	std::cout<<std::endl;
+	std::cout<<std::endl;*/
 
+	//calculte probabilities of choosing each gap
 	double logsum[2] = {0.0, 0.0};
 	double cdf[2][3];
 	double prob[2][3];
@@ -621,7 +627,7 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		}
 	}
 
-	std::cout<<"prob=";
+	/*std::cout<<"prob=";
 	for(int i=0; i<2; i++){
 		for(int j=0;j<3;j++){
 			if(logsum[i]==0){
@@ -643,11 +649,10 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 			std::cout<<cdf[i][j]<<",";
 		}
 	}
-	std::cout<<std::endl;
+	std::cout<<std::endl;*/
 
 	TARGET_GAP tg[] = {TG_Same,TG_Same};
 	double rnd = (double)(zero_to_max(p.gen)%1000)/1000;
-	std::cout<<"rand="<<rnd<<std::endl;
 
 	if(rnd >= 0 && rnd < cdf[0][0]){
 		tg[0] = TG_Left_Back;
@@ -665,22 +670,9 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		tg[1] = TG_Right_Fwd;
 	}
 
-	std::cout<<"target_gap="<<tg[0]<<" , "<<tg[1]<<std::endl;
+	//std::cout<<"target_gap="<<tg[0]<<" , "<<tg[1]<<std::endl;
 
 	return tg;
-
-	/*
-	const NearestVehicle * nvLeftFwd	= &p.nvLeftFwd;
-	const NearestVehicle * nvLeftFwd2 	= &p.nvLeftFwd2;
-	const NearestVehicle * nvLeftBack 	= &p.nvLeftBack;
-	const NearestVehicle * nvLeftBack2 	= &p.nvLeftBack2;
-	const NearestVehicle * nvRightFwd 	= &p.nvRightFwd;
-	const NearestVehicle * nvRightFwd2 	= &p.nvRightFwd2;
-	const NearestVehicle * nvRightBack 	= &p.nvRightBack;
-	const NearestVehicle * nvRightBack2 = &p.nvRightBack2;
-*/
-
-
 }
 
 
@@ -723,8 +715,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
 		}
 
-		//changeMode = DLC;
-		//p.dis2stop = 1000;//MAX_NUM;
+		if(p.isMLC == true)changeMode = MLC;
 
 		//3.make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;
@@ -737,7 +728,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		}
 
 		//TARGET_GAP* l = chooseTargetGap(p);
-		std::cout<<"decision="<<decision<<std::endl;
+		//std::cout<<"decision="<<decision<<std::endl;
 
 		//4.Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {

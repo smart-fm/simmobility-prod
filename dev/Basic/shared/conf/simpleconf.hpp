@@ -141,6 +141,8 @@ public:
 	int signalTimingMode;
 	int signalAlgorithm;
 
+	int drivingModel;
+
 	//When the simulation begins
 	DailyTime simStartTime;
 

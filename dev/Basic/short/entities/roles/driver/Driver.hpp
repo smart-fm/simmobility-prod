@@ -106,6 +106,7 @@ public:
 public:
 	double startTime;
 	bool isAleadyStarted;
+	bool isChangingLane;
 //Basic data
 protected:
 	//unsigned int currTimeMS;

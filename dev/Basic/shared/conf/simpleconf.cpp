@@ -1599,13 +1599,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int distributionType1, distributionType2;
     int mean1, mean2;
     int standardDev1, standardDev2;
+    int drivingModel;
 	handle.FirstChild("reacTime_distributionType1").ToElement()->Attribute("value",&distributionType1);
 	handle.FirstChild("reacTime_distributionType2").ToElement()->Attribute("value",&distributionType2);
 	handle.FirstChild("reacTime_mean1").ToElement()->Attribute("value",&mean1);
 	handle.FirstChild("reacTime_mean2").ToElement()->Attribute("value",&mean2);
 	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
 	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
-
+	if (handle.FirstChild("drivingModel").ToElement()){
+		handle.FirstChild("drivingModel").ToElement()->Attribute("value",&drivingModel);
+		ConfigParams::GetInstance().drivingModel = drivingModel;
+		std::cout<<"drivingModel="<<drivingModel<<std::endl;
+	}
 
 	//Reaction time 1
 	//TODO: Refactor to avoid magic numbers

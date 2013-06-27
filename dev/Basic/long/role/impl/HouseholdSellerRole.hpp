@@ -78,10 +78,21 @@ namespace sim_mob {
             void CalculateUnitExpectations(const Unit& unit);
         
         private:
-            typedef list<float> ExpectationEntry;
-            typedef boost::unordered_map<UnitId, Bid> Bids; 
-            typedef boost::unordered_map<UnitId, ExpectationEntry> Expectations; 
+
+            /**
+             * Struct to store a expectation data.
+             */
+            typedef struct ExpectationEntry_ {
+                double price;
+                double expectation;
+            } ExpectationEntry;
+            
+            typedef list<ExpectationEntry> ExpectationList;
+            typedef pair<UnitId, ExpectationList> ExpectationMapEntry; 
+            typedef boost::unordered_map<UnitId, ExpectationList> ExpectationMap; 
+            typedef boost::unordered_map<UnitId, Bid> Bids;
             typedef pair<UnitId, Bid> BidEntry;
+            
             friend class HouseholdAgent;
             HousingMarket* market;
             Household* hh;
@@ -89,7 +100,7 @@ namespace sim_mob {
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
-            Expectations unitExpectations;
+            ExpectationMap unitExpectations;
         };
     }
 }

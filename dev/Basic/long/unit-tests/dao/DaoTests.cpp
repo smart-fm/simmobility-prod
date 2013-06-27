@@ -8,12 +8,9 @@
  */
 
 #include "DaoTests.hpp"
-#include "database/dao/IndividualDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
-#include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
-#include "database/dao/LandUseTypeDao.hpp"
-#include "database/dao/GenericLandUseTypeDao.hpp"
+#include "database/dao/UnitDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -21,7 +18,8 @@ using namespace unit_tests;
 
 //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
 //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
-#define CONNECTION_STRING "host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
+//"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
+#define CONNECTION_STRING "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
 #define ID_TO_GET 1
 
 template <typename T, typename K>
@@ -48,10 +46,7 @@ void TestDao() {
 }
 
 void DaoTests::TestAll() {
-    TestDao<IndividualDao, Individual>();
     TestDao<HouseholdDao, Household>();
-    TestDao<BuildingTypeDao, BuildingType>();
     TestDao<BuildingDao, Building>();
-    TestDao<LandUseTypeDao, LandUseType>();
-    TestDao<GenericLandUseTypeDao, GenericLandUseType>();
+    TestDao<UnitDao, Unit>();
 }

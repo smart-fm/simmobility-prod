@@ -9,6 +9,7 @@
 
 #include "Household.hpp"
 #include "util/Utils.hpp"
+#include "database/dao/AbstractDao.hpp"
 
 #define WEIGHT_MIN 0.0f
 #define WEIGHT_MAX 1.0f
@@ -16,48 +17,32 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Household::Household(int id, float income, int numberOfMembers) : id(id),
+Household::Household(unsigned long id, float income, int numberOfIndividuals) : id(id),
 headAge(0), income(income), numberOfCars(0), numberOfChildren(0),
-numberOfWorkers(0), numberOfMembers(numberOfMembers), buildingId(-1),
-weightIncome(1.0f), weightUnitSize(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
-weightDistanceToCDB(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
-weightUrgencyToBuy(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
-weightExpectedEvents(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)),
-weightPriceImportance(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
+numberOfWorkers(0), numberOfIndividuals(numberOfIndividuals){
 }
 
 Household& Household::operator=(const Household& source) {
     this->id = source.id;
-    this->buildingId = source.buildingId;
     this->headAge = source.headAge;
     this->income = source.income;
     this->numberOfCars = source.numberOfCars;
     this->numberOfChildren = source.numberOfChildren;
-    this->numberOfMembers = source.numberOfMembers;
+    this->numberOfIndividuals = source.numberOfIndividuals;
     this->numberOfWorkers = source.numberOfWorkers;
     this->race = source.race;
-    this->weightDistanceToCDB = source.weightDistanceToCDB;
-    this->weightUnitSize = source.weightUnitSize;
-    this->weightIncome = source.weightIncome;
-    this->weightUrgencyToBuy = source.weightUrgencyToBuy;
-    this->weightExpectedEvents = source.weightExpectedEvents;
-    this->weightPriceImportance = source.weightPriceImportance;
     return *this;
 }
 
 Household::~Household() {
 }
 
-int Household::GetId() const {
+BigSerial Household::GetId() const {
     return id;
 }
 
-int Household::GetBuildingId() const {
-    return buildingId;
-}
-
-int Household::GetNumberOfMembers() const {
-    return numberOfMembers;
+int Household::GetNumberOfIndividuals() const {
+    return numberOfIndividuals;
 }
 
 int Household::GetNumberOfChildren() const {
@@ -82,28 +67,4 @@ float Household::GetIncome() const {
 
 Race Household::GetRace() const {
     return race;
-}
-
-float Household::GetWeightDistanceToCDB() const {
-    return weightDistanceToCDB;
-}
-
-float Household::GetWeightUnitSize() const {
-    return weightUnitSize;
-}
-
-float Household::GetWeightIncome() const {
-    return weightIncome;
-}
-
-float Household::GetWeightUrgencyToBuy() const {
-    return weightUrgencyToBuy;
-}
-
-float Household::GetWeightExpectedEvents() const {
-    return weightExpectedEvents;
-}
-
-float Household::GetWeightPriceImportance() const {
-    return weightPriceImportance;
 }

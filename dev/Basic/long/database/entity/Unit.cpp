@@ -17,35 +17,107 @@ using namespace sim_mob::long_term;
 #define WEIGHT_MIN 0.0f
 #define WEIGHT_MAX 1.0f
 
-/**
- * TODO: Refactoring with Market Entry?????
- */
-float CalculateHedonicPrice(float distanceToCDB, float size, float fixedCost) {
-    return (float) ((distanceToCDB * 2.0f) + (size * 3.0f) + fixedCost);
+double CalculateHedonicPrice(const Unit& unit) {
+    return (double) unit.GetFixedPrice() +
+            unit.GetArea() * unit.GetWeightArea() +
+            (((int) unit.GetType()) + 1) * unit.GetWeightType() +
+            unit.GetStorey() * unit.GetWeightStorey() +
+            unit.GetLastRemodulationYear() * unit.GetWeightYearLastRemodulation() +
+            unit.GetTaxExempt() * unit.GetWeightTaxExempt() +
+            unit.GetDistanceToCBD() * unit.GetWeightDistanceToCBD();
 }
 
-Unit::Unit(UnitId id, bool available, float fixedCost,
-        float distanceToCDB, float size) : id(id), available(available),
-fixedCost(fixedCost), distanceToCDB(distanceToCDB), size(size),
-hedonicPrice(/*CalculateHedonicPrice(distanceToCDB, size, fixedCost)*/4), owner(nullptr),
-weightPriceQuality(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
-    reservationPrice = hedonicPrice; /*(hedonicPrice * 1.2f)*/;
+Unit::Unit(UnitId id,
+        BigSerial buildingId,
+        BigSerial householdId,
+        UnitType type,
+        bool available,
+        double area,
+        int storey,
+        int lastRemodulationYear,
+        double fixedPrice,
+        double taxExempt,
+        double distanceToCBD,
+        bool hasGarage,
+        double weightPriceQuality,
+        double weightStorey,
+        double weightDistanceToCBD,
+        double weightType,
+        double weightArea,
+        double weightTaxExempt,
+        double weightYearLastRemodulation) :
+id(id),
+buildingId(buildingId),
+householdId(householdId),
+type(type),
+storey(storey),
+lastRemodulationYear(lastRemodulationYear),
+area(area),
+fixedPrice(fixedPrice),
+taxExempt(taxExempt),
+hedonicPrice(0),
+distanceToCBD(distanceToCBD),
+hasGarage(hasGarage),
+weightPriceQuality(weightPriceQuality),
+weightStorey(weightStorey),
+weightDistanceToCBD(weightDistanceToCBD),
+weightType(weightType),
+weightArea(weightArea),
+weightTaxExempt(weightTaxExempt),
+weightYearLastRemodulation(weightYearLastRemodulation),
+available(available),
+owner(nullptr) {
+    hedonicPrice = CalculateHedonicPrice(*this);
+    reservationPrice = hedonicPrice;
 }
 
-Unit::Unit() : id(INVALID_ID), available(false),
-fixedCost(.0f), distanceToCDB(.0f), size(.0f),
-hedonicPrice(.0f), reservationPrice(.0f), owner(nullptr),
-weightPriceQuality(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
+Unit::Unit() :
+id(INVALID_ID),
+buildingId(INVALID_ID),
+householdId(INVALID_ID),
+type(UNKNOWN_UNIT_TYPE),
+storey(0),
+lastRemodulationYear(0),
+area(0),
+fixedPrice(0),
+taxExempt(0),
+hedonicPrice(0),
+distanceToCBD(0),
+hasGarage(false),
+weightPriceQuality(0),
+weightStorey(0),
+weightDistanceToCBD(0),
+weightType(0),
+weightArea(0),
+weightTaxExempt(0),
+weightYearLastRemodulation(0),
+reservationPrice(0),
+available(false),
+owner(nullptr) {
 }
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
-    this->available = source.available;
-    this->fixedCost = source.fixedCost;
+    this->buildingId = source.buildingId;
+    this->householdId = source.householdId;
+    this->type = source.type;
+    this->storey = source.storey;
+    this->lastRemodulationYear = source.lastRemodulationYear;
+    this->area = source.area;
+    this->fixedPrice = source.fixedPrice;
+    this->taxExempt = source.taxExempt;
     this->hedonicPrice = source.hedonicPrice;
-    this->reservationPrice = source.reservationPrice;
-    this->owner = source.owner;
+    this->distanceToCBD = source.distanceToCBD;
+    this->hasGarage = source.hasGarage;
     this->weightPriceQuality = source.weightPriceQuality;
+    this->weightStorey = source.weightStorey;
+    this->weightDistanceToCBD = source.weightDistanceToCBD;
+    this->weightType = source.weightType;
+    this->weightArea = source.weightArea;
+    this->weightTaxExempt = source.weightTaxExempt;
+    this->weightYearLastRemodulation = source.weightYearLastRemodulation;
+    this->reservationPrice = source.reservationPrice;
+    this->available = source.available;
 }
 
 Unit::~Unit() {
@@ -53,12 +125,26 @@ Unit::~Unit() {
 
 Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
-    this->available = source.available;
-    this->fixedCost = source.fixedCost;
+    this->buildingId = source.buildingId;
+    this->householdId = source.householdId;
+    this->type = source.type;
+    this->storey = source.storey;
+    this->lastRemodulationYear = source.lastRemodulationYear;
+    this->area = source.area;
+    this->fixedPrice = source.fixedPrice;
+    this->taxExempt = source.taxExempt;
     this->hedonicPrice = source.hedonicPrice;
-    this->reservationPrice = source.reservationPrice;
-    this->owner = source.owner;
+    this->distanceToCBD = source.distanceToCBD;
+    this->hasGarage = source.hasGarage;
     this->weightPriceQuality = source.weightPriceQuality;
+    this->weightStorey = source.weightStorey;
+    this->weightDistanceToCBD = source.weightDistanceToCBD;
+    this->weightType = source.weightType;
+    this->weightArea = source.weightArea;
+    this->weightTaxExempt = source.weightTaxExempt;
+    this->weightYearLastRemodulation = source.weightYearLastRemodulation;
+    this->reservationPrice = source.reservationPrice;
+    this->available = source.available;
     return *this;
 }
 
@@ -72,46 +158,18 @@ void Unit::SetAvailable(bool avaliable) {
     this->available = avaliable;
 }
 
-UnitId Unit::GetId() const {
-    return id;
-}
-
-float Unit::GetSize() const {
-    return size;
-}
-
-float Unit::GetDistanceToCDB() const {
-    return distanceToCDB;
-}
-
-float Unit::GetReservationPrice() const {
+double Unit::GetReservationPrice() const {
     SharedReadLock(mutex);
     return reservationPrice;
 }
 
-void Unit::SetReservationPrice(float price) {
+void Unit::SetReservationPrice(double price) {
     SharedWriteLock(mutex);
     reservationPrice = price;
 }
 
-float Unit::GetHedonicPrice() const {
-    SharedReadLock(mutex);
-    return hedonicPrice;
-}
-
-void Unit::SetHedonicPrice(float price) {
-    SharedWriteLock(mutex);
-    hedonicPrice = price;
-}
-
-float Unit::GetFixedCost() const {
-    SharedReadLock(mutex);
-    return fixedCost;
-}
-
-void Unit::SetFixedCost(float cost) {
-    SharedWriteLock(mutex);
-    fixedCost = cost;
+UnitId Unit::GetId() const {
+    return id;
 }
 
 UnitHolder* Unit::GetOwner() {
@@ -124,6 +182,74 @@ void Unit::SetOwner(UnitHolder* receiver) {
     this->owner = receiver;
 }
 
-float Unit::GetWeightPriceQuality() const {
+BigSerial Unit::GetBuildingId() const {
+    return buildingId;
+}
+
+BigSerial Unit::GetHouseholdId() const {
+    return householdId;
+}
+
+UnitType Unit::GetType() const {
+    return type;
+}
+
+int Unit::GetStorey() const {
+    return storey;
+}
+
+int Unit::GetLastRemodulationYear() const {
+    return lastRemodulationYear;
+}
+
+double Unit::GetArea() const {
+    return area;
+}
+
+double Unit::GetFixedPrice() const {
+    return fixedPrice;
+}
+
+double Unit::GetTaxExempt() const {
+    return taxExempt;
+}
+
+double Unit::GetHedonicPrice() const {
+    return hedonicPrice;
+}
+
+double Unit::GetDistanceToCBD() const {
+    return distanceToCBD;
+}
+
+bool Unit::HasGarage() const {
+    return hasGarage;
+}
+
+double Unit::GetWeightPriceQuality() const {
     return weightPriceQuality;
+}
+
+double Unit::GetWeightStorey() const {
+    return weightStorey;
+}
+
+double Unit::GetWeightDistanceToCBD() const {
+    return weightDistanceToCBD;
+}
+
+double Unit::GetWeightType() const {
+    return weightType;
+}
+
+double Unit::GetWeightArea() const {
+    return weightArea;
+}
+
+double Unit::GetWeightTaxExempt() const {
+    return weightTaxExempt;
+}
+
+double Unit::GetWeightYearLastRemodulation() const {
+    return weightYearLastRemodulation;
 }

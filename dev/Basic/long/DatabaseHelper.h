@@ -16,29 +16,22 @@ using boost::format;
 /**
  * Schemas
  */
+#define DB_SCHEMA_EMPTY   ""
 #define DB_SCHEMA_BASELINE_2001   "baseline_2001."
-const string CURRENT_SCHEMA = DB_SCHEMA_BASELINE_2001;
+const string CURRENT_SCHEMA = DB_SCHEMA_EMPTY;
 
 /**
  * Tables
  */
-const string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "households");
-const string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(CURRENT_SCHEMA, "persons");
-const string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "building_types");
-const string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "buildings");
-const string DB_TABLE_LAND_USE_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "land_use_types");
-const string DB_TABLE_GENERIC_LAND_USE_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "generic_land_use_types");
+const string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "household");
+const string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "building");
+const string DB_TABLE_UNIT = APPLY_SCHEMA(CURRENT_SCHEMA, "unit");
 
 /**
  * Fields
  */
-const string DB_FIELD_HOUSEHOLD_ID = "household_id";
-const string DB_FIELD_BUILDING_ID = "building_id";
 const string DB_FIELD_CARS = "cars";
-const string DB_FIELD_WORKERS = "workers";
-const string DB_FIELD_AGE_OF_HEAD = "age_of_head";
-const string DB_FIELD_CHILDREN = "children";
-const string DB_FIELD_INCOME = "income";
+
 const string DB_FIELD_PERSONS = "persons";
 const string DB_FIELD_RACE_ID = "race_id";
 const string DB_FIELD_PERSON_ID = "person_id";
@@ -62,12 +55,9 @@ const string DB_FIELD_DESCRIPTION = "description";
 const string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
 const string DB_FIELD_YEAR_BUILT = "year_built";
 const string DB_FIELD_PARCEL_ID = "parcel_id";
-const string DB_FIELD_LAND_AREA = "land_area";
+
 const string DB_FIELD_BUILDING_QUALITY_ID = "building_quality_id";
 const string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
-const string DB_FIELD_STORIES = "stories";
-const string DB_FIELD_TAX_EXEMPT = "tax_exempt";
-const string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
 const string DB_FIELD_TEMPLATE_ID = "template_id";
 const string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
 const string DB_FIELD_LAND_USE_TYPE_ID = "land_use_type_id";
@@ -76,73 +66,91 @@ const string DB_FIELD_GENERIC_LAND_USE_NAME = "generic_land_use_type_name";
 const string DB_FIELD_GENERIC_LAND_USE_TYPE_ID = "generic_land_use_type_id";
 
 
+//NEW DATABASE
+const string DB_FIELD_ID = "id";
+const string DB_FIELD_BUILDING_ID = "building_id";
+const string DB_FIELD_HOUSEHOLD_ID = "household_id";
+const string DB_FIELD_TYPE = "type";
+const string DB_FIELD_FIXED_PRICE = "fixed_price";
+const string DB_FIELD_YEAR_OF_LAST_REMODULATION = "year_of_last_remodulation";
+const string DB_FIELD_TAX_EXEMPT = "tax_exempt";
+const string DB_FIELD_HAS_GARAGE = "has_garage";
+const string DB_FIELD_INCOME = "income";
+const string DB_FIELD_AREA = "area";
+const string DB_FIELD_YEAR = "year";
+const string DB_FIELD_STOREY = "storey";
+const string DB_FIELD_HEDONIC_PRICE = "hedonic_price";
+const string DB_FIELD_AVERAGE_INCOME = "average_income";
+const string DB_FIELD_MAIN_RACE = "main_race";
+const string DB_FIELD_DISTANCE_TO_CDB = "distance_to_cbd";
+const string DB_FIELD_AGE_OF_HEAD = "age_of_head";
+const string DB_FIELD_NUMBER_OF_CHILDREN = "number_of_children";
+const string DB_FIELD_NUMBER_OF_WORKERS = "number_of_workers";
+const string DB_FIELD_NUMBER_OF_CARS = "number_of_cars";
+const string DB_FIELD_NUMBER_OF_INDIVIDUALS = "number_of_individuals";
+const string DB_FIELD_NUMBER_OF_UNITS = "number_of_units";
+const string DB_FIELD_NUMBER_OF_RESIDENTIAL_UNITS = "number_of_residential_units";
+const string DB_FIELD_NUMBER_OF_BUSINESS_UNITS = "number_of_business_units";
+const string DB_FIELD_NUMBER_OF_STORIES = "number_of_stories";
+const string DB_FIELD_RACE = "race";
+const string DB_FIELD_WEIGHT_PRICE_QUALITY = "weight_price_quality";
+const string DB_FIELD_WEIGHT_STOREY = "weight_storey";
+const string DB_FIELD_WEIGHT_DISTANCE_TO_CBD = "weight_distance_to_cbd";
+const string DB_FIELD_WEIGHT_TYPE = "weight_type";
+const string DB_FIELD_WEIGHT_AREA = "weight_area";
+const string DB_FIELD_WEIGHT_TAX_EXEMPT = "weight_tax_exempt";
+const string DB_FIELD_WEIGHT_YEAR_LAST_REMODULATION = "weight_year_last_remodulation";
+
 
 /**
  * INSERT
  */
 const string DB_INSERT_HOUSEHOLD = "INSERT INTO " + DB_TABLE_HOUSEHOLD + " ("
-        + DB_FIELD_HOUSEHOLD_ID + ", "
-        + DB_FIELD_BUILDING_ID + ", "
-        + DB_FIELD_CARS + ", "
-        + DB_FIELD_WORKERS + ", "
-        + DB_FIELD_AGE_OF_HEAD + ", "
-        + DB_FIELD_CHILDREN + ", "
+        + DB_FIELD_ID + ", "
+        + DB_FIELD_NUMBER_OF_INDIVIDUALS + ", "
+        + DB_FIELD_NUMBER_OF_WORKERS + ", "
+        + DB_FIELD_NUMBER_OF_CHILDREN + ", "
+        + DB_FIELD_NUMBER_OF_CARS + ", "
         + DB_FIELD_INCOME + ", "
-        + DB_FIELD_PERSONS + ", "
+        + DB_FIELD_AGE_OF_HEAD + ", "
         + DB_FIELD_RACE_ID + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9)";
 
-const string DB_INSERT_INDIVIDUAL = ""; // not defined yet...
-const string DB_INSERT_BUILDING_TYPE = ""; // not defined yet...
 const string DB_INSERT_BUILDING = ""; // not defined yet...
-const string DB_INSERT_LAND_USE_TYPE = ""; // not defined yet...
-const string DB_INSERT_GENERIC_LAND_USE_TYPE = ""; // not defined yet...
+const string DB_INSERT_UNIT = ""; // not defined yet...
 
 /**
  * UPDATE
  */
 const string DB_UPDATE_HOUSEHOLD = "UPDATE " + DB_TABLE_HOUSEHOLD + " SET "
-        + DB_FIELD_BUILDING_ID + "= :v1, "
-        + DB_FIELD_CARS + "= :v2, "
-        + DB_FIELD_WORKERS + "= :v3, "
-        + DB_FIELD_AGE_OF_HEAD + "= :v4, "
-        + DB_FIELD_CHILDREN + "= :v5, "
-        + DB_FIELD_INCOME + "= :v6, "
-        + DB_FIELD_PERSONS + "= :v7, "
-        + DB_FIELD_RACE_ID + "= :v8 WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:v9";
+        + DB_FIELD_NUMBER_OF_INDIVIDUALS + "= :v1, "
+        + DB_FIELD_NUMBER_OF_WORKERS + "= :v2, "
+        + DB_FIELD_NUMBER_OF_CHILDREN + "= :v3, "
+        + DB_FIELD_NUMBER_OF_CARS + "= :v4, "
+        + DB_FIELD_INCOME + "= :v5, "
+        + DB_FIELD_AGE_OF_HEAD + "= :v6, "
+        + DB_FIELD_RACE_ID + "= :v7 WHERE " + DB_FIELD_ID + "=:v8";
 
-const string DB_UPDATE_INDIVIDUAL = ""; // not defined yet...
-const string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
 const string DB_UPDATE_BUILDING = ""; // not defined yet...
-const string DB_UPDATE_LAND_USE_TYPE = ""; // not defined yet...
-const string DB_UPDATE_GENERIC_LAND_USE_TYPE = ""; // not defined yet...
+const string DB_UPDATE_UNIT = ""; // not defined yet...
 
 
 /**
  * DELETE
  */
-const string DB_DELETE_HOUSEHOLD = "DELETE FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
-const string DB_DELETE_INDIVIDUAL = "DELETE FROM " + DB_TABLE_INDIVIDUAL + " WHERE " + DB_FIELD_PERSON_ID + "=:id";
-const string DB_DELETE_BUILDING_TYPE = "DELETE FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_BUILDING_TYPE_ID + "=:id";
-const string DB_DELETE_BUILDING = "DELETE FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_BUILDING_ID + "=:id";
-const string DB_DELETE_LAND_USE_TYPE = "DELETE FROM " + DB_TABLE_LAND_USE_TYPE + " WHERE " + DB_FIELD_LAND_USE_TYPE_ID + "=:id";
-const string DB_DELETE_GENERIC_LAND_USE_TYPE = "DELETE FROM " + DB_TABLE_GENERIC_LAND_USE_TYPE + " WHERE " + DB_FIELD_GENERIC_LAND_USE_TYPE_ID + "=:id";
+const string DB_DELETE_HOUSEHOLD = "DELETE FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
+const string DB_DELETE_BUILDING = "DELETE FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
+const string DB_DELETE_UNIT = "DELETE FROM " + DB_TABLE_UNIT + " WHERE " + DB_FIELD_ID + "=:id";
 
 /**
  * GET ALL
  */
-const string DB_GETALL_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " limit 10";
-const string DB_GETALL_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " limit 10";
-const string DB_GETALL_BUILDING_TYPE = "select * from " + DB_TABLE_BUILDING_TYPE + " limit 10";
-const string DB_GETALL_BUILDING = "select * from " + DB_TABLE_BUILDING + " limit 10";
-const string DB_GETALL_LAND_USE_TYPE = "select * from " + DB_TABLE_LAND_USE_TYPE + " limit 10";
-const string DB_GETALL_GENERIC_LAND_USE_TYPE = "select * from " + DB_TABLE_GENERIC_LAND_USE_TYPE + " limit 10";
+const string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " LIMIT 10";
+const string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " LIMIT 10";
+const string DB_GETALL_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " LIMIT 10";
 
 /**
  * GET BY ID
  */
-const string DB_GETBYID_HOUSEHOLD = "select * from " + DB_TABLE_HOUSEHOLD + " where " + DB_FIELD_HOUSEHOLD_ID + "=:id";
-const string DB_GETBYID_INDIVIDUAL = "select * from " + DB_TABLE_INDIVIDUAL + " where " + DB_FIELD_PERSON_ID + "=:id";
-const string DB_GETBYID_BUILDING_TYPE = "select * from " + DB_TABLE_BUILDING_TYPE + " where " + DB_FIELD_BUILDING_TYPE_ID + "=:id";
-const string DB_GETBYID_BUILDING = "select * from " + DB_TABLE_BUILDING + " where " + DB_FIELD_BUILDING_ID + "=:id";
-const string DB_GETBYID_LAND_USE_TYPE = "select * from " + DB_TABLE_LAND_USE_TYPE + " where " + DB_FIELD_LAND_USE_TYPE_ID + "=:id";
-const string DB_GETBYID_GENERIC_LAND_USE_TYPE = "select * from " + DB_TABLE_GENERIC_LAND_USE_TYPE + " where " + DB_FIELD_GENERIC_LAND_USE_TYPE_ID + "=:id";
+const string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
+const string DB_GETBYID_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
+const string DB_GETBYID_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " AND A." + DB_FIELD_ID + " =:id";

@@ -9,15 +9,12 @@
 
 #pragma once
 
+#include <list>
 #include <boost/thread.hpp>
 #include <boost/unordered_map.hpp>
-#include <list>
 #include "EventListener.hpp"
 
 namespace sim_mob {
-
-    using boost::unordered_map;
-    using std::list;
 
     typedef EventListener* EventListenerPtr;
     typedef EventListener::EventCallback ListenerCallback;
@@ -38,10 +35,10 @@ namespace sim_mob {
     } Entry;
 
     // map for global listeners.
-    typedef list<Entry*> ListenersList;
+    typedef std::list<Entry*> ListenersList;
     // maps for listeners with context.
-    typedef unordered_map<Context, ListenersList*> ContextMap;
-    typedef unordered_map<EventId, ContextMap*> ContextListenersMap;
+    typedef boost::unordered_map<Context, ListenersList*> ContextMap;
+    typedef boost::unordered_map<EventId, ContextMap*> ContextListenersMap;
 
     /**
      * Generic implementation of event publisher.

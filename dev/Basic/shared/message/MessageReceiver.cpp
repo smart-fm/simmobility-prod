@@ -10,6 +10,10 @@
 #include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
+using boost::shared_mutex;
+using boost::shared_lock;
+using boost::upgrade_lock;
+using boost::upgrade_to_unique_lock;
 
 MessageReceiver::MessageReceiver() {
 }
@@ -25,8 +29,8 @@ MessageReceiver::~MessageReceiver() {
 bool MessageReceiver::ReadMessage() {
     MessageEntry* entry = NULL;
     {
-    	boost::upgrade_lock<boost::shared_mutex> up_lock(queueMutex);
-    	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    	upgrade_lock<shared_mutex> upgradeLock(queueMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ContainsMessages()) {
             entry = messages.front();
             messages.pop();
@@ -43,8 +47,8 @@ bool MessageReceiver::ReadMessage() {
 
 void MessageReceiver::Post(MessageType type, MessageReceiver* sender,
         Message* message) {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(queueMutex);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    upgrade_lock<shared_mutex> upgradeLock(queueMutex);
+    upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
     SendMessage(type, sender, message, true);
 }
 
@@ -54,7 +58,7 @@ bool MessageReceiver::Send(MessageType type, MessageReceiver& sender, const Mess
 }
 
 bool MessageReceiver::HasMessages() {
-	boost::shared_lock<boost::shared_mutex> lock(queueMutex);
+    shared_lock<shared_mutex> lock(queueMutex);
     return ContainsMessages();
 }
 

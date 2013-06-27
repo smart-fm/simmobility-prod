@@ -8,6 +8,9 @@
  */
 
 #include "Utils.hpp"
+#include <boost/random.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 
 using namespace sim_mob;
 
@@ -45,8 +48,6 @@ void StopWatch::Start() {
         time(&now);
         running = true;
     }
-
-
 }
 
 void StopWatch::Stop() {

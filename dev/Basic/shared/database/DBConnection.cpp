@@ -12,6 +12,9 @@
 #include "soci-postgresql.h"
 
 using namespace sim_mob;
+using std::string;
+using soci::postgresql;
+using soci::session;
 
 DBConnection::DBConnection(BackendType type, const string& connectionStr) :
 connectionStr(connectionStr), currentSession(), type(type), connected(false) {

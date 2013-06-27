@@ -8,14 +8,10 @@
  */
 #pragma once
 #include <vector>
-#include "database/DBConnection.hpp"
 #include <boost/variant.hpp>
 #include <boost/algorithm/string.hpp>
+#include "database/DBConnection.hpp"
 #include "util/LangHelpers.hpp"
-
-using std::string;
-using std::vector;
-using namespace boost;
 
 namespace {
     typedef soci::details::use_type_ptr UseTypePtr;
@@ -23,26 +19,26 @@ namespace {
     /**
      * Visitor that will convert an variant value into details::use_type_ptr.
      */
-    class UsePtrConverter : public static_visitor<UseTypePtr> {
+    class UsePtrConverter : public boost::static_visitor<UseTypePtr> {
     public: // visitor interfaces
 
         template <typename T>
         UseTypePtr operator()(const T& val) const {
-            return use(val);
+            return soci::use(val);
         }
     };
     // POSTGRES dependent. Needs to be fixed.
-    const string DB_RETURNING_CLAUSE = "RETURNING";
-    const string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
+    const std::string DB_RETURNING_CLAUSE = "RETURNING";
+    const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
 }
 
 namespace sim_mob {
 
     namespace dao {
-        typedef boost::variant<int, string, double, long long, unsigned long> Parameter;
-        typedef vector<Parameter> Parameters;
-        typedef row Row;
-        typedef rowset<Row> ResultSet;
+        typedef boost::variant<int, std::string, double, long long, unsigned long> Parameter;
+        typedef std::vector<Parameter> Parameters;
+        typedef soci::row Row;
+        typedef soci::rowset<Row> ResultSet;
     }
     using namespace sim_mob::dao;
 
@@ -89,10 +85,10 @@ namespace sim_mob {
     template <typename T> class AbstractDao {
     public:
 
-        AbstractDao(DBConnection* connection, const string& tableName,
-                const string& insertQuery, const string& updateQuery,
-                const string& deleteQuery, const string& getAllQuery,
-                const string& getByIdQuery)
+        AbstractDao(DBConnection* connection, const std::string& tableName,
+                const std::string& insertQuery, const std::string& updateQuery,
+                const std::string& deleteQuery, const std::string& getAllQuery,
+                const std::string& getByIdQuery)
         : connection(connection), tableName(tableName),
         fromRowCallback(nullptr), toRowCallback(nullptr) {
             defaultQueries[INSERT] = insertQuery;
@@ -117,7 +113,7 @@ namespace sim_mob {
                 Statement query(connection->GetSession());
                 //append returning clause. 
                 //Attention: this is only prepared for POSTGRES.
-                string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
+                std::string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
                 int found = upperQuery.rfind(DB_RETURNING_CLAUSE);
                 if (found == std::string::npos) {
                     upperQuery += DB_RETURNING_ALL_CLAUSE;
@@ -193,7 +189,7 @@ namespace sim_mob {
          * @param outList to put the retrieved values. 
          * @return true if some values were returned, false otherwise.
          */
-        virtual bool GetAll(vector<T>& outList) {
+        virtual bool GetAll(std::vector<T>& outList) {
             return GetByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
         }
 
@@ -234,7 +230,7 @@ namespace sim_mob {
          * @param outParam to fill with retrieved objects.
          * @return true if some value was returned, false otherwise.
          */
-        bool GetByValues(const string& queryStr, const Parameters& params, vector<T>& outParam) {
+        bool GetByValues(const std::string& queryStr, const Parameters& params, std::vector<T>& outParam) {
             bool hasValues = false;
             if (fromRowCallback && IsConnected()) {
                 Statement query(connection->GetSession());
@@ -258,7 +254,7 @@ namespace sim_mob {
          * @param outParam to fill with retrieved object.
          * @return true if a value was returned, false otherwise.
          */
-        bool GetByValues(const string& queryStr, const Parameters& params, T& outParam) {
+        bool GetByValues(const std::string& queryStr, const Parameters& params, T& outParam) {
             if (fromRowCallback && IsConnected()) {
                 Statement query(connection->GetSession());
                 PrepareStatement(queryStr, params, query);
@@ -278,7 +274,7 @@ namespace sim_mob {
          * @param params to put on the statement.
          * @param outParam out statement.
          */
-        void PrepareStatement(const string& queryStr, const Parameters& params, Statement& outParam) {
+        void PrepareStatement(const std::string& queryStr, const Parameters& params, Statement& outParam) {
             outParam << queryStr;
             for (Parameters::const_iterator it = params.begin(); it != params.end(); ++it) {
                 outParam, boost::apply_visitor(UsePtrConverter(), *it);
@@ -287,8 +283,8 @@ namespace sim_mob {
 
     protected:
         DBConnection* connection;
-        string tableName;
-        string defaultQueries[5];
+        std::string tableName;
+        std::string defaultQueries[5];
         FromRowCallback fromRowCallback;
         ToRowCallback toRowCallback;
         const Parameters EMPTY_PARAMS;

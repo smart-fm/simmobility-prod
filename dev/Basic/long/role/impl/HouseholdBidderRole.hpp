@@ -146,7 +146,7 @@ namespace sim_mob {
             timeslice lastTime;
             bool bidOnCurrentDay;
             typedef boost::unordered_map<UnitId, int> BidsCounterMap; // bids made per unit.  
-            typedef pair<UnitId, int> BidCounterEntry;
+            typedef std::pair<UnitId, int> BidCounterEntry;
             BidsCounterMap bidsPerUnit;
         };
     }

@@ -14,7 +14,6 @@
 #define WEIGHT_MIN 0.0f
 #define WEIGHT_MAX 1.0f
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Household::Household(unsigned long id, float income, int numberOfIndividuals) : id(id),

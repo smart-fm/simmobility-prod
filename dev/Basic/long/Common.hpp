@@ -12,10 +12,6 @@
 #include "util/LangHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
-using std::cout;
-using std::endl;
-using std::ostream;
-
 #define INVALID_ID -1
 
 /**

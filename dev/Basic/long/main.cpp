@@ -32,7 +32,9 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-
+using std::list;
+using std::pair;
+using std::map;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 

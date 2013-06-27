@@ -13,8 +13,10 @@
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
+using std::list;
+using std::endl;
+using sim_mob::Math;
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
         HousingMarket* market)

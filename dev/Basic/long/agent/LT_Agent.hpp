@@ -7,17 +7,12 @@
  * Created on March 13, 2013, 6:36 PM
  */
 #pragma once
-#include "Common.h"
+#include "Common.hpp"
 #include "entities/UpdateParams.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "event/EventManager.hpp"
 #include "message/MessageReceiver.hpp"
-
-using namespace sim_mob;
-using std::vector;
-using std::string;
-using std::map;
 
 namespace sim_mob {
 
@@ -31,7 +26,7 @@ namespace sim_mob {
          * - Both
          * It will depend of the context.
          */
-        class LT_Agent : public Agent, public MessageReceiver {
+        class LT_Agent : public sim_mob::Agent, public sim_mob::MessageReceiver {
         public:
             LT_Agent(int id);
             virtual ~LT_Agent();
@@ -39,13 +34,13 @@ namespace sim_mob {
             /**
              * Inherited from Agent.
              */
-            virtual void load(const map<string, string>& configProps);
+            virtual void load(const std::map<std::string, std::string>& configProps);
 
             /**
              * Gets the EventManager reference from worker parent.
              * @return EventManager reference. 
              */
-            EventManager& GetEventManager();
+            sim_mob::EventManager& GetEventManager();
 
         protected:
 
@@ -71,7 +66,7 @@ namespace sim_mob {
              * @param messageCounter has the counter.
              * @return update status.
              */
-            virtual Entity::UpdateStatus OnFrameTick(timeslice now,
+            virtual sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now,
                     int messageCounter) = 0;
 
             /**
@@ -83,14 +78,14 @@ namespace sim_mob {
             /**
              * Inherited from MessageReceiver.
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(sim_mob::MessageType type,
+                    sim_mob::MessageReceiver& sender, const sim_mob::Message& message);
 
             /**
              * Inherited from Agent.
              */
             bool frame_init(timeslice now);
-            Entity::UpdateStatus frame_tick(timeslice now);
+            sim_mob::Entity::UpdateStatus frame_tick(timeslice now);
             void frame_output(timeslice now);
             bool isNonspatial();    
         };

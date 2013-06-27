@@ -8,10 +8,8 @@
  */
 #pragma once
 
-#include <boost/thread.hpp>
-
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 #include "message/MessageReceiver.hpp"
 
 namespace sim_mob {
@@ -209,7 +207,7 @@ namespace sim_mob {
             /**
              * Operator to print the Unit data.  
              */
-            friend ostream& operator<<(ostream& strm, const Unit& data) {
+            friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
             	boost::upgrade_lock<boost::shared_mutex> up_lock(data.mutex);
             	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
                 return strm << "{"

@@ -8,10 +8,11 @@
  */
 #pragma once
 
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 
 namespace sim_mob {
+    
     namespace long_term {
 
         class Building {
@@ -89,7 +90,7 @@ namespace sim_mob {
             /**
              * Operator to print the Building data.  
              */
-            friend ostream& operator<<(ostream& strm, const Building& data) {
+            friend std::ostream& operator<<(std::ostream& strm, const Building& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"units\":\"" << data.numberOfUnits << "\","

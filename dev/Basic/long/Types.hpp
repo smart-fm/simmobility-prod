@@ -11,9 +11,6 @@
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
 
-using std::string;
-using std::stringstream;
-
 typedef long long BigSerial;
 typedef BigSerial UnitId;
 

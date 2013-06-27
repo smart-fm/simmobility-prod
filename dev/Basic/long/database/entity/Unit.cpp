@@ -10,8 +10,8 @@
 #include "Unit.hpp"
 #include "util/UnitHolder.hpp"
 #include "util/Utils.hpp"
+#include <boost/thread.hpp>
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 #define WEIGHT_MIN 0.0f
@@ -149,24 +149,32 @@ Unit& Unit::operator=(const Unit& source) {
 }
 
 bool Unit::IsAvailable() const {
-	boost::shared_lock<boost::shared_mutex> lock(mutex);
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
     return available;
 }
 
 void Unit::SetAvailable(bool avaliable) {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->available = avaliable;
 }
 
 double Unit::GetReservationPrice() const {
-    SharedReadLock(mutex);
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     return reservationPrice;
 }
 
 void Unit::SetReservationPrice(double price) {
-    SharedWriteLock(mutex);
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     reservationPrice = price;
+}
+
+void Unit::SetOwner(UnitHolder* receiver) {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    this->owner = receiver;
 }
 
 UnitId Unit::GetId() const {
@@ -174,13 +182,9 @@ UnitId Unit::GetId() const {
 }
 
 UnitHolder* Unit::GetOwner() {
-    SharedReadLock(mutex);
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     return this->owner;
-}
-
-void Unit::SetOwner(UnitHolder* receiver) {
-    SharedWriteLock(mutex);
-    this->owner = receiver;
 }
 
 BigSerial Unit::GetBuildingId() const {

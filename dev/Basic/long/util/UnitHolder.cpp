@@ -11,7 +11,8 @@
 
 using std::map;
 using std::pair;
-using namespace sim_mob;
+using std::list;
+using std::endl;
 using namespace sim_mob::long_term;
 
 UnitHolder::UnitHolder(int id) : id(id) {

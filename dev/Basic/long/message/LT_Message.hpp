@@ -7,7 +7,7 @@
  * Created on April 8, 2013, 11:06 AM
  */
 #pragma once
-#include "Common.h"
+#include "Common.hpp"
 #include "database/entity/Bid.hpp"
 #include "message/Message.hpp"
 
@@ -28,7 +28,7 @@ namespace sim_mob {
         /**
          * Bid message data to be exchanged on Bid process communication.
          */
-        class BidMessage : public Message {
+        class BidMessage : public sim_mob::Message {
         public:
             BidMessage(const Bid& bid);
             BidMessage(const Bid& bid, BidResponse response);

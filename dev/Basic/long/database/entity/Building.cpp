@@ -11,7 +11,6 @@
 
 #include "Building.hpp"
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Building::Building() :

@@ -8,7 +8,7 @@
  */
 
 #include "BuildingDao.hpp"
-#include "DatabaseHelper.h"
+#include "DatabaseHelper.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;

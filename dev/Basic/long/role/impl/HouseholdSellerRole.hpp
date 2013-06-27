@@ -13,6 +13,7 @@
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
+
 namespace sim_mob {
 
     namespace long_term {
@@ -87,11 +88,11 @@ namespace sim_mob {
                 double expectation;
             } ExpectationEntry;
             
-            typedef list<ExpectationEntry> ExpectationList;
-            typedef pair<UnitId, ExpectationList> ExpectationMapEntry; 
+            typedef std::list<ExpectationEntry> ExpectationList;
+            typedef std::pair<UnitId, ExpectationList> ExpectationMapEntry; 
             typedef boost::unordered_map<UnitId, ExpectationList> ExpectationMap; 
             typedef boost::unordered_map<UnitId, Bid> Bids;
-            typedef pair<UnitId, Bid> BidEntry;
+            typedef std::pair<UnitId, Bid> BidEntry;
             
             friend class HouseholdAgent;
             HousingMarket* market;

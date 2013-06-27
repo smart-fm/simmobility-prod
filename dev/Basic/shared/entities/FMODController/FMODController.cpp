@@ -303,8 +303,9 @@ void FMODController::DispatchActivityAgents(timeslice now)
 		const StreetDirectory& stdir = StreetDirectory::instance();
 		sim_mob::Node* node1 = const_cast<sim_mob::Node*>(stdir.getNode(45666));
 		sim_mob::Node* node2 = const_cast<sim_mob::Node*>(stdir.getNode(58950));
-		sim_mob::Node* node3 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
-		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
+		sim_mob::Node* node3 = const_cast<sim_mob::Node*>(stdir.getNode(75956));
+		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
+		sim_mob::Node* node5 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
 
 		DailyTime start(5*60*1000);
 		start += ConfigParams::GetInstance().simStartTime;
@@ -315,19 +316,23 @@ void FMODController::DispatchActivityAgents(timeslice now)
 		schedule->routes.push_back(node2);
 		schedule->routes.push_back(node3);
 		schedule->routes.push_back(node4);
+		schedule->routes.push_back(node5);
 
 		FMODSchedule::STOP stop;
 		stop.stop_id = 58950;
 		stop.dwell_time = 0;
 		stop.boardingpassengers.push_back(27);
 		stop.boardingpassengers.push_back(30);
+		schedule->stop_schdules.push_back(stop);
 
 		FMODSchedule::STOP stpB;
-		stpB.stop_id = 66508;
+		stpB.stop_id = 75956;
+		stpB.dwell_time = 0;
 		stpB.alightingpassengers.push_back(27);
 		stpB.alightingpassengers.push_back(30);
 		schedule->stop_schdules.push_back(stpB);
 
+		std::cout << "stop schedule size is :" << schedule->stop_schdules.size() << std::endl;
 
 		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node4, "node", "Car");
 		subTrip.schedule = schedule;

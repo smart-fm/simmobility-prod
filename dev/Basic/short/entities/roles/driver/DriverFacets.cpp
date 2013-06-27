@@ -694,13 +694,23 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		double dwell_time = 0;
 		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
 
+		if( stop->getID() == 75956 ){
+			std::cout << "distance is : " << distance << std::endl;
+		}
+
 		if( distance<300 ){
+
 			for(int i = 0; i<schedule->stop_schdules.size(); i++){
+
 				FMODSchedule::STOP& stopSchedule = schedule->stop_schdules[i];
+
 				if( stopSchedule.stop_id==stop->getID()){
+
 					isFound = true;
 					dwell_time = stopSchedule.dwell_time;
+
 					if(dwell_time==0){
+
 						int passengersnum = stopSchedule.alightingpassengers.size()+stopSchedule.boardingpassengers.size();
 						dwell_time = stopSchedule.dwell_time = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
 
@@ -729,28 +739,32 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 									passenger_movement->alighting_MS = 1;
 								}
 					 	 	}
+					 	}
 
-							//alighting
-							vector<int>& alightingpeople = stopSchedule.alightingpassengers;
-							if( std::find(alightingpeople.begin(), alightingpeople.end(), (*it)->getId() ) != alightingpeople.end() )
-							{
-								const Person* p = dynamic_cast<const Person*>( (*it) );
-								vector<const Person*>::iterator itPerson = std::find( schedule->insidepassengers.begin(), schedule->insidepassengers.end(), p);
-								if( itPerson != schedule->insidepassengers.end() )
-								{
-									Passenger* passenger =p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+						//alighting
+						vector<int>& alightingpeople = stopSchedule.alightingpassengers;
+						for( vector<int>::iterator it=alightingpeople.begin(); it!=alightingpeople.end(); it++ )
+						{
+							vector<const Person*>::iterator itPerson=schedule->insidepassengers.begin();
+							while(itPerson!=schedule->insidepassengers.end()){
+								if((*it) == (int)(*itPerson)->getId() ){
+									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
 									if (!passenger)
 										continue;
 
 									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 									if(passenger_movement) {
 										passenger_movement->PassengerAlightBus(this->getParentDriver());
+										passenger_movement->alighting_MS = 1;
 									}
 
-									schedule->insidepassengers.erase(itPerson);
+									itPerson = schedule->insidepassengers.erase(itPerson);
+								}
+								else{
+									itPerson++;
 								}
 							}
-					 	}
+						}
 					}
 
 					dwell_time -= p.elapsedSeconds;
@@ -1121,12 +1135,18 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				std::vector<Node*>& routes = subTrip->schedule->routes;
 				std::vector<Node*>::iterator first = routes.begin();
 				std::vector<Node*>::iterator second = first;
-				std::vector<WayPoint>::iterator it;
 
 				path.clear();
 				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
 					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
 					path.insert( path.end(), subPath.begin(), subPath.end());
+				}
+
+				vector<WayPoint>::iterator it;
+				for(it=path.begin(); it!=path.end(); it++){
+					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
+						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
+					}
 				}
 			}
 

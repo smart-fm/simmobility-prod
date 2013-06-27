@@ -529,7 +529,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	Role* personRole = person->getRole();
 	if (!person->curr_params) {
 		person->curr_params = &personRole->make_frame_tick_params(now);
-		Print() << 'updated person->curr_params: ' << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
+		Print() << "updated person->curr_params: " << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
 	}
 	person->lastUpdatedFrame = currFrameNumber.frame();
 

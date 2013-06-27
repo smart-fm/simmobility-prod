@@ -132,16 +132,16 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 
 
 
-int ReadValue(TiXmlHandle& handle, const std::string& propName)
+int ReadValue(TiXmlHandle& handle, const std::string& propName, int defaultValue)
 {
 	TiXmlElement* node = handle.FirstChild(propName).ToElement();
 	if (!node) {
-		return -1;
+		return defaultValue;
 	}
 
 	int value;
 	if (!node->Attribute("value", &value)) {
-		return -1;
+		return defaultValue;
 	}
 
 	return value;
@@ -1751,9 +1751,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	//Save work group sizes: system
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
-	int agentWgSize = ReadValue(handle, "agent");
-	int signalWgSize = ReadValue(handle, "signal");
-	int commWgSize = ReadValue(handle, "Android_Communication");
+	int agentWgSize = ReadValue(handle, "agent", 0);
+	int signalWgSize = ReadValue(handle, "signal", 0);
+	int commWgSize = ReadValue(handle, "Android_Communication", 0);
 
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);

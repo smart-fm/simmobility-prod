@@ -8,6 +8,9 @@
  * Created on April 1, 2013, 11:27 AM
  */
 #pragma once
+
+#include <boost/thread.hpp>
+
 #include "EventPublisher.hpp"
 #include "metrics/Frame.hpp"
 
@@ -127,7 +130,7 @@ namespace sim_mob {
     private:
         timeslice currTime;
         TemporalWindowMap temporalWindows;
-        mutable shared_mutex windowsMutex;
+        mutable boost::shared_mutex windowsMutex;
     };
 }
 

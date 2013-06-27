@@ -6,9 +6,9 @@
  * 
  * Created on June 14, 2013, 11:15 AM
  */
+#include <boost/thread.hpp>
 #include <boost/unordered_map.hpp>
 #include "Statistics.hpp"
-#include "ThreadHelper.h"
 #include "logging/Log.hpp"
 #include "Common.h"
 
@@ -22,7 +22,7 @@ typedef boost::unordered_map<int, long> StatsMap;
 typedef pair<int, long> StatsMapEntry;
 
 StatsMap statistics;
-shared_mutex statisticsMutex;
+boost::shared_mutex statisticsMutex;
 
 inline string ToString(Statistics::StatsParameter param) {
     switch (param) {
@@ -46,7 +46,8 @@ void Statistics::Decrement(Statistics::StatsParameter param, long value) {
 }
 
 void Statistics::Increment(Statistics::StatsParameter param, long value) {
-    SharedWriteLock(statisticsMutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     StatsMap::iterator mapItr = statistics.find(param);
     if (mapItr != statistics.end()) {
         (mapItr->second) += value;
@@ -56,7 +57,8 @@ void Statistics::Increment(Statistics::StatsParameter param, long value) {
 }
 
 void Statistics::Print() {
-    SharedWriteLock(statisticsMutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
         string paramName = ToString((Statistics::StatsParameter)(itr->first));
         long value = itr->second;

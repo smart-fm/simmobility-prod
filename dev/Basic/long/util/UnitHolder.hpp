@@ -7,6 +7,8 @@
  * Created on March 12, 2013, 2:36 PM
  */
 #pragma once
+
+#include <boost/thread.hpp>
 #include <map>
 #include <list>
 #include "database/entity/Unit.hpp"
@@ -109,7 +111,7 @@ namespace sim_mob {
             typedef map<UnitId, Unit*> HoldingUnits;
             HoldingUnits holdingUnits;
             int id;
-            mutable shared_mutex unitsListMutex;
+            mutable boost::shared_mutex unitsListMutex;
         };
     }
 }

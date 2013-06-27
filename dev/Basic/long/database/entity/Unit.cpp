@@ -63,12 +63,13 @@ Unit& Unit::operator=(const Unit& source) {
 }
 
 bool Unit::IsAvailable() const {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return available;
 }
 
 void Unit::SetAvailable(bool avaliable) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     this->available = avaliable;
 }
 
@@ -85,42 +86,46 @@ float Unit::GetDistanceToCDB() const {
 }
 
 float Unit::GetReservationPrice() const {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return reservationPrice;
 }
 
 void Unit::SetReservationPrice(float price) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     reservationPrice = price;
 }
 
 float Unit::GetHedonicPrice() const {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return hedonicPrice;
 }
 
 void Unit::SetHedonicPrice(float price) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     hedonicPrice = price;
 }
 
 float Unit::GetFixedCost() const {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return fixedCost;
 }
 
 void Unit::SetFixedCost(float cost) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     fixedCost = cost;
 }
 
 UnitHolder* Unit::GetOwner() {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return this->owner;
 }
 
 void Unit::SetOwner(UnitHolder* receiver) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     this->owner = receiver;
 }
 

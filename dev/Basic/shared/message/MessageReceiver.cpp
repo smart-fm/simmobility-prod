@@ -25,7 +25,8 @@ MessageReceiver::~MessageReceiver() {
 bool MessageReceiver::ReadMessage() {
     MessageEntry* entry = NULL;
     {
-        SharedWriteLock(queueMutex);
+    	boost::upgrade_lock<boost::shared_mutex> up_lock(queueMutex);
+    	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
         if (ContainsMessages()) {
             entry = messages.front();
             messages.pop();
@@ -42,7 +43,8 @@ bool MessageReceiver::ReadMessage() {
 
 void MessageReceiver::Post(MessageType type, MessageReceiver* sender,
         Message* message) {
-    SharedWriteLock(queueMutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(queueMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     SendMessage(type, sender, message, true);
 }
 
@@ -52,7 +54,7 @@ bool MessageReceiver::Send(MessageType type, MessageReceiver& sender, const Mess
 }
 
 bool MessageReceiver::HasMessages() {
-    SharedReadLock(queueMutex);
+	boost::shared_lock<boost::shared_mutex> lock(queueMutex);
     return ContainsMessages();
 }
 

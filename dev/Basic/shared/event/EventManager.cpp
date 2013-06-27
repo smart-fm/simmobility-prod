@@ -46,7 +46,8 @@ void EventManager::Update(const timeslice& currTime) {
     this->currTime = currTime;
     
     {// synchronized scope
-        SharedWriteLock(windowsMutex);
+    	boost::upgrade_lock<boost::shared_mutex> up_lock(windowsMutex);
+    	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
         TemporalWindowMap::iterator itr = temporalWindows.find(currTime);
         if (itr != temporalWindows.end()) { //we have windows to update.
             TemporalWindowList* wList = itr->second;
@@ -78,7 +79,8 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
         ListenerContextCallback callback) {
 
     {// synchronized scope
-        SharedWriteLock(windowsMutex);
+    	boost::upgrade_lock<boost::shared_mutex> up_lock(windowsMutex);
+    	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
         TemporalWindowMap::iterator itr = temporalWindows.find(target);
         TemporalWindowList* listPtr = nullptr;
         if (itr == temporalWindows.end()) { // is not registered

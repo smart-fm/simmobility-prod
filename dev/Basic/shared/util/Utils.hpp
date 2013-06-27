@@ -7,10 +7,7 @@
  * Created on June 12, 2013, 4:59 PM
  */
 #pragma once
-
-#include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
-#include <boost/random.hpp>
+#include <ctime>
 
 namespace sim_mob {
 

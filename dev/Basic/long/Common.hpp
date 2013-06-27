@@ -12,10 +12,6 @@
 #include "util/LangHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
-using std::cout;
-using std::endl;
-using std::ostream;
-
 #define INVALID_ID -1
 
 /**
@@ -42,6 +38,17 @@ using std::ostream;
  * DEFAULT VALUES
  */
 #define MIN_AGE_TO_WORK 18
+
+/**
+ * TIME UNITS
+ */
+#define TIME_UNIT_DAILY 1 
+#define TIME_UNIT_WEEKLY 7
+#define TIME_UNIT_MONTHLY 30 
+#define TIME_UNIT_YEARLY 365 
+
+#define TIME_UNIT TIME_UNIT_WEEKLY
+
 
 
 

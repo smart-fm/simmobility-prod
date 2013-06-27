@@ -32,7 +32,9 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-
+using std::list;
+using std::pair;
+using std::map;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
@@ -157,10 +159,10 @@ void perform_main() {
         //add agents units.
         for (int j = 0; j < DATA_SIZE; j++) {
             if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
-                Unit* unit = new Unit((TEST_UNITS[j][0]), true,
+                /*Unit* unit = new Unit((TEST_UNITS[j][0]), true,
                         UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
                 hhAgent->AddUnit(unit);
-                LogOut("Unit: " << (*unit) << endl);
+                LogOut("Unit: " << (*unit) << endl);*/
             }
         }
         agents.push_back(hhAgent);
@@ -196,6 +198,10 @@ void perform_main() {
     entities.clear();
 }
 
+double func(double x, double* params) {
+    return pow(-(x - 3), 2) + 10;
+}
+
 int main(int argc, char* argv[]) {
     Logger::log_init("");
     StopWatch watch;
@@ -203,12 +209,17 @@ int main(int argc, char* argv[]) {
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         LogOut("Simulation #:  " << (i + 1) << endl);
-        //RunTests();
-        perform_main();
+        RunTests();
+        //perform_main();
     }
     watch.Stop();
+
     LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
             << endl);
+    double resul1 = Math::FindMaxArg(func, -10, 0, .0001f, 100000000);
+    // LogOut("Result: " << result << endl);
+    LogOut("Result1: " << std::setprecision(1) << resul1 << endl);
+
     Statistics::Print();
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
 

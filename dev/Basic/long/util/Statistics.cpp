@@ -10,8 +10,9 @@
 #include <boost/unordered_map.hpp>
 #include "Statistics.hpp"
 #include "logging/Log.hpp"
-#include "Common.h"
+#include "Common.hpp"
 
+using std::endl;
 using std::map;
 using std::pair;
 using std::string;

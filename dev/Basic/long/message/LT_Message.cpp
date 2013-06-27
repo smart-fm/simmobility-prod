@@ -9,7 +9,7 @@
 
 #include "LT_Message.hpp"
 
-using namespace sim_mob;
+using sim_mob::Message;
 using namespace sim_mob::long_term;
 
 BidMessage::BidMessage(const Bid& bid)

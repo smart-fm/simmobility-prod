@@ -8,8 +8,8 @@
  */
 #pragma once
 
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 #include "metrics/Frame.hpp"
 #include "message/MessageReceiver.hpp"
 
@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(UnitId id, int bidderId, MessageReceiver* bidder, float value, 
+            Bid(UnitId id, int bidderId, sim_mob::MessageReceiver* bidder, float value, 
                     timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
@@ -50,7 +50,7 @@ namespace sim_mob {
              * Gets the Bidder pointer.
              * @return bidder pointer.
              */
-            MessageReceiver* GetBidder() const;
+            sim_mob::MessageReceiver* GetBidder() const;
 
             /**
              * Gets the value of the bid.
@@ -67,7 +67,7 @@ namespace sim_mob {
             /**
              * Operator to print the Bid data.  
              */
-            friend ostream& operator<<(ostream& strm, const Bid& data) {
+            friend std::ostream& operator<<(std::ostream& strm, const Bid& data) {
                 return strm << "{"
                         << "\"unitId\":\"" << data.unitId << "\","
                         << "\"bidderId\":\"" << data.bidderId << "\","
@@ -86,7 +86,7 @@ namespace sim_mob {
             UnitId unitId;
             int bidderId;
             float value;
-            MessageReceiver* bidder;
+            sim_mob::MessageReceiver* bidder;
         };
     }
 }

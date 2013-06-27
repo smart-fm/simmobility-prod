@@ -13,6 +13,9 @@
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using std::vector;
+using std::string;
+using std::map;
 
 LT_Agent::LT_Agent(int id)
 : Agent(ConfigParams::GetInstance().mutexStategy, id) {

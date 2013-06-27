@@ -8,7 +8,7 @@
  */
 
 #include "HouseholdDao.hpp"
-#include "DatabaseHelper.h"
+#include "DatabaseHelper.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -24,29 +24,27 @@ HouseholdDao::~HouseholdDao() {
 }
 
 void HouseholdDao::FromRow(Row& result, Household& outObj) {
-    outObj.id = result.get<int>(DB_FIELD_HOUSEHOLD_ID);
-    outObj.buildingId = result.get<int>(DB_FIELD_BUILDING_ID);
-    outObj.numberOfMembers = result.get<int>(DB_FIELD_PERSONS);
-    outObj.numberOfWorkers = result.get<int>(DB_FIELD_WORKERS);
-    outObj.numberOfChildren = result.get<int>(DB_FIELD_CHILDREN);
-    outObj.numberOfCars = result.get<int>(DB_FIELD_CARS);
-    outObj.income = (float) result.get<int>(DB_FIELD_INCOME);
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID);
+    outObj.numberOfIndividuals = result.get<int>(DB_FIELD_NUMBER_OF_INDIVIDUALS);
+    outObj.numberOfWorkers = result.get<int>(DB_FIELD_NUMBER_OF_WORKERS);
+    outObj.numberOfChildren = result.get<int>(DB_FIELD_NUMBER_OF_CHILDREN);
+    outObj.numberOfCars = result.get<int>(DB_FIELD_NUMBER_OF_CARS);
+    outObj.income = result.get<double>(DB_FIELD_INCOME);
     outObj.headAge = result.get<int>(DB_FIELD_AGE_OF_HEAD);
-    outObj.race = ToRace(result.get<int>(DB_FIELD_RACE_ID));
+    outObj.race = ToRace(result.get<int>(DB_FIELD_RACE));
 }
 
 void HouseholdDao::ToRow(Household& data, Parameters& outParams, bool update) {
-    outParams.push_back(data.buildingId);
-    outParams.push_back(data.numberOfCars);
+    outParams.push_back(data.numberOfIndividuals);
     outParams.push_back(data.numberOfWorkers);
-    outParams.push_back(data.headAge);
     outParams.push_back(data.numberOfChildren);
-    outParams.push_back((int) data.income);
-    outParams.push_back(data.numberOfMembers);
+    outParams.push_back(data.numberOfCars);
+    outParams.push_back(data.income);
+    outParams.push_back(data.headAge);
     outParams.push_back((int) data.race);
-    if (update){
+    if (update) {
         outParams.push_back(data.id);
-    }else{// if is insert we need to put the id on the beginning.
+    } else {// if is insert we need to put the id on the beginning.
         outParams.insert(outParams.begin(), data.id);
     }
 }

@@ -9,7 +9,6 @@
 #pragma once
 #include <queue>
 #include "Message.hpp"
-
 #include <boost/thread.hpp>
 
 namespace sim_mob {

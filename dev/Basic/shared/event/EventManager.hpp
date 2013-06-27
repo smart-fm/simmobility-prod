@@ -25,9 +25,6 @@
 
 namespace sim_mob {
 
-    using std::map;
-    using std::list;
-
     DECLARE_CUSTOM_CALLBACK_TYPE(EM_EventArgs)
     class EM_EventArgs : public EventArgs {
     public:
@@ -124,8 +121,8 @@ namespace sim_mob {
             timeslice to;
         };
 
-        typedef list<TemporalWindow*> TemporalWindowList;
-        typedef map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
+        typedef std::list<TemporalWindow*> TemporalWindowList;
+        typedef std::map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
 
     private:
         timeslice currTime;

@@ -7,7 +7,7 @@
  * Created on May 16, 2013, 5:13 PM
  */
 
-#include <math.h>
+#include <cmath>
 #include "HouseholdBidderRole.hpp"
 #include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
@@ -15,8 +15,8 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 
-
-using namespace sim_mob;
+using std::list;
+using std::endl;
 using namespace sim_mob::long_term;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
@@ -169,15 +169,16 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
 }
 
 float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
+    /*float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
     return pow(askingPrice, hh->GetWeightUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * unit.GetWeightPriceQuality());
+            ((float) GetBidsCounter(unit.GetId()) * unit.GetWeightPriceQuality());*/
+    return 0;
 }
 
 float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return (float) ((hh->GetWeightIncome() * hh->GetIncome()) +
+    return 0;/*(float) ((hh->GetWeightIncome() * hh->GetIncome()) +
             (hh->GetWeightDistanceToCDB() * unit.GetDistanceToCDB()) +
-            (hh->GetWeightUnitSize() * unit.GetSize()));
+            (hh->GetWeightUnitSize() * unit.GetSize()));*/
 }
 
 void HouseholdBidderRole::FollowMarket() {

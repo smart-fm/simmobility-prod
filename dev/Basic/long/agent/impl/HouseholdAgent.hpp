@@ -12,12 +12,6 @@
 #include "database/entity/Household.hpp"
 #include "role/LT_Role.hpp"
 
-
-using namespace sim_mob;
-using std::vector;
-using std::string;
-using std::map;
-
 namespace sim_mob {
 
     namespace long_term {
@@ -36,10 +30,10 @@ namespace sim_mob {
             /**
              * Inherited from LT_Agent.
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(sim_mob::MessageType type,
+                    sim_mob::MessageReceiver& sender, const sim_mob::Message& message);
             bool OnFrameInit(timeslice now);
-            Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
+            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
             void OnFrameOutput(timeslice now);
         private:
             HousingMarket* market;

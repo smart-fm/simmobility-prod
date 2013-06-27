@@ -16,6 +16,7 @@
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "logging/Log.hpp"
 
 using std::vector;
 typedef sim_mob::Entity::UpdateStatus UpdateStatus;
@@ -607,7 +608,7 @@ LoopDetectorEntity::init(Signal const & signal)
 
     pimpl_ = new Impl(signal, *this);
     tempLoopImpl = pimpl_;
-    std::cout << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
+    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
 }
 
 /* virtual */ void

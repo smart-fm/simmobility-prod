@@ -26,6 +26,7 @@ class RNIndex:
     self.lane_connectors = {} #{nodeId => [LaneConnector]}
     self.lanes = {}    #{laneId => Lane}
     self.segsAtNodes = {}  #{nodeId => [Segment,Segment]}
+    self.segParents = {}  #{segId => Link}, parent link of segment
 
     #Now construct them.
     self.__build_index(rn)
@@ -34,6 +35,9 @@ class RNIndex:
     #Get to the segment level.
     for lk in rn.links.values():
       for sg in lk.segments:
+        #Index the parent
+        self.segParents[sg.segId] = lk
+
         #Index all Lanes
         for ln in sg.lanes:
           self.lanes[ln.laneId] = ln

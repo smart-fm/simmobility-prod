@@ -108,7 +108,7 @@ namespace sim_mob {
             typedef boost::unordered_map<UnitId, Unit*> HoldingUnits;
             HoldingUnits holdingUnits;
             int id;
-            mutable shared_mutex unitsListMutex;
+            mutable boost::shared_mutex unitsListMutex;
         };
     }
 }

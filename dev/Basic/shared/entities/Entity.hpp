@@ -131,6 +131,8 @@ protected:
 public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;
+	//	your communication support
+//	sim_mob::CommunicationSupport comm;
 
 	//xuyan:only used by Sim-Tree
 	bool can_remove_by_RTREE;

@@ -78,7 +78,14 @@ enum DAY_OF_WEEK {
 };
 
 class ConfigParams : private boost::noncopyable {
+
 public:
+	enum ClientType
+	{
+		ANDROID_EMULATOR = 1,
+		NS3_SIMULATOR = 2,
+		//add your client type here
+	};
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
@@ -90,6 +97,7 @@ public:
 
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string roadNetworkXsdSchemaFile;
@@ -131,6 +139,9 @@ public:
 	//Busline_Control_Type
 	std::string busline_control_type;
 
+	//Is our communication simulator enabled?
+	bool commSimEnabled;
+	bool androidClientEnabled;
 	// temporary maps
 	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
@@ -144,8 +155,10 @@ public:
 	int signalTimingMode;
 	int signalAlgorithm;
 
-	//When the simulation begins
+	//When the simulation begins(based on configuration)
 	DailyTime simStartTime;
+	//when Simulation really begins
+	timeval realSimStartTime;
 
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
@@ -153,6 +166,7 @@ public:
 	std::string connectionString;
 
 	bool using_MPI;
+	bool is_run_on_many_computers;
 	bool is_simulation_repeatable;
 
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
@@ -296,9 +310,9 @@ private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
 		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), day_of_week(MONDAY),
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false),
+		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN)
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
 	{}
 
 	static ConfigParams instance;

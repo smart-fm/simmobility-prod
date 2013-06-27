@@ -149,12 +149,13 @@ Unit& Unit::operator=(const Unit& source) {
 }
 
 bool Unit::IsAvailable() const {
-    SharedReadLock(mutex);
+	boost::shared_lock<boost::shared_mutex> lock(mutex);
     return available;
 }
 
 void Unit::SetAvailable(bool avaliable) {
-    SharedWriteLock(mutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(mutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     this->available = avaliable;
 }
 

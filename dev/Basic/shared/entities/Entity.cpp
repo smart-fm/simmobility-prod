@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Entity.hpp"
+#include "conf/simpleconf.hpp"
 
 #include "logging/Log.hpp"
 
@@ -14,6 +15,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::Entity::Entity(unsigned int id)
 	: id(id),  startTime(0), currWorker(nullptr), isFake(false), parentEntity(nullptr), can_remove_by_RTREE(false)
 {
+
 
 }
 

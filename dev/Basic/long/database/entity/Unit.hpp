@@ -8,6 +8,8 @@
  */
 #pragma once
 
+#include <boost/thread.hpp>
+
 #include "Common.h"
 #include "Types.h"
 #include "message/MessageReceiver.hpp"
@@ -208,7 +210,8 @@ namespace sim_mob {
              * Operator to print the Unit data.  
              */
             friend ostream& operator<<(ostream& strm, const Unit& data) {
-                SharedWriteLock(data.mutex);
+            	boost::upgrade_lock<boost::shared_mutex> up_lock(data.mutex);
+            	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
@@ -269,7 +272,7 @@ namespace sim_mob {
             double reservationPrice;
             bool available;
             UnitHolder* owner;
-            mutable shared_mutex mutex;
+            mutable boost::shared_mutex mutex;
         };
     }
 }

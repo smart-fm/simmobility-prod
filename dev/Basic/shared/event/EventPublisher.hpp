@@ -9,10 +9,10 @@
 
 #pragma once
 
+#include <boost/thread.hpp>
 #include <boost/unordered_map.hpp>
 #include <list>
 #include "EventListener.hpp"
-#include "ThreadHelper.h"
 
 namespace sim_mob {
 
@@ -176,6 +176,6 @@ namespace sim_mob {
 
     private:
         ContextListenersMap listeners;
-        mutable shared_mutex listenersMutex;
+        mutable boost::shared_mutex listenersMutex;
     };
 }

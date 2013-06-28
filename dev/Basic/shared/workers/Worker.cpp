@@ -472,6 +472,7 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
+		(*it)->processVirtualQueues();
 		(*it)->updateAndReportSupplyStats(currTime);
 		(*it)->reportLinkTravelTimes(currTime);
 		(*it)->resetSegmentFlows();
@@ -482,8 +483,9 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 
 		Conflux* ag = dynamic_cast<Conflux*>(*it);
-		if( ag != nullptr )
+		if( ag != nullptr ) {
 			continue;
+		}
 
 		UpdateStatus res = (*it)->update(currTime);
 		if (res.status == UpdateStatus::RS_DONE) {

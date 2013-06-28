@@ -696,6 +696,9 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 }
 
 const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
+	/*
+	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
+	 */
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 

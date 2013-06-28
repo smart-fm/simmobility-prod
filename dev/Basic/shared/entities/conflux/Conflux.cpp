@@ -88,7 +88,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	}
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
-	lastUpdatedFrame = frameNumber.frame();
+	lastUpdatedFrame.set(frameNumber.frame());
 	return retVal;
 }
 
@@ -106,7 +106,7 @@ void sim_mob::Conflux::updateUnsignalized() {
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
-	if (person->lastUpdatedFrame < currFrameNumber.frame()) {
+	if (person->lastUpdatedFrame.get() < currFrameNumber.frame()) {
 		//if the person is moved for the first time in this tick
 		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 	}
@@ -146,7 +146,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 					<< "\n Person " << dequeuedPerson->getId() << ": "
 					<< "segment: " << dequeuedPerson->getCurrSegment()->getStartEnd()
 					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
-					<< "|Frame: " << dequeuedPerson->lastUpdatedFrame;
+					<< "|Frame: " << dequeuedPerson->lastUpdatedFrame.get();
 
 			Print() << debugMsgs.str();
 			throw std::runtime_error(debugMsgs.str());
@@ -241,7 +241,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 			segStats = findSegStats(*rdSegIt);
 			std::deque<sim_mob::Person*> personsInLaneInfinity = segStats->getAgents(segStats->laneInfinity);
 			for(std::deque<sim_mob::Person*>::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
-				if ((*personIt)->lastUpdatedFrame < currFrameNumber.frame()) {
+				if ((*personIt)->lastUpdatedFrame.get() < currFrameNumber.frame()) {
 					//if the person is going to be moved for the first time in this tick
 					(*personIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 				}
@@ -251,12 +251,20 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
 		for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
-			if ((*pIt)->lastUpdatedFrame < currFrameNumber.frame()) {
+			if ((*pIt)->lastUpdatedFrame.get() < currFrameNumber.frame()) {
 				//if the person is going to be moved for the first time in this tick
 				(*pIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 			}
 		}
 	}
+}
+
+void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {
+	Agent::buildSubscriptionList(subsList);
+}
+
+void sim_mob::Conflux::processVirtualQueues() {
+
 }
 
 void sim_mob::Conflux::resetOutputBounds() {
@@ -267,10 +275,7 @@ void sim_mob::Conflux::resetOutputBounds() {
 	int outputEstimate = 0;
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
 		lnk = i->first;
-		firstSeg = lnk->getSegments().front();
-		segStats = findSegStats(firstSeg);
 		outputEstimate = segStats->computeExpectedOutputPerTick();
-		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of newly starting agents
 		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size(); // decrement num. of agents already in virtual queue
 		outputEstimate = (outputEstimate>0? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
@@ -522,7 +527,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 		person->curr_params = &personRole->make_frame_tick_params(now);
 		Print() << "updated person->curr_params: " << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
 	}
-	person->lastUpdatedFrame = currFrameNumber.frame();
+	person->lastUpdatedFrame.set(currFrameNumber.frame());
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
@@ -586,13 +591,13 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			SegmentStats* nxtSegStats = findSegStats(person->requestedNextSegment);
 
 			Print() << "nxtConflux:" << nxtConflux->getMultiNode()->getID()
-					<< "|lastUpdatedFrame:" << nxtConflux->lastUpdatedFrame
+					<< "|lastUpdatedFrame:" << nxtConflux->lastUpdatedFrame.get()
 					<< "|currFrame:" << now.frame()
 					<< "|requestedNextSegment: [" << person->requestedNextSegment->getStart()->getID() <<","<< person->requestedNextSegment->getEnd()->getID() << "]"
 					<< std::endl;
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
-			if(now.frame() > nxtConflux->lastUpdatedFrame) {
+			if(now.frame() > nxtConflux->lastUpdatedFrame.get()) {
 				//this is a hack to count the number of agents trying to loop back to the same
 				//conflux again in the same frame tick
 				if(nxtConflux == this){
@@ -612,7 +617,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					person->canMoveToNextSegment = Person::DENIED;
 				}
 			}
-			else if(now.frame() == nxtConflux->lastUpdatedFrame) {
+			else if(now.frame() == nxtConflux->lastUpdatedFrame.get()) {
 				// nxtConflux is processed for the current tick. Can move to the next link.
 				// handled by setting person->canMoveToNextSegment = GRANTED
 				person->requestedNextSegment = nullptr;
@@ -714,4 +719,26 @@ double sim_mob::Conflux::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
 
 const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
 	return findSegStats(rdSeg)->laneInfinity;
+}
+
+bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, const Person* y) const {
+	if ((!x) || (!y)) {
+		std::stringstream debugMsgs;
+		debugMsgs
+				<< "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
+				<< "|x: " << (x ? x->getId() : 0) << "|y: "
+				<< (y ? y->getId() : 0);
+		throw std::runtime_error(debugMsgs.str());
+	}
+	//We want greater remaining time in this tick to translate into a higher priority.
+	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
+}
+
+//Sort all agents in lane (based on remaining time this tick)
+void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
+	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
+	//ordering is required only if we have more than 1 person in the deque
+	if(personList.size() > 1) {
+		std::sort(personList.begin(), personList.end(), cmp_person_remainingTimeThisTick_obj);
+	}
 }

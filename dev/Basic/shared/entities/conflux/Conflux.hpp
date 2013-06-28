@@ -24,7 +24,6 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
-
 namespace sim_mob {
 
 class RoadSegment;
@@ -40,27 +39,8 @@ struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
 
-bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, const Person* y) const {
-	if ((!x) || (!y)) {
-		std::stringstream debugMsgs;
-		debugMsgs
-				<< "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
-				<< "|x: " << (x ? x->getId() : 0) << "|y: "
-				<< (y ? y->getId() : 0);
-		throw std::runtime_error(debugMsgs.str());
-	}
-	//We want greater remaining time in this tick to translate into a higher priority.
-	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
-}
-
 //Sort all agents in lane (based on remaining time this tick)
-void sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
-	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
-	//ordering is required only if we have more than 1 person in the deque
-	if(personList.size() > 1) {
-		std::sort(personList.begin(), personList.end(), cmp_person_remainingTimeThisTick_obj);
-	}
-}
+void sortPersons_DecreasingRemTime(std::deque<Person*> personList);
 
 class Conflux : public sim_mob::Agent {
 
@@ -171,6 +151,8 @@ public:
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
@@ -213,8 +195,6 @@ public:
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
-	void updateOutputBounds();
-
 	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
@@ -238,6 +218,9 @@ public:
 
 	/* updates lane params for all lanes within the conflux */
 	void updateAndReportSupplyStats(timeslice frameNumber);
+
+	/*process persons in the virtual queue*/
+	void processVirtualQueues();
 
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;

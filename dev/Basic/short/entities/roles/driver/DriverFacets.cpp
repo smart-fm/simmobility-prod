@@ -720,7 +720,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)));
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
-					 		std::cout << "agent id : " << (*it)->getId() << std::endl;
+							std::cout << "agent id : " << (*it)->getId() << std::endl;
 
 					 		//boarding
 							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
@@ -731,6 +731,8 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 
 								if (!passenger)
 								  continue;
+
+								std::cout << "agent id : " << (*it)->getId() << std::endl;
 
 								schedule->insidepassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());

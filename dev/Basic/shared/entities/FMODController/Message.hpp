@@ -152,6 +152,7 @@ public:
 };
 
 class Msg_Schedule : public Message {
+public:
 	std::string vehicle_id;
 	std::string schedule_id;
 	std::vector<std::string> replace_schedules;

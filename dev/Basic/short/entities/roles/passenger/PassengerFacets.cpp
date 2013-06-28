@@ -251,6 +251,8 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 		parentPassenger->AlightedBus.set(true);//to indicate whether passenger has alighted bus
 		parentAgent->xPos.set(driver->getVehicle()->getPosition().x);
 		parentAgent->yPos.set(driver->getVehicle()->getPosition().y);
+		displayX = driver->getVehicle()->getPosition().x;
+		displayY = driver->getVehicle()->getPosition().y;
 	}
      return false;
 }

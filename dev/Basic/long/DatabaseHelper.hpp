@@ -65,16 +65,16 @@ const std::string DB_FIELD_GENERIC_LAND_USE_TYPE_ID = "generic_land_use_type_id"
 //NEW DATABASE
 const std::string DB_FIELD_ID = "id";
 const std::string DB_FIELD_BUILDING_ID = "building_id";
-const std::string DB_FIELD_HOUSEHOLD_ID = "household_id";
-const std::string DB_FIELD_TYPE = "type";
-const std::string DB_FIELD_FIXED_PRICE = "fixed_price";
-const std::string DB_FIELD_YEAR_OF_LAST_REMODULATION = "year_of_last_remodulation";
-const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
-const std::string DB_FIELD_HAS_GARAGE = "has_garage";
+const std::string DB_FIELD_ESTABLISMENT_ID = "establishment_id";
+const std::string DB_FIELD_TYPE_ID = "type_id";
 const std::string DB_FIELD_INCOME = "income";
-const std::string DB_FIELD_AREA = "area";
+const std::string DB_FIELD_FLOOR_AREA = "floor_area";
 const std::string DB_FIELD_YEAR = "year";
 const std::string DB_FIELD_STOREY = "storey";
+const std::string DB_FIELD_RENT = "rent";
+
+
+
 const std::string DB_FIELD_HEDONIC_PRICE = "hedonic_price";
 const std::string DB_FIELD_AVERAGE_INCOME = "average_income";
 const std::string DB_FIELD_MAIN_RACE = "main_race";
@@ -142,11 +142,13 @@ const std::string DB_DELETE_UNIT = "DELETE FROM " + DB_TABLE_UNIT + " WHERE " + 
  */
 const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " LIMIT 10";
 const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " LIMIT 10";
-const std::string DB_GETALL_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " LIMIT 10";
+const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " LIMIT 10";
+//const std::string DB_GETALL_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " LIMIT 10";
 
 /**
  * GET BY ID
  */
 const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_GETBYID_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
-const std::string DB_GETBYID_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " AND A." + DB_FIELD_ID + " =:id";
+const std::string DB_GETBYID_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " WHERE " + DB_FIELD_ID + "=:id";
+//const std::string DB_GETBYID_UNIT = "SELECT A.*, B.* FROM " + DB_TABLE_UNIT + " AS A, "+DB_TABLE_BUILDING+" AS B WHERE A." + DB_FIELD_BUILDING_ID + " = B."+ DB_FIELD_ID + " AND A." + DB_FIELD_ID + " =:id";

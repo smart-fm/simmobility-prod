@@ -31,25 +31,8 @@ namespace sim_mob {
              */
             Unit();
 
-            Unit(UnitId id,
-                    BigSerial buildingId,
-                    BigSerial householdId,
-                    UnitType type,
-                    bool available,
-                    double area,
-                    int storey,
-                    int lastRemodulationYear,
-                    double fixedPrice,
-                    double taxExempt,
-                    double distanceToCBD,
-                    bool hasGarage,
-                    double weightPriceQuality,
-                    double weightStorey,
-                    double weightDistanceToCBD,
-                    double weightType,
-                    double weightArea,
-                    double weightTaxExempt,
-                    double weightYearLastRemodulation);
+            Unit(UnitId id, BigSerial buildingId, BigSerial establishmentId,
+                 BigSerial typeId, double area, int storey, double rent, bool available);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -73,16 +56,16 @@ namespace sim_mob {
             BigSerial GetBuildingId() const;
 
             /**
-             * Gets the household id that is dwelling in the unit.
-             * @return household id that is dwelling in the unit.
+             * Gets the establishment id that is dwelling in the unit.
+             * @return establishment id that is dwelling in the unit.
              */
-            BigSerial GetHouseholdId() const;
+            BigSerial GetEstablishmentId() const;
 
             /**
-             * Gets type of the unit.
-             * @return unit type {@see UnitType}.
+             * Gets type identifier of the unit.
+             * @return type identifier {@see UnitType}.
              */
-            UnitType GetType() const;
+            BigSerial GetTypeId() const;
 
             /**
              * Gets the storey of the unit.
@@ -91,88 +74,16 @@ namespace sim_mob {
             int GetStorey() const;
 
             /**
-             * Gets the last remodulation year.
-             * @return last remodulation year.
-             */
-            int GetLastRemodulationYear() const;
-
-            /**
              * Gets the unit Area.
              * @return unit area value.
              */
             double GetArea() const;
 
             /**
-             * Gets the unit fixed price.
-             * @return unit fixed price value.
+             * Gets the rent value.
+             * @return rent value.
              */
-            double GetFixedPrice() const;
-
-            /**
-             * Gets the unit tax exempt.
-             * @return unit tax exempt value.
-             */
-            double GetTaxExempt() const;
-
-            /**
-             * Gets the unit hedonic price.
-             * @return unit hedonic price value.
-             */
-            double GetHedonicPrice() const;
-
-            /**
-             * Gets the distance to the business center.
-             * @param the distance to the business center.
-             */
-            double GetDistanceToCBD() const;
-
-            /**
-             * Tells if the unit ha garage or not.
-             * @return true if as garage, false otherwise.
-             */
-            bool HasGarage() const;
-
-            /**
-             * Gets weight associated with the relation price/quality.
-             * @return unit quality/price weight value.
-             */
-            double GetWeightPriceQuality() const;
-
-            /**
-             * Gets weight associated with the storey.
-             * @return unit storey weight value.
-             */
-            double GetWeightStorey() const;
-
-            /**
-             * Gets weight associated with the distance to CBD.
-             * @return unit distance to CBD weight value.
-             */
-            double GetWeightDistanceToCBD() const;
-
-            /**
-             * Gets weight associated with the type.
-             * @return unit type weight value.
-             */
-            double GetWeightType() const;
-
-            /**
-             * Gets weight associated with the area.
-             * @return unit area weight area.
-             */
-            double GetWeightArea() const;
-
-            /**
-             * Gets weight associated with the tax exempt.
-             * @return unit tax exempt weight area.
-             */
-            double GetWeightTaxExempt() const;
-
-            /**
-             * Gets weight associated with the remodulation year.
-             * @return unit remodulation year weight area.
-             */
-            double GetWeightYearLastRemodulation() const;
+            double GetRent() const;
 
             /**
              * Verifies if home is available.
@@ -185,18 +96,6 @@ namespace sim_mob {
              * @param avaliable value. 
              */
             void SetAvailable(bool avaliable);
-
-            /**
-             * Gets the reservation price.
-             * @return the reservation price of the unit.
-             */
-            double GetReservationPrice() const;
-
-            /**
-             * Sets the reservation price.
-             * @param price of the new reservation price of the unit.
-             */
-            void SetReservationPrice(double price);
 
             /**
              * Gets the owner endpoint for communication.
@@ -213,24 +112,11 @@ namespace sim_mob {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
-                        << "\"householdId\":\"" << data.householdId << "\","
-                        << "\"type\":\"" << data.type << "\","
-                        << "\"storey\":\"" << data.storey << "\","
-                        << "\"lastRemodulationYear\":\"" << data.lastRemodulationYear << "\","
+                        << "\"establishmentId\":\"" << data.establishmentId << "\","
+                        << "\"typeId\":\"" << data.typeId << "\","
                         << "\"area\":\"" << data.area << "\","
-                        << "\"fixedPrice\":\"" << data.fixedPrice << "\","
-                        << "\"taxExempt\":\"" << data.taxExempt << "\","
-                        << "\"distanceToCBD\":\"" << data.distanceToCBD << "\","
-                        << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
-                        << "\"hasGarage\":\"" << data.hasGarage << "\","
-                        << "\"weightPriceQuality\":\"" << data.weightPriceQuality << "\","
-                        << "\"weightStorey\":\"" << data.weightStorey << "\","
-                        << "\"weightDistanceToCBD\":\"" << data.weightDistanceToCBD << "\","
-                        << "\"weightType\":\"" << data.weightType << "\","
-                        << "\"weightArea\":\"" << data.weightArea << "\","
-                        << "\"weightTaxExempt\":\"" << data.weightTaxExempt << "\","
-                        << "\"weightYearLastRemodulation\":\"" << data.weightYearLastRemodulation << "\","
-                        << "\"reservationPrice\":\"" << data.reservationPrice << "\","
+                        << "\"storey\":\"" << data.storey << "\","
+                        << "\"rent\":\"" << data.rent << "\","
                         << "\"available\":\"" << data.available << "\""
                         << "}";
             }
@@ -248,26 +134,11 @@ namespace sim_mob {
             //from database.
             UnitId id;
             BigSerial buildingId;
-            BigSerial householdId;
-            UnitType type;
-            int storey;
-            int lastRemodulationYear;
+            BigSerial establishmentId;
+            BigSerial typeId;
             double area;
-            double fixedPrice;
-            double taxExempt;
-            double hedonicPrice;
-            double distanceToCBD;
-            bool hasGarage;
-            // Weights
-            double weightPriceQuality;
-            double weightStorey;
-            double weightDistanceToCBD;
-            double weightType;
-            double weightArea;
-            double weightTaxExempt;
-            double weightYearLastRemodulation;
-            //dynamic fields
-            double reservationPrice;
+            int storey; 
+            double rent;
             bool available;
             UnitHolder* owner;
             mutable boost::shared_mutex mutex;

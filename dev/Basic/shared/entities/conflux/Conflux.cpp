@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
-#include "Conflux.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "logging/Log.hpp"
@@ -75,11 +74,6 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	//reset the remaining times of persons in lane infinity if required.
 	resetPersonRemTimesInVQ();
 
-	//sort the virtual queues before starting to move agents for this tick
-	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
-		sortPersons_DecreasingRemTime(i->second);
-	}
-
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented and called here
 	}
@@ -121,7 +115,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
 		killAgent(person, segBeforeUpdate, laneBeforeUpdate, isQueuingBeforeUpdate);
-		Print()<<"Person "<< person->getId() << "is removed from the simulation." <<std::endl;
+		Print()<<"Person "<< person->getId() << " is removed from the simulation." <<std::endl;
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -134,7 +128,8 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	bool isQueuingAfterUpdate = person->isQueuing;
 	sim_mob::SegmentStats* segStatsAftrUpdt = findSegStats(segAfterUpdate);
 
-	if((segBeforeUpdate != segAfterUpdate) || (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate))
+	if((segBeforeUpdate != segAfterUpdate) /*if the person has moved to another segment*/
+			|| (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate)) /* or if the person has moved out of lane infinity*/
 	{
 		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate, isQueuingBeforeUpdate);
 		if(dequeuedPerson != person) {
@@ -164,13 +159,42 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			vq.push_back(person); //add this person to virtual queue
 		}
 	}
-	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate)
-	{
+	else if (!laneBeforeUpdate) /*If the person was in virtual queue*/ {
+		if(laneAfterUpdate) /*If the person has moved to another lane in some segment*/ {
+			std::deque<Person*> vq = virtualQueuesMap.at(segBeforeUpdate->getLink());
+			vq.pop_front();
+			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
+		}
+		else  {
+			if (segStatsBfrUpdt != segStatsAftrUpdt) {
+				/*the person has moved to another virtual queue - which is not possible if the virtual queues are processed at the end*/
+				debugMsgs
+						<< "Error: Person has moved from one virtual queue to another. "
+						<< "\n Person " << person->getId()
+						<< "|Frame: " << currFrameNumber.frame()
+						<< "|segBeforeUpdate: " << segBeforeUpdate->getStartEnd()
+						<< "|segStatsAftrUpdt: " << segAfterUpdate->getStartEnd();
+				Print() << debugMsgs.str();
+				throw std::runtime_error(debugMsgs.str());
+			}
+		}
+	}
+	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate) {
 		segStatsAftrUpdt->updateQueueStatus(laneAfterUpdate, person);
 	}
 
 	// set the position of the last updated Person in his current lane (after update)
 	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, person->getCurrLane());
+}
+
+void sim_mob::Conflux::processVirtualQueues() {
+	//sort the virtual queues before starting to move agents for this tick
+	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
+		sortPersons_DecreasingRemTime(i->second);
+		for(std::deque<sim_mob::Person*>::iterator pIt=i->second.begin(); pIt!=i->second.end(); pIt++) {
+			updateAgent(*pIt);
+		}
+	}
 }
 
 double sim_mob::Conflux::getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle){
@@ -263,10 +287,6 @@ void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsLis
 	Agent::buildSubscriptionList(subsList);
 }
 
-void sim_mob::Conflux::processVirtualQueues() {
-
-}
-
 void sim_mob::Conflux::resetOutputBounds() {
 	vqBounds.clear();
 	sim_mob::Link* lnk = nullptr;
@@ -345,19 +365,21 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 	sim_mob::Person* ag = nullptr;
 	const sim_mob::RoadSegment* agRdSeg = nullptr;
-	double minDistance = std::numeric_limits<double>::max();
+	double minTime = std::numeric_limits<double>::max();
+	double timeToReachEndOfLink = 0;
 	std::map<const sim_mob::RoadSegment*, sim_mob::Person*>::iterator i = candidateAgents.begin();
 	while (i != candidateAgents.end()) {
 		if (i->second != nullptr) {
-			if (minDistance == (i->second->distanceToEndOfSegment + lengthsOfSegmentsAhead.at(i->first))) {
+			timeToReachEndOfLink = computeTimeToReachEndOfLink(i->first, i->second->distanceToEndOfSegment);
+			if (minTime == timeToReachEndOfLink) {
 				// If current ag and (*i) are at equal distance to the intersection (end of the link), we toss a coin and choose one of them
 				bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
 				if (coinTossResult) {
 					agRdSeg = i->first;
 					ag = i->second;
 				}
-			} else if (minDistance > (i->second->distanceToEndOfSegment + lengthsOfSegmentsAhead.at(i->first))) {
-				minDistance = i->second->distanceToEndOfSegment + lengthsOfSegmentsAhead.at(i->first);
+			} else if (minTime > timeToReachEndOfLink) {
+				minTime = timeToReachEndOfLink;
 				agRdSeg = i->first;
 				ag = i->second;
 			}
@@ -379,18 +401,6 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents.insert(std::make_pair(*rdSegIt, nextAg));
 	}
 	return ag;
-}
-
-void sim_mob::Conflux::prepareLengthsOfSegmentsAhead() {
-	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++)
-	{
-		double lengthAhead = 0.0;
-		for(std::vector<sim_mob::RoadSegment*>::const_reverse_iterator j = i->second.rbegin(); j != i->second.rend(); j++)
-		{
-			lengthsOfSegmentsAhead.insert(std::make_pair(*j, lengthAhead));
-			lengthAhead = lengthAhead + (*j)->computeLaneZeroLength();
-		}
-	}
 }
 
 unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle) {

@@ -268,9 +268,18 @@ unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
 }
 
 void sim_mob::LaneStats::addPerson(sim_mob::Person* p) {
-	laneAgents.push_back(p);
-	if (p->isQueuing && !laneInfinity) {
-		queueCount++;
+	if(laneInfinity) {
+		laneAgents.push_back(p);
+	}
+	else {
+		std::deque<Person*>::iterator i=laneAgents.end()-1; // last person's iterator
+		while(p->distanceToEndOfSegment < (*i)->distanceToEndOfSegment) {
+			i--;
+		}
+		laneAgents.insert(i+1,p); //deque is optimized for insertions and removals.
+		if (p->isQueuing) {
+			queueCount++;
+		}
 	}
 }
 

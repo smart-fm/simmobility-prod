@@ -95,8 +95,6 @@ private:
 
 	std::vector<Entity*> toBeRemoved;
 
-	void prepareLengthsOfSegmentsAhead();
-
 	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
 

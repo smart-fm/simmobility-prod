@@ -35,9 +35,10 @@ private:
 	std::map<Link*, double> linkTravelTimes;
 	std::map<std::string, TripChainItem*> all_items;
 	std::map<Request*, TripChainItem*> all_requests;
-	// keep all children agents to communicate with it
 	std::vector<Agent*> all_persons;
 	std::vector<Agent*> all_drivers;
+	// keep all children agents to communicate with it
+	std::vector<Agent*> all_children;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -49,7 +50,7 @@ protected:
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
-
+	virtual void unregisteredChild(Entity* child);
 
 private:
 	void ProcessMessages(timeslice now);

@@ -698,6 +698,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 			std::cout << "distance is : " << distance << std::endl;
 		}
 
+		//judge whether near to stopping node
 		if( distance<300 ){
 
 			for(int i = 0; i<schedule->stop_schdules.size(); i++){
@@ -709,7 +710,12 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					isFound = true;
 					dwell_time = stopSchedule.dwell_time;
 
+					//arrive at scheduling node
 					if(dwell_time==0){
+
+						parentDriver->stop_event_type.set(1);
+						parentDriver->stop_event_scheduleid.set(stopSchedule.schedule_id);
+						parentDriver->stop_event_nodeid.set(stop->getID());
 
 						int passengersnum = stopSchedule.alightingpassengers.size()+stopSchedule.boardingpassengers.size();
 						dwell_time = stopSchedule.dwell_time = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
@@ -722,7 +728,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	{
 							std::cout << "agent id : " << (*it)->getId() << std::endl;
 
-					 		//boarding
+					 		//passenger boarding
 							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
 							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
 							{
@@ -767,10 +773,20 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								}
 							}
 						}
+
+						//update shared parameters to record boarding and alighting person
+						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingpassengers );
+						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingpassengers );
 					}
 
+					// stopping at scheduling node
 					dwell_time -= p.elapsedSeconds;
 					schedule->stop_schdules[i].dwell_time = dwell_time;
+
+					//depature from this node
+					if(dwell_time < 0 ){
+						parentDriver->stop_event_type.set(0);
+					}
 				}
 			}
 		}

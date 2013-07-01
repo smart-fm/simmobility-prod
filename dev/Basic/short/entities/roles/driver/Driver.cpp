@@ -180,7 +180,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator())
+	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator()),
+	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
+	,stop_event_nodeid(mtxStrat, -1)
 {
 //	if (Debug::Drivers) {
 //		DebugStream <<"Driver starting: ";
@@ -475,6 +477,26 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(latVelocity));
 	res.push_back(&(fwdAccel));
 	res.push_back(&(turningDirection));
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
+	return res;
+}
+
+std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
+{
+	vector<BufferedBase*> res;
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
 	return res;
 }
 

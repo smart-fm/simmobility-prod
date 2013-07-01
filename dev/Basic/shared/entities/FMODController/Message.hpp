@@ -20,12 +20,17 @@ namespace FMOD
 
 class Message {
 public:
+
+	enum MESSAGEID{MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRM=7,
+		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92};
+
 	Message();
 	virtual ~Message();
 	virtual std::string BuildToString() { return msg_;}
 	virtual void CreateMessage(std::string msg);
 	int GetMessageID() { return messageID_; }
 	static int GetMessageID(std::string msg);
+
 public:
 	std::string msg_;
 	int messageID_;
@@ -38,6 +43,7 @@ public:
 	std::string map_file;
 	std::string map_directory;
 	int version;
+
 public:
 	virtual std::string BuildToString();
 };
@@ -135,8 +141,8 @@ public:
 	int	event_type;
 	std::string schedule_id;
 	std::string stop_id;
-	std::vector<std::string> boarding_passengers;
-	std::vector<std::string> aligting_passengers;
+	std::vector<int> boarding_passengers;
+	std::vector<int> aligting_passengers;
 public:
 	virtual std::string BuildToString();
 };

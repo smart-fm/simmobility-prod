@@ -87,6 +87,7 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams() {return std::vector<BufferedBase*>();}
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.

@@ -150,6 +150,7 @@ public:
 	struct STOP
 	{
 		int stop_id;
+		int schedule_id;
 		double dwell_time;
 		std::string arrival_time;
 		std::string depature_time;

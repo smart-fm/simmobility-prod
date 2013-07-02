@@ -60,7 +60,7 @@ private:
 	void HandleScheduleMessage(std::string msg);
 	void HandleVehicleInit(std::string msg);
 
-	void UpdateMessages();
+	void UpdateMessages(timeslice now);
 	MessageList CollectVehStops();
 	MessageList CollectVehPos();
 	MessageList CollectLinkTravelTime();
@@ -79,6 +79,22 @@ private:
 	int updateTiming;
 	int frameTicks;
 	Msg_Vehicle_Init msgVehInit;
+
+private:
+	struct travelTimes
+	{
+	public:
+		unsigned int linkTravelTime_;
+		unsigned int agentCount_;
+
+		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
+		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
+	};
+
+	std::map<const Link*, travelTimes> LinkTravelTimesMap;
+
+	//when vehicle initialize and pack, it will store to this structure
+	std::map<const Node*, std::vector<Agent*> > vehicle_packing;
 
 private:
 	static FMODController* pInstance;

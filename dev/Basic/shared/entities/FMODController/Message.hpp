@@ -124,10 +124,10 @@ public:
 	std::string current_time;
 	struct LINK
 	{
-		std::string node1_id;
-		std::string node2_id;
-		std::string way_id;
-		int travel_time;
+		int node1_id;
+		int node2_id;
+		int way_id;
+		double travel_time;
 	};
 	std::vector<LINK> links;
 public:

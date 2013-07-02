@@ -441,9 +441,25 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 
 
 	//Has the segment changed?
-	if ((!(parentDriver->vehicle->isDone())) && (!(parentDriver->vehicle->hasPath())) ) {
-		params.justChangedToNewSegment = (parentDriver->vehicle->getCurrSegment() != prevSegment);
+	if ((!(parentDriver->vehicle->isDone())) && ((parentDriver->vehicle->hasPath())) ) {
+		params.justChangedToNewSegment = ( (parentDriver->vehicle->getCurrSegment() != prevSegment) );
 	}
+
+	//change segment happen, calculate link travel time
+	if(params.justChangedToNewSegment == true ){
+		const RoadSegment* prevSeg = parentDriver->vehicle->getCurrSegment();
+		const Link* prevLink = prevSeg->getLink();
+		double actualTime = params.elapsedSeconds + (params.now.ms()/1000.0);
+		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
+		Agent* parentAgent = parentDriver->getDriverParent(parentDriver);
+		if(prevLink == parentAgent->getTravelStats().link_){
+			parentAgent->addToTravelStatsMap(parentAgent->getTravelStats(), actualTime); //in seconds
+			//prevSeg->getParentConflux()->setTravelTimes(parentAgent, linkExitTimeSec);
+		}
+		//creating a new entry in agent's travelStats for the new link, with entry time
+		parentAgent->initTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
+	}
+
 	return true;
 }
 

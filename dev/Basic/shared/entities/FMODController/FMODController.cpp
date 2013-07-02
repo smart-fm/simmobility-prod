@@ -52,8 +52,8 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	if(frameTicks%2 == 0){
 		ProcessMessages(now);
 	}
-	if(curTickMS%updateTiming == 0){
-		UpdateMessages();
+	if(frameTicks%2 == 1){
+		UpdateMessages(now);
 	}
 
 	DispatchActivityAgents(now);
@@ -146,6 +146,7 @@ bool FMODController::StartClientService()
 	ret = connectPoint->ConnectToServer(ipAddress, port);
 
 	if(ret)	{
+
 		boost::thread bt( boost::bind(&boost::asio::io_service::run, &io_service) );
 		std::cout << "FMOD communication success" << std::endl;
 
@@ -213,30 +214,42 @@ void FMODController::ProcessMessages(timeslice now)
 	connectPoint->Flush();
 }
 
-void FMODController::UpdateMessages()
+void FMODController::UpdateMessages(timeslice now)
 {
 	MessageList ret;
 
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+
 	ret = CollectVehStops();
 	connectPoint->pushMessage(ret);
-	ret = CollectVehPos();
-	connectPoint->pushMessage(ret);
-	ret = CollectLinkTravelTime();
-	connectPoint->pushMessage(ret);
+
+	if(curTickMS%100 == 0){
+		ret = CollectVehPos();
+		connectPoint->pushMessage(ret);
+	}
+
+	if(curTickMS%updateTiming == 0){
+		ret = CollectLinkTravelTime();
+		connectPoint->pushMessage(ret);
+	}
 
 	connectPoint->Flush();
 }
+
 MessageList FMODController::CollectVehStops()
 {
 	MessageList msgs;
 	for(std::vector<Agent*>::iterator it=all_children.begin(); it!=all_children.end(); it++){
 		Person* person = dynamic_cast<sim_mob::Person*>(*it);
 		if(person){
+
 			int client_id = person->client_id;
 			Role* driver = person->getRole();
+
 			if(driver){
 				std::vector<sim_mob::BufferedBase*> res = driver->getDriverInternalParams();
 				if(res.size() == 6){
+
 					sim_mob::BufferedBase* tst1 = res[0];
 					Shared<std::string>* stop_event_time = dynamic_cast<Shared<std::string>* >(res[0]);
 					Shared<int>* stop_event_type = dynamic_cast<Shared<int>* >(res[1]);
@@ -278,14 +291,79 @@ MessageList FMODController::CollectVehStops()
 	}
 	return msgs;
 }
+
 MessageList FMODController::CollectVehPos()
 {
 	MessageList msgs;
+
+	for(std::vector<Agent*>::iterator it=all_children.begin(); it!=all_children.end(); it++){
+		Person* person = dynamic_cast<sim_mob::Person*>(*it);
+		if(person){
+			Msg_Vehicle_Pos msg_pos;
+			msg_pos.messageID_ = Message::MSG_VEHICLEPOS;
+			unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+
+			DailyTime curr(curTickMS);
+			DailyTime base(ConfigParams::GetInstance().simStartTime);
+			DailyTime start(curr.getValue()+base.getValue());
+
+			msg_pos.current_time = start.toString();
+			msg_pos.vehicle_id = person->client_id;
+			msg_pos.latitude = person->xPos.get();
+			msg_pos.longtitude = person->yPos.get();
+
+			std::string msg = msg_pos.BuildToString();
+			msgs.push(msg);
+		}
+	}
+
 	return msgs;
 }
+
 MessageList FMODController::CollectLinkTravelTime()
 {
 	MessageList msgs;
+
+	for(std::vector<Agent*>::iterator it=all_children.begin(); it!=all_children.end(); it++){
+
+		const std::map<double, travelStats>& travelStatsMap = (*it)->travelStatsMap.get();
+		for(std::map<double, travelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
+
+			double travelTime = (itTravel->first) - (itTravel->second).linkEntryTime_;
+			std::map<const Link*, travelTimes>::iterator itTT = LinkTravelTimesMap.find((itTravel->second).link_);
+
+			if (itTT != LinkTravelTimesMap.end())
+			{
+				itTT->second.agentCount_ = itTT->second.agentCount_ + 1;
+				itTT->second.linkTravelTime_ = itTT->second.linkTravelTime_ + travelTime;
+			}
+			else{
+				travelTimes tTimes(travelTime, 1);
+				LinkTravelTimesMap.insert(std::make_pair((itTravel->second).link_, tTimes));
+			}
+		}
+	}
+
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	DailyTime curr(curTickMS);
+	DailyTime base(ConfigParams::GetInstance().simStartTime);
+	DailyTime start(curr.getValue()+base.getValue());
+
+	Msg_Link_Travel msg_travel;
+	msg_travel.current_time = start.toString();
+	msg_travel.messageID_ = Message::MSG_LINKTRAVELUPADTE;
+	for(std::map<const Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
+		Msg_Link_Travel::LINK travel;
+		travel.node1_id = (itTT->first)->getStart()->getID();
+		travel.node2_id = (itTT->first)->getEnd()->getID();
+		travel.way_id = (itTT->first)->getLinkId();
+		travel.travel_time = (itTT->second).linkTravelTime_;
+		msg_travel.links.push_back(travel);
+	}
+
+	std::string msg = msg_travel.BuildToString();
+	msgs.push(msg);
+
 	return msgs;
 }
 

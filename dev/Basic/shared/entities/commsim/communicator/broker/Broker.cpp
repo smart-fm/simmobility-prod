@@ -9,7 +9,7 @@
 //communication simulator
 #include "Common.hpp"
 #include "entities/commsim/communicator/message/derived/roadrunner/RR_Factory.hpp"//todo :temprorary
-#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
+#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/communicator/connection/ConnectionServer.hpp"
 #include "entities/commsim/communicator/connection/ConnectionHandler.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
@@ -26,18 +26,6 @@ namespace sim_mob
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }
-//todo if need be, do a template specialization to accommodate both
-//insertBuffer implementations for different types of sendBuffer
-//bool Broker::insertSendBuffer(DataElement& value)
-//{
-//	//a small validation
-//	if(value.get<0>()->agentPtr == 0)
-//	{
-//		return false;
-//	}
-//	sendBuffer.add(value);
-//	return true;
-//}
 
 bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, Json::Value &value )
 {
@@ -122,7 +110,7 @@ void Broker::OnAgentFinished(EventId eventId, EventPublisher* sender, const Agen
 	//const_cast<Agent*>(agent)->UnSubscribe(AGENT_LIFE_EVENT_FINISHED_ID, this);
 }
 
-AgentsMap & Broker::getRegisteredAgents() {
+AgentsMap<std::string>::type & Broker::getRegisteredAgents() {
 	return registeredAgents;
 }
 
@@ -130,7 +118,7 @@ ClientWaitList & Broker::getClientWaitingList(){
 	return clientRegistrationWaitingList;
 }
 
-ClientList & Broker::getClientList(){
+ClientList::type & Broker::getClientList(){
 	return clientList;
 }
 
@@ -185,7 +173,7 @@ void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRe
 	Print() << "Broker::insertClientWaitingList=> mutex_client_request Unlocking" << std::endl;
 }
 
-PublisherList & Broker::getPublishers()
+PublisherList::type & Broker::getPublishers()
 {
 	return publishers;
 }
@@ -220,7 +208,7 @@ void Broker::processClientRegistrationRequests()
 //	Print() << "Processing ClientRegistrationRequests Done" << std::endl;
 }
 
-bool  Broker::registerEntity(sim_mob::JCommunicationSupport<std::string>* value)
+bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 {
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
@@ -238,7 +226,7 @@ bool  Broker::registerEntity(sim_mob::JCommunicationSupport<std::string>* value)
 	return true;
 }
 
-void  Broker::unRegisterEntity(sim_mob::JCommunicationSupport<std::string> *value)
+void  Broker::unRegisterEntity(sim_mob::AgentCommUtility<std::string> *value)
 {
 	unRegisterEntity(&value->getEntity());
 }
@@ -302,7 +290,7 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 void Broker::processIncomingData(timeslice now)
 {
 	//just pop off the message queue and click handl ;)
-	MessageElement msgTuple;
+	MessageElement::type msgTuple;
 	while(receiveQueue.pop(msgTuple))
 	{
 		msg_ptr &msg = msgTuple.get<1>();
@@ -311,14 +299,6 @@ void Broker::processIncomingData(timeslice now)
 }
 
 bool Broker::frame_init(timeslice now){
-//	Print() << "Broker ConnectionServer Starting" << std::endl;
-//
-//	Print() << "Broker ConnectionServer Started" << std::endl;
-//	Print() << "BTW here are the mutexes :" <<
-//			"Broker_Mutex[" << Broker_Mutex <<
-//			"] \n Broker_Mutex_Send[" << Broker_Mutex_Send <<
-//			"] \n Broker_Mutex_Receive[" << Broker_Mutex_Receive <<
-//			"]" << std::endl;
 	return true;
 };
 Entity::UpdateStatus Broker::frame_tick(timeslice now){
@@ -330,13 +310,13 @@ bool Broker::allAgentUpdatesDone()
 	Print() << "-------------------allAgentUpdatesDone " << registeredAgents.size() << " -------------------" << std::endl;
 
 //	boost::unique_lock< boost::shared_mutex > lock(NS3_Communicator_Mutex);
-	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
+	AgentsMap<std::string>::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
 
 	int i = 0;
 	while(it != it_end)
 	{
 //		Print() << "Broker::allAgentUpdatesDone::loop=> " << i << std::endl;
-		sim_mob::JCommunicationSupport<std::string> *info = (it->second);//easy read
+		sim_mob::AgentCommUtility<std::string> *info = (it->second);//easy read
 			try
 			{
 				if(!info->registered)
@@ -388,7 +368,8 @@ bool Broker::allAgentUpdatesDone()
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void Broker::processPublishers(timeslice now) {
-	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher_pair;
+	PublisherList::pair publisher_pair;
+//	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher_pair;
 	BOOST_FOREACH(publisher_pair, publishers)
 	{
 		//easy reading
@@ -403,8 +384,10 @@ void Broker::processPublishers(timeslice now) {
 		case sim_mob::SIMMOB_SRV_LOCATION: {
 
 			//get to each client handler, look at his requred service and then publish for him
-			std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientsByType;
-			std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientsByID;
+//			std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientsByType;
+			ClientList::pair clientsByType;
+//			std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientsByID;
+			ClientList::IdPair clientsByID;
 			BOOST_FOREACH(clientsByType, clientList)
 			{
 				BOOST_FOREACH(clientsByID, clientsByType.second)
@@ -423,9 +406,11 @@ void Broker::processPublishers(timeslice now) {
 
 void Broker::sendReadyToReceive()
 {
-//	typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList;
-	std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
-	std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+//	std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
+//	std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+	ClientList::pair clientByType;
+	ClientList::IdPair clientByID;
+
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
 	{
@@ -450,7 +435,7 @@ void Broker::sendReadyToReceive()
 void Broker::processOutgoingData(timeslice now)
 {
 //	now send what you have to send:
-	for(SEND_BUFFER::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++)
+	for(SEND_BUFFER<Json::Value>::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++)
 	{
 		sim_mob::BufferContainer<Json::Value> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
@@ -485,13 +470,13 @@ void Broker::processOutgoingData(timeslice now)
 
 
 //checks to see if the subscribed entity(agent) is alive
-bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info) {
+bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 //	info.cnt_1++;
 //	if (info.cnt_1 < 1000)
 //		return false;
 	if(!info)
 	{
-		throw std::runtime_error("Invalid JCommunicationSupport\n");
+		throw std::runtime_error("Invalid AgentCommUtility\n");
 	}
 	try {
 
@@ -527,7 +512,7 @@ bool Broker::deadEntityCheck(sim_mob::JCommunicationSupport<std::string> * info)
 //you better hope they are dead otherwise you have to hold the simulation
 //tick waiting for them to finish
 void Broker::refineSubscriptionList() {
-	AgentsMap::iterator it, it_end(registeredAgents.end());
+	AgentsMap<std::string>::iterator it, it_end(registeredAgents.end());
 	for(it = registeredAgents.begin(); it != it_end; it++)
 	{
 		const sim_mob::Agent * target = (*it).first;
@@ -627,9 +612,11 @@ bool Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &clnHandler)
 }
 bool Broker::allClientsAreDone()
 {
-	//	typedef std::map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > ClientList;
-		std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
-		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+//		std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
+//		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
+		ClientList::pair clientByType;
+		ClientList::IdPair clientByID;
+
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 		msg_header msg_header_;
 		Print()<< "Broker::allClientsAreDone locking mutex_clientList " << std::endl;
@@ -792,123 +779,3 @@ void Broker::cleanup()
 
 }//namespace
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//data is : {"messageType":"ANNOUNCE", "ANNOUNCE" : {"Sender":"clientIdxxx", "x":"346378" , "y":"734689237", "OfferingTokens":["A", "B", "C"]}}
-//no need to parse the message much:
-////just update its x,y location, then forward it to nearby agents
-//bool Broker::handleANNOUNCE(std::string data)
-//{
-//	Json::Value root;
-//	Json::Reader reader;
-//	bool parsedSuccess = reader.parse(data, root, false);
-//	if(not parsedSuccess)
-//	{
-//		Print() << "Parsing [" << data << "] Failed" << std::endl;
-//		return false;
-//	}
-//	Json::Value body = root["ANNOUNCE"];
-//	unsigned int clientID = body["Sender"].asUInt();
-//	//get the mapping agent
-//	clientIterator it = clientSubscribers_.find(clientID);
-//	const Agent * agent = it->agent;
-//	//get agent's fresh position (to be used in the generated message too)
-//	int x,y;
-//	x = agent->xPos.get();
-//	y = agent->yPos.get();
-//	//update location
-//	body["x"] = x;
-//	body["y"] = y;
-//	root["ANNOUNCE"] = body;//save back
-//	//now create a fresh json string
-//	Json::FastWriter writer;
-//	std::string output = writer.write(root);
-//	//get nearby agents
-//	sim_mob::Point2D lower(x-3500, y-3500);
-//	sim_mob::Point2D upper(x+3500, y+3500);
-//	//get nearby agents
-//	std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(lower,upper);
-//	for(std::vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++)
-//	{
-//		sendBufferMap[*it].add(BufferContainer::makeDataElement(output,clientID,(unsigned long)(*it)));
-//	}
-//	return true;
-//}
-//
-////data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
-////just extract the receiver and forward the string to it without modifications
-//bool sim_mob::Broker::handleKEY_REQUEST(std::string data)
-//{
-//	//parse
-//	Json::Value root;
-//	Json::Reader reader;
-//	bool parsedSuccess = reader.parse(data, root, false);
-//	if(not parsedSuccess)
-//	{
-//		Print() << "Parsing [" << data << "] Failed" << std::endl;
-//		return false;
-//	}
-//	//get the destination
-//	Json::Value body = root["KEY_REQUEST"];
-//	unsigned int receivingClientID = body["Receiver"].asUInt();
-//	unsigned int sendingClientID = body["Sender"].asUInt();
-//	clientIterator it = clientSubscribers_.find(receivingClientID);
-//	if(it == clientSubscribers_.end())
-//	{
-//		return false;
-//	}
-//	const sim_mob::Agent* receiver = it->agent;
-//	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
-//	return true;
-//}
-//
-////data is : {"messageType":"KEY_SEND", "KEY_SEND" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "SendingTokens":["A", "B", "C"]}}
-////just extract the receiver and forward the string to it without modifications
-//bool sim_mob::Broker::handleKEY_SEND(std::string data)
-//{
-//	//parse
-//	Json::Value root;
-//	Json::Reader reader;
-//	bool parsedSuccess = reader.parse(data, root, false);
-//	if(not parsedSuccess)
-//	{
-//		Print() << "Parsing [" << data << "] Failed" << std::endl;
-//		return false;
-//	}
-//	//get the destination
-//	Json::Value body = root["KEY_SEND"];
-//	unsigned int receivingClientID = body["Receiver"].asUInt();
-//	unsigned int sendingClientID = body["Sender"].asUInt();
-//	clientIterator it = clientSubscribers_.find(receivingClientID);
-//	if(it == clientSubscribers_.end())
-//	{
-//		return false;
-//	}
-//	const sim_mob::Agent* receiver = it->agent;
-//	sendBufferMap[receiver].add(BufferContainer::makeDataElement(data,sendingClientID,receivingClientID));
-//	return true;
-//}

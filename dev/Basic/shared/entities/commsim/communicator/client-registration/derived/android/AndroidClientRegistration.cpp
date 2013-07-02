@@ -10,7 +10,7 @@
 #include "entities/commsim/communicator/connection/ConnectionHandler.hpp"
 #include "entities/commsim/communicator/service/base/Publisher.hpp"
 #include "entities/commsim/communicator/broker/Common.hpp"
-#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
+#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 namespace sim_mob {
 
 AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_) : ClientRegistrationHandler(type_*/){
@@ -30,10 +30,10 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		return false;
 	}
 
-	AgentsMap &registeredAgents = broker.getRegisteredAgents();
+	AgentsMap<std::string>::type &registeredAgents = broker.getRegisteredAgents();
 	//find a free agent(someone who is not yet been associated to an andriod client)
-//	 std::pair<const sim_mob::Agent *, JCommunicationSupport<std::string> * >* freeAgent = 0;
-	 AgentsMap::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
+//	 std::pair<const sim_mob::Agent *, AgentCommUtility<std::string> * >* freeAgent = 0;
+	 AgentsMap<std::string>::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
 	for(  ; freeAgent != it_end; freeAgent++)
 	{
 		if(usedAgents.find(freeAgent->first) == usedAgents.end())
@@ -63,7 +63,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 //		Print()<< "Connection handler for agent "
 
-		clientEntry->JCommunicationSupport_ = freeAgent->second;
+		clientEntry->AgentCommUtility_ = freeAgent->second;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = freeAgent->first;
 		clientEntry->clientID = request.clientID;

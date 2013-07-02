@@ -45,7 +45,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	std::string sender_type(msg_header_.sender_type); //easy read
 	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	ClientList & clients = broker->getClientList();
+	ClientList::type & clients = broker->getClientList();
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
 		Print() << "HDL_MULTICAST::handle failed" << std::endl;
@@ -116,10 +116,12 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 //	Print() << "Found " << nearby_agents_1.size() << " agents around " << original_agent << " Let's c which one can communicate"<< std::endl;
 	//Now, Let's c which one of these agents are associated with clients
 	std::vector<const Agent*> nearby_agents_2;
-	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;
+//	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;
+	ClientList::pair clientTypes;
 	BOOST_FOREACH(clientTypes , clients)
 	{
-		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
+//		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
+		ClientList::IdPair clientIds;
 		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
 		//step-3: for each agent find the client handler
 		BOOST_FOREACH(clientIds , inner)

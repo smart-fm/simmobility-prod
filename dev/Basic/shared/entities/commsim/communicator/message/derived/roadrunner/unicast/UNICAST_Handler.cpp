@@ -58,7 +58,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 
 		ConfigParams::ClientType clientType;
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-		ClientList & clients = broker->getClientList();
+		ClientList::type & clients = broker->getClientList();
 		if(!broker->getClientHandler(receiver_id,receiver_type,clnHandler))
 		{
 			Print() << "HDL_UNICAST::handle failed" << std::endl;

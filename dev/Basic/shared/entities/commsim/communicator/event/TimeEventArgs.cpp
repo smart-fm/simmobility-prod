@@ -7,8 +7,6 @@
 
 #include "TimeEventArgs.hpp"
 
-#include "conf/simpleconf.hpp"
-
 namespace sim_mob {
 
 TimeEventArgs::TimeEventArgs(timeslice time_): time(time_){

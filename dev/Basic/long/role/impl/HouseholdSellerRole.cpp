@@ -13,6 +13,8 @@
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
 
+#include "boost/tuple/tuple.hpp"
+
 using namespace sim_mob::long_term;
 using std::list;
 using std::endl;
@@ -148,10 +150,11 @@ void HouseholdSellerRole::AdjustNotSelledUnits() {
     }
 }
 
-inline double ExpectationFunction(double x, double* params) {
-    double v = params[0];
-    double theta = params[1];
-    double alpha = params[2];
+namespace {
+double ExpectationFunction(double x, const boost::tuple<double,double,double>& params) {
+    double v = params.get<0>();
+    double theta = params.get<1>();
+    double alpha = params.get<2>();
     double price = x; // last expectation (V(t+1))
     // Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
     double bidsDistribution = v / price;
@@ -165,6 +168,7 @@ inline double ExpectationFunction(double x, double* params) {
     double expectedMaxBid = (p1 * (p2 + p3 * p4)) / (theta * theta);
     return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01f * price);
 }
+} //End unnamed namespace
 
 void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
@@ -177,13 +181,11 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
         ExpectationEntry entry;
 
         entry.price = Math::FindMaxArg(ExpectationFunction,
-                price, (double[]) {
-            expectation, theta, alpha
-        }, .001f, 100000);
+                price, boost::tuple<double,double,double>(expectation, theta, alpha),
+                .001f, 100000);
 
-        entry.expectation = ExpectationFunction(entry.price, (double[]) {
-            expectation, theta, alpha
-        });
+        entry.expectation = ExpectationFunction(entry.price, 
+            boost::tuple<double,double,double>(expectation, theta, alpha));
         expectation = entry.expectation;
         expectationList.push_back(entry);
         LogOut("Expectation on: [" << i << std::setprecision(15) <<

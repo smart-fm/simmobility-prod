@@ -11,7 +11,7 @@ namespace sim_mob
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
 sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
-		Driver(parent,mtxStrat,behavior, movement), JCommunicationSupport(*managingBroker, *parent)
+		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(*managingBroker, *parent)
 {}
 
 sim_mob::DriverComm::~DriverComm()

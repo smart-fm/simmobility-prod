@@ -1,13 +1,13 @@
 #pragma once
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/commsim/comm_support/JCommunicationSupport.hpp"
+#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 namespace sim_mob
 {
 class Broker;
 class DriverCommMovement;
 class DriverCommBehavior;
 
-class DriverComm : public Driver, public JCommunicationSupport<std::string>
+class DriverComm : public Driver, public AgentCommUtility<std::string>
 {
 	static int totalSendCnt;
 	static int totalReceiveCnt;

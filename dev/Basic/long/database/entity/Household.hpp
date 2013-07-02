@@ -12,13 +12,14 @@
 #include "Types.hpp"
 
 namespace sim_mob {
-    
+
     namespace long_term {
 
         class Household {
         public:
-            Household(unsigned long id = INVALID_ID, float income = .0f,
-                    int numberOfMembers = 0);
+            Household(BigSerial id = INVALID_ID, double income = .0f,
+                    int size = 0, int children = 0, int carOwnership = 0, 
+                    BigSerial unitId = INVALID_ID, int housingDuration = 0);
             virtual ~Household();
 
             /**
@@ -28,47 +29,41 @@ namespace sim_mob {
             BigSerial GetId() const;
 
             /**
-             * Gets the number of individuals in the household.
-             * @return number of individuals value.
+             * Gets unit unique identifier.
+             * @return unit unique identifier.
              */
-            int GetNumberOfIndividuals() const;
+            BigSerial GetUnitId() const;
+
+            /**
+             * Gets the size of the household.
+             * @return  the size of the household.
+             */
+            int GetSize() const;
 
             /**
              * Gets the number of children in the household.
              * @return number of children value.
              */
-            int GetNumberOfChildren() const;
-
-            /**
-             * Gets the number of workers in the household.
-             * @return number of workers value.
-             */
-            int GetNumberOfWorkers() const;
-
-            /**
-             * Gets the number of cars in the household.
-             * @return number of cars value.
-             */
-            int GetNumberOfCars() const;
-
-            /**
-             * Gets head age of the Household.
-             * @return head age.
-             */
-            int GetHeadAge() const;
+            int GetChildren() const;
 
             /**
              * Gets the total income of the Household.
              * @return income value.
              */
-            float GetIncome() const;
+            double GetIncome() const;
 
             /**
-             * Gets the race of the Household.
-             * @return race value.
+             * Gets the car ownership value.
+             * @return the car ownership value.
              */
-            Race GetRace() const;
-            
+            int GetCarOwnership() const;
+
+            /**
+             * Gets housing duration value.
+             * @return housing duration value.
+             */
+            int GetHousingDuration() const;
+
             /**
              * Assign operator.
              * @param source to assign.
@@ -82,27 +77,25 @@ namespace sim_mob {
             friend std::ostream& operator<<(std::ostream& strm, const Household& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
-                        << "\"headAge\":\"" << data.headAge << "\","
-                        << "\"cars\":\"" << data.numberOfCars << "\","
-                        << "\"workers\":\"" << data.numberOfWorkers << "\","
-                        << "\"children\":\"" << data.numberOfChildren << "\","
-                        << "\"individuals\":\"" << data.numberOfIndividuals << "\","
+                        << "\"unitId\":\"" << data.unitId << "\","
+                        << "\"size\":\"" << data.size << "\","
+                        << "\"children\":\"" << data.children << "\","
                         << "\"income\":\"" << data.income << "\","
-                        << "\"race\":\"" << data.race << "\""
+                        << "\"carOwnership\":\"" << data.carOwnership << "\","
+                        << "\"housingDuration\":\"" << data.housingDuration << "\""
                         << "}";
             }
 
         private:
             friend class HouseholdDao;
         private:
-            unsigned long id;
-            int headAge;
-            int numberOfCars;
-            int numberOfWorkers;
-            int numberOfChildren;
-            int numberOfIndividuals;
-            double income;   
-            Race race;
+            BigSerial id;
+            BigSerial unitId;
+            int size;
+            int children;
+            double income;
+            int carOwnership;
+            int housingDuration;
         };
     }
 }

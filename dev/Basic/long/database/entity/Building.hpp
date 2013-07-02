@@ -12,12 +12,15 @@
 #include "Types.hpp"
 
 namespace sim_mob {
-    
+
     namespace long_term {
 
         class Building {
         public:
-            Building();
+            Building(BigSerial id = INVALID_ID, BigSerial typeId = INVALID_ID,
+                    BigSerial projectId = INVALID_ID, int builtYear = 0,
+                    double floorArea = .0f, int storeys = 0, int parkingSpaces = 0);
+
             virtual ~Building();
 
             /**
@@ -27,58 +30,40 @@ namespace sim_mob {
             BigSerial GetId() const;
 
             /**
-             * Gets the number total units in the building.
-             * @return number of total units in the building.
+             * Gets unique identifier of the Type Type.
+             * @return id.
              */
-            int GetNumberOfUnits() const;
+            BigSerial GetTypeId() const;
 
             /**
-             * Gets the number of residential units.
-             * @return number of residential units.
+             * Gets unique identifier of the Project Type.
+             * @return id.
              */
-            int GetNumberOfResidentialUnits() const;
+            BigSerial GetProjectId() const;
 
             /**
-             * Gets the number of business units.
-             * @return number of business units.
+             * Gets the year that the building was built.
+             * @return the year that the building was built.
              */
-            int GetNumberOfBusinessUnits() const;
+            int GetBuiltYear() const;
 
             /**
-             * Gets the year of construction.
-             * @return the year of construction.
+             * Gets the floor area value.
+             * @return floor area value.
              */
-            int GetYear() const;
+            double GetFloorArea() const;
 
             /**
-             * Gets the land area value.
-             * @return land area value.
+             * Gets number of storeys.
+             * @return storeys number.
              */
-            double GetArea() const;
-
-            /**
-             * Gets the value average income of the building.
-             * @return improvement value.
-             */
-            double GetAverageIncome() const;
-
-            /**
-             * Gets the main race.
-             * @return race.
-             */
-            Race GetMainRace() const;
+            int GetStoreys() const;
 
             /**
              * Gets number of stories.
              * @return stories number.
              */
-            int GetNumberOfStories() const;
-
-            /**
-             * Gets Distance to CDB.
-             * @return distance to the center of the business district.
-             */
-            double GetDistanceToCDB() const;
+            int GetParkingSpaces() const;
 
             /**
              * Assign operator.
@@ -93,33 +78,25 @@ namespace sim_mob {
             friend std::ostream& operator<<(std::ostream& strm, const Building& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
-                        << "\"units\":\"" << data.numberOfUnits << "\","
-                        << "\"residentialUnits\":\"" << data.numberOfResidentialUnits << "\","
-                        << "\"businessUnits\":\"" << data.numberOfBusinessUnits << "\","
-                        << "\"stories\":\"" << data.numberOfStories << "\","
-                        << "\"area\":\"" << data.area << "\","
-                        << "\"year\":\"" << data.year << "\","
-                        << "\"stories\":\"" << data.numberOfStories << "\","
-                        << "\"averageIncome\":\"" << data.averageIncome << "\","
-                        << "\"mainRace\":\"" << data.mainRace << "\","
-                        << "\"distanceToCDB\":\"" << data.distanceToCDB << "\""
+                        << "\"typeId\":\"" << data.typeId << "\","
+                        << "\"projectId\":\"" << data.projectId << "\","
+                        << "\"builtYear\":\"" << data.builtYear << "\","
+                        << "\"floorArea\":\"" << data.floorArea << "\","
+                        << "\"storeys\":\"" << data.storeys << "\","
+                        << "\"parkingSpaces\":\"" << data.parkingSpaces << "\""
                         << "}";
             }
 
         private:
             friend class BuildingDao;
         private:
-            unsigned long id;
-            int numberOfUnits;
-            int numberOfResidentialUnits;
-            int numberOfBusinessUnits;
-            int numberOfStories;
-            double area;
-            int year; //year of construction
-            double averageIncome;
-            Race mainRace;
-            double distanceToCDB;
+            BigSerial id;
+            BigSerial typeId;
+            BigSerial projectId;
+            int builtYear;
+            double floorArea;
+            int storeys;
+            int parkingSpaces;
         };
     }
 }
-

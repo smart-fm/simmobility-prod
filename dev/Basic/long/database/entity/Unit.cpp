@@ -27,17 +27,12 @@ double CalculateHedonicPrice(const Unit& unit) {
             unit.GetDistanceToCBD() * unit.GetWeightDistanceToCBD();*/
 }
 
-Unit::Unit(UnitId id, BigSerial buildingId, BigSerial establishmentId,
-        BigSerial typeId, double area, int storey, double rent, bool available) :
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial establishmentId, BigSerial typeId,
+        double area, int storey, double rent, bool available) :
 id(id), buildingId(buildingId), establishmentId(establishmentId), typeId(typeId),
 storey(storey), area(area), rent(rent), available(available), owner(nullptr) {
     //hedonicPrice = CalculateHedonicPrice(*this);
     //reservationPrice = hedonicPrice;
-}
-
-Unit::Unit() : id(INVALID_ID), buildingId(INVALID_ID), establishmentId(INVALID_ID),
-typeId(INVALID_ID), storey(0), area(0), rent(0), available(false),
-owner(nullptr) {
 }
 
 Unit::Unit(const Unit& source) {

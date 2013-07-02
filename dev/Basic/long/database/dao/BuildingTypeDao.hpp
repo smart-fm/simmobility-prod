@@ -1,29 +1,29 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   BuildingDao.hpp
+ * File:   BuildingTypeDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on May 7, 2013, 3:59 PM
+ * Created on July 1, 2013, 3:59 PM
  */
 #pragma once
 
 #include "database/dao/AbstractDao.hpp"
-#include "database/entity/Building.hpp"
+#include "database/entity/BuildingType.hpp"
 
 
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(Building);
+        DAO_DECLARE_CALLBACKS(BuildingType);
 
         /**
-         * Data Access Object to Building table on datasource.
+         * Data Access Object to BuildingType table on datasource.
          */
-        class BuildingDao : public AbstractDao<Building> {
+        class BuildingTypeDao : public AbstractDao<BuildingType> {
         public:
-            BuildingDao(DBConnection* connection);
-            virtual ~BuildingDao();
+            BuildingTypeDao(DBConnection* connection);
+            virtual ~BuildingTypeDao();
 
         private:
             /**
@@ -31,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, Building& outObj);
+            void FromRow(Row& result, BuildingType& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Building& data, Parameters& outParams, bool update);
+            void ToRow(BuildingType& data, Parameters& outParams, bool update);
         };
     }
 }

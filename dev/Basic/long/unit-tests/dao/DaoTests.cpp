@@ -48,7 +48,7 @@ void TestDao() {
 }
 
 void DaoTests::TestAll() {
-    TestDao<HouseholdDao, Household>();
-    TestDao<BuildingDao, Building>();
+   // TestDao<HouseholdDao, Household>();
+   // TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();
 }

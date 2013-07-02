@@ -7,16 +7,15 @@
  * Created on May 8, 2013, 3:04 PM
  */
 
-#include <set>
-
 #include "Building.hpp"
 
 using namespace sim_mob::long_term;
 
-Building::Building() :
-id(INVALID_ID), numberOfUnits(0), numberOfResidentialUnits(0), numberOfBusinessUnits(0),
-numberOfStories(0), area(0), year(0), averageIncome(0),
-mainRace(UNKNOWN_RACE), distanceToCDB(0) {
+Building::Building(BigSerial id, BigSerial typeId,
+        BigSerial projectId, int builtYear,
+        double floorArea, int storeys, int parkingSpaces) :
+id(id), typeId(typeId), projectId(projectId), builtYear(builtYear),
+floorArea(floorArea), storeys(storeys), parkingSpaces(parkingSpaces) {
 }
 
 Building::~Building() {
@@ -24,15 +23,12 @@ Building::~Building() {
 
 Building& Building::operator=(const Building& source) {
     this->id = source.id;
-    this->numberOfUnits = source.numberOfUnits;
-    this->numberOfResidentialUnits = source.numberOfResidentialUnits;
-    this->numberOfBusinessUnits = source.numberOfBusinessUnits;
-    this->numberOfStories = source.numberOfStories;
-    this->area = source.area;
-    this->year = source.year;
-    this->averageIncome = source.averageIncome;
-    this->mainRace = source.mainRace;
-    this->distanceToCDB = source.distanceToCDB;
+    this->typeId = source.typeId;
+    this->projectId = source.projectId;
+    this->builtYear = source.builtYear;
+    this->floorArea = source.floorArea;
+    this->parkingSpaces = source.parkingSpaces;
+    this->storeys = source.storeys;
     return *this;
 }
 
@@ -40,38 +36,26 @@ BigSerial Building::GetId() const {
     return id;
 }
 
-int Building::GetNumberOfUnits() const {
-    return numberOfUnits;
+BigSerial Building::GetTypeId() const {
+    return typeId;
 }
 
-int Building::GetNumberOfResidentialUnits() const {
-    return numberOfResidentialUnits;
+BigSerial Building::GetProjectId() const {
+    return projectId;
 }
 
-int Building::GetNumberOfBusinessUnits() const {
-    return numberOfBusinessUnits;
+int Building::GetBuiltYear() const {
+    return builtYear;
 }
 
-int Building::GetYear() const {
-    return year;
+double Building::GetFloorArea() const {
+    return floorArea;
 }
 
-double Building::GetArea() const {
-    return area;
+int Building::GetStoreys() const {
+    return storeys;
 }
 
-double Building::GetAverageIncome() const {
-    return averageIncome;
-}
-
-Race Building::GetMainRace() const {
-    return mainRace;
-}
-
-int Building::GetNumberOfStories() const {
-    return numberOfStories;
-}
-
-double Building::GetDistanceToCDB() const {
-    return distanceToCDB;
+int Building::GetParkingSpaces() const {
+    return parkingSpaces;
 }

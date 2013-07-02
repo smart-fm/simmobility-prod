@@ -26,13 +26,9 @@ namespace sim_mob {
          */
         class Unit {
         public:
-            /**
-             * private constructor for future Dao class.
-             */
-            Unit();
-
-            Unit(UnitId id, BigSerial buildingId, BigSerial establishmentId,
-                 BigSerial typeId, double area, int storey, double rent, bool available);
+            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID,
+            BigSerial establishmentId = INVALID_ID, BigSerial typeId = INVALID_ID,
+            double area = .0f, int storey = 0, double rent = .0f, bool available = false);
             Unit(const Unit& source);
             virtual ~Unit();
 

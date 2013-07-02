@@ -106,18 +106,18 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
 }
 
 bool HouseholdSellerRole::Decide(const Bid& bid, const Unit& unit) {
-    return bid.GetValue() > unit.GetReservationPrice();
+    return 0;//bid.GetValue() > unit.GetReservationPrice();
 }
 
 void HouseholdSellerRole::AdjustUnitParams(Unit& unit) {
-    float denominator = pow((1 - 2 * unit.GetFixedPrice()), 0.5f);
+    /*float denominator = pow((1 - 2 * unit.GetFixedPrice()), 0.5f);
     //re-calculates the new reservation price.
     float reservationPrice =
             (unit.GetReservationPrice() + unit.GetFixedPrice()) / denominator;
     //re-calculates the new hedonic price.
     float hedonicPrice = reservationPrice / denominator;
     //update values.
-    unit.SetReservationPrice(reservationPrice);
+    unit.SetReservationPrice(reservationPrice);*/
 }
 
 void HouseholdSellerRole::NotifyWinnerBidders() {

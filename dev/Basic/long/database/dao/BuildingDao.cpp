@@ -26,15 +26,12 @@ BuildingDao::~BuildingDao() {
 
 void BuildingDao::FromRow(Row& result, Building& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID);
-    outObj.area = result.get<double>(DB_FIELD_AREA);
-    outObj.numberOfUnits = result.get<int>(DB_FIELD_NUMBER_OF_UNITS);
-    outObj.numberOfResidentialUnits = result.get<int>(DB_FIELD_NUMBER_OF_RESIDENTIAL_UNITS);
-    outObj.numberOfBusinessUnits = result.get<int>(DB_FIELD_NUMBER_OF_BUSINESS_UNITS);
-    outObj.numberOfUnits = result.get<int>(DB_FIELD_NUMBER_OF_STORIES);
-    outObj.year = result.get<int>(DB_FIELD_YEAR);
-    outObj.averageIncome = result.get<double>(DB_FIELD_AVERAGE_INCOME);
-    outObj.mainRace = ToRace(result.get<int>(DB_FIELD_MAIN_RACE));
-    outObj.distanceToCDB = result.get<double>(DB_FIELD_DISTANCE_TO_CDB);
+    outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID);
+    outObj.projectId = result.get<BigSerial>(DB_FIELD_PROJECT_ID);
+    outObj.builtYear = result.get<int>(DB_FIELD_BUILT_YEAR);
+    outObj.floorArea = result.get<double>(DB_FIELD_FLOOR_AREA);
+    outObj.storeys = result.get<int>(DB_FIELD_STOREYS);
+    outObj.parkingSpaces = result.get<int>(DB_FIELD_PARKING_SPACES);
 }
 
 void BuildingDao::ToRow(Building& data, Parameters& outParams, bool update) {

@@ -13,6 +13,7 @@
 #include <vector>
 #include <ctime>
 #include <unistd.h>
+#include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
 #include "tinyxml.h"
@@ -198,7 +199,7 @@ void perform_main() {
     entities.clear();
 }
 
-double func(double x, double* params) {
+double func(double x, const boost::tuple<double,double,double>& params) {
     return pow(-(x - 3), 2) + 10;
 }
 
@@ -216,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
             << endl);
-    double resul1 = Math::FindMaxArg(func, -10, 0, .0001f, 100000000);
+    double resul1 = Math::FindMaxArg(func, -10, boost::tuple<double,double,double>(), .0001f, 100000000);
     // LogOut("Result: " << result << endl);
     LogOut("Result1: " << std::setprecision(1) << resul1 << endl);
 

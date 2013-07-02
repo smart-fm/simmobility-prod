@@ -8,6 +8,8 @@
  */
 #pragma once
 
+#include "boost/tuple/tuple.hpp"
+
 namespace sim_mob {
 
     class Math {
@@ -15,7 +17,7 @@ namespace sim_mob {
         static double E;
         static double PI;
     public:
-        typedef double (*Function)(double x, double* params);
+        typedef double (*Function)(double x, const boost::tuple<double,double,double>& params);
 
         /**
          * Calculates the newton method by using the default derivate definition.
@@ -36,7 +38,7 @@ namespace sim_mob {
          * @param maxIterations maximum number of iterations.
          * @return minimum value found.
          */
-        static double Newton(Function func, double x0, double* params, double crit, int maxIterations);
+        static double Newton(Function func, double x0, const boost::tuple<double,double,double>& params, double crit, int maxIterations);
 
         /**
          * Try to find the maxium of the given original function. 
@@ -58,7 +60,7 @@ namespace sim_mob {
          *        that satisfies the criteria the algorithm will stop.
          * @return maximum x argument.
          */
-        static double FindMaxArg(Function func, double x0, double* params, double criteria, int maxIterations);
+        static double FindMaxArg(Function func, double x0, const boost::tuple<double,double,double>& params, double criteria, int maxIterations);
     };
 }
 

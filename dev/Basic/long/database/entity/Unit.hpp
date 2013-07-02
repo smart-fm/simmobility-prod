@@ -26,9 +26,9 @@ namespace sim_mob {
          */
         class Unit {
         public:
-            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID,
-            BigSerial establishmentId = INVALID_ID, BigSerial typeId = INVALID_ID,
-            double area = .0f, int storey = 0, double rent = .0f, bool available = false);
+            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
+                 BigSerial typeId = INVALID_ID, double area = .0f, 
+                 int storey = 0, double rent = .0f, bool available = false);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -50,12 +50,6 @@ namespace sim_mob {
              * @return value with Unit identifier.
              */
             BigSerial GetBuildingId() const;
-
-            /**
-             * Gets the establishment id that is dwelling in the unit.
-             * @return establishment id that is dwelling in the unit.
-             */
-            BigSerial GetEstablishmentId() const;
 
             /**
              * Gets type identifier of the unit.
@@ -108,7 +102,6 @@ namespace sim_mob {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
-                        << "\"establishmentId\":\"" << data.establishmentId << "\","
                         << "\"typeId\":\"" << data.typeId << "\","
                         << "\"area\":\"" << data.area << "\","
                         << "\"storey\":\"" << data.storey << "\","
@@ -130,7 +123,6 @@ namespace sim_mob {
             //from database.
             UnitId id;
             BigSerial buildingId;
-            BigSerial establishmentId;
             BigSerial typeId;
             double area;
             int storey; 

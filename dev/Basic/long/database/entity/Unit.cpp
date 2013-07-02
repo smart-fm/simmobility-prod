@@ -27,9 +27,9 @@ double CalculateHedonicPrice(const Unit& unit) {
             unit.GetDistanceToCBD() * unit.GetWeightDistanceToCBD();*/
 }
 
-Unit::Unit(UnitId id, BigSerial buildingId, BigSerial establishmentId, BigSerial typeId,
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
         double area, int storey, double rent, bool available) :
-id(id), buildingId(buildingId), establishmentId(establishmentId), typeId(typeId),
+id(id), buildingId(buildingId), typeId(typeId),
 storey(storey), area(area), rent(rent), available(available), owner(nullptr) {
     //hedonicPrice = CalculateHedonicPrice(*this);
     //reservationPrice = hedonicPrice;
@@ -38,7 +38,6 @@ storey(storey), area(area), rent(rent), available(available), owner(nullptr) {
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
-    this->establishmentId = source.establishmentId;
     this->typeId = source.typeId;
     this->storey = source.storey;
     this->area = source.area;
@@ -52,7 +51,6 @@ Unit::~Unit() {
 Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
-    this->establishmentId = source.establishmentId;
     this->typeId = source.typeId;
     this->storey = source.storey;
     this->area = source.area;
@@ -91,10 +89,6 @@ UnitHolder* Unit::GetOwner() {
 
 BigSerial Unit::GetBuildingId() const {
     return buildingId;
-}
-
-BigSerial Unit::GetEstablishmentId() const {
-    return establishmentId;
 }
 
 BigSerial Unit::GetTypeId() const {

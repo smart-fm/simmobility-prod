@@ -19,6 +19,7 @@ const std::string CURRENT_SCHEMA = DB_SCHEMA_EMPTY;
 /**
  * Tables
  */
+const std::string DB_TABLE_UNIT_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "unit_type");
 const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "household");
 const std::string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "building_type");
 const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "building");
@@ -121,6 +122,7 @@ const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO " + DB_TABLE_HOUSEHOLD + " 
         + DB_FIELD_CAR_OWNERSHIP + ", "
         + DB_FIELD_HOUSING_DURATION + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
+const std::string DB_INSERT_UNIT_TYPE = ""; // not defined yet...
 const std::string DB_INSERT_BUILDING_TYPE = ""; // not defined yet...
 const std::string DB_INSERT_BUILDING = ""; // not defined yet...
 const std::string DB_INSERT_UNIT = ""; // not defined yet...
@@ -136,13 +138,15 @@ const std::string DB_UPDATE_HOUSEHOLD = "UPDATE " + DB_TABLE_HOUSEHOLD + " SET "
         + DB_FIELD_CAR_OWNERSHIP + "= :v5, "
         + DB_FIELD_HOUSING_DURATION + "= :v6 WHERE " + DB_FIELD_ID + "=:v7";
 
+const std::string DB_UPDATE_UNIT_TYPE = ""; // not defined yet...
 const std::string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
 const std::string DB_UPDATE_BUILDING = ""; // not defined yet...
 const std::string DB_UPDATE_UNIT = ""; // not defined yet...
-    
+
 /**
  * DELETE
  */
+const std::string DB_DELETE_UNIT_TYPE = "DELETE FROM " + DB_TABLE_UNIT_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_DELETE_HOUSEHOLD = "DELETE FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_DELETE_BUILDING_TYPE = "DELETE FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_DELETE_BUILDING = "DELETE FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
@@ -151,6 +155,7 @@ const std::string DB_DELETE_UNIT = "DELETE FROM " + DB_TABLE_UNIT + " WHERE " + 
 /**
  * GET ALL
  */
+const std::string DB_GETALL_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE + " LIMIT 10";
 const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " LIMIT 10";
 const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " LIMIT 10";
 const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " LIMIT 10";
@@ -160,6 +165,7 @@ const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " LIMIT 10
 /**
  * GET BY ID
  */
+const std::string DB_GETBYID_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_GETBYID_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
 const std::string DB_GETBYID_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";

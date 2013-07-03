@@ -18,7 +18,7 @@ namespace sim_mob {
         class Building {
         public:
             Building(BigSerial id = INVALID_ID, BigSerial typeId = INVALID_ID,
-                    BigSerial projectId = INVALID_ID, int builtYear = 0,
+                    BigSerial parcelId = INVALID_ID, int builtYear = 0,
                     double floorArea = .0f, int storeys = 0, int parkingSpaces = 0);
 
             virtual ~Building();
@@ -39,7 +39,7 @@ namespace sim_mob {
              * Gets unique identifier of the Project Type.
              * @return id.
              */
-            BigSerial GetProjectId() const;
+            BigSerial GetParcelId() const;
 
             /**
              * Gets the year that the building was built.
@@ -79,7 +79,7 @@ namespace sim_mob {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"projectId\":\"" << data.projectId << "\","
+                        << "\"parcelId\":\"" << data.parcelId << "\","
                         << "\"builtYear\":\"" << data.builtYear << "\","
                         << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storeys\":\"" << data.storeys << "\","
@@ -92,7 +92,7 @@ namespace sim_mob {
         private:
             BigSerial id;
             BigSerial typeId;
-            BigSerial projectId;
+            BigSerial parcelId;
             int builtYear;
             double floorArea;
             int storeys;

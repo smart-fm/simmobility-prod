@@ -13,6 +13,7 @@
 #include "util/OutputUtil.hpp"
 
 #define INVALID_ID -1
+#define EMPTY_STR ""
 
 /**
  * Events IDs

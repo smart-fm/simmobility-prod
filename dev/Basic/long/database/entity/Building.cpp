@@ -12,9 +12,9 @@
 using namespace sim_mob::long_term;
 
 Building::Building(BigSerial id, BigSerial typeId,
-        BigSerial projectId, int builtYear,
+        BigSerial parcelId, int builtYear,
         double floorArea, int storeys, int parkingSpaces) :
-id(id), typeId(typeId), projectId(projectId), builtYear(builtYear),
+id(id), typeId(typeId), parcelId(parcelId), builtYear(builtYear),
 floorArea(floorArea), storeys(storeys), parkingSpaces(parkingSpaces) {
 }
 
@@ -24,7 +24,7 @@ Building::~Building() {
 Building& Building::operator=(const Building& source) {
     this->id = source.id;
     this->typeId = source.typeId;
-    this->projectId = source.projectId;
+    this->parcelId = source.parcelId;
     this->builtYear = source.builtYear;
     this->floorArea = source.floorArea;
     this->parkingSpaces = source.parkingSpaces;
@@ -40,8 +40,8 @@ BigSerial Building::GetTypeId() const {
     return typeId;
 }
 
-BigSerial Building::GetProjectId() const {
-    return projectId;
+BigSerial Building::GetParcelId() const {
+    return parcelId;
 }
 
 int Building::GetBuiltYear() const {

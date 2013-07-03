@@ -24,13 +24,13 @@ HouseholdDao::~HouseholdDao() {
 }
 
 void HouseholdDao::FromRow(Row& result, Household& outObj) {
-    outObj.id = result.get<BigSerial>(DB_FIELD_ID);
-    outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID);
-    outObj.size = result.get<int>(DB_FIELD_SIZE);
-    outObj.children = result.get<int>(DB_FIELD_CHILDREN);
-    outObj.income = result.get<double>(DB_FIELD_INCOME);
-    outObj.carOwnership = result.get<double>(DB_FIELD_CAR_OWNERSHIP);
-    outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION);
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID, INVALID_ID);
+    outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
+    outObj.children = result.get<int>(DB_FIELD_CHILDREN, 0);
+    outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
+    outObj.carOwnership = result.get<double>(DB_FIELD_CAR_OWNERSHIP, 0);
+    outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
 }
 
 void HouseholdDao::ToRow(Household& data, Parameters& outParams, bool update) {

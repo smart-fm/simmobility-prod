@@ -29,7 +29,7 @@ using sim_mob::DBConnection;
 
 template <typename T, typename K>
 void TestDao() {
-    LogOut("TESTING: " << typeid(T).name() << endl);
+    LogOut("----------------------------- TESTING: " << typeid(T).name() << "----------------------------- " << endl);
     DBConnection conn(sim_mob::POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {

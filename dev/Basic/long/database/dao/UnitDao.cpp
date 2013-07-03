@@ -25,12 +25,12 @@ UnitDao::~UnitDao() {
 }
 
 void UnitDao::FromRow(Row& result, Unit& outObj) {
-    outObj.id = result.get<BigSerial>(DB_FIELD_ID);
-    outObj.buildingId = result.get<BigSerial>(DB_FIELD_BUILDING_ID);
-    outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID);
-    outObj.storey = result.get<int>(DB_FIELD_STOREY);
-    outObj.area = result.get<double>(DB_FIELD_FLOOR_AREA);
-    outObj.rent = result.get<double>(DB_FIELD_RENT);
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.buildingId = result.get<BigSerial>(DB_FIELD_BUILDING_ID, INVALID_ID);
+    outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID, INVALID_ID);
+    outObj.storey = result.get<int>(DB_FIELD_STOREY, 0);
+    outObj.area = result.get<double>(DB_FIELD_FLOOR_AREA, 0);
+    outObj.rent = result.get<double>(DB_FIELD_RENT, 0);
     outObj.available = false;
 }
 

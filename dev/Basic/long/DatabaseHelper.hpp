@@ -28,46 +28,12 @@ const std::string DB_TABLE_UNIT = APPLY_SCHEMA(CURRENT_SCHEMA, "unit");
 /**
  * Fields
  */
-const std::string DB_FIELD_CARS = "cars";
-
-const std::string DB_FIELD_PERSONS = "persons";
-const std::string DB_FIELD_RACE_ID = "race_id";
-const std::string DB_FIELD_PERSON_ID = "person_id";
-const std::string DB_FIELD_AGE = "age";
-const std::string DB_FIELD_EMPLOYMENT_STATUS = "employment_status";
-const std::string DB_FIELD_HBO_TRIPS = "hbo_trips";
-const std::string DB_FIELD_HBW_TRIPS = "hbw_trips";
-const std::string DB_FIELD_JOB_ID = "job_id";
-const std::string DB_FIELD_ZONE_ID = "zone_id";
-const std::string DB_FIELD_MODE = "mode";
-const std::string DB_FIELD_WORK_AT_HOME = "work_at_home";
-const std::string DB_FIELD_SEX = "sex";
-const std::string DB_FIELD_EARNING = "earning";
-const std::string DB_FIELD_BUILDING_TYPE_ID = "building_type_id";
-const std::string DB_FIELD_GENERIC_BUILDING_TYPE_ID = "generic_building_type_id";
-const std::string DB_FIELD_UNIT_NAME = "unit_name";
-const std::string DB_FIELD_BUILDING_TYPE_NAME = "building_type_name";
-const std::string DB_FIELD_IS_RESIDENTIAL = "is_residential";
-const std::string DB_FIELD_GENERIC_BUILDING_TYPE_DESCRIPTION = "generic_building_type_description";
-const std::string DB_FIELD_DESCRIPTION = "description";
-const std::string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
-const std::string DB_FIELD_YEAR_BUILT = "year_built";
-const std::string DB_FIELD_PARCEL_ID = "parcel_id";
-
-const std::string DB_FIELD_BUILDING_QUALITY_ID = "building_quality_id";
-const std::string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
-const std::string DB_FIELD_TEMPLATE_ID = "template_id";
-const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
-const std::string DB_FIELD_LAND_USE_TYPE_ID = "land_use_type_id";
-const std::string DB_FIELD_LAND_USE_NAME = "land_use_name";
-const std::string DB_FIELD_GENERIC_LAND_USE_NAME = "generic_land_use_type_name";
-const std::string DB_FIELD_GENERIC_LAND_USE_TYPE_ID = "generic_land_use_type_id";
-
 
 //NEW DATABASE
 const std::string DB_FIELD_ID = "id";
 const std::string DB_FIELD_UNIT_ID = "unit_id";
 const std::string DB_FIELD_PROJECT_ID = "project_id";
+const std::string DB_FIELD_PARCEL_ID = "parcel_id";
 const std::string DB_FIELD_BUILDING_ID = "building_id";
 const std::string DB_FIELD_ESTABLISMENT_ID = "establishment_id";
 const std::string DB_FIELD_TYPE_ID = "type_id";
@@ -84,30 +50,6 @@ const std::string DB_FIELD_BUILT_YEAR = "built_year";
 const std::string DB_FIELD_STOREYS = "storeys";
 const std::string DB_FIELD_PARKING_SPACES = "parking_spaces";
 const std::string DB_FIELD_NAME = "name";
-
-
-
-const std::string DB_FIELD_HEDONIC_PRICE = "hedonic_price";
-const std::string DB_FIELD_AVERAGE_INCOME = "average_income";
-const std::string DB_FIELD_MAIN_RACE = "main_race";
-const std::string DB_FIELD_DISTANCE_TO_CDB = "distance_to_cbd";
-
-
-const std::string DB_FIELD_NUMBER_OF_WORKERS = "number_of_workers";
-const std::string DB_FIELD_NUMBER_OF_CARS = "number_of_cars";
-const std::string DB_FIELD_NUMBER_OF_INDIVIDUALS = "number_of_individuals";
-const std::string DB_FIELD_NUMBER_OF_UNITS = "number_of_units";
-const std::string DB_FIELD_NUMBER_OF_RESIDENTIAL_UNITS = "number_of_residential_units";
-const std::string DB_FIELD_NUMBER_OF_BUSINESS_UNITS = "number_of_business_units";
-const std::string DB_FIELD_NUMBER_OF_STORIES = "number_of_stories";
-const std::string DB_FIELD_RACE = "race";
-const std::string DB_FIELD_WEIGHT_PRICE_QUALITY = "weight_price_quality";
-const std::string DB_FIELD_WEIGHT_STOREY = "weight_storey";
-const std::string DB_FIELD_WEIGHT_DISTANCE_TO_CBD = "weight_distance_to_cbd";
-const std::string DB_FIELD_WEIGHT_TYPE = "weight_type";
-const std::string DB_FIELD_WEIGHT_AREA = "weight_area";
-const std::string DB_FIELD_WEIGHT_TAX_EXEMPT = "weight_tax_exempt";
-const std::string DB_FIELD_WEIGHT_YEAR_LAST_REMODULATION = "weight_year_last_remodulation";
 
 
 /**

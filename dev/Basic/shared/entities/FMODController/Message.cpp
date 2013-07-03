@@ -67,8 +67,8 @@ void Msg_Vehicle_Init::CreateMessage(std::string msg)
 	{
 		Json::Value item = arrVeh[i];
 		SUPPLY suplier;
-		suplier.vehicle_id = item["vehicle_id"].asString();
-		suplier.node_id = item["node_id"].asString();
+		suplier.vehicle_id = item["vehicle_id"].asInt();
+		suplier.node_id = item["node_id"].asInt();
 		vehicles.push_back(suplier);
 	}
 }
@@ -274,7 +274,7 @@ void Msg_Schedule::CreateMessage(std::string msg)
 		return;
 	}
 
-	vehicle_id = root["vehicle_id"].asString();
+	vehicle_id = root["vehicle_id"].asInt();
 	schedule_id = root["schedule_id"].asString();
 	service_type = root["service_type"].asInt();
 

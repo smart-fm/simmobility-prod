@@ -21,7 +21,7 @@ namespace FMOD
 class Message {
 public:
 
-	enum MESSAGEID{MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRM=7,
+	enum MESSAGEID{MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
 		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92};
 
 	Message();
@@ -72,8 +72,8 @@ class Msg_Vehicle_Init : public Message {
 public:
 	struct SUPPLY
 	{
-		std::string vehicle_id;
-		std::string node_id;
+		int vehicle_id;
+		int node_id;
 	};
 	std::vector<SUPPLY> vehicles;
 public:
@@ -159,7 +159,7 @@ public:
 
 class Msg_Schedule : public Message {
 public:
-	std::string vehicle_id;
+	int vehicle_id;
 	std::string schedule_id;
 	std::vector<std::string> replace_schedules;
 	int service_type;
@@ -186,7 +186,6 @@ public:
 	std::vector<ROUTE> routes;
 public:
 	virtual void CreateMessage(std::string msg);
-
 };
 }
 

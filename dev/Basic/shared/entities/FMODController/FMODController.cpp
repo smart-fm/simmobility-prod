@@ -198,7 +198,7 @@ void FMODController::ProcessMessages(timeslice now)
 			connectPoint->pushMessage(ret);
 			continued = true;
 		}
-		else if(msgId == Message::MSG_CONFIRM ){
+		else if(msgId == Message::MSG_CONFIRMATION ){
 			MessageList ret = HandleConfirmMessage(str);
 			connectPoint->pushMessage(ret);
 			continued = true;
@@ -472,10 +472,14 @@ void FMODController::HandleScheduleMessage(std::string msg)
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
-	sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
-	person->client_id = boost::lexical_cast<int>( msg_request.vehicle_id );
-	person->parentEntity = this;
-	all_drivers.push_back(person);
+	if( parkingCoord.remove(msg_request.vehicle_id) ){
+		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+		person->client_id = msg_request.vehicle_id ;
+		person->parentEntity = this;
+		all_drivers.push_back(person);
+		parkingCoord.enterTo(person->originNode.node_, person);
+	}
+
 }
 
 void FMODController::unregisteredChild(Entity* child)
@@ -486,13 +490,36 @@ void FMODController::unregisteredChild(Entity* child)
 		std::vector<Agent*>::iterator it = std::find(all_children.begin(), all_children.end(), agent);
 		if (it != all_children.end() ) {
 			all_children.erase(it);
+
+			sim_mob::Person* person = dynamic_cast<Person*>(agent);
+			parkingCoord.enterTo(person->originNode.node_, person);
 		}
 	}
 }
 
 void FMODController::HandleVehicleInit(std::string msg)
 {
-	msgVehInit.CreateMessage(msg);
+	Msg_Vehicle_Init msg_init;
+	msg_init.CreateMessage(msg);
+
+	for(std::vector<Msg_Vehicle_Init::SUPPLY>::iterator it=msg_init.vehicles.begin(); it!=msg_init.vehicles.end(); it++){
+
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		Node* node = const_cast<Node*>( stdir.getNode( (*it).node_id ) );
+		if(node != nullptr){
+			DailyTime start(0);
+			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
+			std::vector<sim_mob::TripChainItem*>  tcs;
+			tcs.push_back(tc);
+
+			sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+			person->parentEntity = this;
+			person->client_id = (*it).vehicle_id;
+
+			parkingCoord.enterTo(node, person);
+		}
+	}
+
 }
 
 void FMODController::DispatchActivityAgents(timeslice now)

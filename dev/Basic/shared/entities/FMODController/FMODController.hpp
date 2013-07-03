@@ -8,6 +8,7 @@
 #ifndef FMODCONTROLLER_HPP_
 #define FMODCONTROLLER_HPP_
 #include "TCPSession.hpp"
+#include "ParkingCoordinator.h"
 #include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
 
@@ -78,7 +79,6 @@ private:
 	int port;
 	int updateTiming;
 	int frameTicks;
-	Msg_Vehicle_Init msgVehInit;
 
 private:
 	struct travelTimes
@@ -94,7 +94,7 @@ private:
 	std::map<const Link*, travelTimes> LinkTravelTimesMap;
 
 	//when vehicle initialize and pack, it will store to this structure
-	std::map<const Node*, std::vector<Agent*> > vehicle_packing;
+	ParkingCoordinator parkingCoord;
 
 private:
 	static FMODController* pInstance;

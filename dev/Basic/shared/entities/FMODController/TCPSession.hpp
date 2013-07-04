@@ -28,6 +28,7 @@ public:
 	void pushMessage(MessageList data);
 	void Flush();
 	MessageList popMessage();
+	bool WaitForOneMessage(std::string& msg, int seconds);
 	boost::asio::ip::tcp::socket& socket();
 	bool ConnectToServer(std::string ip, int port);
 	void Stop();

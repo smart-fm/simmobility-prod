@@ -19,7 +19,7 @@ namespace FMOD
 
 class FMODController : public sim_mob::Agent {
 public:
-	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)), frameTicks(0){}
+	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)), frameTicks(0), waitingseconds(10){}
 
 	virtual ~FMODController();
 
@@ -55,6 +55,7 @@ protected:
 
 private:
 	void ProcessMessages(timeslice now);
+	void ProcessMessagesInBlocking(timeslice now);
 	MessageList GenerateRequest(timeslice now);
 	MessageList HandleOfferMessage(std::string msg);
 	MessageList HandleConfirmMessage(std::string msg);
@@ -79,6 +80,7 @@ private:
 	int port;
 	int updateTiming;
 	int frameTicks;
+	int waitingseconds;
 
 private:
 	struct travelTimes

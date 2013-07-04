@@ -27,12 +27,14 @@ public:
 	virtual ~MessageQueue();
 
 private:
-	boost::shared_mutex mutex;
+	boost::mutex mutex;
+	boost::condition_variable condition;
 	MessageList messages;
 
 public:
 	void PushMessage(std::string msg);
 	bool PopMessage(std::string& msg);
+	bool WaitPopMessage(std::string& msg, int seconds);
 	MessageList ReadMessage();
 
 };

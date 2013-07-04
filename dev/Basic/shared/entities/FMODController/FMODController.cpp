@@ -50,7 +50,8 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 
 
 	if(frameTicks%2 == 0){
-		ProcessMessages(now);
+		ProcessMessagesInBlocking(now);
+		//ProcessMessages(now);
 	}
 	if(frameTicks%2 == 1){
 		UpdateMessages(now);
@@ -162,6 +163,14 @@ bool FMODController::StartClientService()
 		connectPoint->pushMessage(msg);
 		//connectPoint->pushMessage(msg);
 		connectPoint->Flush();
+
+		std::string message;
+		if( !connectPoint->WaitForOneMessage(message, waitingseconds)){
+			std::cout << "FMOD communication in blocking mode not receive data asap" << std::endl;
+		}
+		else{
+			this->HandleVehicleInit(message);
+		}
 	}
 	else {
 		std::cout << "FMOD communication failed" << std::endl;
@@ -174,6 +183,43 @@ void FMODController::StopClientService()
 {
 	connectPoint->Stop();
 	io_service.stop();
+}
+
+void FMODController::ProcessMessagesInBlocking(timeslice now)
+{
+	MessageList requests = GenerateRequest(now);
+
+	while( requests.size() > 0 ){
+		std::string message = requests.front();
+		connectPoint->pushMessage(message);
+		requests.pop();
+
+		while( true ){
+
+			connectPoint->Flush();
+			if( !connectPoint->WaitForOneMessage(message, waitingseconds)){
+				std::cout << "FMOD communication in blocking mode not receive data asap" << std::endl;
+				break;
+			}
+
+			int msgId = Message::GetMessageID(message);
+			if(msgId == Message::MSG_OFFER ){
+				MessageList ret = HandleOfferMessage(message);
+				connectPoint->pushMessage(ret);
+				continue;
+			}
+			else if(msgId == Message::MSG_CONFIRMATION ){
+				MessageList ret = HandleConfirmMessage(message);
+				connectPoint->pushMessage(ret);
+				continue;
+			}
+			else if(msgId == Message::MSG_SCHEDULE ){
+				HandleScheduleMessage(message);
+				connectPoint->Flush();
+				break;
+			}
+		}
+	}
 }
 
 void FMODController::ProcessMessages(timeslice now)

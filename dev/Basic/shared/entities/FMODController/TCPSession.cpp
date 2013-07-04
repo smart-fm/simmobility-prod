@@ -66,6 +66,11 @@ MessageList TCPSession::popMessage()
 	return res;
 }
 
+bool TCPSession::WaitForOneMessage(std::string& msg, int seconds)
+{
+	return msgReceiveQueue.WaitPopMessage(msg, seconds);
+}
+
 void TCPSession::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){

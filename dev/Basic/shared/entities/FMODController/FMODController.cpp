@@ -215,7 +215,6 @@ void FMODController::ProcessMessagesInBlocking(timeslice now)
 			}
 			else if(msgId == Message::MSG_SCHEDULE ){
 				HandleScheduleMessage(message);
-				connectPoint->Flush();
 				break;
 			}
 		}

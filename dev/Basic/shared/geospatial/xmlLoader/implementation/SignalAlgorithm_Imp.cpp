@@ -11,4 +11,5 @@ void sim_mob::xml::signalTimingMode_t_pimpl::pre ()
 int sim_mob::xml::signalTimingMode_t_pimpl::post_signalTimingMode_t ()
 {
 	//const ::std::string& v (post_string ());
+	return 0;
 }

@@ -17,6 +17,7 @@ namespace sim_mob {
 namespace FMOD
 {
 
+struct Request;
 class FMODController : public sim_mob::Agent {
 public:
 	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)), frameTicks(0), waitingseconds(10){}

@@ -11,7 +11,8 @@
 
 using std::map;
 using std::pair;
-using namespace sim_mob;
+using std::list;
+using std::endl;
 using namespace sim_mob::long_term;
 
 UnitHolder::UnitHolder(int id) : id(id) {
@@ -30,27 +31,29 @@ UnitHolder::~UnitHolder() {
 }
 
 bool UnitHolder::AddUnit(Unit* unit) {
-    SharedWriteLock(unitsListMutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(unitsListMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     return Add(unit, true);
 }
 
 Unit* UnitHolder::RemoveUnit(UnitId id) {
-    SharedWriteLock(unitsListMutex);
+	boost::upgrade_lock<boost::shared_mutex> up_lock(unitsListMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     return Remove(id, true);
 }
 
 bool UnitHolder::HasUnit(UnitId id) const {
-    SharedReadLock(unitsListMutex);
+	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
     return Contains(id);
 }
 
 Unit* UnitHolder::GetUnitById(UnitId id) {
-    SharedReadLock(unitsListMutex);
+	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
     return GetById(id);
 }
 
 void UnitHolder::GetUnits(list<Unit*>& outUnits) {
-    SharedReadLock(unitsListMutex);
+	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
     for (HoldingUnits::iterator itr = holdingUnits.begin();
             itr != holdingUnits.end(); itr++) {
         Unit* unit = (*itr).second;

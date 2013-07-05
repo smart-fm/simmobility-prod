@@ -8,7 +8,7 @@
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include "FMODController.hpp"
-#include "Message.hpp"
+#include "JMessage.hpp"
 #include "entities/Person.hpp"
 #include <utility>
 
@@ -153,7 +153,7 @@ bool FMODController::StartClientService()
 
 		// for initialization
 		Msg_Initialize request;
-		request.messageID_ = Message::MSG_INITIALIZE;
+		request.messageID_ = JMessage::MSG_INITIALIZE;
 		request.map_type = "osm";
 		request.map_file = mapFile; //"cityhall/cityhall.osm";
 		request.version = 1;
@@ -202,18 +202,18 @@ void FMODController::ProcessMessagesInBlocking(timeslice now)
 				break;
 			}
 
-			int msgId = Message::GetMessageID(message);
-			if(msgId == Message::MSG_OFFER ){
+			int msgId = JMessage::GetMessageID(message);
+			if(msgId == JMessage::MSG_OFFER ){
 				MessageList ret = HandleOfferMessage(message);
 				connectPoint->pushMessage(ret);
 				continue;
 			}
-			else if(msgId == Message::MSG_CONFIRMATION ){
+			else if(msgId == JMessage::MSG_CONFIRMATION ){
 				MessageList ret = HandleConfirmMessage(message);
 				connectPoint->pushMessage(ret);
 				continue;
 			}
-			else if(msgId == Message::MSG_SCHEDULE ){
+			else if(msgId == JMessage::MSG_SCHEDULE ){
 				HandleScheduleMessage(message);
 				break;
 			}
@@ -234,21 +234,21 @@ void FMODController::ProcessMessages(timeslice now)
 		std::string str = messages.front();
 		messages.pop();
 
-		int msgId = Message::GetMessageID(str);
-		if(msgId == Message::MSG_SIMULATION_SETTINGS ){
+		int msgId = JMessage::GetMessageID(str);
+		if(msgId == JMessage::MSG_SIMULATION_SETTINGS ){
 			HandleVehicleInit(str);
 		}
-		else if(msgId == Message::MSG_OFFER ){
+		else if(msgId == JMessage::MSG_OFFER ){
 			MessageList ret = HandleOfferMessage(str);
 			connectPoint->pushMessage(ret);
 			continued = true;
 		}
-		else if(msgId == Message::MSG_CONFIRMATION ){
+		else if(msgId == JMessage::MSG_CONFIRMATION ){
 			MessageList ret = HandleConfirmMessage(str);
 			connectPoint->pushMessage(ret);
 			continued = true;
 		}
-		else if(msgId == Message::MSG_SCHEDULE ){
+		else if(msgId == JMessage::MSG_SCHEDULE ){
 			HandleScheduleMessage(str);
 		}
 
@@ -307,7 +307,7 @@ MessageList FMODController::CollectVehStops()
 						if(stop_event_type->get() >= 0 ){
 
 							Msg_Vehicle_Stop msg_stop;
-							msg_stop.messageID_ = Message::MSG_VEHICLESTOP;
+							msg_stop.messageID_ = JMessage::MSG_VEHICLESTOP;
 
 							unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 							DailyTime curr(curTickMS);
@@ -345,7 +345,7 @@ MessageList FMODController::CollectVehPos()
 		Person* person = dynamic_cast<sim_mob::Person*>(*it);
 		if(person){
 			Msg_Vehicle_Pos msg_pos;
-			msg_pos.messageID_ = Message::MSG_VEHICLEPOS;
+			msg_pos.messageID_ = JMessage::MSG_VEHICLEPOS;
 			unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 
 			DailyTime curr(curTickMS);
@@ -396,7 +396,7 @@ MessageList FMODController::CollectLinkTravelTime()
 
 	Msg_Link_Travel msg_travel;
 	msg_travel.current_time = start.toString();
-	msg_travel.messageID_ = Message::MSG_LINKTRAVELUPADTE;
+	msg_travel.messageID_ = JMessage::MSG_LINKTRAVELUPADTE;
 	for(std::map<const Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
 		Msg_Link_Travel::LINK travel;
 		travel.node1_id = (itTT->first)->getStart()->getID();
@@ -428,7 +428,7 @@ MessageList FMODController::GenerateRequest(timeslice now)
 
 		if( tm.getValue() > (curr.getValue()-dias.getValue() )){
 			Msg_Request request;
-			request.messageID_ = Message::MSG_REQUEST;
+			request.messageID_ = JMessage::MSG_REQUEST;
 			request.request = *it->first;
 			msgs.push( request.BuildToString() );
 		}
@@ -448,7 +448,7 @@ MessageList FMODController::HandleOfferMessage(std::string msg)
 	DailyTime base(ConfigParams::GetInstance().simStartTime);
 
 	Msg_Accept msg_accept;
-	msg_accept.messageID_ = Message::MSG_ACCEPT;
+	msg_accept.messageID_ = JMessage::MSG_ACCEPT;
 	msg_accept.client_id = msg_offer.client_id;
 	msg_accept.schedule_id = msg_offer.offers[0].schdule_id;
 	msg_accept.arrival_time = msg_offer.offers[0].arival_time_early;

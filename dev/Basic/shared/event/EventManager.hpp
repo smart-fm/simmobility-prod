@@ -8,6 +8,9 @@
  * Created on April 1, 2013, 11:27 AM
  */
 #pragma once
+
+#include <boost/thread.hpp>
+
 #include "EventPublisher.hpp"
 #include "metrics/Frame.hpp"
 
@@ -21,9 +24,6 @@
 #define EM_WND_UPDATED          1
 
 namespace sim_mob {
-
-    using std::map;
-    using std::list;
 
     DECLARE_CUSTOM_CALLBACK_TYPE(EM_EventArgs)
     class EM_EventArgs : public EventArgs {
@@ -121,13 +121,13 @@ namespace sim_mob {
             timeslice to;
         };
 
-        typedef list<TemporalWindow*> TemporalWindowList;
-        typedef map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
+        typedef std::list<TemporalWindow*> TemporalWindowList;
+        typedef std::map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
 
     private:
         timeslice currTime;
         TemporalWindowMap temporalWindows;
-        mutable shared_mutex windowsMutex;
+        mutable boost::shared_mutex windowsMutex;
     };
 }
 

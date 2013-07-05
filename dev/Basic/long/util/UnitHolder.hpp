@@ -7,17 +7,14 @@
  * Created on March 12, 2013, 2:36 PM
  */
 #pragma once
-#include <map>
 #include <list>
+#include <boost/thread.hpp>
+#include <boost/unordered_map.hpp>
 #include "database/entity/Unit.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
-
-        using std::map;
-        using std::pair;
-        using std::list;
 
         /**
          * Represents any entity that can hold one or more units.
@@ -66,7 +63,7 @@ namespace sim_mob {
              * 
              * @param outUnits list that will receive the objects.
              */
-            void GetUnits(list<Unit*>& outUnits);
+            void GetUnits(std::list<Unit*>& outUnits);
 
         protected:
             /**
@@ -105,11 +102,11 @@ namespace sim_mob {
             virtual Unit* GetById(UnitId id);
             
         private:
-            typedef pair<UnitId, Unit*> HoldingUnitsEntry;
-            typedef map<UnitId, Unit*> HoldingUnits;
+            typedef std::pair<UnitId, Unit*> HoldingUnitsEntry;
+            typedef boost::unordered_map<UnitId, Unit*> HoldingUnits;
             HoldingUnits holdingUnits;
             int id;
-            mutable shared_mutex unitsListMutex;
+            mutable boost::shared_mutex unitsListMutex;
         };
     }
 }

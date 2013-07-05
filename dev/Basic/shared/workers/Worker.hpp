@@ -67,8 +67,7 @@ public:
 	//Manage entities
 	void addEntity(Entity* entity);
 	void remEntity(Entity* entity);
-
-	std::vector<Entity*>& getEntities();
+	const std::vector<Entity*>& getEntities()const ;
 
 
 	//

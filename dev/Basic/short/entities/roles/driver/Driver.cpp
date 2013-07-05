@@ -646,3 +646,4 @@ Point2D readPoint(const string& str) {
 	return Point2D(xPos, yPos);
 }
 } //End anon namespace
+

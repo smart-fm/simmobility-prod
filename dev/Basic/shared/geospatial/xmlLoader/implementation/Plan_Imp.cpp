@@ -9,6 +9,7 @@ void sim_mob::xml::Plan_t_pimpl::pre ()
 
 std::pair<short int, std::vector<double> > sim_mob::xml::Plan_t_pimpl::post_Plan_t ()
 {
+	return std::pair<short int, std::vector<double> >();
 }
 
 void sim_mob::xml::Plan_t_pimpl::planID (unsigned char value)

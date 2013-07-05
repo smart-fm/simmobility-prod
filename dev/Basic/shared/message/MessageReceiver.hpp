@@ -8,12 +8,8 @@
  */
 #pragma once
 #include <queue>
-#include "ThreadHelper.h"
 #include "Message.hpp"
-
-using namespace boost;
-using std::queue;
-using std::pair;
+#include <boost/thread.hpp>
 
 namespace sim_mob {
 
@@ -68,8 +64,8 @@ namespace sim_mob {
                 const Message& message) = 0;
     private:
         //Definitions
-        typedef pair<MessageReceiver*, Message*> MessageData;
-        typedef pair<MessageType, MessageData*> MessageEntry;
+        typedef std::pair<MessageReceiver*, Message*> MessageData;
+        typedef std::pair<MessageType, MessageData*> MessageEntry;
         typedef std::queue<MessageEntry*> MessageList;
         
         /**
@@ -97,6 +93,6 @@ namespace sim_mob {
         bool ContainsMessages();
     private:
         MessageList messages;
-        mutable shared_mutex queueMutex;
+        mutable boost::shared_mutex queueMutex;
     };
 }

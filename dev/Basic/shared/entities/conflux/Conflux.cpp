@@ -67,6 +67,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
+	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame() << std::endl;
 	currFrameNumber = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -141,13 +142,19 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if((segBeforeUpdate != segAfterUpdate) || (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate))
 	{
-		Person* dequeuedAgent = segStatsBfrUpdt->dequeue(laneBeforeUpdate);
-		if(dequeuedAgent != person) {
+		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate, isQueuingBeforeUpdate);
+		if(dequeuedPerson != person) {
 			segStatsBfrUpdt->printAgents();
-			debugMsgs << "Error: Person " << dequeuedAgent->getId() << " dequeued instead of Person " << person->getId()
-					<< "|segment: " << segBeforeUpdate->getStartEnd()
+			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
+					<< "\n Person " << person->getId() << ": segment: " << segBeforeUpdate->getStartEnd()
 					<< "|lane: " << laneBeforeUpdate->getLaneID()
-					<< "|Frame " << currFrameNumber.frame();
+					<< "|Frame: " << currFrameNumber.frame()
+					<< "\n Person " << dequeuedPerson->getId() << ": "
+					<< "segment: " << dequeuedPerson->getCurrSegment()->getStartEnd()
+					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
+					<< "|Frame: " << dequeuedPerson->lastUpdatedFrame;
+
+			Print() << debugMsgs.str();
 			throw std::runtime_error(debugMsgs.str());
 		}
 
@@ -157,6 +164,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		else {
 			// If we don't know which lane the Person has to go to, we add him to lane infinity.
 			// NOTE: One possible scenario for this is a Person who is starting on a new trip chain item.
+			// Adding to virtual queue of the next unprocessed link takes place here
 			person->setCurrLane(segStatsAftrUpdt->laneInfinity);
 			person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
 			segStatsAftrUpdt->addAgent(segStatsAftrUpdt->laneInfinity, person);
@@ -521,6 +529,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	Role* personRole = person->getRole();
 	if (!person->curr_params) {
 		person->curr_params = &personRole->make_frame_tick_params(now);
+		Print() << "updated person->curr_params: " << now.frame() << "|" << person->curr_params->now.frame() << std::endl;
 	}
 	person->lastUpdatedFrame = currFrameNumber.frame();
 
@@ -546,14 +555,9 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 */
 
 	while(person->remainingTimeThisTick > 0.0) {
-		debugMsgs << "Frame: " << now.frame() << "|ms: " << now.ms()
-				<< "|Person: " << person->getId() << "|remainingTimeThisTick: " << person->remainingTimeThisTick
-				<< "|currSegment: [" << person->currSegment->getStart()->getID() <<","<< person->currSegment->getEnd()->getID() << "]"
-				<< "|distanceToEndOfSegment: " << person->distanceToEndOfSegment
-				<< "|isQueuing: " << person->isQueuing
-				<< "|segLength: "<< person->getCurrSegment()->computeLaneZeroLength()
-				<< "|Conflux: " << multiNode->getID() <<std::endl;
-		std::cout << debugMsgs.str();
+		debugMsgs << "Person: " << person->getId()
+				<< "|remainingTimeThisTick: " << person->remainingTimeThisTick << std::endl;
+		Print() << debugMsgs.str();
 		debugMsgs.str("");
 
 		if (!person->isToBeRemoved()) {
@@ -598,11 +602,18 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					<< "|currFrame:" << now.frame()
 					<< "|requestedNextSegment: [" << person->requestedNextSegment->getStart()->getID() <<","<< person->requestedNextSegment->getEnd()->getID() << "]"
 					<< std::endl;
-			std::cout << debugMsgs.str();
+			Print() << debugMsgs.str();
 			debugMsgs.str("");
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
 			if(now.frame() > nxtConflux->lastUpdatedFrame) {
+				//this is a hack to count the number of agents trying to loop back to the same
+				//conflux again in the same frame tick
+				if(nxtConflux == this){
+					person->setRemainingTimeThisTick(0.0);
+					Print()<<"Person "<<person->getId()<<" loops back to conflux "<< this->multiNode->getID()<<std::endl;
+					break;
+				}
 				// nxtConflux is not processed for the current tick yet
 				if(nxtConflux->hasSpaceInVirtualQueue(person->requestedNextSegment)) {
 					person->setCurrSegment(person->requestedNextSegment);

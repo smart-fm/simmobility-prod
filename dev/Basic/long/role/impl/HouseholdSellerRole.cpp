@@ -11,9 +11,14 @@
 #include "message/LT_Message.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
+#include "util/Math.hpp"
 
-using namespace sim_mob;
+#include "boost/tuple/tuple.hpp"
+
 using namespace sim_mob::long_term;
+using std::list;
+using std::endl;
+using sim_mob::Math;
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
         HousingMarket* market)
@@ -31,6 +36,7 @@ void HouseholdSellerRole::Update(timeslice now) {
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             if ((*itr)->IsAvailable()) {
+                CalculateUnitExpectations(*(*itr));
                 market->AddUnit((*itr));
             }
         }
@@ -39,6 +45,7 @@ void HouseholdSellerRole::Update(timeslice now) {
     if (now.ms() > currentTime.ms()) {
         // Day has changed we need to notify the last day winners.
         NotifyWinnerBidders();
+        // TODO: adjust the price based on Expectations.
         AdjustNotSelledUnits();
     }
     currentTime = now;
@@ -105,19 +112,17 @@ bool HouseholdSellerRole::Decide(const Bid& bid, const Unit& unit) {
 }
 
 void HouseholdSellerRole::AdjustUnitParams(Unit& unit) {
-    float denominator = pow((1 - 2 * unit.GetFixedCost()), 0.5f);
+    float denominator = pow((1 - 2 * unit.GetFixedPrice()), 0.5f);
     //re-calculates the new reservation price.
     float reservationPrice =
-            (unit.GetReservationPrice() + unit.GetFixedCost()) / denominator;
+            (unit.GetReservationPrice() + unit.GetFixedPrice()) / denominator;
     //re-calculates the new hedonic price.
     float hedonicPrice = reservationPrice / denominator;
     //update values.
     unit.SetReservationPrice(reservationPrice);
-    unit.SetHedonicPrice(hedonicPrice);
 }
 
 void HouseholdSellerRole::NotifyWinnerBidders() {
-
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid* maxBidOfDay = &(itr->second);
@@ -127,6 +132,8 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
             unit = GetParent()->RemoveUnit(unit->GetId());
+            // clean all expectations for the unit.
+            unitExpectations.erase(unit->GetId());
         }
     }
     // notify winners.
@@ -142,3 +149,54 @@ void HouseholdSellerRole::AdjustNotSelledUnits() {
         }
     }
 }
+
+namespace {
+double ExpectationFunction(double x, const boost::tuple<double,double,double>& params) {
+    double v = params.get<0>();
+    double theta = params.get<1>();
+    double alpha = params.get<2>();
+    double price = x; // last expectation (V(t+1))
+    // Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
+    double bidsDistribution = v / price;
+    // Calculates the probability of not having any bid greater than v.
+    double priceProb = pow(Math::E, -((theta / pow(price, alpha)) * (1 - bidsDistribution)));
+    // Calculates expected maximum bid.
+    double p1 = pow(price, 2 * alpha + 1);
+    double p2 = (price * (theta * pow(price, -alpha) - 1));
+    double p3 = pow(Math::E, (theta * pow(price, -alpha)* (bidsDistribution - 1)));
+    double p4 = (price - theta * v * pow(price, -alpha));
+    double expectedMaxBid = (p1 * (p2 + p3 * p4)) / (theta * theta);
+    return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01f * price);
+}
+} //End unnamed namespace
+
+void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
+    ExpectationList expectationList;
+    double price = 20; //unit.GetReservationPrice();
+    double expectation = 4;
+    //double initialExpectation = unit.GetHedonicPrice();
+    double theta = 1.0f; // hh->GetWeightExpectedEvents()
+    double alpha = 2.0f; //hh->GetWeightPriceImportance()
+    for (int i = 0; i < (2 * TIME_UNIT); i++) {
+        ExpectationEntry entry;
+
+        entry.price = Math::FindMaxArg(ExpectationFunction,
+                price, boost::tuple<double,double,double>(expectation, theta, alpha),
+                .001f, 100000);
+
+        entry.expectation = ExpectationFunction(entry.price, 
+            boost::tuple<double,double,double>(expectation, theta, alpha));
+        expectation = entry.expectation;
+        expectationList.push_back(entry);
+        LogOut("Expectation on: [" << i << std::setprecision(15) <<
+                "] Unit: [" << unit.GetId() <<
+                "] expectation: [" << entry.expectation <<
+                "] price: [" << entry.price <<
+                "] theta: [" << theta <<
+                "] alpha: [" << alpha <<
+                "]" << endl);
+    }
+    unitExpectations.erase(unit.GetId());
+    unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));
+}
+

@@ -8,27 +8,41 @@
  */
 #pragma once
 
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 
 namespace sim_mob {
+    
     namespace long_term {
 
         class Building {
         public:
             Building();
             virtual ~Building();
+
             /**
              * Gets unique identifier of the Building Type.
              * @return id.
              */
-            int GetId() const;
+            BigSerial GetId() const;
+
+            /**
+             * Gets the number total units in the building.
+             * @return number of total units in the building.
+             */
+            int GetNumberOfUnits() const;
 
             /**
              * Gets the number of residential units.
              * @return number of residential units.
              */
-            int GetResidentialUnits() const;
+            int GetNumberOfResidentialUnits() const;
+
+            /**
+             * Gets the number of business units.
+             * @return number of business units.
+             */
+            int GetNumberOfBusinessUnits() const;
 
             /**
              * Gets the year of construction.
@@ -37,64 +51,34 @@ namespace sim_mob {
             int GetYear() const;
 
             /**
-             * Gets the parcel identifier.
-             * @return parcel id.
-             */
-            int GetParcelId() const;
-
-            /**
              * Gets the land area value.
              * @return land area value.
              */
-            double GetLandArea() const;
+            double GetArea() const;
 
             /**
-             * Gets the quality identifier.
-             * @return quality id.
-             */
-            int GetQualityId() const;
-
-            /**
-             * Gets the value of the improvements.
+             * Gets the value average income of the building.
              * @return improvement value.
              */
-            int GetImprovementValue() const;
+            double GetAverageIncome() const;
 
             /**
-             * Gets the type identifier.
-             * @return type id.
+             * Gets the main race.
+             * @return race.
              */
-            int GetTypeId() const;
+            Race GetMainRace() const;
 
             /**
-             * Gets stories.
-             * @return stories.
+             * Gets number of stories.
+             * @return stories number.
              */
-            int GetStories() const;
+            int GetNumberOfStories() const;
 
             /**
-             * Tells if the building is exempt of tax or not.
-             * @return true if is tax exempt, false otherwise.
+             * Gets Distance to CDB.
+             * @return distance to the center of the business district.
              */
-            bool IsTaxExempt() const;
-
-            /**
-             * Gets the value of the sqft of non residential area.
-             * @return sqft of non residential area value.
-             */
-            int GetNonResidentialSqft() const;
-
-            /**
-             * Gets template identifier.
-             * @return template id.
-             */
-            int GetTemplateId() const;
-
-            /**
-             * Gets the value of the sqft per unit.
-             * @return sqft per unit value.
-             */
-            int GetUnitSqft() const;
+            double GetDistanceToCDB() const;
 
             /**
              * Assign operator.
@@ -106,41 +90,35 @@ namespace sim_mob {
             /**
              * Operator to print the Building data.  
              */
-            friend ostream& operator<<(ostream& strm, const Building& data) {
+            friend std::ostream& operator<<(std::ostream& strm, const Building& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
-                        << "\"improvementValue\":\"" << data.improvementValue << "\","
-                        << "\"landArea\":\"" << data.landArea << "\","
-                        << "\"nonResidentialSqft\":\"" << data.nonResidentialSqft << "\","
-                        << "\"parcelId\":\"" << data.parcelId << "\","
-                        << "\"qualityId\":\"" << data.qualityId << "\","
-                        << "\"residentialUnits\":\"" << data.residentialUnits << "\","
-                        << "\"stories\":\"" << data.stories << "\","
-                        << "\"taxExempt\":\"" << data.taxExempt << "\","
-                        << "\"templateId\":\"" << data.templateId << "\","
-                        << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"unitSqft\":\"" << data.unitSqft << "\","
-                        << "\"year\":\"" << data.year << "\""
+                        << "\"units\":\"" << data.numberOfUnits << "\","
+                        << "\"residentialUnits\":\"" << data.numberOfResidentialUnits << "\","
+                        << "\"businessUnits\":\"" << data.numberOfBusinessUnits << "\","
+                        << "\"stories\":\"" << data.numberOfStories << "\","
+                        << "\"area\":\"" << data.area << "\","
+                        << "\"year\":\"" << data.year << "\","
+                        << "\"stories\":\"" << data.numberOfStories << "\","
+                        << "\"averageIncome\":\"" << data.averageIncome << "\","
+                        << "\"mainRace\":\"" << data.mainRace << "\","
+                        << "\"distanceToCDB\":\"" << data.distanceToCDB << "\""
                         << "}";
             }
 
         private:
             friend class BuildingDao;
-
         private:
-            int id;
-            int residentialUnits;
+            unsigned long id;
+            int numberOfUnits;
+            int numberOfResidentialUnits;
+            int numberOfBusinessUnits;
+            int numberOfStories;
+            double area;
             int year; //year of construction
-            int parcelId;
-            double landArea;
-            int qualityId;
-            int improvementValue;
-            int stories;
-            int typeId;
-            bool taxExempt;
-            int nonResidentialSqft;
-            int templateId;
-            int unitSqft; // sqft per unit.
+            double averageIncome;
+            Race mainRace;
+            double distanceToCDB;
         };
     }
 }

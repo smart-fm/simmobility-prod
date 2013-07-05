@@ -9,9 +9,6 @@
 #pragma once
 #include "soci.h"
 
-using std::string;
-using namespace soci;
-
 namespace sim_mob {
 
     enum BackendType {
@@ -26,7 +23,7 @@ namespace sim_mob {
      */
     class DBConnection {
     public:
-        DBConnection(BackendType type, const string& connectionStr);
+        DBConnection(BackendType type, const std::string& connectionStr);
         virtual ~DBConnection();
 
         /**
@@ -51,11 +48,11 @@ namespace sim_mob {
          * Gets the current SOCI session.
          * @return session instance reference.
          */
-        session& GetSession();
+        soci::session& GetSession();
 
     private:
-        session currentSession;
-        string connectionStr;
+        soci::session currentSession;
+        std::string connectionStr;
         BackendType type;
         volatile bool connected;
     };

@@ -10,6 +10,10 @@
 #include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
+using boost::shared_mutex;
+using boost::shared_lock;
+using boost::upgrade_lock;
+using boost::upgrade_to_unique_lock;
 
 MessageReceiver::MessageReceiver() {
 }
@@ -25,7 +29,8 @@ MessageReceiver::~MessageReceiver() {
 bool MessageReceiver::ReadMessage() {
     MessageEntry* entry = NULL;
     {
-        SharedWriteLock(queueMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(queueMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ContainsMessages()) {
             entry = messages.front();
             messages.pop();
@@ -42,22 +47,22 @@ bool MessageReceiver::ReadMessage() {
 
 void MessageReceiver::Post(MessageType type, MessageReceiver* sender,
         Message* message) {
-    SharedWriteLock(queueMutex);
+    upgrade_lock<shared_mutex> upgradeLock(queueMutex);
+    upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
     SendMessage(type, sender, message, true);
 }
 
-bool MessageReceiver::Send(MessageType type, MessageReceiver& sender,
-        const Message& message) {
+bool MessageReceiver::Send(MessageType type, MessageReceiver& sender, const Message& message) {
     SendMessage(type, &sender, const_cast<Message*> (&message), false);
+    return true;
 }
 
 bool MessageReceiver::HasMessages() {
-    SharedReadLock(queueMutex);
+    shared_lock<shared_mutex> lock(queueMutex);
     return ContainsMessages();
 }
 
-bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender,
-        Message* message, bool async) {
+bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender, Message* message, bool async) {
     if (sender && message) {
         if (async) {
             messages.push(new MessageEntry(type, new MessageData(sender, message)));
@@ -65,6 +70,7 @@ bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender,
             HandleMessage(type, *sender, *message);
         }
     }
+    return true;
 }
 
 bool MessageReceiver::ContainsMessages(){

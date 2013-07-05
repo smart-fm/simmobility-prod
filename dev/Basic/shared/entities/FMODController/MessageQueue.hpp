@@ -10,7 +10,7 @@
 
 #include "boost/thread/shared_mutex.hpp"
 #include "queue"
-#include "Message.hpp"
+
 namespace sim_mob {
 
 namespace FMOD

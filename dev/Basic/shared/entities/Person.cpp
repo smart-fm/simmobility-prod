@@ -728,6 +728,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 //{
 //
 //}
+
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;
@@ -789,7 +790,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	}
 	prevRole = currRole;
 	currRole = newRole;
-	std::cout << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
+	Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);

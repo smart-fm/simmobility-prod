@@ -20,13 +20,14 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
+int sim_mob::Agent::createdAgents = 0;
+int sim_mob::Agent::diedAgents = 0;
+
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 using std::vector;
 using std::priority_queue;
-
-
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 vector<Entity*> sim_mob::Agent::all_agents;
@@ -34,7 +35,8 @@ EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
 vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const {
+bool sim_mob::cmp_agent_start::operator()(const Agent* x,
+		const Agent* y) const {
 	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y)) {
 		return 0;
@@ -45,7 +47,8 @@ bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const 
 }
 
 //Implementation of our comparison function for events by start time.
-bool sim_mob::cmp_event_start::operator()(const PendingEvent& x, const PendingEvent& y) const {
+bool sim_mob::cmp_event_start::operator()(const PendingEvent& x,
+		const PendingEvent& y) const {
 	//We want a lower start time to translate into a higher priority.
 	return x.start > y.start;
 }
@@ -53,8 +56,8 @@ bool sim_mob::cmp_event_start::operator()(const PendingEvent& x, const PendingEv
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 	//If the ID is valid, modify next_agent_id;
-	if (preferredID > static_cast<int> (next_agent_id)) {
-		next_agent_id = static_cast<unsigned int> (preferredID);
+	if (preferredID > static_cast<int>(next_agent_id)) {
+		next_agent_id = static_cast<unsigned int>(preferredID);
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -68,31 +71,32 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 
 	//Assign either the value asked for (assume it will not conflict) or
 	//  the value of next_agent_id (if it's <0)
-	unsigned int res = (preferredID>=0) ? static_cast<unsigned int>(preferredID) : next_agent_id++;
+	unsigned int res =
+			(preferredID >= 0) ?
+					static_cast<unsigned int>(preferredID) : next_agent_id++;
 
 	//std::cout <<"  assigned: " <<res <<std::endl;
 
 	return res;
 }
 
-
-void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
-{
+void sim_mob::Agent::SetIncrementIDStartValue(int startID,
+		bool failIfAlreadyUsed) {
 	//Check fail condition
-	if (failIfAlreadyUsed && Agent::next_agent_id!=0) {
-		throw std::runtime_error("Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
+	if (failIfAlreadyUsed && Agent::next_agent_id != 0) {
+		throw std::runtime_error(
+				"Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
 	}
 
 	//Fail if we've already passed this ID.
-	if(Agent::next_agent_id>startID) {
-		throw std::runtime_error("Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
+	if (Agent::next_agent_id > startID) {
+		throw std::runtime_error(
+				"Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
 	}
 
 	//Set
 	Agent::next_agent_id = startID;
 }
-
-
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat), call_frame_init(true),
@@ -103,36 +107,35 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	toRemoved = false;
 	nextPathPlanned = false;
 	dynamic_seed = id;
-
+	//Register global life cycle events.
+	RegisterEvent(AGENT_LIFE_EVENT_STARTED_ID);
+	RegisterEvent(AGENT_LIFE_EVENT_FINISHED_ID);
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
 		profile->logAgentCreated(*this);
 	}
 }
 
-sim_mob::Agent::~Agent()
-{
+sim_mob::Agent::~Agent() {
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}
 	safe_delete_item(profile);
 }
 
-
-void sim_mob::Agent::resetFrameInit()
-{
+void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
-
 namespace {
 //Ensure all time ticks are valid.
-void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
+void check_frame_times(unsigned int agentId, uint32_t now,
+		unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
 	//Has update() been called early?
-	if (now<startTime) {
+	if (now < startTime) {
 		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
-				<< " but it is currently: " << now
+		msg << "Agent(" << agentId << ") specifies a start time of: "
+				<< startTime << " but it is currently: " << now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
@@ -140,26 +143,29 @@ void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTim
 	//Has update() been called too late?
 	if (wasRemoved) {
 		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
+		msg << "Agent(" << agentId
+				<< ") should have already been removed, but was instead updated at: "
+				<< now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
+		if (abs(now - startTime) >= ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
-			msg <<"Agent was not started within one timespan of its requested start time.";
-			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
-			msg <<"Agent ID: " <<agentId <<"\n";
+			msg
+					<< "Agent was not started within one timespan of its requested start time.";
+			msg << "\nStart was: " << startTime << ",  Curr time is: " << now
+					<< "\n";
+			msg << "Agent ID: " << agentId << "\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 }
 } //End un-named namespace
 
-UpdateStatus sim_mob::Agent::perform_update(timeslice now)
-{
+UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -176,7 +182,8 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	check_frame_times(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
+	check_frame_times(getId(), now.ms(), getStartTime(), calledFrameInit,
+			isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = frame_tick(now);
@@ -194,10 +201,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 	return retVal;
 }
 
-
-
-Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
-{
+Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, now);
 
 	//Update within an optional try/catch block.
@@ -234,19 +238,20 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 #endif
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
-	if (isToBeRemoved() || retVal.status==UpdateStatus::RS_DONE) {
+	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
+		diedAgents++;
+		//notify subscribers that this agent is done
+		Publish(AGENT_LIFE_EVENT_FINISHED_ID, AgentLifeEventArgs(this));
+		UnSubscribeAll(AGENT_LIFE_EVENT_FINISHED_ID);
 	}
 
 	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
 	return retVal;
 }
 
-
-
-void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
-{
+void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
 	subsList.push_back(&fwdVel);
@@ -269,29 +274,28 @@ void sim_mob::Agent::clearToBeRemoved() {
 	toRemoved = false;
 }
 
-const sim_mob::Link* sim_mob::Agent::getCurrLink() const{
+const sim_mob::Link* sim_mob::Agent::getCurrLink() const {
 	return currSegment->getLink();
 }
-void sim_mob::Agent::setCurrLink(const sim_mob::Link* link){
+void sim_mob::Agent::setCurrLink(const sim_mob::Link* link) {
 	currLink = link;
 }
-const sim_mob::Lane* sim_mob::Agent::getCurrLane() const{
+const sim_mob::Lane* sim_mob::Agent::getCurrLane() const {
 	return currLane;
 }
-void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane){
+void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane) {
 	currLane = lane;
 }
-const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const{
+const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const {
 	return currSegment;
 }
-void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg){
+void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg) {
 	currSegment = rdSeg;
 }
 
-void sim_mob::Agent::initTravelStats(const Link* link, double entryTime)
-{
+void sim_mob::Agent::initTravelStats(const Link* link, double entryTime) {
 	currTravelStats.link_ = link;
-	currTravelStats.linkEntryTime_= entryTime;
+	currTravelStats.linkEntryTime_ = entryTime;
 }
 
 void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
@@ -321,3 +325,19 @@ int sim_mob::Agent::getOwnRandomNumber() {
 	return one_try;
 }
 #endif
+
+//////AGENT LIFE EVENT ARGS
+sim_mob::AgentLifeEventArgs::AgentLifeEventArgs(Agent* agent): agent(agent) {
+
+}
+
+sim_mob::AgentLifeEventArgs::AgentLifeEventArgs(
+		const AgentLifeEventArgs& orig) {
+	this->agent = orig.agent;
+}
+sim_mob::AgentLifeEventArgs::~AgentLifeEventArgs() {
+}
+
+const Agent* sim_mob::AgentLifeEventArgs::GetAgent() const {
+	return agent;
+}

@@ -12,7 +12,6 @@
 #include "entities/Entity.hpp"
 #include "event/EventPublisher.hpp"
 
-using std::vector;
 namespace sim_mob {
 
     namespace long_term {
@@ -22,8 +21,8 @@ namespace sim_mob {
          * Th main responsibility is the management of: 
          *  - avaliable units
          */
-        class HousingMarket : public UnitHolder, public Entity, 
-                public EventPublisher {
+        class HousingMarket : public UnitHolder, public sim_mob::Entity, 
+                public sim_mob::EventPublisher {
         public:
             HousingMarket();
             virtual ~HousingMarket();
@@ -45,7 +44,7 @@ namespace sim_mob {
              * Inherited from Entity
              */
             virtual bool isNonspatial();
-            virtual void buildSubscriptionList(vector<BufferedBase*>& subsList);
+            virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
             
         private:
             /**

@@ -13,8 +13,12 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 
-using namespace sim_mob;
-using namespace long_term;
+using namespace sim_mob::long_term;
+using sim_mob::Entity;
+using std::vector;
+using std::string;
+using std::map;
+using std::endl;
 
 HouseholdAgent::HouseholdAgent(int id, Household* hh, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {

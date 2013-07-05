@@ -20,9 +20,9 @@ using std::endl;
 using namespace sim_mob::long_term;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
-        HousingMarket* market)
+        const BidderParams& params, HousingMarket* market)
 : LT_AgentRole(parent), market(market), hh(hh), waitingForResponse(false),
-lastTime(0, 0), bidOnCurrentDay(false) {
+lastTime(0, 0), bidOnCurrentDay(false), params(params) {
     FollowMarket();
 }
 
@@ -169,16 +169,16 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
 }
 
 float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    /*float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
-    return pow(askingPrice, hh->GetWeightUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * unit.GetWeightPriceQuality());*/
-    return 0;
+    return pow(unit.GetAskingPrice(), params.GetUrgencyToBuy() + 1) /
+            ((float) GetBidsCounter(unit.GetId()) * params.GetPriceQuality());
 }
 
 float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return 0;/*(float) ((hh->GetWeightIncome() * hh->GetIncome()) +
-            (hh->GetWeightDistanceToCDB() * unit.GetDistanceToCDB()) +
-            (hh->GetWeightUnitSize() * unit.GetSize()));*/
+    return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
+            (params.GetUnitAreaWeight() * unit.GetArea()) +
+            (params.GetUnitTypeWeight() * unit.GetTypeId()) +
+            (params.GetUnitRentWeight() * unit.GetRent()) +
+            (params.GetUnitStoreyWeight() * unit.GetStorey()));
 }
 
 void HouseholdBidderRole::FollowMarket() {
@@ -206,7 +206,7 @@ int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
 void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
     BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
     if (mapItr != bidsPerUnit.end()) {
-        (mapItr->second)++ ;
+        (mapItr->second)++;
     } else {
         bidsPerUnit.insert(BidCounterEntry(unitId, 1));
     }

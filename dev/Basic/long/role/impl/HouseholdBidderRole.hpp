@@ -12,6 +12,7 @@
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
+#include "database/entity/housing-market/BidderParams.hpp"
 
 namespace sim_mob {
 
@@ -33,8 +34,8 @@ namespace sim_mob {
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
         public MessageReceiver {
         public:
-            HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
-                    HousingMarket* market);
+            HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
+                    const BidderParams& params, HousingMarket* market);
             virtual ~HouseholdBidderRole();
 
             /**
@@ -142,6 +143,7 @@ namespace sim_mob {
         private:
             Household* hh;
             HousingMarket* market;
+            BidderParams params;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;

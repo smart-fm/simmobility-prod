@@ -26,11 +26,13 @@ BidderParamsDao::~BidderParamsDao() {
 
 void BidderParamsDao::FromRow(Row& result, BidderParams& outObj) {
     outObj.householdId = result.get<BigSerial>(DB_FIELD_HOUSEHOLD_ID, INVALID_ID);
+    outObj.hhIncomeWeight = result.get<double>(DB_FIELD_WEIGHT_HH_INCOME, 0);
     outObj.unitAreaWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_AREA, 0);
     outObj.unitRentWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_RENT, 0);
     outObj.unitStoreyWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_STOREY, 0);
     outObj.unitTypeWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_TYPE, 0);
     outObj.urgencyToBuy = result.get<double>(DB_FIELD_WEIGHT_URGENCY_TO_BUY, 0);
+    outObj.priceQuality = result.get<double>(DB_FIELD_WEIGHT_PRICE_QUALITY, 0);
 }
 
 void BidderParamsDao::ToRow(BidderParams& data, Parameters& outParams, bool update) {

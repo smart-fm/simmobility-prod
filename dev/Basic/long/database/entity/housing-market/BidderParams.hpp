@@ -21,9 +21,10 @@ namespace sim_mob {
         class BidderParams {
         public:
             BidderParams(BigSerial householdId = INVALID_ID,
-                    double unitTypeWeight = INVALID_ID, double unitAreaWeight = .0f,
-                    double unitStoreyWeight = .0f, double unitRentWeight = .0f,
-                    double urgencyToBuy = .0f);
+                    double hhIncomeWeight = .0f, double unitTypeWeight = .0f,
+                    double unitAreaWeight = .0f, double unitStoreyWeight = .0f,
+                    double unitRentWeight = .0f, double urgencyToBuy = .0f,
+                    double priceQuality = .0f);
             virtual ~BidderParams();
 
             /**
@@ -37,6 +38,11 @@ namespace sim_mob {
              * @return value with Household identifier.
              */
             BigSerial GetHouseholdId() const;
+
+            /**
+             * @return household income weight.
+             */
+            double GetHH_IncomeWeight() const;
 
             /**
              * @return type weight.
@@ -57,11 +63,16 @@ namespace sim_mob {
              * @return rent value weight.
              */
             double GetUnitRentWeight() const;
-            
+
             /**
              * @return urgency to buy.
              */
             double GetUrgencyToBuy() const;
+
+            /**
+             * @return price quality.
+             */
+            double GetPriceQuality() const;
 
             /**
              * Operator to print the BidderParam data.  
@@ -69,11 +80,13 @@ namespace sim_mob {
             friend std::ostream& operator<<(std::ostream& strm, const BidderParams& data) {
                 return strm << "{"
                         << "\"householdId\":\"" << data.householdId << "\","
+                        << "\"hhIncomeWeight\":\"" << data.hhIncomeWeight << "\","
                         << "\"unitTypeWeight\":\"" << data.unitTypeWeight << "\","
                         << "\"unitAreaWeight\":\"" << data.unitAreaWeight << "\","
                         << "\"unitStoreyWeight\":\"" << data.unitStoreyWeight << "\","
                         << "\"unitRentWeight\":\"" << data.unitRentWeight << "\","
-                        << "\"urgencyToBuy\":\"" << data.urgencyToBuy << "\""
+                        << "\"urgencyToBuy\":\"" << data.urgencyToBuy << "\","
+                        << "\"priceQuality\":\"" << data.priceQuality << "\""
                         << "}";
             }
         private:
@@ -81,11 +94,13 @@ namespace sim_mob {
 
         private:
             BigSerial householdId;
+            double hhIncomeWeight;
             double unitTypeWeight;
             double unitAreaWeight;
             double unitStoreyWeight;
             double unitRentWeight;
             double urgencyToBuy;
+            double priceQuality;
         };
     }
 }

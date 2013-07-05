@@ -60,8 +60,10 @@ const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_AREA = "unit_area_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_TYPE = "unit_type_weight";
+const std::string DB_FIELD_WEIGHT_HH_INCOME = "hh_income_weight";
 
 // Housing market
+const std::string DB_FIELD_WEIGHT_PRICE_QUALITY = "price_quality";
 const std::string DB_FIELD_WEIGHT_URGENCY_TO_BUY = "urgency_to_buy";
 const std::string DB_FIELD_WEIGHT_EXPECTED_EVENTS = "expected_events";
 const std::string DB_FIELD_WEIGHT_PRICE_IMPORTANCE = "price_importance";

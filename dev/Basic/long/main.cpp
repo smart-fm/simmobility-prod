@@ -29,6 +29,18 @@
 #include "util/Math.hpp"
 #include "util/Statistics.hpp"
 
+//DAOs
+#include "database/dao/GlobalParamsDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
+#include "database/dao/HouseholdDao.hpp"
+#include "database/dao/BuildingDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/BuildingTypeDao.hpp"
+#include "database/dao/housing-market/BidderParamsDao.hpp"
+#include "database/dao/housing-market/SellerParamsDao.hpp"
+
+using sim_mob::DBConnection;
+
 using std::cout;
 using std::endl;
 using std::vector;
@@ -122,13 +134,92 @@ float UNIT_FIXED_COST = 0.1f;
 #define DAYS 365
 #define WORKERS 2
 #define DATA_SIZE 30
-
+#define CONNECTION_STRING "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
 /**
  * Runs all unit-tests.
  */
 void RunTests() {
     unit_tests::DaoTests tests;
     tests.TestAll();
+}
+
+void SimulateWithDB() {
+     LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
+    // Milliseconds step (Application crashes if this is 0).
+    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
+    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
+    ConfigParams::GetInstance().defaultWrkGrpAssignment =
+            WorkGroup::ASSIGN_ROUNDROBIN;
+
+    //Work Group specifications
+    WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
+    WorkGroup::InitAllGroups();
+    agentWorkers->initWorkers(nullptr);
+
+    HousingMarket market;
+    agentWorkers->assignAWorker(&market);
+    // Connect to database and load data.
+    DBConnection conn(sim_mob::POSTGRES, CONNECTION_STRING);
+    conn.Connect();
+    
+    list<HouseholdAgent*> agents;
+    vector<Unit> units;
+    vector<Household> households;
+    if (conn.IsConnected()) {
+        // Households
+        HouseholdDao hhDao(&conn);
+        hhDao.GetAll(households);
+        //units
+        UnitDao unitDao(&conn);
+        unitDao.GetAll(units);
+        SellerParamsDao sellerDao(&conn);
+        BidderParamsDao bidderDao(&conn);
+        SellerParams sellerParams;
+        BidderParams bidderParams;
+        for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
+            Household* household = &(*it);
+            LogOut("Household: " << (*household) << endl);
+            sim_mob::dao::Parameters keys;
+            keys.push_back(household->GetId());
+            sellerDao.GetById(keys, sellerParams);
+            bidderDao.GetById(keys, bidderParams);
+            HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, SellerParams(), BidderParams(), &market);
+            agents.push_back(hhAgent);
+            agentWorkers->assignAWorker(hhAgent);
+            for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
+                if (it->GetId() == household->GetUnitId()){
+                    Unit* unit = new Unit(*it);
+                    unit->SetAvailable(true);
+                    hhAgent->AddUnit(unit);
+                    LogOut("Household: " << household->GetUnitId() << " Unit: " << unit->GetId()<< endl);
+                }
+            }
+        }
+    }
+    
+    //Start work groups and all threads.
+    WorkGroup::StartAllWorkGroups();
+
+    LogOut("Started all workgroups." << endl);
+    for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+        LogOut("Day: " << currTick << endl);
+        WorkGroup::WaitAllGroups();
+    }
+
+    LogOut("Finalizing workgroups: " << endl);
+    WorkGroup::FinalizeAllWorkGroups();
+
+    LogOut("Destroying agents: " << endl);
+    //destroy all agents.
+    for (list<HouseholdAgent*>::iterator itr = agents.begin();
+            itr != agents.end(); itr++) {
+        HouseholdAgent* ag = *(itr);
+        safe_delete_item(ag);
+    }
+    agents.clear();
+    households.clear();
+    units.clear();
 }
 
 void perform_main() {
@@ -154,8 +245,9 @@ void perform_main() {
     //create all households.
     for (int i = 0; i < DATA_SIZE; i++) {
         Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
+        
         LogOut("Household: " << (*hh) << endl);
-        HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
+        HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, SellerParams(), BidderParams(), &market);
         //LogOut("Household: " << (*hh) << endl);
         //add agents units.
         for (int j = 0; j < DATA_SIZE; j++) {
@@ -199,10 +291,6 @@ void perform_main() {
     entities.clear();
 }
 
-double func(double x, const boost::tuple<double,double,double>& params) {
-    return pow(-(x - 3), 2) + 10;
-}
-
 int main(int argc, char* argv[]) {
     Logger::log_init("");
     StopWatch watch;
@@ -210,20 +298,14 @@ int main(int argc, char* argv[]) {
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         LogOut("Simulation #:  " << (i + 1) << endl);
-        RunTests();
+        //RunTests();
+        SimulateWithDB();
         //perform_main();
     }
     watch.Stop();
-
-    LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
-            << endl);
-    double resul1 = Math::FindMaxArg(func, -10, boost::tuple<double,double,double>(), .0001f, 100000000);
-    // LogOut("Result: " << result << endl);
-    LogOut("Result1: " << std::setprecision(1) << resul1 << endl);
-
     Statistics::Print();
+    LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."<< endl);
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
-
-    Logger::log_done();
+   Logger::log_done();
     return 0;
 }

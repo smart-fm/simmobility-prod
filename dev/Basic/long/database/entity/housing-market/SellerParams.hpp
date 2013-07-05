@@ -21,6 +21,8 @@ namespace sim_mob {
         class SellerParams {
         public:
             SellerParams(BigSerial householdId = INVALID_ID,
+                    double unitTypeWeight = .0f, double unitAreaWeight = .0f, 
+                    double unitStoreyWeight = .0f, double unitRentWeight = .0f,
                     double priceImportance = .0f, double expectedEvents = .0f);
             virtual ~SellerParams();
 
@@ -35,6 +37,26 @@ namespace sim_mob {
              * @return value with Household identifier.
              */
             BigSerial GetHouseholdId() const;
+            
+            /**
+             * @return type weight.
+             */
+            double GetUnitTypeWeight() const;
+
+            /**
+             * @return unit storey weight.
+             */
+            double GetUnitStoreyWeight() const;
+
+            /**
+             * @return unit area weight value.
+             */
+            double GetUnitAreaWeight() const;
+
+            /**
+             * @return rent value weight.
+             */
+            double GetUnitRentWeight() const;
 
             /**
              * @return price importance weight.
@@ -51,6 +73,11 @@ namespace sim_mob {
              */
             friend std::ostream& operator<<(std::ostream& strm, const SellerParams& data) {
                 return strm << "{"
+                        << "\"householdId\":\"" << data.householdId << "\","
+                        << "\"unitTypeWeight\":\"" << data.unitTypeWeight << "\","
+                        << "\"unitAreaWeight\":\"" << data.unitAreaWeight << "\","
+                        << "\"unitStoreyWeight\":\"" << data.unitStoreyWeight << "\","
+                        << "\"unitRentWeight\":\"" << data.unitRentWeight << "\","
                         << "\"priceImportance\":\"" << data.priceImportance << "\","
                         << "\"expectedEvents\":\"" << data.expectedEvents << "\""
                         << "}";
@@ -60,6 +87,10 @@ namespace sim_mob {
 
         private:
             BigSerial householdId;
+            double unitTypeWeight;
+            double unitAreaWeight;
+            double unitStoreyWeight;
+            double unitRentWeight;
             double priceImportance;
             double expectedEvents;
         };

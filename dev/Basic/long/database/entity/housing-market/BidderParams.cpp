@@ -12,12 +12,13 @@
 
 using namespace sim_mob::long_term;
 
-BidderParams::BidderParams(BigSerial householdId, double unitTypeWeight,
+BidderParams::BidderParams(BigSerial householdId, double hhIncomeWeight, double unitTypeWeight,
         double unitAreaWeight, double unitStoreyWeight, double unitRentWeight,
-        double urgencyToBuy) :
+        double urgencyToBuy, double priceQuality) :
 householdId(householdId), unitTypeWeight(unitTypeWeight),
 unitStoreyWeight(unitStoreyWeight), unitAreaWeight(unitAreaWeight),
-unitRentWeight(unitRentWeight), urgencyToBuy(urgencyToBuy) {
+unitRentWeight(unitRentWeight), urgencyToBuy(urgencyToBuy), 
+hhIncomeWeight(hhIncomeWeight), priceQuality(priceQuality) {
 }
 
 BidderParams::~BidderParams() {
@@ -30,11 +31,17 @@ BidderParams& BidderParams::operator=(const BidderParams& source) {
     this->unitStoreyWeight = source.unitStoreyWeight;
     this->unitTypeWeight = source.unitTypeWeight;
     this->urgencyToBuy = source.urgencyToBuy;
+    this->hhIncomeWeight = source.hhIncomeWeight;
+    this->priceQuality = source.priceQuality;
     return *this;
 }
 
 BigSerial BidderParams::GetHouseholdId() const {
     return householdId;
+}
+
+double BidderParams::GetHH_IncomeWeight() const {
+    return hhIncomeWeight;
 }
 
 double BidderParams::GetUnitTypeWeight() const {
@@ -55,4 +62,8 @@ double BidderParams::GetUnitRentWeight() const {
 
 double BidderParams::GetUrgencyToBuy() const {
     return urgencyToBuy;
+}
+
+double BidderParams::GetPriceQuality() const {
+    return priceQuality;
 }

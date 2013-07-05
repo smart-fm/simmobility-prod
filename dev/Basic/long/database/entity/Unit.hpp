@@ -86,13 +86,23 @@ namespace sim_mob {
              * @param avaliable value. 
              */
             void SetAvailable(bool avaliable);
+            
+            /**
+             * @return the hedonic price.
+             */
+            double GetHedonicPrice() const;
+            
+            /**
+             * @return the AskingPrice price.
+             */
+            double GetAskingPrice() const;
 
             /**
              * Gets the owner endpoint for communication.
              * @return owner endpoint.
              */
             UnitHolder* GetOwner();
-
+            
             /**
              * Operator to print the Unit data.  
              */
@@ -106,15 +116,27 @@ namespace sim_mob {
                         << "\"area\":\"" << data.area << "\","
                         << "\"storey\":\"" << data.storey << "\","
                         << "\"rent\":\"" << data.rent << "\","
+                        << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
+                        << "\"askingPrice\":\"" << data.askingPrice << "\","
                         << "\"available\":\"" << data.available << "\""
                         << "}";
             }
         private:
             friend class UnitDao;
+            friend class HouseholdSellerRole;
+            
+            /**
+             * Sets the hedonic price
+             */
+            void SetHedonicPrice(double hedonicPrice);
 
             /**
-             * Gets the owner endpoint for communication.
-             * @return owner endpoint.
+             * Sets the asking price.
+             */
+            void SetAskingPrice(double askingPrice);
+
+            /**
+             * Sets the owner of the unit.
              */
             void SetOwner(UnitHolder* receiver);
 
@@ -128,6 +150,8 @@ namespace sim_mob {
             int storey; 
             double rent;
             bool available;
+            double hedonicPrice;
+            double askingPrice;
             UnitHolder* owner;
             mutable boost::shared_mutex mutex;
         };

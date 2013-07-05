@@ -26,6 +26,10 @@ SellerParamsDao::~SellerParamsDao() {
 
 void SellerParamsDao::FromRow(Row& result, SellerParams& outObj) {
     outObj.householdId = result.get<BigSerial>(DB_FIELD_HOUSEHOLD_ID, INVALID_ID);
+    outObj.unitAreaWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_AREA, 0);
+    outObj.unitRentWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_RENT, 0);
+    outObj.unitStoreyWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_STOREY, 0);
+    outObj.unitTypeWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_TYPE, 0);
     outObj.priceImportance = result.get<double>(DB_FIELD_WEIGHT_EXPECTED_EVENTS, 0);
     outObj.expectedEvents = result.get<double>(DB_FIELD_WEIGHT_PRICE_IMPORTANCE, 0);
 }

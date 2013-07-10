@@ -53,7 +53,6 @@ private:
 	 * \param tickStep How many ticks to advance per update(). It is beneficial to have one WorkGroup where
 	 *        this value is 1, since any WorkGroup with a greater value will have to wait 2 times (due to
 	 *        the way we synchronize data).
-	 *
 	 */
 	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
 
@@ -72,14 +71,6 @@ public:
 	void addEntity(Entity* entity);
 	void remEntity(Entity* entity);
 	const std::vector<Entity*>& getEntities()const ;
-
-
-	//
-	//NOTE: Allowing a Worker or any Agent to access the current Work Group is extremely
-	//      dangerous. Please see the note in BusController.hpp; it works for now, but
-	//      risks introducing hard-to-debug errors later. ~Seth
-	//
-	WorkGroup* const getParent() { return parent; }
 
 	//Manage Links
 	void addLink(Link* link);

@@ -34,7 +34,7 @@ using namespace sim_mob;
 
 //Static initializations
 vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
-std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*> sim_mob::WorkGroup::WorkGroupMembership;
+//std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*> sim_mob::WorkGroup::WorkGroupMembership;
 unsigned int sim_mob::WorkGroup::CurrBarrierCount = 1;
 bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
 FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
@@ -77,7 +77,7 @@ WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned in
 	return res;
 }
 
-void sim_mob::WorkGroup::addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem)
+/*void sim_mob::WorkGroup::addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem)
 {
 	typedef std::pair<sim_mob::WorkGroup::workGroupMembership,WorkGroup*> thePair;
 	WorkGroupMembership.insert(thePair(mem,wg));
@@ -87,7 +87,7 @@ void sim_mob::WorkGroup::addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup
 sim_mob::WorkGroup::WG_Members sim_mob::WorkGroup::getWorkGroupMembers(sim_mob::WorkGroup::workGroupMembership membership)
 {
 	return WorkGroupMembership.equal_range(membership);
-}
+}*/
 
 
 void sim_mob::WorkGroup::InitAllGroups()

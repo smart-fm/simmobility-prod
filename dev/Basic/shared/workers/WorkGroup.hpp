@@ -49,12 +49,12 @@ class WorkGroup {
 public:  //Static methods
 
 	//Note: A workgroup can have multiple memberships
-	enum workGroupMembership
+	/*enum workGroupMembership
 	{
 		WGM_GENERAL_AGENTS = 1,
 		WGM_SIGNAL_AGENTS = 2,
 		WGM_COMMUNICATING_AGENTS = 3,
-	};
+	};*/
 	//not currently in use
 	enum workGroupCategory
 	{
@@ -65,7 +65,7 @@ public:  //Static methods
 		WGM_UNKNOWN = 5
 	};
 	//ease of typing only
-		typedef std::pair<std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator, std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator > WG_Members;
+	//	typedef std::pair<std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator, std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator > WG_Members;
 	/**
 	 * Type of Worker assignment strategy. Determines how a newly-dispatched Agent
 	 * will be distributed among the various Worker threads.
@@ -92,8 +92,8 @@ public:  //Static methods
 	 * \param partitionMgr The partition manager. Will be updated during the AuraManager barrier wait (but *before*) the AuraMaanger if it exists.
 	 */
 	static sim_mob::WorkGroup* NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks=0, unsigned int tickStep=1, sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr);
-	static void addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem);
-	static WG_Members getWorkGroupMembers(sim_mob::WorkGroup::workGroupMembership mem);
+	//static void addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem);
+	//static WG_Members getWorkGroupMembers(sim_mob::WorkGroup::workGroupMembership mem);
 	///Initialize all WorkGroups. Before this function is called, WorkGroups cannot have Workers added to them. After this function is
 	///  called, no new WorkGroups may be added.
 	static void InitAllGroups();
@@ -124,7 +124,7 @@ private: //Static fields
 	//1-grouping all WGs to be checked to see
 	//if any of the agents have anything to send/receive through
 	//communication simulator
-	static std::multimap<workGroupMembership, sim_mob::WorkGroup*> WorkGroupMembership;
+//	static std::multimap<workGroupMembership, sim_mob::WorkGroup*> WorkGroupMembership;
 
 	//The current barrier count for the main three barriers (frame, flip, aura), +1 for the static WorkGroup itself.
 	//  Note: Compared to previous implementations, each WorkGroup does NOT add 1 to the barrier count.

@@ -33,13 +33,13 @@ using boost::function;
 using namespace sim_mob;
 
 //Static initializations
-vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
+/*vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
 //std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*> sim_mob::WorkGroup::WorkGroupMembership;
 unsigned int sim_mob::WorkGroup::CurrBarrierCount = 1;
 bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
 FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
-FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
+FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;*/
 
 
 namespace {
@@ -61,7 +61,7 @@ Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
 // Static methods
 ////////////////////////////////////////////////////////////////////
 
-WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
+/*WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
 {
 	//Sanity check
 	if (WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't add new work group; barriers have already been established."); }
@@ -75,7 +75,7 @@ WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned in
 
 	WorkGroup::RegisteredWorkGroups.push_back(res);
 	return res;
-}
+}*/
 
 /*void sim_mob::WorkGroup::addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem)
 {
@@ -89,7 +89,7 @@ sim_mob::WorkGroup::WG_Members sim_mob::WorkGroup::getWorkGroupMembers(sim_mob::
 	return WorkGroupMembership.equal_range(membership);
 }*/
 
-
+/*
 void sim_mob::WorkGroup::InitAllGroups()
 {
 	//Sanity check
@@ -197,7 +197,7 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 	safe_delete_item(WorkGroup::FrameTickBarr);
 	safe_delete_item(WorkGroup::BuffFlipBarr);
 	safe_delete_item(WorkGroup::AuraMgrBarr);
-}
+}*/
 void sim_mob::WorkGroup::clear()
 {
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
@@ -594,9 +594,9 @@ void sim_mob::WorkGroup::interrupt()
 }
 
 // providing read only access to public for RegisteredWorkGroups. AuraManager requires this
-const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
+/*const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
 	return sim_mob::WorkGroup::RegisteredWorkGroups;
-}
+}*/
 
 /*
  * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent

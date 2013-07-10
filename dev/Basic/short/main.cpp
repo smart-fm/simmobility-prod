@@ -23,8 +23,9 @@
 #include "GenConfig.h"
 
 #include "workers/Worker.hpp"
-#include "buffering/BufferedDataManager.hpp"
 #include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
+#include "buffering/BufferedDataManager.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -228,16 +229,17 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	{ //Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
+	WorkGroupManager wgMgr;
 
 	//Work Group specifications
-	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = WorkGroup::NewWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -250,7 +252,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
-	WorkGroup::InitAllGroups();
+	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
@@ -347,7 +349,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 //	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgMgr.startAllWorkGroups();
 
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -436,7 +438,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 //		trafficWatch.update(currTick);
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
-		WorkGroup::WaitAllGroups();
+		wgMgr.waitAllGroups();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -513,7 +515,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 
 	//At this point, it should be possible to delete all Signals and Agents.
 	//TODO: For some reason, clear_delete_vector() does (may?) not work in INTERACTIVE mode.

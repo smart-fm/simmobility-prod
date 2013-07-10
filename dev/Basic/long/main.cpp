@@ -22,6 +22,7 @@
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "unit-tests/dao/DaoTests.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
@@ -141,16 +142,19 @@ void perform_main() {
     ConfigParams::GetInstance().defaultWrkGrpAssignment =
             WorkGroup::ASSIGN_ROUNDROBIN;
 
+    //create all units.
+    list<HouseholdAgent*> agents;
+    list<Household*> entities;
+
+    {
+    WorkGroupManager wgMgr;
     //Work Group specifications
-    WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
-    WorkGroup::InitAllGroups();
+    WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+    wgMgr.initAllGroups();
     agentWorkers->initWorkers(nullptr);
 
     HousingMarket market;
     agentWorkers->assignAWorker(&market);
-    //create all units.
-    list<HouseholdAgent*> agents;
-    list<Household*> entities;
     //create all households.
     for (int i = 0; i < DATA_SIZE; i++) {
         Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
@@ -171,16 +175,16 @@ void perform_main() {
         entities.push_back(hh);
     }
     //Start work groups and all threads.
-    WorkGroup::StartAllWorkGroups();
+    wgMgr.startAllWorkGroups();
 
     LogOut("Started all workgroups." << endl);
     for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
         LogOut("Day: " << currTick << endl);
-        WorkGroup::WaitAllGroups();
+        wgMgr.waitAllGroups();
     }
 
     LogOut("Finalizing workgroups: " << endl);
-    WorkGroup::FinalizeAllWorkGroups();
+    } //End WorkGroupManager scope.
 
     LogOut("Destroying agents: " << endl);
     //destroy all agents.

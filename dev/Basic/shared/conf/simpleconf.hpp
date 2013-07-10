@@ -99,6 +99,8 @@ public:
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
 
+	bool singleThreaded; ///<If true, we are running everything on one thread.
+
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string roadNetworkXsdSchemaFile;
 
@@ -308,7 +310,7 @@ public:
 
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
-		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), day_of_week(MONDAY),
+		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), day_of_week(MONDAY),
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),

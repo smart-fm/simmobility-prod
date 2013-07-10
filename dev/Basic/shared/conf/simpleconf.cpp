@@ -1755,6 +1755,22 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int signalWgSize = ReadValue(handle, "signal", 0);
 	int commWgSize = ReadValue(handle, "Android_Communication", 0);
 
+	//Save the "single-threaded" flag, if it exists.
+	bool singleThreaded = false;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("single_threaded").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="true") {
+				singleThreaded = true;
+			}
+		}
+	}
+	ConfigParams::GetInstance().singleThreaded = singleThreaded;
+
+
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
@@ -2184,6 +2200,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+    std::cout <<"Force single-threaded: " <<(ConfigParams::GetInstance().singleThreaded?"yes":"no") <<"\n";
 	//Print the WorkGroup strategy.
 	std::cout <<"WorkGroup assignment: ";
 	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
@@ -2193,7 +2210,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	} else {
 		std::cout <<"<unknown>" <<std::endl;
 	}
-    std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
+	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";

@@ -61,7 +61,10 @@ public:
 	virtual ~Worker();
 
 	//Thread-style operations
+private:
 	void start();
+
+public:
 	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
 	void join();
 

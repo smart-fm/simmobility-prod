@@ -108,7 +108,10 @@ public:
 
 	void initWorkers(EntityLoadParams* loader);
 
+private:
 	void startAll();
+
+public:
 	void interrupt();
 	size_t size();
 

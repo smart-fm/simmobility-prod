@@ -731,7 +731,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
-	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
+//	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
@@ -788,7 +788,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	}
 	prevRole = currRole;
 	currRole = newRole;
-	Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
+//	Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);

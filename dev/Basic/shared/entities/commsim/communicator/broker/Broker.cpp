@@ -32,7 +32,7 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 	if(!cnnHandler) {
 		return false;
 	}
-	if (cnnHandler->agentPtr == 0) {
+	if (cnnHandler->isValid() == false) {
 		return false;
 	}
 //	if(sendBuffer.find(cnnHandler) != sendBuffer.end())
@@ -55,6 +55,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 //publishers
 	 publishers.insert( std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
+	 publishers.insert( std::make_pair(SIMMOB_SRV_ALL_LOCATIONS, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
 	 publishers.insert(std::make_pair(SIMMOB_SRV_TIME, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::TimePublisher())));
 	 //current message factory
 	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::roadrunner::RR_Factory() );
@@ -264,7 +265,10 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_TIME,clientHandler);
 						break;
 					case SIMMOB_SRV_LOCATION:
-						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						publishers[SIMMOB_SRV_LOCATION]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						break;
+					case SIMMOB_SRV_ALL_LOCATIONS:
+						publishers[SIMMOB_SRV_ALL_LOCATIONS]->UnSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
 						break;
 					}
 				}
@@ -275,6 +279,9 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 				//invalidation 1:
 				it_erase->second->agent = 0;
 				it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
+				//or a better version //todo: use one version only
+				it_erase->second->setValidation(false);
+				it_erase->second->cnnHandler->setValidation(false); //this is even more important
 
 			}
 			else
@@ -368,20 +375,25 @@ bool Broker::allAgentUpdatesDone()
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void Broker::processPublishers(timeslice now) {
+	Print() << "Processing Publishers " << std::endl;
 	PublisherList::pair publisher_pair;
 //	std::pair<SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::EventPublisher> > publisher_pair;
 	BOOST_FOREACH(publisher_pair, publishers)
 	{
+		Print() << "Processing Publishers->inside the loop " << std::endl;
 		//easy reading
 		SIM_MOB_SERVICE service = publisher_pair.first;
 		sim_mob::EventPublisher & publisher = *publisher_pair.second;
 
 		switch (service) {
+		Print() << "Processing Publishers->inside the switch " << std::endl;
 		case sim_mob::SIMMOB_SRV_TIME: {
+			Print() << "Processing Publishers->SIMMOB_SRV_TIME " << std::endl;
 			publisher.Publish(COMMEID_TIME, TimeEventArgs(now));
 			break;
 		}
 		case sim_mob::SIMMOB_SRV_LOCATION: {
+			Print() << "Processing Publishers->SIMMOB_SRV_LOCATION " << std::endl;
 
 			//get to each client handler, look at his requred service and then publish for him
 //			std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientsByType;
@@ -396,6 +408,11 @@ void Broker::processPublishers(timeslice now) {
 					publisher.Publish(COMMEID_LOCATION,(void*) cHandler->agent,LocationEventArgs(cHandler->agent));
 				}
 			}
+			break;
+		}
+		case sim_mob::SIMMOB_SRV_ALL_LOCATIONS: {
+			Print() << "Processing Publishers->SIMMOB_SRV_ALL_LOCATIONS " << std::endl;
+			publisher.Publish(COMMEID_LOCATION,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(registeredAgents));
 			break;
 		}
 		default:
@@ -619,7 +636,7 @@ bool Broker::allClientsAreDone()
 
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 		msg_header msg_header_;
-		Print()<< "Broker::allClientsAreDone locking mutex_clientList " << std::endl;
+		Print()<< "Broker::allClientsAreDone locking mutex_clientList " << clientList.size() << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_clientList);
 		BOOST_FOREACH(clientByType, clientList)
 		{
@@ -638,23 +655,23 @@ bool Broker::allClientsAreDone()
 				{
 					continue;
 				}
-				if(!(clnHandler->agent))
+				if(!(clnHandler->isValid()))
 				{
 					continue;
 				}
-				if(!(clnHandler->cnnHandler->agentPtr))
+				if(!(clnHandler->cnnHandler->isValid()))
 				{
 					continue;
 				}
 				//but
 				if(!isClientDone(clnHandler))
 				{
-					Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList " << std::endl;
+					Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList --false" << std::endl;
 					return false;
 				}
 			}
 		}
-		Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList " << std::endl;
+		Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList --true" << std::endl;
 		return true;
 }
 

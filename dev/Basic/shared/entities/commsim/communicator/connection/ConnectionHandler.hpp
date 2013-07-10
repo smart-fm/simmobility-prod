@@ -27,6 +27,7 @@ class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler
 	messageReceiveCallback receiveCallBack;
 	Broker &theBroker;
 	std::string incomingMessage;
+	bool valid;
 public:
 	//metadata
 	//some of such data is duplicated in the broker client list entries
@@ -50,6 +51,9 @@ public:
 	void send(std::string str);
 	void sendHandler(const boost::system::error_code& e) ;
 	bool is_open();
+	bool isValid();
+	void setValidation(bool);
+
 };//ConnectionHandler
 
 } /* namespace sim_mob */

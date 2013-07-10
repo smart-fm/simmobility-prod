@@ -44,21 +44,27 @@ public:
   template <typename Handler>
   void async_write(std::string &data, Handler handler)
   {
-//	outbound_data_ = data;
-//    // Format the header.
-//    std::ostringstream header_stream;
-//    header_stream << std::setw(header_length)
-//      << std::hex << outbound_data_.size();
-//    if (!header_stream || header_stream.str().size() != header_length)
-//    {
-//      // Something went wrong, inform the caller.
-//      boost::system::error_code error(boost::asio::error::invalid_argument);
-//      socket_.get_io_service().post(boost::bind(handler, error));
-//      return;
-//    }
-//    outbound_header_ = header_stream.str(); //not used
+	outbound_data_ = data; //extra copy
+    // Format the header.
+    std::ostringstream header_stream;
+    header_stream << std::setw(header_length)
+      << std::hex << outbound_data_.size();
+    if (!header_stream || header_stream.str().size() != header_length)
+    {
+      // Something went wrong, inform the caller.
+      boost::system::error_code error(boost::asio::error::invalid_argument);
+      socket_.get_io_service().post(boost::bind(handler, error));
+      return;
+    }
+    outbound_header_ = header_stream.str(); //not used
+    Print() << "outbound_header_is '" << outbound_header_ << "'" << std::endl;
 
-    boost::asio::async_write(socket_, boost::asio::buffer(/*outbound_data_*/data), handler);
+	    std::vector<boost::asio::const_buffer> buffers;
+	    buffers.push_back(boost::asio::buffer(outbound_header_));
+	    buffers.push_back(boost::asio::buffer(outbound_data_));
+	    boost::asio::async_write(socket_, buffers, handler);
+
+//    boost::asio::async_write(socket_, boost::asio::buffer(/*outbound_data_*/data), handler);
   }
 
   /// Asynchronously read a data structure from the socket.

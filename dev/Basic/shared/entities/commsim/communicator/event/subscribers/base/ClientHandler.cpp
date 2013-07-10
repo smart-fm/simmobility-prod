@@ -10,8 +10,7 @@
 namespace sim_mob {
 
 ClientHandler::ClientHandler(sim_mob::Broker & broker_):broker(broker_) {
-	// TODO Auto-generated constructor stub
-
+	valid = true;
 }
 sim_mob::Broker &ClientHandler::getBroker()
 {
@@ -25,15 +24,26 @@ void ClientHandler::OnLocation(EventId id, Context context, EventPublisher* send
    getBroker().insertSendBuffer(cnnHandler, locJson);
 }
 
+void ClientHandler::OnAllLocations(EventId id, Context context, EventPublisher* sender, const AllLocationsEventArgs& argums){
+//	 std::string locJson = argums.ToJSON();
+	 Json::Value locJson = argums.ToJSON();
+   //now send to broker's buffer
+   getBroker().insertSendBuffer(cnnHandler, locJson);
+}
+
 void ClientHandler::OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args){
 //   std::string timeJson = args.ToJSON();
    Json::Value timeJson = args.ToJSON();
-   if(args.time.frame() > 158)
-   {
-	   int i = 0;
-   }
    //now send to broker's buffer
    getBroker().insertSendBuffer(cnnHandler, timeJson);
+}
+
+bool ClientHandler::isValid() {
+	return valid;
+}
+
+void ClientHandler::setValidation(bool value) {
+	valid = value;
 }
 
 ClientHandler::~ClientHandler() {

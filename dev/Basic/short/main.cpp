@@ -267,7 +267,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	}
 
 	//Assign all BusStopAgents
-	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
+//	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
 	BusStopAgent::AssignAllBusStopAgents(*agentWorkers);
 
 	//Assign all signals too

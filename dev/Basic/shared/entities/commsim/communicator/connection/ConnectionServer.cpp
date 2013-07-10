@@ -26,12 +26,12 @@ void ConnectionServer::CreatSocketAndAccept() {
 	std::cout << "Accepting..." << std::endl;
 //	sim_mob::session_ptr new_sess;
 	new_sess.reset(new sim_mob::Session(io_service_));
-	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
+//	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
 	acceptor_.async_accept(new_sess->socket(),
 			boost::bind(&ConnectionServer::handle_accept, this,
 					boost::asio::placeholders::error, new_sess));
 	new_sess.reset();
-	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
+//	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
 }
 
 ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port)

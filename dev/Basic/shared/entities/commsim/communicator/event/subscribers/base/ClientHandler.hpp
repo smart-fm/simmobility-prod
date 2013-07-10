@@ -13,6 +13,7 @@
 #include "event/EventListener.hpp"
 #include "entities/commsim/communicator/event/TimeEventArgs.hpp"
 #include "entities/commsim/communicator/event/LocationEventArgs.hpp"
+#include "entities/commsim/communicator/event/AllLocationsEventArgs.hpp"
 #include "entities/commsim/communicator/service/services.hpp"
 
 
@@ -28,6 +29,7 @@ class Agent;
 
 class ClientHandler: public sim_mob::EventListener {
 	sim_mob::Broker & broker;
+	bool valid;
 public:
 	ClientHandler(sim_mob::Broker &);
 	boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler;
@@ -40,7 +42,10 @@ public:
 	virtual ~ClientHandler();
 	//event functions:
 	void OnLocation(EventId id, Context context, EventPublisher* sender, const LocationEventArgs& args);
+	void OnAllLocations(EventId id, Context context, EventPublisher* sender, const AllLocationsEventArgs& argums);
 	 void OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args);
+	 bool isValid();
+	 void setValidation(bool);
 };
 
 } /* namespace sim_mob */

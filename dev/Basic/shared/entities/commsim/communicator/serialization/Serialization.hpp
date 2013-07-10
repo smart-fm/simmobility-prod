@@ -132,12 +132,6 @@ public:
 			return false;
 		}
 
-//		if(!root.isMember("WHOAMI"))
-//		{
-//			std::cout << "No WHOAMI section.Parsing '" << input << "' Failed" << std::endl;
-//			return false;
-//		}
-//		Json::Value whoami = root["WHOAMI"];
 		if (!((root.isMember("ID")) && (root.isMember("TYPE")))) {
 			Print() << "WHOAMI format incomplete.Parsing '" << input
 					<< "' Failed" << std::endl;
@@ -145,7 +139,6 @@ public:
 		}
 		ID = root["ID"].asString();
 		type = root["TYPE"].asString();
-//		Print() << "Inside get_WHOAMI :'" << whoami.toStyledString() << "'" << std::endl;
 
 		if (!root["REQUIRED_SERVICES"].isNull()) {
 			if (root["REQUIRED_SERVICES"].isArray()) {
@@ -222,13 +215,13 @@ public:
 		return writer.write(time);
 	}
 
-	static std::string makeLocationDataString(int x, int y) {
-		Json::Value loc = makeLocationData(x,y);
+	static std::string makeLocationMessageString(int x, int y) {
+		Json::Value loc = makeLocationMessage(x,y);
 		Json::FastWriter writer;
 		return writer.write(loc);
 	}
 
-	static Json::Value makeLocationData(int x, int y) {
+	static Json::Value makeLocationMessage(int x, int y) {
 
 		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA"));
 		loc["x"] = x;
@@ -236,6 +229,17 @@ public:
 
 		return loc;
 	}
+	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y)
+	{
+		Json::Value loc;
+		loc["ID"] = id;
+		loc["x"] = x;
+		loc["y"] = y;
+		return loc;
+	}
+//	static Json::Value makeAllLocationsMessage(int x, int y) {
+//
+//	}
 	//@originalMessage input
 	//@extractedType output
 	//@extractedData output

@@ -15,10 +15,10 @@ LocationEventArgs::LocationEventArgs(const sim_mob::Agent * agent_) :agent(agent
 
 }
 //std::string LocationEventArgs::ToJSON()const{
-//	return JsonParser::makeLocationData(agent->xPos.get(), agent->yPos.get());
+//	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get());
 //}
 Json::Value LocationEventArgs::ToJSON()const{
-	return JsonParser::makeLocationData(agent->xPos.get(), agent->yPos.get());
+	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get());
 }
 LocationEventArgs::~LocationEventArgs() {
 	// TODO Auto-generated destructor stub

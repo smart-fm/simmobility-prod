@@ -26,6 +26,7 @@ ConnectionHandler::ConnectionHandler(
 	clientType = ClienType_;
 	agentPtr = agentPtr_;
 //	incomingMessage = "'\0'";
+	valid = true;
 }
 
 ConnectionHandler::~ConnectionHandler(){
@@ -42,9 +43,10 @@ void ConnectionHandler::start()
 	packet["DATA"].append(msg);//no other data element needed
 	Json::FastWriter writer;
 
-	std::string str = writer.write(packet);
+	std::string readyMessage = writer.write(packet);
+	Print() << "ConnectionHandler::start sending Ready message '" << readyMessage << "'" << std::endl;
 //	mySession->socket().cancel();//cancel the previous read that belonged to whoareyou protocol
-	mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
+	mySession->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
 }
 
 void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::string str)
@@ -95,5 +97,14 @@ void ConnectionHandler::sendHandler(const boost::system::error_code& e) {
 
 bool ConnectionHandler::is_open(){
 	return mySession->socket().is_open();
+}
+
+
+bool ConnectionHandler::isValid() {
+	return valid;
+}
+
+void ConnectionHandler::setValidation(bool value) {
+	valid = value;
 }
 } /* namespace sim_mob */

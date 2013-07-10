@@ -180,27 +180,27 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
-	std::cout<<"Pedestrian requested path from: " <<parentAgent->originNode.getID() <<" => " <<parentAgent->destNode.node_->getID() <<"  {" <<std::endl;
+//	std::cout<<"Pedestrian requested path from: " <<parentAgent->originNode.getID() <<" => " <<parentAgent->destNode.node_->getID() <<"  {" <<std::endl;
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
 			const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
-			std::cout<<"  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl;
+//			std::cout<<"  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl;
 		} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			std::cout<<"  Road Segment: (not supported)" <<std::endl;
+//			std::cout<<"  Road Segment: (not supported)" <<std::endl;
 		} else if (it->type_ == WayPoint::BUS_STOP) {
-			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
+//			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
-			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {
-			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::INVALID) {
-			std::cout<<"  <Invalid>"<<std::endl;
+//			std::cout<<"  <Invalid>"<<std::endl;
 		} else {
-			std::cout<<"  Unknown type."<<std::endl;
+//			std::cout<<"  Unknown type."<<std::endl;
 		}
 	}
-	std::cout<<"}" <<std::endl;
+//	std::cout<<"}" <<std::endl;
 
 	pedMovement.setPath(wp_path);
 }

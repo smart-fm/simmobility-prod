@@ -46,7 +46,7 @@ class WorkGroup;
 class Conflux;
 
 class Worker : public BufferedDataManager {
-public:
+private:
 	/**
 	 * Create a Worker object.
 	 *
@@ -57,6 +57,7 @@ public:
 	 */
 	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
 
+public:
 	virtual ~Worker();
 
 	//Thread-style operations

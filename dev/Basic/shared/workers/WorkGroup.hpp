@@ -56,14 +56,14 @@ public:  //Static methods
 		WGM_COMMUNICATING_AGENTS = 3,
 	};*/
 	//not currently in use
-	enum workGroupCategory
+	/*enum workGroupCategory
 	{
 		WG_AGENT = 1,
 		WG_SIGNAL = 2,
 		WG_COMMUNICATOR = 3,
 		WGM_OTHER = 4,
 		WGM_UNKNOWN = 5
-	};
+	};*/
 	//ease of typing only
 	//	typedef std::pair<std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator, std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator > WG_Members;
 	/**

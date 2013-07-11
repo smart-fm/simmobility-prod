@@ -80,7 +80,12 @@ public:  //Static methods
 
 	void clear();
 
-private: //Static fields
+private:
+	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
+	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
+
+
+	//Static fields
 	//A workgroup can have member of multiple arbitrary supergroups/sets/whatever
 	//use cases:   (for clarification, please add your use cases in the comment below)
 	//1-grouping all WGs to be checked to see

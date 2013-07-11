@@ -42,8 +42,7 @@ FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
 FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;*/
 
 
-namespace {
-Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
+Worker* WorkGroup::GetLeastCongestedWorker(const vector<Worker*>& workers) {
 	Worker* res = nullptr;
 	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
 		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
@@ -53,7 +52,6 @@ Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
 	return res;
 }
 
-} //End unnamed namespace
 
 
 
@@ -445,7 +443,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 	if (strat == ASSIGN_ROUNDROBIN) {
 		workers.at(nextWorkerID++)->scheduleForAddition(ag);
 	} else {
-		getLeastCongestedWorker(workers)->scheduleForAddition(ag);
+		GetLeastCongestedWorker(workers)->scheduleForAddition(ag);
 	}
 
 	//Increase "nextWorkID", even if we're not using it.

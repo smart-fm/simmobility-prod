@@ -55,20 +55,18 @@ void ConnectionServer::io_service_run()
 void ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess) {
 	if (!e) {
 
-		Print()<< "sess.use_count()= " << sess.use_count() << std::endl;
-		std::cout << "Connection Accepted" << std::endl;
 		handleNewClient(sess);
 	}
 	else
 	{
-		std::cout << "Connection Refused" << std::endl;
+		WarnOut("Connection Refused" << std::endl);
 	}
 	CreatSocketAndAccept();
 }
 //void ConnectionServer::RequestClientRegistration(unsigned int ID, unsigned int type, session_ptr session_)
 void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequest &request)
 {
-	Print() << "Inside ConnectionServer::RequestClientRegistration" << std::endl;
+//	Print() << "Inside ConnectionServer::RequestClientRegistration" << std::endl;
 	unsigned int ID;
 	unsigned int type;
 	session_ptr session_;
@@ -79,7 +77,7 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 
 void ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess) {
 	if (!e) {
-		std::cout << "read Successful" << std::endl;
+		Print() << "read Successful" << std::endl;
 	} else {
 		std::cout << "read Failed" << std::endl;
 	}

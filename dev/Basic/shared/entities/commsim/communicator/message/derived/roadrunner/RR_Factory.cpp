@@ -78,16 +78,13 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 	{
 		return false;
 	}
-	Print() << "nof_messages = " << root.size() << std::endl;
 	for (int index = 0; index < root.size(); index++) {
-		Print() << "index " << index << std::endl;
 		msg_header messageHeader;
 //		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
 		msg_data_t & curr_json = root[index];
-		Print() << "switch case(" << messageHeader.msg_type << ")" << std::endl;
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
@@ -114,27 +111,6 @@ hdlr_ptr  RR_Factory::getHandler(MessageType type){
 			break;
 		}
 
-
-//		case KEY_REQUEST:{
-//			//data is : {"messageType":"KEY_REQUEST", "KEY_REQUEST" : {"Sender":"clientIdxxx", "Receiver" : "clientIdyyy", "RequestingTokens":["A", "B", "C"]}}
-//			//just extract the receiver and forward the string to it without modifications
-//
-//			//create a message
-//			msg_ptr msg(new sim_mob::roadrunner::MSG_KEY_REQUEST(curr_json));
-//			//... and then assign the handler pointer to message's member
-//			msg->setHandler(getHandler(KEY_REQUEST));
-//			output.push_back(msg);
-//			break;
-//		}
-//
-//		case KEY_SEND:{
-//			//create a message
-//			msg_ptr msg(new sim_mob::roadrunner::MSG_KEY_SEND(curr_json));
-//			//... and then assign the handler pointer to message's member
-//			msg->setHandler(getHandler(KEY_SEND));
-//			output.push_back(msg);
-//			break;
-//		}
 
 		default:
 			WarnOut("RR_Factory::createMessage() - Unhandled message type.");

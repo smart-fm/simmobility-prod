@@ -44,8 +44,6 @@ void ConnectionHandler::start()
 	Json::FastWriter writer;
 
 	std::string readyMessage = writer.write(packet);
-	Print() << "ConnectionHandler::start sending Ready message '" << readyMessage << "'" << std::endl;
-//	mySession->socket().cancel();//cancel the previous read that belonged to whoareyou protocol
 	mySession->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
 }
 
@@ -60,7 +58,6 @@ void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::st
 	{
 		//will not pass 'message' variable as argument coz it
 		//is global between functions. some function read into it, another function read from it
-		Print() << "Ready Message Sent" << std::endl;
 		mySession->async_read(incomingMessage,
 			boost::bind(&ConnectionHandler::readHandler, this,
 					boost::asio::placeholders::error));
@@ -76,7 +73,6 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 	}
 	else
 	{
-		Print() << "ConnectionHandler::readHandler incoming'" << incomingMessage << "'" << std::endl;
 		//call the receive handler in the broker
 		CALL_MEMBER_FN(theBroker, receiveCallBack)(shared_from_this(),incomingMessage);
 
@@ -88,11 +84,10 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 
 void ConnectionHandler::send(std::string str)
 {
-	std::cout << "Writing to agent'" << agentPtr << "]  client["  << clientID << "] string'" << str << "'" << std::endl;
 	mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 }
 void ConnectionHandler::sendHandler(const boost::system::error_code& e) {
-	std::cout << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
+//	Print() << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
 }
 
 bool ConnectionHandler::is_open(){

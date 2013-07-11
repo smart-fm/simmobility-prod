@@ -44,7 +44,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &serve
 
 	void WhoAreYouProtocol::startClientRegistration(session_ptr &sess) {
 		std::string str = JsonParser::makeWhoAreYouPacket();
-		Print()<< " WhoAreYouProtocol::startClientRegistration'" << str << "'" <<  std::endl;
+//		Print()<< " WhoAreYouProtocol::startClientRegistration'" << str << "'" <<  std::endl;
 		sess->async_write(str,
 				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler/*temp_handler_1*/, this,
 						boost::asio::placeholders::error, sess));
@@ -53,7 +53,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &serve
 	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e,session_ptr& sess) {
 		if(e)
 		{
-			Print()<< "Failed to send whoareu message" <<  std::endl;
+			WarnOut( "Failed to send whoareu message" <<  std::endl);
 		}
 		else
 		{
@@ -70,7 +70,6 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &serve
 		}
 		else
 		{
-			Print()<< " WhoAreYou_handler incoming '" << response << "'"  << std::endl;
 			//response string is successfully populated
 			unsigned int id = -1 , type = -1;
 

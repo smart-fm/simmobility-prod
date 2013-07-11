@@ -96,7 +96,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		usedAgents.insert( *freeAgent);
 		//tell the agent you are registered
 		freeAgent->second->setregistered(true);
-		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
+//		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
 
 		//start listening to the handler
 		clientEntry->cnnHandler->start();

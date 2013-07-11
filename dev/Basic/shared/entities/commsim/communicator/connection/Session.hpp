@@ -44,11 +44,11 @@ public:
   template <typename Handler>
   void async_write(std::string &data, Handler handler)
   {
-	outbound_data_ = data; //extra copy
+//	outbound_data_ = data; //extra copy
     // Format the header.
     std::ostringstream header_stream;
     header_stream << std::setw(header_length)
-      << std::hex << outbound_data_.size();
+      << std::hex << data.size();
     if (!header_stream || header_stream.str().size() != header_length)
     {
       // Something went wrong, inform the caller.
@@ -57,11 +57,10 @@ public:
       return;
     }
     outbound_header_ = header_stream.str(); //not used
-    Print() << "outbound_header_is '" << outbound_header_ << "'" << std::endl;
 
 	    std::vector<boost::asio::const_buffer> buffers;
 	    buffers.push_back(boost::asio::buffer(outbound_header_));
-	    buffers.push_back(boost::asio::buffer(outbound_data_));
+	    buffers.push_back(boost::asio::buffer(data));
 	    boost::asio::async_write(socket_, buffers, handler);
 
 //    boost::asio::async_write(socket_, boost::asio::buffer(/*outbound_data_*/data), handler);
@@ -72,7 +71,6 @@ public:
   void async_read(std::string &input, Handler handler)
   {
 	  input.clear();
-	  Print()<< "Reading" << std::endl;
     // Issue a read operation to read exactly the number of bytes in a header.
     void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
     boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,this, boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
@@ -91,17 +89,13 @@ public:
     else
     {
       std::istringstream is(std::string(inbound_header_, header_length));
-//      Print() << "Inbound header is '" << is << "'" << std::endl;
       std::size_t inbound_data_size = 0;
       is >> std::hex >> inbound_data_size;
-//      is.clear();
-//      is.str("");
       if (!(inbound_data_size))
       {
-        std::cout << "ERROR in session-Handle_read_header" << std::endl;
+        WarnOut( "ERROR in session-Handle_read_header\n" );
         return;
       }
-      Print() << "Inbound data size is '" << inbound_data_size << "'" << std::endl;
       inbound_data_.resize(inbound_data_size);
 
       void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
@@ -122,21 +116,19 @@ public:
       try
       {
     	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
-    	  std::cout << "inbound_data_'" << archive_data << "'" << std::endl;
     	  input = archive_data;
           boost::get<0>(handler)(e);
       }
       catch (std::exception& e)
       {
         // Unable to decode data.
-    	std::cout << "Something wrong in the handle_read_data" << std::endl;
+    	WarnOut("Something wrong in the handle_read_data" << std::endl);
         boost::system::error_code error(boost::asio::error::invalid_argument);
         boost::get<0>(handler)(error);
         return;
       }
     }
 
-	  Print()<< "Clearing indound_data" << std::endl;
 	  inbound_data_.clear();
   }
 
@@ -151,7 +143,7 @@ private:
   std::string outbound_header_;
 
   /// Holds the outbound data.
-  std::string outbound_data_;
+//  std::string outbound_data_;
 
   /// Holds an inbound header.
   char inbound_header_[header_length];

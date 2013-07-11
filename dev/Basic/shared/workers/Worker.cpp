@@ -30,7 +30,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrie
     : BufferedDataManager(),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
-      debugMsg(std::stringstream::out), profile(nullptr)
+      profile(nullptr)
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
@@ -511,3 +511,10 @@ EventManager& sim_mob::Worker::getEventManager()
 {
     return eventManager;
 }
+
+bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
+{
+	return managedConfluxes.insert(cf).second;
+}
+
+

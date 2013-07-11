@@ -50,24 +50,6 @@ class WorkGroup {
 public:  //Static methods
 	friend class WorkGroupManager;
 
-	//Note: A workgroup can have multiple memberships
-	/*enum workGroupMembership
-	{
-		WGM_GENERAL_AGENTS = 1,
-		WGM_SIGNAL_AGENTS = 2,
-		WGM_COMMUNICATING_AGENTS = 3,
-	};*/
-	//not currently in use
-	/*enum workGroupCategory
-	{
-		WG_AGENT = 1,
-		WG_SIGNAL = 2,
-		WG_COMMUNICATOR = 3,
-		WGM_OTHER = 4,
-		WGM_UNKNOWN = 5
-	};*/
-	//ease of typing only
-	//	typedef std::pair<std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator, std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*>::iterator > WG_Members;
 	/**
 	 * Type of Worker assignment strategy. Determines how a newly-dispatched Agent
 	 * will be distributed among the various Worker threads.
@@ -84,14 +66,6 @@ private:
 	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
 	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
 
-
-	//Static fields
-	//A workgroup can have member of multiple arbitrary supergroups/sets/whatever
-	//use cases:   (for clarification, please add your use cases in the comment below)
-	//1-grouping all WGs to be checked to see
-	//if any of the agents have anything to send/receive through
-	//communication simulator
-//	static std::multimap<workGroupMembership, sim_mob::WorkGroup*> WorkGroupMembership;
 
 public:
 

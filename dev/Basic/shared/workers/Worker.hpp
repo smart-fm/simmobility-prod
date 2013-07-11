@@ -58,38 +58,32 @@ private:
 	 */
 	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
 
-public:
-	virtual ~Worker();
-
-private:
-	//Thread-style operations. These should only be accessed from WorkGroup.
 	void start();
 	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
 	void join();
 
-private:
-	//Entity management. Adding is restricted (use WorkGroups).
-	void addEntity(Entity* entity);
+	void scheduleForAddition(Entity* entity);
+	int getAgentSize(bool includeToBeAdded=false);
+	void migrateAllOut();
+	bool beginManagingConflux(Conflux* cf); ///<Returns true if the Conflux was inserted; false if it already exists in the managedConfluxes map.
+
+	//End of functions for friend WorkGroup
+
 
 public:
-	//Removing/sensing are ok.
+	virtual ~Worker();
+
+	//Removing entities and scheduling them for removal is allowed (but adding is restricted).
 	const std::vector<Entity*>& getEntities() const;
 	void remEntity(Entity* entity);
-
-	//Same for scheduling removal.
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
 	EventManager& getEventManager();
 
-private:
-	void scheduleForAddition(Entity* entity);
-	int getAgentSize(bool includeToBeAdded=false);
-
 protected:
 	virtual void perform_main(timeslice currTime);
 	virtual void perform_flip();
-
 
 private:
 	void barrier_mgmt();
@@ -97,7 +91,13 @@ private:
 	void migrateOut(Entity& ent);
 	void migrateIn(Entity& ent);
 
-	void migrateAllOut();
+	//Entity management. Adding is restricted (use WorkGroups).
+	void addEntity(Entity* entity);
+
+	//Helper methods
+	void addPendingEntities();
+	void removePendingEntities();
+	void breedPendingEntities();
 
 
 protected:
@@ -128,12 +128,8 @@ protected:
 	std::vector<Entity*> toBeRemoved;
 	std::vector<Entity*> toBeBred;
 
-private:
-	//Helper methods
-	void addPendingEntities();
-	void removePendingEntities();
-	void breedPendingEntities();
 
+private:
 	///The main thread which this Worker wraps
 	boost::thread main_thread;
 
@@ -144,10 +140,7 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-        EventManager eventManager;
-
-public:
-	std::stringstream debugMsg; //TODO: Delete
+	EventManager eventManager;
 };
 
 }

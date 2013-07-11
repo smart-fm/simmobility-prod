@@ -3,7 +3,7 @@
 #include "DriverCommFacets.hpp"
 #include "entities/Person.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/commsim/communicator/broker/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob
 {

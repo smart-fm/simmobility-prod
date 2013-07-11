@@ -31,7 +31,7 @@
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/commsim/communicator/broker/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"

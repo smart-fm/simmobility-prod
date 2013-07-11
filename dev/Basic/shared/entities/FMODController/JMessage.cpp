@@ -22,6 +22,17 @@ JMessage::~JMessage() {
 	// TODO Auto-generated destructor stub
 }
 
+std::string JMessage::BuildToString()
+{
+	std::string msg;
+
+	std::stringstream buffer;
+	buffer << "message " << this->messageID_ << std::endl;
+	msg = buffer.str();
+
+	return msg;
+}
+
 int JMessage::GetMessageID(std::string msg)
 {
 	int ID = -1;

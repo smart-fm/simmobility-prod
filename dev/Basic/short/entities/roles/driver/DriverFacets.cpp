@@ -1176,12 +1176,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 					path.insert( path.end(), subPath.begin(), subPath.end());
 				}
 
-				vector<WayPoint>::iterator it;
+				/*vector<WayPoint>::iterator it;
 				for(it=path.begin(); it!=path.end(); it++){
 					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
 						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
 					}
-				}
+				}*/
 			}
 
 		} else {

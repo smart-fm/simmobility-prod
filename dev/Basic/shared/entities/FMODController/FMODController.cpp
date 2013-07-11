@@ -54,10 +54,11 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 		//ProcessMessages(now);
 	}
 	if(frameTicks%2 == 1){
-		UpdateMessages(now);
+		UpdateMessagesInBlocking(now);
+		//UpdateMessages(now);
 	}
 
-	DispatchActivityAgents(now);
+	DispatchPendingAgents(now);
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -170,10 +171,12 @@ bool FMODController::StartClientService()
 		}
 		else{
 			this->HandleVehicleInit(message);
+			isConnectFMODServer = true;
 		}
 	}
 	else {
 		std::cout << "FMOD communication failed" << std::endl;
+		isConnectFMODServer = false;
 	}
 
 	return ret;
@@ -187,6 +190,9 @@ void FMODController::StopClientService()
 
 void FMODController::ProcessMessagesInBlocking(timeslice now)
 {
+	if(!isConnectFMODServer)
+		return;
+
 	MessageList requests = GenerateRequest(now);
 
 	while( requests.size() > 0 ){
@@ -223,6 +229,9 @@ void FMODController::ProcessMessagesInBlocking(timeslice now)
 
 void FMODController::ProcessMessages(timeslice now)
 {
+	if(!isConnectFMODServer)
+		return;
+
 	MessageList Requests = GenerateRequest(now);
 	connectPoint->pushMessage(Requests);
 	connectPoint->Flush();
@@ -259,13 +268,51 @@ void FMODController::ProcessMessages(timeslice now)
 	connectPoint->Flush();
 }
 
-void FMODController::UpdateMessages(timeslice now)
+void FMODController::UpdateMessagesInBlocking(timeslice now)
 {
-	MessageList ret;
+	if(!isConnectFMODServer)
+		return;
 
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 
-	ret = CollectVehStops();
+	std::string message;
+	MessageList ret = CollectVehStops();
+	connectPoint->pushMessage(ret);
+	connectPoint->WaitForOneMessage(message, waitingseconds);
+	if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
+		std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
+	}
+
+	if(curTickMS%100 == 0){
+		ret = CollectVehPos();
+		connectPoint->pushMessage(ret);
+		connectPoint->Flush();
+		connectPoint->WaitForOneMessage(message, waitingseconds);
+		if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
+			std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
+		}
+	}
+
+	if(curTickMS%updateTiming == 0){
+		ret = CollectLinkTravelTime();
+		connectPoint->pushMessage(ret);
+		connectPoint->WaitForOneMessage(message, waitingseconds);
+		if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
+			std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
+		}
+	}
+
+
+}
+
+void FMODController::UpdateMessages(timeslice now)
+{
+	if(!isConnectFMODServer)
+		return;
+
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+
+	MessageList ret = CollectVehStops();
 	connectPoint->pushMessage(ret);
 
 	if(curTickMS%100 == 0){
@@ -467,6 +514,12 @@ MessageList FMODController::HandleConfirmMessage(std::string msg)
 	Msg_Confirmation msg_confirm;
 	msg_confirm.CreateMessage(msg);
 
+	JMessage msg_fetch;
+	msg_fetch.messageID_ = JMessage::MSG_SCHEDULE_FETCH;
+	std::string str = msg_fetch.BuildToString();
+
+	msgs.push(str);
+
 	return msgs;
 }
 
@@ -567,7 +620,7 @@ void FMODController::HandleVehicleInit(std::string msg)
 
 }
 
-void FMODController::DispatchActivityAgents(timeslice now)
+void FMODController::DispatchPendingAgents(timeslice now)
 {
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 	std::vector<Agent*>::iterator it=all_persons.begin();
@@ -593,6 +646,8 @@ void FMODController::DispatchActivityAgents(timeslice now)
 		}
 	}
 
+
+	/*
 	// for testing
 	static int kk = 0;
 	if( kk++ == 0){
@@ -645,27 +700,26 @@ void FMODController::DispatchActivityAgents(timeslice now)
 		tcs.push_back(tc);
 		//tcs.push_back(tc);
 
-		/*Activity* waiting = new Activity();
-		waiting->personID = 1;
-		waiting->itemType = TripChainItem::IT_ACTIVITY;
-		waiting->sequenceNumber = 1;
-		waiting->description = "waiting";
-		waiting->isPrimary = false;
-		waiting->isFlexible = false;
-		waiting->isMandatory = false;
-		waiting->location = node5;
-		waiting->locationType = TripChainItem::LT_NODE;
-		waiting->startTime = start;
-		waiting->endTime = DailyTime(10*60*1000)+ConfigParams::GetInstance().simStartTime;;
-		tcs.push_back(waiting);*/
+		//Activity* waiting = new Activity();
+		//waiting->personID = 1;
+		//waiting->itemType = TripChainItem::IT_ACTIVITY;
+		//waiting->sequenceNumber = 1;
+		//waiting->description = "waiting";
+		//waiting->isPrimary = false;
+		//waiting->isFlexible = false;
+		//waiting->isMandatory = false;
+		//waiting->location = node5;
+		//waiting->locationType = TripChainItem::LT_NODE;
+		//waiting->startTime = start;
+		//waiting->endTime = DailyTime(10*60*1000)+ConfigParams::GetInstance().simStartTime;;
+		//tcs.push_back(waiting);
 
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
 		person->parentEntity = this;
 		person->client_id = 101;
 		all_drivers.push_back(person);
 	}
-
-
+	*/
 }
 
 }

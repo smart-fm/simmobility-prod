@@ -22,11 +22,11 @@ class JMessage {
 public:
 
 	enum MESSAGEID{MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
-		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92};
+		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=100};
 
 	JMessage();
 	virtual ~JMessage();
-	virtual std::string BuildToString() { return msg_;}
+	virtual std::string BuildToString();
 	virtual void CreateMessage(std::string msg);
 	int GetMessageID() { return messageID_; }
 	static int GetMessageID(std::string msg);

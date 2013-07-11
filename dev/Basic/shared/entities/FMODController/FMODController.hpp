@@ -41,6 +41,7 @@ private:
 	std::vector<Agent*> all_drivers;
 	// keep all children agents to communicate with it
 	std::vector<Agent*> all_children;
+	bool isConnectFMODServer;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -64,11 +65,12 @@ private:
 	void HandleVehicleInit(std::string msg);
 
 	void UpdateMessages(timeslice now);
+	void UpdateMessagesInBlocking(timeslice now);
 	MessageList CollectVehStops();
 	MessageList CollectVehPos();
 	MessageList CollectLinkTravelTime();
 
-	void DispatchActivityAgents(timeslice now);
+	void DispatchPendingAgents(timeslice now);
 
 private:
 	void CollectPerson();

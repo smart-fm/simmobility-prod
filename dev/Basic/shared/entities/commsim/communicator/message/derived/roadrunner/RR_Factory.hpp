@@ -8,14 +8,9 @@
 #ifndef  RR_FACTORY_HPP_
 #define RR_FACTORY_HPP_
 
-#include "entities/commsim/communicator/message/base/MessageFactory.hpp"
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
-#include "entities/commsim/communicator/message/base/Message.hpp"
-//#include "announce/ANNOUNCE_Handler.hpp"
-//#include "keyrequest/KEY_REQUEST_Handler.hpp"
-//#include "keysend/KEY_SEND_Handler.hpp"
-#include "multicast/MULTICAST_Handler.hpp"
-#include "unicast/UNICAST_Handler.hpp"
+#include "multicast/MULTICAST_Message.hpp"
+#include "unicast/UNICAST_Message.hpp"
 #include "clientdone/CLIENTDONE_Message.hpp"
 #include <map>
 

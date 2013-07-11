@@ -2,7 +2,7 @@
 #include "entities/Agent.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistration.hpp"
 #include "entities/commsim/communicator/service/services.hpp"
-#include "entities/commsim/communicator/message/base/MessageQueue.hpp"
+#include "entities/commsim/communicator/message/base/Message.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistrationFactory.hpp"
 #include "entities/commsim/communicator/buffer/BufferContainer.hpp"
 

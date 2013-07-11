@@ -10,11 +10,19 @@
 
 #include <iostream>
 #include<boost/shared_ptr.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <queue>
 #include<json/json.h>
 #include "logging/Log.hpp"
 
+using namespace boost;
+
 namespace sim_mob
 {
+/********************************************************************
+ ************************* Message Class ****************************
+ ********************************************************************
+ */
 //Forward Declaration
 class Handler;
 typedef boost::shared_ptr<sim_mob::Handler> hdlr_ptr;
@@ -49,6 +57,89 @@ public:
 typedef Json::Value msg_data_t;
 typedef sim_mob::comm::Message<msg_data_t> msg_t;
 typedef boost::shared_ptr<msg_t> msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
+
+
+
+/********************************************************************
+ ************************* Message Handler **************************
+ ********************************************************************
+ */
+//Forward Declaration
+class Broker;
+
+class Handler
+{
+public:
+	virtual void handle(msg_ptr message_,Broker*) = 0;
+};
+
+/********************************************************************
+ ************************* Message Factory **************************
+ ********************************************************************
+ */
+
+template <class RET,class MSG>
+class MessageFactory {
+public:
+	virtual bool createMessage(MSG,RET ) = 0;
+};
+
+/********************************************************************
+ ************************* Message Queue **************************
+ ********************************************************************
+ */
+
+namespace comm{
+
+template<class T>
+class MessageQueue {
+	std::queue<T> messageList;
+	boost::shared_mutex mutex;
+public:
+	MessageQueue();
+	virtual ~MessageQueue();
+	bool ReadMessage();
+    void post(T message);
+    bool pop(T&);
+};
+
+template<class T>
+MessageQueue<T>::~MessageQueue(){
+
+}
+
+template<class T>
+bool MessageQueue<T>::ReadMessage(){
+	boost::unique_lock< boost::shared_mutex > lock(mutex);
+	return true;
+}
+
+template<class T>
+void MessageQueue<T>::post(T message){
+	boost::unique_lock< boost::shared_mutex > lock(mutex);
+	messageList.push(message);
+}
+
+template<class T>
+bool MessageQueue<T>::pop(T &t ){
+	boost::unique_lock< boost::shared_mutex > lock(mutex);
+	if(messageList.empty())
+	{
+		return false;
+	}
+	t = messageList.front();
+	messageList.pop();
+	return true;
+}
+
+
+template<class T>
+MessageQueue<T>::MessageQueue() {
+	// TODO Auto-generated constructor stub
+
+}
+
+}/* namespace comm */
 
 }//namespace sim_mob
 

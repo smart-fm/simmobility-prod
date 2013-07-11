@@ -7,14 +7,14 @@
 
 #ifndef CLIENTDONE_MESSAGE_HPP_
 #define CLIENTDONE_MESSAGE_HPP_
-//#include "entities/commsim/communicator/message/base/Message.hpp"
+#include "entities/commsim/communicator/message/base/Message.hpp"
 //#include "CLIENTDONE_Handler.hpp"
-#include "entities/commsim/communicator/message/derived/roadrunner/RoadrunnerMessage.hpp"
+//#include "entities/commsim/communicator/message/derived/roadrunner/RoadrunnerMessage.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
 
-class MSG_CLIENTDONE : public sim_mob::roadrunner::RoadrunnerMessage {
+class MSG_CLIENTDONE : public sim_mob::comm::Message<msg_data_t>/*sim_mob::roadrunner::RoadrunnerMessage*/ {
 	//...
 public:
 	Handler * newHandler();

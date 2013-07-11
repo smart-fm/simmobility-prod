@@ -230,6 +230,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	{ //Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
 	WorkGroupManager wgMgr;
+	wgMgr.setSingleThreadMode(config.singleThreaded);
 
 	//Work Group specifications
 	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);

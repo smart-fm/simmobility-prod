@@ -43,7 +43,7 @@ class WorkGroup;
  */
 class WorkGroupManager {
 public:
-	WorkGroupManager() : currBarrierCount(1), auraBarrierNeeded(false), frameTickBarr(nullptr), buffFlipBarr(nullptr), auraMgrBarr(nullptr)
+	WorkGroupManager() : currBarrierCount(1), auraBarrierNeeded(false), frameTickBarr(nullptr), buffFlipBarr(nullptr), auraMgrBarr(nullptr), singleThreaded(false)
 	{}
 
 	~WorkGroupManager();
@@ -66,6 +66,9 @@ public:
 	///Initialize all WorkGroups. Before this function is called, WorkGroups cannot have Workers added to them. After this function is
 	///  called, no new WorkGroups may be added.
 	void initAllGroups();
+
+	///Set "single-threaded" mode on all WorkGroups. This must be done *before* initAllGroups/startAllGroups (not sure which one yet).
+	void setSingleThreadMode(bool enable);
 
 	///Helper: Calls "startAll()" on all registered WorkGroups;
 	void startAllWorkGroups();
@@ -96,6 +99,9 @@ private:
 
 	//True if we need an AuraManager barrier at all.
 	bool auraBarrierNeeded;
+
+	//Are we operating in "single-threaded" mode? Default is false.
+	bool singleThreaded;
 
 	//Our shared barriers for the main three barriers (macro barriers are handled internal to each WorkGroup).
 	//Only the aura manager barrier may be null. If any other barrier is null, it means we haven't called Init() yet.

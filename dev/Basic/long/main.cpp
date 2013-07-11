@@ -148,6 +148,8 @@ void perform_main() {
 
     {
     WorkGroupManager wgMgr;
+    wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+
     //Work Group specifications
     WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
     wgMgr.initAllGroups();

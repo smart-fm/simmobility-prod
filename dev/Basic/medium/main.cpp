@@ -189,6 +189,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
+	wgMgr.setSingleThreadMode(config.singleThreaded);
 
 	//Work Group specifications
 	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);

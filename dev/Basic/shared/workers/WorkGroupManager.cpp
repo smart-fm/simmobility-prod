@@ -66,6 +66,15 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 }
 
 
+void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
+{
+	//TODO: Mighgt be overly restrictive; perhaps only "start" needs to be preempted.
+	if (!registeredWorkGroups.empty()) { throw std::runtime_error("Can't change to/from single-threaded mode once WorkGroups have been registered."); }
+
+	singleThreaded = enable;
+}
+
+
 void sim_mob::WorkGroupManager::initAllGroups()
 {
 	//Sanity check

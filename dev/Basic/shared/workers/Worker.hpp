@@ -76,13 +76,14 @@ public:
 	const std::vector<Entity*>& getEntities() const;
 	void remEntity(Entity* entity);
 
-public:
+private:
 	//Manage Links
-	void addLink(Link* link);
+	/*void addLink(Link* link);
 	void remLink(Link* link);
 	bool isLinkManaged(Link* link);
-	bool isThisLinkManaged(unsigned int linkID);
+	bool isThisLinkManaged(unsigned int linkID);*/
 
+public:
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);

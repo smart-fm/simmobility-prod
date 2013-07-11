@@ -399,7 +399,7 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
 		Link* link = *it;
 		Worker* w = workers.at(nextWorkerID);
-		w->addLink(link);
+		//w->addLink(link);
 		link->setCurrWorker(w);
 		nextWorkerID = (++nextWorkerID) % workers.size();
 	}

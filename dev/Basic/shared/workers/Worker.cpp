@@ -500,14 +500,15 @@ void sim_mob::Worker::perform_main(timeslice currTime)
         eventManager.Update(currTime);
 }
 
-bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
+/*bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
 	for(vector<Link*>::iterator it=managedLinks.begin(); it!=managedLinks.end();it++){
 		if((*it)->linkID==linkID){
 			return true;
 		}
 	}
 	return false;
-}
+}*/
+
 void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
@@ -516,7 +517,7 @@ void sim_mob::Worker::perform_flip()
 
 //Methods to manage list of links managed by the worker
 //added by Jenny
-void sim_mob::Worker::addLink(Link* link)
+/*void sim_mob::Worker::addLink(Link* link)
 {
 	//Save this entity in the data vector.
 	managedLinks.push_back(link);
@@ -539,7 +540,7 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 		return true;
 	}
 	return false;
-}
+}*/
 
 
 EventManager& sim_mob::Worker::getEventManager()

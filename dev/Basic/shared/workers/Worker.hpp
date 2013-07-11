@@ -47,6 +47,8 @@ class Conflux;
 
 class Worker : public BufferedDataManager {
 private:
+	friend class WorkGroup;
+
 	/**
 	 * Create a Worker object.
 	 *
@@ -59,19 +61,22 @@ private:
 public:
 	virtual ~Worker();
 
-	//Thread-style operations
 private:
+	//Thread-style operations. These should only be accessed from WorkGroup.
 	void start();
-
-public:
 	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
 	void join();
 
-	//Manage entities
+private:
+	//Entity management. Adding is restricted (use WorkGroups).
 	void addEntity(Entity* entity);
-	void remEntity(Entity* entity);
-	const std::vector<Entity*>& getEntities()const ;
 
+public:
+	//Removing/sensing are ok.
+	const std::vector<Entity*>& getEntities() const;
+	void remEntity(Entity* entity);
+
+public:
 	//Manage Links
 	void addLink(Link* link);
 	void remLink(Link* link);
@@ -83,8 +88,8 @@ public:
 	void scheduleForBred(Entity* entity);
 
 	int getAgentSize(bool includeToBeAdded=false);
-        
-        EventManager& GetEventManager();
+
+	EventManager& getEventManager();
 
 protected:
 	virtual void perform_main(timeslice currTime);
@@ -145,10 +150,6 @@ private:
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
         EventManager eventManager;
-
-	//add by xuyan, in order to call migrate in and migrate out
-public:
-	friend class WorkGroup;
 
 public:
 	std::stringstream debugMsg; //TODO: Delete

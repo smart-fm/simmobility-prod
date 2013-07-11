@@ -29,13 +29,8 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
     : BufferedDataManager(),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
-      endTick(endTick),
-      tickStep(tickStep),
-      parent(parent),
-      entityRemovalList(entityRemovalList),
-      entityBredList(entityBredList),
-      debugMsg(std::stringstream::out),
-      profile(nullptr)
+      endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
+      debugMsg(std::stringstream::out), profile(nullptr)
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
@@ -69,12 +64,7 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::addEntity(Entity* entity)
 {
-	//Save this entity in the data vector.
 	managedEntities.push_back(entity);
-	std::ostringstream out ;
-	out <<  "worker [" << this << "] addentity[" << entity << ":" << entity->getId() << "] Done\n"<< std::endl;
-//	std::cout << out.str();
-
 }
 
 
@@ -88,7 +78,8 @@ void sim_mob::Worker::remEntity(Entity* entity)
 }
 
 
-const std::vector<Entity*>& sim_mob::Worker::getEntities() const {
+const std::vector<Entity*>& sim_mob::Worker::getEntities() const
+{
 	return managedEntities;
 }
 
@@ -551,6 +542,7 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 }
 
 
-EventManager& sim_mob::Worker::GetEventManager(){
+EventManager& sim_mob::Worker::getEventManager()
+{
     return eventManager;
 }

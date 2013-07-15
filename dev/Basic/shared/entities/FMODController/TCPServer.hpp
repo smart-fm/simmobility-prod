@@ -9,7 +9,7 @@
 #define TCPSERVER_HPP_
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
-#include "TCPSession.hpp"
+#include "TCPClient.hpp"
 #include "vector"
 
 namespace sim_mob {
@@ -23,8 +23,8 @@ public:
 	virtual ~TCPServer();
 public:
 	bool IsClientConnect() { return connectionList.size()>0;}
-	void InsertAClient(boost::shared_ptr<TCPSession> connection);
-	void RemoveAClient(TCPSession* connection);
+	void InsertAClient(boost::shared_ptr<TCPClient> connection);
+	void RemoveAClient(TCPClient* connection);
 	void Close();
 
 private:
@@ -35,7 +35,7 @@ private:
 
 private:
 	void StartAccept();
-	void handle_accept(boost::shared_ptr<TCPSession> connection, const boost::system::error_code& error);
+	void handle_accept(boost::shared_ptr<TCPClient> connection, const boost::system::error_code& error);
 };
 
 typedef boost::shared_ptr<TCPServer> TCPServerPtr;

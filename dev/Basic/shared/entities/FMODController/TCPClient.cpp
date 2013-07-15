@@ -5,7 +5,7 @@
  *      Author: zhang
  */
 
-#include "TCPSession.hpp"
+#include "TCPClient.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
@@ -16,37 +16,37 @@ namespace sim_mob {
 namespace FMOD
 {
 
-TCPSession::TCPSession(boost::asio::io_service& io_service, TCPServer* parentIn):socket_(io_service), parent(parentIn) {
+TCPClient::TCPClient(boost::asio::io_service& io_service, TCPServer* parentIn):socket_(io_service), parent(parentIn) {
 	// TODO Auto-generated constructor stub
 
 }
 
-TCPSession::~TCPSession() {
+TCPClient::~TCPClient() {
 	// TODO Auto-generated destructor stub
 }
 
-boost::shared_ptr<TCPSession> TCPSession::create(boost::asio::io_service& io_service, TCPServer* parent)
+boost::shared_ptr<TCPClient> TCPClient::create(boost::asio::io_service& io_service, TCPServer* parent)
 {
-	return boost::shared_ptr<TCPSession>(new TCPSession(io_service, parent));
+	return boost::shared_ptr<TCPClient>(new TCPClient(io_service, parent));
 }
 
-boost::asio::ip::tcp::socket& TCPSession::socket()
+boost::asio::ip::tcp::socket& TCPClient::socket()
 {
 	return socket_;
 }
 
-void TCPSession::Flush()
+void TCPClient::Flush()
 {
 	sendData();
 }
 
 
-void TCPSession::pushMessage(std::string data)
+void TCPClient::SendMessage(std::string data)
 {
 	msgSendQueue.PushMessage(data);
 }
 
-void TCPSession::pushMessage(MessageList data)
+void TCPClient::SendMessage(MessageList data)
 {
 	while(data.size()>0)
 	{
@@ -56,7 +56,7 @@ void TCPSession::pushMessage(MessageList data)
 	}
 }
 
-MessageList TCPSession::popMessage()
+MessageList TCPClient::GetMessage()
 {
 	MessageList res;
 	std::string msg;
@@ -66,12 +66,12 @@ MessageList TCPSession::popMessage()
 	return res;
 }
 
-bool TCPSession::WaitForOneMessage(std::string& msg, int seconds)
+bool TCPClient::WaitMessageInBlocking(std::string& msg, int seconds)
 {
 	return msgReceiveQueue.WaitPopMessage(msg, seconds);
 }
 
-void TCPSession::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
+void TCPClient::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
 		sendData();
@@ -81,7 +81,7 @@ void TCPSession::handle_write(const boost::system::error_code& error, size_t byt
 		 if(parent) parent->RemoveAClient(this);
 	}
 }
-void TCPSession::handle_read(const boost::system::error_code& error, size_t bytesTransferred)
+void TCPClient::handle_read(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
 		msgReceiveQueue.PushMessage(ReceivedBuf.data());
@@ -93,7 +93,7 @@ void TCPSession::handle_read(const boost::system::error_code& error, size_t byte
 	}
 }
 
-bool TCPSession::ConnectToServer(std::string ip, int port)
+bool TCPClient::ConnectToServer(std::string ip, int port)
 {
 	bool ret = true;
 	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);
@@ -110,12 +110,12 @@ bool TCPSession::ConnectToServer(std::string ip, int port)
 	return ret;
 }
 
-void TCPSession::Stop()
+void TCPClient::Stop()
 {
 	socket_.close();
 }
 
-bool TCPSession::sendData()
+bool TCPClient::sendData()
 {
 	bool ret = msgSendQueue.PopMessage(messageSnd);
 
@@ -125,7 +125,7 @@ bool TCPSession::sendData()
 	try
 	{
 		boost::asio::async_write(socket_, boost::asio::buffer(messageSnd),
-							  boost::bind(&TCPSession::handle_write,shared_from_this(),
+							  boost::bind(&TCPClient::handle_write,shared_from_this(),
 							  boost::asio::placeholders::error,
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
@@ -140,13 +140,13 @@ bool TCPSession::sendData()
 		return false;
 	}
 }
-bool TCPSession::receiveData()
+bool TCPClient::receiveData()
 {
 	boost::system::error_code err;
 	try
 	{
 		boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
-							  boost::bind(&TCPSession::handle_read,shared_from_this(),
+							  boost::bind(&TCPClient::handle_read,shared_from_this(),
 							  boost::asio::placeholders::error,
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {

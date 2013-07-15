@@ -33,13 +33,13 @@ void TCPServer::Close()
 
 void TCPServer::StartAccept()
 {
-	TCPSessionPtr connection = TCPSession::create(acceptor_.get_io_service());
+	TCPSessionPtr connection = TCPClient::create(acceptor_.get_io_service());
 
 	acceptor_.async_accept(connection->socket(),
 						boost::bind(&TCPServer::handle_accept, this, connection, boost::asio::placeholders::error));
 }
 
-void TCPServer::handle_accept(boost::shared_ptr<TCPSession> connection, const boost::system::error_code& error)
+void TCPServer::handle_accept(boost::shared_ptr<TCPClient> connection, const boost::system::error_code& error)
 {
 	if( error== 0)
 	{
@@ -48,12 +48,12 @@ void TCPServer::handle_accept(boost::shared_ptr<TCPSession> connection, const bo
 	}
 }
 
-void TCPServer::InsertAClient(boost::shared_ptr<TCPSession> connection)
+void TCPServer::InsertAClient(boost::shared_ptr<TCPClient> connection)
 {
 	//boost::unique_lock< boost::shared_mutex > lock(mutex);
 	connectionList.push_back(connection);
 }
-void TCPServer::RemoveAClient(TCPSession* connection)
+void TCPServer::RemoveAClient(TCPClient* connection)
 {
 	//boost::unique_lock< boost::shared_mutex > lock(mutex);
 	std::vector<TCPSessionPtr>::iterator it;

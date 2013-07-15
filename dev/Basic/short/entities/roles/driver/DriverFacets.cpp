@@ -424,6 +424,14 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 		parentDriver->perceivedDistToTrafficSignal->clear();
 		parentDriver->perceivedTrafficColor->clear();
 		intersectionDriving(params);
+
+		/*double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+		std::cout << "intersection distance is : " << distance << std::endl;
+
+		parentDriver->vehicle->setAcceleration(-5000);
+		parentDriver->vehicle->setVelocity(0);
+		params.currSpeed = parentDriver->vehicle->getVelocity() / 100;*/
+
 	}
 
 	//Next, handle driving on links.
@@ -715,7 +723,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		}
 
 		//judge whether near to stopping node
-		if( distance<300 ){
+		if( distance<500 ){
 
 			for(int i = 0; i<schedule->stop_schdules.size(); i++){
 
@@ -1090,7 +1098,6 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 			lastIndex = *(laneIDS.begin());
 			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(*(laneIDS.begin()))->getPolyline().at(0);//>getLaneEdgePolyline(*(laneIDS.begin())).at(0);
 		}
-
 	}
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);

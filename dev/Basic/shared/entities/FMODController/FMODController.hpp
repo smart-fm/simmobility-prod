@@ -7,7 +7,7 @@
 
 #ifndef FMODCONTROLLER_HPP_
 #define FMODCONTROLLER_HPP_
-#include "TCPSession.hpp"
+#include "TCPClient.hpp"
 #include "ParkingCoordinator.h"
 #include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
@@ -20,16 +20,16 @@ namespace FMOD
 struct Request;
 class FMODController : public sim_mob::Agent {
 public:
-	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPSession(io_service)), frameTicks(0), waitingseconds(10){}
+	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPClient(io_service)), frameTicks(0), waitingseconds(10){}
 
 	virtual ~FMODController();
 
 	bool InsertFMODItems(const std::string& personID, TripChainItem* item);
-	void Settings(std::string ipadress, int port, int updateTiming, std::string mapFile) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile;}
+	void Settings(std::string ipadress, int port, int updateTiming, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
 	static FMODController* Instance();
-	bool StartClientService();
+	bool ConnectFMODService();
 	void StopClientService();
 	void Initialize();
 

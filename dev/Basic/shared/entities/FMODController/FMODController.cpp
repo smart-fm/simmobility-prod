@@ -39,7 +39,6 @@ FMODController::~FMODController() {
 
 bool FMODController::frame_init(timeslice now)
 {
-	StartClientService();
 	return true;
 }
 
@@ -142,7 +141,7 @@ void FMODController::Initialize()
 }
 
 
-bool FMODController::StartClientService()
+bool FMODController::ConnectFMODService()
 {
 	bool ret = false;
 	ret = connectPoint->ConnectToServer(ipAddress, port);
@@ -161,12 +160,12 @@ bool FMODController::StartClientService()
 		request.start_time = ConfigParams::GetInstance().simStartTime.toString();
 		std::string msg = request.BuildToString();
 		std::cout << "FMOD Controller send message :" << msg << std::endl;
-		connectPoint->pushMessage(msg);
+		connectPoint->SendMessage(msg);
 		//connectPoint->pushMessage(msg);
 		connectPoint->Flush();
 
 		std::string message;
-		if( !connectPoint->WaitForOneMessage(message, waitingseconds)){
+		if( !connectPoint->WaitMessageInBlocking(message, waitingseconds)){
 			std::cout << "FMOD communication in blocking mode not receive data asap" << std::endl;
 		}
 		else{
@@ -197,13 +196,13 @@ void FMODController::ProcessMessagesInBlocking(timeslice now)
 
 	while( requests.size() > 0 ){
 		std::string message = requests.front();
-		connectPoint->pushMessage(message);
+		connectPoint->SendMessage(message);
 		requests.pop();
 
 		while( true ){
 
 			connectPoint->Flush();
-			if( !connectPoint->WaitForOneMessage(message, waitingseconds)){
+			if( !connectPoint->WaitMessageInBlocking(message, waitingseconds)){
 				std::cout << "FMOD communication in blocking mode not receive data asap" << std::endl;
 				break;
 			}
@@ -211,12 +210,12 @@ void FMODController::ProcessMessagesInBlocking(timeslice now)
 			int msgId = JMessage::GetMessageID(message);
 			if(msgId == JMessage::MSG_OFFER ){
 				MessageList ret = HandleOfferMessage(message);
-				connectPoint->pushMessage(ret);
+				connectPoint->SendMessage(ret);
 				continue;
 			}
 			else if(msgId == JMessage::MSG_CONFIRMATION ){
 				MessageList ret = HandleConfirmMessage(message);
-				connectPoint->pushMessage(ret);
+				connectPoint->SendMessage(ret);
 				continue;
 			}
 			else if(msgId == JMessage::MSG_SCHEDULE ){
@@ -233,11 +232,11 @@ void FMODController::ProcessMessages(timeslice now)
 		return;
 
 	MessageList Requests = GenerateRequest(now);
-	connectPoint->pushMessage(Requests);
+	connectPoint->SendMessage(Requests);
 	connectPoint->Flush();
 
 	bool continued = false;
-	MessageList messages = connectPoint->popMessage();
+	MessageList messages = connectPoint->GetMessage();
 	while( messages.size()>0 )
 	{
 		std::string str = messages.front();
@@ -249,12 +248,12 @@ void FMODController::ProcessMessages(timeslice now)
 		}
 		else if(msgId == JMessage::MSG_OFFER ){
 			MessageList ret = HandleOfferMessage(str);
-			connectPoint->pushMessage(ret);
+			connectPoint->SendMessage(ret);
 			continued = true;
 		}
 		else if(msgId == JMessage::MSG_CONFIRMATION ){
 			MessageList ret = HandleConfirmMessage(str);
-			connectPoint->pushMessage(ret);
+			connectPoint->SendMessage(ret);
 			continued = true;
 		}
 		else if(msgId == JMessage::MSG_SCHEDULE ){
@@ -262,7 +261,7 @@ void FMODController::ProcessMessages(timeslice now)
 		}
 
 		if(continued)
-			messages = connectPoint->popMessage();
+			messages = connectPoint->GetMessage();
 	}
 
 	connectPoint->Flush();
@@ -277,17 +276,17 @@ void FMODController::UpdateMessagesInBlocking(timeslice now)
 
 	std::string message;
 	MessageList ret = CollectVehStops();
-	connectPoint->pushMessage(ret);
-	connectPoint->WaitForOneMessage(message, waitingseconds);
+	connectPoint->SendMessage(ret);
+	connectPoint->WaitMessageInBlocking(message, waitingseconds);
 	if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
 		std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
 	}
 
 	if(curTickMS%100 == 0){
 		ret = CollectVehPos();
-		connectPoint->pushMessage(ret);
+		connectPoint->SendMessage(ret);
 		connectPoint->Flush();
-		connectPoint->WaitForOneMessage(message, waitingseconds);
+		connectPoint->WaitMessageInBlocking(message, waitingseconds);
 		if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
 			std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
 		}
@@ -295,8 +294,8 @@ void FMODController::UpdateMessagesInBlocking(timeslice now)
 
 	if(curTickMS%updateTiming == 0){
 		ret = CollectLinkTravelTime();
-		connectPoint->pushMessage(ret);
-		connectPoint->WaitForOneMessage(message, waitingseconds);
+		connectPoint->SendMessage(ret);
+		connectPoint->WaitMessageInBlocking(message, waitingseconds);
 		if(JMessage::GetMessageID(message)!= JMessage::MSG_ACK ){
 			std::cout << "FMOD Controller not receive correct acknowledge message" << std::endl;
 		}
@@ -313,16 +312,16 @@ void FMODController::UpdateMessages(timeslice now)
 	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
 
 	MessageList ret = CollectVehStops();
-	connectPoint->pushMessage(ret);
+	connectPoint->SendMessage(ret);
 
 	if(curTickMS%100 == 0){
 		ret = CollectVehPos();
-		connectPoint->pushMessage(ret);
+		connectPoint->SendMessage(ret);
 	}
 
 	if(curTickMS%updateTiming == 0){
 		ret = CollectLinkTravelTime();
-		connectPoint->pushMessage(ret);
+		connectPoint->SendMessage(ret);
 	}
 
 	connectPoint->Flush();
@@ -719,7 +718,9 @@ void FMODController::DispatchPendingAgents(timeslice now)
 		person->client_id = 101;
 		all_drivers.push_back(person);
 	}
+
 	*/
+
 }
 
 }

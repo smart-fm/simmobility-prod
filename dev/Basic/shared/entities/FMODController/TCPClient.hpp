@@ -18,17 +18,17 @@ namespace FMOD
 {
 
 class TCPServer;
-class TCPSession : public boost::enable_shared_from_this<TCPSession> {
+class TCPClient : public boost::enable_shared_from_this<TCPClient> {
 public:
-	static boost::shared_ptr<TCPSession> create(boost::asio::io_service& io_service, TCPServer* parent=0);
+	static boost::shared_ptr<TCPClient> create(boost::asio::io_service& io_service, TCPServer* parent=0);
 
-	TCPSession(boost::asio::io_service& io_service, TCPServer* parent=0);
-	virtual ~TCPSession();
-	void pushMessage(std::string data);
-	void pushMessage(MessageList data);
+	TCPClient(boost::asio::io_service& io_service, TCPServer* parent=0);
+	virtual ~TCPClient();
+	void SendMessage(std::string data);
+	void SendMessage(MessageList data);
 	void Flush();
-	MessageList popMessage();
-	bool WaitForOneMessage(std::string& msg, int seconds);
+	MessageList GetMessage();
+	bool WaitMessageInBlocking(std::string& msg, int seconds);
 	boost::asio::ip::tcp::socket& socket();
 	bool ConnectToServer(std::string ip, int port);
 	void Stop();
@@ -49,7 +49,7 @@ private:
 
 };
 
-typedef boost::shared_ptr<TCPSession> TCPSessionPtr;
+typedef boost::shared_ptr<TCPClient> TCPSessionPtr;
 
 }
 

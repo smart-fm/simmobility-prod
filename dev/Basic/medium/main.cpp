@@ -139,9 +139,9 @@ bool performMainMed(const std::string& configFileName) {
 		Print::Ignore();
 	}
 
-#ifdef SIMMOB_USE_CONFLUXES
-	std::cout << "Confluxes ON!" << std::endl;
-#endif
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		std::cout << "Confluxes ON!" << std::endl;
+	}
 
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {

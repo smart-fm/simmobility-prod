@@ -4,25 +4,30 @@
 
 #include "GenConfig.h"
 
+#include <iostream>
 #include <queue>
 #include <sstream>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "buffering/Buffered.hpp"
+#include "conf/simpleconf.hpp"
+#include "entities/Entity.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
+#include "workers/WorkGroup.hpp"
+#include "util/FlexiBarrier.hpp"
+#include "util/OutputUtil.hpp"
+#include "util/LangHelpers.hpp"
 
 using std::set;
 using std::vector;
 using std::priority_queue;
 using boost::barrier;
 using boost::function;
-
-#include "workers/WorkGroup.hpp"
-#include "util/OutputUtil.hpp"
-#include "conf/simpleconf.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "entities/Person.hpp"
-
 using namespace sim_mob;
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 
@@ -151,11 +156,7 @@ void sim_mob::Worker::addPendingEntities()
 		return;
 	}
 	int i = 0;
-	std::ostringstream out ;
-	out.str("");
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
-//		out << "Worker[" << this << "]::addPendingEntities->iteration " << i++ << " calling migrateIn\n";
-		std::cout << out.str();
 		//Migrate its Buffered properties.
 		migrateIn(**it);
 	}

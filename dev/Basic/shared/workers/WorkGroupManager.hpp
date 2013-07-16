@@ -2,37 +2,18 @@
 
 #pragma once
 
-#include <iostream>
-#include <queue>
 #include <vector>
-#include <stdexcept>
-#include <boost/thread.hpp>
-#include <string>
-
-#include "conf/settings/DisableMPI.h"
 
 #include "util/LangHelpers.hpp"
-#include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/StateSwitcher.hpp"
-#include "logging/Log.hpp"
 
 
-namespace sim_mob
-{
+namespace sim_mob {
 
-class RoadSegment;
-class StartTimePriorityQueue;
-class EventTimePriorityQueue;
-class Agent;
-class Person;
-class Entity;
 class PartitionManager;
 class AuraManager;
-class Conflux;
-class Worker;
 class WorkGroup;
-
 
 
 
@@ -101,9 +82,6 @@ private:
 	//TODO: StateSwitcher class with "test()" and "set()" methods. The second always returns true; e.g.,
 	// if (currState.test(x) && currState.set(x)) {}
 	sim_mob::StateSwitcher<STATE> currState;
-
-	//Helper: check the current state against a set of allowed flags; if it succeeds, assign it to the new state.
-	//bool testAndSetState(uint32_t allowedStates, STATE newState);
 
 	//For holding the set of known WorkGroups
 	std::vector<sim_mob::WorkGroup*> registeredWorkGroups;

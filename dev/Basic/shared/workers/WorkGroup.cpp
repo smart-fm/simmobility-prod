@@ -4,31 +4,25 @@
 
 #include "GenConfig.h"
 
-//For debugging
+#include <iostream>
 #include <stdexcept>
 #include <boost/thread.hpp>
-#include "util/OutputUtil.hpp"
 
 #include "conf/simpleconf.hpp"
-
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
-#include "partitions/PartitionManager.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 
-
-using std::map;
 using std::vector;
-using std::set;
-using boost::barrier;
-using boost::function;
 
 using namespace sim_mob;
 
@@ -429,18 +423,12 @@ int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 
 
 
-
-
 void sim_mob::WorkGroup::interrupt()
 {
 	for (size_t i=0; i<workers.size(); i++)
 		workers[i]->interrupt();
 }
 
-// providing read only access to public for RegisteredWorkGroups. AuraManager requires this
-/*const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
-	return sim_mob::WorkGroup::RegisteredWorkGroups;
-}*/
 
 /*
  * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent
@@ -465,32 +453,26 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		if(numConfluxesPerWorker > 0){
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
-//		for(std::set<sim_mob::Conflux*>::iterator it = (*i)->managedConfluxes.begin(); it != (*i)->managedConfluxes.end(); it++) {
-//			debugMsgs << "\nassignConfluxToWorkers\tConflux MN:" << (*it)->getMultiNode()->nodeId << "\tparentWrkr:" << (*it)->getParentWorker();
-//		}
 	}
 	if(confluxes.size() > 0) {
-		/* There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
-		 * Assign these to the last worker which has all its upstream confluxes.
-		 */
+		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
+		//Assign these to the last worker which has all its upstream confluxes.
 		sim_mob::Worker* worker = workers.back();
-//		debugMsgs << "\n" << confluxes.size() << " confluxes are unassigned. Assigning to last worker.\n" ;
 		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
-			//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(*i);
-			//if (insertResult.second) { (*i)->setParentWorker(worker); }
 			if (worker->beginManagingConflux(*i)) {
 				(*i)->setParentWorker(worker);
 			}
 		}
 		confluxes.clear();
 	}
-//	std::cout << debugMsgs.str();
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
 		int numConfluxesToAddInWorker)
 {
+	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
+
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	bool workerFilled = false;
 
@@ -504,10 +486,10 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 			conflux->setParentWorker(worker);
 		}
 
-		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+		SegmentSet downStreamSegs = conflux->getDownstreamSegments();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
-		for(std::set<const sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+		for(SegmentSet::const_iterator i = downStreamSegs.begin();
 				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
 				i++)
 		{

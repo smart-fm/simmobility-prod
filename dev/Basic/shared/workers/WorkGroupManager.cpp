@@ -2,34 +2,13 @@
 
 #include "WorkGroupManager.hpp"
 
-#include "GenConfig.h"
-
-//For debugging
 #include <stdexcept>
-#include <boost/thread.hpp>
-#include "util/OutputUtil.hpp"
 
 #include "conf/simpleconf.hpp"
-
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
-#include "entities/LoopDetectorEntity.hpp"
-#include "entities/AuraManager.hpp"
-#include "partitions/PartitionManager.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
-#include "workers/Worker.hpp"
+#include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 
-
-using std::map;
 using std::vector;
-using std::set;
-using boost::barrier;
-using boost::function;
 
 using namespace sim_mob;
 
@@ -46,19 +25,6 @@ WorkGroupManager::~WorkGroupManager()
 	safe_delete_item(buffFlipBarr);
 	safe_delete_item(auraMgrBarr);
 }
-
-
-/*bool sim_mob::WorkGroupManager::testAndSetState(uint32_t allowedStates, STATE newState)
-{
-	uint32_t cs = static_cast<uint32_t>(currState);
-	if ((cs&allowedStates)==0) {
-		return false;
-	}
-
-	//Success.
-	currState = newState;
-	return true;
-}*/
 
 
 WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)

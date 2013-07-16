@@ -1,5 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#pragma once
+
 /**
  * A "worker" performs a task asynchronously.
  *    There are two ways to use a worker:
@@ -12,38 +14,25 @@
  *
  * To customize the Worker, either subclass it and override "main_loop", or
  * use a normal Worker and pass in a bindable function in the constructor.
- *
- * \todo
- * Need to re-write, combine this with EntityWorker. Basically, the AddEntity function
- * should be templatized with void* or Entity*, instead of having 2 classes.
  */
-
-#pragma once
-#include <iostream>
 
 #include <vector>
 #include <set>
+
 #include <boost/thread.hpp>
-#include <boost/function.hpp>
-#include <boost/unordered_map.hpp>
-#include "util/FlexiBarrier.hpp"
 
-#include "entities/Entity.hpp"
-
-#include "metrics/Frame.hpp"
-#include "util/LangHelpers.hpp"
-#include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "geospatial/Link.hpp"
-#include "entities/conflux/SegmentStats.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
 #include "event/EventManager.hpp"
+#include "metrics/Frame.hpp"
 
-namespace sim_mob
-{
+namespace sim_mob {
 
+class FlexiBarrier;
+class ProfileBuilder;
 class WorkGroup;
 class Conflux;
+class Entity;
+
 
 class Worker : public BufferedDataManager {
 private:
@@ -135,7 +124,6 @@ private:
 
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
-	std::vector<Link*> managedLinks;
 	std::set<Conflux*> managedConfluxes;
 
 	///If non-null, used for profiling.

@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include <iostream>
+#include "conf/settings/DisableMPI.h"
+
 #include <queue>
 #include <vector>
 #include <stdexcept>
 #include <boost/thread.hpp>
 #include <string>
-
-#include "conf/settings/DisableMPI.h"
 
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"

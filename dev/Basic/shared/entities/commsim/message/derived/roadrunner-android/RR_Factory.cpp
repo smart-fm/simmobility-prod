@@ -9,7 +9,6 @@
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
 #include <stdexcept>
-//#include "entities/commsim/service/services.hpp"
 #include "logging/Log.hpp"
 
 namespace sim_mob {

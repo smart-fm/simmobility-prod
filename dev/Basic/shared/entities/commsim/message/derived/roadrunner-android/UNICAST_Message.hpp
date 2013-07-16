@@ -9,7 +9,7 @@
 #define UNICAST_MESSAGE_HPP_
 #include "entities/commsim/message/base/Message.hpp"
 //#include "UNICAST_Handler.hpp"
-//#include "entities/commsim/message/derived/roadrunner/RoadrunnerMessage.hpp"
+//#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
 
 namespace sim_mob {
 namespace roadrunner {

@@ -62,16 +62,19 @@ void sim_mob::WorkGroupManager::initAllGroups()
 	bool pass = currState.test(CREATE) && currState.set(BARRIERS);
 	if (!pass) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
 
-	//Create a barrier for each of the three shared phases (aura manager optional)
-	frameTickBarr = new FlexiBarrier(currBarrierCount);
-	buffFlipBarr = new FlexiBarrier(currBarrierCount);
-	if (auraBarrierNeeded) {
-		auraMgrBarr = new FlexiBarrier(currBarrierCount);
-	}
+	//No barriers are created in single-threaded mode.
+	if (!singleThreaded) {
+		//Create a barrier for each of the three shared phases (aura manager optional)
+		frameTickBarr = new FlexiBarrier(currBarrierCount);
+		buffFlipBarr = new FlexiBarrier(currBarrierCount);
+		if (auraBarrierNeeded) {
+			auraMgrBarr = new FlexiBarrier(currBarrierCount);
+		}
 
-	//Initialize each WorkGroup with these new barriers.
-	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		(*it)->initializeBarriers(frameTickBarr, buffFlipBarr, auraMgrBarr);
+		//Initialize each WorkGroup with these new barriers.
+		for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
+			(*it)->initializeBarriers(frameTickBarr, buffFlipBarr, auraMgrBarr);
+		}
 	}
 }
 
@@ -83,7 +86,7 @@ void sim_mob::WorkGroupManager::startAllWorkGroups()
 	if (!pass) { throw std::runtime_error("Can't start all WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		(*it)->startAll();
+		(*it)->startAll(singleThreaded);
 	}
 }
 
@@ -104,11 +107,13 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		(*it)->waitFrameTick();
+		(*it)->waitFrameTick(singleThreaded);
 	}
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.
-	frameTickBarr->wait();
+	if (frameTickBarr) {
+		frameTickBarr->wait();
+	}
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
@@ -117,11 +122,13 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		(*it)->waitFlipBuffers();
+		(*it)->waitFlipBuffers(singleThreaded);
 	}
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.
-	buffFlipBarr->wait();
+	if (buffFlipBarr) {
+		buffFlipBarr->wait();
+	}
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
@@ -151,7 +158,9 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 	}
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.
-	auraMgrBarr->wait();
+	if (auraMgrBarr) {
+		auraMgrBarr->wait();
+	}
 }
 
 

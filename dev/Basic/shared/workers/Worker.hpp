@@ -29,6 +29,7 @@ namespace sim_mob {
 
 class FlexiBarrier;
 class ProfileBuilder;
+class ControlManager;
 class WorkGroup;
 class Conflux;
 class Entity;
@@ -71,11 +72,38 @@ public:
 	EventManager& getEventManager();
 
 protected:
-	virtual void perform_main(timeslice currTime);
-	virtual void perform_flip();
+	///Simple struct that holds all of the params used throughout threaded_function_loop().
+	struct MgmtParams {
+		MgmtParams();
+
+		///Helper: returns true if the "extra" (macro) tick is active.
+		bool extraActive(uint32_t endTick) const;
+
+
+		///TODO: Using ConfigParams here is risky, since unit-tests may not have access to an actual config file.
+		///      We might want to remove this later, but most of our simulator relies on ConfigParams anyway, so
+		///      this will be a major cleanup effort anyway.
+
+		uint32_t msPerFrame;  ///< How long is each frame tick in ms.
+		sim_mob::ControlManager* ctrlMgr;  ///< The Control Manager (if any)
+		uint32_t currTick;    ///< The current time tick.
+		bool active;          ///< Is the simulation currently active?
+	};
+
+	//These functions encapsulate all of the non-initialization, non-barrier behavior of threaded_function_loop().
+	//This allows us to call these functions individually if singleThreaded is set to true.
+	//Some minor hacking is done via the MgmtParams struct to make this possible.
+	void perform_frame_tick();
+	void perform_buff_flip();
+	//void perform_aura_mgr();  //Would do nothing (by chance).
+	//void perform_macro();     //Would do nothing (by definition).
 
 private:
-	void barrier_mgmt();
+	//The function that forms the basis of each Worker thread.
+	void threaded_function_loop();
+
+	//Helper functions for various update functionality.
+	virtual void update_entities(timeslice currTime);
 
 	void migrateOut(Entity& ent);
 	void migrateIn(Entity& ent);
@@ -121,6 +149,9 @@ protected:
 private:
 	///The main thread which this Worker wraps
 	boost::thread main_thread;
+
+	///All parameters used by main_thread. Maintained by the object so that we don't need to use boost::coroutines.
+	MgmtParams loop_params;
 
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;

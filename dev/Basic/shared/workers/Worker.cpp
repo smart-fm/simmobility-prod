@@ -33,6 +33,21 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
+sim_mob::Worker::MgmtParams::MgmtParams() :
+	msPerFrame(ConfigParams::GetInstance().baseGranMS),
+	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
+	currTick(0),
+	active(true)
+{}
+
+
+bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
+{
+	return endTick==0 || ((currTick-1)<endTick);
+}
+
+
+
 sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
     : BufferedDataManager(),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
@@ -41,9 +56,9 @@ sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrie
 {
 	//Currently, we need at least these two barriers or we will get synchronization problems.
 	// (Internally, though, we don't technically need them.)
-	if (!frame_tick || !buff_flip) {
-		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
-	}
+//	if (!frame_tick || !buff_flip) {
+//		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
+//	}
 
 	//Initialize our profile builder, if applicable.
 	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
@@ -129,13 +144,21 @@ void sim_mob::Worker::scheduleForBred(Entity* entity)
 
 void sim_mob::Worker::start()
 {
-	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
+	//Just in case...
+	loop_params = MgmtParams();
+
+	//A Worker will silently fail to start if it has no frame_tick barrier.
+	if (frame_tick_barr) {
+		main_thread = boost::thread(boost::bind(&Worker::threaded_function_loop, this));
+	}
 }
 
 
 void sim_mob::Worker::join()
 {
-	main_thread.join();
+	if (main_thread.joinable()) {
+		main_thread.join();
+	}
 }
 
 
@@ -203,60 +226,64 @@ void sim_mob::Worker::breedPendingEntities()
 }
 
 
-void sim_mob::Worker::barrier_mgmt()
+void sim_mob::Worker::perform_frame_tick()
 {
-	///TODO: Using ConfigParams here is risky, since unit-tests may not have access to an actual config file.
-	///      We might want to remove this later, but most of our simulator relies on ConfigParams anyway, so
-	///      this will be a major cleanup effort anyway.
-	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
+	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
+	MgmtParams& par = loop_params;
 
-	sim_mob::ControlManager* ctrlMgr = nullptr;
+	//Short-circuit if we're in "pause" mode.
 	if (ConfigParams::GetInstance().InteractiveMode()) {
-		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+		while (par.ctrlMgr->getSimState() == PAUSE) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+		}
 	}
 
-	uint32_t currTick = 0;
+	//Add Agents as required.
+	addPendingEntities();
 
-	for (bool active=true; active;) {
-		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
+	//Perform all our Agent updates, etc.
+	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
 
-		//Short-circuit if we're in "pause" mode.
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			while (ctrlMgr->getSimState() == PAUSE) {
-				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	//Remove Agents as requires
+	removePendingEntities();
+
+	// breed new children entities from parent
+	//TODO: This name has *got* to change. ~Seth
+	breedPendingEntities();
+
+	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
+
+	//Advance local time-step.
+	par.currTick += tickStep;
+
+	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		if (par.ctrlMgr->getSimState() == STOP) {
+			while (par.ctrlMgr->getEndTick() < 0) {
+				par.ctrlMgr->setEndTick(par.currTick+2);
 			}
+			endTick = par.ctrlMgr->getEndTick();
 		}
+	}
 
-		//Add Agents as required.
-		addPendingEntities();
+	//Check if we are still active or are done.
+	par.active = (endTick==0 || par.currTick<endTick);
+}
 
-		//Perform all our Agent updates, etc.
-		perform_main(timeslice(currTick, currTick*msPerFrame));
+void sim_mob::Worker::perform_buff_flip()
+{
+	//Flip all data managed by this worker.
+	this->flip();
+}
 
-		//Remove Agents as requires
-		removePendingEntities();
 
-		// breed new children entities from parent
-		//TODO: This name has *got* to change. ~Seth
-		breedPendingEntities();
-
-		PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
-
-		//Advance local time-step.
-		currTick += tickStep;
-
-		//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			if (ctrlMgr->getSimState() == STOP) {
-				while (ctrlMgr->getEndTick() < 0) {
-					ctrlMgr->setEndTick(currTick+2);
-				}
-				endTick = ctrlMgr->getEndTick();
-			}
-		}
-
-		//Check if we are still active or are done.
-		active = (endTick==0 || currTick<endTick);
+void sim_mob::Worker::threaded_function_loop()
+{
+	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
+	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
+	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
+	while (loop_params.active) {
+		perform_frame_tick();
 
 		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.
 #ifdef SIMMOB_INTERACTIVE_MODE
@@ -270,7 +297,7 @@ void sim_mob::Worker::barrier_mgmt()
 			}
 
 			//Now flip all remaining data.
-			perform_flip();
+			perform_buff_flip();
 
 			//Second barrier
 			if (buff_flip_barr) {
@@ -286,8 +313,7 @@ void sim_mob::Worker::barrier_mgmt()
 			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
 			//  once more at the end of tick 9.
 			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-			bool extraActive = (endTick==0 || (currTick-1)<endTick);
-			if (macro_tick_barr && extraActive) {
+			if (macro_tick_barr && loop_params.extraActive(endTick)) {
 				macro_tick_barr->wait();
 			}
 
@@ -417,7 +443,7 @@ struct RestrictedEntityUpdater : public EntityUpdater {
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
-void sim_mob::Worker::perform_main(timeslice currTime)
+void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
 	if (ConfigParams::GetInstance().UsingConfluxes()) {
@@ -443,11 +469,6 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 	eventManager.Update(currTime);
 }
 
-void sim_mob::Worker::perform_flip()
-{
-	//Flip all data managed by this worker.
-	this->flip();
-}
 
 
 EventManager& sim_mob::Worker::getEventManager()

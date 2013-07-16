@@ -87,7 +87,7 @@ public:
 	void initWorkers(EntityLoadParams* loader);
 
 private:
-	void startAll();
+	void startAll(bool singleThreaded);
 
 public:
 	void interrupt();
@@ -135,10 +135,10 @@ private:
 	// make sure that you call all wait* functions for a given category before moving on.
 	//E.g., call "waitFrameTick()" for all WorkGroups, THEN call "waitFlipBuffers()" for all
 	// work groups, etc.
-	void waitFrameTick();
-	void waitFlipBuffers();
-	void waitMacroTimeTick();
+	void waitFrameTick(bool singleThreaded);
+	void waitFlipBuffers(bool singleThreaded);
 	void waitAuraManager();
+	void waitMacroTimeTick();
 
 	//Initialize our shared (static) barriers. These barriers don't technically need to be copied
 	//  locally, but we'd rather avoid relying on static variables in case we ever make a WorkGroupGroup (or whatever) class.

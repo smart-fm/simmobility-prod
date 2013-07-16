@@ -118,12 +118,17 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 
 
 
-void sim_mob::WorkGroup::startAll()
+void sim_mob::WorkGroup::startAll(bool singleThreaded)
 {
 	//Sanity checks
 	if (started) { throw std::runtime_error("WorkGroups already started"); }
-	if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
+	//if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
 	started = true;
+
+	//TODO: Fix this; it's caused by that exception(...) trick used by the GUI in Worker::threaded_function_loop()
+	if (singleThreaded && ConfigParams::GetInstance().InteractiveMode()) {
+		throw std::runtime_error("Can't run in single-threaded mode while INTERACTIVE_MODE is set.");
+	}
 
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
 	nextTimeTick = 0;
@@ -308,25 +313,41 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 }
 
 
-void sim_mob::WorkGroup::waitFrameTick()
+void sim_mob::WorkGroup::waitFrameTick(bool singleThreaded)
 {
 	//Sanity check
 	if (!started) { throw std::runtime_error("WorkGroups not started; can't waitFrameTick()"); }
 
 	if (tickOffset==0) {
+		//If we are in single-threaded mode, pass this function call on to each Worker.
+		if (singleThreaded) {
+			for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+				(*it)->perform_frame_tick();
+			}
+		}
+
 		//New time tick.
 		currTimeTick = nextTimeTick;
 		nextTimeTick += tickStep;
 		//frame_tick_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers
-		frame_tick_barr->contribute(workers.size());
+		if (frame_tick_barr) {
+			frame_tick_barr->contribute(workers.size());
+		}
 	}
 }
 
-void sim_mob::WorkGroup::waitFlipBuffers()
+void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 {
 	if (tickOffset==0) {
+		//If we are in single-threaded mode, pass this function call on to each Worker.
+		if (singleThreaded) {
+			for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+				(*it)->perform_buff_flip();
+			}
+		}
+
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
@@ -334,16 +355,18 @@ void sim_mob::WorkGroup::waitFlipBuffers()
 		//buff_flip_barr->contribute(); //No.
 	} else {
 		//Tick on behalf of all your workers.
-		buff_flip_barr->contribute(workers.size());
+		if (buff_flip_barr) {
+			buff_flip_barr->contribute(workers.size());
+		}
 	}
 }
 
 void sim_mob::WorkGroup::waitAuraManager()
 {
 	//This barrier is optional.
-	if (!aura_mgr_barr) {
+	/*if (!aura_mgr_barr) {
 		return;
-	}
+	}*/
 
 	if (tickOffset==0) {
 		//Update the partition manager, if we have one.
@@ -362,7 +385,9 @@ void sim_mob::WorkGroup::waitAuraManager()
 		//aura_mgr_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers.
-		aura_mgr_barr->contribute(workers.size());
+		if (aura_mgr_barr) {
+			aura_mgr_barr->contribute(workers.size());
+		}
 	}
 }
 
@@ -425,8 +450,9 @@ int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 
 void sim_mob::WorkGroup::interrupt()
 {
-	for (size_t i=0; i<workers.size(); i++)
-		workers[i]->interrupt();
+	for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		(*it)->interrupt();
+	}
 }
 
 

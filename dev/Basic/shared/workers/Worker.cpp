@@ -7,8 +7,10 @@
 #include <iostream>
 #include <queue>
 #include <sstream>
+#include <algorithm>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
 
 #include "buffering/Buffered.hpp"
 #include "conf/simpleconf.hpp"
@@ -217,13 +219,9 @@ void sim_mob::Worker::barrier_mgmt()
 #ifdef SIMMOB_INTERACTIVE_MODE
 	for (bool active=true; active;) {
 		//Short-circuit if we're in "pause" mode.
-		if (ctrlMgr->getSimState() == PAUSE) {
+		while (ctrlMgr->getSimState() == PAUSE) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-			continue;
 		}
-
-		//Sleep again. (Why? ~Seth)
-		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
 		//Add Agents as required.
 		addPendingEntities();
@@ -385,9 +383,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 		msg <<"Error: Entity is already being managed: " <<ag.currWorker <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());
 	}
-	std::stringstream out;
-	out << "worker [" << this << "]::migrateIn calling addEntity for agent[" << &ag<< ":" << ag.getId() << "]" << std::endl;
-//	std::cout << out.str();
+
 	//Simple migration
 	addEntity(&ag);
 
@@ -404,101 +400,78 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 }
 
 
+namespace {
+///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
+struct EntityUpdater {
+	EntityUpdater(Worker& wrk, timeslice currTime) : wrk(wrk), currTime(currTime) {}
+	virtual ~EntityUpdater() {}
+
+	Worker& wrk;
+	timeslice currTime;
+
+	virtual void operator() (sim_mob::Entity* entity) {
+		UpdateStatus res = entity->update(currTime);
+			if (res.status == UpdateStatus::RS_DONE) {
+				//This Entity is done; schedule for deletion.
+				wrk.scheduleForRemoval(entity);
+			} else if (res.status == UpdateStatus::RS_CONTINUE) {
+				//Still going, but we may have properties to start/stop managing
+				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+					wrk.stopManaging(*it);
+				}
+				for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+					wrk.beginManaging(*it);
+				}
+			} else {
+				throw std::runtime_error("Unknown/unexpected update() return status.");
+			}
+	}
+};
+
+///This class extends EntityUpdater, allowing it to skip calling operator() on a certain Entity sub-class
+///  (which is tested for using a dynamic_cast).
+template <class Restricted>
+struct RestrictedEntityUpdater : public EntityUpdater {
+	RestrictedEntityUpdater(Worker& wrk, timeslice currTime) : EntityUpdater(wrk, currTime) {}
+	virtual ~RestrictedEntityUpdater() {}
+
+	virtual void operator() (sim_mob::Entity* entity) {
+		//Exclude the restricted type.
+		if(!dynamic_cast<Restricted*>(entity)) {
+			EntityUpdater::operator ()(entity);
+		}
+	}
+};
+} //End un-named namespace.
+
+
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(timeslice currTime)
 {
-#ifndef SIMMOB_USE_CONFLUXES
-
-	 //All Entity workers perform the same tasks for their set of managedEntities.
-	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
-//		std::cout<< "calling a worker(" << this <<")::perform_main at frame " << currTime.frame() << std::endl;
-		UpdateStatus res = (*it)->update(currTime);
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-			//xuyan:it can be removed from Sim-Tree
-			(*it)->can_remove_by_RTREE = true;
-		} else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		} else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
+	//Confluxes require an additional set of updates.
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			(*it)->resetOutputBounds();
 		}
-	}
-#else
 
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->resetOutputBounds();
-	}
-	//All workers perform the same tasks for their set of managedConfluxes.
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		UpdateStatus res = (*it)->update(currTime);
+		//All workers perform the same tasks for their set of managedConfluxes.
+		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
 
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-		}
-		else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		}
-		else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			(*it)->updateAndReportSupplyStats(currTime);
+			(*it)->reportLinkTravelTimes(currTime);
+			(*it)->resetSegmentFlows();
+			(*it)->resetLinkTravelTimes(currTime);
 		}
 	}
 
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->updateAndReportSupplyStats(currTime);
-		(*it)->reportLinkTravelTimes(currTime);
-		(*it)->resetSegmentFlows();
-		(*it)->resetLinkTravelTimes(currTime);
-	}
+	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
+	std::for_each(managedEntities.begin(), managedEntities.end(), RestrictedEntityUpdater<Conflux>(*this, currTime));
 
-
-	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
-
-		Conflux* ag = dynamic_cast<Conflux*>(*it);
-		if( ag != nullptr )
-			continue;
-
-		UpdateStatus res = (*it)->update(currTime);
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-
-			//xuyan:it can be removed from Sim-Tree
-			(*it)->can_remove_by_RTREE = true;
-		} else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		} else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
-		}
-	}
-
-#endif
-        //updates the event manager.
-        eventManager.Update(currTime);
+	//Update the event manager.
+	eventManager.Update(currTime);
 }
 
 void sim_mob::Worker::perform_flip()

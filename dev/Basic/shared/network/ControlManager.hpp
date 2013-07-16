@@ -33,7 +33,7 @@ class ControlManager {
 public:
 	void start();
 	void setSimState(int s);
-	int getSimState() { return simState; }
+	int getSimState();
 	void getLoadScenarioParas(std::map<std::string,std::string> &para) { para=loadScenarioParas; }
 	bool handleInput(std::string& input);
 	void setEndTick(int t);

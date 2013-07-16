@@ -2346,6 +2346,17 @@ sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 // Macro definitions
 //////////////////////////////////////////
 
+
+bool sim_mob::ConfigParams::UsingConfluxes() const
+{
+#ifdef SIMMOB_USE_CONFLUXES
+	return true;
+#else
+	return false;
+#endif
+}
+
+
 bool sim_mob::ConfigParams::MPI_Disabled() const
 {
 #ifdef SIMMOB_DISABLE_MPI

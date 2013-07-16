@@ -192,6 +192,9 @@ public:
 		return dynamicDispatchDisabled;
 	}
 
+	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
+	bool UsingConfluxes() const;
+
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
 	bool MPI_Disabled() const;
 

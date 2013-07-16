@@ -14,6 +14,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
+#include "util/StateSwitcher.hpp"
 #include "logging/Log.hpp"
 
 
@@ -43,10 +44,15 @@ class WorkGroup;
  */
 class WorkGroupManager {
 public:
-	WorkGroupManager() : currBarrierCount(1), auraBarrierNeeded(false), frameTickBarr(nullptr), buffFlipBarr(nullptr), auraMgrBarr(nullptr), singleThreaded(false)
+	WorkGroupManager() :
+		currBarrierCount(1), auraBarrierNeeded(false), frameTickBarr(nullptr), buffFlipBarr(nullptr), auraMgrBarr(nullptr),
+		singleThreaded(false), currState(INIT)
 	{}
 
 	~WorkGroupManager();
+
+	///Set "single-threaded" mode on all WorkGroups. This must be done *before* initAllGroups/startAllGroups (not sure which one yet).
+	void setSingleThreadMode(bool enable);
 
 	/**
 	 * Create a new WorkGroup and start tracking it. All WorkGroups must be created using this method so that their
@@ -67,9 +73,6 @@ public:
 	///  called, no new WorkGroups may be added.
 	void initAllGroups();
 
-	///Set "single-threaded" mode on all WorkGroups. This must be done *before* initAllGroups/startAllGroups (not sure which one yet).
-	void setSingleThreadMode(bool enable);
-
 	///Helper: Calls "startAll()" on all registered WorkGroups;
 	void startAllWorkGroups();
 
@@ -86,9 +89,21 @@ public:
 	const std::vector<sim_mob::WorkGroup*> getRegisteredWorkGroups();
 
 private:
-	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
-	///  for the next simulation.
-	//void FinalizeAllWorkGroups();
+	//WorkGroup management proceeds like a state machine. At each point, only a set number of actions can be performed (usually 1).
+	enum STATE {
+		INIT,     ///< The Manager has just been created.
+		CREATE,   ///< The Manager is in the process of creating WorkGroups (at least one exists).
+		BARRIERS, ///< The Manager has just initialized all barriers (and informed the WorkGroups).
+		STARTED,  ///< The Manager has informed WorkGroups to start their Workers.
+	};
+
+	//The current state of the Management life cycle.
+	//TODO: StateSwitcher class with "test()" and "set()" methods. The second always returns true; e.g.,
+	// if (currState.test(x) && currState.set(x)) {}
+	sim_mob::StateSwitcher<STATE> currState;
+
+	//Helper: check the current state against a set of allowed flags; if it succeeds, assign it to the new state.
+	//bool testAndSetState(uint32_t allowedStates, STATE newState);
 
 	//For holding the set of known WorkGroups
 	std::vector<sim_mob::WorkGroup*> registeredWorkGroups;

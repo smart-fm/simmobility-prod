@@ -48,11 +48,26 @@ WorkGroupManager::~WorkGroupManager()
 }
 
 
+/*bool sim_mob::WorkGroupManager::testAndSetState(uint32_t allowedStates, STATE newState)
+{
+	uint32_t cs = static_cast<uint32_t>(currState);
+	if ((cs&allowedStates)==0) {
+		return false;
+	}
+
+	//Success.
+	currState = newState;
+	return true;
+}*/
+
 
 WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
 {
 	//Sanity check
-	if (frameTickBarr) { throw std::runtime_error("Can't add new work group; barriers have already been established."); }
+	bool pass = (currState.test(INIT)||currState.test(CREATE)) && currState.set(CREATE);
+	if (!pass) {
+		throw std::runtime_error("newWorkGroup failed: the current state does not allow it.");
+	}
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
@@ -69,7 +84,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
 {
 	//TODO: Mighgt be overly restrictive; perhaps only "start" needs to be preempted.
-	if (!registeredWorkGroups.empty()) { throw std::runtime_error("Can't change to/from single-threaded mode once WorkGroups have been registered."); }
+	if (!currState.test(INIT)) { throw std::runtime_error("Can't change to/from single-threaded mode once WorkGroups have been registered."); }
 
 	singleThreaded = enable;
 }
@@ -78,7 +93,8 @@ void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
 void sim_mob::WorkGroupManager::initAllGroups()
 {
 	//Sanity check
-	if (frameTickBarr) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
+	bool pass = currState.test(CREATE) && currState.set(BARRIERS);
+	if (!pass) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
 
 	//Create a barrier for each of the three shared phases (aura manager optional)
 	frameTickBarr = new FlexiBarrier(currBarrierCount);
@@ -97,7 +113,8 @@ void sim_mob::WorkGroupManager::initAllGroups()
 void sim_mob::WorkGroupManager::startAllWorkGroups()
 {
 	//Sanity check
-	if (!frameTickBarr) { throw std::runtime_error("Can't start all WorkGroups; no barrier."); }
+	bool pass = currState.test(BARRIERS) && currState.set(STARTED);
+	if (!pass) { throw std::runtime_error("Can't start all WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->startAll();
@@ -108,6 +125,7 @@ void sim_mob::WorkGroupManager::startAllWorkGroups()
 void sim_mob::WorkGroupManager::waitAllGroups()
 {
 	//Call each function in turn.
+	//NOTE: Each sub-function tests the current state.
 	waitAllGroups_FrameTick();
 	waitAllGroups_FlipBuffers();
 	waitAllGroups_AuraManager();
@@ -117,7 +135,7 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 {
 	//Sanity check
-	if (!frameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->waitFrameTick();
@@ -130,7 +148,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 {
 	//Sanity check
-	if (!frameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->waitFlipBuffers();
@@ -143,7 +161,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
 {
 	//Sanity check
-	if (!frameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->waitMacroTimeTick();
@@ -154,6 +172,9 @@ void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
 
 void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 {
+	//Sanity check
+	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+
 	//We don't need this if there's no Aura Manager.
 	if (!auraMgrBarr) {
 		return;
@@ -170,5 +191,9 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 
 const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroupManager::getRegisteredWorkGroups()
 {
+	//Sanity check
+	bool pass = currState.test(BARRIERS) || currState.test(STARTED);
+	if (!pass) { throw std::runtime_error("WorkGroup creation still in progress; can't retrieve registered groups."); }
+
 	return registeredWorkGroups;
 }

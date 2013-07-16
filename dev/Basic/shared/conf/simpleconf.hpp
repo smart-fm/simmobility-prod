@@ -312,8 +312,9 @@ private:
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
-	CommunicationDataManager* commDataMgr;
-	ControlManager* controlMgr;
+	//Mutable because they are set when retrieved.
+	mutable CommunicationDataManager* commDataMgr;
+	mutable ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

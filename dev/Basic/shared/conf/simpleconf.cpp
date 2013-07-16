@@ -2322,7 +2322,7 @@ sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() cons
 	if (!commDataMgr) {
 		commDataMgr = new CommunicationDataManager();
 	}
-	return commDataMgr;
+	return *commDataMgr;
 #else
 	throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
 #endif

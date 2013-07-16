@@ -20,9 +20,6 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
-int sim_mob::Agent::createdAgents = 0;
-int sim_mob::Agent::diedAgents = 0;
-
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
@@ -241,7 +238,6 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
-		diedAgents++;
 		//notify subscribers that this agent is done
 		Publish(AGENT_LIFE_EVENT_FINISHED_ID, AgentLifeEventArgs(this));
 		UnSubscribeAll(AGENT_LIFE_EVENT_FINISHED_ID);

@@ -19,7 +19,7 @@
 #include <boost/tuple/tuple.hpp>
 #include<queue>
 
-#include <entities/commsim/client-registration/base/ClientRegistration.hpp>
+#include <entities/commsim/client/base/ClientRegistration.hpp>
 #include <entities/commsim/connection/Session.hpp>
 namespace sim_mob {
 //class Session;
@@ -28,9 +28,6 @@ class Broker;
 class ConnectionServer {
 	sim_mob::session_ptr new_sess;
 	public:
-//		boost::shared_ptr<boost::mutex> Broker_Client_Mutex;
-//		boost::shared_ptr<boost::condition_variable> COND_VAR_CLIENT_REQUEST;
-//		boost::mutex server_mutex;
 		void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
 		void CreatSocketAndAccept();
 //		sim_mob::ClientRegistrationRequest t;

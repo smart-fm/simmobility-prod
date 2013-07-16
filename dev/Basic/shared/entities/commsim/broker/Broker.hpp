@@ -1,6 +1,6 @@
 #pragma once
 #include "entities/Agent.hpp"
-#include "entities/commsim/client-registration/base/ClientRegistration.hpp"
+#include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
@@ -21,6 +21,7 @@ class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
+class WaitForClientConnection;
 
 template<class MSG_TYPE>
 struct AgentsMap
@@ -48,10 +49,16 @@ typedef std::pair<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher
 };
 
 struct ClientList{
-typedef boost::unordered_map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > type; //multimap<client type, map<clientID,clienthandler > >
-typedef boost::unordered_map<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > >::iterator iterator;
-typedef std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > pair;
+typedef std::map<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > type; //multimap<client type, map<clientID,clienthandler > >
+typedef std::map<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > >::iterator iterator;
+typedef std::pair<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > pair;
 typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > IdPair;
+};
+
+struct WaitForClientConnections{
+typedef std::map<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> > type; //multimap<client type, WaitForClientConnection >
+typedef std::map<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> >::iterator iterator;
+typedef std::pair<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> > IdPair;
 };
 
 template<class TYPE>
@@ -94,6 +101,8 @@ private:
 	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
 	//	used to help deciding whether Broker tick forward or block the simulation
 	bool brokerCanTickForward;
+	//	container for classes who evaluate wait-for-connection criteria for every type of client
+	WaitForClientConnections::type waitForClientConnectionList; // <client type, WaitForClientConnection class>
 	//various controlling mutexes and condition variables
 	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
@@ -102,6 +111,7 @@ private:
 	boost::condition_variable COND_VAR_CLIENT_DONE;
 	//	house of different conditions to see if a broker is allowed to tick forward or not
 	bool brokerCanProceed()const;
+	bool evaluateWaitForClientsConnection();
 	//checks wether an agent9entity) is dead or alive
 	bool deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info);
 	//revise the registration of the registered agents
@@ -132,9 +142,6 @@ private:
 	void processIncomingData(timeslice);
 
 public:
-	//for testing purpose
-	static int diedAgents;
-	static int subscribedAgents;
 	//constructor and destructor
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	~Broker();

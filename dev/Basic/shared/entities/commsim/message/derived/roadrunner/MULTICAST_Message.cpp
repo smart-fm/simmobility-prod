@@ -57,7 +57,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	std::string sender_type(msg_header_.sender_type); //easy read
 	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	ClientList::type & clients = broker->getClientList();
+	const ClientList::type & clients = broker->getClientList();
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
 		WarnOut( "HDL_MULTICAST::handle failed" << std::endl);
@@ -111,7 +111,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	{
 //		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
 		ClientList::IdPair clientIds;
-		std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
+		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
 		//step-3: for each agent find the client handler
 		BOOST_FOREACH(clientIds , inner)
 		{

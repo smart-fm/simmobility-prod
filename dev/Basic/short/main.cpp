@@ -498,8 +498,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		cout << "   Person Agents: " << numDriver << " (Driver)   "
 				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
-		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
-				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
+//		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
+//				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
 	}
 
 	if (ConfigParams::GetInstance().numAgentsSkipped>0) {

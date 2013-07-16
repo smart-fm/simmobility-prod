@@ -91,8 +91,6 @@ private:
  */
 class Agent : public sim_mob::Entity, public EventPublisher/*, public sim_mob::CommunicationSupport*/ {
 public:
-	static int createdAgents;
-	static int diedAgents;
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
 	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),

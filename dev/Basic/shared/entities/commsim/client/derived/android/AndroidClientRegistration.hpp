@@ -8,7 +8,7 @@
 #ifndef AndroidClientRegistration_HPP_
 #define AndroidClientRegistration_HPP_
 
-//#include "entities/commsim/client-registration/base/ClinetRegistrationHandler.hpp"
+//#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob {

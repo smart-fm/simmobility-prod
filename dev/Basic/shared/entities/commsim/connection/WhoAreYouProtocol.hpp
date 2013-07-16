@@ -11,7 +11,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 
-#include <entities/commsim/client-registration/base/ClientRegistration.hpp>
+#include <entities/commsim/client/base/ClientRegistration.hpp>
 
 namespace sim_mob {
 class Session;

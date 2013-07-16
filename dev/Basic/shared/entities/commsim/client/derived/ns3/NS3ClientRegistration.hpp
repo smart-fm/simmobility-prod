@@ -7,7 +7,7 @@
 
 #ifndef NS3ClientRegistration_HPP_
 #define NS3ClientRegistration_HPP_
-#include "entities/commsim/client-registration/base/ClientRegistration.hpp"
+#include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob {

@@ -1,15 +1,16 @@
 /*
- * ClientRegistrationFactory.cpp
+ * ClientRegistration.cpp
  *
- *  Created on: May 20, 2013
+ *  Created on: Jul 15, 2013
  *      Author: vahid
  */
 
-#include "ClientRegistration.hpp"
-//#include "entities/commsim/client-registration/base/ClinetRegistrationHandler.hpp"
 
-#include "entities/commsim/client-registration/derived/android/AndroidClientRegistration.hpp"
-#include "entities/commsim/client-registration/derived/ns3/NS3ClientRegistration.hpp"
+#include "ClientRegistration.hpp"
+//#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
+
+#include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
+#include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 
 #include <boost/assign/list_of.hpp>
 
@@ -61,4 +62,50 @@ ClientRegistrationFactory::~ClientRegistrationFactory() {
 	// TODO Auto-generated destructor stub
 }
 
+ClientRegistrationRequest::ClientRegistrationRequest(const ClientRegistrationRequest& other)
+	:
+		clientID(other.clientID)
+		,client_type(other.client_type)
+	{
+		if(other.requiredServices.size())
+		{
+			requiredServices = other.requiredServices;
+		}
+		if(other.session_)
+		{
+			session_ = other.session_;
+		}
+	}
+ClientRegistrationRequest::ClientRegistrationRequest()
+	{
+		requiredServices.clear();
+	}
+	ClientRegistrationRequest & ClientRegistrationRequest::operator=(const ClientRegistrationRequest & rhs)
+	{
+
+		clientID = rhs.clientID;
+		client_type = rhs.client_type;
+		if(rhs.requiredServices.size())
+		{
+			requiredServices = rhs.requiredServices;
+		}
+		if(session_)
+		{
+			session_ = rhs.session_;
+		}
+		return *this;
+	}
+
+	ClientRegistrationHandler::ClientRegistrationHandler() {
+		// TODO Auto-generated constructor stub
+
+	}
+
+	ClientRegistrationHandler::~ClientRegistrationHandler() {
+		// TODO Auto-generated destructor stub
+	}
+
+
 } /* namespace sim_mob */
+
+

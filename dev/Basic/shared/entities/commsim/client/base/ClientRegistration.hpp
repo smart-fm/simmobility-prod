@@ -38,8 +38,6 @@ enum ClientType
 	//add your client type here
 };*/
 class ClientRegistrationFactory {
-//	std::map<std::string, ConfigParams::ClientType> ClientTypeMap; //a map for ... for... for easy mapping between string and enum
-	//This map is used as a cache to avoid repetitive handler creation in heap
 	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
 	ClientRegistrationFactory();

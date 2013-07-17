@@ -1,27 +1,7 @@
 #include "geo10-pimpl.hpp"
+#include "entities/misc/TripChain.hpp"
 
 using namespace sim_mob::xml;
-
-namespace {
-
-//Helper: Convert a location type string to an object of that type.
-//TODO: This code is copied at several different locations; it should go in the top-level RoadNetwork classes as a public static function.
-sim_mob::TripChainItem::LocationType  GetLocationType(std::string name)
-{
-	if (name == "LT_BUILDING") {
-		return sim_mob::TripChainItem::LT_BUILDING;
-	} else if (name == "LT_NODE") {
-		return sim_mob::TripChainItem::LT_NODE;
-	} else if (name == "LT_LINK") {
-		return sim_mob::TripChainItem::LT_LINK;
-	} else if (name == "LT_PUBLIC_TRANSIT_STOP") {
-		return sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;;
-	}
-
-	throw std::runtime_error("Unknown TripChain location type.");
-}
-
-} //End unnamed namespace
 
 
 void sim_mob::xml::Activity_t_pimpl::pre ()
@@ -57,7 +37,7 @@ void sim_mob::xml::Activity_t_pimpl::location (unsigned int value)
 
 void sim_mob::xml::Activity_t_pimpl::locationType (std::string value)
 {
-	model.locationType = GetLocationType(value);
+	model.locationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
 }
 
 void sim_mob::xml::Activity_t_pimpl::isPrimary (bool value)

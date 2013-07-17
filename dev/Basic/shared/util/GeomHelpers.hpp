@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 
 #include "DynamicVector.hpp"
 
@@ -190,6 +191,11 @@ sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, d
 
 //TODO: This should eventually go into its own "Parser" class
 sim_mob::Point2D parse_point(const std::string& str);
+
+//Takes "xxxx,yyyy" or "(xxxx,yyyy)" and returns the x's and y's in a pair.
+//Ignores spaces (but not tabs/newlines)
+//TODO: This is stronger than parse_point, but we can't merge them yet (different return types).
+std::pair<uint32_t, uint32_t> parse_point_pair(const std::string& src);
 
 
 }

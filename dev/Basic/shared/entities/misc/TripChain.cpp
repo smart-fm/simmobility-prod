@@ -7,6 +7,24 @@
 using std::string;
 using namespace sim_mob;
 
+
+
+sim_mob::TripChainItem::LocationType  sim_mob::TripChainItem::GetLocationTypeXML(std::string name)
+{
+	if (name == "LT_BUILDING") {
+		return sim_mob::TripChainItem::LT_BUILDING;
+	} else if (name == "LT_NODE") {
+		return sim_mob::TripChainItem::LT_NODE;
+	} else if (name == "LT_LINK") {
+		return sim_mob::TripChainItem::LT_LINK;
+	} else if (name == "LT_PUBLIC_TRANSIT_STOP") {
+		return sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;;
+	}
+
+	throw std::runtime_error("Unknown TripChain location type.");
+}
+
+
 sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start,
 		DailyTime end, unsigned int seqNumber, int requestTm) :
 		personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm)
@@ -56,8 +74,7 @@ sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqN
 TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 		string locType)
 {
-	locType.erase(remove_if(locType.begin(), locType.end(), isspace),
-			locType.end());
+	locType.erase(remove_if(locType.begin(), locType.end(), isspace), locType.end());
 	if (locType == "building") {
 		return TripChainItem::LT_BUILDING;
 	} else if (locType == "node") {

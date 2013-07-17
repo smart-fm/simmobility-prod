@@ -127,15 +127,14 @@ void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
-namespace {
-//Ensure all time ticks are valid.
-void check_frame_times(unsigned int agentId, uint32_t now,
-		unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
+
+void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
+{
 	//Has update() been called early?
-	if (now < startTime) {
+	if (now<startTime) {
 		std::stringstream msg;
-		msg << "Agent(" << agentId << ") specifies a start time of: "
-				<< startTime << " but it is currently: " << now
+		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
+				<< " but it is currently: " << now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
@@ -143,27 +142,24 @@ void check_frame_times(unsigned int agentId, uint32_t now,
 	//Has update() been called too late?
 	if (wasRemoved) {
 		std::stringstream msg;
-		msg << "Agent(" << agentId
-				<< ") should have already been removed, but was instead updated at: "
-				<< now
+		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now - startTime) >= ConfigParams::GetInstance().baseGranMS) {
+		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
-			msg
-					<< "Agent was not started within one timespan of its requested start time.";
-			msg << "\nStart was: " << startTime << ",  Curr time is: " << now
-					<< "\n";
-			msg << "Agent ID: " << agentId << "\n";
+			msg <<"Agent was not started within one timespan of its requested start time.";
+			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
+			msg <<"Agent ID: " <<agentId <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 }
-} //End un-named namespace
+
+
 
 UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
@@ -182,8 +178,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	check_frame_times(getId(), now.ms(), getStartTime(), calledFrameInit,
-			isToBeRemoved());
+	CheckFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = frame_tick(now);

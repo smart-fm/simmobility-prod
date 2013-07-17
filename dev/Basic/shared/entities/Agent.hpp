@@ -292,6 +292,10 @@ public:
 
 	//timeslice enqueueTick;
 
+protected:
+	///Raises an exception if the given Agent was started either too early or too late, or exists past its end time.
+	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
+
 private:
 	//unsigned int currMode;
 	bool toRemoved;

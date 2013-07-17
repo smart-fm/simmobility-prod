@@ -52,9 +52,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		//but,to get to the agent, find the client hander first
 
 		//todo: you wanna check if the sender is valid, be my guest
-//		std::string sender_id(msg_header_.sender_id) ; //easy read
-//		std::string sender_type(msg_header_.sender_type); //easy read
-		std::string receiver_id(msg_header_.sender_id) ; //easy read
+		std::string receiver_id(data["RECEIVER"].asString()) ; //easy read
 		std::string receiver_type(msg_header_.sender_type); //easy read
 
 		ConfigParams::ClientType clientType;
@@ -66,7 +64,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 			return;
 		}
 
-		//now find the agent
+		//check the validity of the agent
 
 		const sim_mob::Agent * destination_agent;
 		if(!(destination_agent = clnHandler->agent))

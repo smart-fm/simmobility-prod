@@ -11,6 +11,7 @@
 #include "entities/commsim/service/base/Publisher.hpp"
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
+#include "AgentsInfo.hpp"
 
 namespace sim_mob {
 
@@ -72,6 +73,10 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 
 		//also, add the client entry to broker(for message handler purposes)
 		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
+		AgentsInfo info;
+		info.insertInfo("ACTIVE" , Agent::all_agents);
+
+		info.insertInfo("PENDING" , Agent::pending_agents);
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
 		return true;

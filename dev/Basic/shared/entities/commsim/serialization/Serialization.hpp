@@ -330,7 +330,7 @@ public:
     },
     "DATA": [
         {
-            "SENDER": "114",
+            "SENDER": "client-id-A",
             "SENDER_TYPE": "ANDROID_EMULATOR",
             "MESSAGE_TYPE": "WHOAMI",
             "ID": "114",
@@ -349,6 +349,21 @@ public:
  /     \                                       |
  /       \                                      |
  android      ns3                                android
+
+* packet name : UNICAST
+ * sending direction:
+ * usage-1) client->server 		(FROM:android TO: simMobility DESCRIPTION: android client asks simmobility to deliver the message to the other android recipients)
+ * usage-2) server->client 		(FROM:simMobility TO: ns3 or android  DESCRIPTION: simmobility delegates the network transfering of messages to ns3or another android client)
+{
+ "MSG_TYPE" : "UNICAST",
+ "SENDER" : "client-id-A",
+ "SENDER_TYPE": "ANDROID_EMULATOR",
+ "RECEIVER" : "client-id-W",
+ "DATA" : "opaque-data"
+ }
+ Note: client-id-x are android names and may be changed to their ns3 counterpart when ns3 is involved
+
+
 
  * packet name : announce
  * sending direction:

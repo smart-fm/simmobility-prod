@@ -1,19 +1,21 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 /**
- * A "worker" performs a task asynchronously.
- *    There are two ways to use a worker:
- *    - Use the default constructor. Call "wait" once. (See: WorkGroup)
- *    - Create it with a non-null barrier. (Again, see: WorkGroup)
+ * A "worker" performs a task asynchronously. Workers are managed by WorkGroups, which are
+ *   themselves managed by the WorkGroupManager. You usually don't need to deal with
+ *   Workers directly.
+ *
+ * Workers can be run in "singleThreaded" mode (by specifying this parameter to the WorkGroupManager).
+ *   This will cause them to use no threads or barriers, and to simply be stepped through one-by-one by
+ *   their parent WorkGroups.
  *
  * \author Seth N. Hetu
  * \author LIM Fung Chai
  * \author Xu Yan
- *
- * To customize the Worker, either subclass it and override "main_loop", or
- * use a normal Worker and pass in a bindable function in the constructor.
  */
 
 #include <vector>
@@ -50,7 +52,7 @@ private:
 
 	void start();
 	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
-	void join();
+	void join();       ///<Note: This will probably only work if called at the end of the main simulation loop.
 
 	void scheduleForAddition(Entity* entity);
 	int getAgentSize(bool includeToBeAdded=false);

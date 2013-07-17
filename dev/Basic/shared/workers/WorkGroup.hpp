@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -16,8 +18,7 @@
 #include "logging/Log.hpp"
 
 
-namespace sim_mob
-{
+namespace sim_mob {
 
 class RoadSegment;
 class StartTimePriorityQueue;
@@ -35,20 +36,25 @@ class WorkGroupManager;
 
 
 /*
- * Worker wrapper, similar to thread_group but using barriers.
- * A SimpleWorkGroup provides a convenient wrapper for Workers, similarly to
- *   how a ThreadGroup manages threads. The main difference is that the number of
- *   worker threads cannot be changed once the object has been constructed.
- * A SimpleWorkGroup maintains one extra hold on the shared barrier; to "advance"
- *   a group, call SimpleWorkGroup::wait().
+ * A Worker wrapper which uses barriers to synchronize between all Workers of the same group.
+ * WorkGroups are managed by the WorkGroupManager; this includes creation/destruction/advancement.
+ *   The only function you need to call at the WorkGroup level is assignAWorker().
+ * A WorkGroup maintains one extra hold on the shared barrier.
  *
  * \author Seth N. Hetu
  * \author Xu Yan
  */
 class WorkGroup {
-public:  //Static methods
+private:
 	friend class WorkGroupManager;
 
+	//Private constructor: Use the static NewWorkGroup function instead.
+	WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
+
+	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
+	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
+
+public:
 	/**
 	 * Type of Worker assignment strategy. Determines how a newly-dispatched Agent
 	 * will be distributed among the various Worker threads.
@@ -59,15 +65,6 @@ public:  //Static methods
 		//TODO: Something like "ASSIGN_TIMEBASED", based on actual time tick length.
 	};
 
-	void clear();
-
-private:
-	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
-	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
-
-
-public:
-
 	//Migration parameters
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
@@ -77,19 +74,17 @@ public:
 	};
 
 
-private:
-	//Private constructor: Use the static NewWorkGroup function instead.
-	WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
 
 public:
 	virtual ~WorkGroup();
 
 	void initWorkers(EntityLoadParams* loader);
+	void assignAWorker(Entity* ag);
+	void assignConfluxToWorkers();
+	void putAgentOnConflux(Agent* ag);
 
 private:
-	void startAll(bool singleThreaded);
-
-public:
+	void clear();
 	void interrupt();
 	size_t size();
 
@@ -103,15 +98,7 @@ public:
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
-	void assignAWorker(Entity* ag);
-
-	void assignLinkWorker();
-
 	void assignAWorkerConstraint(Entity* ag);
-
-	void assignConfluxToWorkers();
-
-	void putAgentOnConflux(Agent* ag);
 
 	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 
@@ -130,6 +117,8 @@ public:
 
 
 private:
+	void startAll(bool singleThreaded);
+
 	//Various stages of "wait"-ing
 	//These functions are designed so that you can simply call them one after the other. However,
 	// make sure that you call all wait* functions for a given category before moving on.
@@ -145,6 +134,7 @@ private:
 	void initializeBarriers(sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr);
 
 	bool assignConfluxToWorkerRecursive(sim_mob::Conflux* conflux, sim_mob::Worker* worker, int numConfluxesInWorker);
+
 
 private:
 	//Number of workers we are handling. Should be equal to workers.size() once the workers vector has been initialized.
@@ -183,11 +173,6 @@ private:
 	// one additional locking barrier is required to prevent Workers from rushing ahead
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
-
-public:
-	//Temp
-	std::stringstream debugMsg;
-
 };
 
 

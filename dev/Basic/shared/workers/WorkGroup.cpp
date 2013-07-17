@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "WorkGroup.hpp"
 
@@ -30,7 +32,7 @@ using namespace sim_mob;
 sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
 	numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr), debugMsg(std::stringstream::out)
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
 {
 }
 
@@ -235,7 +237,7 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 }
 
 //method to randomly assign links to workers
-void sim_mob::WorkGroup::assignLinkWorker(){
+/*void sim_mob::WorkGroup::assignLinkWorker(){
 	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
 	//randomly assign link to worker
 	//each worker is expected to manage approximately the same number of links
@@ -248,7 +250,7 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 	}
 	//reset nextworkerID to 0
 	nextWorkerID=0;
-}
+}*/
 
 //method to assign agents on same link to the same worker
 void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){

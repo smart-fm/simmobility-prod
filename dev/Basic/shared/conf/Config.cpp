@@ -86,11 +86,15 @@ sim_mob::WorkGroup* WorkGroupFactory::getItem()
 		if (!cf.MPI_Disabled() && cf.using_MPI) {
 			partMgr = &PartitionManager::instance();
 		}
+
+//TODO: The new Config syntax still doesn't work right, so disabling this for now.
+#if 0
 		if (agentWG) {
 			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granAgentsTicks, &AuraManager::instance(), partMgr);
 		} else {
 			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granSignalsTicks);
 		}
+#endif
 	}
 	return item;
 }

@@ -5,7 +5,7 @@
 //Make sure our "test" (new) Config variant compiles.
 #include "conf/xmlLoader/implementation/conf1-driver.hpp"
 
-//simpleconf.hpp can include GenConfig.h for now (since the entire file will be deleted soon)
+//simpleconf.cpp can include GenConfig.h for now (since the entire file will be deleted soon)
 #include "GenConfig.h"
 
 #include <tinyxml.h>
@@ -1755,6 +1755,22 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int signalWgSize = ReadValue(handle, "signal", 0);
 	int commWgSize = ReadValue(handle, "Android_Communication", 0);
 
+	//Save the "single-threaded" flag, if it exists.
+	bool singleThreaded = false;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("single_threaded").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="true") {
+				singleThreaded = true;
+			}
+		}
+	}
+	ConfigParams::GetInstance().singleThreaded = singleThreaded;
+
+
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
@@ -1885,16 +1901,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		if (valStr_c) {
 			std::string valStr(valStr_c);
 			if (valStr == "true") {
-				ConfigParams::GetInstance().dynamicDispatchDisabled = true;
+				ConfigParams::GetInstance().SetDynamicDispatchDisabled(true);
 			} else if (valStr == "false") {
-				ConfigParams::GetInstance().dynamicDispatchDisabled = false;
+				ConfigParams::GetInstance().SetDynamicDispatchDisabled(false);
 			} else {
 				return "Invalid parameter; expecting boolean.";
 			}
 		}
 	}
 
-	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().dynamicDispatchDisabled ? "DISABLED" : "Enabled") <<std::endl;
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;
 
 
 	//Series of one-line checks.
@@ -2184,6 +2200,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+    std::cout <<"Force single-threaded: " <<(ConfigParams::GetInstance().singleThreaded?"yes":"no") <<"\n";
 	//Print the WorkGroup strategy.
 	std::cout <<"WorkGroup assignment: ";
 	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
@@ -2193,7 +2210,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	} else {
 		std::cout <<"<unknown>" <<std::endl;
 	}
-    std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
+	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";
@@ -2288,9 +2305,57 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 ConfigParams sim_mob::ConfigParams::instance;
 
 
+void sim_mob::ConfigParams::reset()
+{
+	//TODO: This *should* work fine, but check the comment below.
+	instance = sim_mob::ConfigParams();
+
+	//TODO: This is the old code for reset(); I prefer the above code, as it is more generic, but I
+	//      have not tested that it works.  ~Seth
+	//sealedNetwork=false;
+	//roleFact.clear();
+}
+
+sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
+	if (!commDataMgr) {
+		commDataMgr = new CommunicationDataManager();
+	}
+	return *commDataMgr;
+#else
+	throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+}
+
+sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
+	//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+	if (!controlMgr) {
+		controlMgr = new ControlManager();
+	}
+	return controlMgr;
+#else
+	throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+}
+
+
 //////////////////////////////////////////
 // Macro definitions
 //////////////////////////////////////////
+
+
+bool sim_mob::ConfigParams::UsingConfluxes() const
+{
+#ifdef SIMMOB_USE_CONFLUXES
+	return true;
+#else
+	return false;
+#endif
+}
+
 
 bool sim_mob::ConfigParams::MPI_Disabled() const
 {
@@ -2305,6 +2370,15 @@ bool sim_mob::ConfigParams::MPI_Disabled() const
 bool sim_mob::ConfigParams::OutputDisabled() const
 {
 #ifdef SIMMOB_DISABLE_OUTPUT
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::InteractiveMode() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
 	return true;
 #else
 	return false;

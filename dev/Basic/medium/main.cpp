@@ -36,6 +36,7 @@
 #include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
 #include "logging/Log.hpp"
 #include "entities/BusController.hpp"
 
@@ -138,9 +139,9 @@ bool performMainMed(const std::string& configFileName) {
 		Print::Ignore();
 	}
 
-#ifdef SIMMOB_USE_CONFLUXES
-	std::cout << "Confluxes ON!" << std::endl;
-#endif
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		std::cout << "Confluxes ON!" << std::endl;
+	}
 
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
@@ -187,12 +188,15 @@ bool performMainMed(const std::string& configFileName) {
 	}
 
 	{ //Begin scope: WorkGroups
+	WorkGroupManager wgMgr;
+	wgMgr.setSingleThreadMode(config.singleThreaded);
+
 	//Work Group specifications
-	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
-	WorkGroup::InitAllGroups();
+	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
@@ -225,7 +229,7 @@ bool performMainMed(const std::string& configFileName) {
 	AuraManager::instance().init(config.aura_manager_impl, nullptr);
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgMgr.startAllWorkGroups();
 
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -279,7 +283,7 @@ bool performMainMed(const std::string& configFileName) {
 		}
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
-		WorkGroup::WaitAllGroups();
+		wgMgr.waitAllGroups();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -356,7 +360,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-	WorkGroup::FinalizeAllWorkGroups();
+	//wgMgr.finalizeAllWorkGroups();
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);

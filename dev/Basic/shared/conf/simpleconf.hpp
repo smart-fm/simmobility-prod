@@ -24,7 +24,9 @@
 #include <sstream>
 
 #include "geospatial/xmlWriter/xmlWriter.hpp"
-#include <boost/utility.hpp>
+//#include <boost/utility.hpp>
+
+#include "util/ProtectedCopyable.hpp"
 
 #include "buffering/Shared.hpp"
 #include "util/DailyTime.hpp"
@@ -77,7 +79,7 @@ enum DAY_OF_WEEK {
 	SUNDAY
 };
 
-class ConfigParams : private boost::noncopyable {
+class ConfigParams : private sim_mob::ProtectedCopyable {
 
 public:
 	enum ClientType
@@ -98,6 +100,8 @@ public:
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
+
+	bool singleThreaded; ///<If true, we are running everything on one thread.
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string roadNetworkXsdSchemaFile;
@@ -147,7 +151,7 @@ public:
 
 //TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
 //      be modified once set.
-//private:
+private:
 	//Is dynamic dispatch disabled?
 	bool dynamicDispatchDisabled;
 
@@ -178,10 +182,18 @@ public:
 
 	bool TEMP_ManualFixDemoIntersection;
 
+	//TODO: Replace with the "sealed" version we use elsewhere.
+	void SetDynamicDispatchDisabled(bool val) {
+		dynamicDispatchDisabled = val;
+	}
+
 	///Synced to the value of disable_dynamic_dispatch in the config file; used for runtime checks.
 	bool DynamicDispatchDisabled() const {
 		return dynamicDispatchDisabled;
 	}
+
+	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
+	bool UsingConfluxes() const;
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
 	bool MPI_Disabled() const;
@@ -196,14 +208,7 @@ public:
 
 	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
 	/// with the GUI or console.
-	bool InteractiveMode() const {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		return true;
-#else
-		return false;
-#endif
-	}
-
+	bool InteractiveMode() const;
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const;
@@ -224,12 +229,14 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
-	void reset()
-	{
-		sealedNetwork=false;
-		roleFact.clear();
-	}
+
+	///Reset this instance of the static ConfigParams instance.
+	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
+	void reset();
+
+
 	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
+
 
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
@@ -263,28 +270,11 @@ public:
 		sealedNetwork = true;
 	}
 
-	sim_mob::CommunicationDataManager&  getCommDataMgr() {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		return commDataMgr;
-#else
-		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-#endif
-	}
+	sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
 
-	sim_mob::ControlManager* getControlMgr() {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
-		if (!controlMgr) {
-			controlMgr = new ControlManager();
-		}
-		return controlMgr;
-#else
-		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-#endif
-	}
+	sim_mob::ControlManager* getControlMgr() const;
 
 	///Retrieve a reference to the list of trip chains.
-//	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
@@ -308,10 +298,10 @@ public:
 
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
-		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), day_of_week(MONDAY),
+		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), day_of_week(MONDAY),
 		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
 		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
 	{}
 
@@ -322,8 +312,9 @@ private:
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
-	CommunicationDataManager commDataMgr;
-	ControlManager* controlMgr;
+	//Mutable because they are set when retrieved.
+	mutable CommunicationDataManager* commDataMgr;
+	mutable ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

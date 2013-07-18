@@ -49,16 +49,16 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #Helpful date macro, from:
 #  http://www.cmake.org/pipermail/cmake/2009-February/027014.html
 MACRO (TODAY RESULT)
-    IF (WIN32)
-        EXECUTE_PROCESS(COMMAND "date" "/T" OUTPUT_VARIABLE ${RESULT})
-        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
-    ELSEIF(UNIX)
+    IF (UNIX OR MINGW)
         EXECUTE_PROCESS(COMMAND "date" "+%d/%m/%Y" OUTPUT_VARIABLE ${RESULT}) 
         string(REGEX REPLACE "(..)/(..)/(....).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
-    ELSE (WIN32)
+    ELSEIF(WIN32)
+        EXECUTE_PROCESS(COMMAND "date" "/T" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
+    ELSE ()
         MESSAGE(SEND_ERROR "date not implemented")
         SET(${RESULT} 000000)
-    ENDIF (WIN32)
+    ENDIF ()
 ENDMACRO (TODAY)
 
 
@@ -284,7 +284,7 @@ include_directories("/mingw/include")
 SET(LibraryList "")
 
 #Find boost
-set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0")
+set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0")
 find_package(Boost COMPONENTS system thread filesystem serialization date_time REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})

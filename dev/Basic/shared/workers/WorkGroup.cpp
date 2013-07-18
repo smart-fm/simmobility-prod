@@ -1,227 +1,38 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "WorkGroup.hpp"
 
 #include "GenConfig.h"
 
-//For debugging
+#include <iostream>
 #include <stdexcept>
 #include <boost/thread.hpp>
-#include "util/OutputUtil.hpp"
 
 #include "conf/simpleconf.hpp"
-
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
-#include "partitions/PartitionManager.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 
-
-using std::map;
 using std::vector;
-using std::set;
-using boost::barrier;
-using boost::function;
 
 using namespace sim_mob;
-
-//Static initializations
-vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
-std::multimap<sim_mob::WorkGroup::workGroupMembership, sim_mob::WorkGroup*> sim_mob::WorkGroup::WorkGroupMembership;
-unsigned int sim_mob::WorkGroup::CurrBarrierCount = 1;
-bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
-FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
-FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
-FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
-
-
-namespace {
-Worker* getLeastCongestedWorker(const vector<Worker*>& workers) {
-	Worker* res = nullptr;
-	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
-		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
-			res = *it;
-		}
-	}
-	return res;
-}
-
-} //End unnamed namespace
-
-
-
-////////////////////////////////////////////////////////////////////
-// Static methods
-////////////////////////////////////////////////////////////////////
-
-WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
-{
-	//Sanity check
-	if (WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't add new work group; barriers have already been established."); }
-
-	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
-	WorkGroup* res = new WorkGroup(numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
-	WorkGroup::CurrBarrierCount += numWorkers;
-	if (auraMgr || partitionMgr) {
-		WorkGroup::AuraBarrierNeeded = true;
-	}
-
-	WorkGroup::RegisteredWorkGroups.push_back(res);
-	return res;
-}
-
-void sim_mob::WorkGroup::addWorkGroupMembership(WorkGroup* wg,sim_mob::WorkGroup::workGroupMembership mem)
-{
-	typedef std::pair<sim_mob::WorkGroup::workGroupMembership,WorkGroup*> thePair;
-	WorkGroupMembership.insert(thePair(mem,wg));
-}
-
-//returns beginning and ending iterator to the list of wgs who have the specified membership
-sim_mob::WorkGroup::WG_Members sim_mob::WorkGroup::getWorkGroupMembers(sim_mob::WorkGroup::workGroupMembership membership)
-{
-	return WorkGroupMembership.equal_range(membership);
-}
-
-
-void sim_mob::WorkGroup::InitAllGroups()
-{
-	//Sanity check
-	if (WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
-
-	//Create a barrier for each of the three shared phases (aura manager optional)
-	WorkGroup::FrameTickBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
-	WorkGroup::BuffFlipBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
-	if (WorkGroup::AuraBarrierNeeded) {
-		WorkGroup::AuraMgrBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
-	}
-
-	//Initialize each WorkGroup with these new barriers.
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->initializeBarriers(FrameTickBarr, BuffFlipBarr, AuraMgrBarr);
-	}
-}
-
-
-void sim_mob::WorkGroup::StartAllWorkGroups()
-{
-	//Sanity check
-	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't start all WorkGroups; no barrier."); }
-
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->startAll();
-	}
-}
-
-
-void sim_mob::WorkGroup::WaitAllGroups()
-{
-	//Call each function in turn.
-	WaitAllGroups_FrameTick();
-	WaitAllGroups_FlipBuffers();
-	WaitAllGroups_AuraManager();
-	WaitAllGroups_MacroTimeTick();
-}
-
-void sim_mob::WorkGroup::WaitAllGroups_FrameTick()
-{
-	//Sanity check
-	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
-
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->waitFrameTick();
-	}
-
-	//Here is where we actually block, ensuring a tick-wide synchronization.
-	FrameTickBarr->wait();
-}
-
-void sim_mob::WorkGroup::WaitAllGroups_FlipBuffers()
-{
-	//Sanity check
-	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
-
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->waitFlipBuffers();
-	}
-
-	//Here is where we actually block, ensuring a tick-wide synchronization.
-	BuffFlipBarr->wait();
-}
-
-void sim_mob::WorkGroup::WaitAllGroups_MacroTimeTick()
-{
-	//Sanity check
-	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
-
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->waitMacroTimeTick();
-	}
-
-	//NOTE: There is no need for a "wait()" here, since macro barriers are used internally.
-}
-
-void sim_mob::WorkGroup::WaitAllGroups_AuraManager()
-{
-	//We don't need this if there's no Aura Manager.
-	if (!WorkGroup::AuraMgrBarr) {
-		return;
-	}
-
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		(*it)->waitAuraManager();
-	}
-
-	//Here is where we actually block, ensuring a tick-wide synchronization.
-	AuraMgrBarr->wait();
-}
-
-
-void sim_mob::WorkGroup::FinalizeAllWorkGroups()
-{
-	//First, join and delete all WorkGroups
-	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		delete *it;
-	}
-
-	//Finally, reset all properties.
-	WorkGroup::RegisteredWorkGroups.clear();
-	WorkGroup::CurrBarrierCount = 1;
-	WorkGroup::AuraBarrierNeeded = false;
-	safe_delete_item(WorkGroup::FrameTickBarr);
-	safe_delete_item(WorkGroup::BuffFlipBarr);
-	safe_delete_item(WorkGroup::AuraMgrBarr);
-}
-void sim_mob::WorkGroup::clear()
-{
-	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
-		Worker* wk = *it;
-		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
-		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
-		delete wk;
-	}
-	workers.clear();
-
-	//The only barrier we can delete is the non-shared barrier.
-	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
-	safe_delete_item(macro_tick_barr);
-}
-
-////////////////////////////////////////////////////////////////////
-// Normal methods (non-static)
-////////////////////////////////////////////////////////////////////
 
 
 sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
 	numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr), debugMsg(std::stringstream::out)
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
 {
 }
 
@@ -243,6 +54,35 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 	safe_delete_item(macro_tick_barr);
 #endif
 }
+
+
+Worker* WorkGroup::GetLeastCongestedWorker(const vector<Worker*>& workers) {
+	Worker* res = nullptr;
+	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
+		if ((!res) || ((*it)->getAgentSize(true) < res->getAgentSize(true))) {
+			res = *it;
+		}
+	}
+	return res;
+}
+
+void sim_mob::WorkGroup::clear()
+{
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
+	}
+	workers.clear();
+
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
+
+
+
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
 {
@@ -280,12 +120,17 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 
 
 
-void sim_mob::WorkGroup::startAll()
+void sim_mob::WorkGroup::startAll(bool singleThreaded)
 {
 	//Sanity checks
 	if (started) { throw std::runtime_error("WorkGroups already started"); }
-	if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
+	//if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
 	started = true;
+
+	//TODO: Fix this; it's caused by that exception(...) trick used by the GUI in Worker::threaded_function_loop()
+	if (singleThreaded && ConfigParams::GetInstance().InteractiveMode()) {
+		throw std::runtime_error("Can't run in single-threaded mode while INTERACTIVE_MODE is set.");
+	}
 
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
 	nextTimeTick = 0;
@@ -351,11 +196,11 @@ void sim_mob::WorkGroup::stageEntities()
 		loader->entity_dest.push_back(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
-#ifdef SIMMOB_USE_CONFLUXES
-		putAgentOnConflux(ag);
-#else
-		assignAWorker(ag);
-#endif
+		if (ConfigParams::GetInstance().UsingConfluxes()) {
+			putAgentOnConflux(ag);
+		} else {
+			assignAWorker(ag);
+		}
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
 	}
@@ -392,20 +237,20 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 }
 
 //method to randomly assign links to workers
-void sim_mob::WorkGroup::assignLinkWorker(){
+/*void sim_mob::WorkGroup::assignLinkWorker(){
 	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
 	//randomly assign link to worker
 	//each worker is expected to manage approximately the same number of links
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
 		Link* link = *it;
 		Worker* w = workers.at(nextWorkerID);
-		w->addLink(link);
+		//w->addLink(link);
 		link->setCurrWorker(w);
 		nextWorkerID = (++nextWorkerID) % workers.size();
 	}
 	//reset nextworkerID to 0
 	nextWorkerID=0;
-}
+}*/
 
 //method to assign agents on same link to the same worker
 void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
@@ -445,7 +290,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 	if (strat == ASSIGN_ROUNDROBIN) {
 		workers.at(nextWorkerID++)->scheduleForAddition(ag);
 	} else {
-		getLeastCongestedWorker(workers)->scheduleForAddition(ag);
+		GetLeastCongestedWorker(workers)->scheduleForAddition(ag);
 	}
 
 	//Increase "nextWorkID", even if we're not using it.
@@ -470,25 +315,41 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 }
 
 
-void sim_mob::WorkGroup::waitFrameTick()
+void sim_mob::WorkGroup::waitFrameTick(bool singleThreaded)
 {
 	//Sanity check
 	if (!started) { throw std::runtime_error("WorkGroups not started; can't waitFrameTick()"); }
 
 	if (tickOffset==0) {
+		//If we are in single-threaded mode, pass this function call on to each Worker.
+		if (singleThreaded) {
+			for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+				(*it)->perform_frame_tick();
+			}
+		}
+
 		//New time tick.
 		currTimeTick = nextTimeTick;
 		nextTimeTick += tickStep;
 		//frame_tick_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers
-		frame_tick_barr->contribute(workers.size());
+		if (frame_tick_barr) {
+			frame_tick_barr->contribute(workers.size());
+		}
 	}
 }
 
-void sim_mob::WorkGroup::waitFlipBuffers()
+void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 {
 	if (tickOffset==0) {
+		//If we are in single-threaded mode, pass this function call on to each Worker.
+		if (singleThreaded) {
+			for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+				(*it)->perform_buff_flip();
+			}
+		}
+
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
@@ -496,16 +357,18 @@ void sim_mob::WorkGroup::waitFlipBuffers()
 		//buff_flip_barr->contribute(); //No.
 	} else {
 		//Tick on behalf of all your workers.
-		buff_flip_barr->contribute(workers.size());
+		if (buff_flip_barr) {
+			buff_flip_barr->contribute(workers.size());
+		}
 	}
 }
 
 void sim_mob::WorkGroup::waitAuraManager()
 {
 	//This barrier is optional.
-	if (!aura_mgr_barr) {
+	/*if (!aura_mgr_barr) {
 		return;
-	}
+	}*/
 
 	if (tickOffset==0) {
 		//Update the partition manager, if we have one.
@@ -524,7 +387,9 @@ void sim_mob::WorkGroup::waitAuraManager()
 		//aura_mgr_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers.
-		aura_mgr_barr->contribute(workers.size());
+		if (aura_mgr_barr) {
+			aura_mgr_barr->contribute(workers.size());
+		}
 	}
 }
 
@@ -585,18 +450,13 @@ int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 
 
 
-
-
 void sim_mob::WorkGroup::interrupt()
 {
-	for (size_t i=0; i<workers.size(); i++)
-		workers[i]->interrupt();
+	for (std::vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		(*it)->interrupt();
+	}
 }
 
-// providing read only access to public for RegisteredWorkGroups. AuraManager requires this
-const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
-	return sim_mob::WorkGroup::RegisteredWorkGroups;
-}
 
 /*
  * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent
@@ -621,53 +481,52 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		if(numConfluxesPerWorker > 0){
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
-//		for(std::set<sim_mob::Conflux*>::iterator it = (*i)->managedConfluxes.begin(); it != (*i)->managedConfluxes.end(); it++) {
-//			debugMsgs << "\nassignConfluxToWorkers\tConflux MN:" << (*it)->getMultiNode()->nodeId << "\tparentWrkr:" << (*it)->getParentWorker();
-//		}
 	}
 	if(confluxes.size() > 0) {
-		/* There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
-		 * Assign these to the last worker which has all its upstream confluxes.
-		 */
+		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
+		//Assign these to the last worker which has all its upstream confluxes.
 		sim_mob::Worker* worker = workers.back();
-//		debugMsgs << "\n" << confluxes.size() << " confluxes are unassigned. Assigning to last worker.\n" ;
 		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
-			std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(*i);
-			if (insertResult.second) { (*i)->setParentWorker(worker); }
+			if (worker->beginManagingConflux(*i)) {
+				(*i)->setParentWorker(worker);
+			}
 		}
 		confluxes.clear();
 	}
-//	std::cout << debugMsgs.str();
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
 		int numConfluxesToAddInWorker)
 {
+	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
+
 	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
 	bool workerFilled = false;
 
 	if(numConfluxesToAddInWorker > 0)
 	{
-		std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
-		if (insertResult.second) {
+		//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
+		//if (insertResult.second) {
+		if (worker->beginManagingConflux(conflux)) {
 			confluxes.erase(conflux);
 			numConfluxesToAddInWorker--;
 			conflux->setParentWorker(worker);
 		}
 
-		std::set<const sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+		SegmentSet downStreamSegs = conflux->getDownstreamSegments();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
-		for(std::set<const sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+		for(SegmentSet::const_iterator i = downStreamSegs.begin();
 				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
 				i++)
 		{
 			if(!(*i)->getParentConflux()->getParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
 				// the set container for managedConfluxes takes care of eliminating duplicates
-				std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
-				if (insertResult.second)
+				//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
+				//if (insertResult.second)
+				if (worker->beginManagingConflux((*i)->getParentConflux()))
 				{
 					// One conflux was added by the insert. So...
 					confluxes.erase((*i)->getParentConflux());

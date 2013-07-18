@@ -97,9 +97,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 //	agentSrc = src;
 //	tripChain = tcs;
 //	tripchainInitialized = false;
-#ifndef SIMMOB_USE_CONFLUXES
-	simplyModifyTripChain(tcs);
-#endif
+	if (!ConfigParams::GetInstance().UsingConfluxes()) {
+		simplyModifyTripChain(tcs);
+	}
 	initTripChain();
 }
 

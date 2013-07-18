@@ -55,6 +55,13 @@ void sim_mob::ControlManager::setSimState(int s)
 	std::cout<<"simmob"<<">"<<std::flush;
 }
 
+int sim_mob::ControlManager::getSimState()
+{
+	boost::mutex::scoped_lock local_lock(lock);
+	return simState;
+}
+
+
 void sim_mob::ControlManager::setEndTick(int t)
 {
 	boost::mutex::scoped_lock local_lock(lockEndTick);

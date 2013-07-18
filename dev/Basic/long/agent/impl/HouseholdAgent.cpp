@@ -16,6 +16,7 @@
 #include "database/entity/housing-market/BidderParams.hpp"
 
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
 using sim_mob::Entity;
 using std::vector;
 using std::string;

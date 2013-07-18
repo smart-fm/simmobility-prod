@@ -40,7 +40,7 @@ namespace sim_mob {
              * Gets the EventManager reference from worker parent.
              * @return EventManager reference. 
              */
-            sim_mob::EventManager& GetEventManager();
+            sim_mob::event::EventManager& GetEventManager();
 
         protected:
 

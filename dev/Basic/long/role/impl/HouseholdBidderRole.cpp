@@ -18,6 +18,7 @@
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
         const BidderParams& params, HousingMarket* market)

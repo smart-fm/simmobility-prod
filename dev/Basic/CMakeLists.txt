@@ -79,7 +79,7 @@ function(enable_unity_build UB_SUFFIX SOURCE_VARIABLE_NAME EXCLUDE_LIST)
     endforeach()
 
     if (exclude) 
-      set_source_files_properties(source_file PROPERTIES HEADER_FILE_ONLY false)
+      set_source_files_properties(${source_file} PROPERTIES HEADER_FILE_ONLY false)
     else()
       FILE( APPEND ${unit_build_file} "#include \"${source_file}\"\n")
     endif()

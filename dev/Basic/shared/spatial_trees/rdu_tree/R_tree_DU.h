@@ -41,6 +41,27 @@ public:
 	// y- component.
 	std::vector<Agent  const*>
 	query(R_tree_DU::BoundingBox const & box) const;
+
+private:
+	// A visitor that simply collects the agent into an array, which was specified in the
+	// constructor.
+	struct Collecting_visitor
+	{
+		const bool ContinueVisiting;
+		std::vector<Agent const *> & array; // must be a reference.
+
+		explicit Collecting_visitor(std::vector<Agent const *> & array) :
+			ContinueVisiting(true), array(array)
+		{
+		}
+
+		// When called, the visitor saves the agent in <array>.
+		bool operator()(const R_tree_DU::Leaf * const leaf) const
+		{
+			array.push_back(leaf->leaf);
+			return true;
+		}
+	};
 };
 
 }

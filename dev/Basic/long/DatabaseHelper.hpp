@@ -12,8 +12,8 @@
 /**
  * Schemas
  */
-#define DB_SCHEMA_EMPTY   ""
-#define DB_SCHEMA_BASELINE_2001   "baseline_2001."
+const std::string DB_SCHEMA_EMPTY   ="";
+const std::string DB_SCHEMA_BASELINE_2001   ="baseline_2001.";
 const std::string CURRENT_SCHEMA = DB_SCHEMA_EMPTY;
 
 /**

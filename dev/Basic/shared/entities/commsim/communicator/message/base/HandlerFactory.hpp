@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef HANDLERFACTORY_HPP_
-#define HANDLERFACTORY_HPP_
+#pragma once
 
 #include "Handler.hpp"
 
@@ -25,4 +24,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* HANDLERFACTORY_HPP_ */

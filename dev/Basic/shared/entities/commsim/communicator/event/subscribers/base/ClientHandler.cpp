@@ -9,6 +9,8 @@
 #include "entities/commsim/communicator/broker/Broker.hpp"
 namespace sim_mob {
 
+using namespace sim_mob::event;
+
 ClientHandler::ClientHandler(sim_mob::Broker & broker_):broker(broker_) {
 	// TODO Auto-generated constructor stub
 

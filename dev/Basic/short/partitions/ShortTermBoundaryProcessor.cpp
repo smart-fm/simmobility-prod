@@ -41,8 +41,6 @@
 #include "entities/signal/Signal.hpp"
 #include "partitions/PartitionManager.hpp"
 
-#define BOUNDARY_BOX_SIZE 4
-
 namespace mpi = boost::mpi;
 
 using std::string;
@@ -51,6 +49,9 @@ using namespace sim_mob;
 
 //Anonymous namespace for private, helper functions.
 namespace {
+
+const int BOUNDARY_BOX_SIZE =4;
+
 bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* boundary_segment)
 {
 	int node_size = boundary_segment->bounary_box.size();

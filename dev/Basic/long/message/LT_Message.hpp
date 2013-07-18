@@ -28,7 +28,7 @@ namespace sim_mob {
         /**
          * Bid message data to be exchanged on Bid process communication.
          */
-        class BidMessage : public sim_mob::Message {
+        class BidMessage : public messaging::Message {
         public:
             BidMessage(const Bid& bid);
             BidMessage(const Bid& bid, BidResponse response);

@@ -130,12 +130,12 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 0.1f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 1
-#define TICK_STEP 1
-#define DAYS 365
-#define WORKERS 2
-#define DATA_SIZE 30
-#define CONNECTION_STRING "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
+const int MAX_ITERATIONS =1;
+const int TICK_STEP =1;
+const int DAYS =365;
+const int WORKERS =2;
+const int DATA_SIZE =30;
+const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
 
 /**
  * Runs all unit-tests.

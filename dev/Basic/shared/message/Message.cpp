@@ -9,7 +9,7 @@
 
 #include "Message.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::messaging;
 
 Message::Message() {
 }

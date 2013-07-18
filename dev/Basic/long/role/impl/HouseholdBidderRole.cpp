@@ -12,12 +12,15 @@
 #include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
+#include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
         const BidderParams& params, HousingMarket* market)
@@ -48,7 +51,7 @@ void HouseholdBidderRole::Update(timeslice now) {
 void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
         const EM_EventArgs& args) {
     switch (id) {
-        case EM_WND_EXPIRED:
+        case sim_mob::event::EM_WND_EXPIRED:
         {
             LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
             FollowMarket();
@@ -64,17 +67,17 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 
         {
-            BidMessage* msg = MSG_CAST(BidMessage, message);
-            switch (msg->GetResponse()) {
+            const BidMessage& msg = MSG_CAST(BidMessage, message);
+            switch (msg.GetResponse()) {
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->RemoveUnit(msg->GetBid().GetUnitId());
+                    Unit* unit = market->RemoveUnit(msg.GetBid().GetUnitId());
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
                         LogOut("Bidder: [" << GetParent()->getId() <<
-                                "] bid: " << msg->GetBid() <<
+                                "] bid: " << msg.GetBid() <<
                                 " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
@@ -91,19 +94,19 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                 case NOT_ACCEPTED:
                 {
                     LogOut("Bidder: [" << GetParent()->getId() <<
-                            "] bid: " << msg->GetBid() <<
+                            "] bid: " << msg.GetBid() <<
                             " was not accepted " << endl);
-                    IncrementBidsCounter(msg->GetBid().GetUnitId());
+                    IncrementBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 default:break;

@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef CLIENTREGISTRATION_HPP_
-#define CLIENTREGISTRATION_HPP_
+#pragma once
+
 #include <set>
 #include<map>
 #include "entities/commsim/communicator/service/services.hpp"
@@ -59,4 +59,3 @@ struct ClientRegistrationRequest
 
 typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList; //<client type,registrationrequestform >
 }
-#endif /* CLIENTREGISTRATION_HPP_ */

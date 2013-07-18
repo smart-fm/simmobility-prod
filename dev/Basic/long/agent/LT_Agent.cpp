@@ -13,6 +13,8 @@
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using std::vector;
 using std::string;
 using std::map;

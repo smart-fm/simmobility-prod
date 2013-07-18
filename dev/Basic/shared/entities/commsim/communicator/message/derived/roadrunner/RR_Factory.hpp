@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef  RR_FACTORY_HPP_
-#define RR_FACTORY_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/message/base/MessageFactory.hpp"
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
@@ -44,4 +43,3 @@ public:
 
 } /* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* RRMSGFACTORY_HPP_ */

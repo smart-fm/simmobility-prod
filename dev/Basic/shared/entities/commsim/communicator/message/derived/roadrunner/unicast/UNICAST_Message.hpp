@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef UNICAST_MESSAGE_HPP_
-#define UNICAST_MESSAGE_HPP_
+#pragma once
+
 //#include "entities/commsim/communicator/message/base/Message.hpp"
 //#include "UNICAST_Handler.hpp"
 #include "entities/commsim/communicator/message/derived/roadrunner/RoadrunnerMessage.hpp"
@@ -23,4 +23,3 @@ public:
 
 }/* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* UNICAST_MESSAGE_H_ */

@@ -26,7 +26,7 @@ namespace sim_mob {
          * - Both
          * It will depend of the context.
          */
-        class LT_Agent : public sim_mob::Agent, public sim_mob::MessageReceiver {
+        class LT_Agent : public sim_mob::Agent, public messaging::MessageReceiver {
         public:
             LT_Agent(int id);
             virtual ~LT_Agent();
@@ -40,7 +40,7 @@ namespace sim_mob {
              * Gets the EventManager reference from worker parent.
              * @return EventManager reference. 
              */
-            sim_mob::EventManager& GetEventManager();
+            sim_mob::event::EventManager& GetEventManager();
 
         protected:
 
@@ -78,8 +78,8 @@ namespace sim_mob {
             /**
              * Inherited from MessageReceiver.
              */
-            virtual void HandleMessage(sim_mob::MessageType type,
-                    sim_mob::MessageReceiver& sender, const sim_mob::Message& message);
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
 
             /**
              * Inherited from Agent.

@@ -2,6 +2,7 @@
 
 #include "GeomHelpers.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <iostream>
 #include <limits>
@@ -32,10 +33,6 @@ using namespace sim_mob;
 using std::vector;
 using std::string;
 
-//add by xuyan
-//used in function PointInsidePolygon
-#define MIN(x,y) (x < y ? x : y)
-#define MAX(x,y) (x > y ? x : y)
 
 double sim_mob::dist(double x1, double y1, double x2, double y2)
 {
@@ -405,11 +402,11 @@ bool sim_mob::PointInsidePolygon(const sim_mob::Point2D* polygon, int N, const s
 	for (i = 1; i <= N; i++)
 	{
 		p2 = polygon[i % N];
-		if (p.getY() > MIN(p1.getY(), p2.getY()))
+		if (p.getY() > std::min(p1.getY(), p2.getY()))
 		{
-			if (p.getY() <= MAX(p1.getY(), p2.getY()))
+			if (p.getY() <= std::max(p1.getY(), p2.getY()))
 			{
-				if (p.getX() <= MAX(p1.getX(), p2.getX()))
+				if (p.getX() <= std::max(p1.getX(), p2.getX()))
 				{
 					if (p1.getY() != p2.getY())
 					{

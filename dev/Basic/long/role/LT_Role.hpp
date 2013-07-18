@@ -64,8 +64,8 @@ namespace sim_mob {
              * @param sender of the message.
              * @param message data.
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message) {
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message) {
             }
 
         private:
@@ -76,7 +76,7 @@ namespace sim_mob {
          * Represents a Generic Agent Role template implementation.
          * Template class should be a concrete LT_Agent class.
          */
-        template<typename T> class LT_AgentRole : public LT_Role, public sim_mob::EventListener {
+        template<typename T> class LT_AgentRole : public LT_Role, public sim_mob::event::EventListener {
         public:
 
             LT_AgentRole(T* parent) : parent(parent) {

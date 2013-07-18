@@ -5,8 +5,7 @@
  * data string with Json format.
  */
 
-#ifndef MESSAGE_HPP_
-#define MESSAGE_HPP_
+#pragma once
 
 #include <iostream>
 #include<boost/shared_ptr.hpp>
@@ -52,4 +51,3 @@ typedef boost::shared_ptr<msg_t> msg_ptr; //putting std::string here is c++ limi
 
 }//namespace sim_mob
 
-#endif

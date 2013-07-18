@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef CLINETHANDLER_HPP_
-#define CLINETHANDLER_HPP_
+#pragma once
+
 #include "ClientRegistration.hpp"
 #include "ClientRegistrationFactory.hpp"
 namespace sim_mob {
@@ -20,4 +20,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* CLINETHANDLER_HPP_ */

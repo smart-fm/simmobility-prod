@@ -31,6 +31,7 @@ using std::priority_queue;
 using boost::barrier;
 using boost::function;
 using namespace sim_mob;
+using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 

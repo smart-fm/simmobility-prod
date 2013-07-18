@@ -9,6 +9,7 @@
 
 #include "DaoTests.hpp"
 #include <typeinfo>
+#include <string>
 #include "database/dao/GlobalParamsDao.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
@@ -27,8 +28,8 @@ using sim_mob::DBConnection;
 //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
 //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
 //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
-#define CONNECTION_STRING "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
-#define ID_TO_GET 1
+const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
+const int ID_TO_GET =1;
 
 template <typename T, typename K>
 void TestDao() {

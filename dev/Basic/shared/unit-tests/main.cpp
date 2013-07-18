@@ -13,7 +13,6 @@
 ///Define SIMMOB_USE_TEST_GUI to use the GUI for CPPUnit tests.
 /// Since this affects so little of the code, I'm not putting it in the CMake file.
 /// Later, we can abstract it into CMake (or build two executables, or build only one, etc.)
-//#define SIMMOB_USE_TEST_GUI
 //NOTE: This is now set automatically via cmake (if you have QxCppUnit installed correctly).
 #include "GenConfig.h"
 

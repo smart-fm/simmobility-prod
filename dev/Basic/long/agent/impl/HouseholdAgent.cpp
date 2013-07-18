@@ -16,6 +16,7 @@
 #include "database/entity/housing-market/BidderParams.hpp"
 
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
 using sim_mob::Entity;
 using std::vector;
 using std::string;
@@ -55,7 +56,7 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCount
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::HandleMessage(MessageType type, MessageReceiver& sender,
-        const Message& message) {
+void HouseholdAgent::HandleMessage(messaging::MessageType type, messaging::MessageReceiver& sender,
+        const messaging::Message& message) {
     currentRole->HandleMessage(type, sender, message);
 }

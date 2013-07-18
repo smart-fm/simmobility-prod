@@ -32,7 +32,7 @@ namespace sim_mob {
          * only able to do the next bid on the next day.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
-        public MessageReceiver {
+        public messaging::MessageReceiver {
         public:
             HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
                     const BidderParams& params, HousingMarket* market);
@@ -48,8 +48,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
         private:
             /**
              * Handler for wakeup event.
@@ -58,8 +58,8 @@ namespace sim_mob {
              * @param sender EVentManager responsible for the fired event.
              * @param args {@link EM_EventArgs} instance.
              */
-            void OnWakeUp(EventId id, Context ctx,
-                    EventPublisher* sender, const EM_EventArgs& args);
+            void OnWakeUp(event::EventId id, event::Context ctx,
+                    event::EventPublisher* sender, const event::EM_EventArgs& args);
 
             /**
              * Handler for Market action event.
@@ -67,7 +67,7 @@ namespace sim_mob {
              * @param sender of the event.
              * @param args of the event.
              */
-            void OnMarketAction(EventId id, EventPublisher* sender,
+            void OnMarketAction(event::EventId id, event::EventPublisher* sender,
                     const HM_ActionEventArgs& args);
 
             /**

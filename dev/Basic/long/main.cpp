@@ -175,18 +175,18 @@ void SimulateWithDB() {
         unitDao.GetAll(units);
         SellerParamsDao sellerDao(&conn);
         BidderParamsDao bidderDao(&conn);
-        SellerParams sellerParams;
-        BidderParams bidderParams;
         for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
             Household* household = &(*it);
             LogOut("Household: " << (*household) << endl);
             sim_mob::dao::Parameters keys;
             keys.push_back(household->GetId());
+            SellerParams sellerParams;
+            BidderParams bidderParams;
             sellerDao.GetById(keys, sellerParams);
             bidderDao.GetById(keys, bidderParams);
-            HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, SellerParams(), BidderParams(), &market);
-            agents.push_back(hhAgent);
-            agentWorkers->assignAWorker(hhAgent);
+            LogOut("Seller: " << sellerParams << endl);
+            LogOut("Bidder: " << bidderParams << endl);
+            HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, sellerParams, bidderParams, &market);
             for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
                 if (it->GetId() == household->GetUnitId()){
                     Unit* unit = new Unit(*it);
@@ -195,6 +195,8 @@ void SimulateWithDB() {
                     LogOut("Household: " << household->GetUnitId() << " Unit: " << unit->GetId()<< endl);
                 }
             }
+            agents.push_back(hhAgent);
+            agentWorkers->assignAWorker(hhAgent);
         }
     }
     

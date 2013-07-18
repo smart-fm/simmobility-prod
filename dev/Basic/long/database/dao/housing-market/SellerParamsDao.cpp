@@ -30,8 +30,8 @@ void SellerParamsDao::FromRow(Row& result, SellerParams& outObj) {
     outObj.unitRentWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_RENT, 0);
     outObj.unitStoreyWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_STOREY, 0);
     outObj.unitTypeWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_TYPE, 0);
-    outObj.priceImportance = result.get<double>(DB_FIELD_WEIGHT_EXPECTED_EVENTS, 0);
-    outObj.expectedEvents = result.get<double>(DB_FIELD_WEIGHT_PRICE_IMPORTANCE, 0);
+    outObj.priceImportance = result.get<double>(DB_FIELD_WEIGHT_PRICE_IMPORTANCE, 0);
+    outObj.expectedEvents = result.get<double>(DB_FIELD_WEIGHT_EXPECTED_EVENTS, 0);
 }
 
 void SellerParamsDao::ToRow(SellerParams& data, Parameters& outParams, bool update) {

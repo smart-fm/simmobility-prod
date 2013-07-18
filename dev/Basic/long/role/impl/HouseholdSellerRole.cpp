@@ -74,6 +74,7 @@ void HouseholdSellerRole::Update(timeslice now) {
             if ((*itr)->IsAvailable()) {
                 double hedonicPrice = CalculateHedonicPrice(*(*itr), params);
                 (*itr)->SetHedonicPrice(hedonicPrice);
+                (*itr)->SetAskingPrice(hedonicPrice);
                 CalculateUnitExpectations(*(*itr));
                 // Put the asking price for given time.
                 market->AddUnit((*itr));
@@ -196,9 +197,8 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
 
 void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
-    double price = 20; //unit.GetReservationPrice();
+    double price = 20;
     double expectation = 4;
-    //double initialExpectation = unit.GetHedonicPrice();
     double theta = params.GetExpectedEvents(); // 1.0f;
     double alpha = params.GetPriceImportance(); // 2.0f;
     for (int i = 0; i < TIME_ON_MARKET; i++) {
@@ -206,7 +206,6 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
         entry.price = Math::FindMaxArg(ExpectationFunction,
                 price, boost::tuple<double, double, double>(expectation, theta, alpha),
                 .001f, 100000);
-
         entry.expectation = ExpectationFunction(entry.price,
                 boost::tuple<double, double, double>(expectation, theta, alpha));
         expectation = entry.expectation;

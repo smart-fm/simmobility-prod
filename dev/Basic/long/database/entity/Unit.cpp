@@ -14,18 +14,6 @@
 
 using namespace sim_mob::long_term;
 
-namespace {
-    double CalculateHedonicPrice(const Unit& unit) {
-        return unit.GetRent(); /*(double) unit.GetFixedPrice() +
-            unit.GetArea() * unit.GetWeightArea() +
-            (((int) unit.GetType()) + 1) * unit.GetWeightType() +
-            unit.GetStorey() * unit.GetWeightStorey() +
-            unit.GetLastRemodulationYear() * unit.GetWeightYearLastRemodulation() +
-            unit.GetTaxExempt() * unit.GetWeightTaxExempt() +
-            unit.GetDistanceToCBD() * unit.GetWeightDistanceToCBD();*/
-    }
-}
-
 Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
         double area, int storey, double rent, bool available) :
 id(id), buildingId(buildingId), typeId(typeId),
@@ -99,23 +87,23 @@ void Unit::SetAvailable(bool avaliable) {
 
 double Unit::GetAskingPrice() const {
     boost::shared_lock<boost::shared_mutex> lock(mutex);
-    return askingPrice;
+    return this->askingPrice;
 }
 double Unit::GetHedonicPrice() const {
     boost::shared_lock<boost::shared_mutex> lock(mutex);
-    return hedonicPrice;
+    return this->hedonicPrice;
 }
 
 void Unit::SetAskingPrice(double askingPrice) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
-    askingPrice = askingPrice;
+    this->askingPrice = askingPrice;
 }
 
 void Unit::SetHedonicPrice(double hedonicPrice) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
-    hedonicPrice = hedonicPrice;
+    this->hedonicPrice = hedonicPrice;
 }
 
 void Unit::SetOwner(UnitHolder* receiver) {

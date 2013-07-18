@@ -25,9 +25,12 @@ using std::endl;
 HouseholdAgent::HouseholdAgent(int id, Household* hh, const SellerParams& sellerParams,  
         const BidderParams& bidderParams, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {
-    if (id % 2 == 0) {
+    
+    if (id == sellerParams.GetHouseholdId()) {
         currentRole = new HouseholdSellerRole(this, hh, sellerParams, market);
-    } else {
+    }
+    
+    if (id == bidderParams.GetHouseholdId()) {
         currentRole = new HouseholdBidderRole(this, hh, bidderParams, market);
     }
     currentRole->SetActive(true);

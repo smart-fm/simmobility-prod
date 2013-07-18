@@ -22,8 +22,8 @@
 
 // Events for HousingMarket
 // housing market action (unit was ADDED, REMOVED or UPDATED ) 
-#define LTEID_HM_UNIT_ADDED     LTEID_START + 1
-#define LTEID_HM_UNIT_REMOVED   LTEID_START + 2
+const int LTEID_HM_UNIT_ADDED           = (LTEID_START + 1);
+const int LTEID_HM_UNIT_REMOVED         = (LTEID_START + 2);
 
 
 /**
@@ -32,8 +32,8 @@
 #define LTMID_START 2000000
 
 // Messages for biding process
-#define LTMID_BID         LTMID_START + 1
-#define LTMID_BID_RSP     LTMID_START + 2
+const int  LTMID_BID            = (LTMID_START + 1);
+const int  LTMID_BID_RSP        = (LTMID_START + 2);
 
 /**
  * DEFAULT VALUES

@@ -1,29 +1,28 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   BuildingDao.hpp
+ * File:   BidderParamsDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on May 7, 2013, 3:59 PM
+ * Created on 25 June, 2013, 3:59 PM
  */
 #pragma once
 
 #include "database/dao/AbstractDao.hpp"
-#include "database/entity/Building.hpp"
+#include "database/entity/housing-market/BidderParams.hpp"
 
 
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(Building);
-
+        DAO_DECLARE_CALLBACKS(BidderParams);
         /**
-         * Data Access Object to Building table on datasource.
+         * Data Access Object to BidderParams table on datasource.
          */
-        class BuildingDao : public AbstractDao<Building> {
+        class BidderParamsDao : public AbstractDao<BidderParams> {
         public:
-            BuildingDao(DBConnection* connection);
-            virtual ~BuildingDao();
+            BidderParamsDao(DBConnection* connection);
+            virtual ~BidderParamsDao();
 
         private:
             /**
@@ -31,7 +30,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, Building& outObj);
+            void FromRow(Row& result, BidderParams& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +38,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Building& data, Parameters& outParams, bool update);
+            void ToRow(BidderParams& data, Parameters& outParams, bool update);
         };
     }
 }

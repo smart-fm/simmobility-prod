@@ -8,9 +8,15 @@
  */
 
 #include "DaoTests.hpp"
+#include <typeinfo>
+#include "database/dao/GlobalParamsDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/UnitDao.hpp"
+#include "database/dao/BuildingTypeDao.hpp"
+#include "database/dao/housing-market/BidderParamsDao.hpp"
+#include "database/dao/housing-market/SellerParamsDao.hpp"
 
 using namespace sim_mob::long_term;
 using namespace unit_tests;
@@ -26,6 +32,7 @@ using sim_mob::DBConnection;
 
 template <typename T, typename K>
 void TestDao() {
+    LogOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DBConnection conn(sim_mob::POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
@@ -48,7 +55,13 @@ void TestDao() {
 }
 
 void DaoTests::TestAll() {
+    TestDao<GlobalParamsDao, GlobalParams>();
+    TestDao<UnitTypeDao, UnitType>();
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();
+    TestDao<BuildingTypeDao, BuildingType>();
+
+    TestDao<SellerParamsDao, SellerParams>();
+    TestDao<BidderParamsDao, BidderParams>();
 }

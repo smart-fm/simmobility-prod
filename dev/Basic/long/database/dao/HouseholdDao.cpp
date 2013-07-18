@@ -24,24 +24,22 @@ HouseholdDao::~HouseholdDao() {
 }
 
 void HouseholdDao::FromRow(Row& result, Household& outObj) {
-    outObj.id = result.get<BigSerial>(DB_FIELD_ID);
-    outObj.numberOfIndividuals = result.get<int>(DB_FIELD_NUMBER_OF_INDIVIDUALS);
-    outObj.numberOfWorkers = result.get<int>(DB_FIELD_NUMBER_OF_WORKERS);
-    outObj.numberOfChildren = result.get<int>(DB_FIELD_NUMBER_OF_CHILDREN);
-    outObj.numberOfCars = result.get<int>(DB_FIELD_NUMBER_OF_CARS);
-    outObj.income = result.get<double>(DB_FIELD_INCOME);
-    outObj.headAge = result.get<int>(DB_FIELD_AGE_OF_HEAD);
-    outObj.race = ToRace(result.get<int>(DB_FIELD_RACE));
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID, INVALID_ID);
+    outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
+    outObj.children = result.get<int>(DB_FIELD_CHILDREN, 0);
+    outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
+    outObj.carOwnership = result.get<int>(DB_FIELD_CAR_OWNERSHIP, 0);
+    outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
 }
 
 void HouseholdDao::ToRow(Household& data, Parameters& outParams, bool update) {
-    outParams.push_back(data.numberOfIndividuals);
-    outParams.push_back(data.numberOfWorkers);
-    outParams.push_back(data.numberOfChildren);
-    outParams.push_back(data.numberOfCars);
+    outParams.push_back(data.unitId);
+    outParams.push_back(data.size);
+    outParams.push_back(data.children);
     outParams.push_back(data.income);
-    outParams.push_back(data.headAge);
-    outParams.push_back((int) data.race);
+    outParams.push_back(data.carOwnership);
+    outParams.push_back(data.housingDuration);
     if (update) {
         outParams.push_back(data.id);
     } else {// if is insert we need to put the id on the beginning.

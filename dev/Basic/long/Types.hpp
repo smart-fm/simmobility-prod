@@ -41,16 +41,6 @@ enum TimeUnit {
     YEARLY = 3
 };
 
-enum UnitType {
-    ROOM_1 = 0,
-    ROOM_2 = 1,
-    ROOM_3 = 2,
-    ROOM_4 = 3,
-    ROOM_5 = 4,
-    EXECUTIVE = 5,
-    UNKNOWN_UNIT_TYPE
-};
-
 static Race ToRace(int value) {
     switch (value) {
         case CHINISE: return CHINISE;
@@ -84,17 +74,5 @@ static TimeUnit ToTimeUnit(int value) {
         case MONTHLY: return MONTHLY;
         case YEARLY: return YEARLY;
         default: return DAILY;
-    }
-}
-
-static UnitType ToUnitType(int value) {
-    switch (value) {
-        case ROOM_1: return ROOM_1;
-        case ROOM_2: return ROOM_2;
-        case ROOM_3: return ROOM_3;
-        case ROOM_4: return ROOM_4;
-        case ROOM_5: return ROOM_5;
-        case EXECUTIVE: return EXECUTIVE;
-        default: return UNKNOWN_UNIT_TYPE;
     }
 }

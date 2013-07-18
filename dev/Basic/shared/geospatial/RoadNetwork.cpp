@@ -8,7 +8,7 @@
 #include "UniNode.hpp"
 #include "MultiNode.hpp"
 #include "Point2D.hpp"
-//#include "Conflux.hpp"
+#include "util/GeomHelpers.hpp"
 #include <cmath>
 
 using std::set;
@@ -18,20 +18,7 @@ using namespace sim_mob;
 
 
 namespace {
-//Temporary
-int dist(const Point2D& p1, const Point2D& p2) {
-	double dx = p2.getX() - p1.getX();
-	double dy = p2.getY() - p1.getY();
-	double d2 = sqrt(dx*dx + dy*dy);
-	return (int)d2;
-}
 
-int dist(const Point2D& p1, double xPos, double yPos) {
-	double dx = xPos - p1.getX();
-	double dy = yPos - p1.getY();
-	double d2 = sqrt(dx*dx + dy*dy);
-	return (int)d2;
-}
 
 //Sort RoadSegments by ID
 struct RS_ID_Sorter {
@@ -78,7 +65,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	Node* candidate = nullptr;
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); (it!=nodes.end())&&(minDist!=0); it++) {
 //		std::cout << "Checking the node at [" << (*it)->location.getX() << " , " << (*it)->location.getY() << std::endl;
-		int newDist = dist((*it)->location, position);
+		int newDist = sim_mob::dist((*it)->location, position);
 		if (newDist < minDist) {
 			minDist = newDist;
 			candidate = *it;
@@ -88,7 +75,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	//Next, check the UniNodes, if the flag is set.
 	if (includeUniNodes) {
 		for (set<UniNode*>::const_iterator it=segmentnodes.begin(); (it!=segmentnodes.end())&&(minDist!=0); it++) {
-			int newDist = dist((*it)->location, position);
+			int newDist = sim_mob::dist((*it)->location, position);
 			if (newDist < minDist) {
 				minDist = newDist;
 				candidate = *it;

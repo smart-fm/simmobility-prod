@@ -34,14 +34,19 @@ using std::vector;
 using std::string;
 
 
-double sim_mob::dist(double x1, double y1, double x2, double y2)
+double sim_mob::dist(DPoint pt1, DPoint pt2)
 {
-	double dx = x2 - x1;
-	double dy = y2 - y1;
+	double dx = pt2.x - pt1.x;
+	double dy = pt2.y - pt1.y;
 	return sqrt(dx * dx + dy * dy);
 }
 
-double sim_mob::dist(const aimsun::Crossing* c1, const aimsun::Crossing* c2)
+double sim_mob::dist(double x1, double y1, double x2, double y2)
+{
+	return dist(DPoint(x1,y1), DPoint(x2,y2));
+}
+
+/*double sim_mob::dist(const aimsun::Crossing* c1, const aimsun::Crossing* c2)
 {
 	return dist(c1->xPos, c1->yPos, c2->xPos, c2->yPos);
 }
@@ -68,7 +73,7 @@ double sim_mob::dist(const DPoint& p1, const Point2D& p2)
 double sim_mob::dist(const Agent& ag, const Point2D& pt)
 {
 	return dist(ag.xPos.get(), ag.yPos.get(), pt.getX(), pt.getY());
-}
+}*/
 
 
 Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::DynamicVector& line)
@@ -573,4 +578,37 @@ std::pair<uint32_t, uint32_t> sim_mob::parse_point_pair(const std::string& src)
 	return res;
 }
 
+
+
+////Specialization implementations
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Crossing& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Lane& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Node& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Point2D& item)
+{
+	return sim_mob::DPoint(item.getX(), item.getY());
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Agent& item)
+{
+	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
+}
 

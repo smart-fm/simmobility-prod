@@ -99,22 +99,22 @@ void HouseholdSellerRole::Update(timeslice now) {
     currentTime = now;
 }
 
-void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdSellerRole::HandleMessage(Message::Type type, MessageReceiver& sender,
         const Message& message) {
 
     switch (type) {
         case LTMID_BID:// Bid received 
         {
-            BidMessage* msg = MSG_CAST(BidMessage, message);
-            Unit* unit = GetParent()->GetUnitById(msg->GetBid().GetUnitId());
+            const BidMessage& msg = MSG_CAST(BidMessage, message);
+            Unit* unit = GetParent()->GetUnitById(msg.GetBid().GetUnitId());
             LogOut("Seller: [" << GetParent()->getId() <<
-                    "] received a bid: " << msg->GetBid() <<
+                    "] received a bid: " << msg.GetBid() <<
                     " at day: " << currentTime.ms() << endl);
             bool decision = false;
             ExpectationEntry entry;
             if (unit && unit->IsAvailable() && GetCurrentExpectation(*unit, entry)) {
                 //verify if is the bid satisfies the asking price.
-                decision = Decide(msg->GetBid(), entry);
+                decision = Decide(msg.GetBid(), entry);
                 if (decision) {
                     //get the maximum bid of the day
                     Bids::iterator bidItr = maxBidsOfDay.find(unit->GetId());
@@ -125,8 +125,8 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
 
                     if (!maxBidOfDay) {
                         maxBidsOfDay.insert(BidEntry(unit->GetId(),
-                                msg->GetBid()));
-                    } else if (maxBidOfDay->GetValue() < msg->GetBid().GetValue()) {
+                                msg.GetBid()));
+                    } else if (maxBidOfDay->GetValue() < msg.GetBid().GetValue()) {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
@@ -135,19 +135,19 @@ void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sende
                                 new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER));
                         maxBidsOfDay.erase(unit->GetId());
                         //update the new bid and bidder.
-                        maxBidsOfDay.insert(BidEntry(unit->GetId(), msg->GetBid()));
+                        maxBidsOfDay.insert(BidEntry(unit->GetId(), msg.GetBid()));
                     } else {
                         sender.Post(LTMID_BID_RSP, GetParent(),
-                                new BidMessage(Bid(msg->GetBid()), BETTER_OFFER));
+                                new BidMessage(Bid(msg.GetBid()), BETTER_OFFER));
                     }
                 } else {
                     sender.Post(LTMID_BID_RSP, GetParent(),
-                            new BidMessage(Bid(msg->GetBid()), NOT_ACCEPTED));
+                            new BidMessage(Bid(msg.GetBid()), NOT_ACCEPTED));
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
                 sender.Post(LTMID_BID_RSP, GetParent(),
-                        new BidMessage(Bid(msg->GetBid()), NOT_AVAILABLE));
+                        new BidMessage(Bid(msg.GetBid()), NOT_AVAILABLE));
             }
             Statistics::Increment(Statistics::N_BIDS);
             break;

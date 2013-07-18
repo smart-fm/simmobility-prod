@@ -55,7 +55,7 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCount
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdAgent::HandleMessage(Message::Type type, MessageReceiver& sender,
         const Message& message) {
     currentRole->HandleMessage(type, sender, message);
 }

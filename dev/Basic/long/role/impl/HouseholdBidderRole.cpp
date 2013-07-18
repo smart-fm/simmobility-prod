@@ -59,22 +59,22 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     }
 }
 
-void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdBidderRole::HandleMessage(Message::Type type, MessageReceiver& sender,
         const Message& message) {
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 
         {
-            BidMessage* msg = MSG_CAST(BidMessage, message);
-            switch (msg->GetResponse()) {
+            const BidMessage& msg = MSG_CAST(BidMessage, message);
+            switch (msg.GetResponse()) {
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->RemoveUnit(msg->GetBid().GetUnitId());
+                    Unit* unit = market->RemoveUnit(msg.GetBid().GetUnitId());
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
                         LogOut("Bidder: [" << GetParent()->getId() <<
-                                "] bid: " << msg->GetBid() <<
+                                "] bid: " << msg.GetBid() <<
                                 " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
@@ -91,19 +91,19 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                 case NOT_ACCEPTED:
                 {
                     LogOut("Bidder: [" << GetParent()->getId() <<
-                            "] bid: " << msg->GetBid() <<
+                            "] bid: " << msg.GetBid() <<
                             " was not accepted " << endl);
-                    IncrementBidsCounter(msg->GetBid().GetUnitId());
+                    IncrementBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 default:break;

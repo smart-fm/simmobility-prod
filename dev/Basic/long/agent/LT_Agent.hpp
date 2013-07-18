@@ -78,7 +78,7 @@ namespace sim_mob {
             /**
              * Inherited from MessageReceiver.
              */
-            virtual void HandleMessage(sim_mob::MessageType type,
+            virtual void HandleMessage(sim_mob::Message::Type type,
                     sim_mob::MessageReceiver& sender, const sim_mob::Message& message);
 
             /**

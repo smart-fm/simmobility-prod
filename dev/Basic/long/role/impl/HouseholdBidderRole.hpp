@@ -48,7 +48,7 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(MessageType type,
+            virtual void HandleMessage(Message::Type type,
                     MessageReceiver& sender, const Message& message);
         private:
             /**

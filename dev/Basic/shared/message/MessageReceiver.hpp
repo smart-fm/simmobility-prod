@@ -40,7 +40,7 @@ namespace sim_mob {
          * @param sender of the message.
          * @param message data.
          */
-        virtual void Post(MessageType type, MessageReceiver* sender,
+        virtual void Post(Message::Type type, MessageReceiver* sender,
                 Message* message);
 
         /**
@@ -51,7 +51,7 @@ namespace sim_mob {
          * @param sender of the message.
          * @param message data.
          */
-        virtual bool Send(MessageType type, MessageReceiver& sender,
+        virtual bool Send(Message::Type type, MessageReceiver& sender,
                 const Message& message);
     protected:
         /**
@@ -60,12 +60,12 @@ namespace sim_mob {
          * @param sender {@link MessageReceiver} that have sent the message.
          * @param message data.
          */
-        virtual void HandleMessage(MessageType type, MessageReceiver& sender,
+        virtual void HandleMessage(Message::Type type, MessageReceiver& sender,
                 const Message& message) = 0;
     private:
         //Definitions
         typedef std::pair<MessageReceiver*, Message*> MessageData;
-        typedef std::pair<MessageType, MessageData*> MessageEntry;
+        typedef std::pair<Message::Type, MessageData*> MessageEntry;
         typedef std::queue<MessageEntry*> MessageList;
         
         /**
@@ -77,7 +77,7 @@ namespace sim_mob {
         /**
          * Helper method.
          */
-        bool SendMessage(MessageType type, MessageReceiver* sender,
+        bool SendMessage(Message::Type type, MessageReceiver* sender,
                 Message* message, bool async);
         
         /**

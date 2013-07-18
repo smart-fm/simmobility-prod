@@ -45,14 +45,14 @@ bool MessageReceiver::ReadMessage() {
     return false;
 }
 
-void MessageReceiver::Post(MessageType type, MessageReceiver* sender,
+void MessageReceiver::Post(Message::Type type, MessageReceiver* sender,
         Message* message) {
     upgrade_lock<shared_mutex> upgradeLock(queueMutex);
     upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
     SendMessage(type, sender, message, true);
 }
 
-bool MessageReceiver::Send(MessageType type, MessageReceiver& sender, const Message& message) {
+bool MessageReceiver::Send(Message::Type type, MessageReceiver& sender, const Message& message) {
     SendMessage(type, &sender, const_cast<Message*> (&message), false);
     return true;
 }
@@ -62,7 +62,7 @@ bool MessageReceiver::HasMessages() {
     return ContainsMessages();
 }
 
-bool MessageReceiver::SendMessage(MessageType type, MessageReceiver* sender, Message* message, bool async) {
+bool MessageReceiver::SendMessage(Message::Type type, MessageReceiver* sender, Message* message, bool async) {
     if (sender && message) {
         if (async) {
             messages.push(new MessageEntry(type, new MessageData(sender, message)));

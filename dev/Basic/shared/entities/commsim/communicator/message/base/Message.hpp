@@ -20,17 +20,17 @@ typedef boost::shared_ptr<sim_mob::Handler> hdlr_ptr;
 namespace comm
 {
 
-typedef int MessageType;
-
 //Base Message
 template<class T>
-class Message
+class AbstractCommMessage
 {
 	T data;
 	hdlr_ptr handler;
 public:
-	Message();
-	Message(T data_):data(data_){}
+	typedef int MessageType;
+
+	AbstractCommMessage();
+	AbstractCommMessage(T data_):data(data_){}
 	hdlr_ptr supplyHandler(){
 		return handler;;
 	}
@@ -46,7 +46,7 @@ public:
 }//namespace comm
 //todo do something here. the following std::string is spoiling messge's templatization benefits
 typedef Json::Value msg_data_t;
-typedef sim_mob::comm::Message<msg_data_t> msg_t;
+typedef sim_mob::comm::AbstractCommMessage<msg_data_t> msg_t;
 typedef boost::shared_ptr<msg_t> msg_ptr; //putting std::string here is c++ limitation(old standard). don't blame me!-vahid
 
 }//namespace sim_mob

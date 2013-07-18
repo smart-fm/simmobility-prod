@@ -427,6 +427,8 @@ SET(UnityExclude "")
 LIST(APPEND UnityExclude "shared/geospatial/aimsun/Loader.cpp")
 LIST(APPEND UnityExclude "shared/geospatial/aimsun/CrossingLoader.cpp")
 LIST(APPEND UnityExclude "shared/geospatial/aimsun/LaneLoader.cpp")
+LIST(APPEND UnityExclude "shared/util/internal/xml_writer.cpp")
+LIST(APPEND UnityExclude "shared/util/internal/namer.cpp")
 
 
 #Determine if we are using Unity (full/fast) builds or not.

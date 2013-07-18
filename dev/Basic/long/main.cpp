@@ -157,6 +157,7 @@ void SimulateWithDB() {
     list<HouseholdAgent*> agents;
     vector<Unit> units;
     vector<Household> households;
+    HousingMarket market;
     {
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
@@ -166,7 +167,6 @@ void SimulateWithDB() {
         wgMgr.initAllGroups();
         agentWorkers->initWorkers(nullptr);
 
-        HousingMarket market;
         agentWorkers->assignAWorker(&market);
         // Connect to database and load data.
         DBConnection conn(sim_mob::POSTGRES, CONNECTION_STRING);

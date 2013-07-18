@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef LOCATIONEVENTARGS_HPP_
-#define LOCATIONEVENTARGS_HPP_
+#pragma once
 
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
@@ -26,4 +25,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* LOCATIONEVENTARGS_HPP_ */

@@ -22,8 +22,6 @@
 
 #include "partitions/PartitionManager.hpp"
 
-#define BOUNDARY_BOX_SIZE 4
-
 namespace mpi = boost::mpi;
 
 using std::string;

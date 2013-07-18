@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef ANDROIDCLIENTHANDLER_HPP_
-#define ANDROIDCLIENTHANDLER_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/event/subscribers/base/ClientHandler.hpp"
 
@@ -21,4 +20,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* ANDROIDCLIENTHANDLER_HPP_ */

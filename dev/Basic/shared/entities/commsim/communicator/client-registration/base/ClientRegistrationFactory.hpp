@@ -4,8 +4,8 @@
  *  Created on: May 20, 2013
  *      Author: vahid
  */
-#ifndef CLIENTREGISTRATIONFACTORY_HPP_
-#define CLIENTREGISTRATIONFACTORY_HPP_
+#pragma once
+
 #include<map>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
@@ -31,4 +31,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* CLIENTREGISTRATIONFACTORY_HPP_ */

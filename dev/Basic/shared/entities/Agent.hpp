@@ -58,8 +58,6 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
-#define AGENT_LIFE_EVENT_STARTED_ID 3000
-#define AGENT_LIFE_EVENT_FINISHED_ID 3001
 
 DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
 class AgentLifeEventArgs: public event::EventArgs {
@@ -91,6 +89,11 @@ private:
  */
 class Agent : public sim_mob::Entity, public event::EventPublisher/*, public sim_mob::CommunicationSupport*/ {
 public:
+	enum AgentLifecycleEvents {
+		AGENT_LIFE_EVENT_STARTED_ID = 3000,
+		AGENT_LIFE_EVENT_FINISHED_ID = 3001,
+	};
+
 	static int createdAgents;
 	static int diedAgents;
 	///Construct an Agent with an immutable ID.

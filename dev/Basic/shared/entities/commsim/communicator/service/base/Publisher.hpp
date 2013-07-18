@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef PUBLISHER_HPP_
-#define PUBLISHER_HPP_
+#pragma once
+
 #include "entities/commsim/communicator/service/services.hpp"
 #include <boost/assign/list_of.hpp>
 #include "entities/commsim/communicator/broker/Broker.hpp"
@@ -23,4 +23,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* PUBLISHER_HPP_ */

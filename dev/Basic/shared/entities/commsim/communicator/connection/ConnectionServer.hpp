@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef CONNECTIONSERVER_HPP_
-#define CONNECTIONSERVER_HPP_
+#pragma once
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -54,4 +53,3 @@ class ConnectionServer {
 };
 
 } /* namespace sim_mob */
-#endif /* CONNECTIONSERVER_HPP_ */

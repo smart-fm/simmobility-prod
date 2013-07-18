@@ -17,15 +17,17 @@
 /**
  * All external events must start with this id.
  */
-#define EM_EVENT_ID_START 10000
-
-// Events for HousingMarket
-#define EM_WND_EXPIRED          0
-#define EM_WND_UPDATED          1
+//const int EM_EVENT_ID_START =10000;
 
 namespace sim_mob {
     
     namespace event {
+        // Events for HousingMarket
+    	enum HouseMarketEvents {
+    		EM_WND_EXPIRED = 0,
+    		EM_WND_UPDATED = 1,
+    	};
+
 
         DECLARE_CUSTOM_CALLBACK_TYPE(EM_EventArgs)
         class EM_EventArgs : public EventArgs {

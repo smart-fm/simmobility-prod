@@ -12,6 +12,7 @@
 #include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
+#include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 
@@ -50,7 +51,7 @@ void HouseholdBidderRole::Update(timeslice now) {
 void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
         const EM_EventArgs& args) {
     switch (id) {
-        case EM_WND_EXPIRED:
+        case sim_mob::event::EM_WND_EXPIRED:
         {
             LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
             FollowMarket();

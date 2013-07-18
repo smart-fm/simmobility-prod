@@ -21,10 +21,9 @@ using std::list;
 using std::endl;
 using sim_mob::Math;
 
-#define TIME_ON_MARKET 2
-#define TIME_INTERVAL 7
-
 namespace {
+	const int TIME_ON_MARKET =2;
+	const int TIME_INTERVAL =7;
 
     double ExpectationFunction(double x, const boost::tuple<double, double, double>& params) {
         double v = params.get<0>();

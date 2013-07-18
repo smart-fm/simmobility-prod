@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef LOCATIONPUBLISHER_HPP_
-#define LOCATIONPUBLISHER_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/service/base/Publisher.hpp"
 
@@ -20,4 +19,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* LOCATIONPUBLISHER_HPP_ */

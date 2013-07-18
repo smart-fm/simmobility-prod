@@ -5,11 +5,11 @@
  *      Author: vahid
  */
 
-#ifndef CLIENTHANDLER_HPP_
-#define CLIENTHANDLER_HPP_
+#pragma once
+
 #include <boost/shared_ptr.hpp>
 #include <map>
-#include<set>
+#include <set>
 #include "event/EventListener.hpp"
 #include "entities/commsim/communicator/event/TimeEventArgs.hpp"
 #include "entities/commsim/communicator/event/LocationEventArgs.hpp"
@@ -44,4 +44,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* CLIENTHANDLER_HPP_ */

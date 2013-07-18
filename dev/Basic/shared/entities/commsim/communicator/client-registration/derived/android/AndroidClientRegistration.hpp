@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef AndroidClientRegistration_HPP_
-#define AndroidClientRegistration_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
@@ -22,4 +21,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* AndroidClientRegistration_HPP_ */

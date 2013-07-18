@@ -5,6 +5,9 @@
  *      Author: vahid
  */
 
+//Macro used for callbacks
+#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+
 #include "ConnectionHandler.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "Session.hpp"

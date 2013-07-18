@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef WHOAREYOUPROTOCOL_HPP_
-#define WHOAREYOUPROTOCOL_HPP_
+#pragma once
+
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
@@ -38,4 +38,3 @@ private:
 };
 
 } /* namespace sim_mob */
-#endif /* WHOAREYOUPROTOCOL_HPP_ */

@@ -12,14 +12,12 @@
 #include "util/LangHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
-using std::cout;
-using std::endl;
-
 /**
- * Events IDs
+ * Events IDs. Using an enum guarantees size.
  */
-#define COMMEID_START 9000000
+enum CommunicationIds {
+	COMMEID_START = 9000000,
+	COMMEID_TIME,
+	COMMEID_LOCATION,
+};
 
-// Events for HousingMarket
-#define COMMEID_TIME     COMMEID_START + 1
-#define COMMEID_LOCATION   COMMEID_START + 2

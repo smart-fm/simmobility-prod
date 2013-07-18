@@ -4,9 +4,10 @@
  *  Created on: May 22, 2013
  *      Author: vahid
  */
-//todo, change the name and ,may be, location of this file.
-#ifndef SERVICES_HPP_
-#define SERVICES_HPP_
+
+#pragma once
+
+
 //include publishing services that you provide in simmobility
 //#include "derived/TimePublisher.hpp"
 //#include "derived/LocationPublisher.hpp"
@@ -96,4 +97,3 @@ namespace sim_mob
 }
 
 
-#endif /* SERVICES_HPP_ */

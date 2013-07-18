@@ -8,8 +8,6 @@
 //#include "Offset.hpp"
 //#include "conf/simpleconf.hpp"
 
-#define NUMBER_OF_VOTING_CYCLES 5
-
 namespace geo
 {
 class SplitPlan_t_pimpl;

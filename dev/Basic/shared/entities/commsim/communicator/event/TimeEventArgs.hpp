@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef TIMEEVENTARGS_HPP_
-#define TIMEEVENTARGS_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
 #include "event/args/EventArgs.hpp"
@@ -27,4 +26,3 @@ public:
 
 
 } /* namespace sim_mob */
-#endif /* TIMEEVENTARGS_HPP_ */

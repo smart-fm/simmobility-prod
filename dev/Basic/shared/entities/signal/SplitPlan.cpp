@@ -7,6 +7,12 @@
 using namespace boost::multi_index;
 using std::vector;
 
+
+namespace {
+ const int NUMBER_OF_VOTING_CYCLES = 5;
+} //End un-named namespace
+
+
 namespace sim_mob
 {
 

@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef NS3ClientRegistration_HPP_
-#define NS3ClientRegistration_HPP_
+#pragma once
+
 #include "entities/commsim/communicator/client-registration/base/ClinetRegistrationHandler.hpp"
 namespace sim_mob {
 
@@ -18,4 +18,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* NS3ClientRegistration_HPP_ */

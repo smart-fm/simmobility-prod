@@ -64,8 +64,8 @@ namespace sim_mob {
              * @param sender of the message.
              * @param message data.
              */
-            virtual void HandleMessage(Message::Type type,
-                    MessageReceiver& sender, const Message& message) {
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message) {
             }
 
         private:

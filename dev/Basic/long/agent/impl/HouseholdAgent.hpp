@@ -33,8 +33,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Agent.
              */
-            virtual void HandleMessage(sim_mob::Message::Type type,
-                    sim_mob::MessageReceiver& sender, const sim_mob::Message& message);
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
             bool OnFrameInit(timeslice now);
             sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
             void OnFrameOutput(timeslice now);

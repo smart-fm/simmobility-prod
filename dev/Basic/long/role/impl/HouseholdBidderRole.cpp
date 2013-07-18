@@ -19,6 +19,7 @@ using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
         const BidderParams& params, HousingMarket* market)
@@ -60,7 +61,7 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     }
 }
 
-void HouseholdBidderRole::HandleMessage(Message::Type type, MessageReceiver& sender,
+void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 

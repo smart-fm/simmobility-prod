@@ -16,6 +16,7 @@
 #include "boost/tuple/tuple.hpp"
 
 using namespace sim_mob::long_term;
+using namespace sim_mob::messaging;
 using std::list;
 using std::endl;
 using sim_mob::Math;
@@ -99,7 +100,7 @@ void HouseholdSellerRole::Update(timeslice now) {
     currentTime = now;
 }
 
-void HouseholdSellerRole::HandleMessage(Message::Type type, MessageReceiver& sender,
+void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
 
     switch (type) {

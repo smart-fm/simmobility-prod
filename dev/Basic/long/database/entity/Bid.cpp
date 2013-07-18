@@ -11,7 +11,7 @@
 #include "metrics/Frame.hpp"
 
 using namespace sim_mob::long_term;
-using sim_mob::MessageReceiver;
+using namespace sim_mob::messaging;
 
 Bid::Bid(UnitId unitId, int bidderId, MessageReceiver* bidder, float value, timeslice& time)
 : unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {

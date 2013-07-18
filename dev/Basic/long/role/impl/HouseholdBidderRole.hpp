@@ -32,7 +32,7 @@ namespace sim_mob {
          * only able to do the next bid on the next day.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
-        public MessageReceiver {
+        public messaging::MessageReceiver {
         public:
             HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
                     const BidderParams& params, HousingMarket* market);
@@ -48,8 +48,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(Message::Type type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(messaging::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
         private:
             /**
              * Handler for wakeup event.

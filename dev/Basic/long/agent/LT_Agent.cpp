@@ -14,6 +14,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using std::vector;
 using std::string;
 using std::map;
@@ -58,7 +59,7 @@ bool LT_Agent::isNonspatial() {
     return false;
 }
 
-void LT_Agent::HandleMessage(Message::Type type, MessageReceiver& sender,
+void LT_Agent::HandleMessage(MessageType type, MessageReceiver& sender,
         const Message& message) {
     int x=0;
 }

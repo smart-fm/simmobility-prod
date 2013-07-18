@@ -23,6 +23,7 @@ int sim_mob::Broker::subscribedAgents = 0;
 
 namespace sim_mob
 {
+using namespace sim_mob::event;
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }

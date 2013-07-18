@@ -16,7 +16,7 @@
 
 namespace sim_mob {
 DECLARE_CUSTOM_CALLBACK_TYPE(TimeEventArgs)
-class TimeEventArgs: public sim_mob::EventArgs {
+class TimeEventArgs: public sim_mob::event::EventArgs {
 public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();

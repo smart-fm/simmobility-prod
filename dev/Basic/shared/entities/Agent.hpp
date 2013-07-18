@@ -62,7 +62,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
 #define AGENT_LIFE_EVENT_FINISHED_ID 3001
 
 DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
-class AgentLifeEventArgs: public EventArgs {
+class AgentLifeEventArgs: public event::EventArgs {
 public:
 	AgentLifeEventArgs(Agent* agent);
 	AgentLifeEventArgs(const AgentLifeEventArgs& orig);
@@ -89,7 +89,7 @@ private:
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity, public EventPublisher/*, public sim_mob::CommunicationSupport*/ {
+class Agent : public sim_mob::Entity, public event::EventPublisher/*, public sim_mob::CommunicationSupport*/ {
 public:
 	static int createdAgents;
 	static int diedAgents;

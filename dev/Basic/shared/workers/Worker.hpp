@@ -71,7 +71,7 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	EventManager& getEventManager();
+	event::EventManager& getEventManager();
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
@@ -161,7 +161,7 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	EventManager eventManager;
+	event::EventManager eventManager;
 };
 
 }

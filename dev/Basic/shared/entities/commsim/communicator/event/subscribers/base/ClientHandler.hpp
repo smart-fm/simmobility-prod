@@ -26,7 +26,7 @@ template<class T>
 class AgentCommUtility;
 class Agent;
 
-class ClientHandler: public sim_mob::EventListener {
+class ClientHandler: public sim_mob::event::EventListener {
 	sim_mob::Broker & broker;
 public:
 	ClientHandler(sim_mob::Broker &);
@@ -39,8 +39,8 @@ public:
 	sim_mob::Broker &getBroker();
 	virtual ~ClientHandler();
 	//event functions:
-	void OnLocation(EventId id, Context context, EventPublisher* sender, const LocationEventArgs& args);
-	 void OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args);
+	void OnLocation(event::EventId id, event::Context context, event::EventPublisher* sender, const LocationEventArgs& args);
+	 void OnTime(event::EventId id, event::EventPublisher* sender, const TimeEventArgs& args);
 };
 
 } /* namespace sim_mob */

@@ -17,7 +17,7 @@ public:
 	AndroidClientHandler(sim_mob::Broker &);
 	virtual ~AndroidClientHandler();
 
-    void OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args);
+    void OnTime(event::EventId id, event::EventPublisher* sender, const TimeEventArgs& args);
 };
 
 } /* namespace sim_mob */

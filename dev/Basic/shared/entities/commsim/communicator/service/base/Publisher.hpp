@@ -13,7 +13,7 @@
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 namespace sim_mob {
-class Publisher : public sim_mob::EventPublisher {
+class Publisher : public sim_mob::event::EventPublisher {
 private:
 //	sim_mob::SIM_MOB_SERVICE myService;
 public:

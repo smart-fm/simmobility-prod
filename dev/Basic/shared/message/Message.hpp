@@ -42,8 +42,6 @@ namespace sim_mob {
          */
 #define MSG_CAST(_msg_type, _msg_ref) \
         static_cast<const _msg_type&>(_msg_ref)
-
-        typedef int MessageType;
         
         /**
          * Represents a message data that can be exchanged on Messaging Entities.

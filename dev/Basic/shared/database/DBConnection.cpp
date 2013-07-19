@@ -11,7 +11,7 @@
 #include "util/LangHelpers.hpp"
 #include "soci-postgresql.h"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using std::string;
 using soci::postgresql;
 using soci::session;

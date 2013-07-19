@@ -19,9 +19,9 @@ namespace sim_mob {
         /**
          * Data Access Object to BidderParams table on datasource.
          */
-        class BidderParamsDao : public AbstractDao<BidderParams> {
+        class BidderParamsDao : public db::AbstractDao<BidderParams> {
         public:
-            BidderParamsDao(DBConnection* connection);
+            BidderParamsDao(db::DBConnection* connection);
             virtual ~BidderParamsDao();
 
         private:
@@ -30,7 +30,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, BidderParams& outObj);
+            void FromRow(db::Row& result, BidderParams& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -38,7 +38,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(BidderParams& data, Parameters& outParams, bool update);
+            void ToRow(BidderParams& data, db::Parameters& outParams, bool update);
         };
     }
 }

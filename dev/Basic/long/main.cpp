@@ -40,7 +40,7 @@
 #include "database/dao/housing-market/BidderParamsDao.hpp"
 #include "database/dao/housing-market/SellerParamsDao.hpp"
 
-using sim_mob::DBConnection;
+using namespace sim_mob::db;
 
 using std::cout;
 using std::endl;
@@ -169,7 +169,7 @@ void SimulateWithDB() {
 
         agentWorkers->assignAWorker(&market);
         // Connect to database and load data.
-        DBConnection conn(sim_mob::POSTGRES, CONNECTION_STRING);
+        DBConnection conn(sim_mob::db::POSTGRES, CONNECTION_STRING);
         conn.Connect();
 
         if (conn.IsConnected()) {
@@ -184,7 +184,7 @@ void SimulateWithDB() {
             for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
                 Household* household = &(*it);
                 LogOut("Household: " << (*household) << endl);
-                sim_mob::dao::Parameters keys;
+                sim_mob::db::Parameters keys;
                 keys.push_back(household->GetId());
                 SellerParams sellerParams;
                 BidderParams bidderParams;

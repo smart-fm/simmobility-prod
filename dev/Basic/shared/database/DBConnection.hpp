@@ -10,51 +10,54 @@
 #include "soci.h"
 
 namespace sim_mob {
+    
+    namespace db {
 
-    enum BackendType {
-        POSTGRES,
-        MYSQL, //not implemented
-        ORACLE, //not implemented
-        SQL_SERVER//not implemented
-    };
+        enum BackendType {
+            POSTGRES,
+            MYSQL, //not implemented
+            ORACLE, //not implemented
+            SQL_SERVER//not implemented
+        };
 
-    /** 
-     * Class that represents an Database connection.
-     */
-    class DBConnection {
-    public:
-        DBConnection(BackendType type, const std::string& connectionStr);
-        virtual ~DBConnection();
-
-        /**
-         * Connects to the database.
-         * @return true if the connection was established.
+        /** 
+         * Class that represents an Database connection.
          */
-        bool Connect();
+        class DBConnection {
+        public:
+            DBConnection(BackendType type, const std::string& connectionStr);
+            virtual ~DBConnection();
 
-        /**
-         * Disconnects from the database.
-         * @return true if the connection was closed.
-         */
-        bool Disconnect();
+            /**
+             * Connects to the database.
+             * @return true if the connection was established.
+             */
+            bool Connect();
 
-        /**
-         * Tells if this instance is connected with database.
-         * @return true if connection is open, false otherwise.
-         */
-        bool IsConnected() const;
+            /**
+             * Disconnects from the database.
+             * @return true if the connection was closed.
+             */
+            bool Disconnect();
 
-        /**
-         * Gets the current SOCI session.
-         * @return session instance reference.
-         */
-        soci::session& GetSession();
+            /**
+             * Tells if this instance is connected with database.
+             * @return true if connection is open, false otherwise.
+             */
+            bool IsConnected() const;
 
-    private:
-        soci::session currentSession;
-        std::string connectionStr;
-        BackendType type;
-        volatile bool connected;
-    };
+            /**
+             * Gets the current SOCI session.
+             * @return session instance reference.
+             */
+            soci::session& GetSession();
+
+        private:
+            soci::session currentSession;
+            std::string connectionStr;
+            BackendType type;
+            volatile bool connected;
+        };
+    }
 }
 

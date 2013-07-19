@@ -11,7 +11,7 @@
 #include "DatabaseHelper.hpp"
 #include "database/entity/GlobalParams.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using std::string;
 

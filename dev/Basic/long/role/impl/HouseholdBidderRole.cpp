@@ -62,7 +62,7 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     }
 }
 
-void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdBidderRole::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
         const Message& message) {
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 

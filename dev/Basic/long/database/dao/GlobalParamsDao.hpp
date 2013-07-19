@@ -20,9 +20,9 @@ namespace sim_mob {
         /**
          * Data Access Object to GlobalParams table on datasource.
          */
-        class GlobalParamsDao : public AbstractDao<GlobalParams> {
+        class GlobalParamsDao : public db::AbstractDao<GlobalParams> {
         public:
-            GlobalParamsDao(DBConnection* connection);
+            GlobalParamsDao(db::DBConnection* connection);
             virtual ~GlobalParamsDao();
 
         private:
@@ -31,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, GlobalParams& outObj);
+            void FromRow(db::Row& result, GlobalParams& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(GlobalParams& data, Parameters& outParams, bool update);
+            void ToRow(GlobalParams& data, db::Parameters& outParams, bool update);
         };
     }
 }

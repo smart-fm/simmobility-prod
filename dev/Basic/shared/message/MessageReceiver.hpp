@@ -23,6 +23,8 @@ namespace sim_mob {
         public:
             MessageReceiver();
             virtual ~MessageReceiver();
+            
+            typedef int MessageType;
 
             /**
              * Read a message from queue and consume it.

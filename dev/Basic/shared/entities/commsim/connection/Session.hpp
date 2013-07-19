@@ -40,6 +40,57 @@ public:
     return socket_;
   }
 
+	bool makeWriteBuffer(std::string &input,
+			std::vector<boost::asio::const_buffer> &output,
+			boost::system::error_code &ec) {
+
+		// Format the header.
+		std::ostringstream header_stream;
+		header_stream << std::setw(header_length) << std::hex << input.size();
+		if (!header_stream || header_stream.str().size() != header_length) {
+			// Something went wrong, inform the caller.
+			ec = boost::system::error_code(
+					boost::asio::error::invalid_argument);
+			return false;
+		}
+		outbound_header_ = header_stream.str(); //not used
+
+		output.push_back(boost::asio::buffer(outbound_header_));
+		output.push_back(boost::asio::buffer(input));
+		return true;
+	}
+
+	bool write(std::string &input, boost::system::error_code &ec) {
+		boost::system::error_code ec_;
+		std::vector<boost::asio::const_buffer> buffers;
+		makeWriteBuffer(input, buffers, ec_);
+		ec = ec_;
+		if (ec_) {
+			return false;
+		}
+
+		boost::asio::write(socket_, buffers, ec_);
+		ec = ec_;
+		if (ec_) {
+			return false;
+		}
+		return true;
+	}
+	bool write(std::string &input) {
+			boost::system::error_code ec_;
+			std::vector<boost::asio::const_buffer> buffers;
+			makeWriteBuffer(input, buffers, ec_);
+			if (ec_) {
+				return false;
+			}
+
+			boost::asio::write(socket_, buffers, ec_);
+			if (ec_) {
+				return false;
+			}
+			return true;
+		}
+
   /// Asynchronously write a data structure to the socket.
   template <typename Handler>
   void async_write(std::string &data, Handler handler)

@@ -73,10 +73,12 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 
 		//also, add the client entry to broker(for message handler purposes)
 		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
-		AgentsInfo info;
-		info.insertInfo("ACTIVE" , Agent::all_agents);
 
-		info.insertInfo("PENDING" , Agent::pending_agents);
+		//send some initial configuration information to NS3
+		AgentsInfo info;
+		info.insertInfo(Agent::all_agents);
+		clientEntry->cnnHandler->send(info.toJson());//send synchronously
+
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
 		return true;

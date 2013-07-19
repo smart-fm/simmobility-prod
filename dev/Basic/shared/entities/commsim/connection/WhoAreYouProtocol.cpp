@@ -17,7 +17,13 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &serve
 	}
 	void WhoAreYouProtocol::start()
 	{
-		startClientRegistration(sess);
+
+		std::string str = JsonParser::makeWhoAreYouPacket();
+//		Print()<< " WhoAreYouProtocol::startClientRegistration'" << str << "'" <<  std::endl;
+		sess->async_write(str,
+				boost::bind(&WhoAreYouProtocol::WhoAreYou_handler/*temp_handler_1*/, this,
+						boost::asio::placeholders::error, boost::ref(sess)));
+//		startClientRegistration(sess);
 	}
 	bool WhoAreYouProtocol::isDone()
 	{

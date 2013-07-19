@@ -17,32 +17,25 @@ AgentsInfo::AgentsInfo() {
 	// TODO Auto-generated constructor stub
 }
 
-void AgentsInfo::insertInfo(std::string type, std::vector<sim_mob::Entity*> values)
+void AgentsInfo::insertInfo(std::vector<sim_mob::Entity*> values)
 {
-	std::vector<sim_mob::Entity*> &t = all_agents[type];
-	t.insert(t.end(), values.begin(), values.end());
+	all_agents.insert(all_agents.end(), values.begin(), values.end());
 }
 
-void AgentsInfo::insertInfo(std::string type, sim_mob::Entity* value) {
-	all_agents[type].push_back(value);
+void AgentsInfo::insertInfo(sim_mob::Entity* value) {
+	all_agents.push_back(value);
 }
-std::string AgentsInfo::ToJSON()
+std::string AgentsInfo::toJson()
 {
 	Json::Value jPacket,jHeader,jArray,jElement;
-	std::map<std::string , std::vector<sim_mob::Entity*> >::iterator
+	std::vector<sim_mob::Entity* >::iterator
 	it(all_agents.begin()), it_end(all_agents.end());
 
 	for(; it != it_end; it++)
 	{
-		std::vector<sim_mob::Entity*>::iterator itv(it->second.begin()),
-				itv_end(it->second.end());
-		for(; itv != itv_end; itv++)
-		{
 			jElement.clear();
-			jElement["AGENT_ID"] = (*itv)->getId();
-			jElement["AGENT_TYPE"] = it->first;
+			jElement["AGENT_ID"] = (*it)->getId();
 			jArray.append(jElement);
-		}
 	}
 
 	pckt_header pHeader_("1");
@@ -50,13 +43,16 @@ std::string AgentsInfo::ToJSON()
 	jElement.clear();//to make a message
 	msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO");
 	jElement = JsonParser::createMessageHeader(mHeader_);
-	jElement["DATA"].append(jArray);
+	jElement["DATA"] = jArray;
+//	jElement["DATA"].append(jArray);
 	jPacket["PACKET_HEADER"] = jHeader;
 	jPacket["DATA"].append(jElement);
 
 	//convert the jsoncpp packet to a json string
 	Json::FastWriter writer;
-	return writer.write(jPacket);
+	std::string res =  writer.write(jPacket);
+	std::cout << "AGENTS_INFO : '" << res << "'" << std::endl;
+	return res;
 }
 AgentsInfo::~AgentsInfo() {
 	// TODO Auto-generated destructor stub

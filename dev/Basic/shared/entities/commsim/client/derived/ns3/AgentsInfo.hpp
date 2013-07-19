@@ -14,12 +14,12 @@ namespace sim_mob {
 class Entity;
 
 class AgentsInfo {
-	std::map<std::string , std::vector<sim_mob::Entity*> > all_agents; //map<type(active,pending) , std::vector<agents>
+	std::vector<sim_mob::Entity*> all_agents; //map<type(active,pending) , std::vector<agents>
 public:
 	AgentsInfo();
-	void insertInfo(std::string type, std::vector<sim_mob::Entity*> values);
-	void insertInfo(std::string type, sim_mob::Entity*);
-	std::string ToJSON();
+	void insertInfo(std::vector<sim_mob::Entity*> values);
+	void insertInfo(sim_mob::Entity*);
+	std::string toJson();
 	virtual ~AgentsInfo();
 };
 

@@ -42,7 +42,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
 	 brokerCanTickForward = false;
-
+int i;
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 //publishers
 	 publishers.insert( std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
@@ -55,7 +55,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, factory) );
 
 	 // wait for connection criteria for this broker
-	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,  boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this, 1))));
+//	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,  boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this, 1))));
 	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::NS3_SIMULATOR,  boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this, 1))));
 }
 
@@ -463,7 +463,7 @@ void Broker::processOutgoingData(timeslice now)
 		//convert the jsoncpp packet to a json string
 		Json::FastWriter writer;
 		std::string str = writer.write(packet);
-		cnn->send(str);
+		cnn->async_send(str);
 	}
 }
 

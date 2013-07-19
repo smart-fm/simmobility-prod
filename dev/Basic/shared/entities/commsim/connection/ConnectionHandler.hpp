@@ -48,7 +48,9 @@ public:
 	void start();
 	void readyHandler(const boost::system::error_code &e, std::string str);
 	void readHandler(const boost::system::error_code& e);
-	void send(std::string str);
+	void async_send(std::string str);
+	bool send(std::string str,boost::system::error_code& e);
+	bool send(std::string str);
 	void sendHandler(const boost::system::error_code& e) ;
 	bool is_open();
 	bool isValid();

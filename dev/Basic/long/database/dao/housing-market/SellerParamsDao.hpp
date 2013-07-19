@@ -19,9 +19,9 @@ namespace sim_mob {
         /**
          * Data Access Object to SellerParams table on datasource.
          */
-        class SellerParamsDao : public AbstractDao<SellerParams> {
+        class SellerParamsDao : public db::AbstractDao<SellerParams> {
         public:
-            SellerParamsDao(DBConnection* connection);
+            SellerParamsDao(db::DBConnection* connection);
             virtual ~SellerParamsDao();
 
         private:
@@ -30,7 +30,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, SellerParams& outObj);
+            void FromRow(db::Row& result, SellerParams& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -38,7 +38,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(SellerParams& data, Parameters& outParams, bool update);
+            void ToRow(SellerParams& data, db::Parameters& outParams, bool update);
         };
     }
 }

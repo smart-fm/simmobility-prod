@@ -10,7 +10,7 @@
 #include "UnitDao.hpp"
 #include "DatabaseHelper.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 UnitDao::UnitDao(DBConnection* connection)

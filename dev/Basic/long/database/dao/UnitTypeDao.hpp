@@ -20,9 +20,9 @@ namespace sim_mob {
         /**
          * Data Access Object to UnitType table on datasource.
          */
-        class UnitTypeDao : public AbstractDao<UnitType> {
+        class UnitTypeDao : public db::AbstractDao<UnitType> {
         public:
-            UnitTypeDao(DBConnection* connection);
+            UnitTypeDao(db::DBConnection* connection);
             virtual ~UnitTypeDao();
 
         private:
@@ -31,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, UnitType& outObj);
+            void FromRow(db::Row& result, UnitType& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(UnitType& data, Parameters& outParams, bool update);
+            void ToRow(UnitType& data, db::Parameters& outParams, bool update);
         };
     }
 }

@@ -99,7 +99,7 @@ void HouseholdSellerRole::Update(timeslice now) {
     currentTime = now;
 }
 
-void HouseholdSellerRole::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdSellerRole::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
         const Message& message) {
 
     switch (type) {

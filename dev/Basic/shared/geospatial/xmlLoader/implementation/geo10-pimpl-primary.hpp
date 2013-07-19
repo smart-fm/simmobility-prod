@@ -1,6 +1,9 @@
 //This class contains all "primary" classes; i.e., those which are the same as those in the geospatial/ folder.
 #pragma once
 
+//NOTE: This is a rare example of when relative path lookup is acceptable. ~Seth
+#include "../skeleton/geo10-pskel.hpp"
+
 #include "geospatial/BusStop.hpp"
 
 namespace sim_mob {

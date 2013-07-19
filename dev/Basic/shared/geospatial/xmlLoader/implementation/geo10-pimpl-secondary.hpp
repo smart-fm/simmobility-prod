@@ -1,6 +1,9 @@
 //This class contains all "secondary" classes; i.e., helper classes and temporaries required for parsing.
 #pragma once
 
+//NOTE: This is a rare example of when relative path lookup is acceptable. ~Seth
+#include "../skeleton/geo10-pskel.hpp"
+
 namespace sim_mob {
 namespace xml {
 

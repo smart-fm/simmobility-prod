@@ -19,7 +19,9 @@
 namespace sim_mob {
 
 //Forward declarations
+class ReactionTimeDist;
 class Config;
+class Agent;
 
 
 /**

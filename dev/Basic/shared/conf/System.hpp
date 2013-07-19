@@ -15,6 +15,7 @@ class CarFollowModel;
 class LaneChangeModel;
 class IntersectionDrivingModel;
 class WorkGroup;
+class ReactionTimeDist;
 
 
 /**

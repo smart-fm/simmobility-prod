@@ -6830,11 +6830,8 @@ namespace sim_mob
 
       if (n == "requestTime" && ns.empty ())
       {
-        if (this->requestTime_parser_){
-        	long long val = this->requestTime_parser_->post_integer ();
-        	std::cout << val << std::endl;
-          this->requestTime (val);
-        }
+        if (this->requestTime_parser_)
+          this->requestTime (this->requestTime_parser_->post_integer ());
 
         return true;
       }

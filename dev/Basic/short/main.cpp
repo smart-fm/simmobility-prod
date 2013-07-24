@@ -35,6 +35,7 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/StateSwitcher.hpp"
 #include "entities/signal/Signal.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
@@ -118,17 +119,6 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
 
-//////for communication simulator -vahid
-//std::ostream& operator <<(std::ostream& out, timeval const& tv)
-//{
-//    return out << tv.tv_sec << " " << tv.tv_usec;
-//}
-//
-//std::istream& operator >>(std::istream& is, timeval& tv)
-//{
-//    return is >> tv.tv_sec >> tv.tv_usec;
-//}
-//////....
 
 bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
@@ -295,56 +285,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Initialize the aura manager
 	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
 
-
-
-	//////////////////////////////DEBUG CODE START
-#if 0
-	StreetDirectory& stdir = StreetDirectory::instance();
-	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-
-	//First test: longer route on a 2-way street.
-	MultiNode* aim91218  = dynamic_cast<MultiNode*>(rn.locateNode(37227139,14327875, false));
-	Node* aim66508  = rn.locateNode(37250760,14355120, false);
-	Node* aim103046 = rn.locateNode(37236345,14337301, true); //Part of the blacklisted segment.
-	RoadSegment* blacklistSeg = nullptr;
-	for (std::set<sim_mob::RoadSegment*>::const_iterator segIt=aim91218->getRoadSegments().begin(); segIt!=aim91218->getRoadSegments().end(); segIt++) {
-		if ((*segIt)->getEnd()==aim91218 && (*segIt)->getStart()==aim103046) {
-			blacklistSeg = *segIt;
-			break;
-		}
-	}
-	if (!blacklistSeg) { throw 1; }
-
-	//Subtest 1: basic route
-	vector<WayPoint> route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218));
-	LogOut("ROUTE 1:\n");
-	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
-		if (it->type_==WayPoint::ROAD_SEGMENT) {
-			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
-		} else {
-			LogOut("  <other>\n");
-		}
-	}
-
-	//Subtest 2: blacklist the easiest route.
-	vector<const RoadSegment*> blacklistV; blacklistV.push_back(blacklistSeg);
-	route = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*aim66508), stdir.DrivingVertex(*aim91218), blacklistV);
-	LogOut("ROUTE 2:\n");
-	for (vector<WayPoint>::iterator it=route.begin(); it!=route.end(); it++) {
-		if (it->type_==WayPoint::ROAD_SEGMENT) {
-			LogOut("  " <<it->roadSegment_->getStart()->originalDB_ID.getLogItem() <<" => " <<it->roadSegment_->getEnd()->originalDB_ID.getLogItem() <<std::endl);
-		} else {
-			LogOut("  <other>\n");
-		}
-	}
-#endif
-
-
-
-	//////////////////////////////DEBUG CODE END
-
-
-
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
 	///        ~Seth
@@ -379,7 +319,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	ParitionDebugOutput debug;
 
 
-	int lastTickPercent = 0; //So we have some idea how much time is left.
+	StateSwitcher<int> numTicksShown(0); //Only goes up to 10
+	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
 	int endTick = config.totalRuntimeTicks;
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
 		if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -410,27 +351,39 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
-		//Get a rough idea how far along we are
-		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
-
 		//Save the maximum number of agents at any given time
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
-//todo, uncomment output
-		//Output
-		if (ConfigParams::GetInstance().OutputEnabled()) {
-			std::stringstream msg;
-			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone) {
-				msg << "  Warmup; output ignored." << endl;
-			}
-			PrintOut(msg.str());
-		} else {
-			//We don't need to lock this output if general output is disabled, since Agents won't
-			//  perform any output (and hence there will be no contention)
-			if (currTickPercent-lastTickPercent>9) {
-				lastTickPercent = currTickPercent;
-				cout <<currTickPercent <<"%" <<endl;
+
+		//Output. We show the following:
+		//   The first 10 time ticks. (for debugging purposes)
+		//   Every 1% change after that. (to avoid flooding the console.)
+		//   In "OutputDisabled" mode, every 10% change. (just to give some indication of progress)
+		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		if (ConfigParams::GetInstance().OutputDisabled()) {
+			currTickPercent /= 10; //Only update 10%, 20%, etc.
+		}
+
+		//Determine whether to print this time tick or not.
+		bool printTick = lastTickPercent.update(currTickPercent);
+		if (ConfigParams::GetInstance().OutputEnabled() && !printTick) {
+			//OutputEnabled also shows the first 10 ticks.
+			printTick = numTicksShown.update(std::min(numTicksShown.get()+1, 10));
+		}
+
+		//Note that OutputEnabled also affects locking.
+		if (printTick) {
+			if (ConfigParams::GetInstance().OutputEnabled()) {
+				std::stringstream msg;
+				msg << "Approximate Tick Boundary: " << currTick << ", ";
+				msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+				if (!warmupDone) {
+					msg << "  Warmup; output ignored." << endl;
+				}
+				PrintOut(msg.str());
+			} else {
+				//We don't need to lock this output if general output is disabled, since Agents won't
+				//  perform any output (and hence there will be no contention)
+				std::cout <<currTickPercent <<"0%" <<std::endl;
 			}
 		}
 

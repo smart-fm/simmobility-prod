@@ -56,7 +56,7 @@ protected:
 	friend class sim_mob::aimsun::CrossingLoader;
 
 public:
-	std::string getId() const
+	/*std::string getId() const
 	{
 		std::string id = "";
 
@@ -66,7 +66,7 @@ public:
 		id += MathUtil::getStringFromNumber(end->location.getY());
 
 		return id;
-	}
+	}*/
 
 public:
 	friend class sim_mob::RoadNetworkPackageManager;

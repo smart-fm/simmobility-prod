@@ -346,7 +346,7 @@ void sim_mob::DriverMovement::frame_tick_output_mpi(timeslice now) {
 
 		logout << "(\"Driver\"" << "," << now.frame() << "," << parentAgent->getId() << ",{" << "\"xPos\":\""
 				<< static_cast<int> (parentDriver->vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (parentDriver->vehicle->getY())
-				<< "\",\"segment\":\"" << parentDriver->vehicle->getCurrSegment()->getId()
+				<< "\",\"segment\":\"" << parentDriver->vehicle->getCurrSegment()->getSegmentID()
 				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
 				<< static_cast<int> (parentDriver->vehicle->length) << "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->width);
 

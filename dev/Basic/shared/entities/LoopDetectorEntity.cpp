@@ -456,7 +456,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     if(! lanes.size())
     	{
     		std::ostringstream str;
-    		str << " There is no lane associated with road segment " << road->getId();
+    		str << " There is no lane associated with road segment " << road->getSegmentID();
     		throw std::runtime_error(str.str());
     	}
     for (size_t i = 0; i < lanes.size(); ++i)
@@ -498,7 +498,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     if(createdLDs == 0)
     {
     	std::ostringstream str;
-    	str << " could not create any loop detector in road segment " << road->getId()
+    	str << " could not create any loop detector in road segment " << road->getSegmentID()
         		<< " this will create problem for you later if you don't watch out !\n"
         		"for instance, while calculating laneDS";
     	throw std::runtime_error(str.str());

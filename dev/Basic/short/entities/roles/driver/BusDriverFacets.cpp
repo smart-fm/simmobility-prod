@@ -663,7 +663,7 @@ void sim_mob::BusDriverMovement::frame_tick_output_mpi(timeslice now) {
 					<< parentAgent->getId() << ",{" << "\"xPos\":\""
 					<< static_cast<int>(bus->getX()) << "\",\"yPos\":\""
 					<< static_cast<int>(bus->getY()) << "\",\"segment\":\""
-					<< bus->getCurrSegment()->getId() << "\",\"angle\":\""
+					<< bus->getCurrSegment()->getSegmentID() << "\",\"angle\":\""
 					<< (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
 					<< static_cast<int>(bus->length) << "\",\"width\":\""
 					<< static_cast<int>(bus->width) << "\",\"passengers\":\""
@@ -673,19 +673,14 @@ void sim_mob::BusDriverMovement::frame_tick_output_mpi(timeslice now) {
 					<< parentAgent->getId() << ",{" << "\"xPos\":\""
 					<< static_cast<int>(bus->getX()) << "\",\"yPos\":\""
 					<< static_cast<int>(bus->getY()) << "\",\"segment\":\""
-					<< bus->getCurrSegment()->getId() << "\",\"angle\":\""
+					<< bus->getCurrSegment()->getSegmentID() << "\",\"angle\":\""
 					<< (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
 					<< static_cast<int>(bus->length) << "\",\"width\":\""
 					<< static_cast<int>(bus->width) << "\",\"passengers\":\""
 					<< (bus ? bus->getPassengerCountOld() : 0);
 		}
 
-		if (this->parentAgent->isFake) {
-			logout << "\",\"fake\":\"" << "true";
-		} else {
-			logout << "\",\"fake\":\"" << "false";
-		}
-
+		logout << "\",\"fake\":\"" << (this->parentAgent->isFake?"true":"false");
 		logout << "\"})" << std::endl;
 
 		LogOut(logout.str());

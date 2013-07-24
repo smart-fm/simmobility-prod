@@ -163,18 +163,20 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
-		//TODO: We should be able to handle both regular drivers and DriverComms.
-//		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
-		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
+		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
+		if (ConfigParams::GetInstance().commSimEnabled) {
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
+		} else {
+			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		}
 
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
 		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
 		//cannot allocate an object of abstract type
-//		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+		//rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
 	}
 

@@ -62,6 +62,7 @@ public:
 		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM
 	};
 
+
 	std::string personID;//replaces entityID
 	ItemType itemType;
 	unsigned int sequenceNumber;

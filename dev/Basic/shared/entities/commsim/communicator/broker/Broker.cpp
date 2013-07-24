@@ -214,10 +214,6 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
 	//tdo: testing. comment the following condition after testing
-//	if(registeredAgents.size() > 0)
-//	{
-//		return 0;
-//	}
 	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
 	value->registrationCallBack(true);

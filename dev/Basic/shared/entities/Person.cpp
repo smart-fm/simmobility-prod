@@ -42,7 +42,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make the trip itself
 	Trip* res = new Trip();
-	res->personID = ag.getId();
+	res->setPersonID(ag.getId());
 	res->itemType = TripChainItem::getItemType("Trip");
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
@@ -58,7 +58,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
-	subTrip.personID = -1;
+	subTrip.setPersonID(-1);
 	subTrip.itemType = TripChainItem::getItemType("Trip");
 	subTrip.sequenceNumber = 1;
 	subTrip.startTime = res->startTime;
@@ -88,15 +88,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
-	  databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
 {
-//	prevRole = 0;
-//	currRole = 0;
-//	laneID = -1;
-//	agentSrc = src;
-//	tripChain = tcs;
-//	tripchainInitialized = false;
 	if (!ConfigParams::GetInstance().UsingConfluxes()) {
 		simplyModifyTripChain(tcs);
 	}
@@ -499,7 +493,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 				if(source.type_!=WayPoint::INVALID && destination.type_!=WayPoint::INVALID )
 				{
 					sim_mob::SubTrip subTrip;
-					subTrip.personID = -1;
+					subTrip.setPersonID(-1);
 					subTrip.itemType = TripChainItem::getItemType("Trip");
 					subTrip.sequenceNumber = 1;
 					subTrip.startTime = subChainItem1->endTime;
@@ -731,7 +725,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
-	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
+	//std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->getPersonID() << std::endl;
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{

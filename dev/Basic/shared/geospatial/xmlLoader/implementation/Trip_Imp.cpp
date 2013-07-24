@@ -18,7 +18,7 @@ sim_mob::TripChainItem* sim_mob::xml::Trip_t_pimpl::post_Trip_t ()
 
 	//Copy over temporary properties.
 	sim_mob::TripChainItem* temp = TripChainItem_t_pimpl::post_TripChainItem_t ();
-	res->personID = temp->personID;
+	res->setPersonID(temp->getPersonID());
 	res->itemType = temp->itemType;
 	res->sequenceNumber = temp->sequenceNumber;
 	res->requestTime = temp->requestTime;

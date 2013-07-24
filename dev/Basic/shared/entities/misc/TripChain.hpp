@@ -7,6 +7,7 @@
 #include <string>
 #include <set>
 #include <string>
+#include <boost/lexical_cast.hpp>
 
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
@@ -63,12 +64,23 @@ public:
 	};
 
 
-	std::string personID;//replaces entityID
+private:
+	///Note: The personID was being used quite randomly; being set to -1, to agent.getId(), and to other
+	//       bogus integer values. So I'm making it private, and requiring all modifications to use the
+	//       setPersonID() public function. Please be careful! This kind of usage can easily corrupt memory. ~Seth
+	std::string personID; //replaces entityID
+
+public:
 	ItemType itemType;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 	int requestTime;
+
+	//Get/set personID. Please make sure not to set the personID to an Integer!
+	std::string getPersonID() const { return personID; }
+	void setPersonID(const std::string& val) { personID = val; }
+	void setPersonID(int val) { personID = boost::lexical_cast<std::string>(val); }
 
 	//TripChainItem();
 	TripChainItem(std::string entId= "", std::string type="Trip",
@@ -80,7 +92,7 @@ public:
 	static ItemType getItemType(std::string itemType);
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
-	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pur virtual coz the class will turn to abstract and we will face problem in XML reader
+	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
 
 	//Helper: Convert a location type string to an object of that type.
 	//TODO: This SHOULD NOT be different for the database and for XML.

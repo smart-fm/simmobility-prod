@@ -137,7 +137,7 @@ const std::string sim_mob::SubTrip::getMode() const {
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.
-    return (s1.personID == s2.personID) ;
+    return (s1.getPersonID() == s2.getPersonID()) ;
 }
 
 

@@ -17,7 +17,7 @@ sim_mob::SubTrip sim_mob::xml::SubTrip_t_pimpl::post_SubTrip_t ()
 		throw std::runtime_error("Unexpected non-trip type.");
 	}
 
-	model.personID = temp->personID;
+	model.setPersonID(temp->getPersonID());
 
 	//TODO:the following three items( which are inherited from trip)
 	//may need to be initialized differently

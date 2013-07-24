@@ -883,7 +883,7 @@ void DatabaseLoader::PostProcessNetwork()
 
 sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	sim_mob::Activity* res = new sim_mob::Activity();
-	res->personID = tcItem.personID;
+	res->setPersonID(tcItem.personID);
 	res->itemType = tcItem.itemType;
 	res->sequenceNumber = tcItem.sequenceNumber;
 	res->description = tcItem.description;
@@ -901,7 +901,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
-	tripToSave->personID = tcItem.personID;
+	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
 	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
@@ -1047,7 +1047,7 @@ sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::s
 
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
-	aSubTripInTrip.personID = tcItem.personID;
+	aSubTripInTrip.setPersonID(tcItem.personID);
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
 	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );

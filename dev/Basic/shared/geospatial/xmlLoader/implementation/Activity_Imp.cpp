@@ -15,7 +15,7 @@ sim_mob::TripChainItem* sim_mob::xml::Activity_t_pimpl::post_Activity_t ()
 
 	//Retrieve a temporary item, copy over.
 	sim_mob::TripChainItem* temp = TripChainItem_t_pimpl::post_TripChainItem_t ();
-	res->personID = temp->personID;
+	res->setPersonID(temp->getPersonID());
 	res->itemType = temp->itemType;
 	res->sequenceNumber = temp->sequenceNumber;
 	res->startTime = temp->startTime;

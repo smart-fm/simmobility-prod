@@ -36,8 +36,8 @@ sim_mob::TripChainItem* sim_mob::xml::TripChainItem_t_pimpl::post_TripChainItem_
 
 void sim_mob::xml::TripChainItem_t_pimpl::personID (std::string value)
 {
-	model.personID = value;
-	std::cout << "A tripchain Item for person " << model.personID << " is being read" << std::endl;
+	model.setPersonID(value);
+	//std::cout << "A tripchain Item for person " << model.personID << " is being read" << std::endl;
 }
 
 void sim_mob::xml::TripChainItem_t_pimpl::itemType (std::string value)

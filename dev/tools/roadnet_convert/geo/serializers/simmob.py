@@ -118,6 +118,9 @@ def __write_xml_multinodes(f, rn, rnIndex):
     #Write connectors
     f.write('            <Connectors>\n')
     for sg in rnIndex.segsAtNodes[n.nodeId]:
+      if sg.toNode.nodeId==n.nodeId:  #Skip the reverse Segments at this Node.
+        continue
+
       f.write('              <MultiConnectors>\n')
       f.write('                <RoadSegment>%s</RoadSegment>\n' % sg.segId)
       f.write('                <Connectors>\n')

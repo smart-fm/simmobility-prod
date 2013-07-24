@@ -118,7 +118,7 @@ def __write_xml_multinodes(f, rn, rnIndex):
     #Write connectors
     f.write('            <Connectors>\n')
     for sg in rnIndex.segsAtNodes[n.nodeId]:
-      if sg.toNode.nodeId==n.nodeId:  #Skip the reverse Segments at this Node.
+      if sg.fromNode.nodeId==n.nodeId:  #Skip the reverse Segments at this Node.
         continue
 
       f.write('              <MultiConnectors>\n')
@@ -134,7 +134,7 @@ def __write_xml_multinodes(f, rn, rnIndex):
           if lc.fromSegment.toNode.nodeId != lc.toSegment.fromNode.nodeId:
             raise Exception('Segments don\'t meet at Node.')
           if lc.fromSegment.toNode.nodeId != n.nodeId:
-            raise Exception('Segments meet at the wrong Node.')
+            raise Exception('Warning: Segments meet at the wrong Node.')
           #End of temporary checks.
 
           f.write('                  <Connector>\n')

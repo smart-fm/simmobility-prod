@@ -623,12 +623,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 		}
 	}
 
-	std::cout <<"Testing Node: " <<node->getID() <<std::endl;
-
 	//Now, add each "RoadSegment" connector.
 	for (set< std::pair<RoadSegment*, RoadSegment*> >::iterator it=connectors.begin(); it!=connectors.end(); it++) {
-		std::cout <<"    From/to seg: " <<it->first->getSegmentID() <<"/" <<it->second->getSegmentID() <<std::endl;
-
 		//Sanity check:
 		if (it->first->getEnd()!=node || it->second->getStart()!=node) {
 			throw std::runtime_error("Node/Road Segment mismatch in Edge constructor.");

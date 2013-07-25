@@ -24,20 +24,20 @@ sim_mob::Broker & WaitForClientConnection::getBroker() const{
 
 void WaitForClientConnection::thread_wait()
 {
-	Print() << "inside WaitForClientConnection::thread_wait()" << std::endl;
+//	Print() << "inside WaitForClientConnection::thread_wait()" << std::endl;
 
 	boost::unique_lock<boost::mutex> lock(mutex_);
 	while(evaluate())
 	{
-		Print() << "inside WaitForClientConnection::thread_wait()::waiting" << std::endl;
+		Print() << "WaitForClientConnection::thread_wait=>wait locked" << std::endl;
 		wait_status = true;
 		cond_var.wait(lock);
-		Print() << "WaitForClientConnection::thread_wait=>wait() released" << std::endl;
+		Print() << "WaitForClientConnection::thread_wait=>wait released" << std::endl;
 
 	}
-	Print() << "inside WaitForClientConnection::thread_wait()::NOT waiting" << std::endl;
+//	Print() << "inside WaitForClientConnection::thread_wait()::NOT waiting" << std::endl;
 	wait_status = false;
-	Print() << "inside WaitForClientConnection::thread_wait() dying" << std::endl;
+//	Print() << "inside WaitForClientConnection::thread_wait() dying" << std::endl;
 }
 
 void WaitForClientConnection::tryWait() {
@@ -49,7 +49,7 @@ void WaitForClientConnection::tryWait() {
 	boost::thread(&WaitForClientConnection::thread_wait, this);
 }
 void WaitForClientConnection::notify() {
-	Print() << "inside WaitForClientConnection::notify()" << std::endl;
+//	Print() << "inside WaitForClientConnection::notify()" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_);
 	Print() << "WaitForClientConnection::notify()::notifying" << std::endl;
 	cond_var.notify_one();

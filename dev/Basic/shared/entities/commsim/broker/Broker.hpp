@@ -111,7 +111,7 @@ private:
 	boost::condition_variable COND_VAR_CLIENT_DONE;
 	//	house of different conditions to see if a broker is allowed to tick forward or not
 	bool brokerCanProceed()const;
-	bool evaluateWaitForClientsConnection();
+	bool isWaitingForAnyClientConnection();
 	//checks wether an agent9entity) is dead or alive
 	bool deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info);
 	//revise the registration of the registered agents

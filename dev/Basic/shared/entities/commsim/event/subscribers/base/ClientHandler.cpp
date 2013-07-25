@@ -32,10 +32,13 @@ void ClientHandler::OnAllLocations(EventId id, Context context, EventPublisher* 
 }
 
 void ClientHandler::OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args){
+	std::cout << "Inside ClientHandler::OnTime" << std::endl;
 //   std::string timeJson = args.ToJSON();
    Json::Value timeJson = args.ToJSON();
+   std::cout << "created json string for time" << std::endl;
    //now send to broker's buffer
    getBroker().insertSendBuffer(cnnHandler, timeJson);
+   std::cout << "inserted json string into buffer" << std::endl;
 }
 
 bool ClientHandler::isValid() {

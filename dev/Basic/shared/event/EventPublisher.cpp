@@ -84,6 +84,7 @@ bool EventPublisher::IsEventRegistered(EventId id) const {
 
 void EventPublisher::Publish(EventId id, const EventArgs& args) {
     {// thread-safe scope
+    	std::cout << "Inside EventPublisher::Publish" << std::endl;
     	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
     	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         // publish using the global context.    
@@ -217,6 +218,7 @@ void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
 
 void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
         EventId id, Context ctx, const EventArgs& args) {
+	std::cout << "Inside PublishEvent" << std::endl;
     //notify context listeners.
     ContextListenersMap::iterator ctxMapItr = map.find(id);
     if (ctxMapItr != map.end()) {

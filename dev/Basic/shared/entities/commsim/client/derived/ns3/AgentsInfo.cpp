@@ -10,6 +10,7 @@
 #include "entities/Agent.hpp"
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
+#include <boost/foreach.hpp>
 
 namespace sim_mob {
 
@@ -17,34 +18,72 @@ AgentsInfo::AgentsInfo() {
 	// TODO Auto-generated constructor stub
 }
 
-void AgentsInfo::insertInfo(std::vector<sim_mob::Entity*> values)
+void AgentsInfo::insertInfo(std::map<Mode, std::set<sim_mob::Entity*> > &values)
 {
-	all_agents.insert(all_agents.end(), values.begin(), values.end());
+	std::map<Mode, std::set<sim_mob::Entity*> >::iterator it(values.begin()), it_end(values.end());
+	for(; it != it_end; it++ )
+	{
+		all_agents[it->first].insert(it->second.begin(), it->second.end());
+	}
+
 }
 
-void AgentsInfo::insertInfo(sim_mob::Entity* value) {
-	all_agents.push_back(value);
+void AgentsInfo::insertInfo(Mode mode, std::set<sim_mob::Entity*>  &values)
+{
+//	std::set<sim_mob::Entity*>::iterator it(values.begin()), it_end(values.end());
+//	for(; it != it_end; it++ )
+//	{
+		all_agents[mode].insert(values.begin(), values.end());
+//	}
+
+}
+
+void AgentsInfo::insertInfo(Mode mode,sim_mob::Entity* value) {
+	all_agents[mode].insert(value);
 }
 std::string AgentsInfo::toJson()
 {
-	Json::Value jPacket,jHeader,jArray,jElement;
-	std::vector<sim_mob::Entity* >::iterator
+	Json::Value jPacket,jHeader,jArray_add,JArray_delete,jElement;
+	Json::Value *jArray_temp;
+	std::map<Mode, std::set<sim_mob::Entity*> >::iterator
 	it(all_agents.begin()), it_end(all_agents.end());
-
+	sim_mob::Entity* t;
 	for(; it != it_end; it++)
 	{
-			jElement.clear();
-			jElement["AGENT_ID"] = (*it)->getId();
-			jArray.append(jElement);
-	}
 
+			switch(it->first)
+			{
+			case ADD_AGENT:{
+				jArray_temp = &jArray_add;
+				break;
+			}
+			case REMOVE_AGENT:{
+				jArray_temp = &JArray_delete;
+				break;
+			}
+			}
+
+			BOOST_FOREACH(t, it->second)
+			{
+				jElement.clear();
+				jElement["AGENT_ID"] = t->getId();
+				jArray_temp->append(jElement);
+			}
+	}
 	pckt_header pHeader_("1");
 	jHeader = JsonParser::createPacketHeader(pHeader_);
 	jElement.clear();//to make a message
 	msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO");
 	jElement = JsonParser::createMessageHeader(mHeader_);
-	jElement["DATA"] = jArray;
-//	jElement["DATA"].append(jArray);
+	if(jArray_add.size())
+	{
+		jElement["ADD"] = jArray_add;
+	}
+	if(JArray_delete.size())
+	{
+		jElement["DELETE"] = JArray_delete;
+	}
+
 	jPacket["PACKET_HEADER"] = jHeader;
 	jPacket["DATA"].append(jElement);
 

@@ -27,12 +27,14 @@ bool Broker::isEnabled() const { return enabled; }
 
 bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, Json::Value &value )
 {
+	std::cout << "Inserting into send buffer" << std::endl;
 	if(!cnnHandler) {
 		return false;
 	}
 	if (cnnHandler->isValid() == false) {
 		return false;
 	}
+	std::cout << "Inserting into send buffer-Done" << std::endl;
 	sendBuffer[cnnHandler].add(value);
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
@@ -51,7 +53,7 @@ int i;
 	 //current message factory
 	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::roadrunner::RR_Factory() );
 	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, factory) );
+//	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, factory) );
 	 messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, factory) );
 
 	 // wait for connection criteria for this broker
@@ -82,6 +84,7 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 
 		msg_data_t &data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
+		std::cout << "Broker received[" << type << "]" << std::endl;
 		if(type == "CLIENT_MESSAGES_DONE")
 		{
 //			Print() << "Broker::messageReceiveCallback=> mutex_clientDone locking" << std::endl;
@@ -405,6 +408,7 @@ void Broker::processPublishers(timeslice now) {
 
 void Broker::sendReadyToReceive()
 {
+	std::cout << "Inside sendReadyToReceive" << std::endl;
 //	std::pair<unsigned int , std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientByType;
 //	std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientByID;
 	ClientList::pair clientByType;
@@ -433,6 +437,7 @@ void Broker::sendReadyToReceive()
 
 void Broker::processOutgoingData(timeslice now)
 {
+	std::cout << "Inside processOutgoingData " << sendBuffer.size() << std::endl;
 //	now send what you have to send:
 	for(SEND_BUFFER<Json::Value>::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++)
 	{
@@ -463,6 +468,7 @@ void Broker::processOutgoingData(timeslice now)
 		//convert the jsoncpp packet to a json string
 		Json::FastWriter writer;
 		std::string str = writer.write(packet);
+		std::cout << "Sending \n'" << str << std::endl;
 		cnn->async_send(str);
 	}
 }
@@ -555,17 +561,17 @@ bool Broker::clientsQualify() const
 }
 
 //returns true if you need to wait
-bool Broker::evaluateWaitForClientsConnection() {
+bool Broker::isWaitingForAnyClientConnection() {
 	WaitForClientConnections::IdPair pp;
 	int i = -1;
 	BOOST_FOREACH(pp, waitForClientConnectionList) {
 		i++;
 		if (pp.second->isWaiting()) {
-			Print() << i << " evaluateWaitForClientsConnection : wait" << std::endl;
+			Print() << i << " isWaitingForAnyClientConnection : wait" << std::endl;
 			return true;
 		}
 	}
-	Print() << i << " evaluateWaitForClientsConnection : Dont wait" << std::endl;
+	Print() << i << " isWaitingForAnyClientConnection : Dont wait" << std::endl;
 	return false;
 }
 
@@ -576,7 +582,7 @@ bool Broker::waitForClientsConnection()
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
-	brokerCanTickForward = (subscriptionsQualify() && !evaluateWaitForClientsConnection());
+	brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
 	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << brokerCanTickForward << std::endl;
 	}
 
@@ -591,12 +597,12 @@ bool Broker::waitForClientsConnection()
 	int i = -1;
 
 	while(!brokerCanTickForward) {
-		Print() << ++i << " Broker::waitForClientsConnection()::while->waiting" << std::endl;
+		Print() << ++i << " brokerCanTickForward->WAITING" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		COND_VAR_CLIENT_REQUEST.wait(lock);
-		Print() << "COND_VAR_CLIENT_REQUEST.wait() released" << std::endl;
+		Print() << "brokerCanTickForward-> NOT WAITING" << std::endl;
 		processClientRegistrationRequests();
-		brokerCanTickForward = (subscriptionsQualify() && !evaluateWaitForClientsConnection());
+		brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
 	}
 
 
@@ -679,39 +685,48 @@ bool Broker::allClientsAreDone()
 
 Entity::UpdateStatus Broker::update(timeslice now)
 {
-	Print() << "Broker tick:"<< now.frame() << "\n";
+	Print() << "=====================Broker tick:"<< now.frame() << "=======================================" << std::endl;
 	//step-1 : open the door to ouside world
 	if(now.frame() == 0) {
 		connection->start();
 	}
+	Print() << "=====================ConnectionStarted =======================================" << std::endl;
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
 	if(now.frame() == 0) {
 		waitForClientsConnection();
 	}
+	Print() << "===================== waitForClientsConnection Done =======================================" << std::endl;
 //	if (!waitForClientsConnection()) {
 //		return UpdateStatus(UpdateStatus::RS_CONTINUE);
 //	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
+	Print() << "===================== processIncomingData Done =======================================" << std::endl;
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
 	waitForAgentsUpdates();
+	Print() << "===================== waitForAgentsUpdates Done =======================================" << std::endl;
 	//step-5: signal the publishers to publish their data
 	processPublishers(now);
+	Print() << "===================== processPublishers Done =======================================" << std::endl;
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
+	Print() << "===================== sendReadyToReceive Done =======================================" << std::endl;
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	processOutgoingData(now);
+	Print() << "===================== processOutgoingData Done =======================================" << std::endl;
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forward
 	waitForClientsDone();
+	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
 	//step-8: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();//
+	Print() << "===================== cleanup Done =======================================" << std::endl;
 //	return proudly
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 

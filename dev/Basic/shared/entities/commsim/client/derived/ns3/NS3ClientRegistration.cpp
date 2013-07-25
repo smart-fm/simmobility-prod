@@ -12,6 +12,7 @@
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 #include "AgentsInfo.hpp"
+#include <boost/foreach.hpp>
 
 namespace sim_mob {
 
@@ -75,8 +76,16 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
 
 		//send some initial configuration information to NS3
+
+		AgentsMap<std::string>::type & agents = broker.getRegisteredAgents();
+		std::set<sim_mob::Entity *> keys;
+		AgentsMap<std::string>::pair kv;
+		BOOST_FOREACH(kv, agents)
+		{
+			keys.insert(const_cast<sim_mob::Agent *>(kv.first));
+		}
 		AgentsInfo info;
-		info.insertInfo(Agent::all_agents);
+		info.insertInfo(AgentsInfo::ADD_AGENT, keys);
 		clientEntry->cnnHandler->send(info.toJson());//send synchronously
 
 		//start listening to the handler

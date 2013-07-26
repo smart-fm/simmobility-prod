@@ -8,6 +8,8 @@
  */
 #pragma once
 #include <ctime>
+#include <vector>
+#include <string>
 
 namespace sim_mob {
 
@@ -29,6 +31,11 @@ namespace sim_mob {
          * @return the generated value. 
          */
         static int GenerateInt(int min, int max);
+
+        /**
+         * Convert argc/argv into a vector of strings representing each argument.
+         */
+        static std::vector<std::string> ParseArgs(int argc, char* argv[]);
     };
 
     /**

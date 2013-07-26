@@ -305,7 +305,9 @@ void perform_main() {
     entities.clear();
 }
 
-int main(int argc, char* argv[]) {
+int main(int ARGC, char* ARGV[]) {
+	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+
     Logger::log_init("");
     StopWatch watch;
     //get start time of the simulation.

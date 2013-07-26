@@ -39,6 +39,17 @@ int Utils::GenerateInt(int min, int max) {
     return gen();
 }
 
+
+std::vector<std::string> Utils::ParseArgs(int argc, char* argv[])
+{
+	std::vector<std::string> res;
+	for (size_t i=0; i<argc; i++) {
+		res.push_back(argv[i]);
+	}
+	return res;
+}
+
+
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }
 

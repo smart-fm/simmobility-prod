@@ -34,6 +34,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
@@ -373,13 +374,9 @@ bool performMainMed(const std::string& configFileName) {
 	return true;
 }
 
-int main(int argc, char* argv[])
+int main(int ARGC, char* ARGV[])
 {
-	std::cout << "Using New Signal Model" << std::endl;
-
-#if 0
-	std::cout << "Not Using New Signal Model" << std::endl;
-#endif
+	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
@@ -390,7 +387,7 @@ int main(int argc, char* argv[])
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
-	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
+	if (args.size() > 3 && args[3]=="mpi") {
 		config.using_MPI = true;
 	}
 #endif
@@ -407,7 +404,7 @@ int main(int argc, char* argv[])
 	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
+		std::string mpi_result = partitionImpl.startMPIEnvironment(ARGC, ARGV);
 		if (mpi_result.compare("") != 0)
 		{
 			Warn() << "MPI Error:" << mpi_result << endl;
@@ -420,18 +417,15 @@ int main(int argc, char* argv[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	if (argc > 1)
-	{
-		configFileName = argv[1];
-	}
-	else
-	{
+	if (args.size() > 1) {
+		configFileName = args[1];
+	} else {
 		cout << "No config file specified; using default." << endl;
 	}
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	string logFileName = argc>2 ? argv[2] : "";
+	string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;

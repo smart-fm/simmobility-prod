@@ -27,7 +27,6 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
 
-#include "util/OutputUtil.hpp"
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"

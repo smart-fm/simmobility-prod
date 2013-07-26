@@ -24,7 +24,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/ZebraCrossing.hpp"
 #include "geospatial/UniNode.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 
 #include "entities/signal/Signal.hpp"

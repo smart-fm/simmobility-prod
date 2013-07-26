@@ -33,11 +33,9 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
 #include "entities/signal/Signal.hpp"
-//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
@@ -531,7 +529,6 @@ int run_simmob_interactive_loop() {
 int main(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
-	Logger::log_init("");
 
 	//Currently needs the #ifdef because of the way threads initialize.
 #ifdef SIMMOB_INTERACTIVE_MODE
@@ -610,11 +607,6 @@ int main(int ARGC, char* ARGV[])
 		returnVal = run_simmob_interactive_loop();
 	} else {
 		returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
-	}
-
-	//Close log file, return.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		Logger::log_done();
 	}
 
 	cout << "Done" << endl;

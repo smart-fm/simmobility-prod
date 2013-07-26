@@ -307,9 +307,8 @@ void perform_main() {
 
 int main(int ARGC, char* ARGV[]) {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
-
-    Logger::log_init("");
     StopWatch watch;
+
     //get start time of the simulation.
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -322,6 +321,5 @@ int main(int ARGC, char* ARGV[]) {
     Statistics::Print();
     LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
     LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
-    Logger::log_done();
     return 0;
 }

@@ -10,13 +10,12 @@
 #include <stdexcept>
 #include <boost/multi_index_container.hpp>
 #include "entities/AuraManager.hpp"
-//NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
-//      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
-//      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
-//      we might want to use something like pkg-config to manage header file directories
-//      eventually.
-#include "soci.h"
-#include "soci-postgresql.h"
+#include "logging/Log.hpp"
+#include "util/OutputUtil.hpp"
+
+//NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
+#include <soci.h>
+#include <soci-postgresql.h>
 
 #include "logging/Log.hpp"
 
@@ -44,7 +43,6 @@
 #include "conf/simpleconf.hpp"
 
 #include "util/DynamicVector.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 

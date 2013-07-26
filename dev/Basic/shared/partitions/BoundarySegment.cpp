@@ -11,7 +11,7 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 

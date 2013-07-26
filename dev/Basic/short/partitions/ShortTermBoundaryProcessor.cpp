@@ -21,7 +21,6 @@
 
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
-#include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/WorkGroup.hpp"
 
@@ -31,14 +30,14 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/Role.hpp"
-
-#include "partitions/ParitionDebugOutput.hpp"
 #include "entities/signal/Signal.hpp"
+
+#include "logging/Log.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 #include "partitions/PartitionManager.hpp"
 
 namespace mpi = boost::mpi;

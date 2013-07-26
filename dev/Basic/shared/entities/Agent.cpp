@@ -5,9 +5,9 @@
 #include "conf/settings/ProfileOptions.h"
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/StrictAgentErrors.h"
+#include "logging/Log.hpp"
 
 #include "util/DebugFlags.hpp"
-#include "util/OutputUtil.hpp"
 #include "partitions/PartitionManager.hpp"
 #include <cstdlib>
 #include <cmath>

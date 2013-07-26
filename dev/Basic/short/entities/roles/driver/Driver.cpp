@@ -33,7 +33,6 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"

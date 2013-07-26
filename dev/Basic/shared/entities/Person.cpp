@@ -9,7 +9,6 @@
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
-#include "util/OutputUtil.hpp"
 
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"

@@ -15,7 +15,7 @@
 #include "geospatial/ZebraCrossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 
 using std::map;

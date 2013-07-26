@@ -10,7 +10,7 @@
 #include <iostream>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 /**
  * Events IDs. Using an enum guarantees size.

@@ -2,7 +2,7 @@
 
 #include "PerformanceProfile.hpp"
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using std::vector;
 

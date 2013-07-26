@@ -31,7 +31,6 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -377,7 +376,6 @@ bool performMainMed(const std::string& configFileName) {
 int main(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
-	Logger::log_init("");
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
@@ -445,9 +443,6 @@ int main(int ARGC, char* ARGV[])
 	int returnVal = performMainMed(configFileName) ? 0 : 1;
 
 	//Close log file, return.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		Logger::log_done();
-	}
 	cout << "Done" << endl;
 	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;

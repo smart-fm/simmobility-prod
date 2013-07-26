@@ -26,11 +26,11 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "password/password.hpp"
+#include "logging/Log.hpp"
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
-//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
@@ -44,12 +44,6 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
-#include "util/OutputUtil.hpp"
-
-//NOTE: Commenting out; will remove if no-one needs this class.
-#if 0
-#include "geospatial/xmlLoader/geo8-driver.hpp"
-#endif
 
 #include "conf/Validate.hpp"
 #include "conf/GeneralOutput.hpp"
@@ -59,7 +53,6 @@
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
 
 using std::cout;

@@ -7,7 +7,7 @@
 #include <boost/thread.hpp>
 #include "Lane.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 

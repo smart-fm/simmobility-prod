@@ -9,7 +9,7 @@
 #include "ActivityPerformer.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Node.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using std::vector;
 using namespace sim_mob;

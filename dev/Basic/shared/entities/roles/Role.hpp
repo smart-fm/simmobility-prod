@@ -10,7 +10,7 @@
 #include "entities/UpdateParams.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include <boost/random.hpp>
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"

@@ -16,7 +16,7 @@
 
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/WorkGroup.hpp"
 

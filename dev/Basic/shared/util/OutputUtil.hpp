@@ -5,7 +5,10 @@
 /**
  * \file OutputUtil.hpp
  *
- * Contains functions which are helpful for synchronized output to cout and log files.
+ * Contains functions which are helpful for printing various items.
+ *
+ * \note
+ * If you are looking for generalized logging (e.g., Print(),Warn()), look at "logging/Log.hpp"
  */
 
 
@@ -21,7 +24,7 @@
 #include <fstream>
 
 //TEMP: Chain to our new "Log" class.
-#include "logging/Log.hpp"
+//#include "logging/Log.hpp"
 
 namespace sim_mob {
 
@@ -43,7 +46,7 @@ namespace sim_mob {
 template <typename T>
 void PrintArray(const std::vector<T>& arr, std::ostream& out=std::cout, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
-class Logger
+/*class Logger
 {
 public:
 	static boost::mutex global_mutex;
@@ -71,6 +74,7 @@ private:
 	static std::ostream* log_file_or_cout;
 	static std::ofstream file_output;
 };
+*/
 
 } //End sim_mob namespace
 
@@ -79,6 +83,7 @@ private:
 ////////////////////////////////////////////////
 // Template implementation
 ////////////////////////////////////////////////
+
 
 
 template <typename T>

@@ -9,7 +9,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 #include "geospatial/Point2D.hpp"
 

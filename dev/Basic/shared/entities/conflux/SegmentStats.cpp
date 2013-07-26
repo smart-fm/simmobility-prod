@@ -3,7 +3,7 @@
 #include "SegmentStats.hpp"
 
 #include <algorithm>
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "conf/simpleconf.hpp"
 #include <cmath>
 

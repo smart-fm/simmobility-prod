@@ -10,7 +10,7 @@
 #include <iostream>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 const int INVALID_ID = -1;
 const std::string EMPTY_STR= "";

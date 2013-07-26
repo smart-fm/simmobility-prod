@@ -20,9 +20,9 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/FlexiBarrier.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/LangHelpers.hpp"
 
 using std::set;

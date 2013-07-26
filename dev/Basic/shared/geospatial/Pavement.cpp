@@ -5,7 +5,7 @@
 #include "Pavement.hpp"
 
 #include <stdexcept>
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 

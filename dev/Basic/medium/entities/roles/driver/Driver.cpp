@@ -23,7 +23,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"

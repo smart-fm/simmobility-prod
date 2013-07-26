@@ -15,7 +15,7 @@
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 namespace sim_mob
 {

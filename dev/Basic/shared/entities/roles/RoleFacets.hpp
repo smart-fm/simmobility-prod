@@ -17,7 +17,7 @@
 #include "entities/misc/BusTrip.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include <boost/random.hpp>
 
 namespace sim_mob {

@@ -5,6 +5,7 @@
 
 #include "conf/Config.hpp"
 #include "entities/signal/Signal.hpp"
+#include "logging/Log.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -13,7 +14,6 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DynamicVector.hpp"
 #include "metrics/Length.hpp"
 

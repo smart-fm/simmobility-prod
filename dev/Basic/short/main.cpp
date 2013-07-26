@@ -531,6 +531,7 @@ int run_simmob_interactive_loop() {
 int main(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	Logger::log_init("");
 
 	//Currently needs the #ifdef because of the way threads initialize.
 #ifdef SIMMOB_INTERACTIVE_MODE
@@ -553,7 +554,7 @@ int main(int ARGC, char* ARGV[])
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
-	if (args.size() > 3 && args[3]=="mpi") {
+	if (args.size()>2 && args[2]=="mpi") {
 		config.using_MPI = true;
 	}
 #endif
@@ -596,12 +597,12 @@ int main(int ARGC, char* ARGV[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file. Defaults to out.txt
-	string logFileName = args.size()>2 ? args[2] : "out.txt";
+	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
-	}
+	}*/
 
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;

@@ -377,6 +377,7 @@ bool performMainMed(const std::string& configFileName) {
 int main(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	Logger::log_init("");
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
@@ -387,7 +388,7 @@ int main(int ARGC, char* ARGV[])
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
-	if (args.size() > 3 && args[3]=="mpi") {
+	if (args.size() > 2 && args[2]=="mpi") {
 		config.using_MPI = true;
 	}
 #endif
@@ -425,12 +426,12 @@ int main(int ARGC, char* ARGV[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	string logFileName = args.size()>2 ? args[2] : "out.txt";
+	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
 			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
-	}
+	}*/
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.

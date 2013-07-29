@@ -18,6 +18,7 @@
  * \author Xu Yan
  */
 
+#include <ostream>
 #include <vector>
 #include <set>
 
@@ -47,8 +48,11 @@ private:
 	 * \param tickStep How many ticks to advance per update(). It is beneficial to have one WorkGroup where
 	 *        this value is 1, since any WorkGroup with a greater value will have to wait 2 times (due to
 	 *        the way we synchronize data).
+	 * \param logFile Pointer to the file (or cout, cerr) that will receive all logging for this Worker's agents.
+	 *        Note that this stream should *not* require logging, so any shared ostreams should be on the same
+	 *        thread (usually that means on the same worker).
 	 */
-	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
+	Worker(WorkGroup* parent, std::ostream* logFile, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep);
 
 	void start();
 	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
@@ -72,6 +76,7 @@ public:
 	void scheduleForBred(Entity* entity);
 
 	event::EventManager& getEventManager();
+	std::ostream* getLogFile() const;
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
@@ -149,6 +154,9 @@ protected:
 
 
 private:
+	///Logging
+	std::ostream* logFile;
+
 	///The main thread which this Worker wraps
 	boost::thread main_thread;
 

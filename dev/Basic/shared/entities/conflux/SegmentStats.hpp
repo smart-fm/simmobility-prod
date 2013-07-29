@@ -185,7 +185,9 @@ public:
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
 	void updateLaneParams(timeslice frameNumber);
-	void reportSegmentStats(timeslice frameNumber);
+
+	std::string reportSegmentStats(timeslice frameNumber);
+
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
 	double getSegFlow();

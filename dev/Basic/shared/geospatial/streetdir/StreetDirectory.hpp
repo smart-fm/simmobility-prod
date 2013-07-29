@@ -322,8 +322,8 @@ public:
 
         virtual void updateEdgeProperty() = 0;
 
-        virtual void printDrivingGraph() const = 0;
-        virtual void printWalkingGraph() const = 0;
+        virtual void printDrivingGraph(std::ostream& outFile) const = 0;
+        virtual void printWalkingGraph(std::ostream& outFile) const = 0;
 
         //TODO: Does this work the way I want it to?
         friend class StreetDirectory;
@@ -450,10 +450,10 @@ public:
 
 
     ///Print the Driving graph to LogOut(), in the old output format (out.txt)
-    void printDrivingGraph();
+    void printDrivingGraph(std::ostream& outFile);
 
     ///Print the Walking graph to LogOut(), in the old output format (out.txt)
-    void printWalkingGraph();
+    void printWalkingGraph(std::ostream& outFile);
 
     ///Return the Link associated with a given Node.
     ///Appears to associate Nodes based on an arbitrary choice (whether they appear as "start" nodes in a Link)

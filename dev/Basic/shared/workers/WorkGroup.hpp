@@ -6,6 +6,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <list>
 #include <queue>
 #include <vector>
 #include <stdexcept>
@@ -49,7 +50,7 @@ private:
 	friend class WorkGroupManager;
 
 	//Private constructor: Use the static NewWorkGroup function instead.
-	WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
+	WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
 
 	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
 	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
@@ -137,12 +138,18 @@ private:
 
 
 private:
+	//The "number" of this WorkGroup. E.g., the first one created is 0, the second is 1, etc. Used ONLY for generating Log files; DON'T use this as an ID.
+	unsigned int wgNum;
+
 	//Number of workers we are handling. Should be equal to workers.size() once the workers vector has been initialized.
 	unsigned int numWorkers;
 
 	//Passed along to Workers
 	unsigned int numSimTicks;
 	unsigned int tickStep;
+
+	//Log files that we are managing for Workers in this group.
+	std::list<std::ostream*> managed_logs;
 
 	//Aura manager and partition manager to update, if any (either may be null).
 	sim_mob::AuraManager* auraMgr;

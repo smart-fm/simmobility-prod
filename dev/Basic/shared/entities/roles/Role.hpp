@@ -135,15 +135,6 @@ public:
 			second_try = dist(gen);
 
 			third_try = dist(gen);
-
-//			if (one_try != second_try || third_try != second_try)
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << "," << one_try << "," << second_try << "," << third_try << "\n");
-//			}
-//			else
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << ",Use Seed:" << dynamic_seed << ", Get:" << one_try << "," << second_try<< "," << third_try<< "\n");
-//			}
 		}
 
 		dynamic_seed = one_try;

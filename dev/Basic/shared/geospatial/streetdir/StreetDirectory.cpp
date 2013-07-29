@@ -199,17 +199,17 @@ void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
     }
 }
 
-void sim_mob::StreetDirectory::printDrivingGraph()
+void sim_mob::StreetDirectory::printDrivingGraph(std::ostream& outFile)
 {
 	if (spImpl_) {
-		spImpl_->printDrivingGraph();
+		spImpl_->printDrivingGraph(outFile);
 	}
 }
 
-void sim_mob::StreetDirectory::printWalkingGraph()
+void sim_mob::StreetDirectory::printWalkingGraph(std::ostream& outFile)
 {
 	if (spImpl_) {
-		spImpl_->printWalkingGraph();
+		spImpl_->printWalkingGraph(outFile);
 	}
 }
 

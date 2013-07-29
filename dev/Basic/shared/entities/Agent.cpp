@@ -335,3 +335,23 @@ sim_mob::AgentLifeEventArgs::~AgentLifeEventArgs() {
 const Agent* sim_mob::AgentLifeEventArgs::GetAgent() const {
 	return agent;
 }
+
+
+//////////////////////////////////////////////////////////////
+// Log implementation
+//////////////////////////////////////////////////////////////
+
+sim_mob::Agent::Log::Log()
+{
+	log_handle = currWorker->getLogFile();
+}
+
+
+sim_mob::Agent::Log::~Log()
+{
+	//Flush any pending output to stdout.
+/*	if (log_handle) {
+		(*log_handle) <<std::flush;
+	}*/
+}
+

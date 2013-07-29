@@ -474,7 +474,7 @@ double sim_mob::GeneralPathMover::advance(const RoadSegment* currSegment, vector
 
 	double res = 0.0;
 	if(isFwd){
-		LogOut("noteForDirection 1"<<std::endl);
+		PrintOut("noteForDirection 1"<<std::endl);
 
 		//Move down the current polyline. If this brings us to the end point, go to the next polyline
 		distAlongPolyline += fwdDistance;
@@ -496,7 +496,7 @@ double sim_mob::GeneralPathMover::advance(const RoadSegment* currSegment, vector
 		}
 	}
 	else{
-		LogOut("noteForDirection 2"<<std::endl);
+		PrintOut("noteForDirection 2"<<std::endl);
 
 		//Move down the current polyline. If this brings us to the end point, go to the next polyline
 		distAlongPolyline = currPolylineLength() - fwdDistance - distAlongPolyline;
@@ -833,7 +833,7 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 	//Nothing to do?
 	if (newLaneID == currLaneID)
 	{
-		LogOut("Nothing to do for next" << std::endl);
+		PrintOut("Nothing to do for next" << std::endl);
 		return;
 	}
 

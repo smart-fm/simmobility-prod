@@ -46,35 +46,6 @@ namespace sim_mob {
 template <typename T>
 void PrintArray(const std::vector<T>& arr, std::ostream& out=std::cout, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
-/*class Logger
-{
-public:
-	static boost::mutex global_mutex;
-
-	static bool log_init(const std::string& path) {
-		if (!path.empty()) {
-			file_output.open(path.c_str());
-			if (file_output.good()) {
-				log_file_or_cout = &file_output;
-				return true;
-			}
-		}
-
-		log_file_or_cout = &std::cout;
-		return false;
-	}
-
-	static void log_done() {
-		if (file_output.is_open()) {
-			file_output.close();
-		}
-	}
-	static std::ostream& log_file() { return *log_file_or_cout; }
-private:
-	static std::ostream* log_file_or_cout;
-	static std::ofstream file_output;
-};
-*/
 
 } //End sim_mob namespace
 

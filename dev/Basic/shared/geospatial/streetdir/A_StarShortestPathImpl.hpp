@@ -11,6 +11,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <ostream>
 
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/astar_search.hpp>
@@ -43,9 +44,9 @@ protected:
 
     virtual void updateEdgeProperty();
 
-    virtual void printDrivingGraph() const;
+    virtual void printDrivingGraph(std::ostream& outFile) const;
 
-    virtual void printWalkingGraph() const;
+    virtual void printWalkingGraph(std::ostream& outFile) const;
 
 private:
     ///Helper class:identify a Node exactly. This requires the incoming/outgoing RoadSegment(s), and the generated Vertex.
@@ -121,7 +122,7 @@ private:
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
 
     //Internal printing code.
-    void printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const;
+    void printGraph(std::ostream& outFile, const std::string& graphType, const StreetDirectory::Graph& graph) const;
 
     //Helper functions
     static StreetDirectory::Edge AddSimpleEdge(StreetDirectory::Graph& graph, StreetDirectory::Vertex& fromV, StreetDirectory::Vertex& toV, sim_mob::WayPoint wp);

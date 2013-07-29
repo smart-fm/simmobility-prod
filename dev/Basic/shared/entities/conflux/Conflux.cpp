@@ -393,7 +393,9 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	for( ; it != segmentAgents.end(); ++it )
 	{
 		(it->second)->updateLaneParams(frameNumber);
-		(it->second)->reportSegmentStats(frameNumber);
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			Log() <<(it->second)->reportSegmentStats(frameNumber);
+		}
 	}
 }
 

@@ -51,18 +51,13 @@ bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
 
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
+sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
     : BufferedDataManager(),
+      logFile(logFile),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
       profile(nullptr)
 {
-	//Currently, we need at least these two barriers or we will get synchronization problems.
-	// (Internally, though, we don't technically need them.)
-//	if (!frame_tick || !buff_flip) {
-//		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
-//	}
-
 	//Initialize our profile builder, if applicable.
 	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
@@ -106,6 +101,12 @@ void sim_mob::Worker::remEntity(Entity* entity)
 const std::vector<Entity*>& sim_mob::Worker::getEntities() const
 {
 	return managedEntities;
+}
+
+
+std::ostream* sim_mob::Worker::getLogFile() const
+{
+	return logFile;
 }
 
 
@@ -367,7 +368,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
+		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
 	}
 }
 
@@ -393,7 +394,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
+		PrintOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
 	}
 }
 

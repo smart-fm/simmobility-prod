@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 #include <boost/thread.hpp>
 
 #include "conf/simpleconf.hpp"
@@ -29,8 +30,8 @@ using std::vector;
 using namespace sim_mob;
 
 
-sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
-	numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
+sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
+	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
 	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
 {
@@ -39,6 +40,7 @@ sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks,
 
 sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are wait()-ing. But it prevents undefined behavior in boost.
 {
+	//Delete/clear all Workers.
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
 		wk->interrupt();
@@ -47,6 +49,12 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 		delete wk;
 	}
 	workers.clear();
+
+	//Delete/close all Log files.
+	for (std::list<std::ostream*>::iterator it=managed_logs.begin(); it!=managed_logs.end(); it++) {
+		delete *it;
+	}
+	managed_logs.clear();
 
 	//The only barrier we can delete is the non-shared barrier.
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
@@ -110,11 +118,25 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		entToBeBredPerWorker.resize(numWorkers, vector<Entity*>());
 	}
 
+	//Number Worker output threads something like:  "out_1_2.txt", where "1" is the WG number and "2" is the Worker number.
+	std::stringstream prefixS;
+	prefixS <<"out_" <<wgNum <<"_";
+	std::string prefix = prefixS.str();
+
 	//Init the workers themselves.
 	for (size_t i=0; i<numWorkers; i++) {
+		std::stringstream outFilePath;
+		outFilePath <<prefix <<i <<".txt";
+		std::ofstream* logFile = nullptr;
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			//TODO: Handle error case more gracefully.
+			logFile = new std::ofstream(outFilePath.str().c_str());
+			managed_logs.push_back(logFile);
+		}
+
 		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
 		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
-		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
+		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
 

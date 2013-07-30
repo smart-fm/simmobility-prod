@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef WAITFORANDROIDCONNECTION_HPP_
-#define WAITFORANDROIDCONNECTION_HPP_
+#pragma once
 
 #include "WaitForClientConnection.hpp"
 
@@ -18,9 +17,9 @@ public:
 	WaitForAndroidConnection(sim_mob::Broker &,int min_nof_clients_ = 1);
 	short get_MIN_NOF_Clients();
 	void set_MIN_NOF_Clients(int);
-	bool evaluate();
+	bool calculateWaitStatus();
 	virtual ~WaitForAndroidConnection();
 };
 
 } /* namespace sim_mob */
-#endif /* WAITFORANDROIDCONNECTION_HPP_ */
+

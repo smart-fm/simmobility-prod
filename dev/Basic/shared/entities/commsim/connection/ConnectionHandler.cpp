@@ -13,12 +13,13 @@
 namespace sim_mob {
 ConnectionHandler::ConnectionHandler(
 		session_ptr session_ ,
-		Broker& broker,
-		messageReceiveCallback callback,
+//		Broker& broker,
+//		messageReceiveCallback callback,
+		boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
 		std::string clientID_,
 		unsigned int ClienType_ ,
 		unsigned int agentPtr_
-		):theBroker(broker), receiveCallBack(callback)
+		):messageReceiveCallback(messageReceiveCallback_)//theBroker(broker), receiveCallBack(callback)
 
 {
 	mySession = session_;
@@ -38,7 +39,7 @@ void ConnectionHandler::start()
 
 	Json::Value packet;
 	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1));
-	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY"));
+	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed
 	Json::FastWriter writer;
@@ -74,8 +75,8 @@ void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 	else
 	{
 		//call the receive handler in the broker
-		CALL_MEMBER_FN(theBroker, receiveCallBack)(shared_from_this(),incomingMessage);
-
+		messageReceiveCallback(shared_from_this(),incomingMessage);
+		//	keep reading
 		mySession->async_read(incomingMessage,
 						boost::bind(&ConnectionHandler::readHandler, this,
 								boost::asio::placeholders::error));

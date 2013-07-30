@@ -20,8 +20,8 @@ namespace rr_android_ns3{
 class RR_Android_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*MessageFactory<output, input>y*/{
 	enum MessageType
 	{
-		ANDROID_MULTICAST = 1,
-		ANDROID_UNICAST = 2,
+		MULTICAST = 1,
+		UNICAST = 2,
 		CLIENT_MESSAGES_DONE = 6
 	};
 	std::map<std::string, RR_Android_Factory::MessageType> MessageMap;

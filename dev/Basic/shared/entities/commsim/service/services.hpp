@@ -40,26 +40,19 @@ namespace sim_mob
 			("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)
 			("NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 
-	struct msg_header
-	{
+	struct msg_header {
 		//data
-		std::string
-		sender_id
-		,sender_type
-		,msg_type;
+		std::string sender_id, sender_type, msg_type, msg_cat;
 		//constructor
-		msg_header(){}
-		msg_header(
-				std::string	 	sender_id_
-				,std::string	sender_type_
-				,std::string	msg_type_
-				)
-		:
-			sender_id(sender_id_)
-		,sender_type(sender_type_)
-		,msg_type(msg_type_)
+		msg_header() {
+		}
+		msg_header(std::string sender_id_, std::string sender_type_,
+				std::string msg_type_, std::string msg_cat_ = "UNK") :
+				sender_id(sender_id_), sender_type(sender_type_), msg_type(
+						msg_type_), msg_cat(msg_cat_)
 
-		{}
+		{
+		}
 
 	};
 

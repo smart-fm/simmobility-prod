@@ -142,9 +142,9 @@ public:
 		if (!root["REQUIRED_SERVICES"].isNull()) {
 			if (root["REQUIRED_SERVICES"].isArray()) {
 				const Json::Value services = root["REQUIRED_SERVICES"];
-//				Print() << "services :'" << services.toStyledString() << "'" << std::endl;
 				for (unsigned int index = 0; index < services.size(); index++) {
 					std::string type = services[index].asString();
+					Print() << index << " REQUIRED_SERVICES->'" << type << "'" << std::endl;
 					requiredServices.insert(getServiceType(type));
 				}
 			}
@@ -185,13 +185,14 @@ public:
 		header["SENDER"] = mHeader_.sender_id;
 		header["SENDER_TYPE"] = mHeader_.sender_type;
 		header["MESSAGE_TYPE"] = mHeader_.msg_type;
+		header["MESSAGE_CAT"] = mHeader_.msg_cat;
 		return header;
 	}
 	static std::string makeWhoAreYouPacket() {
 		Json::Value whoAreYou_Packet_Header = createPacketHeader(
 				pckt_header("1"));
 		Json::Value whoAreYou = createMessageHeader(
-				msg_header("0", "SIMMOBILITY", "WHOAREYOU"));
+				msg_header("0", "SIMMOBILITY", "WHOAREYOU", "SYS"));
 		//no more fiels is needed
 		Json::Value packet;
 		packet["DATA"].append(whoAreYou);
@@ -202,7 +203,7 @@ public:
 	}
 //	just conveys the tick
 	static Json::Value makeTimeData(unsigned int tick, unsigned int elapsedMs) {
-		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TIME_DATA"));
+		Json::Value time = createMessageHeader(msg_header("0", "SIMMOBILITY", "TIME_DATA", "SYS"));
 		time["tick"] = tick;
 		time["elapsed_ms"] = elapsedMs;
 		return time;
@@ -222,7 +223,7 @@ public:
 
 	static Json::Value makeLocationMessage(int x, int y) {
 
-		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA"));
+		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA", "SYS"));
 		loc["x"] = x;
 		loc["y"] = y;
 
@@ -279,10 +280,12 @@ public:
     "DATA": [
         {
             "MESSAGE_TYPE": "TIME_DATA",
+            "MESSAGE_CAT": "SYS",
             "tick": 108
         },
         {
             "MESSAGE_TYPE": "LOCATION_DATA",
+            "MESSAGE_CAT": "SYS",
             "x": 37280691,
             "y": 14371911
         }
@@ -311,6 +314,7 @@ public:
     "DATA": [
         {
             "MESSAGE_TYPE": "WHOAREYOU",
+            "MESSAGE_CAT": "SYS",
             "SENDER": "0",
             "SENDER_TYPE": "SIMMOBILITY"
         }
@@ -333,6 +337,7 @@ public:
             "SENDER": "client-id-A",
             "SENDER_TYPE": "ANDROID_EMULATOR",
             "MESSAGE_TYPE": "WHOAMI",
+            "MESSAGE_CAT": "SYS",
             "ID": "114",
             "TYPE": "ANDROID_EMULATOR",
             "REQUIRED_SERVICES": [
@@ -356,6 +361,7 @@ public:
  * usage-2) server->client 		(FROM:simMobility TO: ns3 or android  DESCRIPTION: simmobility delegates the network transfering of messages to ns3or another android client)
 {
  "MSG_TYPE" : "UNICAST",
+ "MESSAGE_CAT": "APP",
  "SENDER" : "client-id-A",
  "SENDER_TYPE": "ANDROID_EMULATOR",
  "RECEIVER" : "client-id-W",
@@ -371,6 +377,7 @@ public:
  * usage-2) server->client 		(FROM:simMobility TO: ns3  DESCRIPTION: simmobility delegates the network transfering of messages to ns3)
  {
  "MSG_TYPE" : "ANNOUNCE",
+ "MESSAGE_CAT": "APP",
  "ANNOUNCE" : {
  "SENDER" : "client-id-X",
  "RECEIVER" :[
@@ -392,6 +399,7 @@ public:
  * DESCRIPTION: simmobility transfers this message(which has been sent by ns3) to the corresponding android)
  {
  "MSG_TYPE" : "ANNOUNCE",
+ "MESSAGE_CAT": "APP",
  "ANNOUNCE" : {
  "SENDER" : "client-id-X",
  "RECEIVER" :[
@@ -409,6 +417,7 @@ public:
     "DATA": [
         {
             "MESSAGE_TYPE": "MULTICAST",
+ 	 	 	"MESSAGE_CAT": "APP",
             "SENDER": "client_id_x",
             "SENDER_TYPE": "ANDROID_EMULATOR",
             "ANNOUNCE_DATA" : "XXX"

@@ -23,9 +23,10 @@ class ConnectionHandler;
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler>
 {
 	boost::shared_ptr<Session> mySession;
-	typedef void (Broker::*messageReceiveCallback)(boost::shared_ptr<ConnectionHandler>,std::string);
-	messageReceiveCallback receiveCallBack;
-	Broker &theBroker;
+//	typedef void (Broker::*messageReceiveCallback)(boost::shared_ptr<ConnectionHandler>,std::string);
+//	messageReceiveCallback receiveCallBack;
+//	Broker &theBroker;
+	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
 	std::string incomingMessage;
 	bool valid;
 public:
@@ -38,8 +39,9 @@ public:
 	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(
 			boost::shared_ptr<Session> session_ ,
-			Broker& broker,
-			messageReceiveCallback callback,
+//			Broker& broker,
+//			messageReceiveCallback callback,
+			boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
 			std::string clientID_ = "'\0'",
 			unsigned int ClienType_ = 0,
 			unsigned int agentPtr_ = 0

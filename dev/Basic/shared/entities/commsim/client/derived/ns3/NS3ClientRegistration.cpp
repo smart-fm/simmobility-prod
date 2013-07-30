@@ -35,8 +35,9 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 		boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler(new ConnectionHandler(
 				request.session_
-				,broker
-				,&Broker::messageReceiveCallback
+//				,broker
+//				,&Broker::messageReceiveCallback
+				,broker.getMessageReceiveCallBack()
 				,request.clientID
 				,ConfigParams::NS3_SIMULATOR
 				,(unsigned long int)(0)//not needed
@@ -53,6 +54,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		clientEntry->client_type = ConfigParams::NS3_SIMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
 		SIM_MOB_SERVICE srv;
+		int size_i = request.requiredServices.size();
 		BOOST_FOREACH(srv, request.requiredServices)
 		{
 			switch(srv)

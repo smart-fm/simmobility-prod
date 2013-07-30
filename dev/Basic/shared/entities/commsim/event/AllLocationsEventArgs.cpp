@@ -13,7 +13,7 @@ AllLocationsEventArgs::AllLocationsEventArgs(sim_mob::AgentsMap<std::string>::ty
 }
 
 Json::Value AllLocationsEventArgs::ToJSON()const{
-	Json::Value loc = JsonParser::createMessageHeader(msg_header("0", "SIMMOBILITY", "ALL_LOCATIONS_DATA"));
+	Json::Value loc = JsonParser::createMessageHeader(msg_header("0", "SIMMOBILITY", "ALL_LOCATIONS_DATA", "SYS"));
 	sim_mob::AgentsMap<std::string>::pair pair;
 	BOOST_FOREACH(pair, registeredAgents)
 	{

@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef WAITFORNS3CONNECTION_HPP_
-#define WAITFORNS3CONNECTION_HPP_
+#pragma once
 
 #include "WaitForClientConnection.hpp"
 
@@ -19,9 +18,9 @@ public:
 	WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ = 1);
 	short get_MIN_NOF_Clients();
 	void set_MIN_NOF_Clients(int);
-	bool evaluate();
+	bool calculateWaitStatus();
 	virtual ~WaitForNS3Connection();
 };
 
 } /* namespace sim_mob */
-#endif /* WAITFORNS3CONNECTION_HPP_ */
+

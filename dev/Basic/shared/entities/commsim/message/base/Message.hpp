@@ -98,7 +98,8 @@ class MessageQueue {
 public:
 	MessageQueue();
 	virtual ~MessageQueue();
-	bool ReadMessage();
+	int size();
+	bool isEmpty();
     void post(T message);
     bool pop(T&);
 };
@@ -108,10 +109,23 @@ MessageQueue<T>::~MessageQueue(){
 
 }
 
+//template<class T>
+//bool MessageQueue<T>::ReadMessage(){
+//	boost::unique_lock< boost::shared_mutex > lock(mutex);
+//	return true;
+//}
+
 template<class T>
-bool MessageQueue<T>::ReadMessage(){
+int MessageQueue<T>::size()
+{
 	boost::unique_lock< boost::shared_mutex > lock(mutex);
-	return true;
+	return messageList.size();
+}
+template<class T>
+bool MessageQueue<T>::isEmpty()
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex);
+	return messageList.isEmpty();
 }
 
 template<class T>

@@ -27,106 +27,145 @@ Handler * MSG_MULTICAST::newHandler()
 
 
 //handler implementation
+//this handler handles the multicast requests sent by android
+//the hadler does this by finding the sender's nearby agents
+//please take note that in this implementation:
+//1-multicast is treated same as broadcast
+//2-although it is like a broadcast, simmobility will add the specific receiver
+//information while redirecting to NS3(as opposed to letting NS3 find the recipients)
 void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
-
+	Print() << "Inside HDL_MULTICAST::handle" << std::endl;
 //steps:
 	/*
-	 * 1- Find the target agent
+	 * 1- Find the sending agent
 	 * 2- Find its nearby agents
 	 * 3- for each agent find the client handler
-	 * 4- fabricate a message for each(core data is taken from the original message)
+	 * 4- fabricate a message for each(core  is taken from the original message)
 	 * 5- insert messages into send buffer
 	 */
 
-//	step-1: Find the target agent
-	Json::Value &data = message_->getData();
+//	step-1: Find the sending agent
+
+	//1.1: parse
+	Json::Value &jdata = message_->getData();
 	msg_header msg_header_;
-	if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
+	if(!sim_mob::JsonParser::parseMessageHeader(jdata,msg_header_))
 	{
 		WarnOut("HDL_MULTICAST::handle: message header incomplete" << std::endl);
+		Print() << "HDL_MULTICAST::handle: message header incomplete" << std::endl;
 		return;
 	}
 
-	//	find the agent from the client
-	//but,to get to the agent, find the client hander first
+	//1.2 do a double check: the sending agent is an ANDROID_EMULATOR
+	if(msg_header_.sender_type != "ANDROID_EMULATOR")
+	{
+		Print() << "HDL_MULTICAST::handle: Sender type mismatch" << std::endl;
+		return;
+	}
 
-	std::string sender_id("0") ; //easy read
-	std::string sender_type("NS3_SIMULATOR"); //easy read
+	//1.3 find the client hander first
+	std::string sender_id(msg_header_.sender_id) ; //easy read
+	std::string sender_type(msg_header_.sender_type); //easy read
 	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	const ClientList::type & clients = broker->getClientList();
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
 		WarnOut( "HDL_MULTICAST::handle failed" << std::endl);
+		Print() << "HDL_MULTICAST::handle failed" << std::endl;
 		return;
 	}
-
-	//now find the agent
-
-	const sim_mob::Agent * original_agent;
 	if(!clnHandler->isValid())
 	{
 		Print() << "Invalid ns3 client handler record" << std::endl;
 		return;
 	}
 
+	//1.4 now find the agent
+	const sim_mob::Agent * sending_agent = clnHandler->agent;
+
 	//step-2: get the agents around you
-	std::vector<const Agent*> nearby_agents_1 = AuraManager::instance().agentsInRect(
+	std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
 
 				Point2D(
 
-						(original_agent->xPos - 3500),
-						(original_agent->yPos - 3500)
+						(sending_agent->xPos - 3500),
+						(sending_agent->yPos - 3500)
 						)
 
 						,
 
 				Point2D(
-						(original_agent->xPos + 3500),
-						(original_agent->yPos + 3500)
+						(sending_agent->xPos + 3500),
+						(sending_agent->yPos + 3500)
 						)
 
 						);
-	//if no agent found or only one found and that is the original_agent
-	if((nearby_agents_1.size() == 0) || ( (nearby_agents_1.size() == 1)&&(nearby_agents_1[0] == original_agent)) )
+	//omit the sending agent from the list of nearby_agents
+	std::vector<const Agent*>::iterator it_find = std::find(nearby_agents.begin(), nearby_agents.end(), sending_agent);
+	if(it_find != nearby_agents.end())
 	{
+		nearby_agents.erase(it_find);
+	}
+	else
+	{
+		Print()<< "Error: nearby agents doesn't even include the central agent" << std::endl;
+		return;
+	}
+	if(nearby_agents.size() == 0)
+	{
+		Print() << "Debug: No agent qualified(out of " << nearby_agents.size() << ")" << std::endl;
 		return;
 	}
 
-	//get the original agent out
-	std::vector<const Agent*>::iterator it_find = std::find(nearby_agents_1.begin(), nearby_agents_1.end(), original_agent);
-	if(it_find != nearby_agents_1.end())
-	{
-		nearby_agents_1.erase(it_find);
-	}
-//	Print() << "Found " << nearby_agents_1.size() << " agents around " << original_agent << " Let's c which one can communicate"<< std::endl;
-	//Now, Let's c which one of these agents are associated with clients
-	std::vector<const Agent*> nearby_agents_2;
-//	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;
+	//step-3: for each agent find the client handler
+	boost::shared_ptr<sim_mob::ClientHandler> ns3_clnHandler;
+	broker->getClientHandler("0", "NS3_SIMULATOR", ns3_clnHandler);
 	ClientList::pair clientTypes;
-	BOOST_FOREACH(clientTypes , clients)
+	ClientList::type & all_clients = broker->getClientList();
+	Print() << "Debug- before loops,  nof nearby agents (" << nearby_agents.size() << ")"
+			" nof android clients(" << all_clients[ConfigParams::ANDROID_EMULATOR].size() << ")"
+			"nof registered agents("<< broker->getRegisteredAgents().size() << ")" << std::endl;
+	Json::Value recipients;
+	BOOST_FOREACH(clientTypes , all_clients)
 	{
-//		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
+		// only the android emulators
+		if(clientTypes.first != ConfigParams::ANDROID_EMULATOR)
+		{
+			continue;
+		}
+
+		Print() << "Debug: BOOST_FOREACH-1" << std::endl;
 		ClientList::IdPair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
-		//step-3: for each agent find the client handler
+		Print() << inner.size() << std::endl;
 		BOOST_FOREACH(clientIds , inner)
 		{
-			boost::shared_ptr<sim_mob::ClientHandler> clnHander  = clientIds.second;
-			const sim_mob::Agent * agent = clnHander->agent;
-			if(std::find(nearby_agents_1.begin(), nearby_agents_1.end(), agent) == nearby_agents_1.end())
+			Print() << "Debug: BOOST_FOREACH-2" << std::endl;
+			boost::shared_ptr<sim_mob::ClientHandler> destination_agent_clnHandler  = clientIds.second;
+			//get the agent associated with the client handler and see if it is among the nearby_agents
+			if(std::find(nearby_agents.begin(), nearby_agents.end(), destination_agent_clnHandler->agent) == nearby_agents.end())
 			{
+				Print() << "Debug: agent not found" << std::endl;
 				continue;
 			}
-			//step-4: fabricate a message for each(core data is taken from the original message)
-				//actually, you dont need to modify any of
+			else
+			{
+				Print() << "Debug: a destination agent found" << std::endl;
+			}
+			//step-4: fabricate a message for each(core  is taken from the original message)
+				//actually, you don't need to modify any field in
 				//the original jsoncpp's Json::Value message.
-				//just send it
-			//so we go streight to next step
-			//step-5: insert messages into send buffer
-			broker->insertSendBuffer(clnHander->cnnHandler,data);
+				//just add the recipients
+			Print() << "Debug: agent found, inserting" << std::endl;
+			recipients.append(destination_agent_clnHandler->agent->getId());
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
+	//step-5: insert messages into send buffer
+	if(recipients.size())
+	{
+		jdata["RECIPIENTS"] = recipients;
+		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,jdata);
+	}
 }//handle()
 
 }/* namespace rr_android_ns3 */

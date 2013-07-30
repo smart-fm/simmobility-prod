@@ -9,6 +9,7 @@
 //communication simulator
 #include "Common.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"//todo :temprorary
+#include "entities/commsim/message/derived/roadrunner-android-ns3/RR_Android_Factory.hpp"//todo :temprorary
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
@@ -44,6 +45,8 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
 	 brokerCanTickForward = false;
+	 m_messageReceiveCallback = boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)>
+	 	(boost::bind(&Broker::messageReceiveCallback,this, _1, _2));
 int i;
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 //publishers
@@ -51,13 +54,14 @@ int i;
 	 publishers.insert( std::make_pair(SIMMOB_SRV_ALL_LOCATIONS, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
 	 publishers.insert(std::make_pair(SIMMOB_SRV_TIME, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::TimePublisher())));
 	 //current message factory
-	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::roadrunner::RR_Factory() );
+	 //todo: choose a factory based on configurations not hardcoding
+	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > factory(new sim_mob::rr_android_ns3::RR_Android_Factory() );
 	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-//	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, factory) );
+	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, factory) );
 	 messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, factory) );
 
 	 // wait for connection criteria for this broker
-//	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,  boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this, 1))));
+	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,  boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this, 1))));
 	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::NS3_SIMULATOR,  boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this, 1))));
 }
 
@@ -74,7 +78,7 @@ Broker::~Broker()
  */
 void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-
+	std::cout << "Broker callback received'" << input << "'" << std::endl;
 	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
 	std::vector<msg_ptr> messages;
 	m_f->createMessage(input, messages);
@@ -99,6 +103,10 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 			receiveQueue.post(boost::make_tuple(cnnHandler,*it));
 		}
 	}
+}
+
+boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> Broker::getMessageReceiveCallBack() {
+	return m_messageReceiveCallback;
 }
 
 void Broker::OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
@@ -181,18 +189,24 @@ void Broker::processClientRegistrationRequests()
 		handler = clientRegistrationFactory.getHandler((ClientTypeMap[it->first]));
 		if(handler->handle(*this,it->second))
 		{
-//			Print() << "Inside processClientRegistrationRequests-> handle successfull" << std::endl;
+			Print() << "Inside processClientRegistrationRequests-> handle successfull" << std::endl;
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			waitForClientConnectionList[ClientTypeMap[it->first]]->notify();
-			//	then, get this request out of registration list.
-			it_erase =  it++;//keep the erase candidate. dont loose it :)
-			clientRegistrationWaitingList.erase(it_erase) ;
-			//note: if needed,remember to do the necessary work in the
-			//corresponding agent w.r.t the result of handle()
-			//do this through a callback to agent's reuest
-
-
+			bool wait = waitForClientConnectionList[ClientTypeMap[it->first]]->calculateWaitStatus();
+			if(!wait)
+			{
+				//	then, get this request out of registration list.
+				it_erase =  it++;//keep the erase candidate. dont loose it :)
+				clientRegistrationWaitingList.erase(it_erase) ;
+				//note: if needed,remember to do the necessary work in the
+				//corresponding agent w.r.t the result of handle()
+				//do this through a callback to agent's reuest
+			}
+			else
+			{
+				Print() << "Inside processClientRegistrationRequests-> handle  not successfull" << std::endl;
+				it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
+			}
 		}
 		else
 		{
@@ -211,8 +225,9 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 //	{
 //		return 0;
 //	}
-//	Print()<< " registering an agent " << &value->getEntity() << std::endl;
+
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
+	Print()<< " registering an agent " << &value->getEntity() << " New size: " << registeredAgents.size() << std::endl;
 	value->registrationCallBack(true);
 	const_cast<Agent&>(value->getEntity()).Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
 			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
@@ -290,10 +305,15 @@ void Broker::processIncomingData(timeslice now)
 {
 	//just pop off the message queue and click handl ;)
 	MessageElement::type msgTuple;
+	Print() << "receiveQueue.size = " << receiveQueue.size() << std::endl;
 	while(receiveQueue.pop(msgTuple))
 	{
 		msg_ptr &msg = msgTuple.get<1>();
+		msg_data_t data = msg->getData();
+		Json::FastWriter w;
+		Print() << "Handling data with this message: '" << w.write(data) << "'" << std::endl;
 		msg->supplyHandler()->handle(msg,this);
+		Print() << "Message Handled" << std::endl;
 	}
 }
 
@@ -424,6 +444,7 @@ void Broker::sendReadyToReceive()
 		BOOST_FOREACH(clientByID, clientByType.second)
 		{
 			clnHandler = clientByID.second;
+			msg_header_.msg_cat = "SYS";
 			msg_header_.msg_type = "READY_TO_RECEIVE";
 			msg_header_.sender_id = "0";
 			msg_header_.sender_type = "SIMMOBILITY";
@@ -582,7 +603,7 @@ bool Broker::waitForClientsConnection()
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
-	brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
+	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
 	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << brokerCanTickForward << std::endl;
 	}
 
@@ -694,9 +715,9 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	if(now.frame() == 0) {
+//	if(now.frame() == 0) {
 		waitForClientsConnection();
-	}
+//	}
 	Print() << "===================== waitForClientsConnection Done =======================================" << std::endl;
 //	if (!waitForClientsConnection()) {
 //		return UpdateStatus(UpdateStatus::RS_CONTINUE);

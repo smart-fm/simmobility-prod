@@ -19,16 +19,13 @@ class Broker;
 class WaitForClientConnection {
 	sim_mob::Broker & broker;
 	bool wait_status;
-	boost::condition_variable cond_var;
 	boost::mutex	mutex_;
+protected:
 	void setWaitStatus(bool);
 public:
 	WaitForClientConnection(sim_mob::Broker &);
 	sim_mob::Broker & getBroker() const;
-	void thread_wait();
-	void tryWait();
-	void notify();
-	virtual bool evaluate() = 0;
+	virtual bool calculateWaitStatus() = 0;
 	bool isWaiting();
 	virtual ~WaitForClientConnection();
 };

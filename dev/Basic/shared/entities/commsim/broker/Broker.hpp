@@ -81,6 +81,8 @@ private:
 	ClientList::type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 	//	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
+	//	message receive call back function pointer
+	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	// list of this broker's publishers
 	PublisherList::type publishers;
 	//	place to gather outgoing data for each tick
@@ -175,6 +177,7 @@ public:
 	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
 	//	callback function executed upon message arrival
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
+	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
 	//	broker, as an agent, has an update function
 	Entity::UpdateStatus update(timeslice now);
 	//abstracts & virtuals

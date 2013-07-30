@@ -64,6 +64,12 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 }
 
 
+void WorkGroup::addOutputFileNames(std::list<std::string>& res) const
+{
+	res.insert(res.end(), logFileNames.begin(), logFileNames.end());
+}
+
+
 Worker* WorkGroup::GetLeastCongestedWorker(const vector<Worker*>& workers) {
 	Worker* res = nullptr;
 	for (vector<Worker*>::const_iterator it=workers.begin(); it!=workers.end(); it++) {
@@ -130,6 +136,7 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::ofstream* logFile = nullptr;
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			//TODO: Handle error case more gracefully.
+			logFileNames.push_back(outFilePath.str());
 			logFile = new std::ofstream(outFilePath.str().c_str());
 			managed_logs.push_back(logFile);
 		}

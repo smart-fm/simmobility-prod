@@ -118,6 +118,10 @@ public:
 
 
 private:
+	//Add to the list the name of each thread's output file.
+	void addOutputFileNames(std::list<std::string>& res) const;
+
+
 	void startAll(bool singleThreaded);
 
 	//Various stages of "wait"-ing
@@ -150,6 +154,7 @@ private:
 
 	//Log files that we are managing for Workers in this group.
 	std::list<std::ostream*> managed_logs;
+	std::list<std::string> logFileNames; //..and their names.
 
 	//Aura manager and partition manager to update, if any (either may be null).
 	sim_mob::AuraManager* auraMgr;

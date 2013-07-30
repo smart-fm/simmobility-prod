@@ -29,6 +29,16 @@ WorkGroupManager::~WorkGroupManager()
 }
 
 
+std::list<std::string> sim_mob::WorkGroupManager::retrieveOutFileNames() const
+{
+	std::list<std::string> res;
+	for (vector<WorkGroup*>::const_iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
+		(*it)->addOutputFileNames(res);
+	}
+	return res;
+}
+
+
 WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
 {
 	//Sanity check
@@ -51,7 +61,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 
 void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
 {
-	//TODO: Mighgt be overly restrictive; perhaps only "start" needs to be preempted.
+	//TODO: Might be overly restrictive; perhaps only "start" needs to be preempted.
 	if (!currState.test(INIT)) { throw std::runtime_error("Can't change to/from single-threaded mode once WorkGroups have been registered."); }
 
 	singleThreaded = enable;

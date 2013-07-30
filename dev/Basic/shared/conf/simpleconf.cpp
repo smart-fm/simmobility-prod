@@ -1770,6 +1770,21 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	ConfigParams::GetInstance().singleThreaded = singleThreaded;
 
+	//Save "mergeLogFiles", if it exists.
+	bool mergeLogFiles = false;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("merge_log_files").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="true") {
+				mergeLogFiles = true;
+			}
+		}
+	}
+	ConfigParams::GetInstance().mergeLogFiles = mergeLogFiles;
+
 
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
@@ -2233,7 +2248,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
-    	PrintDB_NetworkToFile("out.network.txt");
+    	PrintDB_NetworkToFile(ConfigParams::GetInstance().outNetworkFileName);
     	std::cout <<"------------------\n";
    // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";

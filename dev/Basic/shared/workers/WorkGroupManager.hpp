@@ -5,6 +5,8 @@
 #pragma once
 
 #include <vector>
+#include <list>
+#include <string>
 
 #include "util/LangHelpers.hpp"
 #include "util/FlexiBarrier.hpp"
@@ -36,6 +38,9 @@ public:
 
 	///Set "single-threaded" mode on all WorkGroups. This must be done *before* initAllGroups/startAllGroups (not sure which one yet).
 	void setSingleThreadMode(bool enable);
+
+	///Retrieve a list of (output) file names
+	std::list<std::string> retrieveOutFileNames() const;
 
 	/**
 	 * Create a new WorkGroup and start tracking it. All WorkGroups must be created using this method so that their

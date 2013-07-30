@@ -119,7 +119,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  */
 
 
-bool performMain(const std::string& configFileName,const std::string& XML_OutPutFileName) {
+bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
 	//Enable or disable logging (all together, for now).
@@ -262,7 +262,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
-//		std::cout << "performmain() Signal " << (*it)->getId() << "  Has " <<  (*it)->getPhases().size()/* << "  " << (*it)->getNOF_Phases()*/ <<  " phases\n";
 		signalStatusWorkers->assignAWorker(*it);
 	}
 
@@ -468,6 +467,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		}
 	}
 
+	//Save our output files if we are merging them later.
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+		resLogFiles = wgMgr.retrieveOutFileNames();
+	}
+
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
 	//WorkGroup::FinalizeAllWorkGroups();
@@ -593,20 +597,21 @@ int main(int ARGC, char* ARGV[])
 	}
 	cout << "Using config file: " << configFileName << endl;
 
-	//Argument 2: Log file. Defaults to out.txt
-	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		if (!Logger::log_init(logFileName)) {
-			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
-		}
-	}*/
-
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
+	std::list<std::string> resLogFiles;
 	if (ConfigParams::GetInstance().InteractiveMode()) {
 		returnVal = run_simmob_interactive_loop();
 	} else {
-		returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+		returnVal = performMain(configFileName, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+	}
+
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		for (std::list<std::string>::iterator it=resLogFiles.begin(); it!=resLogFiles.end(); it++) {
+			std::cout <<"OUT FILE: " <<*it <<std::endl;
+		}
 	}
 
 	cout << "Done" << endl;

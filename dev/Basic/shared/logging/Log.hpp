@@ -95,6 +95,7 @@ protected:
 	///  return a pointer to cout.
 	static std::ostream* OpenStream(const std::string& path, std::ofstream& file);
 
+public:
 	//Type of cout.
 	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
 
@@ -269,11 +270,16 @@ private:
 #define WarnOut( strm )  DO_NOTHING
 #define PrintOut( strm )  DO_NOTHING
 
+//TODO: Describe in detail later.
+#define LogOut( strm )  DO_NOTHING
 
 #else
 
+
+
 /**
  * Exactly the same as LogOut(), but for Warnings.
+ * TODO: Describe better.
  */
 #define WarnOut( strm ) \
     do \
@@ -289,6 +295,32 @@ private:
     do \
     { \
         sim_mob::Print() << strm; \
+    } \
+    while (0)
+
+
+/**
+ * Write a message (statement_list) using "Log() <<statement_list"; Compiles to nothing if output is disabled.
+ *
+ * Usage:
+ *   \code
+ *   //This:
+ *   LogOut("The total cost of " << count << " apples is " << count * unit_price);
+ *
+ *   //Is equivalent to this:
+ *   Log() <<"The total cost of " << count << " apples is " << count * unit_price;
+ *   \endcode
+ *
+ * \note
+ * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
+ * call this function without #ifdef guards and let cmake handle whether or not to display output.
+ * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
+ * an output std::stringstream. However, in this case you should call Log::IsEnabled().
+ */
+#define LogOut( strm ) \
+    do \
+    { \
+        Log() << strm; \
     } \
     while (0)
 

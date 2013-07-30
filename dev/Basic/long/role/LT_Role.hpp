@@ -8,8 +8,14 @@
  */
 #pragma once
 
+//Boost has a solution for is_base_of, but it takes 4 lines to use.
+//#include <boost/type_traits.hpp>
+
 #include "event/EventListener.hpp"
 #include "agent/LT_Agent.hpp"
+
+//TEMP: Needed for logging.
+#include "workers/Worker.hpp"
 
 
 namespace sim_mob {
@@ -80,6 +86,9 @@ namespace sim_mob {
         public:
 
             LT_AgentRole(T* parent) : parent(parent) {
+            	//Ensure that parent is a subclass of type Agent. (Won't compile otherwise).
+            	//TODO: This is only for the sake of the Log() function.
+            	Agent* parentAg = parent;
             }
 
             virtual ~LT_AgentRole() {
@@ -93,6 +102,13 @@ namespace sim_mob {
              */
             T* GetParent() const {
                 return parent;
+            }
+
+            //Allow LT_Roles to access the Logging infrastructure.
+            //TODO: Might want to have LT_Role subclass Role so that we don't have to do a messy dynamic cast here.
+            //      Templates make this more difficult than it should be.
+            NullableOutputStream Log() {
+            	return NullableOutputStream(dynamic_cast<Agent*>(parent)->currWorker->getLogFile());
             }
 
         private:

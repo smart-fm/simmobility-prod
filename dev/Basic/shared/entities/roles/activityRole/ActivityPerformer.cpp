@@ -32,15 +32,10 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Acti
 //xuyan: Error, Do not what to do, comment out
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
-//<<<<<<< HEAD
 	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
 	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");
 	return activityRole;
-//=======
-////	return new ActivityPerformer(parent);
-//	return NULL;
-//>>>>>>> master
 }
 
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams( boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(true) {

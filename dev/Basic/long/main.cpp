@@ -146,7 +146,7 @@ void RunTests() {
 }
 
 void SimulateWithDB() {
-    LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
     ConfigParams::GetInstance().baseGranMS = TICK_STEP;
@@ -183,22 +183,22 @@ void SimulateWithDB() {
             BidderParamsDao bidderDao(&conn);
             for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
                 Household* household = &(*it);
-                LogOut("Household: " << (*household) << endl);
+                PrintOut("Household: " << (*household) << endl);
                 sim_mob::db::Parameters keys;
                 keys.push_back(household->GetId());
                 SellerParams sellerParams;
                 BidderParams bidderParams;
                 sellerDao.GetById(keys, sellerParams);
                 bidderDao.GetById(keys, bidderParams);
-                LogOut("Seller: " << sellerParams << endl);
-                LogOut("Bidder: " << bidderParams << endl);
+                PrintOut("Seller: " << sellerParams << endl);
+                PrintOut("Bidder: " << bidderParams << endl);
                 HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, sellerParams, bidderParams, &market);
                 for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
                     if (it->GetId() == household->GetUnitId()) {
                         Unit* unit = new Unit(*it);
                         unit->SetAvailable(true);
                         hhAgent->AddUnit(unit);
-                        LogOut("Household: " << household->GetUnitId() << " Unit: " << unit->GetId() << endl);
+                        PrintOut("Household: " << household->GetUnitId() << " Unit: " << unit->GetId() << endl);
                     }
                 }
                 agents.push_back(hhAgent);
@@ -209,16 +209,16 @@ void SimulateWithDB() {
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 
-        LogOut("Started all workgroups." << endl);
+        PrintOut("Started all workgroups." << endl);
         for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-            LogOut("Day: " << currTick << endl);
+        	PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
 
-        LogOut("Finalizing workgroups: " << endl);
+        PrintOut("Finalizing workgroups: " << endl);
     }
 
-    LogOut("Destroying agents: " << endl);
+    PrintOut("Destroying agents: " << endl);
     //destroy all agents.
     for (list<HouseholdAgent*>::iterator itr = agents.begin();
             itr != agents.end(); itr++) {
@@ -232,7 +232,7 @@ void SimulateWithDB() {
 
 void perform_main() {
 
-    LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
     ConfigParams::GetInstance().baseGranMS = TICK_STEP;
@@ -260,7 +260,7 @@ void perform_main() {
         for (int i = 0; i < DATA_SIZE; i++) {
             Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
 
-            LogOut("Household: " << (*hh) << endl);
+            PrintOut("Household: " << (*hh) << endl);
             HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, SellerParams(), BidderParams(), &market);
             //LogOut("Household: " << (*hh) << endl);
             //add agents units.
@@ -279,16 +279,16 @@ void perform_main() {
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 
-        LogOut("Started all workgroups." << endl);
+        PrintOut("Started all workgroups." << endl);
         for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-            LogOut("Day: " << currTick << endl);
+        	PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
 
-        LogOut("Finalizing workgroups: " << endl);
+        PrintOut("Finalizing workgroups: " << endl);
     } //End WorkGroupManager scope.
 
-    LogOut("Destroying agents: " << endl);
+    PrintOut("Destroying agents: " << endl);
     //destroy all agents.
     for (list<HouseholdAgent*>::iterator itr = agents.begin();
             itr != agents.end(); itr++) {
@@ -312,14 +312,14 @@ int main(int ARGC, char* ARGV[]) {
     //get start time of the simulation.
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
-        LogOut("Simulation #:  " << (i + 1) << endl);
+    	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
         SimulateWithDB();
         //perform_main();
     }
     watch.Stop();
     Statistics::Print();
-    LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
-    LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
+    PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
+    PrintOut("#################### FINISED WITH SUCCESS ####################" << endl);
     return 0;
 }

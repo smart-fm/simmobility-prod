@@ -1178,7 +1178,42 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 
 	//Bus Stops are part of Segments
 	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		out <<"(\"busstop\", 0, " <<*it <<", {";
+		//Assumptions about the size of a Bus Stop
+		const centimeter_t length = 400;
+		const centimeter_t width  = 250;
+
+		//Use the magnitude of the parent segment to set the Bus Stop's direction and extension.
+		const BusStop* bs = *it;
+		Point2D dir;
+		{
+			const Node* start = bs->getRoadSegment()->getStart();
+			const Node* end = bs->getRoadSegment()->getEnd();
+			dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+		}
+
+		//Get a vector that is at the "lower-left" point of a bus stop, facing "up" and "right"
+		DynamicVector vec(bs->xPos, bs->yPos, bs->xPos+dir.getX(), bs->yPos+dir.getY());
+		vec.scaleVectTo(length/2).translateVect().flipRight();
+		vec.scaleVectTo(width/2).translateVect().flipRight();
+
+		//Now, create a "near" vector and a "far" vector
+		DynamicVector near(vec);
+		near.scaleVectTo(length);
+		DynamicVector far(vec);
+		far.flipRight().scaleVectTo(width).translateVect();
+		far.flipLeft().scaleVectTo(length);
+
+		//Save it.
+		out <<"(\"busstop\", 0, " <<bs <<", {";
+		out <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
+		out <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
+		out <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
+		out <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
+		out <<"})" <<std::endl;
+
+		//Old code; this just fakes the bus stop at a 40 degree angle.
+		//TODO: Remove this code once we verify that the above code is better.
+		/*out <<"(\"busstop\", 0, " <<*it <<", {";
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
@@ -1202,8 +1237,10 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 		out <<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
 		out <<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
 		out <<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
-		out <<"})" <<endl;
+		out <<"})" <<endl;*/
 
+		//TODO: This code might be better, but it should still be replaced by the above code.
+		/*
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"busstop\", 0, " <<*it <<", {";
@@ -1214,7 +1251,7 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 			stream<<"})";
 			string s = stream.str();
 			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
+		}*/
 	}
 
 
@@ -1253,8 +1290,8 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 	}
 
 	//Print the StreetDirectory graphs.
-	StreetDirectory::instance().printDrivingGraph();
-	StreetDirectory::instance().printWalkingGraph();
+	StreetDirectory::instance().printDrivingGraph(out);
+	StreetDirectory::instance().printWalkingGraph(out);
 
 	//Required for the visualizer
 	out <<"ROADNETWORK_DONE" <<endl;
@@ -2196,7 +2233,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
-    	PrintDB_NetworkToFile("out.rn.txt");
+    	PrintDB_NetworkToFile("out.network.txt");
     	std::cout <<"------------------\n";
    // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";

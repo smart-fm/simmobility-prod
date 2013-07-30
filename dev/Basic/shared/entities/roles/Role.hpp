@@ -4,14 +4,16 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/random.hpp>
+
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
-#include "boost/thread/thread.hpp"
-#include "boost/thread/locks.hpp"
+#include "workers/Worker.hpp"
 #include "logging/Log.hpp"
-#include <boost/random.hpp>
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"
 
@@ -159,6 +161,10 @@ protected:
 
 	//add by xuyan
 protected:
+	NullableOutputStream Log() {
+		return NullableOutputStream(parent->currWorker->getLogFile());
+	}
+
 	int dynamic_seed;
 
 	//Random number generator

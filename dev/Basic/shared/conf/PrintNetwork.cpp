@@ -30,7 +30,9 @@ using namespace sim_mob;
 sim_mob::PrintNetwork::PrintNetwork(const Config& cfg) : cfg(cfg)
 {
 	//Print the network legacy format to logout.
+	out.open("out.network.txt");
 	LogNetworkLegacyFormat();
+	out.close();
 }
 
 
@@ -79,8 +81,8 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	}
 
 	//Print the StreetDirectory graphs.
-	StreetDirectory::instance().printDrivingGraph();
-	StreetDirectory::instance().printWalkingGraph();
+	StreetDirectory::instance().printDrivingGraph(out);
+	StreetDirectory::instance().printWalkingGraph(out);
 }
 
 
@@ -88,13 +90,13 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 void sim_mob::PrintNetwork::LogLegacySimulationProps() const
 {
 	//Initial message
-	LogOut("Printing node network" <<std::endl);
-	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<std::endl);
+	out <<"Printing node network" <<std::endl;
+	out <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<std::endl;
 
 	//Print some properties of the simulation itself
-	LogOut("(\"simulation\", 0, 0, {");
-	LogOut("\"frame-time-ms\":\"" <<cfg.simulation().baseGranularity.ms() <<"\",");
-	LogOut("})" <<std::endl);
+	out <<"(\"simulation\", 0, 0, {";
+	out <<"\"frame-time-ms\":\"" <<cfg.simulation().baseGranularity.ms() <<"\",";
+	out <<"})" <<std::endl;
 }
 
 
@@ -102,7 +104,7 @@ void sim_mob::PrintNetwork::LogLegacySignalProps() const
 {
 	//Save signal information.
 	for (vector<Signal*>::const_iterator it = Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
-		LogOut((*it)->toString() <<std::endl);
+		out <<(*it)->toString() <<std::endl;
 	}
 }
 
@@ -112,13 +114,13 @@ void sim_mob::PrintNetwork::LogLegacyUniNodeProps(set<const RoadSegment*>& cache
 	//Print all Uni-Nodes, caching RoadSegments as you go.
 	const set<UniNode*>& nodes = cfg.network().getUniNodes();
 	for (set<UniNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		LogOut("(\"uni-node\", 0, " <<*it <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		out <<"(\"uni-node\", 0, " <<*it <<", {";
+		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
+			out <<(*it)->originalDB_ID.getLogItem();
 		}
-		LogOut("})" <<std::endl);
+		out <<"})" <<std::endl;
 
 		//Cache all segments at this Node.
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
@@ -135,13 +137,13 @@ void sim_mob::PrintNetwork::LogLegacyMultiNodeProps(set<const RoadSegment*>& cac
 	const vector<MultiNode*>& nodes = cfg.network().getNodes();
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		const MultiNode* node = *it;
-		LogOut("(\"multi-node\", 0, " <<node <<", {");
-		LogOut("\"xPos\":\"" <<node->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<node->location.getY() <<"\",");
+		out <<"(\"multi-node\", 0, " <<node <<", {";
+		out <<"\"xPos\":\"" <<node->location.getX() <<"\",";
+		out <<"\"yPos\":\"" <<node->location.getY() <<"\",";
 		if (!node->originalDB_ID.getLogItem().empty()) {
-			LogOut(node->originalDB_ID.getLogItem());
+			out <<node->originalDB_ID.getLogItem();
 		}
-		LogOut("})" <<std::endl);
+		out <<"})" <<std::endl;
 
 
 		//Cache all segments
@@ -165,16 +167,16 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 {
 	const vector<Link*>& links = cfg.network().getLinks();
 	for (vector<Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
-		LogOut("(\"link\", 0, " <<*it <<", {");
-		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOut("\"start-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOut("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
-		LogOut("\"fwd-path\":\"[");
+		out <<"(\"link\", 0, " <<*it <<", {";
+		out <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		out <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		out <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		out <<"\"fwd-path\":\"[";
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOut(*segIt <<",");
+			out <<*segIt <<",";
 		}
-		LogOut("]\",");
-		LogOut("})" <<std::endl);
+		out <<"]\",";
+		out <<"})" <<std::endl;
 	}
 }
 
@@ -183,17 +185,17 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 
 void sim_mob::PrintNetwork::LogLegacySegment(const RoadSegment* const rs, set<const Crossing*>& cachedCrossings, set<const BusStop*>& cachedBusStops) const
 {
-	LogOut("(\"road-segment\", 0, " <<rs <<", {");
-	LogOut("\"parent-link\":\"" <<rs->getLink() <<"\",");
-	LogOut("\"max-speed\":\"" <<rs->maxSpeed <<"\",");
-	LogOut("\"width\":\"" <<rs->width <<"\",");
-	LogOut("\"lanes\":\"" <<rs->getLanes().size() <<"\",");
-	LogOut("\"from-node\":\"" <<rs->getStart() <<"\",");
-	LogOut("\"to-node\":\"" <<rs->getEnd() <<"\",");
+	out <<"(\"road-segment\", 0, " <<rs <<", {";
+	out <<"\"parent-link\":\"" <<rs->getLink() <<"\",";
+	out <<"\"max-speed\":\"" <<rs->maxSpeed <<"\",";
+	out <<"\"width\":\"" <<rs->width <<"\",";
+	out <<"\"lanes\":\"" <<rs->getLanes().size() <<"\",";
+	out <<"\"from-node\":\"" <<rs->getStart() <<"\",";
+	out <<"\"to-node\":\"" <<rs->getEnd() <<"\",";
 	if (!rs->originalDB_ID.getLogItem().empty()) {
-		LogOut(rs->originalDB_ID.getLogItem());
+		out <<rs->originalDB_ID.getLogItem();
 	}
-	LogOut("})" <<std::endl);
+	out <<"})" <<std::endl;
 
 	//Cache obstacles for display later.
 	const map<centimeter_t, const RoadItem*>& obstacles = rs->obstacles;
@@ -221,14 +223,14 @@ void sim_mob::PrintNetwork::LogLegacySegPolyline(const RoadSegment* const rs) co
 	//No polyline?
 	if (rs->polyline.empty()) { return; }
 
-	LogOut("(\"polyline\", 0, " <<&(rs->polyline) <<", {");
-	LogOut("\"parent-segment\":\"" <<rs <<"\",");
-	LogOut("\"points\":\"[");
+	out <<"(\"polyline\", 0, " <<&(rs->polyline) <<", {";
+	out <<"\"parent-segment\":\"" <<rs <<"\",";
+	out <<"\"points\":\"[";
 	for (vector<Point2D>::const_iterator ptIt=rs->polyline.begin(); ptIt!=rs->polyline.end(); ptIt++) {
-		LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
+		out <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 	}
-	LogOut("]\",");
-	LogOut("})" <<std::endl);
+	out <<"]\",";
+	out <<"})" <<std::endl;
 }
 
 void sim_mob::PrintNetwork::LogLegacySegLanes(const RoadSegment* const rs) const
@@ -263,18 +265,18 @@ void sim_mob::PrintNetwork::LogLegacySegLanes(const RoadSegment* const rs) const
 	buff <<"})" <<std::endl;
 
 	//Flush the buffer to output.
-	LogOut(buff.str());
+	out <<buff.str();
 }
 
 
 void sim_mob::PrintNetwork::LogLegacyCrossing(const Crossing* const cr) const
 {
-	LogOut("(\"crossing\", 0, " <<cr <<", {");
-	LogOut("\"near-1\":\"" <<cr->nearLine.first.getX() <<"," <<cr->nearLine.first.getY() <<"\",");
-	LogOut("\"near-2\":\"" <<cr->nearLine.second.getX() <<"," <<cr->nearLine.second.getY() <<"\",");
-	LogOut("\"far-1\":\"" <<cr->farLine.first.getX() <<"," <<cr->farLine.first.getY() <<"\",");
-	LogOut("\"far-2\":\"" <<cr->farLine.second.getX() <<"," <<cr->farLine.second.getY() <<"\",");
-	LogOut("})" <<std::endl);
+	out <<"(\"crossing\", 0, " <<cr <<", {";
+	out <<"\"near-1\":\"" <<cr->nearLine.first.getX() <<"," <<cr->nearLine.first.getY() <<"\",";
+	out <<"\"near-2\":\"" <<cr->nearLine.second.getX() <<"," <<cr->nearLine.second.getY() <<"\",";
+	out <<"\"far-1\":\"" <<cr->farLine.first.getX() <<"," <<cr->farLine.first.getY() <<"\",";
+	out <<"\"far-2\":\"" <<cr->farLine.second.getX() <<"," <<cr->farLine.second.getY() <<"\",";
+	out <<"})" <<std::endl;
 }
 
 
@@ -305,12 +307,12 @@ void sim_mob::PrintNetwork::LogLegacyBusStop(const BusStop* const bs) const
 	far.flipLeft().scaleVectTo(length);
 
 	//Save it.
-	LogOut("(\"busstop\", 0, " <<bs <<", {");
-	LogOut("\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",");
-	LogOut("\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",");
-	LogOut("\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",");
-	LogOut("\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",");
-	LogOut("})" <<std::endl);
+	out <<"(\"busstop\", 0, " <<bs <<", {";
+	out <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
+	out <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
+	out <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
+	out <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
+	out <<"})" <<std::endl;
 
 	//Old code; this just fakes the bus stop at a 40 degree angle.
 	//Remove this code once we verify that BusStops are actually located more accurately with the new code.
@@ -349,12 +351,12 @@ void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const l
 	unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),lc->getLaneTo()));
 
 	//Output
-	LogOut("(\"lane-connector\", 0, " <<lc <<", {");
-	LogOut("\"from-segment\":\"" <<fromSeg <<"\",");
-	LogOut("\"from-lane\":\"" <<fromLane <<"\",");
-	LogOut("\"to-segment\":\"" <<toSeg <<"\",");
-	LogOut("\"to-lane\":\"" <<toLane <<"\",");
-	LogOut("})" <<std::endl);
+	out <<"(\"lane-connector\", 0, " <<lc <<", {";
+	out <<"\"from-segment\":\"" <<fromSeg <<"\",";
+	out <<"\"from-lane\":\"" <<fromLane <<"\",";
+	out <<"\"to-segment\":\"" <<toSeg <<"\",";
+	out <<"\"to-lane\":\"" <<toLane <<"\",";
+	out <<"})" <<std::endl;
 }
 
 

@@ -20,6 +20,7 @@
 #include "geospatial/Point2D.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/Entity.hpp"
+#include "logging/NullableOutputStream.hpp"
 
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
@@ -28,42 +29,6 @@
 #include "geospatial/Link.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
-
-
-#ifdef SIMMOB_DISABLE_OUTPUT
-
-//Simply destroy this text; no logging; no locking
-#define LogOut( strm )  DO_NOTHING
-
-#else
-
-
-/**
- * Write a message (statement_list) using "Log() <<statement_list"; Compiles to nothing if output is disabled.
- *
- * Usage:
- *   \code
- *   //This:
- *   LogOut("The total cost of " << count << " apples is " << count * unit_price);
- *
- *   //Is equivalent to this:
- *   Log() <<"The total cost of " << count << " apples is " << count * unit_price;
- *   \endcode
- *
- * \note
- * If SIMMOB_DISABLE_OUTPUT is defined, this macro will discard its arguments. Thus, it is safe to
- * call this function without #ifdef guards and let cmake handle whether or not to display output.
- * In some cases, it is still wise to check SIMMOB_DISABLE_OUTPUT; for example, if you are building up
- * an output std::stringstream. However, in this case you should call Log::IsEnabled().
- */
-#define LogOut( strm ) \
-    do \
-    { \
-        sim_mob::Agent::Log() << strm; \
-    } \
-    while (0)
-
-#endif
 
 
 
@@ -150,52 +115,9 @@ public:
 
 
 protected:
-	/**
-	 * Logging functionality for Agents. See the StaticLogManager class for general details about how logging works;
-	 * note that Agents do not require an Init() call.
-	 *
-	 * A "Log" item usually includes simulation output. Note that "Log" items are NOT locked with a mutex.
-	 *
-	 * To be used like so:
-	 *
-	 *   \code
-	 *   Log() <<"Agent is at: " <<pt <<std::endl;
-	 *   \endcode
-	 *
-	 * ...or, if performance is critical:
-	 *
-	 *   \code
-	 *   LogOut("Agent is at: " <<pt <<std::endl);
-	 *   \endcode
-	 */
-	class Log : private StaticLogManager {
-	public:
-		///Construct a new Log() object. It is best to use this object immediately, by chaining to calls of operator<<.
-		Log();
-
-		///Destroy a Log() object.
-		~Log();
-
-		///Log a given item; this simply forwards the call to operator<< of the given logger.
-		///NOTE: I am assuming that return-by-reference keeps the object alive until all chained
-		///      operator<<'s are done. Should check the standard on this. ~Seth
-		template <typename T>
-		Log& operator<< (const T& val);
-
-	    ///Hack to get manipulators (std::endl) to work.
-		///NOTE: I have *no* idea if this is extremely stupid or not. ~Seth
-		Log& operator<<(StandardEndLine manip) {
-			if (log_handle) {
-				manip(*log_handle);
-			}
-			return *this;
-		}
-
-	private:
-		///Where to send logging events. May point to std::cout, std::cerr,
-		/// or a file stream located in a subclass.
-		static std::ostream* log_handle;
-	};
+	///Access the Logger.
+	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.
+ 	sim_mob::NullableOutputStream Log();
 
 
 	///Called during the first call to update() for a given agent.
@@ -456,18 +378,6 @@ public:
 } //End namespace sim_mob
 
 
-/////////////////////////////////////////////////////////////////////
-// Template implementation
-/////////////////////////////////////////////////////////////////////
-
-template <typename T>
-sim_mob::Agent::Log& sim_mob::Agent::Log::operator<< (const T& val)
-{
-	if (log_handle) {
-		(*log_handle) <<val;
-	}
-	return *this;
-}
 
 
 

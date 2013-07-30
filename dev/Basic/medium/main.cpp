@@ -130,11 +130,11 @@ bool performMainMed(const std::string& configFileName) {
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
 	if (ConfigParams::GetInstance().OutputEnabled()) {
-		Log::Init("out.txt");
+		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
 	} else {
-		Log::Ignore();
+		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
 	}

@@ -2,7 +2,9 @@
 #include "logging/Log.hpp"
 
 sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName) :
-BehaviorFacet(parentAgent), parentActivity(parentRole)  {}
+	BehaviorFacet(parentAgent),
+	parentActivity(parentRole)
+{}
 
 
 void sim_mob::ActivityPerformerBehavior::frame_init(UpdateParams& p) {

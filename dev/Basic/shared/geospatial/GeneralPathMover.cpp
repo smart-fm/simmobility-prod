@@ -831,14 +831,12 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 {
 
 	//Nothing to do?
-	if (newLaneID == currLaneID)
-	{
-		PrintOut("Nothing to do for next" << std::endl);
+	if (newLaneID == currLaneID) {
+		//PrintOut("Nothing to do for next" << std::endl);
 		return;
 	}
 
-	if (Debug::Paths)
-	{
+	if (Debug::Paths) {
 		DebugStream << "Switching to new lane: " << newLaneID << " from lane: " << currLaneID << endl;
 	}
 

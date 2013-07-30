@@ -63,6 +63,6 @@ void Statistics::Print() {
     for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
         string paramName = ToString((Statistics::StatsParameter)(itr->first));
         long value = itr->second;
-        LogOut(paramName << ": " << value << endl);
+        PrintOut(paramName << ": " << value << endl);
     }
 }

@@ -33,7 +33,7 @@ const int ID_TO_GET =1;
 
 template <typename T, typename K>
 void TestDao() {
-    LogOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
+    PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DBConnection conn(sim_mob::db::POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
@@ -43,14 +43,14 @@ void TestDao() {
         sim_mob::db::Parameters keys;
         keys.push_back(ID_TO_GET);
         if (dao.GetById(keys, valueById)) {
-            LogOut("Get by id: " << valueById << endl);
+        	PrintOut("Get by id: " << valueById << endl);
         }
 
         std::vector<K> values;
         dao.GetAll(values);
-        LogOut("GetAll Size: " << values.size() << endl);
+        PrintOut("GetAll Size: " << values.size() << endl);
         for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("Value: " << (*it) << endl);
+        	PrintOut("Value: " << (*it) << endl);
         }
     }
 }

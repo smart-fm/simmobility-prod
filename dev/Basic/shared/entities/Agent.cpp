@@ -6,6 +6,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/StrictAgentErrors.h"
 #include "logging/Log.hpp"
+#include "workers/Worker.hpp"
 
 #include "util/DebugFlags.hpp"
 #include "partitions/PartitionManager.hpp"
@@ -297,6 +298,12 @@ void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime) {
 	travelStatsMap.insert(std::make_pair(exitTime, ts));
 }
 
+NullableOutputStream sim_mob::Agent::Log()
+{
+	return NullableOutputStream(currWorker->getLogFile());
+}
+
+
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent::getOwnRandomNumber() {
 	int one_try = -1;
@@ -337,21 +344,4 @@ const Agent* sim_mob::AgentLifeEventArgs::GetAgent() const {
 }
 
 
-//////////////////////////////////////////////////////////////
-// Log implementation
-//////////////////////////////////////////////////////////////
-
-sim_mob::Agent::Log::Log()
-{
-	log_handle = currWorker->getLogFile();
-}
-
-
-sim_mob::Agent::Log::~Log()
-{
-	//Flush any pending output to stdout.
-/*	if (log_handle) {
-		(*log_handle) <<std::flush;
-	}*/
-}
 

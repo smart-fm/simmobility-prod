@@ -18,15 +18,15 @@
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "logging/Log.hpp"
+#include "logging/NullableOutputStream.hpp"
 #include <boost/random.hpp>
 
 namespace sim_mob {
 
-#ifndef SIMMOB_DISABLE_MPI
+class Person;
 class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 /* The BehaviorFacet and MovementFacet abstract base classes are pretty much identical. They are kept separate for semantic reasons.
  * The Role class will just serve as a container for these two classes. Each subclass of role (Driver, Pedestrian, Passenger, ActivityRole etc.)
@@ -72,12 +72,14 @@ public:
 	}
 
 protected:
+	///Access the Logger.
+	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.
+ 	sim_mob::NullableOutputStream Log();
+
 	Person* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 public:
-#ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;
-#endif
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
@@ -127,12 +129,14 @@ public:
 	}
 
 protected:
+	///Access the Logger.
+	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.
+ 	sim_mob::NullableOutputStream Log();
+
 	Person* parentAgent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
 public:
-#ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;
-#endif
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

@@ -23,7 +23,7 @@ UnitHolder::~UnitHolder() {
             itr != holdingUnits.end(); itr++) {
         Unit* unit = (*itr).second;
         if (unit && ((unit->owner == nullptr) || (unit->owner && unit->owner == this))) {
-            LogOut("Unit: " << unit->id << " was deleted by: " << id << endl);
+            PrintOut("Unit: " << unit->id << " was deleted by: " << id << endl);
             safe_delete_item(unit);
         }
     }

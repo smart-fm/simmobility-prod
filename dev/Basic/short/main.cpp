@@ -88,12 +88,6 @@ using namespace sim_mob;
 //Start time of program
 timeval start_time;
 
-//Helper for computing differences. May be off by ~1ms
-namespace {
-int diff_ms(timeval t1, timeval t2) {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
-}
-} //End anon namespace
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
@@ -312,7 +306,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = diff_ms(loop_start_time, start_time);
+	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time);
 
 	ParitionDebugOutput debug;
 
@@ -506,16 +500,16 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
  */
 int run_simmob_interactive_loop() {
 	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+	std::list<std::string> resLogFiles;
 	int retVal = 1;
-	for (;;)
-	{
+	for (;;) {
 		if(ctrlMgr->getSimState() == LOADSCENARIO)
 		{
 			ctrlMgr->setSimState(RUNNING);
 			std::map<std::string,std::string> paras;
 			ctrlMgr->getLoadScenarioParas(paras);
 			std::string configFileName = paras["configFileName"];
-			retVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;
+			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
 			ConfigParams::GetInstance().reset();
 			std::cout<<"scenario finished"<<std::cout;
@@ -609,9 +603,7 @@ int main(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
 		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
-		for (std::list<std::string>::iterator it=resLogFiles.begin(); it!=resLogFiles.end(); it++) {
-			std::cout <<"OUT FILE: " <<*it <<std::endl;
-		}
+		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 
 	cout << "Done" << endl;

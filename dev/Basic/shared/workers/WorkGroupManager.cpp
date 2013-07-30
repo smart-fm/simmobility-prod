@@ -31,6 +31,11 @@ WorkGroupManager::~WorkGroupManager()
 
 std::list<std::string> sim_mob::WorkGroupManager::retrieveOutFileNames() const
 {
+	bool pass = currState.test(BARRIERS) || currState.test(STARTED);
+	if (!pass) {
+		throw std::runtime_error("retrieveOutFileNames() failed: the current state does not allow it.");
+	}
+
 	std::list<std::string> res;
 	for (vector<WorkGroup*>::const_iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->addOutputFileNames(res);

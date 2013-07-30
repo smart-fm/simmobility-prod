@@ -9,6 +9,7 @@
 #pragma once
 #include <ctime>
 #include <vector>
+#include <list>
 #include <string>
 
 namespace sim_mob {
@@ -36,6 +37,14 @@ namespace sim_mob {
          * Convert argc/argv into a vector of strings representing each argument.
          */
         static std::vector<std::string> ParseArgs(int argc, char* argv[]);
+
+        /**
+         *
+         */
+        static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
+
+        //Helper for computing differences. May be off by ~1ms
+        static int diff_ms(timeval t1, timeval t2);
     };
 
     /**

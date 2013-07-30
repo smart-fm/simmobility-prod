@@ -145,7 +145,7 @@ void RunTests() {
     tests.TestAll();
 }
 
-void SimulateWithDB() {
+void SimulateWithDB(std::list<std::string>& resLogFiles) {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
@@ -216,6 +216,11 @@ void SimulateWithDB() {
         }
 
         PrintOut("Finalizing workgroups: " << endl);
+
+    	//Save our output files if we are merging them later.
+    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+    		resLogFiles = wgMgr.retrieveOutFileNames();
+    	}
     }
 
     PrintOut("Destroying agents: " << endl);
@@ -310,16 +315,24 @@ int main(int ARGC, char* ARGV[]) {
     StopWatch watch;
 
     //get start time of the simulation.
+    std::list<std::string> resLogFiles;
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
     	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
-        SimulateWithDB();
+        SimulateWithDB(resLogFiles);
         //perform_main();
     }
     watch.Stop();
     Statistics::Print();
     PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
+
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		Utils::PrintAndDeleteLogFiles(resLogFiles);
+	}
+
     PrintOut("#################### FINISED WITH SUCCESS ####################" << endl);
     return 0;
 }

@@ -42,7 +42,7 @@ template <class T>
 class StateSwitcher {
 public:
 	StateSwitcher(const T& initVal) : curr(initVal) {}
-	bool test(const T& testVal) { return curr==testVal; }
+	bool test(const T& testVal) const { return curr==testVal; }
 	bool set(const T& newVal) { curr=newVal; return true; }
 	bool testAndSet(const T& newVal) { bool res=test(newVal)&&set(newVal); return res; }
 	bool update(const T& newVal) { bool res=(newVal!=curr); if (res) {curr=newVal;} return res; }

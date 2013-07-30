@@ -61,11 +61,7 @@ using namespace sim_mob::medium;
 //Start time of program
 timeval start_time_med;
 
-//Helper for computing differences. May be off by ~1ms
 namespace {
-int diff_ms(timeval t1, timeval t2) {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
-}
 
 /**
  * For now, the medium-term expects the following models to be available. We have to fake these,
@@ -122,7 +118,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMainMed(const std::string& configFileName) {
+bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
 	//Enable or disable logging (all together, for now).
@@ -251,7 +247,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = diff_ms(loop_start_time, start_time_med);
+	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
@@ -351,6 +347,11 @@ bool performMainMed(const std::string& configFileName) {
 		}
 	}
 
+	//Save our output files if we are merging them later.
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+		resLogFiles = wgMgr.retrieveOutFileNames();
+	}
+
 	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
 	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 
@@ -440,7 +441,14 @@ int main(int ARGC, char* ARGV[])
 
 	//Perform main loop
 	clock_t simStartTime = clock();
-	int returnVal = performMainMed(configFileName) ? 0 : 1;
+	std::list<std::string> resLogFiles;
+	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
+
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		Utils::PrintAndDeleteLogFiles(resLogFiles);
+	}
 
 	//Close log file, return.
 	cout << "Done" << endl;

@@ -1,8 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Entity.hpp"
-#include "conf/simpleconf.hpp"
 
+#include "buffering/BufferedDataManager.hpp"
+#include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 
 using std::string;

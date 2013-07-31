@@ -3,6 +3,7 @@
 #pragma once
 
 #include <ostream>
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 

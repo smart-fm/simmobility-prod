@@ -9,24 +9,17 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "conf/settings/DisableMPI.h"
-
-#include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "logging/Log.hpp"
+#include "util/LangHelpers.hpp"
 
-namespace sim_mob
-{
 
+namespace sim_mob {
+
+class BufferedBase;
 class Worker;
 class WorkerProvider;
 class WorkGroup;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
-#endif
 
 
 

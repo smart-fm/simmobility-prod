@@ -45,7 +45,7 @@ class BusStop : public sim_mob::RoadItem {
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0), parentSegment_(nullptr),
+	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),
 		generatedBusStopAgent(nullptr), is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
 	{}
 
@@ -82,17 +82,12 @@ public:
 
 
 public:
-    sim_mob::RoadSegment* getRoadSegment() const {
-        return parentSegment_;
-    }
-    void setParentSegment(RoadSegment *rs) { parentSegment_ = rs;} //virtual from RoadItem
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
 
 
 public:
     std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
-	sim_mob::RoadSegment* parentSegment_;
 	BusStopAgent* generatedBusStopAgent;// pointer to the generated BusStopAgent
 	std::string busstopno_;
 		double xPos;

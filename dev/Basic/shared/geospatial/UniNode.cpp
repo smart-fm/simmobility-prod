@@ -5,8 +5,9 @@
 #include "UniNode.hpp"
 
 #include <boost/thread.hpp>
-#include "Lane.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;

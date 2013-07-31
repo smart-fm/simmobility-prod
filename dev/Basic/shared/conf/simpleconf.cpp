@@ -1186,8 +1186,8 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 		const BusStop* bs = *it;
 		Point2D dir;
 		{
-			const Node* start = bs->getRoadSegment()->getStart();
-			const Node* end = bs->getRoadSegment()->getEnd();
+			const Node* start = bs->getParentSegment()->getStart();
+			const Node* end = bs->getParentSegment()->getEnd();
 			dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
 		}
 

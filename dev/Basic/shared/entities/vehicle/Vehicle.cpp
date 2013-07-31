@@ -1,14 +1,11 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
-/*
- * Vehicle.cpp
- *
- *  Created on: Oct 24, 2011
- *      Author: lzm
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Vehicle.hpp"
+
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Node.hpp"
 
 #include "logging/Log.hpp"
 

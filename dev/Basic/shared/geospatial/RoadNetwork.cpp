@@ -4,12 +4,13 @@
 
 #include "RoadNetwork.hpp"
 
-#include "Node.hpp"
-#include "UniNode.hpp"
-#include "MultiNode.hpp"
-#include "Point2D.hpp"
-#include "util/GeomHelpers.hpp"
 #include <cmath>
+
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Point2D.hpp"
+#include "util/GeomHelpers.hpp"
 
 using std::set;
 using std::pair;

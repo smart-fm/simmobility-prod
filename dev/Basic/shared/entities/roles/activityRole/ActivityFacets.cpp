@@ -14,17 +14,17 @@ void sim_mob::ActivityPerformerBehavior::frame_init(UpdateParams& p) {
 void sim_mob::ActivityPerformerBehavior::frame_tick(UpdateParams& p) {
 	parentActivity->updateRemainingTime();
 	if(parentActivity->remainingTimeToComplete <= 0){
-		parentAgent->setToBeRemoved();
+		getParent()->setToBeRemoved();
 	}
 }
 
 void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p) {
 	LogOut("(\"Activity\""
 			<<","<<p.now.frame()
-			<<","<<parentAgent->getId()
+			<<","<<getParent()->getId()
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(parentAgent->xPos)
-			<<"\",\"yPos\":\""<<static_cast<int>(parentAgent->yPos)
+			<<"\"xPos\":\""<<static_cast<int>(getParent()->xPos)
+			<<"\",\"yPos\":\""<<static_cast<int>(getParent()->yPos)
 			<<"\"})"<<std::endl);
 }
 

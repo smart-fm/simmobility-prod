@@ -68,8 +68,8 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 //	}
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
-		parentAgent->xPos.set(parentPassenger->busdriver.get()->getPositionX());
-		parentAgent->yPos.set(parentPassenger->busdriver.get()->getPositionY());
+		getParent()->xPos.set(parentPassenger->busdriver.get()->getPositionX());
+		getParent()->yPos.set(parentPassenger->busdriver.get()->getPositionY());
 	}
 }
 
@@ -77,23 +77,23 @@ void sim_mob::PassengerMovement::frame_init(UpdateParams& p) {
 	//initialization
 	WaitingTime = -1;
 	OriginBusStop=nullptr;
-	if(parentAgent->originNode.type_==WayPoint::NODE)
-		OriginBusStop = setBusStopXY(parentAgent->originNode.node_);
+	if(getParent()->originNode.type_==WayPoint::NODE) {
+		OriginBusStop = setBusStopXY(getParent()->originNode.node_);
+	}
 
-	if(OriginBusStop!=nullptr)
-	{
-		parentAgent->xPos.set(OriginBusStop->xPos);
-		parentAgent->yPos.set(OriginBusStop->yPos);
+	if(OriginBusStop) {
+		getParent()->xPos.set(OriginBusStop->xPos);
+		getParent()->yPos.set(OriginBusStop->yPos);
 	}
 	DestBusStop=nullptr;
-	if(parentAgent->destNode.type_ == WayPoint::NODE )
+	if(getParent()->destNode.type_ == WayPoint::NODE )
 	{
-		DestBusStop = setBusStopXY(parentAgent->destNode.node_);
+		DestBusStop = setBusStopXY(getParent()->destNode.node_);
 	}
 	TimeOfReachingBusStop=p.now.ms();
 	//Person* person = dynamic_cast<Person*> (parent);
-	if(parentAgent) {
-		parentAgent->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+	if(getParent()) {
+		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
 	FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
 }
@@ -103,19 +103,19 @@ void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
 		if(alighting_MS == p.now.ms()) {
 			alighting_MS = 0;
 			//Person* person = dynamic_cast<Person*> (parent);
-			if(parentAgent) {
-				if(!parentAgent->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+			if(getParent()) {
+				if(!getParent()->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
 				}
-				Passenger* passenger = dynamic_cast<Passenger*> (parentAgent->getNextRole());
+				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
 				if(passenger) {// nextRole is passenger
 					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", parentAgent);
-					parentAgent->changeRole(newRole);
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
+					getParent()->changeRole(newRole);
 					newRole->Movement()->frame_init(p);
 				} else {
-					parentAgent->setToBeRemoved();//removes passenger if destination is reached
+					getParent()->setToBeRemoved();//removes passenger if destination is reached
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);
@@ -134,7 +134,7 @@ void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
 
 	//Reset our offset if it's set to zero
 	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
-	   boost::mt19937 gen(static_cast<unsigned int>(parentAgent->getId()*parentAgent->getId()));
+	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
 	   boost::uniform_int<> distX(0, 249);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
 	   boost::uniform_int<> distY(0, 99);
@@ -147,17 +147,17 @@ void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
 
 	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false)) {
 		//output passenger on visualizer only if passenger on road
-		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(parentAgent->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parentAgent->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
+		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 	} else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true)) {
 		//output passenger on visualizer only if passenger on road
-		 LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);
+		 LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);
 	}
 }
 
 void sim_mob::PassengerMovement::frame_tick_output_mpi(timeslice now) {
 	//Reset our offset if it's set to zero
 	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
-	   boost::mt19937 gen(static_cast<unsigned int>(parentAgent->getId()*parentAgent->getId()));
+	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
 	   boost::uniform_int<> distX(0, 249);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
 	   boost::uniform_int<> distY(0, 99);
@@ -167,22 +167,22 @@ void sim_mob::PassengerMovement::frame_tick_output_mpi(timeslice now) {
 	   value= (unsigned int)varY();
 	   DisplayOffset.setY(value+1);
 	}
-	if (now.frame() < 1 || now.frame() < parentAgent->getStartTime())
+	if (now.frame() < 1 || now.frame() < getParent()->getStartTime())
 			return;
 	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false))//output passenger on visualizer only if passenger on road
 	{
-		if (this->parentAgent->isFake) {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(parentAgent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parentAgent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY()) <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+		if (this->getParent()->isFake) {
+			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY()) <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 		} else {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(parentAgent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parentAgent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 		}
 	}
 	else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true))//output passenger on visualizer only if passenger on road
 	{
-		if (this->parentAgent->isFake) {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+		if (this->getParent()->isFake) {
+			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 		} else {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 		}
 	}
 }
@@ -209,7 +209,7 @@ bool sim_mob::PassengerMovement::isDestBusStopReached() {
 
 Point2D sim_mob::PassengerMovement::getXYPosition()
 {
-	return Point2D(parentAgent->xPos.get(),parentAgent->yPos.get());
+	return Point2D(getParent()->xPos.get(),getParent()->yPos.get());
 }
 
 Point2D sim_mob::PassengerMovement::getDestPosition()
@@ -229,8 +229,8 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(BusDriver* busdriver)
     	 parentPassenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
     	 parentPassenger->AlightedBus.set(true);
     	 parentPassenger->BoardedBus.set(false);
-    	 parentAgent->xPos.set(xpos_approachingbusstop);
-    	 parentAgent->yPos.set(ypos_approachingbusstop);
+    	 getParent()->xPos.set(xpos_approachingbusstop);
+    	 getParent()->yPos.set(ypos_approachingbusstop);
     	 displayX = xpos_approachingbusstop;
     	 displayY = ypos_approachingbusstop;
     	 return true;

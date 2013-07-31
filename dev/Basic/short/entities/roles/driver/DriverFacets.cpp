@@ -240,7 +240,7 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	//Are we done already?
 	if (parentDriver->vehicle->isDone()) {
-		parentAgent->setToBeRemoved();
+		getParent()->setToBeRemoved();
 		return;
 	}
 
@@ -320,7 +320,7 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
-			<<","<<parentAgent->getId()
+			<<","<<getParent()->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(parentDriver->vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->vehicle->getY())
@@ -334,7 +334,7 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 }
 
 void sim_mob::DriverMovement::frame_tick_output_mpi(timeslice now) {
-	if (now.frame() < parentAgent->getStartTime())
+	if (now.frame() < getParent()->getStartTime())
 		return;
 
 	if (parentDriver->vehicle->isDone())
@@ -344,13 +344,13 @@ void sim_mob::DriverMovement::frame_tick_output_mpi(timeslice now) {
 		double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
 		std::stringstream logout;
 
-		logout << "(\"Driver\"" << "," << now.frame() << "," << parentAgent->getId() << ",{" << "\"xPos\":\""
+		logout << "(\"Driver\"" << "," << now.frame() << "," << getParent()->getId() << ",{" << "\"xPos\":\""
 				<< static_cast<int> (parentDriver->vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (parentDriver->vehicle->getY())
 				<< "\",\"segment\":\"" << parentDriver->vehicle->getCurrSegment()->getSegmentID()
 				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
 				<< static_cast<int> (parentDriver->vehicle->length) << "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->width);
 
-		if (this->parentAgent->isFake) {
+		if (this->getParent()->isFake) {
 			logout << "\",\"fake\":\"" << "true";
 		} else {
 			logout << "\",\"fake\":\"" << "false";
@@ -640,7 +640,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	{
 		if(nv.distance<=0)
 		{
-			if(nv.driver->parent->getId() > parentAgent->getId())
+			if(nv.driver->parent->getId() > getParent()->getId())
 			{
 				nv = NearestVehicle();
 			}
@@ -674,12 +674,12 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 }
 
 void sim_mob::DriverMovement::setParentBufferedData() {
-	parentAgent->xPos.set(parentDriver->vehicle->getX());
-	parentAgent->yPos.set(parentDriver->vehicle->getY());
+	getParent()->xPos.set(parentDriver->vehicle->getX());
+	getParent()->yPos.set(parentDriver->vehicle->getY());
 
 	//TODO: Need to see how the parent agent uses its velocity vector.
-	parentAgent->fwdVel.set(parentDriver->vehicle->getVelocity());
-	parentAgent->latVel.set(parentDriver->vehicle->getLatVelocity());
+	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
+	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
 
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
@@ -932,7 +932,7 @@ void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, cons
 		throw std::runtime_error("Bad \"loop\" special string.");
 	}
 	//Repeat this path X times.
-	vector<WayPoint> part = LoadSpecialPath(parentAgent->originNode.node_, value[1]);
+	vector<WayPoint> part = LoadSpecialPath(getParent()->originNode.node_, value[1]);
 
 	size_t ind = value.find(':', 1);
 	if (ind != string::npos && ++ind < value.length()) {
@@ -959,7 +959,7 @@ void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
 		throw std::runtime_error("Invalid special tripchain string.");
 	}
 	//Person* p = dynamic_cast<Person*>(parentAgent);
-	if (!parentAgent) {
+	if (!getParent()) {
 		throw std::runtime_error("Parent is not of type Person");
 	}
 }
@@ -974,16 +974,16 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	Vehicle* res = nullptr;
 
 	//Only initialize if the next path has not been planned for yet.
-	if(!parentAgent->getNextPathPlanned()) {
+	if(!getParent()->getNextPathPlanned()) {
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node = parentAgent->originNode.node_;
+		parentDriver->origin.node = getParent()->originNode.node_;
 		parentDriver->origin.point = parentDriver->origin.node->location;
-		parentDriver->goal.node = parentAgent->destNode.node_;
+		parentDriver->goal.node = getParent()->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
-		Person* parentP = dynamic_cast<Person*> (parentAgent);
+		Person* parentP = dynamic_cast<Person*> (getParent());
 		if (!parentP || parentP->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
 			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
@@ -1028,7 +1028,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	}
 
 	//to indicate that the path to next activity is already planned
-	parentAgent->setNextPathPlanned(true);
+	getParent()->setNextPathPlanned(true);
 	return res;
 }
 
@@ -1137,7 +1137,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 
 		std::stringstream msg;
-		msg << "Error moving vehicle forward for Agent ID: " << parentAgent->getId() << "," << this->parentDriver->vehicle->getX() << "," << this->parentDriver->vehicle->getY() << "\n" << ex.what();
+		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->vehicle->getX() << "," << this->parentDriver->vehicle->getY() << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -1666,7 +1666,7 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 	if (actual == relative) { //We haven't merged halfway yet; check there's actually a lane for us to merge into.
 		if ((actual == LCS_LEFT && !p.leftLane) || (actual == LCS_RIGHT && !p.rightLane)) {
 			std::stringstream msg;
-			msg <<"Agent (" <<parentAgent->getId() <<") is attempting to merge into a lane that doesn't exist.";
+			msg <<"Agent (" <<getParent()->getId() <<") is attempting to merge into a lane that doesn't exist.";
 			throw std::runtime_error(msg.str().c_str());
 			//return; //Error condition
 		}
@@ -1708,11 +1708,11 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 
 				//TEMP OVERRIDE:
 				//TODO: Fix!
-				parentAgent->setToBeRemoved();
+				getParent()->setToBeRemoved();
 				return;
 
 				std::stringstream msg;
-				msg << "Error: Car has moved onto sidewalk. Agent ID: " << parentAgent->getId();
+				msg << "Error: Car has moved onto sidewalk. Agent ID: " << getParent()->getId();
 				throw std::runtime_error(msg.str().c_str());
 			}
 

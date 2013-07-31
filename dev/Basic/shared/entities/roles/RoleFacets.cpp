@@ -2,13 +2,17 @@
 
 #include "entities/Person.hpp"
 
-sim_mob::NullableOutputStream sim_mob::BehaviorFacet::Log()
+sim_mob::NullableOutputStream sim_mob::Facet::Log()
 {
-	return NullableOutputStream(parentAgent->currWorkerProvider->getLogFile());
+	return NullableOutputStream(parent->currWorkerProvider->getLogFile());
 }
 
-sim_mob::NullableOutputStream sim_mob::MovementFacet::Log()
+sim_mob::Person* sim_mob::Facet::getParent()
 {
-	return NullableOutputStream(parentAgent->currWorkerProvider->getLogFile());
+	return parent;
 }
 
+void sim_mob::Facet::setParent(sim_mob::Person* parent)
+{
+	this->parent = parent;
+}

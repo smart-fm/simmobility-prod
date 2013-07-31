@@ -5,7 +5,6 @@
 #include <queue>
 #include <vector>
 #include <functional>
-#include <stdlib.h>
 
 //These are minimal header file, so please keep includes to a minimum.
 #include "conf/settings/DisableOutput.h"
@@ -14,35 +13,26 @@
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
 
-#include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "geospatial/Point2D.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
 #include "entities/Entity.hpp"
 #include "logging/NullableOutputStream.hpp"
 
-#include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
 
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 
-
-
-namespace sim_mob
-{
+namespace sim_mob {
 
 class Agent;
+class Lane;
+class Link;
 class WorkGroup;
-
-#ifndef SIMMOB_DISABLE_MPI
+class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-#endif
+class ProfileBuilder;
 
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Agent*> {
@@ -153,7 +143,6 @@ public:
     }
 
 	///Subscribe this agent to a data manager.
-	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//Removal methods
@@ -214,9 +203,6 @@ public:
 	WayPoint originNode;
 	WayPoint destNode;
 
-//	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
-//	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
-
 	sim_mob::Shared<int> xPos;  ///<The agent's position, X
 	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
@@ -225,13 +211,6 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
-
-	//sim_mob::Buffered<int> currentLink;
-	//sim_mob::Buffered<int> currentCrossing;
-
-//	sim_mob::Shared<std::string> outgoing;  //data to be sent to other agents through communication simulator
-//	sim_mob::Shared<std::string> incoming; //data received from other agents
-
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Entity*> all_agents;

@@ -2,24 +2,24 @@
 
 #include "Agent.hpp"
 
-#include "conf/settings/ProfileOptions.h"
-#include "conf/settings/DisableMPI.h"
-#include "conf/settings/StrictAgentErrors.h"
-#include "logging/Log.hpp"
-#include "workers/Worker.hpp"
-
-#include "util/DebugFlags.hpp"
-#include "partitions/PartitionManager.hpp"
 #include <cstdlib>
 #include <cmath>
 
 #include "conf/simpleconf.hpp"
-
-#ifndef SIMMOB_DISABLE_MPI
+#include "conf/settings/ProfileOptions.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/StrictAgentErrors.h"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#endif
+#include "workers/Worker.hpp"
+#include "util/LangHelpers.hpp"
+#include "util/DebugFlags.hpp"
 
 int sim_mob::Agent::createdAgents = 0;
 int sim_mob::Agent::diedAgents = 0;

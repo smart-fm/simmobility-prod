@@ -27,9 +27,7 @@
 #include <boost/function.hpp>
 #include <boost/unordered_map.hpp>
 #include "util/FlexiBarrier.hpp"
-
 #include "entities/Entity.hpp"
-
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
 #include "buffering/Buffered.hpp"

@@ -158,15 +158,15 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << parentAgent->getId();
 	if(parentAgent->canMoveToNextSegment == Person::GRANTED) {
 		Print()	<< "|Permission: Granted"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-				<< "|PERSON|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << parentAgent->getCurrLane()->getLaneID()
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
+				<< "|PERSON|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parentAgent->getCurrLane()? parentAgent->getCurrLane()->getLaneID() : 999)
 				<< std::endl;
 		flowIntoNextLinkIfPossible(p2);
 	}
 	else if (parentAgent->canMoveToNextSegment == Person::DENIED){
 		Print() << "|Permission: Denied"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-				<< "|PERSON|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << parentAgent->getCurrLane()->getLaneID()
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
+				<< "|PERSON|CurrSegment:" << parentAgent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parentAgent->getCurrLane()? parentAgent->getCurrLane()->getLaneID() : 999)
 				<< std::endl;
 
 		if(currLane) {

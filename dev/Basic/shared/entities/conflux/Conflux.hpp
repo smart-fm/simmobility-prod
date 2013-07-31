@@ -58,7 +58,7 @@ private:
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
 	/*
-	 * virtual queues are used to hold vehicles which come from previous conflux when the current conflux is not
+	 * virtual queues are used to hold persons which come from previous conflux when the this conflux is not
 	 * processed for the current tick. Each link in the conflux has a virtual queue
 	 */
 	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
@@ -181,6 +181,7 @@ public:
 	}
 
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
+	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 
 	// adds the agent into this conflux
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);

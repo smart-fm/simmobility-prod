@@ -624,6 +624,13 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		}
 		confluxes.clear();
 	}
+
+	for(std::vector<Worker*>::iterator iWorker = workers.begin(); iWorker != workers.end(); iWorker++) {
+		for(std::set<Conflux*>::iterator iConflux = (*iWorker)->managedConfluxes.begin(); iConflux != (*iWorker)->managedConfluxes.end(); iConflux++) {
+			// begin managing properties of the conflux
+			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
+		}
+	}
 //	std::cout << debugMsgs.str();
 }
 

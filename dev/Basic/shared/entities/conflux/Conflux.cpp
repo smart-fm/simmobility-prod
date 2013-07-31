@@ -409,7 +409,7 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing) {
 	findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
-	ag->currWorker = parentWorker;
+	ag->currWorkerProvider = parentWorker;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);
 }

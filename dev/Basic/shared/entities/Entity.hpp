@@ -21,6 +21,7 @@ namespace sim_mob
 {
 
 class Worker;
+class WorkerProvider;
 class WorkGroup;
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -129,18 +130,17 @@ protected:
 	// Link* currLink;
 
 public:
-	///Who is currently managing this Entity?
-	Worker* currWorker;
-	//	your communication support
-//	sim_mob::CommunicationSupport comm;
-
 	//xuyan:only used by Sim-Tree
 	bool can_remove_by_RTREE;
 
 	// parent may create children.
 	Entity* parentEntity;
 
-	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
+	///Who is currently managing this Entity?
+	///NOTE: Do *not* replace this with a direct pointer to the Worker; it's too dangerous.
+	WorkerProvider* currWorkerProvider;
+
+	//Only the WorkGroup can retrieve/set the currWorkerProvider flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
 	friend class Worker;
 	friend class WorkerGroup;

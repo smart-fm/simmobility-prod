@@ -108,7 +108,7 @@ namespace sim_mob {
             //TODO: Might want to have LT_Role subclass Role so that we don't have to do a messy dynamic cast here.
             //      Templates make this more difficult than it should be.
             NullableOutputStream Log() {
-            	return NullableOutputStream(dynamic_cast<Agent*>(parent)->currWorker->getLogFile());
+            	return NullableOutputStream(dynamic_cast<Agent*>(parent)->currWorkerProvider->getLogFile());
             }
 
         private:

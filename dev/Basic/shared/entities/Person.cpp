@@ -774,9 +774,9 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (currRole) {
 		currRole->setParent(nullptr);
-		if (this->currWorker) {
-			this->currWorker->stopManaging(currRole->getSubscriptionParams());
-			this->currWorker->stopManaging(currRole->getDriverRequestParams().asVector());
+		if (this->currWorkerProvider) {
+			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->stopManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 	prevRole = currRole;
@@ -785,9 +785,9 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 	if (currRole) {
 		currRole->setParent(this);
-		if (this->currWorker) {
-			this->currWorker->beginManaging(currRole->getSubscriptionParams());
-			this->currWorker->beginManaging(currRole->getDriverRequestParams().asVector());
+		if (this->currWorkerProvider) {
+			this->currWorkerProvider->beginManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->beginManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 }

@@ -537,7 +537,7 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		Agent* child = pending_buses.top();
 		pending_buses.pop();
 		child->parentEntity = this;
-		currWorker->scheduleForBred(child);
+		currWorkerProvider->scheduleForBred(child);
 		all_children.push_back(child);
 	}
 

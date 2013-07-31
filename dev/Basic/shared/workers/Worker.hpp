@@ -4,20 +4,6 @@
 
 #pragma once
 
-/**
- * A "worker" performs a task asynchronously. Workers are managed by WorkGroups, which are
- *   themselves managed by the WorkGroupManager. You usually don't need to deal with
- *   Workers directly.
- *
- * Workers can be run in "singleThreaded" mode (by specifying this parameter to the WorkGroupManager).
- *   This will cause them to use no threads or barriers, and to simply be stepped through one-by-one by
- *   their parent WorkGroups.
- *
- * \author Seth N. Hetu
- * \author LIM Fung Chai
- * \author Xu Yan
- */
-
 #include <ostream>
 #include <vector>
 #include <set>
@@ -38,7 +24,44 @@ class Conflux;
 class Entity;
 
 
-class Worker : public BufferedDataManager {
+/**
+ * A "WorkerProvider" is a restrictive parent class of Worker that provides Worker-related
+ * functionality to Agents. This prevents the Agent from requiring full access to the Worker.
+ * All methods are abstract virtual; the Worker is expected to fill them in.
+ *
+ * \note
+ * See the Worker class for documentation on these functions.
+ */
+class WorkerProvider : public BufferedDataManager {
+public:
+	//NOTE: Allowing access to the BufferedDataManager is somewhat risky; we need it for Roles, but we might
+	//      want to organize this differently.
+	virtual ~WorkerProvider() {}
+
+	virtual std::ostream* getLogFile() const = 0;
+
+	virtual void scheduleForBred(Entity* entity) = 0;
+
+	virtual const std::vector<Entity*>& getEntities() const = 0;
+
+	virtual event::EventManager& getEventManager() = 0;
+};
+
+
+/**
+ * A "worker" performs a task asynchronously. Workers are managed by WorkGroups, which are
+ *   themselves managed by the WorkGroupManager. You usually don't need to deal with
+ *   Workers directly.
+ *
+ * Workers can be run in "singleThreaded" mode (by specifying this parameter to the WorkGroupManager).
+ *   This will cause them to use no threads or barriers, and to simply be stepped through one-by-one by
+ *   their parent WorkGroups.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
+ */
+class Worker : public WorkerProvider {
 private:
 	friend class WorkGroup;
 
@@ -76,7 +99,7 @@ public:
 	void scheduleForBred(Entity* entity);
 
 	event::EventManager& getEventManager();
-	std::ostream* getLogFile() const;
+	virtual std::ostream* getLogFile() const;
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().

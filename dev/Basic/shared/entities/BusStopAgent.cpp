@@ -126,7 +126,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 void sim_mob::BusStopAgent::unregisterAlightedPerons()
 {
 	for(int i = 0; i < alighted_Persons.size(); i++) {
-		if(!(alighted_Persons[i]->currWorker)) {// currWorker is nullptr
+		if(!(alighted_Persons[i]->currWorkerProvider)) {
 			std::cout << "alighted_Persons[i]->getRole(): " << alighted_Persons[i]->getRole() << std::endl;
 			alighted_Persons.erase(alighted_Persons.begin() + i);// ghost, erase this person from the BusStopAgent
 		} else {

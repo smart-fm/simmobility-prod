@@ -162,7 +162,7 @@ protected:
 	//add by xuyan
 protected:
 	NullableOutputStream Log() {
-		return NullableOutputStream(parent->currWorker->getLogFile());
+		return NullableOutputStream(parent->currWorkerProvider->getLogFile());
 	}
 
 	int dynamic_seed;

@@ -4,11 +4,11 @@
 
 sim_mob::NullableOutputStream sim_mob::BehaviorFacet::Log()
 {
-	return NullableOutputStream(parentAgent->currWorker->getLogFile());
+	return NullableOutputStream(parentAgent->currWorkerProvider->getLogFile());
 }
 
 sim_mob::NullableOutputStream sim_mob::MovementFacet::Log()
 {
-	return NullableOutputStream(parentAgent->currWorker->getLogFile());
+	return NullableOutputStream(parentAgent->currWorkerProvider->getLogFile());
 }
 

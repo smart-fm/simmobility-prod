@@ -477,14 +477,14 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 	}
 	try {
 
-		if (!(info->getEntity().currWorker)) {
+		if (!(info->getEntity().currWorkerProvider)) {
 			Print() << "currWorker dead" << std::endl;
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity().currWorker->getEntities();
+				info->getEntity().currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
@@ -514,12 +514,11 @@ void Broker::refineSubscriptionList() {
 	{
 		const sim_mob::Agent * target = (*it).first;
 		//you or your worker are probably dead already. you just don't know it
-		if (!target->currWorker)
-			{
-				unRegisterEntity(target);
-				continue;
-			}
-		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
+		if (!target->currWorkerProvider) {
+			unRegisterEntity(target);
+			continue;
+		}
+		const std::vector<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{

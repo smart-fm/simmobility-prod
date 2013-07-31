@@ -30,7 +30,7 @@ void LT_Agent::load(const map<string, string>& configProps) {
 }
 
 EventManager& LT_Agent::GetEventManager() {
-    return currWorker->getEventManager();
+    return currWorkerProvider->getEventManager();
 }
 
 bool LT_Agent::frame_init(timeslice now) {

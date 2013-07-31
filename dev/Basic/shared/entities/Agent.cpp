@@ -300,7 +300,7 @@ void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime) {
 
 NullableOutputStream sim_mob::Agent::Log()
 {
-	return NullableOutputStream(currWorker->getLogFile());
+	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
 

@@ -180,7 +180,7 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
-	std::cout<<"Pedestrian requested path from: " <<getParent()->originNode.getID() <<" => " <<getParent()->destNode.node_->getID() <<"  {" <<std::endl;
+	//std::cout<<"Pedestrian requested path from: " <<getParent()->originNode.getID() <<" => " <<getParent()->destNode.node_->getID() <<"  {" <<std::endl;
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();

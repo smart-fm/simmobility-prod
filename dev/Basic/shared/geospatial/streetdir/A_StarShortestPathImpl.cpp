@@ -9,7 +9,7 @@
 #include "entities/TrafficWatch.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Crossing.hpp"

@@ -19,6 +19,7 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Crossing.hpp"
@@ -40,41 +41,13 @@ using std::vector;
 using namespace sim_mob;
 
 
-Point2D WayPoint::location()
-{
-	Point2D pnt(0,0);
-	if(type_ == NODE )
-	{
-		pnt = node_->location;
-	}
-	else if(type_ == BUS_STOP )
-	{
-		pnt = Point2D(busStop_->xPos, busStop_->yPos );
-	}
-	return pnt;
-}
-
-int WayPoint::getID()
-{
-	int id = -1;
-	if(type_==NODE )
-	{
-		id = node_->getID();
-	}
-	else if(type_==BUS_STOP)
-	{
-		id = busStop_->id;
-	}
-	return id;
-}
-
 StreetDirectory sim_mob::StreetDirectory::instance_;
 
 
 void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, centimeter_t gridWidth, centimeter_t gridHeight)
 {
     if (keepStats) {
-        stats_ = new Stats;
+        //stats_ = new Stats;
     }
     pimpl_ = new GridStreetDirectoryImpl(network, gridWidth, gridHeight);
     spImpl_ = new A_StarShortestPathImpl(network);
@@ -182,11 +155,11 @@ vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(VertexDesc 
 
 void sim_mob::StreetDirectory::printStatistics() const
 {
-    if (stats_) {
-        stats_->printStatistics();
-    } else {
+    //if (stats_) {
+        //stats_->printStatistics();
+    //} else {
         std::cout << "No statistics was collected by the StreetDirectory singleton." << std::endl;
-    }
+    //}
 }
 
 void sim_mob::StreetDirectory::registerSignal(const Signal& signal)

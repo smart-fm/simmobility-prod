@@ -6,6 +6,8 @@
 #include <sstream>
 
 //For debugging
+#include "roles/Role.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
@@ -459,7 +461,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 			for(subChainItem1 = subtrip.begin();subChainItem1!=subtrip.end(); subChainItem1++)
 			{
-				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
 			}
 			subChainItem2 = subChainItem1 = subtrip.begin();
 			subChainItem2++;
@@ -467,8 +469,8 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			newsubchain.push_back(*subChainItem1);
 			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
 			{
-				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
-				std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
+				//std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
 
 				WayPoint source, destination;
 				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
@@ -540,7 +542,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 
 				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
 				{
-					std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
+					//std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
 				}
 			}
 		}
@@ -730,8 +732,8 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	{
 		//dont advance to next tripchainItem immidiately, check the subtrip first
 		res = advanceCurrentSubTrip();
-		if(res)
-		std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
+		//if(res)
+		//std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
 
 	}
 

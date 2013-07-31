@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include "util/LangHelpers.hpp"
-#include "metrics/Length.hpp"
 #include "geospatial/Point2D.hpp"
-#include "geospatial/Node.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/LangHelpers.hpp"
 
 #include <map>
 #include <vector>
@@ -24,6 +22,7 @@
 
 namespace sim_mob {
 
+class Node;
 class Link;
 
 

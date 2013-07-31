@@ -7,6 +7,7 @@
 
 #include "WaitBusActivityRoleFacets.hpp"
 #include "entities/Person.hpp"
+#include "util/GeomHelpers.hpp"
 
 using namespace sim_mob;
 

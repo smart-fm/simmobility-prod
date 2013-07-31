@@ -17,6 +17,7 @@
 #include "buffering/Buffered.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/Entity.hpp"
+#include "entities/roles/Role.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"

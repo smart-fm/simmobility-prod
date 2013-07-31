@@ -2,25 +2,22 @@
 
 #pragma once
 
-#include "util/LangHelpers.hpp"
-
 #include <map>
 #include <vector>
-#include <stdexcept>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/utility.hpp>
 
-#include "metrics/Length.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
-#include "geospatial/Node.hpp"
+#include "metrics/Length.hpp"
+#include "util/LangHelpers.hpp"
 
 
 namespace sim_mob
 {
 
 class Lane;
+class Link;
 class Point2D;
 class RoadNetwork;
 class RoadSegment;
@@ -117,9 +114,10 @@ struct WayPoint
         const Node* node_;
     };
 
-    Point2D location();
-
-    int getID();
+    //NOTE: These two functions have been removed; they're not robust and make the WayPoint's union even
+    //      more likely to cause an error. New solution later. ~Seth.
+    //Point2D location();
+    //int getID();
 
     ///If true, this indicates the the current WayPoint represents a reverse traversal of the given type.
     ///  This usually means that a RoadSegment should be traversed in reverse. Note that this only has meaning
@@ -333,11 +331,11 @@ public:
     /**
      * Shared statistics class. Doesn't seem to do much, so I'm moving it into the header file. ~Seth
      */
-    struct Stats : private boost::noncopyable {
+    /*struct Stats : private boost::noncopyable {
         void printStatistics() const {
         	throw std::runtime_error("StreetDirectory::Stats not implemented yet");
         }
-    };
+    };*/
 
 
     const BusStop* getBusStop(const Point2D& position) const;
@@ -473,7 +471,7 @@ private:
 
 
 private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), stats_(nullptr)
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr)/*, stats_(nullptr)*/
     {}
 
     static StreetDirectory instance_;
@@ -487,7 +485,7 @@ private:
     ShortestPathImpl* spImpl_;
 
     ///The current set of StreetDirectoryStats
-    Stats* stats_;
+    //Stats* stats_;
 
     ///A lookup of all Signals in the RoadNetwork
     std::map<const Node*, const Signal*> signals_;

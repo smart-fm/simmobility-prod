@@ -20,6 +20,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
+#include "network/CommunicationDataManager.hpp"
 
 using namespace sim_mob;
 using std::vector;

@@ -2,6 +2,8 @@
 //tripChains Branch
 #include "simpleconf.hpp"
 
+#include <sstream>
+
 //Make sure our "test" (new) Config variant compiles.
 #include "conf/xmlLoader/implementation/conf1-driver.hpp"
 
@@ -26,6 +28,10 @@
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "util/ReactionTimeDistributions.hpp"
+#include "network/CommunicationDataManager.hpp"
 #include "password/password.hpp"
 #include "logging/Log.hpp"
 

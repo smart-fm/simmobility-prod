@@ -21,6 +21,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "network/ControlManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/FlexiBarrier.hpp"

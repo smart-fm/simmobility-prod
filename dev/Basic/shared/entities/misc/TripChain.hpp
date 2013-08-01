@@ -3,16 +3,12 @@
 #pragma once
 
 #include <vector>
-#include <map>
 #include <string>
-#include <set>
 #include <string>
-#include <boost/lexical_cast.hpp>
 
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -20,6 +16,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
+
 namespace geo
 {
 //Forward Declaration
@@ -78,9 +75,9 @@ public:
 	int requestTime;
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
-	std::string getPersonID() const { return personID; }
-	void setPersonID(const std::string& val) { personID = val; }
-	void setPersonID(int val) { personID = boost::lexical_cast<std::string>(val); }
+	std::string getPersonID() const;
+	void setPersonID(const std::string& val);
+	void setPersonID(int val);
 
 	//TripChainItem();
 	TripChainItem(std::string entId= "", std::string type="Trip",
@@ -90,6 +87,7 @@ public:
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
+
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
 	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
@@ -144,19 +142,13 @@ public:
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
 
-	const std::vector<sim_mob::SubTrip>& getSubTrips() const {
-		return subTrips;
-	}
+	const std::vector<sim_mob::SubTrip>& getSubTrips() const;
 
-	std::vector<sim_mob::SubTrip>& getSubTripsRW() {
-		return subTrips;
-	}
+	std::vector<sim_mob::SubTrip>& getSubTripsRW();
 
-	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips) {
-		this->subTrips = subTrips;
-	}
+	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips);
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	 const std::string getMode(const sim_mob::SubTrip *subTrip) const;
+	const std::string getMode(const sim_mob::SubTrip *subTrip) const;
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
 };
@@ -168,6 +160,8 @@ private:
  */
 class SubTrip: public sim_mob::Trip {
 public:
+	virtual ~SubTrip() {}
+
 	//sim_mob::Trip* parentTrip;
 	std::string mode;
 	bool isPrimaryMode;
@@ -178,11 +172,6 @@ public:
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	const std::string getMode() const ;
-//	{
-//		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
-//		return mode;
-//	}//this is not implementation of a vrtual function
-	virtual ~SubTrip() {}
 };
 
 

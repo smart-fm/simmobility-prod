@@ -14,6 +14,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/Conflux.hpp"

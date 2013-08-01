@@ -1,5 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /**
  * \file simpleconf.hpp
@@ -21,32 +22,18 @@
 #include <map>
 #include <set>
 #include <string>
-#include <sstream>
-
-#include "geospatial/xmlWriter/xmlWriter.hpp"
-//#include <boost/utility.hpp>
-
-#include "util/ProtectedCopyable.hpp"
-
-#include "buffering/Shared.hpp"
-#include "util/DailyTime.hpp"
-#include "util/LangHelpers.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/RoadNetwork.hpp"
 
 #include "entities/AuraManager.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "entities/roles/RoleFactory.hpp"
-#include "util/ReactionTimeDistributions.hpp"
-#include "util/PassengerDistribution.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/xmlWriter/xmlWriter.hpp"
+#include "util/ProtectedCopyable.hpp"
+#include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 
-#include "network/CommunicationDataManager.hpp"
-#include "network/CommunicationManager.hpp"
-#include "network/ControlManager.hpp"
-
+//Special case: Make sure Config.hpp compiles.
 #include "Config.hpp"
 
 
@@ -57,11 +44,17 @@ namespace sim_mob
 class Entity;
 class Agent;
 class Person;
-class BusController;// add by Yao Jin
+class BusController;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
 class BusSchedule;
+class RoleFactory;
+class TripChainItem;
+class ReactionTimeDist;
+class PassengerDist;
+class CommunicationDataManager;
+class ControlManager;
 
 
 /**

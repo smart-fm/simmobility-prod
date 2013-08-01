@@ -20,6 +20,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 
+#include "entities/misc/BusTrip.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"

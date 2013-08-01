@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -15,12 +17,11 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
-#include "logging/NullableOutputStream.hpp"
-
-#include "PendingEvent.hpp"
-
+#include "entities/PendingEvent.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
+#include "logging/NullableOutputStream.hpp"
+
 
 namespace sim_mob {
 

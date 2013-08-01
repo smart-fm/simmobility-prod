@@ -8,6 +8,8 @@
 #include "WaitBusActivityRoleFacets.hpp"
 
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "geospatial/BusStop.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"

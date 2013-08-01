@@ -1,10 +1,16 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusController.hpp"
 
 #include <stdexcept>
 
+#include "conf/simpleconf.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/misc/BusTrip.hpp"
+#include "geospatial/BusStop.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"

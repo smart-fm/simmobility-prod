@@ -1,12 +1,10 @@
-/*
- * DriverFacets.cpp
- *
- *  Created on: Apr 1, 2013
- *      Author: melani
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusDriverFacets.hpp"
 
+#include "conf/simpleconf.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"

@@ -1,8 +1,12 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusStopAgent.hpp"
+
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
+#include "geospatial/BusStop.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"

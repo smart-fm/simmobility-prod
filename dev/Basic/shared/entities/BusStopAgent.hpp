@@ -1,24 +1,15 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
-/*
- * BusStopAgent.hpp
- *
- *  Created on: 2013-3-26
- *      Author: Yao Jin
-*/
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
 
 #include <vector>
-#include <algorithm>
-#include "entities/Agent.hpp"
-#include "geospatial/BusStop.hpp"
-#include "buffering/Shared.hpp"
 
-//You can't use "../short" for these
-#include "entities/roles/Role.hpp"
+#include "buffering/Shared.hpp"
+#include "entities/Agent.hpp"
 
 namespace sim_mob
 {
@@ -28,7 +19,11 @@ class PackageUtils;
 class UnPackageUtils;
 class WorkGroup;
 class WaitBusActivityRole;
+class BusStop;
 
+/**
+ * \author Yao Jin
+ */
 class BusStopAgent  : public sim_mob::Agent
 {
 public:

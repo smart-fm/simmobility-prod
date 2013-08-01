@@ -11,8 +11,9 @@
 
 #include "GenConfig.h"
 
-#include <math.h>
+#include <cmath>
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"

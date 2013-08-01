@@ -6,7 +6,9 @@
  */
 
 #include "PassengerFacets.hpp"
+
 #include "entities/Person.hpp"
+#include "geospatial/Link.hpp"
 
 using namespace sim_mob;
 

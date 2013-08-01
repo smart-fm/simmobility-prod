@@ -17,6 +17,8 @@
 //TODO: Prune this include list later; it should be mostly moved out into the various Impl classes.
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"

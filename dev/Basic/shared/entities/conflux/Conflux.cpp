@@ -6,14 +6,16 @@
  */
 
 #include "Conflux.hpp"
-#include<map>
+
+#include <map>
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
-#include "Conflux.hpp"
+
 #include "conf/simpleconf.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/Link.hpp"
 
 
 using namespace sim_mob;

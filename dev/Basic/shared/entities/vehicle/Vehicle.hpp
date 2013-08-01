@@ -20,6 +20,7 @@
 
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/GeneralPathMover.hpp"
 #include "geospatial/Lane.hpp"
 

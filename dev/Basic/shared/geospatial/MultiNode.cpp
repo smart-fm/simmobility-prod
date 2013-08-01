@@ -3,11 +3,14 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "MultiNode.hpp"
-#include<cstdio>
+
+#include <cstdio>
 #include <cmath>
+
 #include "conf/simpleconf.hpp"
-#include "RoadNetwork.hpp"
-#include "Lane.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
 
 using namespace sim_mob;
 

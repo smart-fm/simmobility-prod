@@ -8,11 +8,7 @@
 #include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
-
-#include "RoadItem.hpp"
-#include "Route.hpp"
-#include "Lane.hpp"
-#include "util/DynamicVector.hpp"
+#include "geospatial/RoadItem.hpp"
 
 namespace aimsun
 {
@@ -30,7 +26,6 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
-class BusRoute;
 class Busline;
 class BusStopAgent;
 

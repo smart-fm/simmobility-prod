@@ -13,6 +13,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"

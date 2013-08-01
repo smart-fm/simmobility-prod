@@ -37,6 +37,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"

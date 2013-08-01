@@ -47,6 +47,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 
 namespace sim_mob {

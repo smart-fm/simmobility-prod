@@ -17,6 +17,7 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
 #include "logging/Log.hpp"
+#include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
@@ -64,6 +65,16 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 //	const vector<Point2D>& otherLane = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[currLaneID]->getPolyline();
 //	currLaneZeroPolypoint = otherLane.begin();
 //	nextLaneZeroPolypoint = currLaneZeroPolypoint+1;
+}
+
+double sim_mob::GeneralPathMover::currPolylineLength() const
+{
+	//TEMP: Just making sure.
+	if (isInIntersection()) {
+		return distAlongPolyline;
+	}
+	DynamicVector temp(currPolypoint->getX(), currPolypoint->getY(),nextPolypoint->getX(), nextPolypoint->getY());
+	return temp.getMagnitude();
 }
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)

@@ -8,8 +8,7 @@
 #include <map>
 #include <set>
 
-#include "geospatial/RoadSegment.hpp"
-#include "Node.hpp"
+#include "geospatial/Node.hpp"
 /*namespace geo {
 class intersection_t_pimpl;
 class GeoSpatial_t_pimpl;
@@ -34,21 +33,7 @@ class Loader;
 }
 
 
-/**
- * A Node where any number of Links meet, usually representing an Interserction or Roundabout.
- * Each Link contributes one RoadSegment to this MultiNode, and each Lane of each RoadSegment
- * may connect to any number of lanes from any number of other RoadSegments.
- *
- * \author Seth N. Hetu
- * \author LIM Fung Chai
- */
-struct Sorter
-{
-	bool operator()(sim_mob::RoadSegment *a , sim_mob::RoadSegment *b)
-	{
-		return (a->getSegmentID() < b->getSegmentID());
-	}
-};
+
 class MultiNode : public sim_mob::Node {
 public:
 	MultiNode(int x, int y) : Node(x, y) {}

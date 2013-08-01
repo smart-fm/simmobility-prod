@@ -10,6 +10,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 
 using std::set;

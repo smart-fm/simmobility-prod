@@ -13,6 +13,8 @@
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/DynamicVector.hpp"
 #include "metrics/Length.hpp"

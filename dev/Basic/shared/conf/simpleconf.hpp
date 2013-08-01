@@ -25,6 +25,7 @@
 
 #include "entities/AuraManager.hpp"
 #include "entities/misc/PublicTransit.hpp"
+#include "entities/roles/RoleFactory.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/xmlWriter/xmlWriter.hpp"
@@ -49,7 +50,6 @@ class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
 class BusSchedule;
-class RoleFactory;
 class TripChainItem;
 class ReactionTimeDist;
 class PassengerDist;

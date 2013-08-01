@@ -24,6 +24,7 @@
 #include "Constructs.hpp"
 #include "System.hpp"
 #include "Simulation.hpp"
+#include "entities/roles/RoleFactory.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "buffering/Shared.hpp"
 

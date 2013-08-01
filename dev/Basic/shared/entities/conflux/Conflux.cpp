@@ -110,6 +110,11 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	bool isQueuingBeforeUpdate = person->isQueuing;
 	sim_mob::SegmentStats* segStatsBfrUpdt = findSegStats(segBeforeUpdate);
 
+	if(segBeforeUpdate->getParentConflux() != this) {
+		Print() << "segBeforeUpdate not in the current conflux|segBeforeUpdate's conflux is " << segBeforeUpdate->getParentConflux()->getMultiNode()->getID() << std::endl;
+		throw std::runtime_error("segBeforeUpdate not in the current conflux");
+	}
+
 	UpdateStatus res = perform_person_move(currFrameNumber, person);
 
 	if (res.status == UpdateStatus::RS_DONE) {
@@ -130,8 +135,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (!laneBeforeUpdate) /*If the person was in virtual queue*/ {
 		if(laneAfterUpdate) /*If the person has moved to another lane in some segment*/ {
-			std::deque<Person*> vq = virtualQueuesMap.at(segBeforeUpdate->getLink());
-			vq.pop_front();
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
 		}
 		else  {
@@ -175,6 +178,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			 * which belongs to a conflux that is not processed for this tick yet.
 			 * We add this person to the virtual queue for that link here */
 			person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+			Print() << "Person " << person->getId() << " is pushed to VQ of Conflux " << segAfterUpdate->getParentConflux()->getMultiNode()->getID() << "|link " << segAfterUpdate->getStartEnd() << std::endl;
 			segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 		}
 	}
@@ -193,6 +197,7 @@ void sim_mob::Conflux::processVirtualQueues() {
 		for(std::deque<sim_mob::Person*>::iterator pIt=i->second.begin(); pIt!=i->second.end(); pIt++) {
 			updateAgent(*pIt);
 		}
+		i->second.clear(); // All persons currently in the virtual queue have been moved to their correct positions
 	}
 }
 
@@ -449,7 +454,9 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 }
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing) {
-	findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
+	if (prevLane) {
+		findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
+	} /*else the person must have started from a VQ*/
 	ag->currWorker = parentWorker;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);

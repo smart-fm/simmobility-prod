@@ -470,8 +470,10 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 		}
 	}
 
+	Print() << "Processing VQs for frame " << currTime.frame() << std::endl;
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
+		Print() << "Conflux:" << (*it)->getMultiNode()->getID() << std::endl;
 		(*it)->processVirtualQueues();
 	}
 

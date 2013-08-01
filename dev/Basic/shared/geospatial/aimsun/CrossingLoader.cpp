@@ -8,6 +8,7 @@
 
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
+#include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"

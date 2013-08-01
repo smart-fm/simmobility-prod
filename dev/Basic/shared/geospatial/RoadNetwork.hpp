@@ -76,14 +76,14 @@ public:
 	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.
-	std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
-	const std::vector<sim_mob::MultiNode*>& getNodes() const { return nodes; }
-	std::set<sim_mob::UniNode*>& getUniNodes() { return segmentnodes; }
-	const std::set<sim_mob::UniNode*>& getUniNodes() const { return segmentnodes; }
+	std::vector<sim_mob::MultiNode*>& getNodes();
+	const std::vector<sim_mob::MultiNode*>& getNodes() const;
+	std::set<sim_mob::UniNode*>& getUniNodes();
+	const std::set<sim_mob::UniNode*>& getUniNodes() const;
 
 	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
-	std::vector<sim_mob::Link*>& getLinks() { return links; }
-	const std::vector<sim_mob::Link*>& getLinks() const { return links; }
+	std::vector<sim_mob::Link*>& getLinks();
+	const std::vector<sim_mob::Link*>& getLinks() const;
 
 	///Find the closest Node.
 	///If includeUniNodes is false, then only Intersections and Roundabouts are searched.
@@ -92,30 +92,18 @@ public:
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
 
 	//Temporary; added for the XML loader
-	void setLinks(const std::vector<sim_mob::Link*>& lnks) { this->links = lnks; }
-	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn) { this->segmentnodes = sn; }
-	void addNodes(const std::vector<sim_mob::MultiNode*>& vals) {
-		nodes.insert(nodes.begin(),vals.begin(),vals.end());
-	}
+	void setLinks(const std::vector<sim_mob::Link*>& lnks);
+	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn);
+	void addNodes(const std::vector<sim_mob::MultiNode*>& vals);
 
 //private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.
 	std::vector<sim_mob::MultiNode*> nodes;
 	std::vector<sim_mob::Link*> links;
 
-//	Link_m links_m;
-
 	//Temporary: Not exposed publicly
 	std::set<sim_mob::UniNode*> segmentnodes;
 
-	//todo remove public from here
-public:
-	//todo check whether the network is sealed -vahid
-	//NOTE: We check if the network is sealed in the config file, not the RoadNetwork.
-	//      I've changed the getNodes() etc. functions to be non-const. ~Seth
-	/*std::vector<sim_mob::MultiNode*>& getNodesRW() { return nodes; }
-	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }
-	std::vector<sim_mob::Link*>& getLinksRW() { return links; }*/
 
 };
 

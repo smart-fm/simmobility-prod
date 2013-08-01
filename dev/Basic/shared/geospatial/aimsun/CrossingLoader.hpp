@@ -6,10 +6,10 @@
 #include "Node.hpp"
 #include "Crossing.hpp"
 
-#include "geospatial/RoadNetwork.hpp"
-
-
 namespace sim_mob {
+
+class RoadNetwork;
+
 namespace aimsun {
 
 

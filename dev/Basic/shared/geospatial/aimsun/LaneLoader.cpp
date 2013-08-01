@@ -8,6 +8,7 @@
 
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
+#include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "logging/Log.hpp"

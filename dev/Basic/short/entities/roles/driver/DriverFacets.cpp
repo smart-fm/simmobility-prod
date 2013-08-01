@@ -1,9 +1,6 @@
-/*
- * DriverFacets.cpp
- *
- *  Created on: May 15th, 2013
- *      Author: Yao Jin
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverFacets.hpp"
 #include "BusDriver.hpp"
@@ -20,6 +17,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 using namespace sim_mob;

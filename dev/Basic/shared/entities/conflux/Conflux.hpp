@@ -17,7 +17,6 @@
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "SegmentStats.hpp"
 #include "workers/Worker.hpp"
@@ -129,14 +128,8 @@ protected:
 
 public:
 	//constructors and destructor
-	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
-		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {}
-	virtual ~Conflux() {
-		for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
-			safe_delete_item(i->second);
-		}
-	}
+	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
+	virtual ~Conflux() ;
 
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }

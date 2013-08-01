@@ -1,9 +1,6 @@
-/*
- * DriverFacets.cpp
- *
- *  Created on: Apr 1, 2013
- *      Author: harish
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverFacets.hpp"
 #include <cmath>
@@ -26,6 +23,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "util/DebugFlags.hpp"
 

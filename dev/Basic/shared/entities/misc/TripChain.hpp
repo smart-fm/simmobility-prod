@@ -6,7 +6,7 @@
 #include <string>
 #include <string>
 
-#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 

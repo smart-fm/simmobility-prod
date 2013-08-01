@@ -1,5 +1,5 @@
 #include "geo10-pimpl.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "entities/misc/TripChain.hpp"
 
 using namespace sim_mob::xml;

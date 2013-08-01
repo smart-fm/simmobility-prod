@@ -1,14 +1,12 @@
-/*
- * PassengerFacets.cpp
- *
- *  Created on: Jun 17th, 2013
- *      Author: Yao Jin
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "PassengerFacets.hpp"
 
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace sim_mob;
 

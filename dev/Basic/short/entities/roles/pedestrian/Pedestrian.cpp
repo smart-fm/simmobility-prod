@@ -10,12 +10,13 @@
  */
 
 #include "Pedestrian.hpp"
+
 #include "entities/Person.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
+
 #include "geospatial/Node.hpp"
-#include "logging/Log.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -25,9 +26,11 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
-#include "entities/signal/Signal.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/Log.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/GeomHelpers.hpp"
 
 using std::vector;
 using namespace sim_mob;

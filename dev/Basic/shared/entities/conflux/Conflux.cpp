@@ -14,12 +14,28 @@
 
 #include "conf/simpleconf.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/Link.hpp"
 
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
+
+
+sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
+	: Agent(mtxStrat, id),
+	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out)
+{
+}
+
+sim_mob::Conflux::~Conflux()
+{
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
+		safe_delete_item(i->second);
+	}
+}
 
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg) {

@@ -2,16 +2,12 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PedestrianPathMover.cpp
- *
- *  Created on: Aug 20, 2012
- *      Author: redheli
- */
+#include <boost/random.hpp>
 
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include "geospatial/BusStop.hpp"
-#include <boost/random.hpp>
+#include "geospatial/streetdir/WayPoint.hpp"
+
 
 using boost::unordered_map;
 using std::vector;

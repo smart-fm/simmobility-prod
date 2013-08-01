@@ -425,7 +425,7 @@ bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 		return true;
 	}
 
-        StreetDirectory& streetDirectory = StreetDirectory::instance();
+	StreetDirectory& streetDirectory = StreetDirectory::instance();
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {

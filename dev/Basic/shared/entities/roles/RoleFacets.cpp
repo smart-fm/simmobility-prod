@@ -1,6 +1,7 @@
 #include "RoleFacets.hpp"
 
 #include "entities/Person.hpp"
+#include "workers/Worker.hpp"
 
 sim_mob::NullableOutputStream sim_mob::Facet::Log()
 {

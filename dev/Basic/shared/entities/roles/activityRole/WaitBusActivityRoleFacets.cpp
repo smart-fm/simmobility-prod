@@ -9,6 +9,7 @@
 
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/GeomHelpers.hpp"
 

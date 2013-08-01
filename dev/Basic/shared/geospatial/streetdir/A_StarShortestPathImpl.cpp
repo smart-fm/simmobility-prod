@@ -5,7 +5,6 @@
 #include <cmath>
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
-#include "buffering/Vector2D.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"

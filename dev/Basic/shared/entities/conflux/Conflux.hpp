@@ -1,33 +1,23 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
-/* *
- * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
- * of the link which is unidirectional) which are upstream to the intersection. For all downstream half-links (which
- * conceptually belong to another Conflux), we maintain a temporary data structure.
- *
- * Conflux.hpp
- *
- *  Created on: Oct 2, 2012
- *      Author: Harish Loganathan
- */
 #pragma once
 
-#include<map>
+#include <map>
+
 #include "entities/Agent.hpp"
-#include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "SegmentStats.hpp"
-#include "workers/Worker.hpp"
-#include "buffering/Buffered.hpp"
-#include "buffering/BufferedDataManager.hpp"
 
 
 namespace sim_mob {
 
+class Person;
 class RoadSegment;
 class SegmentStats;
+class MultiNode;
+class Worker;
+
 
 namespace aimsun
 {
@@ -35,6 +25,14 @@ namespace aimsun
 class Loader;
 }
 
+
+/**
+ * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
+ * of the link which is unidirectional) which are upstream to the intersection. For all downstream half-links (which
+ * conceptually belong to another Conflux), we maintain a temporary data structure.
+ *
+ * \author Harish Loganathan
+ */
 class Conflux : public sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;

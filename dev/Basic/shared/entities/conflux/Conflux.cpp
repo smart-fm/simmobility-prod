@@ -13,10 +13,15 @@
 #include <algorithm>
 
 #include "conf/simpleconf.hpp"
+#include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "logging/Log.hpp"
+#include "entities/conflux/SegmentStats.hpp"
+#include "geospatial/MultiNode.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "logging/Log.hpp"
+#include "workers/Worker.hpp"
 
 
 using namespace sim_mob;

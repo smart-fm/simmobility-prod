@@ -6,7 +6,9 @@
  */
 
 #include "BusDriverFacets.hpp"
+
 #include "entities/Person.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;

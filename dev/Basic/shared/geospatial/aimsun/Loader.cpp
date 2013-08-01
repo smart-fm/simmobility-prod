@@ -1,5 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Loader.hpp"
 
@@ -8,23 +9,16 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-#include <boost/multi_index_container.hpp>
-#include "entities/AuraManager.hpp"
-#include "logging/Log.hpp"
-#include "util/OutputUtil.hpp"
 
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 #include <soci.h>
 #include <soci-postgresql.h>
+#include <boost/multi_index_container.hpp>
 
-#include "logging/Log.hpp"
-
-#include "CrossingLoader.hpp"
-#include "LaneLoader.hpp"
-
+#include "conf/simpleconf.hpp"
 #include "conf/settings/DisableMPI.h"
-
-#include "util/GeomHelpers.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
@@ -39,14 +33,17 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/aimsun/CrossingLoader.hpp"
+#include "geospatial/aimsun/LaneLoader.hpp"
+#include "geospatial/aimsun/SOCI_Converters.hpp"
 
-#include "conf/simpleconf.hpp"
-
+#include "logging/Log.hpp"
+#include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 
-#include "SOCI_Converters.hpp"
 //todo: almost all the following are already included in the above include-SOCI_Converters.hpp -->vahid
 #include "BusStop.hpp"
 #include "Node.hpp"
@@ -67,14 +64,11 @@
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/conflux/Conflux.hpp"
-
 #include "entities/signal/Signal.hpp"
 #include "entities/BusStopAgent.hpp"
 
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
-#include "conf/simpleconf.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;

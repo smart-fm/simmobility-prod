@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-#include "buffering/Vector2D.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"

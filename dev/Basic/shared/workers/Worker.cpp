@@ -14,7 +14,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
-#include "buffering/Buffered.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/Entity.hpp"
 #include "entities/roles/Role.hpp"

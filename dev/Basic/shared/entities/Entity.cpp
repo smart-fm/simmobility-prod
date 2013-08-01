@@ -3,7 +3,6 @@
 #include "Entity.hpp"
 
 #include "buffering/BufferedDataManager.hpp"
-#include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 
 using std::string;

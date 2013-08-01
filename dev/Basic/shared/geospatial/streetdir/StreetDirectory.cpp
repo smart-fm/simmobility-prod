@@ -1,7 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
-//TEMP
-#include "geospatial/aimsun/Loader.hpp"
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "StreetDirectory.hpp"
 
@@ -14,8 +13,10 @@
 
 #include <cmath>
 
+//TEMP
+#include "geospatial/aimsun/Loader.hpp"
+
 //TODO: Prune this include list later; it should be mostly moved out into the various Impl classes.
-#include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"

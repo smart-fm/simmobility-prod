@@ -5,7 +5,6 @@
 #include "UniNode.hpp"
 
 #include <boost/thread.hpp>
-#include "buffering/BufferedDataManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"

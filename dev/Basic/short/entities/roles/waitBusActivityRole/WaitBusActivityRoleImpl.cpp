@@ -51,9 +51,6 @@ void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output(const UpdatePar
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
-}
 
 sim_mob::WaitBusActivityRoleMovementImpl::WaitBusActivityRoleMovementImpl(sim_mob::Person* parentAgent) :
 		WaitBusActivityRoleMovement(parentAgent)
@@ -120,9 +117,6 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output(const UpdatePar
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output_mpi(timeslice now) {
-
-}
 
 void sim_mob::WaitBusActivityRoleMovementImpl::flowIntoNextLinkIfPossible(UpdateParams& p) {
 

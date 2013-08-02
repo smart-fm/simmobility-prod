@@ -24,7 +24,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 
 	Passenger* getParentPassenger() const {
 		return parentPassenger;
@@ -49,7 +48,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	bool isAtBusStop();

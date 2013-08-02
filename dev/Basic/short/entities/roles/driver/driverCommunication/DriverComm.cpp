@@ -107,41 +107,6 @@ void sim_mob::DriverComm::sendModule(timeslice now)
 	setAgentUpdateDone(true);
 }
 #endif
-//Virtual implementations
-//void DriverComm::frame_init(UpdateParams& p) {
-//	Driver::frame_init(p);
-////	subscribed = subscribe(this->parent, sim_mob::NS3_Communicator::GetInstance());
-//	Register(this->parent, this->communicator);
-//}
-//;
-//void DriverComm::frame_tick(UpdateParams& p) {
-//
-//	Driver::frame_tick(p);
-////	Print() << "Driver Agent " << this->parent << " ticking " << p.now.frame() << std::endl;
-////	if((p.now.frame() > 4)&&(p.now.frame() <= 400))
-////	{
-////		sendModule(p.now);
-////	}
-//////	else if((p.now.frame() >= 4) && (p.now.frame() < 10) )//todo, just to test, just put else without if
-//////	{
-////		receiveModule(p.now);
-//////	}
-////	if(!registered)
-////	{
-////		return;
-////	}
-////	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
-//	setAgentUpdateDone(true);
-//
-//}
-//;
-//void DriverComm::frame_tick_output(const UpdateParams& p) {
-//	Driver::frame_tick_output(p);
-//}
-//;
-//void DriverComm::frame_tick_output_mpi(timeslice now) {
-//	Driver::frame_tick_output_mpi(now);
-//}
 ;
 }//namespace sim_mob
 

@@ -80,8 +80,6 @@ void sim_mob::ActivityPerformer::initializeRemainingTime() {
 			- this->activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 }
 
-void sim_mob::ActivityPerformer::frame_tick_output_mpi(timeslice now) {
-}
 
 UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) {
 	params.reset(now);

@@ -34,9 +34,6 @@ void sim_mob::medium::BusDriverBehavior::frame_tick_output(const UpdateParams& p
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
-void sim_mob::medium::BusDriverBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("BusDriverBehavior::frame_tick_output_mpi is not implemented yet");
-}
 
 sim_mob::medium::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
 	DriverMovement(parentAgent), parentBusDriver(nullptr) {}
@@ -84,9 +81,6 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p
 	LogOut(logout.str());
 }
 
-void sim_mob::medium::BusDriverMovement::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("BusDriverMovement::frame_tick_output_mpi is not implemented yet");
-}
 
 void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;

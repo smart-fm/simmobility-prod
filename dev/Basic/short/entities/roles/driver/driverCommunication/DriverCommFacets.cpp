@@ -31,9 +31,6 @@ void DriverCommBehavior::frame_tick_output(const UpdateParams& p) {
 	DriverBehavior::frame_tick_output(p);
 }
 
-void DriverCommBehavior::frame_tick_output_mpi(timeslice now) {
-	DriverBehavior::frame_tick_output_mpi(now);
-}
 
 sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent):
 	DriverMovement(parentAgent), parentDriverCommRole(nullptr)
@@ -71,10 +68,6 @@ void sim_mob::DriverCommMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::DriverCommMovement::frame_tick_output(const UpdateParams& p) {
 	DriverMovement::frame_tick_output(p);
-}
-
-void sim_mob::DriverCommMovement::frame_tick_output_mpi(timeslice now) {
-	DriverMovement::frame_tick_output_mpi(now);
 }
 
 }

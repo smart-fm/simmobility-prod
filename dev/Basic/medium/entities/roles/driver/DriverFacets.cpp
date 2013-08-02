@@ -62,9 +62,6 @@ void DriverBehavior::frame_tick_output(const UpdateParams& p) {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("DriverBehavior::frame_tick_output_mpi is not implemented yet");
-}
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicle(nullptr), currLane(nullptr), nextLaneInNextSegment(nullptr) {}
@@ -1025,9 +1022,6 @@ void DriverMovement::insertIncident(const RoadSegment* rdSeg, double newFlowRate
 	}
 }
 
-void DriverMovement::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("DriverMovement::frame_tick_output_mpi is not implemented yet");
-}
 
 void DriverMovement::removeIncident(const RoadSegment* rdSeg) {
 	const vector<Lane*> lanes = rdSeg->getLanes();

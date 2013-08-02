@@ -51,9 +51,6 @@ public:
 	///Generate output for this frame's tick for this Agent.
 	virtual void frame_tick_output(const UpdateParams& p) = 0;
 
-	//generate output with fake attributes for MPI
-	virtual void frame_tick_output_mpi(timeslice now) = 0;
-
 protected:
 	///Access the Logger.
 	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.

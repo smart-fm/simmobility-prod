@@ -166,10 +166,6 @@ void DriverBehavior::frame_tick_output(const UpdateParams& p) {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("DriverBehavior::frame_tick_output_mpi is not implemented yet");
-}
-
 sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr)
 {
@@ -298,7 +294,7 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
-	if (parentDriver->vehicle->isDone() || ConfigParams::GetInstance().using_MPI) {
+	if (parentDriver->vehicle->isDone()) {
 		return;
 	}
 
@@ -317,6 +313,12 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 
 	const bool inLane = parentDriver->vehicle && (!parentDriver->vehicle->isInIntersection());
 
+	//MPI-specific output.
+	std::stringstream addLine;
+	if (ConfigParams::GetInstance().using_MPI) {
+		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+	}
+
 	LogOut("(\"Driver\""
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()
@@ -329,37 +331,10 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<"\",\"curr-segment\":\""<<(inLane?parentDriver->vehicle->getCurrLane()->getRoadSegment():0x0)
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
+			<<addLine.str()
 			<<"\"})"<<std::endl);
 }
 
-void sim_mob::DriverMovement::frame_tick_output_mpi(timeslice now) {
-	if (now.frame() < getParent()->getStartTime())
-		return;
-
-	if (parentDriver->vehicle->isDone())
-		return;
-
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
-		std::stringstream logout;
-
-		logout << "(\"Driver\"" << "," << now.frame() << "," << getParent()->getId() << ",{" << "\"xPos\":\""
-				<< static_cast<int> (parentDriver->vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (parentDriver->vehicle->getY())
-				<< "\",\"segment\":\"" << parentDriver->vehicle->getCurrSegment()->getSegmentID()
-				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-				<< static_cast<int> (parentDriver->vehicle->length) << "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->width);
-
-		if (this->getParent()->isFake) {
-			logout << "\",\"fake\":\"" << "true";
-		} else {
-			logout << "\",\"fake\":\"" << "false";
-		}
-
-		logout << "\"})" << std::endl;
-
-		LogOut(logout.str());
-	}
-}
 
 void sim_mob::DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 

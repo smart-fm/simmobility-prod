@@ -28,10 +28,6 @@ void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p
 			<<"\"})"<<std::endl);
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output_mpi is not implemented yet");
-}
-
 void sim_mob::ActivityPerformerMovement::frame_init(UpdateParams& p) {
 	throw std::runtime_error("ActivityPerformerMovement::frame_init() shouldn't have been called. Activity works only with behavior facet.");
 }
@@ -48,6 +44,3 @@ sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* p
 	MovementFacet(parentAgent), parentActivity(parentRole) {
 }
 
-void sim_mob::ActivityPerformerMovement::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("ActivityPerformerMovement::frame_tick_output_mpi is not implemented yet");
-}

@@ -31,9 +31,6 @@ void Pedestrian2Behavior::frame_tick_output(const UpdateParams& p) {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output_mpi is not implemented yet");
-}
 
 double Pedestrian2Movement::collisionForce = 20;
 double Pedestrian2Movement::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
@@ -137,28 +134,21 @@ void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
 	//		return;
 	//	}
 
-		if (ConfigParams::GetInstance().using_MPI) {
-			return;
-		}
+	//MPI-specific output.
+	std::stringstream addLine;
+	if (ConfigParams::GetInstance().using_MPI) {
+		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+	}
+
 
 	//	std::ostringstream stream;
 	//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
 	//	std::string s=stream.str();
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output_mpi(timeslice now) {
-	if (now.frame() < 1 || now.frame() < getParent()->getStartTime())
-		return;
-
-	if (this->getParent()->isFake) {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-	} else {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-	}
-}
 
 void sim_mob::Pedestrian2Movement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 

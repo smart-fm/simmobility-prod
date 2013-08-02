@@ -43,10 +43,6 @@ void PassengerBehavior::frame_tick_output(const UpdateParams& p) {
 	throw std::runtime_error("PassengerBehavior::frame_tick_output is not implemented yet");
 }
 
-void PassengerBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("PassengerBehavior::frame_tick_output_mpi is not implemented yet");
-}
-
 sim_mob::PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
 		MovementFacet(parentAgent), parentPassenger(nullptr), alighting_MS(0),
 		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0)
@@ -128,10 +124,6 @@ void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
 }
 
 void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
-	if (ConfigParams::GetInstance().using_MPI) {
-		return;
-	}
-
 	//Reset our offset if it's set to zero
 	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
 	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
@@ -144,47 +136,36 @@ void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
 	   value= (unsigned int)varY();
 	   DisplayOffset.setY(value+1);
 	}
+
+	//MPI-specific output.
+	std::stringstream addLine;
+	if (ConfigParams::GetInstance().using_MPI) {
+		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+	}
+
+	//Figure out the (x,y) position of the passenger; differs if they are waiting on the side of the road versus
+	// riding on a bus.
+	int xPos =0;
+	int yPos =0;
+
 
 	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false)) {
 		//output passenger on visualizer only if passenger on road
-		LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
+		xPos = getParent()->xPos.get()+DisplayOffset.getX();
+		yPos = getParent()->yPos.get()+DisplayOffset.getY();
 	} else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true)) {
 		//output passenger on visualizer only if passenger on road
-		 LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\",})"<<std::endl);
+		xPos = displayX-DisplayOffset.getX()-DisplayOffset.getX();
+		yPos = displayY-DisplayOffset.getY()-DisplayOffset.getY();
 	}
-}
 
-void sim_mob::PassengerMovement::frame_tick_output_mpi(timeslice now) {
-	//Reset our offset if it's set to zero
-	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
-	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
-	   boost::uniform_int<> distX(0, 249);
-	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
-	   boost::uniform_int<> distY(0, 99);
-	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varY(gen, distY);
-	   unsigned int value = (unsigned int)varX();
-	   DisplayOffset.setX(value+1);
-	   value= (unsigned int)varY();
-	   DisplayOffset.setY(value+1);
-	}
-	if (now.frame() < 1 || now.frame() < getParent()->getStartTime())
-			return;
-	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false))//output passenger on visualizer only if passenger on road
-	{
-		if (this->getParent()->isFake) {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY()) <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-		} else {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-		}
-	}
-	else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true))//output passenger on visualizer only if passenger on road
-	{
-		if (this->getParent()->isFake) {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-		} else {
-			LogOut("("<<"\"passenger\","<<now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(displayX-DisplayOffset.getX()-DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(displayY-DisplayOffset.getY()-DisplayOffset.getY())<<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-		}
-	}
+	LogOut("(\"passenger"
+		<<"\","<<p.now.frame()
+		<<","<<getParent()->getId()
+		<<","<<"{\"xPos\":\""<<xPos
+		<<"\"," <<"\"yPos\":\""<<yPos
+		<<addLine.str()
+		<<"\",})"<<std::endl);
 }
 
 void sim_mob::PassengerMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {

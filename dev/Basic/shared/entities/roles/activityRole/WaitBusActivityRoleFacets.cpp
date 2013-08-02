@@ -38,21 +38,6 @@ WaitBusActivityRoleBehavior::WaitBusActivityRoleBehavior(sim_mob::Person* parent
 
 WaitBusActivityRoleBehavior::~WaitBusActivityRoleBehavior() {}
 
-//void WaitBusActivityRoleBehavior::frame_init(UpdateParams& p) {
-//	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_init is not implemented yet");
-//}
-//
-//void WaitBusActivityRoleBehavior::frame_tick(UpdateParams& p) {
-//	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick is not implemented yet");
-//}
-//
-//void WaitBusActivityRoleBehavior::frame_tick_output(const UpdateParams& p) {
-//	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
-//}
-//
-//void WaitBusActivityRoleBehavior::frame_tick_output_mpi(timeslice now) {
-//	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output_mpi is not implemented yet");
-//}
 
 sim_mob::WaitBusActivityRoleMovement::WaitBusActivityRoleMovement(sim_mob::Person* parentAgent, std::string buslineid):
 		MovementFacet(parentAgent), parentWaitBusActivityRole(nullptr), busStopAgent(nullptr), registered(false),
@@ -65,25 +50,6 @@ sim_mob::WaitBusActivityRoleMovement::~WaitBusActivityRoleMovement() {
 
 }
 
-//void sim_mob::WaitBusActivityRoleMovement::frame_init(UpdateParams& p) {
-//
-//}
-//
-//void sim_mob::WaitBusActivityRoleMovement::frame_tick(UpdateParams& p) {
-//
-//}
-//
-//void sim_mob::WaitBusActivityRoleMovement::frame_tick_output(const UpdateParams& p) {
-//
-//}
-//
-//void sim_mob::WaitBusActivityRoleMovement::frame_tick_output_mpi(timeslice now) {
-//
-//}
-//
-//void sim_mob::WaitBusActivityRoleMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-//
-//}
 
 BusStop* sim_mob::WaitBusActivityRoleMovement::setBusStopXY(const Node* node)//to find the nearest busstop to a node
 {

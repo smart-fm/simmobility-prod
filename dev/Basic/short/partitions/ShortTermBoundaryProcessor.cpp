@@ -867,35 +867,6 @@ BoundarySegment* sim_mob::ShortTermBoundaryProcessor::getBoundarySegmentByID(str
 	return 0;
 }
 
-//string sim_mob::ShortTermBoundaryProcessor::outputAllEntities(timeslice now)
-//{
-//
-//	vector<Entity*>::iterator it = Agent::all_agents.begin();
-//	for (; it != Agent::all_agents.end(); it++)
-//	{
-//
-//		Person* one_agent = dynamic_cast<Person*> (*it);
-//
-//		if ((one_agent) && (one_agent->toRemoved == false)) {
-//			one_agent->currRole->frame_tick_output_mpi(now.frame());
-//		}
-//	}
-//
-//	//signal output every 10 seconds
-//	if (now.frame() % ConfigParams::GetInstance().granSignalsTicks != 0)
-//	{
-//		return "";
-//	}
-//
-//	All_Signals::iterator itr_sig = Signal::all_signals_.begin();
-//	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
-//	{
-//		Signal* one_signal = (*itr_sig);
-//		one_signal->outputTrafficLights(now.frame(),"");
-//	}
-//
-//	return "";
-//}
 
 //very simply version
 //need to build virtual destructors

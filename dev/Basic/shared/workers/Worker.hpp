@@ -166,11 +166,11 @@ protected:
 	std::vector<Entity*>* entityBredList;
 
 	//For migration. The first array is accessed by WorkGroup in the flip() phase, and should be
-	//   emptied by this worker at the beginning of the update() phase.
-	//   The second array is accessed by Agents (rather, the *action function) in update() and should
-	//   be cleared by this worker some time before the next update. For now we clear it right after
-	//   update(), but it might make sense to clear directly before update(), so that the WorkGroup
-	//   has the ability to schedule Agents for deletion in flip().
+	//  emptied by this worker at the beginning of the update() phase.
+	//  The second array is accessed by Agents (rather, the *action function) in update() and should
+	//  be cleared by this worker some time before the next update. For now we clear it right after
+	//  update(), but it might make sense to clear directly before update(), so that the WorkGroup
+	//  has the ability to schedule Agents for deletion in flip().
 	std::vector<Entity*> toBeAdded;
 	std::vector<Entity*> toBeRemoved;
 	std::vector<Entity*> toBeBred;

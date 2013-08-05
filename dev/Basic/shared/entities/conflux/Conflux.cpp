@@ -136,6 +136,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	if (!laneBeforeUpdate) /*If the person was in virtual queue*/ {
 		if(laneAfterUpdate) /*If the person has moved to another lane in some segment*/ {
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
+			Print() << "Frame:" << currFrameNumber.frame() << "|updateAgent()|Conflux:" << this->multiNode->getID() << "|Person moved out of VQ:" << person->getId() << std::endl;
 		}
 		else  {
 			if (segStatsBfrUpdt != segStatsAftrUpdt) {
@@ -194,6 +195,8 @@ void sim_mob::Conflux::processVirtualQueues() {
 	//sort the virtual queues before starting to move agents for this tick
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
 		sortPersons_DecreasingRemTime(i->second);
+		Print() << "Frame:" << currFrameNumber.frame() << "|processVirtualQueues()|Conflux:" << this->multiNode->getID() << "|VQ size:" << i->second.size() << std::endl;
+		int count = 0;
 		for(std::deque<sim_mob::Person*>::iterator pIt=i->second.begin(); pIt!=i->second.end(); pIt++) {
 			updateAgent(*pIt);
 		}

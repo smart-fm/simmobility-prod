@@ -59,7 +59,7 @@ struct SupplyParams {
 };
 
 /**
- * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
+ * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *
  * \author Seth N. Hetu
  * \author Matthew Bremer Bruchon

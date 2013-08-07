@@ -56,6 +56,12 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::UniNodes_pimpl UniNodes_p;
 	    ::xml_schema::unsigned_int_pimpl unsigned_int_p;
 	    ::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
+	    ::sim_mob::xml::coordinate_map_t_pimpl coordinate_map_t_p;
+	    ::sim_mob::xml::utm_projection_t_pimpl utm_projection_t_p;
+	    ::xml_schema::string_pimpl string_p;
+	    ::sim_mob::xml::linear_scale_t_pimpl linear_scale_t_p;
+	    ::sim_mob::xml::scale_source_t_pimpl scale_source_t_p;
+	    ::sim_mob::xml::scale_destination_t_pimpl scale_destination_t_p;
 	    ::xml_schema::string_pimpl string_p;
 	    ::sim_mob::xml::temp_Segmetair_t_pimpl temp_Segmetair_t_p;
 	    ::xml_schema::unsigned_long_pimpl unsigned_long_p;
@@ -128,8 +134,24 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    GeoSpatial_t_p.parsers (RoadNetwork_t_p);
 
-	    RoadNetwork_t_p.parsers (Nodes_p,
+	    RoadNetwork_t_p.parsers (coordinate_map_t_p,
+	                             Nodes_p,
 	                             Links_p);
+
+	    coordinate_map_t_p.parsers (utm_projection_t_p,
+	                                linear_scale_t_p);
+
+	    utm_projection_t_p.parsers (string_p,
+	                                string_p);
+
+	    linear_scale_t_p.parsers (scale_source_t_p,
+	                              scale_destination_t_p);
+
+	    scale_source_t_p.parsers (string_p,
+	                              string_p);
+
+	    scale_destination_t_p.parsers (string_p,
+	                                   string_p);
 
 	    Nodes_p.parsers (UniNodes_p,
 	                     Intersections_p,

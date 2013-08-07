@@ -44,6 +44,156 @@ namespace sim_mob
 {
   namespace xml
   {
+    // coordinate_map_t_pskel
+    //
+
+    void coordinate_map_t_pskel::
+    utm_projection_parser (::sim_mob::xml::utm_projection_t_pskel& p)
+    {
+      this->utm_projection_parser_ = &p;
+    }
+
+    void coordinate_map_t_pskel::
+    linear_scale_parser (::sim_mob::xml::linear_scale_t_pskel& p)
+    {
+      this->linear_scale_parser_ = &p;
+    }
+
+    void coordinate_map_t_pskel::
+    parsers (::sim_mob::xml::utm_projection_t_pskel& utm_projection,
+             ::sim_mob::xml::linear_scale_t_pskel& linear_scale)
+    {
+      this->utm_projection_parser_ = &utm_projection;
+      this->linear_scale_parser_ = &linear_scale;
+    }
+
+    coordinate_map_t_pskel::
+    coordinate_map_t_pskel ()
+    : utm_projection_parser_ (0),
+      linear_scale_parser_ (0)
+    {
+    }
+
+    // utm_projection_t_pskel
+    //
+
+    void utm_projection_t_pskel::
+    coordinate_system_parser (::xml_schema::string_pskel& p)
+    {
+      this->coordinate_system_parser_ = &p;
+    }
+
+    void utm_projection_t_pskel::
+    utm_zone_parser (::xml_schema::string_pskel& p)
+    {
+      this->utm_zone_parser_ = &p;
+    }
+
+    void utm_projection_t_pskel::
+    parsers (::xml_schema::string_pskel& coordinate_system,
+             ::xml_schema::string_pskel& utm_zone)
+    {
+      this->coordinate_system_parser_ = &coordinate_system;
+      this->utm_zone_parser_ = &utm_zone;
+    }
+
+    utm_projection_t_pskel::
+    utm_projection_t_pskel ()
+    : coordinate_system_parser_ (0),
+      utm_zone_parser_ (0)
+    {
+    }
+
+    // linear_scale_t_pskel
+    //
+
+    void linear_scale_t_pskel::
+    source_parser (::sim_mob::xml::scale_source_t_pskel& p)
+    {
+      this->source_parser_ = &p;
+    }
+
+    void linear_scale_t_pskel::
+    destination_parser (::sim_mob::xml::scale_destination_t_pskel& p)
+    {
+      this->destination_parser_ = &p;
+    }
+
+    void linear_scale_t_pskel::
+    parsers (::sim_mob::xml::scale_source_t_pskel& source,
+             ::sim_mob::xml::scale_destination_t_pskel& destination)
+    {
+      this->source_parser_ = &source;
+      this->destination_parser_ = &destination;
+    }
+
+    linear_scale_t_pskel::
+    linear_scale_t_pskel ()
+    : source_parser_ (0),
+      destination_parser_ (0)
+    {
+    }
+
+    // scale_source_t_pskel
+    //
+
+    void scale_source_t_pskel::
+    x_range_parser (::xml_schema::string_pskel& p)
+    {
+      this->x_range_parser_ = &p;
+    }
+
+    void scale_source_t_pskel::
+    y_range_parser (::xml_schema::string_pskel& p)
+    {
+      this->y_range_parser_ = &p;
+    }
+
+    void scale_source_t_pskel::
+    parsers (::xml_schema::string_pskel& x_range,
+             ::xml_schema::string_pskel& y_range)
+    {
+      this->x_range_parser_ = &x_range;
+      this->y_range_parser_ = &y_range;
+    }
+
+    scale_source_t_pskel::
+    scale_source_t_pskel ()
+    : x_range_parser_ (0),
+      y_range_parser_ (0)
+    {
+    }
+
+    // scale_destination_t_pskel
+    //
+
+    void scale_destination_t_pskel::
+    longitude_range_parser (::xml_schema::string_pskel& p)
+    {
+      this->longitude_range_parser_ = &p;
+    }
+
+    void scale_destination_t_pskel::
+    latitude_range_parser (::xml_schema::string_pskel& p)
+    {
+      this->latitude_range_parser_ = &p;
+    }
+
+    void scale_destination_t_pskel::
+    parsers (::xml_schema::string_pskel& longitude_range,
+             ::xml_schema::string_pskel& latitude_range)
+    {
+      this->longitude_range_parser_ = &longitude_range;
+      this->latitude_range_parser_ = &latitude_range;
+    }
+
+    scale_destination_t_pskel::
+    scale_destination_t_pskel ()
+    : longitude_range_parser_ (0),
+      latitude_range_parser_ (0)
+    {
+    }
+
     // Point2D_t_pskel
     //
 
@@ -1577,6 +1727,12 @@ namespace sim_mob
     //
 
     void RoadNetwork_t_pskel::
+    coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel& p)
+    {
+      this->coordinate_map_parser_ = &p;
+    }
+
+    void RoadNetwork_t_pskel::
     Nodes_parser (::sim_mob::xml::Nodes_pskel& p)
     {
       this->Nodes_parser_ = &p;
@@ -1589,16 +1745,19 @@ namespace sim_mob
     }
 
     void RoadNetwork_t_pskel::
-    parsers (::sim_mob::xml::Nodes_pskel& Nodes,
+    parsers (::sim_mob::xml::coordinate_map_t_pskel& coordinate_map,
+             ::sim_mob::xml::Nodes_pskel& Nodes,
              ::sim_mob::xml::Links_pskel& Links)
     {
+      this->coordinate_map_parser_ = &coordinate_map;
       this->Nodes_parser_ = &Nodes;
       this->Links_parser_ = &Links;
     }
 
     RoadNetwork_t_pskel::
     RoadNetwork_t_pskel ()
-    : Nodes_parser_ (0),
+    : coordinate_map_parser_ (0),
+      Nodes_parser_ (0),
       Links_parser_ (0)
     {
     }
@@ -2770,6 +2929,403 @@ namespace sim_mob
 {
   namespace xml
   {
+    // coordinate_map_t_pskel
+    //
+
+    void coordinate_map_t_pskel::
+    utm_projection ()
+    {
+    }
+
+    void coordinate_map_t_pskel::
+    linear_scale ()
+    {
+    }
+
+    void coordinate_map_t_pskel::
+    post_coordinate_map_t ()
+    {
+    }
+
+    bool coordinate_map_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "utm_projection" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_projection_parser_;
+
+        if (this->utm_projection_parser_)
+          this->utm_projection_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "linear_scale" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->linear_scale_parser_;
+
+        if (this->linear_scale_parser_)
+          this->linear_scale_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool coordinate_map_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "utm_projection" && ns.empty ())
+      {
+        if (this->utm_projection_parser_)
+        {
+          this->utm_projection_parser_->post_utm_projection_t ();
+          this->utm_projection ();
+        }
+
+        return true;
+      }
+
+      if (n == "linear_scale" && ns.empty ())
+      {
+        if (this->linear_scale_parser_)
+        {
+          this->linear_scale_parser_->post_linear_scale_t ();
+          this->linear_scale ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // utm_projection_t_pskel
+    //
+
+    void utm_projection_t_pskel::
+    coordinate_system (const ::std::string&)
+    {
+    }
+
+    void utm_projection_t_pskel::
+    utm_zone (const ::std::string&)
+    {
+    }
+
+    void utm_projection_t_pskel::
+    post_utm_projection_t ()
+    {
+    }
+
+    bool utm_projection_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "coordinate_system" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_system_parser_;
+
+        if (this->coordinate_system_parser_)
+          this->coordinate_system_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "utm_zone" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_zone_parser_;
+
+        if (this->utm_zone_parser_)
+          this->utm_zone_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool utm_projection_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "coordinate_system" && ns.empty ())
+      {
+        if (this->coordinate_system_parser_)
+          this->coordinate_system (this->coordinate_system_parser_->post_string ());
+
+        return true;
+      }
+
+      if (n == "utm_zone" && ns.empty ())
+      {
+        if (this->utm_zone_parser_)
+          this->utm_zone (this->utm_zone_parser_->post_string ());
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // linear_scale_t_pskel
+    //
+
+    void linear_scale_t_pskel::
+    source ()
+    {
+    }
+
+    void linear_scale_t_pskel::
+    destination ()
+    {
+    }
+
+    void linear_scale_t_pskel::
+    post_linear_scale_t ()
+    {
+    }
+
+    bool linear_scale_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "source" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->source_parser_;
+
+        if (this->source_parser_)
+          this->source_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "destination" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->destination_parser_;
+
+        if (this->destination_parser_)
+          this->destination_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool linear_scale_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "source" && ns.empty ())
+      {
+        if (this->source_parser_)
+        {
+          this->source_parser_->post_scale_source_t ();
+          this->source ();
+        }
+
+        return true;
+      }
+
+      if (n == "destination" && ns.empty ())
+      {
+        if (this->destination_parser_)
+        {
+          this->destination_parser_->post_scale_destination_t ();
+          this->destination ();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // scale_source_t_pskel
+    //
+
+    void scale_source_t_pskel::
+    x_range (const ::std::string&)
+    {
+    }
+
+    void scale_source_t_pskel::
+    y_range (const ::std::string&)
+    {
+    }
+
+    void scale_source_t_pskel::
+    post_scale_source_t ()
+    {
+    }
+
+    bool scale_source_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "x_range" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->x_range_parser_;
+
+        if (this->x_range_parser_)
+          this->x_range_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "y_range" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->y_range_parser_;
+
+        if (this->y_range_parser_)
+          this->y_range_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool scale_source_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "x_range" && ns.empty ())
+      {
+        if (this->x_range_parser_)
+          this->x_range (this->x_range_parser_->post_string ());
+
+        return true;
+      }
+
+      if (n == "y_range" && ns.empty ())
+      {
+        if (this->y_range_parser_)
+          this->y_range (this->y_range_parser_->post_string ());
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // scale_destination_t_pskel
+    //
+
+    void scale_destination_t_pskel::
+    longitude_range (const ::std::string&)
+    {
+    }
+
+    void scale_destination_t_pskel::
+    latitude_range (const ::std::string&)
+    {
+    }
+
+    void scale_destination_t_pskel::
+    post_scale_destination_t ()
+    {
+    }
+
+    bool scale_destination_t_pskel::
+    _start_element_impl (const ::xml_schema::ro_string& ns,
+                         const ::xml_schema::ro_string& n,
+                         const ::xml_schema::ro_string* t)
+    {
+      XSD_UNUSED (t);
+
+      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+      if (n == "longitude_range" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->longitude_range_parser_;
+
+        if (this->longitude_range_parser_)
+          this->longitude_range_parser_->pre ();
+
+        return true;
+      }
+
+      if (n == "latitude_range" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->latitude_range_parser_;
+
+        if (this->latitude_range_parser_)
+          this->latitude_range_parser_->pre ();
+
+        return true;
+      }
+
+      return false;
+    }
+
+    bool scale_destination_t_pskel::
+    _end_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n)
+    {
+      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+      if (n == "longitude_range" && ns.empty ())
+      {
+        if (this->longitude_range_parser_)
+          this->longitude_range (this->longitude_range_parser_->post_string ());
+
+        return true;
+      }
+
+      if (n == "latitude_range" && ns.empty ())
+      {
+        if (this->latitude_range_parser_)
+          this->latitude_range (this->latitude_range_parser_->post_string ());
+
+        return true;
+      }
+
+      return false;
+    }
+
     // Point2D_t_pskel
     //
 
@@ -6499,6 +7055,11 @@ namespace sim_mob
     //
 
     void RoadNetwork_t_pskel::
+    coordinate_map ()
+    {
+    }
+
+    void RoadNetwork_t_pskel::
     Nodes (const helper::NodesRes&)
     {
     }
@@ -6517,6 +7078,16 @@ namespace sim_mob
 
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
+
+      if (n == "coordinate_map" && ns.empty ())
+      {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_map_parser_;
+
+        if (this->coordinate_map_parser_)
+          this->coordinate_map_parser_->pre ();
+
+        return true;
+      }
 
       if (n == "Nodes" && ns.empty ())
       {
@@ -6547,6 +7118,17 @@ namespace sim_mob
     {
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
+
+      if (n == "coordinate_map" && ns.empty ())
+      {
+        if (this->coordinate_map_parser_)
+        {
+          this->coordinate_map_parser_->post_coordinate_map_t ();
+          this->coordinate_map ();
+        }
+
+        return true;
+      }
 
       if (n == "Nodes" && ns.empty ())
       {

@@ -55,6 +55,11 @@ namespace sim_mob
 {
   namespace xml
   {
+    class coordinate_map_t_pskel;
+    class utm_projection_t_pskel;
+    class linear_scale_t_pskel;
+    class scale_source_t_pskel;
+    class scale_destination_t_pskel;
     class Point2D_t_pskel;
     class PolyPoint_t_pskel;
     class PolyLine_t_pskel;
@@ -364,6 +369,256 @@ namespace sim_mob
 {
   namespace xml
   {
+    class coordinate_map_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      utm_projection ();
+
+      virtual void
+      linear_scale ();
+
+      virtual void
+      post_coordinate_map_t ();
+
+      // Parser construction API.
+      //
+      void
+      utm_projection_parser (::sim_mob::xml::utm_projection_t_pskel&);
+
+      void
+      linear_scale_parser (::sim_mob::xml::linear_scale_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::utm_projection_t_pskel& /* utm_projection */,
+               ::sim_mob::xml::linear_scale_t_pskel& /* linear_scale */);
+
+      // Constructor.
+      //
+      coordinate_map_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::utm_projection_t_pskel* utm_projection_parser_;
+      ::sim_mob::xml::linear_scale_t_pskel* linear_scale_parser_;
+    };
+
+    class utm_projection_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      coordinate_system (const ::std::string&);
+
+      virtual void
+      utm_zone (const ::std::string&);
+
+      virtual void
+      post_utm_projection_t ();
+
+      // Parser construction API.
+      //
+      void
+      coordinate_system_parser (::xml_schema::string_pskel&);
+
+      void
+      utm_zone_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* coordinate_system */,
+               ::xml_schema::string_pskel& /* utm_zone */);
+
+      // Constructor.
+      //
+      utm_projection_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* coordinate_system_parser_;
+      ::xml_schema::string_pskel* utm_zone_parser_;
+    };
+
+    class linear_scale_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      source ();
+
+      virtual void
+      destination ();
+
+      virtual void
+      post_linear_scale_t ();
+
+      // Parser construction API.
+      //
+      void
+      source_parser (::sim_mob::xml::scale_source_t_pskel&);
+
+      void
+      destination_parser (::sim_mob::xml::scale_destination_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::scale_source_t_pskel& /* source */,
+               ::sim_mob::xml::scale_destination_t_pskel& /* destination */);
+
+      // Constructor.
+      //
+      linear_scale_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::scale_source_t_pskel* source_parser_;
+      ::sim_mob::xml::scale_destination_t_pskel* destination_parser_;
+    };
+
+    class scale_source_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      x_range (const ::std::string&);
+
+      virtual void
+      y_range (const ::std::string&);
+
+      virtual void
+      post_scale_source_t ();
+
+      // Parser construction API.
+      //
+      void
+      x_range_parser (::xml_schema::string_pskel&);
+
+      void
+      y_range_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* x_range */,
+               ::xml_schema::string_pskel& /* y_range */);
+
+      // Constructor.
+      //
+      scale_source_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* x_range_parser_;
+      ::xml_schema::string_pskel* y_range_parser_;
+    };
+
+    class scale_destination_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      longitude_range (const ::std::string&);
+
+      virtual void
+      latitude_range (const ::std::string&);
+
+      virtual void
+      post_scale_destination_t ();
+
+      // Parser construction API.
+      //
+      void
+      longitude_range_parser (::xml_schema::string_pskel&);
+
+      void
+      latitude_range_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* longitude_range */,
+               ::xml_schema::string_pskel& /* latitude_range */);
+
+      // Constructor.
+      //
+      scale_destination_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* longitude_range_parser_;
+      ::xml_schema::string_pskel* latitude_range_parser_;
+    };
+
     class Point2D_t_pskel: public ::xml_schema::complex_content
     {
       public:
@@ -2576,6 +2831,9 @@ namespace sim_mob
       // pre ();
 
       virtual void
+      coordinate_map ();
+
+      virtual void
       Nodes (const helper::NodesRes&);
 
       virtual void
@@ -2587,13 +2845,17 @@ namespace sim_mob
       // Parser construction API.
       //
       void
+      coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel&);
+
+      void
       Nodes_parser (::sim_mob::xml::Nodes_pskel&);
 
       void
       Links_parser (::sim_mob::xml::Links_pskel&);
 
       void
-      parsers (::sim_mob::xml::Nodes_pskel& /* Nodes */,
+      parsers (::sim_mob::xml::coordinate_map_t_pskel& /* coordinate_map */,
+               ::sim_mob::xml::Nodes_pskel& /* Nodes */,
                ::sim_mob::xml::Links_pskel& /* Links */);
 
       // Constructor.
@@ -2613,6 +2875,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
+      ::sim_mob::xml::coordinate_map_t_pskel* coordinate_map_parser_;
       ::sim_mob::xml::Nodes_pskel* Nodes_parser_;
       ::sim_mob::xml::Links_pskel* Links_parser_;
     };

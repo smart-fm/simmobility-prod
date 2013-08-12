@@ -2933,17 +2933,12 @@ namespace sim_mob
     //
 
     void coordinate_map_t_pskel::
-    utm_projection ()
+    utm_projection (sim_mob::UTM_Projection*)
     {
     }
 
     void coordinate_map_t_pskel::
-    linear_scale ()
-    {
-    }
-
-    void coordinate_map_t_pskel::
-    post_coordinate_map_t ()
+    linear_scale (sim_mob::LinearScale*)
     {
     }
 
@@ -2990,10 +2985,7 @@ namespace sim_mob
       if (n == "utm_projection" && ns.empty ())
       {
         if (this->utm_projection_parser_)
-        {
-          this->utm_projection_parser_->post_utm_projection_t ();
-          this->utm_projection ();
-        }
+          this->utm_projection (this->utm_projection_parser_->post_utm_projection_t ());
 
         return true;
       }
@@ -3001,10 +2993,7 @@ namespace sim_mob
       if (n == "linear_scale" && ns.empty ())
       {
         if (this->linear_scale_parser_)
-        {
-          this->linear_scale_parser_->post_linear_scale_t ();
-          this->linear_scale ();
-        }
+          this->linear_scale (this->linear_scale_parser_->post_linear_scale_t ());
 
         return true;
       }
@@ -3022,11 +3011,6 @@ namespace sim_mob
 
     void utm_projection_t_pskel::
     utm_zone (const ::std::string&)
-    {
-    }
-
-    void utm_projection_t_pskel::
-    post_utm_projection_t ()
     {
     }
 
@@ -3093,17 +3077,12 @@ namespace sim_mob
     //
 
     void linear_scale_t_pskel::
-    source ()
+    source (const std::pair<sim_mob::Range, sim_mob::Range>&)
     {
     }
 
     void linear_scale_t_pskel::
-    destination ()
-    {
-    }
-
-    void linear_scale_t_pskel::
-    post_linear_scale_t ()
+    destination (const std::pair<sim_mob::Range, sim_mob::Range>&)
     {
     }
 
@@ -3150,10 +3129,7 @@ namespace sim_mob
       if (n == "source" && ns.empty ())
       {
         if (this->source_parser_)
-        {
-          this->source_parser_->post_scale_source_t ();
-          this->source ();
-        }
+          this->source (this->source_parser_->post_scale_source_t ());
 
         return true;
       }
@@ -3161,10 +3137,7 @@ namespace sim_mob
       if (n == "destination" && ns.empty ())
       {
         if (this->destination_parser_)
-        {
-          this->destination_parser_->post_scale_destination_t ();
-          this->destination ();
-        }
+          this->destination (this->destination_parser_->post_scale_destination_t ());
 
         return true;
       }
@@ -3182,11 +3155,6 @@ namespace sim_mob
 
     void scale_source_t_pskel::
     y_range (const ::std::string&)
-    {
-    }
-
-    void scale_source_t_pskel::
-    post_scale_source_t ()
     {
     }
 
@@ -3259,11 +3227,6 @@ namespace sim_mob
 
     void scale_destination_t_pskel::
     latitude_range (const ::std::string&)
-    {
-    }
-
-    void scale_destination_t_pskel::
-    post_scale_destination_t ()
     {
     }
 
@@ -7055,7 +7018,7 @@ namespace sim_mob
     //
 
     void RoadNetwork_t_pskel::
-    coordinate_map ()
+    coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&)
     {
     }
 
@@ -7122,10 +7085,7 @@ namespace sim_mob
       if (n == "coordinate_map" && ns.empty ())
       {
         if (this->coordinate_map_parser_)
-        {
-          this->coordinate_map_parser_->post_coordinate_map_t ();
-          this->coordinate_map ();
-        }
+          this->coordinate_map (this->coordinate_map_parser_->post_coordinate_map_t ());
 
         return true;
       }

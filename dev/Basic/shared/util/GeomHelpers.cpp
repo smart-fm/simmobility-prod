@@ -17,6 +17,7 @@
 #include "logging/Log.hpp"
 
 //add by xuyan
+#include "boost/lexical_cast.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/simpleconf.hpp"

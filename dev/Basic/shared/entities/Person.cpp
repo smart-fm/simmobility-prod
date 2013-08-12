@@ -12,6 +12,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
+#include "boost/lexical_cast.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"

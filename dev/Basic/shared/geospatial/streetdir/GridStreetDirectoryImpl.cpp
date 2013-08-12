@@ -9,13 +9,15 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/ZebraCrossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
-#include "util/OutputUtil.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 
 using std::map;

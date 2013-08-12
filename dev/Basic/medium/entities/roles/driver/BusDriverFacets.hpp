@@ -1,4 +1,7 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
 
 #include "DriverFacets.hpp"
@@ -25,7 +28,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 
 	sim_mob::medium::BusDriver* getParentBusDriver() const {
 		return parentBusDriver;
@@ -48,7 +50,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	sim_mob::medium::BusDriver* getParentBusDriver() const {

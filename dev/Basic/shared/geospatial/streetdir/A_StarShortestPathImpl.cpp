@@ -5,18 +5,19 @@
 #include <cmath>
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
-#include "buffering/Vector2D.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/ZebraCrossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using std::map;
 using std::set;
@@ -1466,27 +1467,27 @@ bool sim_mob::A_StarShortestPathImpl::checkIfExist(std::vector<std::vector<WayPo
 
 
 
-void sim_mob::A_StarShortestPathImpl::printDrivingGraph() const
+void sim_mob::A_StarShortestPathImpl::printDrivingGraph(std::ostream& outFile) const
 {
-	printGraph("driving", drivingMap_);
+	printGraph(outFile, "driving", drivingMap_);
 }
 
-void sim_mob::A_StarShortestPathImpl::printWalkingGraph() const
+void sim_mob::A_StarShortestPathImpl::printWalkingGraph(std::ostream& outFile) const
 {
-	printGraph("walking", walkingMap_);
+	printGraph(outFile, "walking", walkingMap_);
 }
 
 
 
-void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
+void sim_mob::A_StarShortestPathImpl::printGraph(std::ostream& outFile, const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
 	//Print an identifier
-	LogOut("(\"sd-graph\""
+	outFile <<"(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
 		<<"\"type\":\""<<graphType
-		<<"\"})"<<std::endl);
+		<<"\"})"<<std::endl;
 
 	//Print each vertex
 	//NOTE: Vertices appear to just be integers in boost's adjacency lists.
@@ -1496,14 +1497,14 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
     	const Point2D pt = boost::get(boost::vertex_name, graph, v);
-    	LogOut("(\"sd-vertex\""
+    	outFile <<"(\"sd-vertex\""
     		<<","<<0
     		<<","<<v
     		<<",{"
     		<<"\"parent\":\""<<&graph
     		<<"\",\"xPos\":\""<<pt.getX()
     		<<"\",\"yPos\":\""<<pt.getY()
-    		<<"\"})"<<std::endl);
+    		<<"\"})"<<std::endl;
     }
 	}
 
@@ -1517,14 +1518,14 @@ void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, c
     	StreetDirectory::Edge ed = *iter;
     	StreetDirectory::Vertex srcV = boost::source(ed, graph);
     	StreetDirectory::Vertex destV = boost::target(ed, graph);
-    	LogOut("(\"sd-edge\""
+    	outFile <<"(\"sd-edge\""
     		<<","<<0
     		<<","<<id++
     		<<",{"
     		<<"\"parent\":\""<<&graph
     		<<"\",\"fromVertex\":\""<<srcV
     		<<"\",\"toVertex\":\""<<destV
-    		<<"\"})"<<std::endl);
+    		<<"\"})"<<std::endl;
     }
     }
 }

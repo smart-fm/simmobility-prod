@@ -62,7 +62,7 @@ typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandl
 typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
 };
 
-class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>*/ , public EventListener//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>*/ , public event::EventListener//, public sim_mob::MessageReceiver
 {
 public:
 	//for testing purpose
@@ -103,7 +103,7 @@ private:
 	/**
 	 * Handles the agent finished event.
 	 */
-	void OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
+	void OnAgentFinished(event::EventId eventId, event::EventPublisher* sender, const AgentLifeEventArgs& args);
 
 public:
 

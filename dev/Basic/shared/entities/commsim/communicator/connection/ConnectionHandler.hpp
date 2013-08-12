@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef CONNECTIONHANDLER_HPP_
-#define CONNECTIONHANDLER_HPP_
+#pragma once
+
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -14,8 +14,6 @@
 
 namespace sim_mob {
 
-//Macro used for callbacks
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 //Forward Declaration
 class Broker;
 class Session;
@@ -53,4 +51,3 @@ public:
 };//ConnectionHandler
 
 } /* namespace sim_mob */
-#endif /* CONNECTIONHANDLER_HPP_ */

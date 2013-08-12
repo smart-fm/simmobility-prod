@@ -2,18 +2,10 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PedestrianPathMover.h
- *
- *  Created on: Aug 20, 2012
- *      Author: redheli
- */
-
 #pragma once
 
 #include "util/DynamicVector.hpp"
 #include "geospatial/Lane.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include <vector>
@@ -21,6 +13,9 @@
 
 namespace sim_mob
 {
+
+class WayPoint;
+
 inline std::size_t hash_value(const sim_mob::Point2D& p)
 {
     size_t seed = 0;
@@ -29,6 +24,9 @@ inline std::size_t hash_value(const sim_mob::Point2D& p)
     return seed;
 }
 
+/**
+ * \author Max
+ */
 class PedestrianPathMover {
 public:
 	PedestrianPathMover();

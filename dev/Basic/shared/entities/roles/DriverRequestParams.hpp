@@ -1,9 +1,9 @@
-/*
- * DriverRequestParams.hpp
- *
- *  Created on: Mar 21, 2013
- *      Author: huaipeng
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+#pragma once
+
 #include "entities/misc/BusTrip.hpp"
 #include "entities/Agent.hpp"
 
@@ -19,6 +19,8 @@ void push_non_null(std::vector<sim_mob::BufferedBase*>& vect, sim_mob::BufferedB
 
 /**
  * Return type for DriverRequestParams::asVector()
+ *
+ * \author Zhang Huai Peng
  */
 struct DriverRequestParams {
 	DriverRequestParams() :

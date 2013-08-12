@@ -22,7 +22,7 @@ namespace sim_mob {
          *  - avaliable units
          */
         class HousingMarket : public UnitHolder, public sim_mob::Entity, 
-                public sim_mob::EventPublisher {
+                public sim_mob::event::EventPublisher {
         public:
             HousingMarket();
             virtual ~HousingMarket();

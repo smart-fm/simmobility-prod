@@ -1,11 +1,34 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "TripChain.hpp"
-#include "entities/Person.hpp"
+
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
+
+#include "entities/Person.hpp"
+#include "geospatial/Node.hpp"
+
 
 using std::string;
 using namespace sim_mob;
+
+
+
+sim_mob::TripChainItem::LocationType  sim_mob::TripChainItem::GetLocationTypeXML(std::string name)
+{
+	if (name == "LT_BUILDING") {
+		return sim_mob::TripChainItem::LT_BUILDING;
+	} else if (name == "LT_NODE") {
+		return sim_mob::TripChainItem::LT_NODE;
+	} else if (name == "LT_LINK") {
+		return sim_mob::TripChainItem::LT_LINK;
+	} else if (name == "LT_PUBLIC_TRANSIT_STOP") {
+		return sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;;
+	}
+
+	throw std::runtime_error("Unknown TripChain location type.");
+}
+
 
 sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start,
 		DailyTime end, unsigned int seqNumber, int requestTm) :
@@ -44,6 +67,22 @@ sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
 }
 
 
+const std::vector<sim_mob::SubTrip>& sim_mob::Trip::getSubTrips() const
+{
+	return subTrips;
+}
+
+std::vector<sim_mob::SubTrip>& sim_mob::Trip::getSubTripsRW()
+{
+	return subTrips;
+}
+
+void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
+{
+	this->subTrips = subTrips;
+}
+
+
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,int requestTime,
 		DailyTime start, DailyTime end, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
@@ -51,21 +90,28 @@ sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqN
 		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId), schedule(nullptr)
 {
 }
-/*
-sim_mob::FMODTrip::FMODTrip(std::string entId, std::string type, unsigned int seqNumber,int requestTime,
-		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType,
-		std::string mode, STOP stopIn, bool isPrimary, std::string ptLineId) : SubTrip(entId, type, seqNumber, requestTime, start, end,
-				from, fromLocType, to, toLocType, mode, isPrimary, ptLineId), stop(stopIn)
-{
 
+
+std::string sim_mob::TripChainItem::getPersonID() const
+{
+	return personID;
 }
-*/
+
+void sim_mob::TripChainItem::setPersonID(const std::string& val)
+{
+	personID = val;
+}
+
+void sim_mob::TripChainItem::setPersonID(int val)
+{
+	personID = boost::lexical_cast<std::string>(val);
+}
+
+
 TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 		string locType)
 {
-	locType.erase(remove_if(locType.begin(), locType.end(), isspace),
-			locType.end());
+	locType.erase(remove_if(locType.begin(), locType.end(), isspace), locType.end());
 	if (locType == "building") {
 		return TripChainItem::LT_BUILDING;
 	} else if (locType == "node") {
@@ -128,7 +174,7 @@ const std::string sim_mob::SubTrip::getMode() const {
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.
-    return (s1.personID == s2.personID) ;
+    return (s1.getPersonID() == s2.getPersonID()) ;
 }
 
 

@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef TIMEPUBLISHER_HPP_
-#define TIMEPUBLISHER_HPP_
+#pragma once
+
 #include "entities/commsim/communicator/service/base/Publisher.hpp"
 #include "event/EventPublisher.hpp"
 namespace sim_mob {
@@ -18,4 +18,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* TIMEPUBLISHER_HPP_ */

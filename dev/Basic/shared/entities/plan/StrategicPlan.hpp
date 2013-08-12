@@ -5,8 +5,7 @@
  *      Author: vuvinhan
  */
 
-#ifndef STRATEGICPLAN_HPP_
-#define STRATEGICPLAN_HPP_
+#pragma once
 
 #include "Plan.hpp"
 
@@ -19,4 +18,3 @@ namespace sim_mob
 	};
 }
 
-#endif /* STRATEGICPLAN_HPP_ */

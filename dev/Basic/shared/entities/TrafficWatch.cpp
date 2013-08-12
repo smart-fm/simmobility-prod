@@ -15,7 +15,6 @@ using namespace sim_mob;
 
 //For debugging
 /*#include "util/DebugFlags.hpp"
-#include "util/OutputUtil.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Node.hpp"

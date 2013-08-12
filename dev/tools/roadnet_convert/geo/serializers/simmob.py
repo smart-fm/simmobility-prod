@@ -118,11 +118,25 @@ def __write_xml_multinodes(f, rn, rnIndex):
     #Write connectors
     f.write('            <Connectors>\n')
     for sg in rnIndex.segsAtNodes[n.nodeId]:
+      if sg.fromNode.nodeId==n.nodeId:  #Skip the reverse Segments at this Node.
+        continue
+
       f.write('              <MultiConnectors>\n')
       f.write('                <RoadSegment>%s</RoadSegment>\n' % sg.segId)
       f.write('                <Connectors>\n')
       for lcGrp in sg.lane_connectors.values():
         for lc in lcGrp:
+          #Some last-minute checking. Can remove later, once we stop getting errors.
+          if lc.fromSegment.segId != sg.segId:
+            raise Exception('Segment contains a LaneConnector which originates at another Segment.')
+          if lc.fromSegment.segId != rnIndex.segAtLanes[lc.fromLane.laneId].segId:
+            raise Exception('LaneConnector (%s) specifies a different Segment than is actually (%s) the Lane\'s parent.' % (lc.fromSegment.segId, rnIndex.segAtLanes[lc.fromLane.laneId].segId))
+          if lc.fromSegment.toNode.nodeId != lc.toSegment.fromNode.nodeId:
+            raise Exception('Segments don\'t meet at Node.')
+          if lc.fromSegment.toNode.nodeId != n.nodeId:
+            raise Exception('Warning: Segments meet at the wrong Node.')
+          #End of temporary checks.
+
           f.write('                  <Connector>\n')
           f.write('                    <laneFrom>%s</laneFrom>\n' % lc.fromLane.laneId)
           f.write('                    <laneTo>%s</laneTo>\n' % lc.toLane.laneId)

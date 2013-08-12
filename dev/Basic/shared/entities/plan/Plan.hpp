@@ -5,8 +5,7 @@
  *      Author: vuvinhan
  */
 
-#ifndef PLAN_HPP_
-#define PLAN_HPP_
+#pragma once
 
 namespace sim_mob
 {
@@ -17,4 +16,3 @@ namespace sim_mob
 		Plan* getPlan();
 	};
 }
-#endif /* PLAN_HPP_ */

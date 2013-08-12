@@ -1,9 +1,11 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "SegmentStats.hpp"
 
 #include <algorithm>
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "conf/simpleconf.hpp"
 #include <cmath>
 
@@ -557,18 +559,20 @@ namespace sim_mob {
 		}
 	}
 
-	void sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
-#ifndef SIMMOB_DISABLE_OUTPUT
-//		("segmentState",20,0xa0e30d8,{"speed":"10.4","flow":"8","density":"12"})
-		LogOut("(\"segmentState\""
-			<<","<<frameNumber.frame()
-			<<","<<roadSegment
-			<<",{"
-			<<"\"speed\":\""<<segVehicleSpeed
-			<<"\",\"flow\":\""<<segFlow
-			<<"\",\"density\":\""<<segDensity
-			<<"\"})"<<std::endl);
-#endif
+	std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			std::stringstream msg;
+			msg <<"(\"segmentState\""
+				<<","<<frameNumber.frame()
+				<<","<<roadSegment
+				<<",{"
+				<<"\"speed\":\""<<segVehicleSpeed
+				<<"\",\"flow\":\""<<segFlow
+				<<"\",\"density\":\""<<segDensity
+				<<"\"})"<<std::endl;
+			return msg.str();
+		}
+		return "";
 	}
 
 	double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle){

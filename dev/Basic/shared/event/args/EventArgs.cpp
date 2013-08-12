@@ -9,7 +9,7 @@
 
 #include "EventArgs.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::event;
 
 EventArgs::EventArgs() {
 }

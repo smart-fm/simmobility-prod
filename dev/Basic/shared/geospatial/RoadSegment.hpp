@@ -5,13 +5,11 @@
 #pragma once
 
 #include <vector>
-#include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
 
 #include "util/OpaqueProperty.hpp"
-#include "Pavement.hpp"
-#include "Link.hpp"
+#include "geospatial/Pavement.hpp"
 
 
 namespace geo {

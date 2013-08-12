@@ -17,8 +17,6 @@ namespace sim_mob {
 namespace medium
 {
 
-//#ifndef BUSDRIVER_HPP_
-//#define BUSDRIVER_HPP_
 
 class BusDriverBehavior;
 class BusDriverMovement;

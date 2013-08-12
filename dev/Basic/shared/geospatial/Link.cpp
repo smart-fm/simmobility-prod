@@ -8,6 +8,9 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 #include "RoadSegment.hpp"
 #include "Lane.hpp"

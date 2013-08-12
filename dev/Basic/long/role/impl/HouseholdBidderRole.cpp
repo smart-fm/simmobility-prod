@@ -12,17 +12,20 @@
 #include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
+#include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
-        HousingMarket* market)
+        const BidderParams& params, HousingMarket* market)
 : LT_AgentRole(parent), market(market), hh(hh), waitingForResponse(false),
-lastTime(0, 0), bidOnCurrentDay(false) {
+lastTime(0, 0), bidOnCurrentDay(false), params(params) {
     FollowMarket();
 }
 
@@ -48,7 +51,7 @@ void HouseholdBidderRole::Update(timeslice now) {
 void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
         const EM_EventArgs& args) {
     switch (id) {
-        case EM_WND_EXPIRED:
+        case sim_mob::event::EM_WND_EXPIRED:
         {
             LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
             FollowMarket();
@@ -59,22 +62,22 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     }
 }
 
-void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sender,
+void HouseholdBidderRole::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
         const Message& message) {
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 
         {
-            BidMessage* msg = MSG_CAST(BidMessage, message);
-            switch (msg->GetResponse()) {
+            const BidMessage& msg = MSG_CAST(BidMessage, message);
+            switch (msg.GetResponse()) {
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->RemoveUnit(msg->GetBid().GetUnitId());
+                    Unit* unit = market->RemoveUnit(msg.GetBid().GetUnitId());
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
                         LogOut("Bidder: [" << GetParent()->getId() <<
-                                "] bid: " << msg->GetBid() <<
+                                "] bid: " << msg.GetBid() <<
                                 " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
@@ -91,19 +94,19 @@ void HouseholdBidderRole::HandleMessage(MessageType type, MessageReceiver& sende
                 case NOT_ACCEPTED:
                 {
                     LogOut("Bidder: [" << GetParent()->getId() <<
-                            "] bid: " << msg->GetBid() <<
+                            "] bid: " << msg.GetBid() <<
                             " was not accepted " << endl);
-                    IncrementBidsCounter(msg->GetBid().GetUnitId());
+                    IncrementBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    DeleteBidsCounter(msg->GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
                 default:break;
@@ -169,16 +172,16 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
 }
 
 float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    /*float askingPrice = unit.GetHedonicPrice(); //needs to be reviewed by Victor.
-    return pow(askingPrice, hh->GetWeightUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * unit.GetWeightPriceQuality());*/
-    return 0;
+    return pow(unit.GetAskingPrice(), params.GetUrgencyToBuy() + 1) /
+            ((float) GetBidsCounter(unit.GetId()) * params.GetPriceQuality());
 }
 
 float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return 0;/*(float) ((hh->GetWeightIncome() * hh->GetIncome()) +
-            (hh->GetWeightDistanceToCDB() * unit.GetDistanceToCDB()) +
-            (hh->GetWeightUnitSize() * unit.GetSize()));*/
+    return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
+            (params.GetUnitAreaWeight() * unit.GetArea()) +
+            (params.GetUnitTypeWeight() * unit.GetTypeId()) +
+            (params.GetUnitRentWeight() * unit.GetRent()) +
+            (params.GetUnitStoreyWeight() * unit.GetStorey()));
 }
 
 void HouseholdBidderRole::FollowMarket() {
@@ -206,7 +209,7 @@ int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
 void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
     BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
     if (mapItr != bidsPerUnit.end()) {
-        (mapItr->second)++ ;
+        (mapItr->second)++;
     } else {
         bidsPerUnit.insert(BidCounterEntry(unitId, 1));
     }

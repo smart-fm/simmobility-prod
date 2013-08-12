@@ -8,10 +8,10 @@
 #include "Lane.hpp"
 #include "Node.hpp"
 
-#include "geospatial/RoadNetwork.hpp"
-
-
 namespace sim_mob {
+
+class RoadNetwork;
+
 namespace aimsun {
 
 

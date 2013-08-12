@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
  * \file Vehicle.hpp
@@ -18,6 +20,7 @@
 
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "geospatial/GeneralPathMover.hpp"
 #include "geospatial/Lane.hpp"
 
@@ -47,6 +50,7 @@ public:
 		return elapsedParkingTime >= parkingTime; }
 };*/
 
+class FMODSchedule;
 class Vehicle {
 public:
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);

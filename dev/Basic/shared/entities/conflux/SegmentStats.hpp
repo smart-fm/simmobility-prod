@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -185,7 +187,9 @@ public:
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
 	void updateLaneParams(timeslice frameNumber);
-	void reportSegmentStats(timeslice frameNumber);
+
+	std::string reportSegmentStats(timeslice frameNumber);
+
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
 	double getSegFlow();

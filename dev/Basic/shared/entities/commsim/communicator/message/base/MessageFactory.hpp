@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef MESSAGEFACTORY_HPP_
-#define MESSAGEFACTORY_HPP_
+#pragma once
 
 namespace sim_mob {
 template <class RET,class MSG>
@@ -16,4 +15,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* MESSAGEFACTORY_HPP_ */

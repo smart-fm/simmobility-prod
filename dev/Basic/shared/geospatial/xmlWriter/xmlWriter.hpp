@@ -4,6 +4,7 @@
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/signal/Phase.hpp"
+#include "geospatial/Pavement.hpp"
 
 namespace sim_mob
 {

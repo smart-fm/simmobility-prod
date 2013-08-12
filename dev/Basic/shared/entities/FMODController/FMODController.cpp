@@ -10,6 +10,9 @@
 #include "FMODController.hpp"
 #include "JMessage.hpp"
 #include "entities/Person.hpp"
+#include "conf/simpleconf.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/Link.hpp"
 #include <utility>
 
 namespace sim_mob {
@@ -79,7 +82,7 @@ void FMODController::CollectPerson()
 	for (RequestMap it=all_requests.begin(); it!=all_requests.end(); it++) {
 
 		sim_mob::TripChainItem* tc = it->second;
-		tc->personID = boost::lexical_cast<std::string>( it->first->client_id );
+		tc->setPersonID( boost::lexical_cast<std::string>( it->first->client_id ) );
 		tc->startTime = DailyTime(it->first->departure_time_early); //+DailyTime(tc->requestTime*60*1000/2.0);
 
 		std::vector<sim_mob::TripChainItem*>  tcs;
@@ -443,8 +446,9 @@ MessageList FMODController::CollectLinkTravelTime()
 	Msg_Link_Travel msg_travel;
 	msg_travel.current_time = start.toString();
 	msg_travel.messageID_ = JMessage::MSG_LINKTRAVELUPADTE;
-	for(std::map<const Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
+	for(std::map<const sim_mob::Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
 		Msg_Link_Travel::LINK travel;
+		(itTT->first)->getStart()->getID();
 		travel.node1_id = (itTT->first)->getStart()->getID();
 		travel.node2_id = (itTT->first)->getEnd()->getID();
 		travel.way_id = (itTT->first)->getLinkId();
@@ -625,7 +629,7 @@ void FMODController::DispatchPendingAgents(timeslice now)
 	std::vector<Agent*>::iterator it=all_persons.begin();
 	while(it!=all_persons.end()){
 		if( (*it)->getStartTime() < curTickMS ){
-			currWorker->scheduleForBred( (*it) );
+			this->currWorkerProvider->scheduleForBred( (*it) );
 			it = all_persons.erase(it);
 		}
 		else{
@@ -636,7 +640,7 @@ void FMODController::DispatchPendingAgents(timeslice now)
 	it = all_drivers.begin();
 	while(it!=all_drivers.end()){
 		if( (*it)->getStartTime() < curTickMS ){
-			currWorker->scheduleForBred( (*it) );
+			this->currWorkerProvider->scheduleForBred( (*it) );
 			all_children.push_back((*it));
 			it = all_drivers.erase(it);
 		}

@@ -2,9 +2,16 @@
 
 #include "BufferedDataManager.hpp"
 
-using namespace sim_mob;
+#include <cassert>
+#include <algorithm>
 
+using namespace sim_mob;
 using std::vector;
+
+
+sim_mob::BufferedBase::~BufferedBase() {
+	assert(refCount==0);   //Error if refCount's not zero.
+}
 
 
 sim_mob::BufferedDataManager::~BufferedDataManager()

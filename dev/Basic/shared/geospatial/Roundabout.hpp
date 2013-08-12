@@ -5,9 +5,9 @@
 #pragma once
 
 #include <vector>
-#include "Node.hpp"
-#include "Lane.hpp"
-#include "MultiNode.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/MultiNode.hpp"
 
 namespace sim_mob
 {

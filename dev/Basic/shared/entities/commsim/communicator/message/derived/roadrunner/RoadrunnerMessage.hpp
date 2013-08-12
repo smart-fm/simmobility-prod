@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef ROADRUNNERMESSAGE_HPP_
-#define ROADRUNNERMESSAGE_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/message/base/Message.hpp"
 #include "entities/commsim/communicator/message/base/Handler.hpp"
@@ -14,7 +13,7 @@ namespace sim_mob {
 //Forward Declaration
 namespace roadrunner {
 
-class RoadrunnerMessage : public sim_mob::comm::Message<msg_data_t> {
+class RoadrunnerMessage : public sim_mob::comm::AbstractCommMessage<msg_data_t> {
 	//std::string type of data containing in json format
 
 public:
@@ -25,4 +24,3 @@ public:
 
 }/* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* ROADRUNNERMESSAGE_HPP_ */

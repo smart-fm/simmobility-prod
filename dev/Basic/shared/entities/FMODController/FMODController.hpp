@@ -34,7 +34,7 @@ public:
 	void Initialize();
 
 private:
-	std::map<Link*, double> linkTravelTimes;
+	std::map<sim_mob::Link*, double> linkTravelTimes;
 	std::map<std::string, TripChainItem*> all_items;
 	std::map<Request*, TripChainItem*> all_requests;
 	std::vector<Agent*> all_persons;
@@ -96,7 +96,7 @@ private:
 		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
 	};
 
-	std::map<const Link*, travelTimes> LinkTravelTimesMap;
+	std::map<const sim_mob::Link*, travelTimes> LinkTravelTimesMap;
 
 	//when vehicle initialize and pack, it will store to this structure
 	ParkingCoordinator parkingCoord;

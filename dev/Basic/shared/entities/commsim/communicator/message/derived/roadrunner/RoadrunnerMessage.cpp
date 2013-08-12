@@ -10,7 +10,7 @@
 namespace sim_mob {
 namespace roadrunner {
 
-RoadrunnerMessage::RoadrunnerMessage(msg_data_t& data_):Message(data_){
+RoadrunnerMessage::RoadrunnerMessage(msg_data_t& data_):AbstractCommMessage(data_){
 }
 
 RoadrunnerMessage::~RoadrunnerMessage() {

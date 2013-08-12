@@ -1,8 +1,10 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Entity.hpp"
-#include "conf/simpleconf.hpp"
 
+#include "buffering/BufferedDataManager.hpp"
 #include "logging/Log.hpp"
 
 using std::string;
@@ -13,7 +15,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Entity::Entity(unsigned int id)
-	: id(id),  startTime(0), currWorker(nullptr), isFake(false), parentEntity(nullptr), can_remove_by_RTREE(false)
+	: id(id),  startTime(0), currWorkerProvider(nullptr), isFake(false), parentEntity(nullptr), can_remove_by_RTREE(false)
 {
 
 
@@ -22,7 +24,7 @@ sim_mob::Entity::Entity(unsigned int id)
 
 sim_mob::Entity::~Entity()
 {
-	if (currWorker) {
+	if (currWorkerProvider) {
 		//Note: If a worker thread is still active for this agent, that's a major problem. But
 		//      we can't throw an exception since that may lead to a call of terminate().
 		//      So we'll output a message and terminate manually, since throwing exceptions from

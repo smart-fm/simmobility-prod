@@ -14,110 +14,23 @@
 
 using namespace sim_mob::long_term;
 
-#define WEIGHT_MIN 0.0f
-#define WEIGHT_MAX 1.0f
-
-double CalculateHedonicPrice(const Unit& unit) {
-    return (double) unit.GetFixedPrice() +
-            unit.GetArea() * unit.GetWeightArea() +
-            (((int) unit.GetType()) + 1) * unit.GetWeightType() +
-            unit.GetStorey() * unit.GetWeightStorey() +
-            unit.GetLastRemodulationYear() * unit.GetWeightYearLastRemodulation() +
-            unit.GetTaxExempt() * unit.GetWeightTaxExempt() +
-            unit.GetDistanceToCBD() * unit.GetWeightDistanceToCBD();
-}
-
-Unit::Unit(UnitId id,
-        BigSerial buildingId,
-        BigSerial householdId,
-        UnitType type,
-        bool available,
-        double area,
-        int storey,
-        int lastRemodulationYear,
-        double fixedPrice,
-        double taxExempt,
-        double distanceToCBD,
-        bool hasGarage,
-        double weightPriceQuality,
-        double weightStorey,
-        double weightDistanceToCBD,
-        double weightType,
-        double weightArea,
-        double weightTaxExempt,
-        double weightYearLastRemodulation) :
-id(id),
-buildingId(buildingId),
-householdId(householdId),
-type(type),
-storey(storey),
-lastRemodulationYear(lastRemodulationYear),
-area(area),
-fixedPrice(fixedPrice),
-taxExempt(taxExempt),
-hedonicPrice(0),
-distanceToCBD(distanceToCBD),
-hasGarage(hasGarage),
-weightPriceQuality(weightPriceQuality),
-weightStorey(weightStorey),
-weightDistanceToCBD(weightDistanceToCBD),
-weightType(weightType),
-weightArea(weightArea),
-weightTaxExempt(weightTaxExempt),
-weightYearLastRemodulation(weightYearLastRemodulation),
-available(available),
-owner(nullptr) {
-    hedonicPrice = CalculateHedonicPrice(*this);
-    reservationPrice = hedonicPrice;
-}
-
-Unit::Unit() :
-id(INVALID_ID),
-buildingId(INVALID_ID),
-householdId(INVALID_ID),
-type(UNKNOWN_UNIT_TYPE),
-storey(0),
-lastRemodulationYear(0),
-area(0),
-fixedPrice(0),
-taxExempt(0),
-hedonicPrice(0),
-distanceToCBD(0),
-hasGarage(false),
-weightPriceQuality(0),
-weightStorey(0),
-weightDistanceToCBD(0),
-weightType(0),
-weightArea(0),
-weightTaxExempt(0),
-weightYearLastRemodulation(0),
-reservationPrice(0),
-available(false),
-owner(nullptr) {
-}
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
+        double area, int storey, double rent, bool available) :
+id(id), buildingId(buildingId), typeId(typeId),
+storey(storey), area(area), rent(rent), available(available), 
+askingPrice(0), hedonicPrice(0), owner(nullptr) {}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
-    this->householdId = source.householdId;
-    this->type = source.type;
+    this->typeId = source.typeId;
     this->storey = source.storey;
-    this->lastRemodulationYear = source.lastRemodulationYear;
     this->area = source.area;
-    this->fixedPrice = source.fixedPrice;
-    this->taxExempt = source.taxExempt;
-    this->hedonicPrice = source.hedonicPrice;
-    this->distanceToCBD = source.distanceToCBD;
-    this->hasGarage = source.hasGarage;
-    this->weightPriceQuality = source.weightPriceQuality;
-    this->weightStorey = source.weightStorey;
-    this->weightDistanceToCBD = source.weightDistanceToCBD;
-    this->weightType = source.weightType;
-    this->weightArea = source.weightArea;
-    this->weightTaxExempt = source.weightTaxExempt;
-    this->weightYearLastRemodulation = source.weightYearLastRemodulation;
-    this->reservationPrice = source.reservationPrice;
+    this->rent = source.rent;
     this->available = source.available;
+    this->askingPrice = source.askingPrice;
+    this->hedonicPrice = source.hedonicPrice;
+    this->owner = source.owner;
 }
 
 Unit::~Unit() {
@@ -126,26 +39,39 @@ Unit::~Unit() {
 Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
-    this->householdId = source.householdId;
-    this->type = source.type;
+    this->typeId = source.typeId;
     this->storey = source.storey;
-    this->lastRemodulationYear = source.lastRemodulationYear;
     this->area = source.area;
-    this->fixedPrice = source.fixedPrice;
-    this->taxExempt = source.taxExempt;
-    this->hedonicPrice = source.hedonicPrice;
-    this->distanceToCBD = source.distanceToCBD;
-    this->hasGarage = source.hasGarage;
-    this->weightPriceQuality = source.weightPriceQuality;
-    this->weightStorey = source.weightStorey;
-    this->weightDistanceToCBD = source.weightDistanceToCBD;
-    this->weightType = source.weightType;
-    this->weightArea = source.weightArea;
-    this->weightTaxExempt = source.weightTaxExempt;
-    this->weightYearLastRemodulation = source.weightYearLastRemodulation;
-    this->reservationPrice = source.reservationPrice;
+    this->rent = source.rent;
     this->available = source.available;
+    this->askingPrice = source.askingPrice;
+    this->hedonicPrice = source.hedonicPrice;
+    this->owner = source.owner;
     return *this;
+}
+
+UnitId Unit::GetId() const {
+    return id;
+}
+
+BigSerial Unit::GetBuildingId() const {
+    return buildingId;
+}
+
+BigSerial Unit::GetTypeId() const {
+    return typeId;
+}
+
+int Unit::GetStorey() const {
+    return storey;
+}
+
+double Unit::GetArea() const {
+    return area;
+}
+
+double Unit::GetRent() const {
+    return rent;
 }
 
 bool Unit::IsAvailable() const {
@@ -159,16 +85,25 @@ void Unit::SetAvailable(bool avaliable) {
     this->available = avaliable;
 }
 
-double Unit::GetReservationPrice() const {
-    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
-    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
-    return reservationPrice;
+double Unit::GetAskingPrice() const {
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
+    return this->askingPrice;
+}
+double Unit::GetHedonicPrice() const {
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
+    return this->hedonicPrice;
 }
 
-void Unit::SetReservationPrice(double price) {
+void Unit::SetAskingPrice(double askingPrice) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
-    reservationPrice = price;
+    this->askingPrice = askingPrice;
+}
+
+void Unit::SetHedonicPrice(double hedonicPrice) {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    this->hedonicPrice = hedonicPrice;
 }
 
 void Unit::SetOwner(UnitHolder* receiver) {
@@ -177,84 +112,9 @@ void Unit::SetOwner(UnitHolder* receiver) {
     this->owner = receiver;
 }
 
-UnitId Unit::GetId() const {
-    return id;
-}
-
 UnitHolder* Unit::GetOwner() {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    //TODO: this is not protecting nothing.
     return this->owner;
-}
-
-BigSerial Unit::GetBuildingId() const {
-    return buildingId;
-}
-
-BigSerial Unit::GetHouseholdId() const {
-    return householdId;
-}
-
-UnitType Unit::GetType() const {
-    return type;
-}
-
-int Unit::GetStorey() const {
-    return storey;
-}
-
-int Unit::GetLastRemodulationYear() const {
-    return lastRemodulationYear;
-}
-
-double Unit::GetArea() const {
-    return area;
-}
-
-double Unit::GetFixedPrice() const {
-    return fixedPrice;
-}
-
-double Unit::GetTaxExempt() const {
-    return taxExempt;
-}
-
-double Unit::GetHedonicPrice() const {
-    return hedonicPrice;
-}
-
-double Unit::GetDistanceToCBD() const {
-    return distanceToCBD;
-}
-
-bool Unit::HasGarage() const {
-    return hasGarage;
-}
-
-double Unit::GetWeightPriceQuality() const {
-    return weightPriceQuality;
-}
-
-double Unit::GetWeightStorey() const {
-    return weightStorey;
-}
-
-double Unit::GetWeightDistanceToCBD() const {
-    return weightDistanceToCBD;
-}
-
-double Unit::GetWeightType() const {
-    return weightType;
-}
-
-double Unit::GetWeightArea() const {
-    return weightArea;
-}
-
-double Unit::GetWeightTaxExempt() const {
-    return weightTaxExempt;
-}
-
-double Unit::GetWeightYearLastRemodulation() const {
-    return weightYearLastRemodulation;
 }

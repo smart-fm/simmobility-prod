@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef MESSAGEQUEUE_H_
-#define MESSAGEQUEUE_H_
+#pragma once
+
 #include <boost/thread/shared_mutex.hpp>
 #include <queue>
 #include "Message.hpp"
@@ -65,4 +65,3 @@ MessageQueue<T>::MessageQueue() {
 
 }/* namespace comm */
 } /* namespace sim_mob */
-#endif /* MESSAGEQUEUE_H_ */

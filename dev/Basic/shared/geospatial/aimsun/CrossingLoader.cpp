@@ -6,12 +6,13 @@
 #include <iostream>
 #include <limits>
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
+#include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
-#include "logging/Log.hpp"
+#include "util/OutputUtil.hpp"
 
 #include "Section.hpp"
 
@@ -207,7 +208,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			}
 			centimeter_t distOrigin_ = distOrigin;//obstacles work with centimeter_t not double. this canversion is made due to problems experienced-vahid
 			//Add it. Note that it is perfectly ok (and expected) for multiple Segments to reference the same Crossing.
-			res->setRoadSegment((*it)->generatedSegment);
+			res->setParentSegment((*it)->generatedSegment);
 			//(*it)->generatedSegment->obstacles[distOrigin_] = res;
 			(*it)->generatedSegment->addObstacle(distOrigin,res);
 			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))/*(*it)->generatedSegment->getSegmentID() * 10 + (*it)->generatedSegment->obstacles.size()*/); //sorry I have to put the formula here -vahid

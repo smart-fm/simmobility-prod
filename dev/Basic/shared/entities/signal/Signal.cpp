@@ -11,16 +11,17 @@
 
 #include "GenConfig.h"
 
-#include <math.h>
+#include <cmath>
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "logging/Log.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>

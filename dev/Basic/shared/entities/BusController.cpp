@@ -1,10 +1,16 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusController.hpp"
 
 #include <stdexcept>
 
+#include "conf/simpleconf.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/misc/BusTrip.hpp"
+#include "geospatial/BusStop.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -106,7 +112,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 
 		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
 			if(tripIt->startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
-				Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->personID);
+				Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->getPersonID());
 				currAg->setPersonCharacteristics();
 				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 
@@ -147,7 +153,7 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 
 				if( tripStartTime>preTicks && tripStartTime<=curTicks)
 				{
-					Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->personID);
+					Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->getPersonID());
 					currAg->setStartTime(tripStartTime);
 
 					vector<TripChainItem*> currAgTripChain;
@@ -563,7 +569,8 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 	dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
 
 	for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
-		currWorker->scheduleForBred((*it));
+		this->currWorkerProvider->scheduleForBred((*it));
+		//this->currWorker->scheduleForBred((*it));
 	}
 
 	handleDriverRequest();
@@ -593,7 +600,7 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		Agent* child = pending_buses.top();
 		pending_buses.pop();
 		child->parentEntity = this;
-		currWorker->scheduleForBred(child);
+		currWorkerProvider->scheduleForBred(child);
 		all_children.push_back(child);
 	}
 

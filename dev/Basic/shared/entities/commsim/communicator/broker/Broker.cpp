@@ -23,6 +23,7 @@ int sim_mob::Broker::subscribedAgents = 0;
 
 namespace sim_mob
 {
+using namespace sim_mob::event;
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }
@@ -213,10 +214,6 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
 	//tdo: testing. comment the following condition after testing
-//	if(registeredAgents.size() > 0)
-//	{
-//		return 0;
-//	}
 	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
 	value->registrationCallBack(true);
@@ -480,14 +477,14 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 	}
 	try {
 
-		if (!(info->getEntity().currWorker)) {
+		if (!(info->getEntity().currWorkerProvider)) {
 			Print() << "currWorker dead" << std::endl;
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity().currWorker->getEntities();
+				info->getEntity().currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
@@ -517,12 +514,11 @@ void Broker::refineSubscriptionList() {
 	{
 		const sim_mob::Agent * target = (*it).first;
 		//you or your worker are probably dead already. you just don't know it
-		if (!target->currWorker)
-			{
-				unRegisterEntity(target);
-				continue;
-			}
-		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
+		if (!target->currWorkerProvider) {
+			unRegisterEntity(target);
+			continue;
+		}
+		const std::vector<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{

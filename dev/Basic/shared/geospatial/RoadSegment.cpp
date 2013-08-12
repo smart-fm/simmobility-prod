@@ -4,12 +4,14 @@
 
 #include "RoadSegment.hpp"
 
+#include <stdexcept>
+
 #include "conf/settings/DisableMPI.h"
 
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"
 
-#include "streetdir/StreetDirectory.hpp"
+#include "geospatial/Link.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 

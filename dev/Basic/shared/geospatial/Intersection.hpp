@@ -5,12 +5,13 @@
 #pragma once
 
 #include <vector>
-#include "MultiNode.hpp"
-#include "Lane.hpp"
+#include "geospatial/MultiNode.hpp"
 
 namespace sim_mob
 {
 
+class RoadItem;
+class Lane;
 
 namespace aimsun
 {

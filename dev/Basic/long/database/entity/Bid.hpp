@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(UnitId id, int bidderId, sim_mob::MessageReceiver* bidder, float value, 
+            Bid(UnitId id, int bidderId, messaging::MessageReceiver* bidder, float value, 
                     timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
@@ -50,7 +50,7 @@ namespace sim_mob {
              * Gets the Bidder pointer.
              * @return bidder pointer.
              */
-            sim_mob::MessageReceiver* GetBidder() const;
+            messaging::MessageReceiver* GetBidder() const;
 
             /**
              * Gets the value of the bid.
@@ -86,7 +86,7 @@ namespace sim_mob {
             UnitId unitId;
             int bidderId;
             float value;
-            sim_mob::MessageReceiver* bidder;
+            messaging::MessageReceiver* bidder;
         };
     }
 }

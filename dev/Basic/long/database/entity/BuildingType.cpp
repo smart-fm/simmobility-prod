@@ -1,0 +1,34 @@
+/* 
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ * 
+ * File:   Building.cpp
+ * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 
+ * Created on July 1, 2013, 3:04 PM
+ */
+
+#include "BuildingType.hpp"
+
+using namespace sim_mob::long_term;
+using std::string;
+
+BuildingType::BuildingType(BigSerial id, string name) :
+id(id), name(name) {
+}
+
+BuildingType::~BuildingType() {
+}
+
+BuildingType& BuildingType::operator=(const BuildingType& source) {
+    this->id = source.id;
+    this->name = source.name;
+    return *this;
+}
+
+BigSerial BuildingType::GetId() const {
+    return id;
+}
+
+string BuildingType::GetName() const {
+    return name;
+}

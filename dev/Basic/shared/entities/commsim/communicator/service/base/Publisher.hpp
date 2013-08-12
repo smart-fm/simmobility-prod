@@ -5,15 +5,15 @@
  *      Author: vahid
  */
 
-#ifndef PUBLISHER_HPP_
-#define PUBLISHER_HPP_
+#pragma once
+
 #include "entities/commsim/communicator/service/services.hpp"
 #include <boost/assign/list_of.hpp>
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 namespace sim_mob {
-class Publisher : public sim_mob::EventPublisher {
+class Publisher : public sim_mob::event::EventPublisher {
 private:
 //	sim_mob::SIM_MOB_SERVICE myService;
 public:
@@ -23,4 +23,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* PUBLISHER_HPP_ */

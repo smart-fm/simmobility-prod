@@ -1,20 +1,24 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include "conf/settings/DisableMPI.h"
 
 #include <vector>
-#include "entities/roles/Role.hpp"
-#include "entities/Agent.hpp"
+
 #include "buffering/Shared.hpp"
-#include "misc/BusTrip.hpp"
+#include "entities/Agent.hpp"
 #include "misc/PublicTransit.hpp"
+#include "roles/DriverRequestParams.hpp"
 #include "util/DynamicVector.hpp"
-#include "geospatial/BusStop.hpp"
+
 namespace sim_mob {
 
 class Bus;
+class BusStop;
+
 /*
  * BusController class.
  * \author Yao Jin

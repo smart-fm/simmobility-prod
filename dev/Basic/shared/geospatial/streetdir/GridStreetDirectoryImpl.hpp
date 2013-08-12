@@ -4,7 +4,6 @@
 
 #include "util/LangHelpers.hpp"
 #include "metrics/Length.hpp"
-#include "geospatial/Point2D.hpp"
 
 #include <map>
 #include <vector>
@@ -16,6 +15,8 @@
 
 
 namespace sim_mob {
+
+class Point2D;
 
 class GridStreetDirectoryImpl : public StreetDirectory::Impl {
 public:

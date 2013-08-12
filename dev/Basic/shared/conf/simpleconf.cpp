@@ -2,16 +2,19 @@
 //tripChains Branch
 #include "simpleconf.hpp"
 
+#include <sstream>
+
 //Make sure our "test" (new) Config variant compiles.
 #include "conf/xmlLoader/implementation/conf1-driver.hpp"
 
-//simpleconf.hpp can include GenConfig.h for now (since the entire file will be deleted soon)
+//simpleconf.cpp can include GenConfig.h for now (since the entire file will be deleted soon)
 #include "GenConfig.h"
 
 #include <tinyxml.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
 
+#include <fstream>
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -26,18 +29,24 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/FMODController/FMODController.hpp"
+#include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "util/ReactionTimeDistributions.hpp"
+#include "network/CommunicationDataManager.hpp"
 #include "password/password.hpp"
+#include "logging/Log.hpp"
 
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
-//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/Lane.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -46,12 +55,6 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/PassengerDistribution.hpp"
-#include "util/OutputUtil.hpp"
-
-//NOTE: Commenting out; will remove if no-one needs this class.
-#if 0
-#include "geospatial/xmlLoader/geo8-driver.hpp"
-#endif
 
 #include "conf/Validate.hpp"
 #include "conf/GeneralOutput.hpp"
@@ -61,8 +64,8 @@
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
+
 
 using std::cout;
 using std::endl;
@@ -480,7 +483,7 @@ bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 		return true;
 	}
 
-        StreetDirectory& streetDirectory = StreetDirectory::instance();
+	StreetDirectory& streetDirectory = StreetDirectory::instance();
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
@@ -670,7 +673,7 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
-void PrintDB_Network()
+/*void PrintDB_Network()
 {
 	if (ConfigParams::GetInstance().OutputDisabled()) {
 		return;
@@ -693,12 +696,8 @@ void PrintDB_Network()
 
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-
-#if 0
-	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
-#endif
-	//Print the Signal representation.
 	{
+		//Print the Signal representation.
 		LogOut((*it)->toString() <<endl);
 	}
 
@@ -760,11 +759,6 @@ void PrintDB_Network()
 			LogOut(*segIt <<",");
 		}
 		LogOut("]\",");
-/*		LogOut("\"rev-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOut(*segIt <<",");
-		}
-		LogOut("]\",");*/
 		LogOut("})" <<endl);
 	}
 
@@ -900,7 +894,7 @@ void PrintDB_Network()
 	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph();
 	StreetDirectory::instance().printWalkingGraph();
-}
+}*/
 
 struct Sorter {
   bool operator() (const sim_mob::RoadSegment* a,const sim_mob::RoadSegment* b)
@@ -962,11 +956,15 @@ struct Sorter {
   }
 } sorter_;
 
-void PrintDB_Network_ptrBased()
+void PrintDB_NetworkToFile(const std::string& fileName)
 {
+	//Short-circuit if output is disabled.
 	if (ConfigParams::GetInstance().OutputDisabled()) {
 		return;
 	}
+
+	//Else, open the file.
+	std::ofstream out(fileName.c_str());
 
 	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*,Sorter> cachedSegments;
@@ -974,36 +972,31 @@ void PrintDB_Network_ptrBased()
 
 	//Initial message
 	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOut("Printing node network" <<endl);
-	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
+	out <<"Printing node network" <<endl;
+	out <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl;
 
 	//Print some properties of the simulation itself
-	LogOut("(\"simulation\", 0, 0, {");
-	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOut("})" <<endl);
-
+	out <<"(\"simulation\", 0, 0, {";
+	out <<"\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",";
+	out <<"})" <<endl;
 
 	sim_mob::Signal::all_signals_const_Iterator it;
 	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-
-#if 0
-	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
-#endif
-	//Print the Signal representation.
 	{
-		LogOut((*it)->toString() <<endl);
+		//Print the Signal representation.
+		out <<(*it)->toString() <<endl;
 	}
 
 
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOut("(\"uni-node\", 0, " <<*it <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		out <<"(\"uni-node\", 0, " <<*it <<", {";
+		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
+			out <<(*it)->originalDB_ID.getLogItem();
 		}
-		LogOut("})" <<endl);
+		out <<"})" <<endl;
 
 		//
 		if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -1027,13 +1020,13 @@ void PrintDB_Network_ptrBased()
 	}
 
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOut("(\"multi-node\", 0, " <<*it <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
+		out <<"(\"multi-node\", 0, " <<*it <<", {";
+		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
+		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
+			out <<(*it)->originalDB_ID.getLogItem();
 		}
-		LogOut("})" <<endl);
+		out <<"})" <<endl;
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1070,21 +1063,16 @@ void PrintDB_Network_ptrBased()
 
 	//Links can go next.
 	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOut("(\"link\", 0, " <<*it <<", {");
-		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOut("\"start-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOut("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
-		LogOut("\"fwd-path\":\"[");
+		out <<"(\"link\", 0, " <<*it <<", {";
+		out <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		out <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		out <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		out <<"\"fwd-path\":\"[";
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOut(*segIt <<",");
+			out <<*segIt <<",";
 		}
-		LogOut("]\",");
-/*		LogOut("\"rev-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOut(*segIt <<",");
-		}
-		LogOut("]\",");*/
-		LogOut("})" <<endl);
+		out <<"]\",";
+		out <<"})" <<endl;
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1107,27 +1095,27 @@ void PrintDB_Network_ptrBased()
 	std::set<const Crossing*,Sorter> cachedCrossings;
 	std::set<const BusStop*,Sorter> cachedBusStops;
 		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOut("(\"road-segment\", 0, " <<*it <<", {");
-		LogOut("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
-		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOut("\"width\":\"" <<(*it)->width <<"\",");
-		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOut("\"from-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOut("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		out <<"(\"road-segment\", 0, " <<*it <<", {";
+		out <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
+		out <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
+		out <<"\"width\":\"" <<(*it)->width <<"\",";
+		out <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+		out <<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
+		out <<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
+			out <<(*it)->originalDB_ID.getLogItem();
 		}
-		LogOut("})" <<endl);
+		out <<"})" <<endl;
 
 		if (!(*it)->polyline.empty()) {
-			LogOut("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
-			LogOut("\"parent-segment\":\"" <<*it <<"\",");
-			LogOut("\"points\":\"[");
+			out <<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+			out <<"\"parent-segment\":\"" <<*it <<"\",";
+			out <<"\"points\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
+				out <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
-			LogOut("]\",");
-			LogOut("})" <<endl);
+			out <<"]\",";
+			out <<"})" <<endl;
 		}
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -1227,18 +1215,18 @@ void PrintDB_Network_ptrBased()
 		}
 
 		laneBuffer <<"})" <<endl;
-		LogOut(laneBuffer.str());
+		out <<laneBuffer.str();
 
 	}
 
 	//Crossings are part of Segments
 	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOut("(\"crossing\", 0, " <<*it <<", {");
-		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOut("})" <<endl);
+		out <<"(\"crossing\", 0, " <<*it <<", {";
+		out <<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
+		out <<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
+		out <<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
+		out <<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
+		out <<"})" <<endl;
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1255,7 +1243,42 @@ void PrintDB_Network_ptrBased()
 
 	//Bus Stops are part of Segments
 	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		LogOut("(\"busstop\", 0, " <<*it <<", {");
+		//Assumptions about the size of a Bus Stop
+		const centimeter_t length = 400;
+		const centimeter_t width  = 250;
+
+		//Use the magnitude of the parent segment to set the Bus Stop's direction and extension.
+		const BusStop* bs = *it;
+		Point2D dir;
+		{
+			const Node* start = bs->getParentSegment()->getStart();
+			const Node* end = bs->getParentSegment()->getEnd();
+			dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+		}
+
+		//Get a vector that is at the "lower-left" point of a bus stop, facing "up" and "right"
+		DynamicVector vec(bs->xPos, bs->yPos, bs->xPos+dir.getX(), bs->yPos+dir.getY());
+		vec.scaleVectTo(length/2).translateVect().flipRight();
+		vec.scaleVectTo(width/2).translateVect().flipRight();
+
+		//Now, create a "near" vector and a "far" vector
+		DynamicVector near(vec);
+		near.scaleVectTo(length);
+		DynamicVector far(vec);
+		far.flipRight().scaleVectTo(width).translateVect();
+		far.flipLeft().scaleVectTo(length);
+
+		//Save it.
+		out <<"(\"busstop\", 0, " <<bs <<", {";
+		out <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
+		out <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
+		out <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
+		out <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
+		out <<"})" <<std::endl;
+
+		//Old code; this just fakes the bus stop at a 40 degree angle.
+		//TODO: Remove this code once we verify that the above code is better.
+		/*out <<"(\"busstop\", 0, " <<*it <<", {";
 		double x = (*it)->xPos;
 		double y = (*it)->yPos;
 		int angle = 40;
@@ -1265,6 +1288,7 @@ void PrintDB_Network_ptrBased()
 		double phi = M_PI * angle / 180;
 		double diagonal_half = (sqrt(length * length + width * width)) / 2;
 
+		//TODO: It looks like this can be easily replaced with DynamicVectors. Should be both faster and simpler.
 		double x1d = x + diagonal_half * cos(phi + theta);
 		double y1d = y + diagonal_half * sin(phi + theta);
 		double x2d = x + diagonal_half * cos(M_PI + phi - theta);
@@ -1274,12 +1298,14 @@ void PrintDB_Network_ptrBased()
 		double x4d = x + diagonal_half * cos(phi - theta);
 		double y4d = y + diagonal_half * sin(phi - theta);
 
-		LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-		LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-		LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-		LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-		LogOut("})" <<endl);
+		out <<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
+		out <<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
+		out <<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
+		out <<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
+		out <<"})" <<endl;*/
 
+		//TODO: This code might be better, but it should still be replaced by the above code.
+		/*
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
 			stream<<"(\"busstop\", 0, " <<*it <<", {";
@@ -1290,7 +1316,7 @@ void PrintDB_Network_ptrBased()
 			stream<<"})";
 			string s = stream.str();
 			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
+		}*/
 	}
 
 
@@ -1303,12 +1329,12 @@ void PrintDB_Network_ptrBased()
 		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
 
 		//Output
-		LogOut("(\"lane-connector\", 0, " <<*it <<", {");
-		LogOut("\"from-segment\":\"" <<fromSeg <<"\",");
-		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOut("\"to-segment\":\"" <<toSeg <<"\",");
-		LogOut("\"to-lane\":\"" <<toLane <<"\",");
-		LogOut("})" <<endl);
+		out <<"(\"lane-connector\", 0, " <<*it <<", {";
+		out <<"\"from-segment\":\"" <<fromSeg <<"\",";
+		out <<"\"from-lane\":\"" <<fromLane <<"\",";
+		out <<"\"to-segment\":\"" <<toSeg <<"\",";
+		out <<"\"to-lane\":\"" <<toLane <<"\",";
+		out <<"})" <<endl;
 
 		if (ConfigParams::GetInstance().InteractiveMode()) {
 			std::ostringstream stream;
@@ -1329,18 +1355,18 @@ void PrintDB_Network_ptrBased()
 	}
 
 	//Print the StreetDirectory graphs.
-	StreetDirectory::instance().printDrivingGraph();
-	StreetDirectory::instance().printWalkingGraph();
+	StreetDirectory::instance().printDrivingGraph(out);
+	StreetDirectory::instance().printWalkingGraph(out);
 
 	//Required for the visualizer
-	LogOut("ROADNETWORK_DONE" <<endl);
+	out <<"ROADNETWORK_DONE" <<endl;
 }
 
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 //obsolete
-void PrintDB_Network_idBased()
+/*void PrintDB_Network_idBased()
 {
 	if (ConfigParams::GetInstance().OutputDisabled()) {
 		return;
@@ -1416,11 +1442,6 @@ void PrintDB_Network_idBased()
 			LogOut((*segIt)->getSegmentID() <<",");
 		}
 		LogOut("]\",");
-/*		LogOut("\"rev-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			LogOut((*segIt)->getSegmentID() <<",");
-		}
-		LogOut("]\",");*/
 		LogOut("})" <<endl);
 	}
 
@@ -1446,7 +1467,7 @@ void PrintDB_Network_idBased()
 		LogOut("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
-			LogOut("(\"polyline\", 0, " /*<<&((*it)->polyline)*/ <<", {");
+			LogOut("(\"polyline\", 0, " <<", {");
 			LogOut("\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",");
 			LogOut("\"points\":\"[");
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
@@ -1481,7 +1502,7 @@ void PrintDB_Network_idBased()
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
 		//      and we can switch to a full "lane" output type.
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
-		laneBuffer <<"(\"lane\", 0, " <</*&((*it)->getLanes()) <<*/", {";
+		laneBuffer <<"(\"lane\", 0, " <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",";
 		size_t laneID=0;
 
@@ -1517,7 +1538,7 @@ void PrintDB_Network_idBased()
 	//Bus Stops are part of Segments
 		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
 			//LogOut("Surav's loop  is here!");
-			LogOut("(\"busstop\", 0, " <</*(*it) <<*/", {");
+			LogOut("(\"busstop\", 0, " <<", {");
 		//	LogOut("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
 			// LogOut("\"xPos\":\"" <<(*it)->xPos<<"\",");
 		//	LogOut("\"yPos\":\"" <<(*it)->yPos<<"\",");
@@ -1555,7 +1576,7 @@ void PrintDB_Network_idBased()
 		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
 
 		//Output
-		LogOut("(\"lane-connector\", 0, " /*<<(*it)*/ <<", {");
+		LogOut("(\"lane-connector\", 0, "  <<", {");
 		LogOut("\"from-segment\":\"" <<fromSeg->getSegmentID() <<"\",");
 		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
 		LogOut("\"to-segment\":\"" <<toSeg->getSegmentID() <<"\",");
@@ -1563,11 +1584,11 @@ void PrintDB_Network_idBased()
 		LogOut("})" <<endl);
 	}
 
-}
+}*/
 
 
 //obsolete
-void printRoadNetwork_console()
+/*void printRoadNetwork_console()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
 	std::cout << "Testin Road Network :\n";
@@ -1596,19 +1617,6 @@ void printRoadNetwork_console()
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
-/*		std::cout << "\n\nBackward Segments:\n";
-		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
-		{
-			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
-			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
-			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
-			std::sort(tmpLanes.begin(), tmpLanes.end(), sorter_);
-			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
-			{
-				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
-			}
-			sum_lane += (*it_seg)->getLanes().size();
-		}*/
 		std::cout << "\n\n\n\n";
 		sum_segments += (*it)->getUniqueSegments().size();
 
@@ -1626,7 +1634,7 @@ void printRoadNetwork_console()
 		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
 		{
 			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
-			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			const std::set<sim_mob::LaneConnector*> & tempLC = ((*it_cnn).second);
 			std::set<sim_mob::LaneConnector *, Sorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
 			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
 			{
@@ -1650,7 +1658,7 @@ void printRoadNetwork_console()
 
 
 	std::cout << "Testing Road Network Done\n";
-}
+}*/
 
 
 //Returns the error message, or an empty string if no error.
@@ -1812,6 +1820,37 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int signalWgSize = ReadValue(handle, "signal", 0);
 	int commWgSize = ReadValue(handle, "Android_Communication", 0);
 
+	//Save the "single-threaded" flag, if it exists.
+	bool singleThreaded = false;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("single_threaded").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="true") {
+				singleThreaded = true;
+			}
+		}
+	}
+	ConfigParams::GetInstance().singleThreaded = singleThreaded;
+
+	//Save "mergeLogFiles", if it exists.
+	bool mergeLogFiles = false;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("merge_log_files").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="true") {
+				mergeLogFiles = true;
+			}
+		}
+	}
+	ConfigParams::GetInstance().mergeLogFiles = mergeLogFiles;
+
+
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
@@ -1942,16 +1981,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		if (valStr_c) {
 			std::string valStr(valStr_c);
 			if (valStr == "true") {
-				ConfigParams::GetInstance().dynamicDispatchDisabled = true;
+				ConfigParams::GetInstance().SetDynamicDispatchDisabled(true);
 			} else if (valStr == "false") {
-				ConfigParams::GetInstance().dynamicDispatchDisabled = false;
+				ConfigParams::GetInstance().SetDynamicDispatchDisabled(false);
 			} else {
 				return "Invalid parameter; expecting boolean.";
 			}
 		}
 	}
 
-	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().dynamicDispatchDisabled ? "DISABLED" : "Enabled") <<std::endl;
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;
 
 
 	//Series of one-line checks.
@@ -2246,6 +2285,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
+    std::cout <<"Force single-threaded: " <<(ConfigParams::GetInstance().singleThreaded?"yes":"no") <<"\n";
 	//Print the WorkGroup strategy.
 	std::cout <<"WorkGroup assignment: ";
 	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
@@ -2255,7 +2295,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	} else {
 		std::cout <<"<unknown>" <<std::endl;
 	}
-    std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
+	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";
@@ -2278,7 +2318,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
-    	PrintDB_Network_ptrBased();
+    	PrintDB_NetworkToFile(ConfigParams::GetInstance().outNetworkFileName);
     	std::cout <<"------------------\n";
    // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
@@ -2350,9 +2390,57 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 ConfigParams sim_mob::ConfigParams::instance;
 
 
+void sim_mob::ConfigParams::reset()
+{
+	//TODO: This *should* work fine, but check the comment below.
+	instance = sim_mob::ConfigParams();
+
+	//TODO: This is the old code for reset(); I prefer the above code, as it is more generic, but I
+	//      have not tested that it works.  ~Seth
+	//sealedNetwork=false;
+	//roleFact.clear();
+}
+
+sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
+	if (!commDataMgr) {
+		commDataMgr = new CommunicationDataManager();
+	}
+	return *commDataMgr;
+#else
+	throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+}
+
+sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
+	//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+	if (!controlMgr) {
+		controlMgr = new ControlManager();
+	}
+	return controlMgr;
+#else
+	throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+#endif
+}
+
+
 //////////////////////////////////////////
 // Macro definitions
 //////////////////////////////////////////
+
+
+bool sim_mob::ConfigParams::UsingConfluxes() const
+{
+#ifdef SIMMOB_USE_CONFLUXES
+	return true;
+#else
+	return false;
+#endif
+}
+
 
 bool sim_mob::ConfigParams::MPI_Disabled() const
 {
@@ -2367,6 +2455,15 @@ bool sim_mob::ConfigParams::MPI_Disabled() const
 bool sim_mob::ConfigParams::OutputDisabled() const
 {
 #ifdef SIMMOB_DISABLE_OUTPUT
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::ConfigParams::InteractiveMode() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
 	return true;
 #else
 	return false;

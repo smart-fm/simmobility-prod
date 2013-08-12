@@ -12,20 +12,27 @@
 #include "workers/Worker.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
+#include "database/entity/housing-market/SellerParams.hpp"
+#include "database/entity/housing-market/BidderParams.hpp"
 
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
 using sim_mob::Entity;
 using std::vector;
 using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(int id, Household* hh, HousingMarket* market)
+HouseholdAgent::HouseholdAgent(int id, Household* hh, const SellerParams& sellerParams,  
+        const BidderParams& bidderParams, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {
-    if (id % 2 == 0) {
-        currentRole = new HouseholdSellerRole(this, hh, market);
-    } else {
-        currentRole = new HouseholdBidderRole(this, hh, market);
+    
+    if (id == sellerParams.GetHouseholdId()) {
+        currentRole = new HouseholdSellerRole(this, hh, sellerParams, market);
+    }
+    
+    if (id == bidderParams.GetHouseholdId()) {
+        currentRole = new HouseholdBidderRole(this, hh, bidderParams, market);
     }
     currentRole->SetActive(true);
 }
@@ -49,7 +56,7 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCount
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::HandleMessage(MessageType type, MessageReceiver& sender,
-        const Message& message) {
+void HouseholdAgent::HandleMessage(messaging::MessageReceiver::MessageType type, messaging::MessageReceiver& sender,
+        const messaging::Message& message) {
     currentRole->HandleMessage(type, sender, message);
 }

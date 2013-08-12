@@ -44,26 +44,6 @@ void R_tree_DU::insert(Agent const * agent)
 	Insert(agent, bounding_box_du(agent), agent->getId());
 }
 
-// A visitor that simply collects the agent into an array, which was specified in the
-// constructor.
-struct Collecting_visitor
-{
-	const bool ContinueVisiting;
-	std::vector<Agent const *> & array; // must be a reference.
-
-	explicit Collecting_visitor(std::vector<Agent const *> & array) :
-		ContinueVisiting(true), array(array)
-	{
-	}
-
-	// When called, the visitor saves the agent in <array>.
-	bool operator()(const R_tree_DU::Leaf * const leaf) const
-	{
-		array.push_back(leaf->leaf);
-		return true;
-	}
-};
-
 std::vector<Agent const *> R_tree_DU::query(R_tree_DU::BoundingBox const & box) const
 {
 	// R_tree_DU::AcceptEnclosing functor will call the visitor if the agent is enclosed
@@ -71,7 +51,8 @@ std::vector<Agent const *> R_tree_DU::query(R_tree_DU::BoundingBox const & box) 
 	// Query() returns, <result> should contain agents that are located inside <box>.
 	std::vector<Agent const *> result;
 
-	const_cast<R_tree_DU*> (this)->Query(R_tree_DU::AcceptEnclosing(box), Collecting_visitor(result));
+	//const_cast<R_tree_DU*> (this)->Query(R_tree_DU::AcceptEnclosing(box), Collecting_visitor(result));
+	Query(R_tree_DU::AcceptEnclosing(box), Collecting_visitor(result));
 
 	// Need to remove the constness of <this> because Query() was not implemented as a
 	// const method.

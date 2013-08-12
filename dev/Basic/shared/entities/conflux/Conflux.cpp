@@ -6,51 +6,41 @@
  */
 
 #include "Conflux.hpp"
-#include<map>
+
+#include <map>
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
-#include "Conflux.hpp"
+
 #include "conf/simpleconf.hpp"
+#include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/conflux/SegmentStats.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
+#include "workers/Worker.hpp"
 
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
-namespace {
-//Ensure all time ticks are valid.
-void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
-	//Has update() been called early?
-	if (now<startTime) {
-		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
-				<< " but it is currently: " << now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
 
-	//Has update() been called too late?
-	if (wasRemoved) {
-		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
+	: Agent(mtxStrat, id),
+	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out)
+{
+}
 
-	//Was frame_init() called at the wrong point in time?
-	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
-			std::stringstream msg;
-			msg <<"Agent was not started within one timespan of its requested start time.";
-			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
-			msg <<"Agent ID: " <<agentId <<"\n";
-			throw std::runtime_error(msg.str().c_str());
-		}
+sim_mob::Conflux::~Conflux()
+{
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
+		safe_delete_item(i->second);
 	}
 }
-} //End un-named namespace
 
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg) {
@@ -426,7 +416,9 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	for( ; it != segmentAgents.end(); ++it )
 	{
 		(it->second)->updateLaneParams(frameNumber);
-		(it->second)->reportSegmentStats(frameNumber);
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			Log() <<(it->second)->reportSegmentStats(frameNumber);
+		}
 	}
 }
 
@@ -440,7 +432,7 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing) {
 	findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
-	ag->currWorker = parentWorker;
+	ag->currWorkerProvider = parentWorker;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);
 }
@@ -708,7 +700,7 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	check_frame_times(person->getId(), now.ms(), person->getStartTime(), calledFrameInit, person->isToBeRemoved());
+	CheckFrameTimes(person->getId(), now.ms(), person->getStartTime(), calledFrameInit, person->isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);

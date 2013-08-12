@@ -26,6 +26,7 @@ namespace sim_mob {
 ///Simple base class for reaction time distributions
 class ReactionTimeDist {
 public:
+	virtual ~ReactionTimeDist() {}
 	virtual double getReactionTime() = 0;
 };
 
@@ -39,8 +40,8 @@ private:
 public:
 	UniformReactionTimeDist(double min, double max)
 	 : gen(), dist(min, max)
-	{
-	}
+	{}
+	virtual ~UniformReactionTimeDist() {}
 
 	virtual double getReactionTime() { return dist(gen); }
 };
@@ -56,8 +57,8 @@ private:
 public:
 	NormalReactionTimeDist(double mean, double stdev)
 	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{
-	}
+	{}
+	virtual ~NormalReactionTimeDist(){}
 
 	virtual double getReactionTime() { return varGen(); }
 };
@@ -72,8 +73,8 @@ private:
 public:
 	LognormalReactionTimeDist(double mean, double stdev)
 	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{
-	}
+	{}
+	virtual ~LognormalReactionTimeDist(){}
 
 	virtual double getReactionTime() { return varGen(); }
 };

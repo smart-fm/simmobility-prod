@@ -17,11 +17,5 @@ void sim_mob::xml::TripChains_t_pimpl::TripChain (std::pair<std::string, std::ve
 	model->insert(value);//assigns tripchains to a person(in a std::map). this assignment is final
 	//TODO: Avoid static references!
 //	(*tripChains)[value.first] = value.second;
-	std::vector<sim_mob::TripChainItem*> imp = value.second;
-	std::vector<sim_mob::TripChainItem*>::iterator it;
-	for(it=imp.begin(); it!=imp.end(); it++)
-	{
-		std::cout << "request time" << (*it)->requestTime << std::endl;
-	}
 }
 

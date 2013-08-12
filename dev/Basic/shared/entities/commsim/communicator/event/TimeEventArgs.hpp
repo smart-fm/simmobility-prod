@@ -5,8 +5,7 @@
  *      Author: vahid
  */
 
-#ifndef TIMEEVENTARGS_HPP_
-#define TIMEEVENTARGS_HPP_
+#pragma once
 
 #include "entities/commsim/communicator/serialization/Serialization.hpp"
 #include "event/args/EventArgs.hpp"
@@ -16,7 +15,7 @@
 
 namespace sim_mob {
 DECLARE_CUSTOM_CALLBACK_TYPE(TimeEventArgs)
-class TimeEventArgs: public sim_mob::EventArgs {
+class TimeEventArgs: public sim_mob::event::EventArgs {
 public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();
@@ -27,4 +26,3 @@ public:
 
 
 } /* namespace sim_mob */
-#endif /* TIMEEVENTARGS_HPP_ */

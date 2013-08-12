@@ -5,11 +5,8 @@
 #pragma once
 
 #include "util/DynamicVector.hpp"
-#include "BusStop.hpp"
-#include "Lane.hpp"
-
-
-
+#include "geospatial/BusStop.hpp"
+#include "geospatial/Lane.hpp"
 
 
 namespace sim_mob{

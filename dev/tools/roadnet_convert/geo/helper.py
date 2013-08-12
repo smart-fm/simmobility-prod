@@ -222,16 +222,16 @@ def make_lane_connectors(rn):
   #First, make a list of all "incoming" and "outgoing" edges at a given node
   lookup = {}  #nodeId => InOut
   for lk in rn.links.values():
-    for e in lk.segments:
+    for seg in lk.segments:
       #Give it an entry
-      if not (e.fromNode.nodeId in lookup):
-        lookup[e.fromNode.nodeId] = InOut()
-      if not (e.toNode.nodeId in lookup):
-        lookup[e.toNode.nodeId] = InOut()
+      if not (seg.fromNode.nodeId in lookup):
+        lookup[seg.fromNode.nodeId] = InOut()
+      if not (seg.toNode.nodeId in lookup):
+        lookup[seg.toNode.nodeId] = InOut()
 
-    #Append
-    lookup[e.toNode.nodeId].incoming.append(e)
-    lookup[e.fromNode.nodeId].outgoing.append(e)
+      #Append
+      lookup[seg.toNode.nodeId].incoming.append(seg)
+      lookup[seg.fromNode.nodeId].outgoing.append(seg)
 
   #Now make a set of lane connectors from all "incoming" to all "outgoing" (except U-turns) at a Node
   for n in rn.nodes.values():
@@ -249,6 +249,12 @@ def make_lane_connectors(rn):
         #The looping gets even deeper!
         for fromLane in fromEdge.lanes:
           for toLane in toEdge.lanes:
+            #Sanity check.
+            if fromEdge.toNode.nodeId != toEdge.fromNode.nodeId:
+              raise Exception("Error: Lane Connector malformed (1)")
+            if fromEdge.toNode.nodeId != n.nodeId:
+              raise Exception("Error: Lane Connector malformed (2)")
+
             fromEdge.lane_connectors[toEdge.segId].append(geo.formats.simmob.LaneConnector(fromEdge, toEdge, fromLane, toLane))
 
 

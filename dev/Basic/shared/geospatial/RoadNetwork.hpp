@@ -18,6 +18,7 @@ class MultiNode;
 class Point2D;
 class Link;
 class Conflux;
+class CoordinateTransform;
 
 namespace aimsun
 {
@@ -104,6 +105,8 @@ public:
 	//Temporary: Not exposed publicly
 	std::set<sim_mob::UniNode*> segmentnodes;
 
+	//List of CoordinateTransforms this map contains. Only the first is guaranteed to be valid.
+	std::vector<sim_mob::CoordinateTransform*> coordinateMap;
 
 };
 

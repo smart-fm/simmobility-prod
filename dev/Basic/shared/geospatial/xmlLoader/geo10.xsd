@@ -8,10 +8,10 @@
   targetNamespace="http://www.smart.mit.edu/geo">
 
   <xs:complexType name="coordinate_map_t">
-    <xs:sequence>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
     <xs:choice>
-      <xs:element name="utm_projection" type="geo:utm_projection_t" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="linear_scale" type="geo:linear_scale_t" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="utm_projection" type="geo:utm_projection_t"/>
+      <xs:element name="linear_scale" type="geo:linear_scale_t"/>
     </xs:choice>
     </xs:sequence>
   </xs:complexType>

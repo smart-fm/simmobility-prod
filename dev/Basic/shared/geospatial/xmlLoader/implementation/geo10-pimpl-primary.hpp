@@ -354,6 +354,7 @@ public:
 	virtual void pre ();
 	virtual sim_mob::RoadNetwork& post_RoadNetwork_t ();
 
+	virtual void coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&);
 	virtual void Nodes (const sim_mob::xml::helper::NodesRes&);
 	virtual void Links (const std::vector<sim_mob::Link*>&);
 

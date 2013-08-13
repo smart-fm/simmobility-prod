@@ -30,9 +30,17 @@ void sim_mob::xml::utm_projection_t_pimpl::coordinate_system (const ::std::strin
 	}
 }
 
-void sim_mob::xml::utm_projection_t_pimpl::utm_zone (const ::std::string& utm_zone)
+void sim_mob::xml::utm_projection_t_pimpl::utm_zone (const ::std::string& value)
 {
-  std::cout << "utm_zone: " << utm_zone << std::endl;
+	//Spaces are ignored.
+	std::string trimmed = value;
+	trimmed.erase(std::remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());
+
+	if (trimmed=="48N") {
+		model.utmZone = sim_mob::UTM_48N;
+	} else {
+		model.utmZone = sim_mob::UTM_INVALID;
+	}
 }
 
 

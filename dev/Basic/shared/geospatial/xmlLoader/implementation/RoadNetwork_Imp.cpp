@@ -15,6 +15,13 @@ sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 }
 
 
+void sim_mob::xml::RoadNetwork_t_pimpl::coordinate_map (const std::vector<sim_mob::CoordinateTransform*>& value)
+{
+	throw_if_null();
+	modelRef->coordinateMap = value;
+}
+
+
 void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 {
 	throw_if_null();

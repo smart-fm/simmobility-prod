@@ -58,7 +58,6 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
 	    ::sim_mob::xml::coordinate_map_t_pimpl coordinate_map_t_p;
 	    ::sim_mob::xml::utm_projection_t_pimpl utm_projection_t_p;
-	    ::xml_schema::string_pimpl string_p;
 	    ::sim_mob::xml::linear_scale_t_pimpl linear_scale_t_p;
 	    ::sim_mob::xml::scale_source_t_pimpl scale_source_t_p;
 	    ::sim_mob::xml::scale_destination_t_pimpl scale_destination_t_p;

@@ -9,7 +9,7 @@ namespace http://www.smart.mit.edu/geo  {
 	include "geospatial/LaneConnector.hpp";
 	include "geospatial/Crossing.hpp";
 	include "geospatial/UniNode.hpp";
-	include "geospatial/coord/CoordinateTranform.hpp";
+	include "geospatial/coord/CoordinateTransform.hpp";
 	include "geospatial/coord/LinearScale.hpp";
 	include "geospatial/coord/UTM_Projection.hpp";
 	include "metrics/Length.hpp";
@@ -45,8 +45,8 @@ Node_t    sim_mob::Node;
 #Haven't gotten around to checking this yet...
 utm_projection_t sim_mob::UTM_Projection*;
 linear_scale_t sim_mob::LinearScale*;
-scale_source_t "std::pair<sim_mob::Range, sim_mob::Range>";
-scale_destination_t "std::pair<sim_mob::Range, sim_mob::Range>";
+scale_source_t "std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>";
+scale_destination_t "std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>";
  
 #Older, un-edited mapping code.
 

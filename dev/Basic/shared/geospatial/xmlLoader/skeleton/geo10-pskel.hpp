@@ -161,7 +161,7 @@ namespace sim_mob
 #include "geospatial/xmlLoader/geo10-helper.hpp"
 #include "geospatial/coord/UTM_Projection.hpp"
 #include "geospatial/coord/LinearScale.hpp"
-#include "geospatial/coord/CoordinateTranform.hpp"
+#include "geospatial/coord/CoordinateTransform.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -481,10 +481,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      source (const std::pair<sim_mob::Range, sim_mob::Range>&);
+      source (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&);
 
       virtual void
-      destination (const std::pair<sim_mob::Range, sim_mob::Range>&);
+      destination (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&);
 
       virtual sim_mob::LinearScale*
       post_linear_scale_t () = 0;
@@ -536,7 +536,7 @@ namespace sim_mob
       virtual void
       y_range (const ::std::string&);
 
-      virtual std::pair<sim_mob::Range, sim_mob::Range>
+      virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>
       post_scale_source_t () = 0;
 
       // Parser construction API.
@@ -586,7 +586,7 @@ namespace sim_mob
       virtual void
       latitude_range (const ::std::string&);
 
-      virtual std::pair<sim_mob::Range, sim_mob::Range>
+      virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>
       post_scale_destination_t () = 0;
 
       // Parser construction API.

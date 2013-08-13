@@ -3077,12 +3077,12 @@ namespace sim_mob
     //
 
     void linear_scale_t_pskel::
-    source (const std::pair<sim_mob::Range, sim_mob::Range>&)
+    source (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
     {
     }
 
     void linear_scale_t_pskel::
-    destination (const std::pair<sim_mob::Range, sim_mob::Range>&)
+    destination (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
     {
     }
 

@@ -13,6 +13,45 @@ namespace xml {
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
+class coordinate_map_t_pimpl: public virtual coordinate_map_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::CoordinateTransform*> post_coordinate_map_t ();
+
+	virtual void utm_projection (sim_mob::UTM_Projection*);
+	virtual void linear_scale (sim_mob::LinearScale*);
+
+private:
+	std::vector<sim_mob::CoordinateTransform*> model;
+};
+
+
+class utm_projection_t_pimpl: public virtual utm_projection_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::UTM_Projection* post_utm_projection_t ();
+
+	virtual void coordinate_system (const ::std::string&);
+	virtual void utm_zone (const ::std::string&);
+
+private:
+	sim_mob::UTM_Projection model;
+};
+
+
+class linear_scale_t_pimpl: public virtual linear_scale_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::LinearScale* post_linear_scale_t ();
+
+	virtual void source (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&);
+	virtual void destination (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&);
+
+private:
+	sim_mob::LinearScale model;
+};
+
+
 class Point2D_t_pimpl: public virtual Point2D_t_pskel {
 public:
 	virtual void pre ();

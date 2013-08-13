@@ -28,7 +28,7 @@ sim_mob::RoadSegment* sim_mob::xml::segment_t_pimpl::post_segment_t ()
 	for(std::map<sim_mob::centimeter_t,const RoadItem*>::iterator it = res->obstacles.begin(); it != res->obstacles.end(); it++) {
 		RoadItem* temp = const_cast<RoadItem*>(it->second);
 		if (temp) {
-			//temp->setParentSegment(res);
+			temp->setParentSegment(res);
 		}
 	}
 

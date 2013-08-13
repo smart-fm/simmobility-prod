@@ -17,7 +17,6 @@ namespace sim_mob {
     namespace event {
         
         typedef void* Context;
-        typedef unsigned int EventId;
         class EventPublisher;
 
         /**

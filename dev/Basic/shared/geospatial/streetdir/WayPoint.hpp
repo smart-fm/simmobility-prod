@@ -5,7 +5,7 @@
 #pragma once
 
 #include "util/LangHelpers.hpp"
-#include "geospatial/Node.hpp"
+
 
 namespace sim_mob
 {
@@ -114,15 +114,6 @@ struct WayPoint
     ///   in the walking graph.
     bool directionReverse;
 
-    ///return correct id value by structure type
-    int getID()
-    {
-    	int id = -1;
-    	if(type_==NODE){
-    		id = node_->getID();
-    	}
-    	return id;
-    }
 
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
     // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.

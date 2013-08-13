@@ -1251,9 +1251,18 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 		const BusStop* bs = *it;
 		Point2D dir;
 		{
-			const Node* start = bs->getParentSegment()->getStart();
-			const Node* end = bs->getParentSegment()->getEnd();
-			dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+			const Node* start = 0;
+			if(bs && bs->getParentSegment() )
+				start = bs->getParentSegment()->getStart();
+
+			const Node* end = 0;
+			if(bs && bs->getParentSegment() )
+				end = bs->getParentSegment()->getEnd();
+
+			if( start && end )
+				dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+			else
+				continue;
 		}
 
 		//Get a vector that is at the "lower-left" point of a bus stop, facing "up" and "right"

@@ -121,8 +121,12 @@ void FMODController::CollectRequest()
 				request->client_id = id+i;
 				request->arrival_time_early = "-1";
 				request->arrival_time_late = "-1";
-				request->origin = tc->fromLocation.getID();
-				request->destination = tc->toLocation.getID();
+				request->origin = 0;
+				if( tc->fromLocation.type_ == WayPoint::NODE )
+					request->origin = tc->fromLocation.node_->getID();
+				request->destination = 0;
+				if(tc->toLocation.type_ == WayPoint::NODE )
+					request->destination = tc->toLocation.node_->getID();
 
 				cur += tm;
 				request->departure_time_early = DailyTime(cur.getValue()-tc->requestTime*60*1000/2).toString();;

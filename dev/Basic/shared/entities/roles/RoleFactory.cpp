@@ -105,7 +105,7 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 {
 		if (subTrip.mode=="Car")    return "driver";
 		if (subTrip.mode=="Walk")   return "pedestrian";
-		//if (subTrip.mode=="Bus")    return "busdriver";
+		if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="BusTravel")    return "passenger";
 		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");

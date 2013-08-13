@@ -53,6 +53,7 @@
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/FMODController/FMODController.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
@@ -259,6 +260,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		signalStatusWorkers->assignAWorker(*it);
 	}
 
+
+	if(sim_mob::FMOD::FMODController::Instance()){
+		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
+	}
+
 	//..and Assign communication agent(currently a singleton
 
 
@@ -276,6 +282,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	//Initialize the aura manager
 	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
+
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -498,7 +505,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
  * Run the main loop of Sim Mobility, using command-line input.
  * Returns the value of the last completed run of performMain().
  */
-int run_simmob_interactive_loop() {
+int run_simmob_interactive_loop(){
 	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
 	std::list<std::string> resLogFiles;
 	int retVal = 1;

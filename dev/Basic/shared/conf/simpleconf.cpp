@@ -28,12 +28,14 @@
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/FMODController/FMODController.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "password/password.hpp"
 #include "logging/Log.hpp"
+
 
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
@@ -236,8 +238,12 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		}
 		else {
 			//insert to FMOD controller so that collection of requests
+			sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
 		}
 	}//outer for loop(map)
+
+	if( sim_mob::FMOD::FMODController::Instance() )
+		sim_mob::FMOD::FMODController::Instance()->Initialize();
 }
 
 bool isAndroidClientEnabled(TiXmlHandle& handle)
@@ -377,6 +383,57 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
+
+	return true;
+}
+
+bool loadXMLFMODController(TiXmlDocument& document)
+{
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("fmodcontroller").ToElement();
+	if(node == nullptr)	{
+		return false;
+	}
+
+	std::string swit = node->Attribute("switch");
+	if( swit != "true"){
+		return false;
+	}
+
+	TiXmlNode* node1 = node->FirstChild("ipaddress");
+	if(node1 == nullptr)	{
+		return false;
+	}
+
+	TiXmlNode* node2 = node1->NextSibling();
+	if(node2 == nullptr)	{
+		return false;
+	}
+
+	TiXmlNode* node3 = node2->NextSibling();
+	if(node3 == nullptr)	{
+		return false;
+	}
+
+	TiXmlNode* node4 = node3->NextSibling();
+	if(node4 == nullptr)	{
+		return false;
+	}
+
+	TiXmlNode* node5 = node4->NextSibling();
+	if(node5 == nullptr)   {
+		return false;
+	}
+
+	std::string ipAddress = node1->FirstChild()->Value();
+	int port = atoi( node2->FirstChild()->Value() );
+	int updateTiming = atoi( node3->FirstChild()->Value() );
+	std::string mapFile = node4->FirstChild()->Value();
+	int blockingTime = atoi( node5->FirstChild()->Value() );
+
+	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy);
+	sim_mob::FMOD::FMODController::Instance()->Settings(ipAddress, port, updateTiming, mapFile, blockingTime);
+	sim_mob::FMOD::FMODController::Instance()->ConnectFMODService();
 
 	return true;
 }
@@ -1197,9 +1254,18 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 
 		Point2D dir;
 		{
-			const Node* start = bs->getParentSegment()->getStart();
-			const Node* end = bs->getParentSegment()->getEnd();
-			dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+			const Node* start = 0;
+			if(bs && bs->getParentSegment() )
+				start = bs->getParentSegment()->getStart();
+
+			const Node* end = 0;
+			if(bs && bs->getParentSegment() )
+				end = bs->getParentSegment()->getEnd();
+
+			if( start && end )
+				dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
+			else
+				continue;
 		}
 
 		//Get a vector that is at the "lower-left" point of a bus stop, facing "up" and "right"
@@ -2167,6 +2233,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
     	return "Couldn't load buscontrollers";
+    }
+
+    if(!loadXMLFMODController(document)) {
+    	std::cout << "loadXMLFMODController Failed!" << std::endl;
+    	return "Couldn't load FMOD controller";
     }
 
     //Initialize all BusControllers.

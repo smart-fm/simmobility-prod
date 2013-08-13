@@ -265,7 +265,7 @@ public:
 
 	const std::map<double, travelStats>& getTravelStatsMap()
 	{
-		return this->travelStatsMap;
+		return this->travelStatsMap.get();
 	}
 
 	bool isQueuing;
@@ -275,7 +275,7 @@ public:
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
-	std::map<double, travelStats> travelStatsMap; //<linkExitTime, travelStats>
+	sim_mob::Shared< std::map<double, travelStats> > travelStatsMap; //<linkExitTime, travelStats>
 //	double linkEntryTime; //in seconds - time agent change to the current link
 //	double roleEntryTime; //in seconds - time agent changed to the current role
 
@@ -323,6 +323,7 @@ public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
+
 	bool isCallFrameInit() const {
 		return call_frame_init;
 	}
@@ -332,6 +333,7 @@ public:
 	}
 
 	friend class BoundaryProcessor;
+
 
 	friend class ShortTermBoundaryProcessor;
 

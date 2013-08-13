@@ -92,6 +92,16 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     		}
     	}
     }
+
+     //Build a lookup for nodes
+    for (vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
+    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
+    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+    		nodes.insert((*segIt)->getStart());
+    		nodes.insert((*segIt)->getEnd());
+    	}
+    }
+
 }
 
 
@@ -448,6 +458,17 @@ const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& posit
 	const int Threshold = 10 * 100; //10m
 	for (std::set<const BusStop*>::const_iterator it=busStops_.begin(); it!=busStops_.end(); it++) {
 		if (dist(Point2D((*it)->xPos, (*it)->yPos), position) < Threshold) {
+			return *it;
+		}
+	}
+	return nullptr;
+}
+
+
+const Node* sim_mob::GridStreetDirectoryImpl::getNode(const int id) const
+{
+	for (std::set<const Node*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		if ((*it)->getID() == id) {
 			return *it;
 		}
 	}

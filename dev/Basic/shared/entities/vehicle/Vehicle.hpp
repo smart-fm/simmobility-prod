@@ -50,6 +50,7 @@ public:
 		return elapsedParkingTime >= parkingTime; }
 };*/
 
+class FMODSchedule;
 class Vehicle {
 public:
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
@@ -65,6 +66,8 @@ public:
 	const double length;  ///<length of the vehicle
 	const double width;   ///<width of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
+	FMODSchedule* schedule;
+
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 
@@ -75,6 +78,7 @@ public:
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
 	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
 	double getDistanceToSegmentStart() const;
+	double getDistanceToSegmentEnd() const;
 
 	// segment length is based on lane's polypoints , which lane? it is a problem...
 	// be careful, it is not relate to segment's start ,end nodes
@@ -167,6 +171,7 @@ public:
 	void setPositionInSegment(double newDist2end);
 	//unit cm, this is based on lane zero's polypoints
 	 double getNextSegmentLength();
+
 private:
 
 

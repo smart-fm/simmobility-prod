@@ -164,6 +164,7 @@ public:
     std::string specialStr;
 
     std::stringstream debugMsgs;
+    int client_id;
 
 protected:
 	virtual bool frame_init(timeslice now);

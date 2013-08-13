@@ -149,11 +149,27 @@ public:
 	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips);
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
 	const std::string getMode(const sim_mob::SubTrip *subTrip) const;
+
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
 };
 
-
+class FMODSchedule{
+public:
+	struct STOP
+	{
+		int stop_id;
+		int schedule_id;
+		double dwell_time;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< int > boardingpassengers;
+		std::vector< int > alightingpassengers;
+	};
+	std::vector<STOP> stop_schdules;
+	std::vector<Node*> routes;
+	std::vector<const Person*> insidepassengers;
+};
 /**
  * \author Harish
  * \author zhang huai peng
@@ -167,6 +183,8 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
+	FMODSchedule* schedule;
+
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
@@ -174,6 +192,41 @@ public:
 	const std::string getMode() const ;
 };
 
+/**
+ * \author zhang huai peng
+ *//*
+class FMODTrip : public sim_mob::Trip {
+
+public:
+	struct STOP
+	{
+		std::string stop_id;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< std::string > boardingpassengers;
+		std::vector< std::string > alightingpassengers;
+	};
+	std::vector<STOP> stop_schdules;
+	struct PASSENGER
+	{
+		std::string client_id;
+		int price;
+	};
+	std::vector<PASSENGER> passengers;
+	struct ROUTE
+	{
+		std::string id;
+		int type;
+	};
+	std::vector<ROUTE> routes;
+
+	FMODTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node");
+
+	virtual ~FMODTrip() {}
+};
+*/
 
 //Non-member comparison functions
 bool operator==(const SubTrip& s1, const SubTrip& s2);

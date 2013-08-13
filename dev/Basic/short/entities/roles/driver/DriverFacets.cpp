@@ -4,6 +4,7 @@
 
 #include "DriverFacets.hpp"
 #include "BusDriver.hpp"
+#include "algorithm"
 
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
@@ -397,6 +398,14 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 		parentDriver->perceivedDistToTrafficSignal->clear();
 		parentDriver->perceivedTrafficColor->clear();
 		intersectionDriving(params);
+
+		/*double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+		std::cout << "intersection distance is : " << distance << std::endl;
+
+		parentDriver->vehicle->setAcceleration(-5000);
+		parentDriver->vehicle->setVelocity(0);
+		params.currSpeed = parentDriver->vehicle->getVelocity() / 100;*/
+
 	}
 
 	//Next, handle driving on links.
@@ -414,9 +423,25 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 
 
 	//Has the segment changed?
-	if ((!(parentDriver->vehicle->isDone())) && (!(parentDriver->vehicle->hasPath())) ) {
-		params.justChangedToNewSegment = (parentDriver->vehicle->getCurrSegment() != prevSegment);
+	if ((!(parentDriver->vehicle->isDone())) && ((parentDriver->vehicle->hasPath())) ) {
+		params.justChangedToNewSegment = ( (parentDriver->vehicle->getCurrSegment() != prevSegment) );
 	}
+
+	//change segment happen, calculate link travel time
+	if(params.justChangedToNewSegment == true ){
+		const RoadSegment* prevSeg = parentDriver->vehicle->getCurrSegment();
+		const Link* prevLink = prevSeg->getLink();
+		double actualTime = params.elapsedSeconds + (params.now.ms()/1000.0);
+		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
+		Agent* parentAgent = parentDriver->getDriverParent(parentDriver);
+		if(prevLink == parentAgent->getTravelStats().link_){
+			parentAgent->addToTravelStatsMap(parentAgent->getTravelStats(), actualTime); //in seconds
+			//prevSeg->getParentConflux()->setTravelTimes(parentAgent, linkExitTimeSec);
+		}
+		//creating a new entry in agent's travelStats for the new link, with entry time
+		parentAgent->initTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
+	}
+
 	return true;
 }
 
@@ -523,6 +548,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
+
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
@@ -584,6 +610,13 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		}
 	}
 
+	FMODSchedule* schedule = parentDriver->vehicle->schedule;
+	if(processFMODSchedule(schedule, p)){
+		parentDriver->vehicle->setAcceleration(-5000);
+		parentDriver->vehicle->setVelocity(0);
+		p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
+		return updatePositionOnLink(p);
+	}
 
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
@@ -647,6 +680,123 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	return updatePositionOnLink(p);
 }
 
+bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
+{
+	bool ret = false;
+	if(schedule) // check whether need stop here
+	{
+		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
+		const Node* stop = currSegment->getEnd();
+		bool isFound = false;
+		static int count = 0;
+		double dwell_time = 0;
+		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
+
+		if( stop->getID() == 75956 ){
+			std::cout << "distance is : " << distance << std::endl;
+		}
+
+		//judge whether near to stopping node
+		if( distance<500 ){
+
+			for(int i = 0; i<schedule->stop_schdules.size(); i++){
+
+				FMODSchedule::STOP& stopSchedule = schedule->stop_schdules[i];
+
+				if( stopSchedule.stop_id==stop->getID()){
+
+					isFound = true;
+					dwell_time = stopSchedule.dwell_time;
+
+					//arrive at scheduling node
+					if(dwell_time==0){
+
+						parentDriver->stop_event_type.set(1);
+						parentDriver->stop_event_scheduleid.set(stopSchedule.schedule_id);
+						parentDriver->stop_event_nodeid.set(stop->getID());
+
+						int passengersnum = stopSchedule.alightingpassengers.size()+stopSchedule.boardingpassengers.size();
+						dwell_time = stopSchedule.dwell_time = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
+
+						//boarding and alighting
+						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
+						const Node* node = seg->getEnd();
+					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)));
+					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+					 	{
+							std::cout << "agent id : " << (*it)->getId() << std::endl;
+
+					 		//passenger boarding
+							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
+							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
+							{
+								const Person* p = dynamic_cast<const Person*>( (*it) );
+								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+
+								if (!passenger)
+								  continue;
+
+								std::cout << "agent id : " << (*it)->getId() << std::endl;
+
+								schedule->insidepassengers.push_back( p );
+								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
+								if(passenger_movement) {
+									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
+									passenger_movement->alighting_MS = 1;
+								}
+					 	 	}
+					 	}
+
+						//alighting
+						vector<int>& alightingpeople = stopSchedule.alightingpassengers;
+						for( vector<int>::iterator it=alightingpeople.begin(); it!=alightingpeople.end(); it++ )
+						{
+							vector<const Person*>::iterator itPerson=schedule->insidepassengers.begin();
+							while(itPerson!=schedule->insidepassengers.end()){
+								if((*it) == (int)(*itPerson)->getId() ){
+									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
+									if (!passenger)
+										continue;
+
+									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
+									if(passenger_movement) {
+										passenger_movement->PassengerAlightBus(this->getParentDriver());
+										passenger_movement->alighting_MS = 1;
+									}
+
+									itPerson = schedule->insidepassengers.erase(itPerson);
+								}
+								else{
+									itPerson++;
+								}
+							}
+						}
+
+						//update shared parameters to record boarding and alighting person
+						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingpassengers );
+						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingpassengers );
+					}
+
+					// stopping at scheduling node
+					dwell_time -= p.elapsedSeconds;
+					schedule->stop_schdules[i].dwell_time = dwell_time;
+
+					//depature from this node
+					if(dwell_time < 0 ){
+						parentDriver->stop_event_type.set(0);
+					}
+				}
+			}
+		}
+
+		if(isFound && dwell_time>0.0){
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+
 void sim_mob::DriverMovement::setParentBufferedData() {
 	getParent()->xPos.set(parentDriver->vehicle->getX());
 	getParent()->yPos.set(parentDriver->vehicle->getY());
@@ -660,6 +810,8 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(parentDriver->vehicle->getNextSegment()))) {
 		return false;
 	}
+
+
 
 	//oh! we really dont neeeeeeeeed all this! r u going to repeat these two iterations for all the corresponding drivers?
 //	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
@@ -704,6 +856,34 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 //		}
 //	}
 	return false;
+}
+
+double sim_mob::DriverMovement::dwellTimeCalculation(int A, int B, int delta_bay, int delta_full,int Pfront, int no_of_passengers)
+{
+	//assume single channel passenger movement
+	 double alpha1 = 2.1;//alighting passenger service time,assuming payment by smart card
+	 double alpha2 = 3.5;//boarding passenger service time,assuming alighting through rear door
+	 double alpha3 = 3.5;//door opening and closing times
+	 double alpha4 = 1.0;
+	 double beta1 = 0.7;//fixed parameters
+	 double beta2 = 0.7;
+	 double beta3 = 5;
+	 double DTijk = 0.0;
+	 bool bus_crowdness_factor;
+	int no_of_seats = 40;
+	if (no_of_passengers > no_of_seats) //standees are present
+		alpha1 += 0.5; //boarding time increase if standees are present
+	if (no_of_passengers > no_of_seats)
+		bus_crowdness_factor = 1;
+	else
+		bus_crowdness_factor = 0;
+	double PTijk_front = alpha1 * Pfront * A + alpha2 * B+ alpha3 * bus_crowdness_factor * B;
+	double PTijk_rear = alpha4 * (1 - Pfront) * A;
+	double PT;
+	PT = std::max(PTijk_front, PTijk_rear);
+	DTijk = beta1 + PT + beta2 * delta_bay + beta3 * delta_full;
+	std::cout<<"Dwell__time "<<DTijk<<std::endl;
+	return DTijk;
 }
 
 //update left and right lanes of the current lane
@@ -892,7 +1072,6 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 			lastIndex = *(laneIDS.begin());
 			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(*(laneIDS.begin()))->getPolyline().at(0);//>getLaneEdgePolyline(*(laneIDS.begin())).at(0);
 		}
-
 	}
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
@@ -957,10 +1136,36 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
-		Person* parentP = dynamic_cast<Person*> (getParent());
+
+		Person* parentP = dynamic_cast<Person*> (parent);
+		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+
 		if (!parentP || parentP->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+
+			if(subTrip->schedule==nullptr){
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+			}
+			else {
+				std::vector<Node*>& routes = subTrip->schedule->routes;
+				std::vector<Node*>::iterator first = routes.begin();
+				std::vector<Node*>::iterator second = first;
+
+				path.clear();
+				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+					path.insert( path.end(), subPath.begin(), subPath.end());
+				}
+
+				/*vector<WayPoint>::iterator it;
+				for(it=path.begin(); it!=path.end(); it++){
+					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
+						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
+					}
+				}*/
+			}
+
 		} else {
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
@@ -975,6 +1180,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			} else {
 				throw std::runtime_error("Unknown special string type.");
 			}
+
 		}
 
 		//For now, empty paths aren't supported.
@@ -983,7 +1189,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 1;
+		int startlaneID = 0;
 
 		if(parentP->laneID != -1)
 		{
@@ -999,6 +1205,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if (allocateVehicle) {
 			res = new Vehicle(path, startlaneID, length, width);
 		}
+
+		if(subTrip->schedule && res){
+			int stopid = subTrip->schedule->stop_schdules[0].stop_id;
+			res->schedule = subTrip->schedule ;
+		}
+
 	}
 
 	//to indicate that the path to next activity is already planned

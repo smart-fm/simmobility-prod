@@ -183,6 +183,8 @@ public:
 
 		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
 
+		virtual const Node* getNode(const int id) const = 0;
+
         virtual LaneAndIndexPair getLane(const Point2D& position) const = 0;
 
         virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
@@ -234,6 +236,7 @@ public:
 
     const BusStop* getBusStop(const Point2D& position) const;
 
+	const Node* getNode(const int id) const;
 
     /**
      * Return the lane that contains the specified \c point; 0 if the point is outside the

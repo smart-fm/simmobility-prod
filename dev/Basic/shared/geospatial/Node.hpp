@@ -23,7 +23,6 @@ class GeoSpatial_t_pimpl;
 namespace sim_mob
 {
 //Forward declarations
-class Link;
 class Lane;
 class LaneConnector;
 class RoadSegment;

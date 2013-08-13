@@ -98,6 +98,7 @@ private:
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil) = 0;
@@ -106,6 +107,7 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) = 0;
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
+
 
 	friend class ActivityPerformerBehavior;
 	friend class ActivityPerformerMovement;

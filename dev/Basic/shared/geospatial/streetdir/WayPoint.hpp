@@ -6,6 +6,7 @@
 
 #include "util/LangHelpers.hpp"
 
+
 namespace sim_mob
 {
 
@@ -112,6 +113,7 @@ struct WayPoint
     ///  This usually means that a RoadSegment should be traversed in reverse. Note that this only has meaning
     ///   in the walking graph.
     bool directionReverse;
+
 
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
     // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.

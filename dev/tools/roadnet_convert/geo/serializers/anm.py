@@ -89,7 +89,7 @@ def _write_node_lanes(out, n, rnInd):
     for ln in seg.lanes:
       out.write('        <LANE\n')
       out.write('          LINKID = "%s"\n' % rnInd.segParents[seg.segId].linkId)
-      out.write('          INDEX = "%s"\n' % ln.laneNumber)
+      out.write('          INDEX = "%d"\n' % (int(ln.laneNumber)+1)) #Lane index must not start from 0
       out.write('          POCKET = "%s"\n' % 'false')
       out.write('          POCKETLENGTH = "%s"\n' % 0.0000)
       out.write('          WIDTH = "%s"\n' % 3.5) #TODO: Actual lane width.
@@ -105,9 +105,9 @@ def _write_node_lane_turns(out, n, rnInd):
         if lc.fromSegment.segId == seg.segId:
           out.write('        <LANETURN\n')
           out.write('          FROMLINKID = "%s"\n' % rnInd.segParents[lc.fromSegment.segId].linkId)
-          out.write('          FROMLANEINDEX = "%s"\n' % lc.fromLane.laneNumber)
+          out.write('          FROMLANEINDEX = "%s"\n' % (int(lc.fromLane.laneNumber)+1))
           out.write('          TOLINKID = "%s"\n' % rnInd.segParents[lc.toSegment.segId].linkId)
-          out.write('          TOLANEINDEX = "%s"\n' % lc.toLane.laneNumber)
+          out.write('          TOLANEINDEX = "%s"\n' % (int(lc.toLane.laneNumber)+1))
           out.write('        />\n')
 
 

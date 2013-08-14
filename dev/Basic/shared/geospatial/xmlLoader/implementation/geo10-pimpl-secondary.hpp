@@ -12,6 +12,32 @@ namespace xml {
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
 
+class scale_source_t_pimpl: public virtual scale_source_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_source_t ();
+
+	virtual void x_range (const ::std::string&);
+	virtual void y_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
+
+
+class scale_destination_t_pimpl: public virtual scale_destination_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_destination_t ();
+
+	virtual void longitude_range (const ::std::string&);
+	virtual void latitude_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
+
+
 ///TODO: Can we remove this class?
 class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel {
 public:

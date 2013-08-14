@@ -1249,6 +1249,9 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 
 		//Use the magnitude of the parent segment to set the Bus Stop's direction and extension.
 		const BusStop* bs = *it;
+
+		//std::cout <<"Bust stop: " <<bs <<" id: " <<bs->id <<std::endl;
+
 		Point2D dir;
 		{
 			const Node* start = 0;

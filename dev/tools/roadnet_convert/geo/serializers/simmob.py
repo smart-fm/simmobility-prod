@@ -2,6 +2,7 @@ from geo.formats import simmob
 from geo.position import Point
 import geo.helper
 import random
+import datetime
 
 
 def serialize(rn :simmob.RoadNetwork, outFilePath :str):
@@ -50,6 +51,13 @@ def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions):
     nextLng = random.randint(0,numGrids-1)
     regions[(nextLat,nextLng)] = True
 
+  out.write('/** Regions for Randomized road network. */\n')
+  out.write('/** Generated: %s */\n' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+  out.write('public static List<Region> MakeRandomNetworkRegions(LoggerI logger) {\n')
+  out.write('  List<Region> rs = new ArrayList<Region>();\n')
+  out.write('  Region r;\n')
+
+  count = 1
   for region in regions:
     #Calculate the region bounds.
     latStart = latCmp*region[0] 
@@ -61,9 +69,17 @@ def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions):
     points = __mutate_region(latStart, latEnd, lngStart, lngEnd)
 
     #Now print it.
-    out.write('Region:\n')
+    out.write('  \n')
+    out.write('  r = new Region("Region_%s");\n' % count)
+    count += 1
     for pt in points:
-      out.write('  (%f,%f)\n' % (pt.x, pt.y))
+      out.write('  r.addVertex(%f, %f);\n' % (pt.x, pt.y))
+    out.write('  rs.add(r);\n')
+
+  out.write('  \n')
+  out.write('  return rs;\n')
+  out.write('}\n')
+
 
 
 def __mutate_region(latStart, latEnd, lngStart, lngEnd): #Returns 4 Points defining the region.
@@ -82,10 +98,9 @@ def __mutate_region(latStart, latEnd, lngStart, lngEnd): #Returns 4 Points defin
   latRng = latEnd - latStart
   lngRng = lngEnd - lngStart
 
-  #TODO: Need to randomize. For now, we just take the 4 corners.
-  #TODO: Clockwise?
-  return (Point(latStart,lngEnd), Point(latEnd,lngEnd), Point(latEnd,lngStart), Point(latStart,lngStart))
-
+  #TODO: Need to randomize. For now, we just make a diamond.
+#  return (Point(latStart,lngEnd), Point(latEnd,lngEnd), Point(latEnd,lngStart), Point(latStart,lngStart))
+  return (Point(latStart+latRng/2,lngEnd), Point(latEnd,lngEnd-lngRng/2), Point(latEnd-latRng/2,lngStart), Point(latStart,lngStart+lngRng/2))
 
 def __write_xml_coordmap(outFilePath, out, rn, rnIndex):
   source_vals = calc_point_bounds(rn, rnIndex) # [minX, minY, maxX, maxY]

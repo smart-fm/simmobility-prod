@@ -203,14 +203,14 @@ option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." O
 
 #Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
 #        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
-option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
+#option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 
 #Option: Turn on Unity (full-file) builds. 
 option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
 option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." ON)
 
 #String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
-set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
+#set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)

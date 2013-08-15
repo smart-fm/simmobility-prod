@@ -81,6 +81,12 @@ public:
 		NS3_SIMULATOR = 2,
 		//add your client type here
 	};
+
+	enum NetworkSource {
+		NETSRC_XML,
+		NETSRC_DATABASE,
+	};
+
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
@@ -96,6 +102,9 @@ public:
 
 	bool singleThreaded; ///<If true, we are running everything on one thread.
 	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
+
+	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
+	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
 
 	///TEMP: Need to customize this later.
 	std::string outNetworkFileName;
@@ -297,7 +306,8 @@ private:
 		day_of_week(MONDAY), aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),
+		networkSource(NETSRC_XML)
 	{}
 
 	static ConfigParams instance;

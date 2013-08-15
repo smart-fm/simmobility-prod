@@ -21,14 +21,14 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "conf/settings/DisableOutput.h"
 #include "conf/settings/DisableMPI.h"
-#include "conf/settings/XML_Reader.h"
+//#include "conf/settings/XML_Reader.h"
 
 //Cmake-related constants
 #define SIMMOB_VERSION_MAJOR "@Basic_VERSION_MAJOR@"
 #define SIMMOB_VERSION_MINOR "@Basic_VERSION_MINOR@"
 
 //Our workaround flag
-#define SIMMOB_XML_IN_FILE "@SIMMOB_XML_IN_FILE@" 
+//#define SIMMOB_XML_IN_FILE "@SIMMOB_XML_IN_FILE@" 
 
 //Miscellaneous cmake flags; define "temporary" flags here.
 #cmakedefine SIMMOB_INTERACTIVE_MODE

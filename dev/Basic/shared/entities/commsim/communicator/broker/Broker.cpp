@@ -46,7 +46,7 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 	sendBuffer[cnnHandler].add(value);
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id), EventListener()
+: Agent(mtxStrat, id)
 ,enabled(false), firstTime(true) //If a Broker is created, we assume it is enabled.
 {
 	//Various Initializations

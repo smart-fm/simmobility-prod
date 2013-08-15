@@ -11,7 +11,7 @@
 #include <boost/thread.hpp>
 
 #include "buffering/BufferedDataManager.hpp"
-#include "event/EventManager.hpp"
+#include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
 
 namespace sim_mob {
@@ -98,7 +98,7 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	event::EventManager& getEventManager();
+	event::EventCollectionMgr& getEventManager();
 	virtual std::ostream* getLogFile() const;
 
 protected:
@@ -192,7 +192,7 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	event::EventManager eventManager;
+	event::EventCollectionMgr eventManager;
 };
 
 }

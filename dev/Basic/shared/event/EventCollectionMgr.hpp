@@ -8,14 +8,15 @@
 #ifndef EVENTCOLLECTIONMANAGER_H_
 #define EVENTCOLLECTIONMANAGER_H_
 
-#include "EventPublisher.hpp"
+#include "EventManager.hpp"
 #include "args/EventMessage.hpp"
+#include "metrics/Frame.hpp"
 
 namespace sim_mob {
 
 namespace event {
 
-class EventCollectionMgr : public EventPublisher {
+class EventCollectionMgr : public EventManager {
 public:
 	EventCollectionMgr();
 	virtual ~EventCollectionMgr();
@@ -23,6 +24,11 @@ public:
 public:
 	void SendMessage(MessagePtr message );
 	void SendMessage(EventId, MessagePtr message );
+    void Update(const timeslice& currTime);
+
+protected:
+	void ProcessMessages();
+	void CollectionMessages(std::vector<MessagePtr>& cols);
 
 private:
 	std::vector<MessagePtr> receivingCollector;

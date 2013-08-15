@@ -20,6 +20,38 @@ EventBusSystem::~EventBusSystem() {
 	// TODO Auto-generated destructor stub
 }
 
+void EventBusSystem::RegisterChildManager(EventCollectionMgr* child)
+{
+	childrenManagers.push_back(child);
+}
+
+void EventBusSystem::UnregisteChildManager(EventCollectionMgr* child)
+{
+	std::vector<EventCollectionMgr*>::iterator it;
+	for(it=childrenManagers.begin(); it!=childrenManagers.end(); it++){
+		if( (*it)==child ){
+			childrenManagers.erase( it );
+			break;
+		}
+	}
+}
+
+void EventBusSystem::ProcessTransimition()
+{
+	CollectMessages();
+	DistributeMessages();
+}
+
+void EventBusSystem::CollectMessages()
+{
+
+}
+
+void EventBusSystem::DistributeMessages()
+{
+
+}
+
 }
 
 } /* namespace sim_mob */

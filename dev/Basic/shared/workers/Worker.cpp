@@ -475,7 +475,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 
 
 
-EventManager& sim_mob::Worker::getEventManager()
+EventCollectionMgr& sim_mob::Worker::getEventManager()
 {
     return eventManager;
 }

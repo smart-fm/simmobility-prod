@@ -1,5 +1,7 @@
 from geo.formats import simmob
+from geo.position import Point
 import geo.helper
+import random
 
 
 def serialize(rn :simmob.RoadNetwork, outFilePath :str):
@@ -19,7 +21,7 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
 
   out.write('    <GeoSpatial>\n')
   out.write('    <RoadNetwork>\n')
-  __write_xml_coordmap(out, rn, rnIndex)
+  __write_xml_coordmap(outFilePath, out, rn, rnIndex)
   __write_xml_nodes(out, rn, rnIndex)
   __write_xml_links(out, rn, rnIndex)
   out.write('    </RoadNetwork>\n')
@@ -30,9 +32,69 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
   out.close()
 
 
-def __write_xml_coordmap(out, rn, rnIndex):
+def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions): 
+  #Little easier.
+  minLat, minLng, maxLat, maxLng = latlng_vals
+  latRng = maxLat - minLat
+  lngRng = maxLng - minLng
+
+  #Each "block" of latitude/longitude
+  latCmp = latRng / numGrids
+  lngCmp = lngRng / numGrids
+
+  #Split the ranges into "numGrids" on each side (e.g., 10x10 if numGrids is 10).
+  #Then, pick "numRegions" random regions to fill in.
+  regions = {} #(lat,lng block)
+  while len(regions) < numRegions:
+    nextLat = random.randint(0,numGrids-1)
+    nextLng = random.randint(0,numGrids-1)
+    regions[(nextLat,nextLng)] = True
+
+  for region in regions:
+    #Calculate the region bounds.
+    latStart = latCmp*region[0] 
+    latEnd = latCmp*(region[0]+1)
+    lngStart = lngCmp*region[1] 
+    lngEnd = lngCmp*(region[1]+1)
+
+    #Now mutate each region slightly, so that we don't have uniform regions.
+    points = __mutate_region(latStart, latEnd, lngStart, lngEnd)
+
+    #Now print it.
+    out.write('Region:\n')
+    for pt in points:
+      out.write('  (%f,%f)\n' % (pt.x, pt.y))
+
+
+def __mutate_region(latStart, latEnd, lngStart, lngEnd): #Returns 4 Points defining the region.
+  #We basically generate one point per quadrant. However, I don't want to finagle what constitutes "up" or "+" for 
+  #  latitude/longitude (since I always mess it up), so our algorithm works fine reflected.
+  latRng = latEnd - latStart
+  lngRng = lngEnd - lngStart
+
+  #First, shrink by removing the outer 12.5%.
+  latEnd -= latRng / 8
+  latStart += latRng / 8
+  lngEnd -= lngRng / 8
+  lngStart += lngRng / 8
+
+  #Recalc
+  latRng = latEnd - latStart
+  lngRng = lngEnd - lngStart
+
+  #TODO: Need to randomize. For now, we just take the 4 corners.
+  #TODO: Clockwise?
+  return (Point(latStart,lngEnd), Point(latEnd,lngEnd), Point(latEnd,lngStart), Point(latStart,lngStart))
+
+
+def __write_xml_coordmap(outFilePath, out, rn, rnIndex):
   source_vals = calc_point_bounds(rn, rnIndex) # [minX, minY, maxX, maxY]
   dest_vals = calc_latlng_bounds(source_vals) # [minLat, minLng, maxLat, maxLng]
+
+  #Recursive file opening! Generate and print a random map of regions
+  out2 = open(outFilePath+"-RRregions.txt", 'w')
+  __write_xml_random_regions(out2, dest_vals, 10, 20)
+  out2.close()
 
   #Each converted file is written with a LinearScale coordmap entry that allows it to be converted to roughly believable lat/lng.
   #TODO: We can actually save the UTM-projection zone here, but Sim Mobility can't do much with that at the moment.

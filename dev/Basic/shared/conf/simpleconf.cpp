@@ -391,8 +391,8 @@ bool loadXMLFMODController(TiXmlDocument& document)
 {
 	TiXmlHandle handle(&document);
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("fmodcontroller").ToElement();
-	if(node == nullptr)	{
-		return false;
+	if(!node)	{
+		return true;
 	}
 
 	std::string swit = node->Attribute("switch");
@@ -1674,7 +1674,7 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
+void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//NOTE: You can set "SIMMOB_XML_IN_FILE" (without quotes) in your CMakeCache file to override this.
 	//For example, the default CMakeCache.txt file contains:
@@ -1898,7 +1898,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		if (mutexStrat == "locked") {
 			mtStrat = MtxStrat_Locked;
 		} else if (mutexStrat != "buffered") {
-			return string("Unknown mutex strategy: ") + mutexStrat;
+			throw std::runtime_error("Unknown mutex strategy");
 		}
 	}
 
@@ -1997,7 +1997,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			} else if (valStr == "false") {
 				ConfigParams::GetInstance().SetDynamicDispatchDisabled(false);
 			} else {
-				return "Invalid parameter; expecting boolean.";
+				throw std::runtime_error("Invalid parameter; expecting boolean.");
 			}
 		}
 	}
@@ -2006,33 +2006,43 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 
 	//Series of one-line checks.
-	if(baseGran == -1) { return "Config file fails to specify base granularity."; }
-	if(totalRuntime == -1) { return "Config file fails to specify total runtime."; }
-	if(totalWarmup == -1) { return "Config file fails to specify total warmup."; }
-	if(granAgent == -1) { return "Config file fails to specify agent granularity."; }
-	if(granSignal == -1) { return "Config file fails to specify signal granularity."; }
-	if(agentWgSize == -1) { return "Config file fails to specify agent workgroup size."; }
-	if(signalWgSize == -1) { return "Config file fails to specify signal workgroup size."; }
-	if (!simStartStr) { return "Config file fails to specify simulation start time."; }
+	if(baseGran == -1) { throw std::runtime_error("Config file fails to specify base granularity."); }
+	if(totalRuntime == -1) { throw std::runtime_error("Config file fails to specify total runtime."); }
+	if(totalWarmup == -1) { throw std::runtime_error("Config file fails to specify total warmup."); }
+	if(granAgent == -1) { throw std::runtime_error("Config file fails to specify agent granularity."); }
+	if(granSignal == -1) { throw std::runtime_error("Config file fails to specify signal granularity."); }
+	if(agentWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
+	if(signalWgSize == -1) { throw std::runtime_error("Config file fails to specify signal workgroup size."); }
+	if (!simStartStr) { throw std::runtime_error("Config file fails to specify simulation start time."); }
 
     //Granularity check
-    if (granAgent < baseGran) return "Agent granularity cannot be smaller than base granularity.";
+    if (granAgent < baseGran) {
+    	throw std::runtime_error("Agent granularity cannot be smaller than base granularity.");
+    }
     if (granAgent%baseGran != 0) {
-    	return "Agent granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Agent granularity not a multiple of base granularity.");
     }
-    if (granSignal < baseGran) return "Signal granularity cannot be smaller than base granularity.";
+    if (granSignal < baseGran) {
+    	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
+    }
     if (granSignal%baseGran != 0) {
-    	return "Signal granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (granPaths < baseGran) return "Path granularity cannot be smaller than base granularity.";
+    if (granPaths < baseGran) {
+    	throw std::runtime_error("Path granularity cannot be smaller than base granularity.");
+    }
     if (granPaths%baseGran != 0) {
-    	return "Path granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Path granularity not a multiple of base granularity.");
     }
-    if (granDecomp < baseGran) return "Decomposition granularity cannot be smaller than base granularity.";
+    if (granDecomp < baseGran) {
+    	throw std::runtime_error("Decomposition granularity cannot be smaller than base granularity.");
+    }
     if (granDecomp%baseGran != 0) {
-    	return "Decomposition granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Decomposition granularity not a multiple of base granularity.");
     }
-    if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
+    if (totalRuntime < baseGran) {
+    	throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
+    }
     if (totalRuntime%baseGran != 0) {
     	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
@@ -2103,18 +2113,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	if (geomType && string(geomType) == "simple") {
     		//Load boundaries
     		if (!LoadXMLBoundariesCrossings(document, "boundaries", "boundary", ConfigParams::GetInstance().boundaries)) {
-    			return "Couldn't load boundaries";
+    			throw std::runtime_error("Couldn't load boundaries");
     		}
 
     		//Load crossings
     		if (!LoadXMLBoundariesCrossings(document, "crossings", "crossing", ConfigParams::GetInstance().crossings)) {
-    			return "Couldn't load crossings";
+    			throw std::runtime_error("Couldn't load crossings");
     		}
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
-    			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
+    			throw std::runtime_error("Unknown geometry source");
     		}
 
     		/**************************************************
@@ -2164,7 +2174,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			s = s.replace(start, amt, amt, '*');
     		}
     	} else {
-    		return "Unknown geometry type: " + (geomType?string(geomType):"");
+    		throw std::runtime_error("Unknown geometry type");
     	}
     }
 
@@ -2232,12 +2242,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Attempt to load all "BusController" elements from the config file.
     if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
-    	return "Couldn't load buscontrollers";
+    	throw std::runtime_error("Couldn't load buscontrollers");
     }
 
     if(!loadXMLFMODController(document)) {
     	std::cout << "loadXMLFMODController Failed!" << std::endl;
-    	return "Couldn't load FMOD controller";
+    	throw std::runtime_error("Couldn't load FMOD controller");
     }
 
     //Initialize all BusControllers.
@@ -2256,28 +2266,28 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		} else if ((*it) == "drivers") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"driver", constraints)) {
-				return "Couldn't load drivers";
+				throw std::runtime_error("Couldn't load drivers");
 			}
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"busdriver", constraints)) {
-				return "Couldn't load bus drivers";
+				throw std::runtime_error("Couldn't load bus drivers");
 			}
 			cout << "Loaded Driver Agents (from config file)." << endl;
 
 		} else if ((*it) == "pedestrians") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"pedestrian", constraints)) {
-				return "Couldn't load pedestrians";
+				throw std::runtime_error("Couldn't load pedestrians");
 			}
 			cout << "Loaded Pedestrian Agents (from config file)." << endl;
 		} else if ((*it) == "passengers") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"passenger", constraints)) {
-				return "Couldn't load passengers";
+				throw std::runtime_error("Couldn't load passengers");
 			}
 			cout << "Loaded Passenger Agents (from config file)." << endl;
 		} else {
-			return string("Unknown item in load_agents: ") + (*it);
+			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
 	std::cout
@@ -2291,7 +2301,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 #endif
     		"signal")) {
     	std::cout << "loadXMLSignals Failed!" << std::endl;
-    	return	 "Couldn't load signals";
+    	throw std::runtime_error("Couldn't load signals");
     }
 
     //Display
@@ -2385,9 +2395,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
-
-	//No error
-	return "";
 }
 
 
@@ -2579,12 +2586,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 		//Parse it
-		string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
-		if (!errorMsg.empty()) {
-			std::stringstream msg;
-			msg <<"Aborting on Config error: \n" <<errorMsg;
-			throw std::runtime_error(msg.str().c_str());
-		}
+		loadXMLConf(*doc, active_agents, pending_agents, prof);
 		delete doc;
 	}
 }

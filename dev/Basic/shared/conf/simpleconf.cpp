@@ -2142,13 +2142,13 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
-    			return "Unable to load database connection settings....";
+                    throw std::runtime_error("Unable to load database connection settings...");
     		}
 
     		//Actually load it
     		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
     		if (!dbErrorMsg.empty()) {
-    			return "Database loading error: " + dbErrorMsg;
+                    throw std::runtime_error("Database loading error: " + dbErrorMsg);
     		}
 #else
        		/**************************************************

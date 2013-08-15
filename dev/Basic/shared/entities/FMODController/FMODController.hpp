@@ -29,6 +29,7 @@ public:
 
 	static void RegisterController(int id, const MutexStrategy& mtxStrat);
 	static FMODController* Instance();
+	static bool InstanceExists();
 	bool ConnectFMODService();
 	void StopClientService();
 	void Initialize();

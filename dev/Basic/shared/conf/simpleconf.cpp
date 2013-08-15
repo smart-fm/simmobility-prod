@@ -238,12 +238,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		}
 		else {
 			//insert to FMOD controller so that collection of requests
-			sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			if (sim_mob::FMOD::FMODController::InstanceExists()) {
+				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			} else {
+				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
+			}
 		}
 	}//outer for loop(map)
 
-	if( sim_mob::FMOD::FMODController::Instance() )
+	if( sim_mob::FMOD::FMODController::InstanceExists() ) {
 		sim_mob::FMOD::FMODController::Instance()->Initialize();
+	}
 }
 
 bool isAndroidClientEnabled(TiXmlHandle& handle)

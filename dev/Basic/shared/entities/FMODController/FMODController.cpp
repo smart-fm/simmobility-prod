@@ -14,6 +14,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Link.hpp"
 #include <utility>
+#include <stdexcept>
 
 namespace sim_mob {
 
@@ -25,14 +26,24 @@ boost::asio::io_service FMODController::io_service;
 
 void FMODController::RegisterController(int id, const MutexStrategy& mtxStrat)
 {
-	if(pInstance != nullptr )
+	if(pInstance) {
 		delete pInstance;
+	}
 
 	pInstance = new FMODController(id, mtxStrat);
 }
 
+bool FMODController::InstanceExists()
+{
+	return pInstance;
+}
+
 FMODController* FMODController::Instance()
 {
+	if (!pInstance) {
+		throw std::runtime_error("FMOD controller instance is null.");
+	}
+
 	return pInstance;
 }
 FMODController::~FMODController() {

@@ -2146,10 +2146,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
-    		if (!dbErrorMsg.empty()) {
-                    throw std::runtime_error("Database loading error: " + dbErrorMsg);
-    		}
+    		sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
 #else
        		/**************************************************
        		 *

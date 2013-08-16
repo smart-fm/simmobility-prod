@@ -28,7 +28,7 @@ public:
 
 protected:
 	void ProcessMessages();
-	void CollectionMessages(std::vector<MessagePtr>& cols);
+	void DistributeMessages(std::vector<MessagePtr>& cols);
 
 private:
 	std::vector<MessagePtr> receivingCollector;

@@ -6,6 +6,7 @@
  */
 
 #include "EventBusSystem.hpp"
+#include "EventCollectionMgr.hpp"
 
 namespace sim_mob {
 
@@ -38,8 +39,16 @@ void EventBusSystem::UnregisteChildManager(EventCollectionMgr* child)
 
 void EventBusSystem::ProcessTransimition()
 {
-	CollectMessages();
-	DistributeMessages();
+	std::vector<EventCollectionMgr*>::iterator it;
+	std::vector<MessagePtr> collectors;
+	for(it=childrenManagers.begin(); it!=childrenManagers.end(); it++){
+		std::vector<MessagePtr>& col = (*it)->receivingCollector;
+		collectors.insert(collectors.begin(), col.begin(), col.end());
+	}
+
+	for(it=childrenManagers.begin(); it!=childrenManagers.end(); it++){
+		(*it)->DistributeMessages( collectors );
+	}
 }
 
 void EventBusSystem::CollectMessages()

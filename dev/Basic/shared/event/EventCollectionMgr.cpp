@@ -26,7 +26,7 @@ void EventCollectionMgr::Update(const timeslice& currTime)
 	ProcessMessages();
 }
 
-void EventCollectionMgr::CollectionMessages(std::vector<MessagePtr>& cols)
+void EventCollectionMgr::DistributeMessages(std::vector<MessagePtr>& cols)
 {
 	std::vector<MessagePtr>::iterator it;
 	for(it=cols.begin(); it!=cols.end(); it++){

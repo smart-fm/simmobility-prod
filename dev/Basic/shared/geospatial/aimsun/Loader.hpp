@@ -91,7 +91,7 @@ public:
 
 private:
 	BusStop* findNearbyBusStop(const Node* src);
-	Busline* findBusLineToTaken();
+	//Busline* findBusLineToTaken();
 	BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment);
 
 private:

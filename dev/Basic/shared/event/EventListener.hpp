@@ -24,6 +24,7 @@ namespace sim_mob {
          */
         class EventListener {
         public:
+        	unsigned int receiverId;
 
             /**
              * Handles the received global event.

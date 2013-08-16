@@ -27,7 +27,7 @@ void RemoveAll(ContextMap& listeners);
 void RemoveAll(ContextListenersMap& map);
 void Remove(ListenersList& listenersList, EventListenerPtr listener);
 void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
-        EventId id, Context ctx, const EventArgs& args);
+        EventId id, Context ctx, const EventArgs& args, const unsigned int receiverid=-1);
 void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
         EventListenerPtr listener, Callback callback);
 
@@ -90,6 +90,17 @@ void EventPublisher::Publish(EventId id, const EventArgs& args) {
         PublishEvent(listeners, true, this, id, this, args);
     }
 }
+
+void EventPublisher::Publish(EventId id, unsigned int receiverId, const EventArgs& args)
+{
+    {// thread-safe scope
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
+        // publish using the global context.
+        PublishEvent(listeners, true, this, id, this, args, receiverId);
+    }
+}
+
 
 void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
     {// thread-safe scope
@@ -216,7 +227,7 @@ void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
 }
 
 void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
-        EventId id, Context ctx, const EventArgs& args) {
+        EventId id, Context ctx, const EventArgs& args, const unsigned int receiverid) {
     //notify context listeners.
     ContextListenersMap::iterator ctxMapItr = map.find(id);
     if (ctxMapItr != map.end()) {
@@ -227,11 +238,13 @@ void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* send
             while (lstItr != lst->end()) {
                 // notify listener
                 if (globalCtx) {
-                    (((*lstItr)->listener)->*((*lstItr)->callback.callback))
-                            (id, sender, args);
+                	if(receiverid<0 || receiverid==((*lstItr)->listener)->receiverId){
+                		(((*lstItr)->listener)->*((*lstItr)->callback.callback))(id, sender, args);
+                	}
                 } else {
-                    (((*lstItr)->listener)->*((*lstItr)->callback.contextCallback))
-                            (id, ctx, sender, args);
+                	if(receiverid<0 || receiverid==((*lstItr)->listener)->receiverId){
+                    (((*lstItr)->listener)->*((*lstItr)->callback.contextCallback))(id, ctx, sender, args);
+                	}
                 }
                 lstItr++;
             }

@@ -78,6 +78,14 @@ namespace sim_mob {
             virtual void Publish(EventId id, const EventArgs& args);
 
             /**
+             * Publishes an event with given EventId.
+             * @param id to publish.
+             * @param receiver id to publish.
+             * @param args of the event.
+             */
+            virtual void Publish(EventId id, unsigned int receiverId, const EventArgs& args);
+
+            /**
              * Publishes an event with given EventId and ContextId.
              * @param id to publish.
              * @param ctxId Id of the context.

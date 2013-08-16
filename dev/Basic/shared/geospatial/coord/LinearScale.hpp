@@ -22,14 +22,13 @@ public:
 		Range() : min(0), max(0) {}
 		double min;
 		double max;
+		double size() { return max-min; }
 	};
 
 	LinearScale()
 	{}
 
-	virtual LatLngLocation transform(DPoint source) {
-		throw std::runtime_error("Coordinate transform not yet supported.");
-	}
+	virtual LatLngLocation transform(DPoint source);
 
 	Range sourceX;
 	Range sourceY;

@@ -38,7 +38,7 @@ public:
 	{}
 
 	virtual LatLngLocation transform(DPoint source) {
-		throw std::runtime_error("Coordinate transform not yet supported.");
+		throw std::runtime_error("Coordinate transform not yet supported for UTM projections.");
 	}
 
 	CoordSystem coordSys;

@@ -14,7 +14,7 @@ namespace sim_mob
  * Helper class for representing lat/lng values
  */
 struct LatLngLocation {
-	LatLngLocation() : latitude(0), longitude(0) {}
+	LatLngLocation(double latitude=0, double longitude=0) : latitude(latitude), longitude(longitude) {}
 	double latitude;
 	double longitude;
 };

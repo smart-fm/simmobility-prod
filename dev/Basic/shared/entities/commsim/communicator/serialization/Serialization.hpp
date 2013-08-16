@@ -224,17 +224,17 @@ public:
 		return writer.write(time);
 	}
 
-	static std::string makeLocationDataString(int x, int y) {
-		Json::Value loc = makeLocationData(x,y);
+	static std::string makeLocationDataString(double lat, double lng) {
+		Json::Value loc = makeLocationData(lat,lng);
 		Json::FastWriter writer;
 		return writer.write(loc);
 	}
 
-	static Json::Value makeLocationData(int x, int y) {
+	static Json::Value makeLocationData(double lat, double lng) {
 
 		Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA"));
-		loc["x"] = x;
-		loc["y"] = y;
+		loc["lat"] = lat;
+		loc["lng"] = lng;
 
 		return loc;
 	}

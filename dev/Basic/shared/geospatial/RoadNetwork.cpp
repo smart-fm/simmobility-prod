@@ -5,6 +5,7 @@
 #include "RoadNetwork.hpp"
 
 #include <cmath>
+#include <stdexcept>
 
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -127,6 +128,14 @@ void sim_mob::RoadNetwork::setSegmentNodes(const std::set<sim_mob::UniNode*>& sn
 void sim_mob::RoadNetwork::addNodes(const std::vector<sim_mob::MultiNode*>& vals)
 {
 	nodes.insert(nodes.begin(),vals.begin(),vals.end());
+}
+
+sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform() const
+{
+	if (coordinateMap.empty()) {
+		throw std::runtime_error("No coordinate transform: coordmap is empty.");
+	}
+	return coordinateMap.front();
 }
 
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const

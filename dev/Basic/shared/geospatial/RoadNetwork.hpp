@@ -97,6 +97,9 @@ public:
 	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn);
 	void addNodes(const std::vector<sim_mob::MultiNode*>& vals);
 
+	///Retrieve the first CoordinateTransform; throws an error if none exist.
+	sim_mob::CoordinateTransform* getCoordTransform() const;
+
 //private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.
 	std::vector<sim_mob::MultiNode*> nodes;

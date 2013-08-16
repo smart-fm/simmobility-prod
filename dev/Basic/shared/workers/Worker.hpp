@@ -85,10 +85,10 @@ public:
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
-
 	int getAgentSize(bool includeToBeAdded=false);
-        
-        EventManager& GetEventManager();
+	EventManager& GetEventManager();
+	void processVirtualQueues();
+	void outputSupplyStats(uint32_t currTick);
 
 protected:
 	virtual void perform_main(timeslice currTime);

@@ -190,6 +190,29 @@ void sim_mob::Worker::removePendingEntities()
 	toBeRemoved.clear();
 }
 
+void sim_mob::Worker::processVirtualQueues() {
+#ifdef SIMMOB_USE_CONFLUXES
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		(*it)->processVirtualQueues();
+	}
+#endif
+}
+
+void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
+#ifdef SIMMOB_USE_CONFLUXES
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
+		timeslice currTime = timeslice(currTick, currTick*msPerFrame);
+		(*it)->updateAndReportSupplyStats(currTime);
+		(*it)->reportLinkTravelTimes(currTime);
+		(*it)->resetSegmentFlows();
+		(*it)->resetLinkTravelTimes(currTime);
+	}
+#endif
+}
+
 void sim_mob::Worker::breedPendingEntities()
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
@@ -349,7 +372,6 @@ void sim_mob::Worker::migrateAllOut()
 	}
 }
 
-
 void sim_mob::Worker::migrateOut(Entity& ag)
 {
 	//Sanity check
@@ -469,20 +491,6 @@ void sim_mob::Worker::perform_main(timeslice currTime)
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
 	}
-
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->processVirtualQueues();
-	}
-
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->updateAndReportSupplyStats(currTime);
-		(*it)->reportLinkTravelTimes(currTime);
-		(*it)->resetSegmentFlows();
-		(*it)->resetLinkTravelTimes(currTime);
-	}
-
 
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
 

@@ -422,15 +422,15 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		cout << "No config file specified; using default." << endl;
+		Print() << "No config file specified; using default." << endl;
 	}
-	cout << "Using config file: " << configFileName << endl;
+	Print() << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
 	string logFileName = argc>2 ? argv[2] : "";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
-			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
+			Print() <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}
 
@@ -449,7 +449,7 @@ int main(int argc, char* argv[])
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		Logger::log_done();
 	}
-	cout << "Done" << endl;
+	Print() << "Done" << endl;
 	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;
 }

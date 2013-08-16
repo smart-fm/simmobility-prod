@@ -162,6 +162,10 @@ void sim_mob::WorkGroup::WaitAllGroups_AuraManager()
 	}
 
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+#ifdef SIMMOB_USE_CONFLUXES
+		(*it)->processVirtualQueues();
+		(*it)->outputSupplyStats();
+#endif
 		(*it)->waitAuraManager();
 	}
 
@@ -632,6 +636,18 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		}
 	}
 //	std::cout << debugMsgs.str();
+}
+
+void sim_mob::WorkGroup::processVirtualQueues() {
+	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
+		(*wrkr)->processVirtualQueues();
+	}
+}
+
+void sim_mob::WorkGroup::outputSupplyStats() {
+	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
+		(*wrkr)->outputSupplyStats(currTimeTick);
+	}
 }
 
 bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(

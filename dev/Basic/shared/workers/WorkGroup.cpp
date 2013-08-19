@@ -520,6 +520,7 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
 			if (worker->beginManagingConflux(*i)) {
 				(*i)->setParentWorker(worker);
+				(*i)->currWorkerProvider = worker;
 			}
 		}
 		confluxes.clear();
@@ -537,12 +538,11 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 
 	if(numConfluxesToAddInWorker > 0)
 	{
-		//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
-		//if (insertResult.second) {
 		if (worker->beginManagingConflux(conflux)) {
 			confluxes.erase(conflux);
 			numConfluxesToAddInWorker--;
 			conflux->setParentWorker(worker);
+			conflux->currWorkerProvider = worker;
 		}
 
 		SegmentSet downStreamSegs = conflux->getDownstreamSegments();
@@ -555,8 +555,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 			if(!(*i)->getParentConflux()->getParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
 				// the set container for managedConfluxes takes care of eliminating duplicates
-				//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
-				//if (insertResult.second)
 				if (worker->beginManagingConflux((*i)->getParentConflux()))
 				{
 					// One conflux was added by the insert. So...
@@ -564,6 +562,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 					numConfluxesToAddInWorker--;
 					// set the worker pointer in the Conflux
 					(*i)->getParentConflux()->setParentWorker(worker);
+					(*i)->getParentConflux()->currWorkerProvider = worker;
 				}
 			}
 		}

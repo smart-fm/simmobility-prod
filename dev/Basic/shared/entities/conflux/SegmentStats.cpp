@@ -74,6 +74,15 @@ namespace sim_mob {
 		return laneStatsMap.find(lane)->second->laneAgents;
 	}
 
+	std::deque<sim_mob::Person*> SegmentStats::getAgents() {
+		std::deque<sim_mob::Person*> segAgents, lnAgents;
+		for(std::vector<sim_mob::Lane*>::const_iterator lnIt=roadSegment->getLanes().begin(); lnIt!=roadSegment->getLanes().end(); lnIt++) {
+			lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
+			segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
+		}
+		return segAgents;
+	}
+
 	void SegmentStats::absorbAgents(sim_mob::SegmentStats* segStats)
 	{
 		if(roadSegment == segStats->getRoadSegment())
@@ -192,8 +201,6 @@ namespace sim_mob {
 			else{
 				density = numQueueingInSegment(true)/(movingLength/100.0);
 			}
-			Print()<<"segStats laneInf: "<< laneInfinity->getLaneID()	<<" | calculate density: "<< "moving: "<<numMovingInSegment(true)
-					<<" | "<<"queuing: "<<numQueueingInSegment(true)<<std::endl;
 		/*if(density > 0.25) {
 				debugMsgs<<"Error in segment Density | segment: ["<< roadSegment->getStart()->getID() << "," << roadSegment->getEnd()->getID() << "]"
 						<< "| numMovingInSeg: "<< numMovingInSegment(true)

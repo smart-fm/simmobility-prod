@@ -136,6 +136,7 @@ private:
 	virtual void update_entities(timeslice currTime);
 
 	void migrateOut(Entity& ent);
+	void migrateOutConflux(Conflux& cfx);
 	void migrateIn(Entity& ent);
 
 	//Entity management. Adding is restricted (use WorkGroups).

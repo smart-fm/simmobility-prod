@@ -228,6 +228,8 @@ public:
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
 	void resetOutputBounds();
+
+	std::deque<sim_mob::Person*> getAllPersons();
 };
 
 } /* namespace sim_mob */

@@ -10,6 +10,7 @@
 #include <queue>
 #include <sstream>
 #include <algorithm>
+#include <deque>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
@@ -330,75 +331,6 @@ void sim_mob::Worker::threaded_function_loop()
 	}
 }
 
-
-void sim_mob::Worker::migrateAllOut()
-{
-	while (!managedEntities.empty()) {
-		migrateOut(*managedEntities.back());
-	}
-}
-
-
-void sim_mob::Worker::migrateOut(Entity& ag)
-{
-	//Sanity check
-	if (ag.currWorkerProvider != this) {
-		std::stringstream msg;
-		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorkerProvider <<"," <<this;
-		throw std::runtime_error(msg.str().c_str());
-	}
-
-	//Simple migration
-	remEntity(&ag);
-
-	//Update our Entity's pointer.
-	ag.currWorkerProvider = nullptr;
-
-	//Remove this entity's Buffered<> types from our list
-	stopManaging(ag.getSubscriptionList());
-
-	//TODO: This should be integrated into Person::getSubscriptionList()
-	Person* person = dynamic_cast<Person*>(&ag);
-	if(person)	{
-		Role* role = person->getRole();
-		if(role){
-			stopManaging(role->getDriverRequestParams().asVector());
-		}
-	}
-
-	//Debugging output
-	if (Debug::WorkGroupSemantics) {
-		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
-	}
-}
-
-
-
-void sim_mob::Worker::migrateIn(Entity& ag)
-{
-	//Sanity check
-	if (ag.currWorkerProvider) {
-		std::stringstream msg;
-		msg <<"Error: Entity is already being managed: " <<ag.currWorkerProvider <<"," <<this;
-		throw std::runtime_error(msg.str().c_str());
-	}
-
-	//Simple migration
-	addEntity(&ag);
-
-	//Update our Entity's pointer.
-	ag.currWorkerProvider = this;
-
-	//Add this entity's Buffered<> types to our list
-	beginManaging(ag.getSubscriptionList());
-
-	//Debugging output
-	if (Debug::WorkGroupSemantics) {
-		PrintOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
-	}
-}
-
-
 namespace {
 ///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
 struct EntityUpdater {
@@ -441,8 +373,113 @@ struct RestrictedEntityUpdater : public EntityUpdater {
 		}
 	}
 };
+
+template <typename T>
+struct ContainerDeleter {
+	ContainerDeleter() {}
+	virtual ~ContainerDeleter() {}
+
+	virtual void operator() (T* t) {
+		safe_delete_item(t);
+	}
+};
 } //End un-named namespace.
 
+void sim_mob::Worker::migrateAllOut()
+{
+	while (!managedEntities.empty()) {
+		migrateOut(*managedEntities.back());
+	}
+	for (std::set<Conflux*>::iterator cfxIt = managedConfluxes.begin(); cfxIt != managedConfluxes.end(); cfxIt++) {
+
+		migrateOutConflux(**cfxIt);
+
+		//Debugging output
+		if (Debug::WorkGroupSemantics) {
+			PrintOut("Removing Conflux " << (*cfxIt)->getMultiNode()->getID() <<" from worker: " <<this <<std::endl);
+		}
+	}
+	std::for_each(managedConfluxes.begin(), managedConfluxes.end(), ContainerDeleter<sim_mob::Conflux>()); // Delete all confluxes
+}
+
+void sim_mob::Worker::migrateOut(Entity& ag)
+{
+	//Sanity check
+	if (ag.currWorkerProvider != this) {
+		std::stringstream msg;
+		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorkerProvider <<"," <<this;
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Simple migration
+	remEntity(&ag);
+
+	//Update our Entity's pointer.
+	ag.currWorkerProvider = nullptr;
+
+	//Remove this entity's Buffered<> types from our list
+	stopManaging(ag.getSubscriptionList());
+
+	//TODO: This should be integrated into Person::getSubscriptionList()
+	Person* person = dynamic_cast<Person*>(&ag);
+	if(person)	{
+		Role* role = person->getRole();
+		if(role){
+			stopManaging(role->getDriverRequestParams().asVector());
+		}
+	}
+
+	//Debugging output
+	if (Debug::WorkGroupSemantics) {
+		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
+	}
+}
+
+void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
+	std::deque<sim_mob::Person*> cfxPersons = cfx.getAllPersons();
+	for(std::deque<sim_mob::Person*>::iterator pIt = cfxPersons.begin(); pIt != cfxPersons.end(); pIt++) {
+		Person* person = *pIt;
+		person->currWorkerProvider = nullptr;
+		stopManaging(person->getSubscriptionList());
+		Role* role = person->getRole();
+		if(role){
+			stopManaging(role->getDriverRequestParams().asVector());
+		}
+		//Debugging output
+		if (Debug::WorkGroupSemantics) {
+			PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);
+		}
+	}
+	//std::for_each(cfxPersons.begin(), cfxPersons.end(), ContainerDeleter<sim_mob::Person>()); // Delete all persons
+
+	//Now deal with the conflux itself
+	cfx.currWorkerProvider = nullptr;
+	stopManaging(cfx.getSubscriptionList());
+}
+
+void sim_mob::Worker::migrateIn(Entity& ag)
+{
+	//Sanity check
+	if (ag.currWorkerProvider) {
+		std::stringstream msg;
+		msg <<"Error: Entity is already being managed: " <<ag.currWorkerProvider <<"," <<this;
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Simple migration
+	addEntity(&ag);
+
+	//Update our Entity's pointer.
+	ag.currWorkerProvider = this;
+
+	//Add this entity's Buffered<> types to our list
+	beginManaging(ag.getSubscriptionList());
+
+	//Debugging output
+	if (Debug::WorkGroupSemantics) {
+		PrintOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
+	}
+}
 
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?

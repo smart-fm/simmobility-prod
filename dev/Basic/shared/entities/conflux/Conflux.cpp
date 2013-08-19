@@ -106,7 +106,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		//if the person is moved for the first time in this tick
 		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 	}
-
+	person->currWorkerProvider = parentWorker; // Let the person know which worker managing him... for logs to work.
 	const sim_mob::RoadSegment* segBeforeUpdate = person->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = person->getCurrLane();
 	bool isQueuingBeforeUpdate = person->isQueuing;
@@ -431,8 +431,8 @@ unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
 }
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing) {
+	Print() << "Killing " << ag->getId() << std::endl;
 	findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
-	ag->currWorkerProvider = parentWorker;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);
 }
@@ -719,4 +719,17 @@ double sim_mob::Conflux::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
 
 const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
 	return findSegStats(rdSeg)->laneInfinity;
+}
+
+std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
+	std::deque<sim_mob::Person*> allPersonsInCfx, tmpAgents;
+	sim_mob::SegmentStats* segStats = nullptr;
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
+			segStats = findSegStats(*rdSegIt);
+			tmpAgents = segStats->getAgents();
+			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
+		}
+	}
+	return allPersonsInCfx;
 }

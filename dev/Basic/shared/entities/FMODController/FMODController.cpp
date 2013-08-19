@@ -13,6 +13,7 @@
 #include "conf/simpleconf.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Link.hpp"
+#include "event/EventCollectionMgr.hpp"
 #include <utility>
 
 namespace sim_mob {
@@ -61,6 +62,20 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	}
 
 	DispatchPendingAgents(now);
+
+	// test event message transmition system
+	static int testEvt = 0;
+	if( testEvt++ == 20000 ) {
+		event::EventCollectionMgr& eventManager = currWorkerProvider->getEventManager();
+		event::MessagePtr messagePtr(new event::EventMessage());
+
+		unsigned int agentIds[] = {24, 25, 26, 28 };
+
+		messagePtr->SetEventId(AGENT_INCIDENT_EVENT_ID);
+		messagePtr->SetRecipients( agentIds, sizeof(agentIds)/sizeof(unsigned int) );
+
+		eventManager.SendMessage( messagePtr );
+	}
 
 	return Entity::UpdateStatus::Continue;
 }

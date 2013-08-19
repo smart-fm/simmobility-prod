@@ -40,13 +40,16 @@ void EventCollectionMgr::ProcessMessages()
 	for(it=processingCollector.begin(); it!=processingCollector.end(); it++){
 		EventId id = (*it)->GetEventId();
 		std::vector<unsigned int>& recipients = (*it)->GetRecipients();
-		if( recipients.size() == 0){
+		if( recipients.size() == 0)
+		{
 			Publish( id, *(*it) );
 		}
-		else{
+		else
+		{
 			std::vector<unsigned int>::iterator itRec;
-			for(itRec=recipients.begin(); itRec!=recipients.end(); it++){
-				Publish( id, (*itRec), *(*it) );
+			for(itRec=recipients.begin(); itRec!=recipients.end(); itRec++){
+				unsigned int receiverid = (*itRec);
+				Publish( id, receiverid, *(*it) );
 			}
 		}
 	}

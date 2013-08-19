@@ -26,8 +26,6 @@ public:
 	void ProcessTransimition();
 
 protected:
-	void CollectMessages();
-	void DistributeMessages();
 
 private:
 	std::vector<EventCollectionMgr*> childrenManagers;

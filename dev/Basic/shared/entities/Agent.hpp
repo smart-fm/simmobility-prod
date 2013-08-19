@@ -84,6 +84,7 @@ public:
 	enum AgentLifecycleEvents {
 		AGENT_LIFE_EVENT_STARTED_ID = 3000,
 		AGENT_LIFE_EVENT_FINISHED_ID = 3001,
+		AGENT_INCIDENT_EVENT_ID = 30002,
 	};
 
 	static int createdAgents;
@@ -169,6 +170,8 @@ public:
 	 */
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
+
+	virtual void OnEventHandler(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
 
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is

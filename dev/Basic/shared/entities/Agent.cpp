@@ -23,6 +23,7 @@
 #include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+#include "event/args/EventMessage.hpp"
 
 int sim_mob::Agent::createdAgents = 0;
 int sim_mob::Agent::diedAgents = 0;
@@ -111,13 +112,16 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	toRemoved = false;
 	nextPathPlanned = false;
 	dynamic_seed = id;
+	receiverId = getId();
 	//Register global life cycle events.
 	RegisterEvent(AGENT_LIFE_EVENT_STARTED_ID);
 	RegisterEvent(AGENT_LIFE_EVENT_FINISHED_ID);
+	RegisterEvent(AGENT_INCIDENT_EVENT_ID);
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
 		profile->logAgentCreated(*this);
 	}
+
 }
 
 sim_mob::Agent::~Agent() {
@@ -131,6 +135,9 @@ void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
+void sim_mob::Agent::OnEventHandler(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args){
+	std::cout << "incident event happen, agent id is " << this->getId() << std::endl;
+};
 
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
@@ -179,6 +186,9 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
 		call_frame_init = false; //Only initialize once.
 		calledFrameInit = true;
+
+		if( currWorkerProvider )
+			currWorkerProvider->getEventManager().Subscribe(AGENT_INCIDENT_EVENT_ID, this, &EventListener::OnEventCallBackEntry);
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.

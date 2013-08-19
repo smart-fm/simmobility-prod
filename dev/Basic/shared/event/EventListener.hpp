@@ -49,6 +49,22 @@ namespace sim_mob {
                                  const EventArgs& args) {
             };
 
+        	void OnEventCallBackEntry(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args)
+        	{
+        		OnEventHandler(eventId, sender, args);
+        	};
+
+            /**
+             * child class can override this function so that response different behavior.
+             * @param sender pointer for the event producer.
+             * @param id event identifier.
+             * @param args event arguments.
+             */
+        	virtual void OnEventHandler(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args){
+
+        	};
+
+
             /**
              * Functions for calls.
              */

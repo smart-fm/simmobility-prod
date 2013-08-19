@@ -24,7 +24,8 @@ public:
 	void SetEventId(EventId id);
 	void SetDuration(unsigned int duration);
 	void SetDetention(unsigned int detention);
-	void SetReceiver(int receivers[]);
+	void SetRecipients(unsigned int receivers[], int length);
+	void SetRecipients(std::vector<unsigned int> receivers){ recipients=receivers; }
 	EventId GetEventId() { return eventId; }
 	std::vector<unsigned int>& GetRecipients() { return recipients; }
 

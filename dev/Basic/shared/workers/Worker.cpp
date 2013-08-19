@@ -16,6 +16,7 @@
 
 #include "conf/simpleconf.hpp"
 #include "entities/Entity.hpp"
+#include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
@@ -62,6 +63,8 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
+
+	eventManager.RegisterEvent(Agent::AGENT_INCIDENT_EVENT_ID);
 }
 
 

@@ -20,6 +20,17 @@ EventMessage::~EventMessage() {
 	// TODO Auto-generated destructor stub
 }
 
+void EventMessage::SetEventId(EventId id) {
+	eventId = id;
+}
+
+void EventMessage::SetRecipients(unsigned int receivers[], int length)
+{
+	std::vector<unsigned int> recs(receivers, receivers + length );
+	recipients = recs;
+}
+
+
 }
 
 } /* namespace sim_mob */

@@ -44,21 +44,16 @@ void EventBusSystem::ProcessTransimition()
 	for(it=childrenManagers.begin(); it!=childrenManagers.end(); it++){
 		std::vector<MessagePtr>& col = (*it)->receivingCollector;
 		collectors.insert(collectors.begin(), col.begin(), col.end());
+		col.clear();
 	}
+
+	/*for(std::vector<MessagePtr>::iterator it=collectors.begin(); it!=collectors.end(); it++){
+		std::cout << "message id is " << (*it)->GetEventId() << std::endl;
+	}*/
 
 	for(it=childrenManagers.begin(); it!=childrenManagers.end(); it++){
 		(*it)->DistributeMessages( collectors );
 	}
-}
-
-void EventBusSystem::CollectMessages()
-{
-
-}
-
-void EventBusSystem::DistributeMessages()
-{
-
 }
 
 }

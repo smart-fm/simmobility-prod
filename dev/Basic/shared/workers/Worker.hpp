@@ -44,7 +44,7 @@ public:
 
 	virtual const std::vector<Entity*>& getEntities() const = 0;
 
-	virtual event::EventManager& getEventManager() = 0;
+	virtual event::EventCollectionMgr& getEventManager() = 0;
 };
 
 

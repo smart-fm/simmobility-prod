@@ -19,7 +19,7 @@ namespace sim_mob {
  */
 class Session;
 typedef boost::shared_ptr<Session> session_ptr;;
-class Session
+class Session : public boost::enable_shared_from_this<Session>
 {
 public:
   /// Constructor.
@@ -30,7 +30,7 @@ public:
 
   ~Session()
   {
-	  inbound_data_.clear();
+//	  inbound_data_.clear();
   }
 
   /// Get the underlying socket. Used for making a Session or for accepting
@@ -124,7 +124,7 @@ public:
 	  input.clear();
     // Issue a read operation to read exactly the number of bytes in a header.
     void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
-    boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,this, boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
+    boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,shared_from_this(), boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
   }
 
   /// Handle a completed read of a message header. The handler is passed using
@@ -150,7 +150,7 @@ public:
       inbound_data_.resize(inbound_data_size);
 
       void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
-      boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, this,boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
+      boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, shared_from_this(),boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
     }
   }
 

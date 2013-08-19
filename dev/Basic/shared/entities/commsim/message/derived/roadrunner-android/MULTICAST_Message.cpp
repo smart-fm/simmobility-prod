@@ -102,7 +102,6 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	{
 		nearby_agents_1.erase(it_find);
 	}
-//	Print() << "Found " << nearby_agents_1.size() << " agents around " << original_agent << " Let's c which one can communicate"<< std::endl;
 	//Now, Let's c which one of these agents are associated with clients
 	std::vector<const Agent*> nearby_agents_2;
 //	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;

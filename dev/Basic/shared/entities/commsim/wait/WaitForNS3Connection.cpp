@@ -27,16 +27,13 @@ void WaitForNS3Connection::set_MIN_NOF_Clients(int value) {
 }
 
 bool WaitForNS3Connection::calculateWaitStatus() {
-	Print() << "inside WaitForNS3Connection::calculateWaitStatus" << std::endl;
 	ClientList::type & clients = getBroker().getClientList();
 	int cnt = clients[ConfigParams::NS3_SIMULATOR].size();
 	if(cnt >= min_nof_clients)
 	{
-		Print() << "inside WaitForNS3Connection::calculateWaitStatus-> don't wait" << std::endl;
 		setWaitStatus(false);
 		return false;//no need to wait
 	}
-	Print() << "inside WaitForNS3Connection::calculateWaitStatus-> wait" << std::endl;
 	setWaitStatus(true);
 	return true;//need to wait
 

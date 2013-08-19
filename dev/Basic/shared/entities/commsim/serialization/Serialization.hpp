@@ -16,11 +16,9 @@ class JsonParser {
 public:
 	//todo find a way for this hardcoding
 	static sim_mob::SIM_MOB_SERVICE getServiceType(std::string type) {
-//		Print() << "Inside getServiceType, input '" << type << "'" ;
 		if (ServiceMap.find(type) == sim_mob::ServiceMap.end()) {
 			return SIMMOB_SRV_UNKNOWN;
 		}
-//			Print() << "   returning output '" << sim_mob::ServiceMap[type] << "'" << std::endl;
 		return sim_mob::ServiceMap[type];
 	}
 
@@ -30,8 +28,7 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
 		if (not parsedSuccess) {
-			std::cout << "Parsing Packet Header for '" << input << "' Failed"
-					<< std::endl;
+			Print() << "Parsing Packet Header for '" << input << "' Failed"	<< std::endl;
 			return false;
 		}
 		int i = 0;
@@ -39,8 +36,6 @@ public:
 			packet_header = root["PACKET_HEADER"];
 		} else {
 
-			std::cout << "Packet header not found.Parsing '" << input
-					<< "' Failed" << std::endl;
 			return false;
 		}
 //		i += packet_header.isMember("SENDER") ? 2 : 0;
@@ -56,8 +51,6 @@ public:
 //				&&
 //				(packet_header.isMember("PACKET_SIZE"))
 		)) {
-			std::cout << "Packet header incomplete[" << i << "].Parsing '"
-					<< input << "' Failed" << std::endl;
 			return false;
 		}
 //		output.sender_id = packet_header["SENDER"].asString();
@@ -70,7 +63,6 @@ public:
 	static bool parseMessageHeader(Json::Value & root, msg_header &output) {
 		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
 				&& (root.isMember("MESSAGE_TYPE")))) {
-			std::cout << "Message Header incomplete. Parsing  Failed" << std::endl;
 			return false;
 		}
 		output.sender_id = root["SENDER"].asString();
@@ -84,20 +76,9 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
 		if (not parsedSuccess) {
-			std::cout << "Parsing '" << input << "' Failed" << std::endl;
 			return false;
 		}
 		return parseMessageHeader(root,output);
-//		if (!((root.isMember("SENDER")) && (root.isMember("SENDER_TYPE"))
-//				&& (root.isMember("MESSAGE_TYPE")))) {
-//			std::cout << "Message Header incomplete. Parsing '" << input
-//					<< "' Failed" << std::endl;
-//			return false;
-//		}
-//		output.sender_id = root["SENDER"].asString();
-//		output.sender_type = root["SENDER_TYPE"].asString();
-//		output.msg_type = root["MESSAGE_TYPE"].asString();
-//		return true;
 	}
 
 	static bool getPacketMessages(std::string& input, Json::Value &output) {
@@ -105,13 +86,9 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
 		if (not parsedSuccess) {
-			std::cout << "Parsing '" << input << "' Failed" << std::endl;
 			return false;
 		}
 		if (!((root.isMember("DATA")) && (root["DATA"].isArray()))) {
-			std::cout
-					<< "A 'DATA' section with correct format was not found in the message. Parsing '"
-					<< input << "' Failed" << std::endl;
 			return false;
 		}
 		//actual job
@@ -127,7 +104,6 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
 		if (not parsedSuccess) {
-			std::cout << "Parsing [   " << input << "   ] Failed" << std::endl;
 			return false;
 		}
 
@@ -144,7 +120,6 @@ public:
 				const Json::Value services = root["REQUIRED_SERVICES"];
 				for (unsigned int index = 0; index < services.size(); index++) {
 					std::string type = services[index].asString();
-					Print() << index << " REQUIRED_SERVICES->'" << type << "'" << std::endl;
 					requiredServices.insert(getServiceType(type));
 				}
 			}
@@ -160,7 +135,6 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
 		if (!parsedSuccess) {
-			std::cout << "Parsing [" << input << "] Failed" << std::endl;
 			return false;
 		}
 		if (!root.isMember("services")) {
@@ -251,8 +225,6 @@ public:
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(originalMessage, root, false);
 		if (not parsedSuccess) {
-			std::cout << "Parsing [" << originalMessage << "] Failed"
-					<< std::endl;
 			return false;
 		}
 		extractedType = root["MESSAGE_TYPE"].asString();

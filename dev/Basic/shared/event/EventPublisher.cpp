@@ -218,7 +218,6 @@ void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
 
 void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
         EventId id, Context ctx, const EventArgs& args) {
-	std::cout << "Inside PublishEvent" << std::endl;
     //notify context listeners.
     ContextListenersMap::iterator ctxMapItr = map.find(id);
     if (ctxMapItr != map.end()) {

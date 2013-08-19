@@ -6,7 +6,7 @@
  */
 
 //#include "CLIENTDONE_Handler.hpp"
-#include "CLIENTDONE_Message.hpp"
+#include "client_done_message.hpp"
 namespace sim_mob {
 class Handler;
 

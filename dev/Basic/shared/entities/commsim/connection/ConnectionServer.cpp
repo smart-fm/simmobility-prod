@@ -26,12 +26,10 @@ void ConnectionServer::CreatSocketAndAccept() {
 	std::cout << "Accepting..." << std::endl;
 //	sim_mob::session_ptr new_sess;
 	new_sess.reset(new sim_mob::Session(io_service_));
-//	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
 	acceptor_.async_accept(new_sess->socket(),
 			boost::bind(&ConnectionServer::handle_accept, this,
 					boost::asio::placeholders::error, new_sess));
 	new_sess.reset();
-//	Print()<< "new_sess.use_count()= " << new_sess.use_count() << std::endl;
 }
 
 ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port)
@@ -54,11 +52,12 @@ void ConnectionServer::io_service_run()
 }
 void ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess) {
 	if (!e) {
-
+		Print() << "accepted a connection" << std::endl;
 		handleNewClient(sess);
 	}
 	else
 	{
+		Print() << "not accepted a connection" << std::endl;
 		WarnOut("Connection Refused" << std::endl);
 	}
 	CreatSocketAndAccept();
@@ -77,7 +76,7 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 
 void ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess) {
 	if (!e) {
-		Print() << "read Successful" << std::endl;
+//		Print() << "read Successful" << std::endl;
 	} else {
 		std::cout << "read Failed" << std::endl;
 	}
@@ -86,7 +85,7 @@ void ConnectionServer::read_handler(const boost::system::error_code& e, std::str
 
 void ConnectionServer::general_send_handler(const boost::system::error_code& e, session_ptr& sess) {
 	if (!e) {
-		std::cout << "write Successful" << std::endl;
+//		std::cout << "write Successful" << std::endl;
 	} else {
 		std::cout << "write Failed:" << e.message() <<  std::endl;
 	}

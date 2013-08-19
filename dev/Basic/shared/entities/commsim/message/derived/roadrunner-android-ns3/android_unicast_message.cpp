@@ -5,7 +5,7 @@
  *      Author: vahid
  */
 
-#include "UNICAST_Message.hpp"
+#include "android_unicast_message.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
 namespace sim_mob {
@@ -13,19 +13,19 @@ class Handler;
 
 namespace rr_android_ns3
 {
-class HDL_UNICAST;
-MSG_UNICAST::MSG_UNICAST(msg_data_t& data_): Message(data_)
+class ANDROID_HDL_UNICAST;
+ANDROID_MSG_UNICAST::ANDROID_MSG_UNICAST(msg_data_t& data_): Message(data_)
 {
 
 }
-Handler * MSG_UNICAST::newHandler()
+Handler * ANDROID_MSG_UNICAST::newHandler()
 {
-	return new HDL_UNICAST();
+	return new ANDROID_HDL_UNICAST();
 }
 
 //handler implementation
 
-void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
+void ANDROID_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 	//steps:
 		/*
 		 * 1- Find the sending and destination node ids in ns3
@@ -37,7 +37,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		sim_mob::msg_header msg_header_;
 		if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
 		{
-			WarnOut( "HDL_UNICAST::handle: message header incomplete" << std::endl);
+			WarnOut( "ANDROID_HDL_UNICAST::handle: message header incomplete" << std::endl);
 			return;
 		}
 
@@ -58,13 +58,13 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		//agent specification is specified in the client handler
 		if(!broker->getClientHandler(android_sender_id,android_sender_type,sending_clnHandler))
 		{
-			WarnOut("HDL_UNICAST::sending_clnHandler not fount->handle failed" << std::endl);
+			WarnOut("ANDROID_HDL_UNICAST::sending_clnHandler not fount->handle failed" << std::endl);
 			return;
 		}
 
 		if(!broker->getClientHandler(android_receiver_id,android_receiver_type,destination_clnHandler))
 		{
-			WarnOut("HDL_UNICAST::destination_clnHandler not fount->handle failed" << std::endl);
+			WarnOut("ANDROID_HDL_UNICAST::destination_clnHandler not fount->handle failed" << std::endl);
 			return;
 		}
 
@@ -88,7 +88,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 
 		if(!broker->getClientHandler("0","NS3_SIMULATOR", ns3_clnHandler))
 		{
-			WarnOut("HDL_UNICAST::sending_clnHandler not fount->handle failed" << std::endl);
+			WarnOut("ANDROID_HDL_UNICAST::sending_clnHandler not fount->handle failed" << std::endl);
 			return;
 		}
 		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,data);

@@ -31,7 +31,7 @@ ConnectionHandler::ConnectionHandler(
 }
 
 ConnectionHandler::~ConnectionHandler(){
-	mySession.reset();
+//	mySession.reset();
 }
 void ConnectionHandler::start()
 {

@@ -7,22 +7,22 @@
  *      are supposed to be routed to ns3
  */
 
-#ifndef MULTICAST_MESSAGE_HPP_
-#define MULTICAST_MESSAGE_HPP_
+#ifndef ANDROID_MULTICAST_MESSAGE_HPP_
+#define ANDROID_MULTICAST_MESSAGE_HPP_
 #include "entities/commsim/message/base/Message.hpp"
 namespace sim_mob {
 namespace rr_android_ns3 {
 
-class MSG_MULTICAST : public sim_mob::comm::Message<msg_data_t> {
+class ANDROID_MSG_MULTICAST : public sim_mob::comm::Message<msg_data_t> {
 	//...
 public:
 	Handler * newHandler();
-	MSG_MULTICAST(msg_data_t data_);
+	ANDROID_MSG_MULTICAST(msg_data_t data_);
 };
 
 
 //Handler for the above message
-class HDL_MULTICAST : public Handler {
+class ANDROID_HDL_MULTICAST : public Handler {
 
 public:
 	void handle(msg_ptr message_,Broker*);
@@ -30,4 +30,4 @@ public:
 
 }/* namespace rr_android_ns3 */
 } /* namespace sim_mob */
-#endif /* MULTICAST_MESSAGE_H_ */
+#endif /* ANDROID_MULTICAST_MESSAGE_HPP_ */

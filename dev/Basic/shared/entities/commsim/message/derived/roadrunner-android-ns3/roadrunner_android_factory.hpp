@@ -5,13 +5,13 @@
  *      Author: vahid
  */
 
-#ifndef  RR_ANDROID_FACTORY_HPP_
-#define RR_ANDROID_FACTORY_HPP_
+#ifndef  ROADRUNNER_ANDROID_FACTORY_HPP_
+#define ROADRUNNER_ANDROID_FACTORY_HPP_
 
 #include "entities/commsim/serialization/Serialization.hpp"
-#include "MULTICAST_Message.hpp"
-#include "UNICAST_Message.hpp"
-#include "CLIENTDONE_Message.hpp"
+#include "android_multicast_message.hpp"
+#include "android_unicast_message.hpp"
+#include "client_done_message.hpp"
 #include <map>
 
 namespace sim_mob {
@@ -36,4 +36,4 @@ public:
 
 } /* namespace rr_android_ns3 */
 } /* namespace sim_mob */
-#endif /* RRMSGFACTORY_HPP_ */
+#endif /* ROADRUNNER_ANDROID_FACTORY_HPP_ */

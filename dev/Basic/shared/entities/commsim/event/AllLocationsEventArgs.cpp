@@ -19,7 +19,6 @@ Json::Value AllLocationsEventArgs::ToJSON()const{
 	{
 		loc["LOCATIONS"].append(JsonParser::makeLocationArrayElement(pair.first->getId(),pair.first->xPos.get(), pair.first->yPos.get()));
 	}
-//	Print() << "AllLocationsEventArgs::ToJSON's cook:\n '" << loc.toStyledString() << "'" << std::endl;
 	return loc;
 }
 

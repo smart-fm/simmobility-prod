@@ -25,16 +25,16 @@ public:
 	void start();
 	bool isDone();
 //	void getTypeAndID(std::string &input, std::string & out_type, std::string & out_ID);
-	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string, boost::shared_ptr<Session>);
+	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
 	std::string response; //json string containing ID & type of the client
 private:
-	boost::shared_ptr<Session> sess;
+	boost::shared_ptr<Session>  sess;
 	ConnectionServer &server;
 	bool registerSuccess;
 	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
-	void startClientRegistration(boost::shared_ptr<Session> &sess);
-	void WhoAreYou_handler(const boost::system::error_code& e,boost::shared_ptr<Session> &sess);
-	void WhoAreYou_response_handler(const boost::system::error_code& e, boost::shared_ptr<Session>& sess);
+//	void startClientRegistration(boost::shared_ptr<Session> &sess);
+	void WhoAreYou_handler(const boost::system::error_code& e);
+	void WhoAreYou_response_handler(const boost::system::error_code& e);
 };
 
 } /* namespace sim_mob */

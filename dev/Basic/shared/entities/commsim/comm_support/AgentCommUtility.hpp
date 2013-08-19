@@ -98,11 +98,6 @@ public:
 	{
 		registered = value;
 	};
-//	void setMutexes(std::vector<boost::shared_ptr<boost::shared_mutex> > &value)
-//	{
-//		Broker_Mutexes = value;
-////		Print() << "COMM::setMutexes=>Broker Mutexes : " << Broker_Mutexes[0] << " " << Broker_Mutexes[1] << " " << Broker_Mutexes[2] << std::endl;
-//	};
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
 	BufferContainer<MSG_TYPE>& getIncoming() {
 		return incoming;
@@ -127,16 +122,13 @@ public:
 
 void addIncoming(MSG_TYPE value) {
 		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		std::cout << "addIncoming_Acquiring_receive_lock_DONE" << std::endl;
 		incoming.add(value);
 		incomingIsDirty = true;
 	}
 
 	void addOutgoing(MSG_TYPE value) {
 		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		std::cout << "outgoingsize-before[" << outgoing.get().size() << "]" << std::endl;
 		outgoing.add(value);
-		std::cout << "outgoingsize-after[" << outgoing.get().size() << "]" << std::endl;
 		outgoingIsDirty = true;
 	}
 

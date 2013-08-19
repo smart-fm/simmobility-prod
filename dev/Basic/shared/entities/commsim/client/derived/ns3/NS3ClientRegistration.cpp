@@ -44,9 +44,6 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 				)
 				);
 		clientEntry->cnnHandler = cnnHandler;
-
-//		Print()<< "Connection handler for agent "
-
 		clientEntry->AgentCommUtility_ = 0;//not needed
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = 0;//not needed
@@ -62,13 +59,11 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 			case SIMMOB_SRV_TIME:{
 				 boost::shared_ptr<sim_mob::Publisher> p = broker.getPublishers()[SIMMOB_SRV_TIME];
 				p->Subscribe(COMMEID_TIME, clientEntry.get(), CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
-				Print() << "NS3 registered with SIMMOB_SRV_TIME" << std::endl;
 				break;
 			}
 			case SIMMOB_SRV_ALL_LOCATIONS:{
 				 boost::shared_ptr<sim_mob::Publisher> p = broker.getPublishers()[SIMMOB_SRV_ALL_LOCATIONS];
 				p->Subscribe(COMMEID_LOCATION,(void *) COMMCID_ALL_LOCATIONS, clientEntry.get()  ,CONTEXT_CALLBACK_HANDLER(AllLocationsEventArgs, ClientHandler::OnAllLocations) );
-				Print() << "NS3 registered with SIMMOB_SRV_ALL_LOCATIONS" << std::endl;
 				break;
 			}
 			}

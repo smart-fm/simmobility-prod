@@ -27,16 +27,13 @@ void WaitForAndroidConnection::set_MIN_NOF_Clients(int value) {
 }
 
 bool WaitForAndroidConnection::calculateWaitStatus() {
-	Print() << "inside WaitForAndroidConnection::calculateWaitStatus" << std::endl;
 	ClientList::type & clients = getBroker().getClientList();
 	int cnt = clients[ConfigParams::ANDROID_EMULATOR].size();
 	if(cnt >= min_nof_clients)
 	{
-		Print() << "inside WaitForAndroidConnection--> dont wait" << std::endl;
 		setWaitStatus(false);
 		return false;//no need to wait
 	}
-	Print() << "inside WaitForAndroidConnection::calculateWaitStatus()--> wait" << std::endl;
 	setWaitStatus(true);
 	return true;//need to wait
 }

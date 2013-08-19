@@ -5,7 +5,7 @@
  *      Author: vahid
  */
 
-#include "RR_Android_Factory.hpp"
+#include "roadrunner_android_factory.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
 #include <stdexcept>
@@ -37,10 +37,10 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 		switch(type)
 		{
 		case MULTICAST:
-			handler.reset(new sim_mob::rr_android_ns3::HDL_MULTICAST());
+			handler.reset(new sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST());
 			break;
 		case UNICAST:
-			handler.reset(new sim_mob::rr_android_ns3::HDL_UNICAST());
+			handler.reset(new sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST());
 			break;
 		default:
 			typeFound = false;
@@ -60,7 +60,7 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
  bool RR_Android_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
 {
 //	std::vector<msg_t> result;
-	 Print() << "inside RR_Android_Factory::createMessage" << std::endl;
+//	 Print() << "inside RR_Android_Factory::createMessage" << std::endl;
 	std::string type, data;
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
@@ -75,7 +75,6 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 	for (int index = 0; index < root.size(); index++) {
 
 		Json::FastWriter w;
-		 Print() << index << ": " <<  w.write(root[index]) << std::endl;
 		msg_header messageHeader;
 //		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
@@ -85,7 +84,7 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::rr_android_ns3::MSG_MULTICAST(curr_json));
+			msg_ptr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(MULTICAST));
 			output.push_back(msg);
@@ -93,7 +92,7 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 		}
 		case UNICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::rr_android_ns3::MSG_UNICAST(curr_json));
+			msg_ptr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(UNICAST));
 			output.push_back(msg);

@@ -62,8 +62,6 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 				);
 		clientEntry->cnnHandler = cnnHandler;
 
-//		Print()<< "Connection handler for agent "
-
 		clientEntry->AgentCommUtility_ = freeAgent->second;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = freeAgent->first;
@@ -90,14 +88,10 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 		//also, add the client entry to broker(for message handler purposes)
 		broker.insertClientList(clientEntry->clientID, ConfigParams::ANDROID_EMULATOR,clientEntry);
-		Print() << "clientEntry[" << clientEntry << "] added. New size = " << broker.getClientList()[ConfigParams::ANDROID_EMULATOR].size() << std::endl;
-//		Print() << "clientEntry.cnnhandler[" << clientEntry->cnnHandler << "].use_count(" << clientEntry->cnnHandler.use_count() << ")" << std::endl;
-
 		//add this agent to the list of the agents who are associated with a android emulator client
 		usedAgents.insert( *freeAgent);
 		//tell the agent you are registered
 		freeAgent->second->setregistered(true);
-//		Print() << "AndroidClientRegistration::handle=> client associated to agent " << freeAgent->first << std::endl;
 
 		//start listening to the handler
 		clientEntry->cnnHandler->start();

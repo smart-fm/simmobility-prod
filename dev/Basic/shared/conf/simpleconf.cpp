@@ -94,8 +94,12 @@ bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
 
 
-int getValueInMS(double value, const std::string& units)
+int getValueInMS(double value, std::string units)
 {
+	//Handle plural
+	if (units=="second") { units="seconds"; }
+	if (units=="minute") { units="minutes"; }
+
 	//Detect errors
 	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
 		return -1;
@@ -135,17 +139,45 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 	return getValueInMS(value, units);
 }
 
-
-
-int ReadValue(TiXmlHandle& handle, const std::string& propName, int defaultValue)
+int ReadGranularitySingle(TiXmlHandle& handle, const std::string& elemName, const std::string& granName)
 {
-	TiXmlElement* node = handle.FirstChild(propName).ToElement();
+	TiXmlElement* node = handle.FirstChild(elemName).ToElement();
+	if (!node) {
+		return -1;
+	}
+
+	const char* srcStr = node->Attribute(granName.c_str());
+	if (!srcStr) {
+		return -1;
+	}
+
+	//Search for "[0-9]+ ?[^0-9]+), roughly.
+	std::string src(srcStr);
+	size_t digStart = src.find_first_of("1234567890");
+	size_t digEnd = src.find_first_not_of("1234567890", digStart+1);
+	size_t unitStart = src.find_first_not_of(" ", digEnd);
+	if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos) {
+		return -1;
+	}
+
+	//Now split/parse it.
+	double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd-digStart)));
+	std::string units = src.substr(unitStart, std::string::npos);
+
+	return getValueInMS(value, units);
+}
+
+
+
+int ReadValue(TiXmlHandle& handle, const std::string& elemName, const std::string& propName="value", int defaultValue=0)
+{
+	TiXmlElement* node = handle.FirstChild(elemName).ToElement();
 	if (!node) {
 		return defaultValue;
 	}
 
 	int value;
-	if (!node->Attribute("value", &value)) {
+	if (!node->Attribute(propName, &value)) {
 		return defaultValue;
 	}
 
@@ -1224,19 +1256,21 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 #endif
 
 	//Save more granularities
-	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("granularities");
-	int granAgent = ReadGranularity(handle, "agent");
+	/*handle = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("granularities");
+	int granPerson = ReadGranularity(handle, "person");
 	int granSignal = ReadGranularity(handle, "signal");
-	int granPaths = ReadGranularity(handle, "paths");
-	int granDecomp = ReadGranularity(handle, "decomp");
+	int granCommsim = ReadGranularity(handle, "communication");*/
 
 	//Save work group sizes: system
-	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
-	int agentWgSize = ReadValue(handle, "agent", 0);
-	int signalWgSize = ReadValue(handle, "signal", 0);
-	int commWgSize = ReadValue(handle, "Android_Communication", 0);
+	handle = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("workers");
+	int personWgSize = ReadValue(handle, "person", "count", 0);
+	int signalWgSize = ReadValue(handle, "signal", "count", 0);
+	int commWgSize = ReadValue(handle, "communication", "count", 0);
+
+	//Read granularities.
+	int granPerson = ReadGranularitySingle(handle, "person", "granularity");
+	int granSignal = ReadGranularitySingle(handle, "signal", "granularity");
+	int granCommsim = ReadGranularitySingle(handle, "communication", "granularity");
 
 	//Save the "single-threaded" flag, if it exists.
 	bool singleThreaded = false;
@@ -1451,18 +1485,20 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	if(baseGran == -1) { throw std::runtime_error("Config file fails to specify base granularity."); }
 	if(totalRuntime == -1) { throw std::runtime_error("Config file fails to specify total runtime."); }
 	if(totalWarmup == -1) { throw std::runtime_error("Config file fails to specify total warmup."); }
-	if(granAgent == -1) { throw std::runtime_error("Config file fails to specify agent granularity."); }
+	if(granPerson == -1) { throw std::runtime_error("Config file fails to specify person granularity."); }
 	if(granSignal == -1) { throw std::runtime_error("Config file fails to specify signal granularity."); }
-	if(agentWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
+	if(granCommsim == -1) { throw std::runtime_error("Config file fails to specify communication granularity."); }
+	if(personWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
 	if(signalWgSize == -1) { throw std::runtime_error("Config file fails to specify signal workgroup size."); }
+	if(commWgSize == -1) { throw std::runtime_error("Config file fails to specify communication workgroup size."); }
 	if (!simStartStr) { throw std::runtime_error("Config file fails to specify simulation start time."); }
 
     //Granularity check
-    if (granAgent < baseGran) {
-    	throw std::runtime_error("Agent granularity cannot be smaller than base granularity.");
+    if (granPerson < baseGran) {
+    	throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
     }
-    if (granAgent%baseGran != 0) {
-    	throw std::runtime_error("Agent granularity not a multiple of base granularity.");
+    if (granPerson%baseGran != 0) {
+    	throw std::runtime_error("Person granularity not a multiple of base granularity.");
     }
     if (granSignal < baseGran) {
     	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
@@ -1470,17 +1506,11 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     if (granSignal%baseGran != 0) {
     	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (granPaths < baseGran) {
-    	throw std::runtime_error("Path granularity cannot be smaller than base granularity.");
+    if (granCommsim < baseGran) {
+    	throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
     }
-    if (granPaths%baseGran != 0) {
-    	throw std::runtime_error("Path granularity not a multiple of base granularity.");
-    }
-    if (granDecomp < baseGran) {
-    	throw std::runtime_error("Decomposition granularity cannot be smaller than base granularity.");
-    }
-    if (granDecomp%baseGran != 0) {
-    	throw std::runtime_error("Decomposition granularity not a multiple of base granularity.");
+    if (granCommsim%baseGran != 0) {
+    	throw std::runtime_error("Communication granularity not a multiple of base granularity.");
     }
     if (totalRuntime < baseGran) {
     	throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
@@ -1501,11 +1531,10 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     	config.baseGranMS = baseGran;
     	config.totalRuntimeTicks = totalRuntime/baseGran;
     	config.totalWarmupTicks = totalWarmup/baseGran;
-    	config.granAgentsTicks = granAgent/baseGran;
+    	config.granPersonTicks = granPerson/baseGran;
     	config.granSignalsTicks = granSignal/baseGran;
-    	config.granPathsTicks = granPaths/baseGran;
-    	config.granDecompTicks = granDecomp/baseGran;
-    	config.agentWorkGroupSize = agentWgSize;
+    	config.granCommunicationTicks = granCommsim/baseGran;
+    	config.personWorkGroupSize = personWgSize;
     	config.signalWorkGroupSize = signalWgSize;
     	config.commWorkGroupSize = commWgSize;
     	config.simStartTime = DailyTime(simStartStr);
@@ -1737,10 +1766,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Person Granularity: " <<ConfigParams::GetInstance().granPersonTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Communication Granularity: " <<ConfigParams::GetInstance().granCommunicationTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
     std::cout <<"  Mutex strategy: " <<(ConfigParams::GetInstance().mutexStategy==MtxStrat_Locked?"Locked":ConfigParams::GetInstance().mutexStategy==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
@@ -1753,24 +1781,13 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
     }
-    //if (!ConfigParams::GetInstance().connectionString.empty()) {
-    	//Output AIMSUN data
-    	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
-    	std::cout <<"------------------\n";
-    	PrintDB_NetworkToFile(ConfigParams::GetInstance().outNetworkFileName);
-    	std::cout <<"------------------\n";
-   // }
-    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
-    /*for (size_t i=0; i<active_agents.size(); i++) {
-    	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
-    	Person* p = dynamic_cast<Person*>(active_agents[i]);
-    	if (p && p->getTripChain()) {
-    		//const TripChain* const tc = p->getTripChain();
-    		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
-    	}
-    }*/
-    std::cout <<"------------------\n";
+	//Output AIMSUN data
+	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+	std::cout <<"------------------\n";
+	PrintDB_NetworkToFile(ConfigParams::GetInstance().outNetworkFileName);
+	std::cout <<"------------------\n";
+
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
     //StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);

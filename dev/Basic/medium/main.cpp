@@ -188,30 +188,30 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	wgMgr.setSingleThreadMode(config.singleThreaded);
 
 	//Work Group specifications
-	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize, config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
-	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+	personWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 
 
-	agentWorkers->assignConfluxToWorkers();
+	personWorkers->assignConfluxToWorkers();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
 	 * they will be assigned a worker.
 	 */
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		// agentWorkers->assignAWorker(*it);
-		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		// personWorkers->assignAWorker(*it);
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
 	if(BusController::HasBusControllers()){
-		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
+		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too
@@ -230,7 +230,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}

@@ -91,12 +91,11 @@ public:
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
 
-	unsigned int granAgentsTicks;     ///<Number of ticks to wait before updating all agents.
+	unsigned int granPersonTicks;     ///<Number of ticks to wait before updating all Person agents.
 	unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
-	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
-	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
+	unsigned int granCommunicationTicks;      ///<Number of ticks to wait before updating all communication brokers.
 
-	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
+	unsigned int personWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
 
@@ -179,10 +178,9 @@ public:
 
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
 	unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
-	unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }
+	unsigned int personTimeStepInMilliSeconds() const { return granPersonTicks * baseGranMS; }
 	unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
-	unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
-	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
+	unsigned int communicationTimeStepInMilliSeconds() const { return granCommunicationTicks * baseGranMS; }
 
 	bool TEMP_ManualFixDemoIntersection;
 
@@ -301,8 +299,8 @@ public:
 	std::set<sim_mob::Conflux*>& getConfluxes() { return confluxes; }
 
 private:
-	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
-		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
+	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
+		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
 		day_of_week(MONDAY), aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),

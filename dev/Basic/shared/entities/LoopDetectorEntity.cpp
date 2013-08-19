@@ -176,7 +176,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
     dy *= ratio;
     center_ = Point2D(p2.getX() - dx, p2.getY() - dy);
 
-    timeStepInMilliSeconds_ = ConfigParams::GetInstance().agentTimeStepInMilliSeconds();
+    timeStepInMilliSeconds_ = ConfigParams::GetInstance().personTimeStepInMilliSeconds();
 }
 
 namespace

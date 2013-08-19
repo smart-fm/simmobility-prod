@@ -131,6 +131,21 @@ void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
+//long sim_mob::Agent::getLastUpdatedFrame() const {
+//	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
+//	return lastUpdatedFrame;
+//}
+
+long sim_mob::Agent::getLastUpdatedFrame() {
+	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
+	return lastUpdatedFrame;
+}
+
+void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
+	boost::mutex::scoped_lock lastUpdatedFrame_lock(lastUpdatedFrame_mutex);
+	this->lastUpdatedFrame = lastUpdatedFrame;
+}
+
 
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {

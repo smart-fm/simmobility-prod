@@ -13,6 +13,7 @@
 #include "conf/settings/DisableMPI.h"
 
 #include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/random.hpp>
 
 #include "buffering/Shared.hpp"
@@ -152,21 +153,15 @@ public:
 	void clearToBeRemoved(); ///<Temporary function.
 
 	/* *
-	 * I'm keeping getters and setters for current lane and link in Agent class to be able to determine the
+	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
 	 * location of the agent without having to dynamic_cast to Person and get the role.
-	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just ignore these.
+	 * If these are irrelevant for some sub-class of agent (E.g. Signal), the sub class can just ignore these.
 	 * ~ Harish
 	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
 	virtual const sim_mob::RoadSegment* getCurrSegment() const;
 	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
-
-	/* *
-	 * Getter an setter for only the Lane is kept here.
-	 * Road segment of the agent can be determined from lane.
-	 * ~ Harish
-	 */
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
@@ -271,7 +266,6 @@ public:
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
-	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
@@ -304,6 +298,8 @@ private:
 	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
 
 	bool onActivity; //Determines if the person is conducting any activity
+	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
+	boost::mutex lastUpdatedFrame_mutex;
 
 	//add by xuyan
 protected:
@@ -331,6 +327,10 @@ public:
 	void setCallFrameInit(bool callFrameInit) {
 		call_frame_init = callFrameInit;
 	}
+
+	long getLastUpdatedFrame();
+
+	void setLastUpdatedFrame(long lastUpdatedFrame);
 
 	friend class BoundaryProcessor;
 

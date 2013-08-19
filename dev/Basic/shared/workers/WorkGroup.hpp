@@ -101,6 +101,9 @@ private:
 
 	void assignAWorkerConstraint(Entity* ag);
 
+	void processVirtualQueues();
+	void outputSupplyStats();
+
 	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 
 	Worker* locateWorker(unsigned int linkID);

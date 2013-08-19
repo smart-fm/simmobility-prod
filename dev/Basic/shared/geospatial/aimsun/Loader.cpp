@@ -65,6 +65,7 @@
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/BusStopAgent.hpp"
 
@@ -2083,21 +2084,12 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-	//	debugMsgs << "\nProcessConfluxes\t Multinode: " << *i;
 		conflux = new sim_mob::Conflux(*i, mtxStrat);
 
-		//upsegCtr = 0;
-
-		//NOTE: This probably wasn't doing what you thought it was. ~Seth
-		//for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin(); segmt!=(*i)->roadSegmentsCircular.end();segmt++ ) {
 		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
 		if (segsAt!=roadSegmentsAt.end()) {
 			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
-
-
-			//	debugMsgs << "\nProcessConfluxes\t roadSegmentsCircular: " << (*segmt).first << "\t" << (*segmt).second;
 				sim_mob::Link* lnk = (*segmt)->getLink();
-			//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
 				std::vector<sim_mob::RoadSegment*> upSegs;
 				std::vector<sim_mob::RoadSegment*> downSegs;
 
@@ -2105,19 +2097,14 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				if(lnk->getEnd() == (*i))
 				{
 					//NOTE: There will *only* be upstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
 					upSegs = lnk->getSegments();
-					//downSegs = lnk->getRevSegments();
 					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-					//conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<sim_mob::Person*>()));
 				}
 				else if (lnk->getStart() == (*i))
 				{
 					//NOTE: There will *only* be downstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
-					//upSegs = lnk->getRevSegments();
 					downSegs = lnk->getSegments();
-					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
 
@@ -2130,7 +2117,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-						//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
@@ -2141,12 +2127,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 			} // for
 		}
-		conflux->prepareLengthsOfSegmentsAhead();
 		confluxes.insert(conflux);
-//		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
-//				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
-//	std::cout << debugMsgs.str();
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)

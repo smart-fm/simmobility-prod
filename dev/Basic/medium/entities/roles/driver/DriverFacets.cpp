@@ -152,15 +152,15 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << getParent()->getId();
 	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
 		Print()	<< "|Permission: Granted"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd() << "|CurrLane:" << getParent()->getCurrLane()->getLaneID()
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
+				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 999)
 				<< std::endl;
 		flowIntoNextLinkIfPossible(p2);
 	}
 	else if (getParent()->canMoveToNextSegment == Person::DENIED){
 		Print() << "|Permission: Denied"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd() << "|CurrLane:" << getParent()->getCurrLane()->getLaneID()
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
+				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 999)
 				<< std::endl;
 
 		if(currLane) {
@@ -210,7 +210,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<",{"
 			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegment()->getSegmentID())
 			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
-			<<"\",\"UpNode\":\""<<(getParent()->getCurrSegment()->getStart()->getID())
+			<<"\",\"Segment\":\""<<(getParent()->getCurrSegment()->getStartEnd())
 			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
 	if (this->getParent()->isQueuing) {
 			logout << "\",\"queuing\":\"" << "true";
@@ -867,7 +867,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
 		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId()
 				<< "|canGoToNextRdSeg successful|currLane set to: "<< currLane->getLaneID()
-				<< "|Link: " << vehicle->getCurrSegment()->getLink()->getStart()->getID() << "->" << vehicle->getCurrSegment()->getLink()->getEnd()->getID()
 				<< std::endl;
 		getParent()->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
 

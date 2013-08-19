@@ -15,7 +15,7 @@ namespace sim_mob
  *
  * \author Seth N. Hetu
  */
-class ZebraCrossing : public sim_mob::RoadItem {
+/*class ZebraCrossing : public sim_mob::RoadItem {
 public:
 
 
@@ -23,7 +23,7 @@ private:
 
 
 
-};
+};*/
 
 
 

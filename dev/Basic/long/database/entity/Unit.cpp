@@ -10,42 +10,27 @@
 #include "Unit.hpp"
 #include "util/UnitHolder.hpp"
 #include "util/Utils.hpp"
+#include <boost/thread.hpp>
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-#define WEIGHT_MIN 0.0f
-#define WEIGHT_MAX 1.0f
-
-/**
- * TODO: Refactoring with Market Entry?????
- */
-float CalculateHedonicPrice(float distanceToCDB, float size, float fixedCost) {
-    return (float) ((distanceToCDB * 2.0f) + (size * 3.0f) + fixedCost);
-}
-
-Unit::Unit(UnitId id, bool available, float fixedCost,
-        float distanceToCDB, float size) : id(id), available(available),
-fixedCost(fixedCost), distanceToCDB(distanceToCDB), size(size),
-hedonicPrice(CalculateHedonicPrice(distanceToCDB, size, fixedCost)), owner(nullptr),
-weightPriceQuality(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
-    reservationPrice = (hedonicPrice * 1.2f);
-}
-
-Unit::Unit() : id(INVALID_ID), available(false),
-fixedCost(.0f), distanceToCDB(.0f), size(.0f),
-hedonicPrice(.0f), reservationPrice(.0f), owner(nullptr),
-weightPriceQuality(Utils::GenerateFloat(WEIGHT_MIN, WEIGHT_MAX)) {
-}
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
+        double area, int storey, double rent, bool available) :
+id(id), buildingId(buildingId), typeId(typeId),
+storey(storey), area(area), rent(rent), available(available), 
+askingPrice(0), hedonicPrice(0), owner(nullptr) {}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
+    this->buildingId = source.buildingId;
+    this->typeId = source.typeId;
+    this->storey = source.storey;
+    this->area = source.area;
+    this->rent = source.rent;
     this->available = source.available;
-    this->fixedCost = source.fixedCost;
+    this->askingPrice = source.askingPrice;
     this->hedonicPrice = source.hedonicPrice;
-    this->reservationPrice = source.reservationPrice;
     this->owner = source.owner;
-    this->weightPriceQuality = source.weightPriceQuality;
 }
 
 Unit::~Unit() {
@@ -53,77 +38,83 @@ Unit::~Unit() {
 
 Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
+    this->buildingId = source.buildingId;
+    this->typeId = source.typeId;
+    this->storey = source.storey;
+    this->area = source.area;
+    this->rent = source.rent;
     this->available = source.available;
-    this->fixedCost = source.fixedCost;
+    this->askingPrice = source.askingPrice;
     this->hedonicPrice = source.hedonicPrice;
-    this->reservationPrice = source.reservationPrice;
     this->owner = source.owner;
-    this->weightPriceQuality = source.weightPriceQuality;
     return *this;
-}
-
-bool Unit::IsAvailable() const {
-    SharedReadLock(mutex);
-    return available;
-}
-
-void Unit::SetAvailable(bool avaliable) {
-    SharedWriteLock(mutex);
-    this->available = avaliable;
 }
 
 UnitId Unit::GetId() const {
     return id;
 }
 
-float Unit::GetSize() const {
-    return size;
+BigSerial Unit::GetBuildingId() const {
+    return buildingId;
 }
 
-float Unit::GetDistanceToCDB() const {
-    return distanceToCDB;
+BigSerial Unit::GetTypeId() const {
+    return typeId;
 }
 
-float Unit::GetReservationPrice() const {
-    SharedReadLock(mutex);
-    return reservationPrice;
+int Unit::GetStorey() const {
+    return storey;
 }
 
-void Unit::SetReservationPrice(float price) {
-    SharedWriteLock(mutex);
-    reservationPrice = price;
+double Unit::GetArea() const {
+    return area;
 }
 
-float Unit::GetHedonicPrice() const {
-    SharedReadLock(mutex);
-    return hedonicPrice;
+double Unit::GetRent() const {
+    return rent;
 }
 
-void Unit::SetHedonicPrice(float price) {
-    SharedWriteLock(mutex);
-    hedonicPrice = price;
+bool Unit::IsAvailable() const {
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
+    return available;
 }
 
-float Unit::GetFixedCost() const {
-    SharedReadLock(mutex);
-    return fixedCost;
+void Unit::SetAvailable(bool avaliable) {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    this->available = avaliable;
 }
 
-void Unit::SetFixedCost(float cost) {
-    SharedWriteLock(mutex);
-    fixedCost = cost;
+double Unit::GetAskingPrice() const {
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
+    return this->askingPrice;
+}
+double Unit::GetHedonicPrice() const {
+    boost::shared_lock<boost::shared_mutex> lock(mutex);
+    return this->hedonicPrice;
 }
 
-UnitHolder* Unit::GetOwner() {
-    SharedReadLock(mutex);
-    return this->owner;
+void Unit::SetAskingPrice(double askingPrice) {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    this->askingPrice = askingPrice;
+}
+
+void Unit::SetHedonicPrice(double hedonicPrice) {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    this->hedonicPrice = hedonicPrice;
 }
 
 void Unit::SetOwner(UnitHolder* receiver) {
-    SharedWriteLock(mutex);
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->owner = receiver;
 }
 
-float Unit::GetWeightPriceQuality() const {
-    return weightPriceQuality;
+UnitHolder* Unit::GetOwner() {
+    boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+    //TODO: this is not protecting nothing.
+    return this->owner;
 }

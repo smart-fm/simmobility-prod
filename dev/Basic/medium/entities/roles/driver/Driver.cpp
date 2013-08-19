@@ -23,7 +23,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/DebugFlags.hpp"
 
 #include "partitions/PartitionManager.hpp"
@@ -108,8 +108,8 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 
 }
 
-//<<<<<<< HEAD
-//=======
+
+
 //void sim_mob::medium::Driver::setParentData() {
 //	Person* parentP = dynamic_cast<Person*> (parent);
 //	if(!vehicle->isDone()) {
@@ -497,6 +497,6 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 //
 //	else if (vehicle->hasNextSegment(false))
 //		nextRdSeg = vehicle->getNextSegment(false);
-//>>>>>>> master
+//
 
 //}

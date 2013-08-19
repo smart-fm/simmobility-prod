@@ -86,11 +86,15 @@ sim_mob::WorkGroup* WorkGroupFactory::getItem()
 		if (!cf.MPI_Disabled() && cf.using_MPI) {
 			partMgr = &PartitionManager::instance();
 		}
+
+//TODO: The new Config syntax still doesn't work right, so disabling this for now.
+#if 0
 		if (agentWG) {
 			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granAgentsTicks, &AuraManager::instance(), partMgr);
 		} else {
 			item = WorkGroup::NewWorkGroup(numWorkers, cf.totalRuntimeTicks, cf.granSignalsTicks);
 		}
+#endif
 	}
 	return item;
 }
@@ -179,6 +183,7 @@ void sim_mob::XmlAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAg
 	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
 	TripChainList tripChains;
 
+	//    		todo: this is commented to speed up compilations. enable before pushing the code[XMLCOMMENT]
 	//Use code similar to our XML loading code to retrieve our TripChains.
 	sim_mob::xml::InitAndLoadTripChainsFromXML(fileName, rootNode, tripChains);
 

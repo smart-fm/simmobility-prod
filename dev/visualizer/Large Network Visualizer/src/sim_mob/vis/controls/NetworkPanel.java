@@ -402,6 +402,10 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	
 	private void zoomView(int number) {
+		if (netViewCache==null) {
+			return;
+		}
+		
 		//Get the current view.
 		//Rectangle2D view = netViewCache.getCurrentView();
 		

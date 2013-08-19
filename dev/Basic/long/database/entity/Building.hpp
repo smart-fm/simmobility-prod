@@ -8,93 +8,62 @@
  */
 #pragma once
 
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 
 namespace sim_mob {
+
     namespace long_term {
 
         class Building {
         public:
-            Building();
+            Building(BigSerial id = INVALID_ID, BigSerial typeId = INVALID_ID,
+                    BigSerial parcelId = INVALID_ID, int builtYear = 0,
+                    double floorArea = .0f, int storeys = 0, int parkingSpaces = 0);
+
             virtual ~Building();
+
             /**
              * Gets unique identifier of the Building Type.
              * @return id.
              */
-            int GetId() const;
+            BigSerial GetId() const;
 
             /**
-             * Gets the number of residential units.
-             * @return number of residential units.
+             * Gets unique identifier of the Type Type.
+             * @return id.
              */
-            int GetResidentialUnits() const;
+            BigSerial GetTypeId() const;
 
             /**
-             * Gets the year of construction.
-             * @return the year of construction.
+             * Gets unique identifier of the Project Type.
+             * @return id.
              */
-            int GetYear() const;
+            BigSerial GetParcelId() const;
 
             /**
-             * Gets the parcel identifier.
-             * @return parcel id.
+             * Gets the year that the building was built.
+             * @return the year that the building was built.
              */
-            int GetParcelId() const;
+            int GetBuiltYear() const;
 
             /**
-             * Gets the land area value.
-             * @return land area value.
+             * Gets the floor area value.
+             * @return floor area value.
              */
-            double GetLandArea() const;
+            double GetFloorArea() const;
 
             /**
-             * Gets the quality identifier.
-             * @return quality id.
+             * Gets number of storeys.
+             * @return storeys number.
              */
-            int GetQualityId() const;
+            int GetStoreys() const;
 
             /**
-             * Gets the value of the improvements.
-             * @return improvement value.
+             * Gets number of stories.
+             * @return stories number.
              */
-            int GetImprovementValue() const;
-
-            /**
-             * Gets the type identifier.
-             * @return type id.
-             */
-            int GetTypeId() const;
-
-            /**
-             * Gets stories.
-             * @return stories.
-             */
-            int GetStories() const;
-
-            /**
-             * Tells if the building is exempt of tax or not.
-             * @return true if is tax exempt, false otherwise.
-             */
-            bool IsTaxExempt() const;
-
-            /**
-             * Gets the value of the sqft of non residential area.
-             * @return sqft of non residential area value.
-             */
-            int GetNonResidentialSqft() const;
-
-            /**
-             * Gets template identifier.
-             * @return template id.
-             */
-            int GetTemplateId() const;
-
-            /**
-             * Gets the value of the sqft per unit.
-             * @return sqft per unit value.
-             */
-            int GetUnitSqft() const;
+            int GetParkingSpaces() const;
 
             /**
              * Assign operator.
@@ -106,42 +75,28 @@ namespace sim_mob {
             /**
              * Operator to print the Building data.  
              */
-            friend ostream& operator<<(ostream& strm, const Building& data) {
+            friend std::ostream& operator<<(std::ostream& strm, const Building& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
-                        << "\"improvementValue\":\"" << data.improvementValue << "\","
-                        << "\"landArea\":\"" << data.landArea << "\","
-                        << "\"nonResidentialSqft\":\"" << data.nonResidentialSqft << "\","
-                        << "\"parcelId\":\"" << data.parcelId << "\","
-                        << "\"qualityId\":\"" << data.qualityId << "\","
-                        << "\"residentialUnits\":\"" << data.residentialUnits << "\","
-                        << "\"stories\":\"" << data.stories << "\","
-                        << "\"taxExempt\":\"" << data.taxExempt << "\","
-                        << "\"templateId\":\"" << data.templateId << "\","
                         << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"unitSqft\":\"" << data.unitSqft << "\","
-                        << "\"year\":\"" << data.year << "\""
+                        << "\"parcelId\":\"" << data.parcelId << "\","
+                        << "\"builtYear\":\"" << data.builtYear << "\","
+                        << "\"floorArea\":\"" << data.floorArea << "\","
+                        << "\"storeys\":\"" << data.storeys << "\","
+                        << "\"parkingSpaces\":\"" << data.parkingSpaces << "\""
                         << "}";
             }
 
         private:
             friend class BuildingDao;
-
         private:
-            int id;
-            int residentialUnits;
-            int year; //year of construction
-            int parcelId;
-            double landArea;
-            int qualityId;
-            int improvementValue;
-            int stories;
-            int typeId;
-            bool taxExempt;
-            int nonResidentialSqft;
-            int templateId;
-            int unitSqft; // sqft per unit.
+            BigSerial id;
+            BigSerial typeId;
+            BigSerial parcelId;
+            int builtYear;
+            double floorArea;
+            int storeys;
+            int parkingSpaces;
         };
     }
 }
-

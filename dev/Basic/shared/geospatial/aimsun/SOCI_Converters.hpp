@@ -20,8 +20,8 @@
 #include "Phase.hpp"
 //
 
-using namespace sim_mob::aimsun;
-using std::string;
+//using namespace sim_mob::aimsun;
+//using std::string;
 
 
 
@@ -33,17 +33,17 @@ using std::string;
 namespace soci
 {
 
-template<> struct type_conversion<Node>
+template<> struct type_conversion<sim_mob::aimsun::Node>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Node &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Node &res)
     {
     	res.id = vals.get<int>("node_id", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     	res.isIntersection = vals.get<int>("isintersection", 0);
     }
-    static void to_base(const Node& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Node& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("node_id", src.id);
         vals.set("xpos", src.xPos);
@@ -54,13 +54,13 @@ template<> struct type_conversion<Node>
 };
 
 
-template<> struct type_conversion<Section>
+template<> struct type_conversion<sim_mob::aimsun::Section>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Section &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Section &res)
     {
     	res.id = vals.get<int>("id", 0);
-    	res.roadName = vals.get<string>("road_name", "");
+    	res.roadName = vals.get<std::string>("road_name", "");
     	res.numLanes = vals.get<int>("nb_lanes", 1);
     	res.speed = vals.get<double>("speed", 0);
     	res.capacity = vals.get<double>("capacity", 0);
@@ -68,7 +68,7 @@ template<> struct type_conversion<Section>
     	res.TMP_FromNodeID = vals.get<int>("fnode", 0);
     	res.TMP_ToNodeID = vals.get<int>("tnode", 0);
     }
-    static void to_base(const Section& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Section& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("id", src.id);
         vals.set("road_name", src.roadName);
@@ -82,12 +82,12 @@ template<> struct type_conversion<Section>
     }
 };
 
-template<> struct type_conversion<Phase>
+template<> struct type_conversion<sim_mob::aimsun::Phase>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Phase &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Phase &res)
     {
-    	res.name = vals.get<string>("phases","");
+    	res.name = vals.get<std::string>("phases","");
     	res.nodeId = vals.get<int>("node_id",0);
     	res.sectionFrom = vals.get<int>("from_section",0);
     	res.sectionTo = vals.get<int>("to_section",0);
@@ -96,7 +96,7 @@ template<> struct type_conversion<Phase>
     	res.laneFrom_B = vals.get<int>("from_lane_b", 0);
     	res.laneTo_B = vals.get<int>("to_lane_b", 0);
     }
-    static void to_base(const Phase& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Phase& src, soci::values& vals, soci::indicator& ind)
     {
 //    	vals.set("id", src.id);
         vals.set("phases", src.name);
@@ -111,10 +111,10 @@ template<> struct type_conversion<Phase>
     }
 };
 
-template<> struct type_conversion<Turning>
+template<> struct type_conversion<sim_mob::aimsun::Turning>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Turning &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Turning &res)
     {
     	res.id = vals.get<int>("turning_id", 0);
     	res.fromLane.first = vals.get<int>("from_lane_a", 0);
@@ -124,7 +124,7 @@ template<> struct type_conversion<Turning>
     	res.TMP_FromSection = vals.get<int>("from_section", 0);
     	res.TMP_ToSection = vals.get<int>("to_section", 0);
     }
-    static void to_base(const Turning& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Turning& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("turning_id", src.id);
     	vals.set("from_lane_a", src.fromLane.first);
@@ -138,16 +138,16 @@ template<> struct type_conversion<Turning>
 };
 
 
-template<> struct type_conversion<Polyline>
+template<> struct type_conversion<sim_mob::aimsun::Polyline>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Polyline &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Polyline &res)
     {
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     	res.TMP_SectionId = vals.get<int>("section_id", 0);
     }
-    static void to_base(const Polyline& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Polyline& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("section_id", src.section->id);
         vals.set("xpos", src.xPos);
@@ -156,10 +156,10 @@ template<> struct type_conversion<Polyline>
     }
 };
 
-template<> struct type_conversion<Crossing>
+template<> struct type_conversion<sim_mob::aimsun::Crossing>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Crossing &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Crossing &res)
     {
     	res.laneID = vals.get<int>("lane_id", 0);
     	res.laneType = vals.get<std::string>("lane_type", "");
@@ -167,7 +167,7 @@ template<> struct type_conversion<Crossing>
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     }
-    static void to_base(const Crossing& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Crossing& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("lane_id", src.laneID);
     	vals.set("lane_type", src.laneType);
@@ -179,10 +179,10 @@ template<> struct type_conversion<Crossing>
 };
 
 
-template<> struct type_conversion<Lane>
+template<> struct type_conversion<sim_mob::aimsun::Lane>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Lane &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::Lane &res)
     {
     	res.laneID = vals.get<int>("lane_id", 0);
     	res.laneType = vals.get<std::string>("lane_type", "");
@@ -191,7 +191,7 @@ template<> struct type_conversion<Lane>
     	res.yPos = vals.get<double>("ypos", 0.0);
         res.rowNo = vals.get<int>("rowno", 0);
     }
-    static void to_base(const Lane& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::Lane& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("lane_id", src.laneID);
     	vals.set("lane_type", src.laneType);
@@ -206,12 +206,12 @@ template<> struct type_conversion<Lane>
 
 
 template<>
-struct type_conversion<Signal>
+struct type_conversion<sim_mob::aimsun::Signal>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, Signal& signal)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::aimsun::Signal& signal)
     {
         signal.id = values.get<int>("signal_id", 0);
         signal.nodeId = values.get<int>("node_id", 0);
@@ -222,7 +222,7 @@ struct type_conversion<Signal>
     }
 
     static void
-    to_base(Signal const & signal, soci::values & values, soci::indicator & indicator)
+    to_base(sim_mob::aimsun::Signal const & signal, soci::values & values, soci::indicator & indicator)
     {
         values.set("signal_id", signal.id);
         values.set("node_id", signal.nodeId);
@@ -235,10 +235,10 @@ struct type_conversion<Signal>
 };
 
 
-template<> struct type_conversion<BusStop>
+template<> struct type_conversion<sim_mob::aimsun::BusStop>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, BusStop &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStop &res)
     {
     	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
     	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
@@ -248,7 +248,7 @@ template<> struct type_conversion<BusStop>
     	res.xPos = vals.get<double>("x_pos", 0.0);
     	res.yPos = vals.get<double>("y_pos", 0.0);
     }
-    static void to_base(const BusStop& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::BusStop& src, soci::values& vals, soci::indicator& ind)
     {
     	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
     	vals.set("bus_stop_id", src.bus_stop_no);

@@ -9,8 +9,8 @@
 
 #include "LT_EventArgs.hpp"
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
+using sim_mob::event::EventArgs;
 
 HM_ActionEventArgs::HM_ActionEventArgs(UnitId unitId)
 : unitId(unitId) {

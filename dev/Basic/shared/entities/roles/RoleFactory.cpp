@@ -46,10 +46,10 @@ const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 	return nullptr;
 }
 
-std::string const getRoleName(const Role* role)
+/*std::string const getRoleName(const Role* role)
 {
 //	for(std::map<std::string, const sim_mob::Role*>::iterator)
-}
+}*/
 
 bool sim_mob::RoleFactory::isKnownRole(const string& roleName) const
 {
@@ -97,16 +97,15 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 		else{
 			throw std::runtime_error("Unknown bus trip subclass.");
 		}
-	} else { //Offer some protection
-		throw std::runtime_error("Trip/Activity/bustrip mismatch, or unknown TripChainItem subclass.");
 	}
+	throw std::runtime_error("Trip/Activity/bustrip mismatch, or unknown TripChainItem subclass.");
 }
 
 string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 {
 		if (subTrip.mode=="Car")    return "driver";
 		if (subTrip.mode=="Walk")   return "pedestrian";
-		//if (subTrip.mode=="Bus")    return "busdriver";
+		if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="BusTravel")    return "passenger";
 		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");

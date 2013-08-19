@@ -12,7 +12,11 @@
 #include "EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::event;
+using boost::shared_mutex;
+using boost::shared_lock;
+using boost::upgrade_lock;
+using boost::upgrade_to_unique_lock;
 using std::list;
 using std::pair;
 
@@ -47,7 +51,8 @@ EventPublisher::~EventPublisher() {
 
 void EventPublisher::RegisterEvent(EventId id) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (!ExitsEvent(listeners, id)) {
             listeners.insert(pair<EventId, ContextMap*>(id, new ContextMap()));
         }
@@ -56,7 +61,8 @@ void EventPublisher::RegisterEvent(EventId id) {
 
 void EventPublisher::UnRegisterEvent(EventId id) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ExitsEvent(listeners, id)) {
             // remove all context listeners.
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
@@ -72,13 +78,14 @@ void EventPublisher::UnRegisterEvent(EventId id) {
 }
 
 bool EventPublisher::IsEventRegistered(EventId id) const {
-    SharedReadLock(listenersMutex);
+	shared_lock<shared_mutex> lock(listenersMutex);
     return ExitsEvent(listeners, id);
 }
 
 void EventPublisher::Publish(EventId id, const EventArgs& args) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         // publish using the global context.    
         PublishEvent(listeners, true, this, id, this, args);
     }
@@ -86,7 +93,8 @@ void EventPublisher::Publish(EventId id, const EventArgs& args) {
 
 void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         // first notify global listeners.
         PublishEvent(listeners, true, this, id, this, args);
         //notify context listeners.
@@ -101,7 +109,8 @@ void EventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
 void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
         ListenerCallback callback) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ExitsEvent(listeners, id) && listener && callback) {
             Callback cb;
             cb.callback = callback;
@@ -118,7 +127,8 @@ void EventPublisher::Subscribe(EventId id, Context ctx,
 void EventPublisher::Subscribe(EventId id, Context ctx,
         EventListenerPtr listener, ListenerContextCallback callback) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ExitsEvent(listeners, id) && listener && callback) {
             Callback cb;
             cb.contextCallback = callback;
@@ -134,7 +144,8 @@ void EventPublisher::UnSubscribe(EventId id, EventListenerPtr listener) {
 void EventPublisher::UnSubscribe(EventId id, Context ctx,
         EventListenerPtr listener) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ExitsEvent(listeners, id) && listener) {
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
             if (ctxMapItr != listeners.end()) {
@@ -160,7 +171,8 @@ void EventPublisher::UnSubscribeAll(EventId id) {
 
 void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
     {// thread-safe scope
-        SharedWriteLock(listenersMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ExitsEvent(listeners, id)) {
             ContextListenersMap::iterator ctxMapItr = listeners.find(id);
             if (ctxMapItr != listeners.end()) {

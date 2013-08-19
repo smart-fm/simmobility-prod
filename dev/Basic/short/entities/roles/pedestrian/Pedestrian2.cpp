@@ -12,7 +12,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/Node.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"

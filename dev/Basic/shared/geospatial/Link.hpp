@@ -7,10 +7,6 @@
 #include <vector>
 #include <set>
 #include <string>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-#include <iterator>
 
 #include "conf/settings/DisableMPI.h"
 
@@ -26,11 +22,8 @@ class MultiNode;
 class RoadNetworkPackageManager;
 class Signal;
 class Worker;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 namespace aimsun {
 //Forward declaration

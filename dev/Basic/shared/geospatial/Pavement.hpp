@@ -9,8 +9,8 @@
 
 #include "conf/settings/DisableMPI.h"
 
-#include "Traversable.hpp"
-#include "Point2D.hpp"
+#include "geospatial/Traversable.hpp"
+#include "geospatial/Point2D.hpp"
 #include "metrics/Length.hpp"
 
 

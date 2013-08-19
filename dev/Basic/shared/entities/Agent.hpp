@@ -1,42 +1,40 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include <queue>
 #include <vector>
 #include <functional>
-#include <stdlib.h>
 
+//These are minimal header file, so please keep includes to a minimum.
+#include "conf/settings/DisableOutput.h"
 #include "conf/settings/DisableMPI.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/random.hpp>
 
-//#include "conf/simpleconf.hpp"
-
-#include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "geospatial/Point2D.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
 #include "entities/Entity.hpp"
-#include "PendingEntity.hpp"
-#include "PendingEvent.hpp"
+#include "entities/PendingEvent.hpp"
+#include "event/args/EventArgs.hpp"
+#include "event/EventPublisher.hpp"
+#include "logging/NullableOutputStream.hpp"
 
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-namespace sim_mob
-{
+
+namespace sim_mob {
 
 class Agent;
+class Lane;
+class Link;
 class WorkGroup;
-
-#ifndef SIMMOB_DISABLE_MPI
+class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-#endif
+class ProfileBuilder;
 
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Agent*> {
@@ -53,6 +51,23 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
+
+DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
+class AgentLifeEventArgs: public event::EventArgs {
+public:
+	AgentLifeEventArgs(Agent* agent);
+	AgentLifeEventArgs(const AgentLifeEventArgs& orig);
+	virtual ~AgentLifeEventArgs();
+
+	/**
+	 * Gets the unit affected by the action.
+	 * @return
+	 */
+	const Agent* GetAgent() const;
+private:
+	Agent* agent;
+};
+
 /**
  * Basic Agent class.
  *
@@ -65,8 +80,16 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity {
+class Agent : public sim_mob::Entity, public event::EventPublisher/*, public sim_mob::CommunicationSupport*/ {
 public:
+	enum AgentLifecycleEvents {
+		AGENT_LIFE_EVENT_STARTED_ID = 3000,
+		AGENT_LIFE_EVENT_FINISHED_ID = 3001,
+	};
+
+	static int createdAgents;
+	static int diedAgents;
+
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
 	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),
@@ -84,6 +107,10 @@ public:
 
 
 protected:
+	///Access the Logger.
+	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.
+ 	sim_mob::NullableOutputStream Log();
+
 
 	///Called during the first call to update() for a given agent.
 	///Return false to indicate failure; the Agent will be removed from the simulation with no
@@ -118,7 +145,6 @@ public:
     }
 
 	///Subscribe this agent to a data manager.
-	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//Removal methods
@@ -173,9 +199,6 @@ public:
 	WayPoint originNode;
 	WayPoint destNode;
 
-//	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
-//	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
-
 	sim_mob::Shared<int> xPos;  ///<The agent's position, X
 	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
@@ -184,10 +207,6 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
-
-	//sim_mob::Buffered<int> currentLink;
-	//sim_mob::Buffered<int> currentCrossing;
-
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Entity*> all_agents;
@@ -241,7 +260,7 @@ public:
 
 	const std::map<double, travelStats>& getTravelStatsMap()
 	{
-		return this->travelStatsMap;
+		return this->travelStatsMap.get();
 	}
 
 	bool isQueuing;
@@ -250,11 +269,15 @@ public:
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
-	std::map<double, travelStats> travelStatsMap; //<linkExitTime, travelStats>
+	sim_mob::Shared< std::map<double, travelStats> > travelStatsMap; //<linkExitTime, travelStats>
 //	double linkEntryTime; //in seconds - time agent change to the current link
 //	double roleEntryTime; //in seconds - time agent changed to the current role
 
 	//timeslice enqueueTick;
+
+protected:
+	///Raises an exception if the given Agent was started either too early or too late, or exists past its end time.
+	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
 private:
 	//unsigned int currMode;
@@ -296,6 +319,7 @@ public:
 	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
+
 	bool isCallFrameInit() const {
 		return call_frame_init;
 	}
@@ -309,6 +333,7 @@ public:
 	void setLastUpdatedFrame(long lastUpdatedFrame);
 
 	friend class BoundaryProcessor;
+
 
 	friend class ShortTermBoundaryProcessor;
 
@@ -332,5 +357,12 @@ public:
 #endif
 };
 
-}
+} //End namespace sim_mob
+
+
+
+
+
+
+
 

@@ -11,6 +11,7 @@ sim_mob::TrafficColor getTrafficColorType(std::string value)
 	else if(value == "FlashingRed") return sim_mob::FlashingRed;
 	else if(value == "FlashingAmber") return sim_mob::FlashingAmber;
 	else if(value == "FlashingGreen") return sim_mob::FlashingGreen;
+	throw std::runtime_error("Unknown traffic color");
 }
 void sim_mob::xml::TrafficColor_t_pimpl::pre ()
 {

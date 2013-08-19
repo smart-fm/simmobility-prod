@@ -25,7 +25,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 
 	Driver* getParentDriver() const {
 		return parentDriver;
@@ -54,7 +53,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	Driver* getParentDriver() const {
@@ -99,6 +97,9 @@ private:
 	size_t targetLaneIndex;
 
 	const Lane* nextLaneInNextLink;
+private:
+	double distanceToNextStop();
+	bool sArriveStop();
 
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
@@ -113,6 +114,7 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
+	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
@@ -154,6 +156,8 @@ private:
 
 
 	void findCrossing(DriverUpdateParams& p);
+
+	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve

@@ -1,17 +1,18 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   BuildingTypeDao.cpp
+ * File:   BuildingDao.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
- * Created on May 7, 2013, 3:59 PM
+ * Created on July 1, 2013, 3:59 PM
  */
 
 #include "BuildingTypeDao.hpp"
-#include "DatabaseHelper.h"
+#include "DatabaseHelper.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using namespace sim_mob::long_term;
+using std::string;
 
 BuildingTypeDao::BuildingTypeDao(DBConnection* connection)
 : AbstractDao<BuildingType>(connection, DB_TABLE_BUILDING_TYPE,
@@ -25,13 +26,8 @@ BuildingTypeDao::~BuildingTypeDao() {
 }
 
 void BuildingTypeDao::FromRow(Row& result, BuildingType& outObj) {
-    outObj.id = result.get<int>(DB_FIELD_BUILDING_TYPE_ID);
-    outObj.genericId = result.get<int>(DB_FIELD_GENERIC_BUILDING_TYPE_ID);
-    outObj.unitName = result.get<string>(DB_FIELD_UNIT_NAME);
-    outObj.typeName = result.get<string>(DB_FIELD_BUILDING_TYPE_NAME);
-    outObj.residential = (result.get<int>(DB_FIELD_IS_RESIDENTIAL) == 0) ? false : true;
-    outObj.description = result.get<string>(DB_FIELD_DESCRIPTION);
-    outObj.genericDescription = result.get<string>(DB_FIELD_GENERIC_BUILDING_TYPE_DESCRIPTION);
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.name = result.get<string>(DB_FIELD_NAME, EMPTY_STR);
 }
 
 void BuildingTypeDao::ToRow(BuildingType& data, Parameters& outParams, bool update) {

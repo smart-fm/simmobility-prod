@@ -10,15 +10,13 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "database/entity/Bid.hpp"
-#include "Common.h"
-#include "Types.h"
 
 namespace sim_mob {
 
     namespace long_term {
 
         DECLARE_CUSTOM_CALLBACK_TYPE(HM_ActionEventArgs)
-        class HM_ActionEventArgs : public EventArgs {
+        class HM_ActionEventArgs : public sim_mob::event::EventArgs {
         public:
             HM_ActionEventArgs(UnitId unitId);
             HM_ActionEventArgs(const HM_ActionEventArgs& orig);

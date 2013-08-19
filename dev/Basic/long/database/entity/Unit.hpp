@@ -8,8 +8,8 @@
  */
 #pragma once
 
-#include "Common.h"
-#include "Types.h"
+#include "Common.hpp"
+#include "Types.hpp"
 #include "message/MessageReceiver.hpp"
 
 namespace sim_mob {
@@ -23,14 +23,12 @@ namespace sim_mob {
          * It can be the following:
          *  - Apartment
          *  - House
-         *  - Garage
          */
         class Unit {
         public:
-
-            Unit(UnitId id, bool available,
-                    float fixedCost, float distanceToCDB,
-                    float size);
+            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
+                 BigSerial typeId = INVALID_ID, double area = .0f, 
+                 int storey = 0, double rent = .0f, bool available = false);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -48,16 +46,34 @@ namespace sim_mob {
             UnitId GetId() const;
 
             /**
-             * Gets the size of the unit.
-             * @return value with size.
+             * Gets the Unit unique identifier.
+             * @return value with Unit identifier.
              */
-            float GetSize() const;
+            BigSerial GetBuildingId() const;
 
             /**
-             * Gets the distance to CDB.
-             * @return value with distance.
+             * Gets type identifier of the unit.
+             * @return type identifier {@see UnitType}.
              */
-            float GetDistanceToCDB() const;
+            BigSerial GetTypeId() const;
+
+            /**
+             * Gets the storey of the unit.
+             * @return unit type {@see UnitType}.
+             */
+            int GetStorey() const;
+
+            /**
+             * Gets the unit Area.
+             * @return unit area value.
+             */
+            double GetArea() const;
+
+            /**
+             * Gets the rent value.
+             * @return rent value.
+             */
+            double GetRent() const;
 
             /**
              * Verifies if home is available.
@@ -70,95 +86,74 @@ namespace sim_mob {
              * @param avaliable value. 
              */
             void SetAvailable(bool avaliable);
-
+            
             /**
-             * Gets the reservation price.
-             * @return the reservation price of the unit.
+             * @return the hedonic price.
              */
-            float GetReservationPrice() const;
-
+            double GetHedonicPrice() const;
+            
             /**
-             * Sets the reservation price.
-             * @param price of the new reservation price of the unit.
+             * @return the AskingPrice price.
              */
-            void SetReservationPrice(float price);
-
-            /**
-             * Gets the hedonic price.
-             * @return the hedonic price of the unit.
-             */
-            float GetHedonicPrice() const;
-
-            /**
-             * Sets the hedonic price.
-             * @param price of the new hedonic price of the unit.
-             */
-            void SetHedonicPrice(float price);
-
-            /**
-             * Gets the fixed cost.
-             * @return the fixed cost of the unit.
-             */
-            float GetFixedCost() const;
-
-            /**
-             * Sets the fixed cost.
-             * @param cost of the new fixed cost of the unit.
-             */
-            void SetFixedCost(float cost);
+            double GetAskingPrice() const;
 
             /**
              * Gets the owner endpoint for communication.
              * @return owner endpoint.
              */
             UnitHolder* GetOwner();
-
-            /**
-             * Gets the weight that represents the relation between quality and price.
-             * @return weight for relation between quality and price.
-             */
-            float GetWeightPriceQuality() const;
-
+            
             /**
              * Operator to print the Unit data.  
              */
-            friend ostream& operator<<(ostream& strm, const Unit& data) {
-                SharedWriteLock(data.mutex);
+            friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
+            	boost::upgrade_lock<boost::shared_mutex> up_lock(data.mutex);
+            	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
-                        << "\"reservationPrice\":\"" << data.reservationPrice << "\","
-                        << "\"fixedCost\":\"" << data.fixedCost << "\","
+                        << "\"buildingId\":\"" << data.buildingId << "\","
+                        << "\"typeId\":\"" << data.typeId << "\","
+                        << "\"area\":\"" << data.area << "\","
+                        << "\"storey\":\"" << data.storey << "\","
+                        << "\"rent\":\"" << data.rent << "\","
                         << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
-                        << "\"distanceToCDB\":\"" << data.distanceToCDB << "\","
-                        << "\"size\":\"" << data.size << "\","
-                        << "\"weightPriceQuality\":\"" << data.weightPriceQuality << "\""
+                        << "\"askingPrice\":\"" << data.askingPrice << "\","
+                        << "\"available\":\"" << data.available << "\""
                         << "}";
             }
         private:
-            //TODO: FUTURE UnitDao
+            friend class UnitDao;
+            friend class HouseholdSellerRole;
+            
             /**
-             * private constructor for future Dao class.
+             * Sets the hedonic price
              */
-            Unit();
+            void SetHedonicPrice(double hedonicPrice);
 
             /**
-             * Gets the owner endpoint for communication.
-             * @return owner endpoint.
+             * Sets the asking price.
+             */
+            void SetAskingPrice(double askingPrice);
+
+            /**
+             * Sets the owner of the unit.
              */
             void SetOwner(UnitHolder* receiver);
 
         private:
             friend class UnitHolder;
+            //from database.
             UnitId id;
+            BigSerial buildingId;
+            BigSerial typeId;
+            double area;
+            int storey; 
+            double rent;
             bool available;
-            float reservationPrice;
-            float fixedCost;
-            float hedonicPrice;
-            float distanceToCDB;
-            float size;
-            float weightPriceQuality;
+            double hedonicPrice;
+            double askingPrice;
             UnitHolder* owner;
-            mutable shared_mutex mutex;
+            mutable boost::shared_mutex mutex;
         };
     }
 }

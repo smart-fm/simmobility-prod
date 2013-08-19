@@ -6,8 +6,6 @@
 
 #include "util/LangHelpers.hpp"
 
-#include "Lane.hpp"
-
 //namespace geo {
 //class connector_t_pimpl;
 //class UniNode_t_pimpl;
@@ -20,6 +18,7 @@ namespace sim_mob
 
 //Forward declarations
 class RoadSegment;
+class Lane;
 
 
 namespace aimsun

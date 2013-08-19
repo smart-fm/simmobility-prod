@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -42,10 +44,10 @@ public:
 
 	///Create a role based on its name
 	sim_mob::Role* createRole(const std::string& name, sim_mob::Person* parent) const;
-//	///Create a Role based on the current TripChain item.
-//	sim_mob::Role* createRole(const sim_mob::TripChainItem* currTripChainItem, sim_mob::Person* parent) const;
-//	sim_mob::Role* createRole(const sim_mob::SubTrip &subTrip_, sim_mob::Person* parent) const;
+
+	///Create a Role based on the current TripChain item.
 	Role* createRole(const TripChainItem* currTripChainItem,const sim_mob::SubTrip *subTrip_, Person* parent) const;
+
 	///Workaround: Convert the mode of a trip chain (e.g., "Car", "Walk") to one that
 	///            we understand (e.g., "driver", "pedestrian"). These should eventually
 	///            be unified; for now, we have to do this manually.

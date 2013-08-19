@@ -5,7 +5,7 @@
 #include "Pavement.hpp"
 
 #include <stdexcept>
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -15,14 +15,14 @@ void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, b
 	//Too small?
 	if (offset<0) {
 		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is less than zero."); }
-		LogOut("Fixing RoadItem offset: " <<offset <<" to: " <<0 <<std::endl);
+		PrintOut("Fixing RoadItem offset: " <<offset <<" to: " <<0 <<std::endl);
 		offset = 0;
 	}
 	//Too big?
 	if (offset>length) {
 		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is greater than the segment length."); }
 		if (length==0) { throw std::runtime_error("Can't fix Road Segment obstacle; length has not been set."); }
-		LogOut("Fixing RoadItem offset: " <<offset <<" to: " <<length <<std::endl);
+		PrintOut("Fixing RoadItem offset: " <<offset <<" to: " <<length <<std::endl);
 		offset = length;
 	}
 	//Already something there?

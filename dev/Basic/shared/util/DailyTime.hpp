@@ -5,10 +5,8 @@
 #include <string>
 
 #include <stdint.h>  //NOTE: There's a bug in GCC whereby <cstdint> is not the same as <stdint.h>
-//add by xuyan
-#include <boost/serialization/string.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+
+#include <boost/serialization/access.hpp>
 
 /*namespace geo {
 class TripChainItem_t_pimpl;

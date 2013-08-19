@@ -1,13 +1,11 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-/*
- * BusTrip.cpp
- *
- *  Created on: Sep 16, 2012
- *      Author: Yao Jin
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "BusTrip.hpp"
 #include <boost/lexical_cast.hpp>
 
+#include "conf/simpleconf.hpp"
 #include "geospatial/BusStop.hpp"
 #include "logging/Log.hpp"
 

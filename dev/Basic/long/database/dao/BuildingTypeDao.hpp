@@ -4,7 +4,7 @@
  * File:   BuildingTypeDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on May 7, 2013, 3:59 PM
+ * Created on July 1, 2013, 3:59 PM
  */
 #pragma once
 
@@ -16,12 +16,13 @@ namespace sim_mob {
     namespace long_term {
 
         DAO_DECLARE_CALLBACKS(BuildingType);
+
         /**
          * Data Access Object to BuildingType table on datasource.
          */
-        class BuildingTypeDao : public AbstractDao<BuildingType> {
+        class BuildingTypeDao : public db::AbstractDao<BuildingType> {
         public:
-            BuildingTypeDao(DBConnection* connection);
+            BuildingTypeDao(db::DBConnection* connection);
             virtual ~BuildingTypeDao();
 
         private:
@@ -30,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, BuildingType& outObj);
+            void FromRow(db::Row& result, BuildingType& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -38,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(BuildingType& data, Parameters& outParams, bool update);
+            void ToRow(BuildingType& data, db::Parameters& outParams, bool update);
         };
     }
 }

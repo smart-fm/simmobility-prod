@@ -10,8 +10,8 @@
 #include "Bid.hpp"
 #include "metrics/Frame.hpp"
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::messaging;
 
 Bid::Bid(UnitId unitId, int bidderId, MessageReceiver* bidder, float value, timeslice& time)
 : unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {

@@ -24,7 +24,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 
 	Passenger* getParentPassenger() const {
 		return parentPassenger;
@@ -49,7 +48,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	bool isAtBusStop();
@@ -67,12 +65,12 @@ public:
 	///bus which would take to the destination would be boarded
 	bool PassengerBoardBus_Normal(BusDriver* busdriver,std::vector<const BusStop*> busStops);
 
-	bool PassengerAlightBus(BusDriver* busdriver);
+	bool PassengerAlightBus(Driver* busdriver);
 
 	///passenger has initially chosen which bus lines to board and passenger boards
 	///the bus based on this pre-decision.Passenger makes the decision to board a bussline
 	///based on the path of the bus if the bus goes to the destination and chooses the busline based on shortest distance
-	bool PassengerBoardBus_Choice(BusDriver* busdriver);
+	bool PassengerBoardBus_Choice(Driver* busdriver);
 
 	///to find waiting time for passengers who have boarded bus,time difference between
 	/// time of reaching busstop and time bus reaches busstop

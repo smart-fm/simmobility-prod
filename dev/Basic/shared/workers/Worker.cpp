@@ -1,48 +1,64 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Worker.hpp"
 
 #include "GenConfig.h"
 
+#include <iostream>
 #include <queue>
 #include <sstream>
+#include <algorithm>
+#include <deque>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
 
+#include "conf/simpleconf.hpp"
+#include "entities/Entity.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
+#include "network/ControlManager.hpp"
+#include "logging/Log.hpp"
+#include "workers/WorkGroup.hpp"
+#include "util/FlexiBarrier.hpp"
+#include "util/LangHelpers.hpp"
 
 using std::set;
 using std::vector;
 using std::priority_queue;
 using boost::barrier;
 using boost::function;
-
-#include "workers/WorkGroup.hpp"
-#include "util/OutputUtil.hpp"
-#include "conf/simpleconf.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "entities/Person.hpp"
-
 using namespace sim_mob;
+using namespace sim_mob::event;
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
-    : BufferedDataManager(),
+sim_mob::Worker::MgmtParams::MgmtParams() :
+	msPerFrame(ConfigParams::GetInstance().baseGranMS),
+	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
+	currTick(0),
+	active(true)
+{}
+
+
+bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
+{
+	return endTick==0 || ((currTick-1)<endTick);
+}
+
+
+
+sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
+    : logFile(logFile),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
-      endTick(endTick),
-      tickStep(tickStep),
-      parent(parent),
-      entityRemovalList(entityRemovalList),
-      entityBredList(entityBredList),
-      debugMsg(std::stringstream::out),
+      endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
       profile(nullptr)
 {
-	//Currently, we need at least these two barriers or we will get synchronization problems.
-	// (Internally, though, we don't technically need them.)
-	if (!frame_tick || !buff_flip) {
-		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
-	}
-
 	//Initialize our profile builder, if applicable.
 	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
@@ -69,12 +85,7 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::addEntity(Entity* entity)
 {
-	//Save this entity in the data vector.
 	managedEntities.push_back(entity);
-	std::ostringstream out ;
-	out <<  "worker [" << this << "] addentity[" << entity << ":" << entity->getId() << "] Done\n"<< std::endl;
-//	std::cout << out.str();
-
 }
 
 
@@ -88,8 +99,15 @@ void sim_mob::Worker::remEntity(Entity* entity)
 }
 
 
-std::vector<Entity*>& sim_mob::Worker::getEntities() {
+const std::vector<Entity*>& sim_mob::Worker::getEntities() const
+{
 	return managedEntities;
+}
+
+
+std::ostream* sim_mob::Worker::getLogFile() const
+{
+	return logFile;
 }
 
 
@@ -131,13 +149,21 @@ void sim_mob::Worker::scheduleForBred(Entity* entity)
 
 void sim_mob::Worker::start()
 {
-	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
+	//Just in case...
+	loop_params = MgmtParams();
+
+	//A Worker will silently fail to start if it has no frame_tick barrier.
+	if (frame_tick_barr) {
+		main_thread = boost::thread(boost::bind(&Worker::threaded_function_loop, this));
+	}
 }
 
 
 void sim_mob::Worker::join()
 {
-	main_thread.join();
+	if (main_thread.joinable()) {
+		main_thread.join();
+	}
 }
 
 
@@ -160,11 +186,7 @@ void sim_mob::Worker::addPendingEntities()
 		return;
 	}
 	int i = 0;
-	std::ostringstream out ;
-	out.str("");
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
-//		out << "Worker[" << this << "]::addPendingEntities->iteration " << i++ << " calling migrateIn\n";
-		std::cout << out.str();
 		//Migrate its Buffered properties.
 		migrateIn(**it);
 	}
@@ -232,61 +254,78 @@ void sim_mob::Worker::breedPendingEntities()
 }
 
 
-void sim_mob::Worker::barrier_mgmt()
+void sim_mob::Worker::perform_frame_tick()
 {
-	///TODO: Using ConfigParams here is risky, since unit-tests may not have access to an actual config file.
-	///      We might want to remove this later, but most of our simulator relies on ConfigParams anyway, so
-	///      this will be a major cleanup effort anyway.
-	const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
+	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
+	MgmtParams& par = loop_params;
 
-	sim_mob::ControlManager* ctrlMgr = nullptr;
+	//Short-circuit if we're in "pause" mode.
 	if (ConfigParams::GetInstance().InteractiveMode()) {
-		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+		while (par.ctrlMgr->getSimState() == PAUSE) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+		}
 	}
 
-	uint32_t currTick = 0;
-#ifdef SIMMOB_INTERACTIVE_MODE
-	for (bool active=true; active;) {
-		//Short-circuit if we're in "pause" mode.
-		if (ctrlMgr->getSimState() == PAUSE) {
-			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-			continue;
-		}
+	//Add Agents as required.
+	addPendingEntities();
 
-		//Sleep again. (Why? ~Seth)
-		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	//Perform all our Agent updates, etc.
+	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
 
-		//Add Agents as required.
-		addPendingEntities();
+	//Remove Agents as requires
+	removePendingEntities();
 
-		//Perform all our Agent updates, etc.
-		perform_main(timeslice(currTick, currTick*msPerFrame));
+	// breed new children entities from parent
+	//TODO: This name has *got* to change. ~Seth
+	breedPendingEntities();
 
-		//Remove Agents as requires
-		removePendingEntities();
+	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
 
-		//Advance local time-step.
-		currTick += tickStep;
+	//Advance local time-step.
+	par.currTick += tickStep;
 
-		//get stop cmd, stop loop
-		if (ctrlMgr->getSimState() == STOP) {
-			while (ctrlMgr->getEndTick() < 0) {
-				ctrlMgr->setEndTick(currTick+2);
+	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
+	if (ConfigParams::GetInstance().InteractiveMode()) {
+		if (par.ctrlMgr->getSimState() == STOP) {
+			while (par.ctrlMgr->getEndTick() < 0) {
+				par.ctrlMgr->setEndTick(par.currTick+2);
 			}
-			endTick = ctrlMgr->getEndTick();
+			endTick = par.ctrlMgr->getEndTick();
 		}
-		active = (endTick==0 || currTick<endTick);
+	}
 
+	//Check if we are still active or are done.
+	par.active = (endTick==0 || par.currTick<endTick);
+}
+
+void sim_mob::Worker::perform_buff_flip()
+{
+	//Flip all data managed by this worker.
+	this->flip();
+}
+
+
+void sim_mob::Worker::threaded_function_loop()
+{
+	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
+	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
+	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
+	while (loop_params.active) {
+		perform_frame_tick();
+
+		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.
+#ifdef SIMMOB_INTERACTIVE_MODE
 		//NOTE: Is catching an exception actually a good idea, or should we just rely
 		//      on STRICT_AGENT_ERRORS?
 		try {
+#endif
 			//First barrier
 			if (frame_tick_barr) {
 				frame_tick_barr->wait();
 			}
 
 			//Now flip all remaining data.
-			perform_flip();
+			perform_buff_flip();
 
 			//Second barrier
 			if (buff_flip_barr) {
@@ -302,82 +341,95 @@ void sim_mob::Worker::barrier_mgmt()
 			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
 			//  once more at the end of tick 9.
 			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-			bool extraActive = (endTick==0 || (currTick-1)<endTick);
-			if (macro_tick_barr && extraActive) {
+			if (macro_tick_barr && loop_params.extraActive(endTick)) {
 				macro_tick_barr->wait();
 			}
+
+#ifdef SIMMOB_INTERACTIVE_MODE
 		} catch(...) {
 			std::cout<<"thread out"<<std::endl;
 			return;
 		}
-
-	}
-#else
-	for (bool active=true; active;) {
-		PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
-
-		//Add Agents as required.
-		addPendingEntities();
-
-		//Perform all our Agent updates, etc.
-		perform_main(timeslice(currTick, currTick*msPerFrame));
-
-		//Remove Agents as requires
-		removePendingEntities();
-
-		// breed new children entities from parent
-		breedPendingEntities();
-
-		PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
-
-		//Advance local time-step.
-		currTick += tickStep;
-		active = (endTick==0 || currTick<endTick);
-
-		//First barrier
-		if (frame_tick_barr) {
-			frame_tick_barr->wait();
-		}
-
-		 //Now flip all remaining data.
-		perform_flip();
-
-		//Second barrier
-		if (buff_flip_barr) {
-			buff_flip_barr->wait();
-		}
-
-		// Wait for the AuraManager
-		if (aura_mgr_barr) {
-			aura_mgr_barr->wait();
-		}
-
-		//If we have a macro barrier, we must wait exactly once more.
-		//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
-		//  once more at the end of tick 9.
-		//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-		bool extraActive = (endTick==0 || (currTick-1)<endTick);
-		if (macro_tick_barr && extraActive) {
-			macro_tick_barr->wait();
-		}
-	}
 #endif
+	}
 }
 
+namespace {
+///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
+struct EntityUpdater {
+	EntityUpdater(Worker& wrk, timeslice currTime) : wrk(wrk), currTime(currTime) {}
+	virtual ~EntityUpdater() {}
+
+	Worker& wrk;
+	timeslice currTime;
+
+	virtual void operator() (sim_mob::Entity* entity) {
+		UpdateStatus res = entity->update(currTime);
+			if (res.status == UpdateStatus::RS_DONE) {
+				//This Entity is done; schedule for deletion.
+				wrk.scheduleForRemoval(entity);
+			} else if (res.status == UpdateStatus::RS_CONTINUE) {
+				//Still going, but we may have properties to start/stop managing
+				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+					wrk.stopManaging(*it);
+				}
+				for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+					wrk.beginManaging(*it);
+				}
+			} else {
+				throw std::runtime_error("Unknown/unexpected update() return status.");
+			}
+	}
+};
+
+///This class extends EntityUpdater, allowing it to skip calling operator() on a certain Entity sub-class
+///  (which is tested for using a dynamic_cast).
+template <class Restricted>
+struct RestrictedEntityUpdater : public EntityUpdater {
+	RestrictedEntityUpdater(Worker& wrk, timeslice currTime) : EntityUpdater(wrk, currTime) {}
+	virtual ~RestrictedEntityUpdater() {}
+
+	virtual void operator() (sim_mob::Entity* entity) {
+		//Exclude the restricted type.
+		if(!dynamic_cast<Restricted*>(entity)) {
+			EntityUpdater::operator ()(entity);
+		}
+	}
+};
+
+template <typename T>
+struct ContainerDeleter {
+	ContainerDeleter() {}
+	virtual ~ContainerDeleter() {}
+
+	virtual void operator() (T* t) {
+		safe_delete_item(t);
+	}
+};
+} //End un-named namespace.
 
 void sim_mob::Worker::migrateAllOut()
 {
 	while (!managedEntities.empty()) {
 		migrateOut(*managedEntities.back());
 	}
+	for (std::set<Conflux*>::iterator cfxIt = managedConfluxes.begin(); cfxIt != managedConfluxes.end(); cfxIt++) {
+
+		migrateOutConflux(**cfxIt);
+		//Debugging output
+		if (Debug::WorkGroupSemantics) {
+			PrintOut("Removing Conflux " << (*cfxIt)->getMultiNode()->getID() <<" from worker: " <<this <<std::endl);
+		}
+	}
+	std::for_each(managedConfluxes.begin(), managedConfluxes.end(), ContainerDeleter<sim_mob::Conflux>()); // Delete all confluxes
 }
 
 void sim_mob::Worker::migrateOut(Entity& ag)
 {
 	//Sanity check
-	if (ag.currWorker != this) {
+	if (ag.currWorkerProvider != this) {
 		std::stringstream msg;
-		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorker <<"," <<this;
+		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorkerProvider <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -385,7 +437,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	remEntity(&ag);
 
 	//Update our Entity's pointer.
-	ag.currWorker = nullptr;
+	ag.currWorkerProvider = nullptr;
 
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
@@ -401,171 +453,94 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
+		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
 	}
 }
 
+void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
+	std::deque<sim_mob::Person*> cfxPersons = cfx.getAllPersons();
+	for(std::deque<sim_mob::Person*>::iterator pIt = cfxPersons.begin(); pIt != cfxPersons.end(); pIt++) {
+		Person* person = *pIt;
+		person->currWorkerProvider = nullptr;
+		stopManaging(person->getSubscriptionList());
+		Role* role = person->getRole();
+		if(role){
+			stopManaging(role->getDriverRequestParams().asVector());
+		}
+		//Debugging output
+		if (Debug::WorkGroupSemantics) {
+			PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);
+		}
+	}
+	//std::for_each(cfxPersons.begin(), cfxPersons.end(), ContainerDeleter<sim_mob::Person>()); // Delete all persons
 
+	//Now deal with the conflux itself
+	cfx.currWorkerProvider = nullptr;
+	stopManaging(cfx.getSubscriptionList());
+}
 
 void sim_mob::Worker::migrateIn(Entity& ag)
 {
 	//Sanity check
-	if (ag.currWorker) {
+	if (ag.currWorkerProvider) {
 		std::stringstream msg;
-		msg <<"Error: Entity is already being managed: " <<ag.currWorker <<"," <<this;
+		msg <<"Error: Entity is already being managed: " <<ag.currWorkerProvider <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());
 	}
-	std::stringstream out;
-	out << "worker [" << this << "]::migrateIn calling addEntity for agent[" << &ag<< ":" << ag.getId() << "]" << std::endl;
-//	std::cout << out.str();
+
 	//Simple migration
 	addEntity(&ag);
 
 	//Update our Entity's pointer.
-	ag.currWorker = this;
+	ag.currWorkerProvider = this;
 
 	//Add this entity's Buffered<> types to our list
 	beginManaging(ag.getSubscriptionList());
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		LogOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
+		PrintOut("Adding Entity " <<ag.getId() <<" to worker: " <<this <<"\n");
 	}
 }
-
 
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
-void sim_mob::Worker::perform_main(timeslice currTime)
+void sim_mob::Worker::update_entities(timeslice currTime)
 {
-#ifndef SIMMOB_USE_CONFLUXES
-
-	 //All Entity workers perform the same tasks for their set of managedEntities.
-	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
-//		std::cout<< "calling a worker(" << this <<")::perform_main at frame " << currTime.frame() << std::endl;
-		UpdateStatus res = (*it)->update(currTime);
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-
-			//xuyan:it can be removed from Sim-Tree
-			(*it)->can_remove_by_RTREE = true;
-		} else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		} else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
+	//Confluxes require an additional set of updates.
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			(*it)->resetOutputBounds();
 		}
-	}
-#else
+		//All workers perform the same tasks for their set of managedConfluxes.
+		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
 
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->resetOutputBounds();
-	}
-	//All workers perform the same tasks for their set of managedConfluxes.
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		UpdateStatus res = (*it)->update(currTime);
-
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-		}
-		else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		}
-		else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			(*it)->updateAndReportSupplyStats(currTime);
+			(*it)->reportLinkTravelTimes(currTime);
+			(*it)->resetSegmentFlows();
+			(*it)->resetLinkTravelTimes(currTime);
 		}
 	}
 
-	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
+	std::for_each(managedEntities.begin(), managedEntities.end(), RestrictedEntityUpdater<Conflux>(*this, currTime));
 
-		Conflux* ag = dynamic_cast<Conflux*>(*it);
-		if( ag != nullptr ) {
-			continue;
-		}
-
-		UpdateStatus res = (*it)->update(currTime);
-		if (res.status == UpdateStatus::RS_DONE) {
-			//This Entity is done; schedule for deletion.
-			scheduleForRemoval(*it);
-
-			//xuyan:it can be removed from Sim-Tree
-			(*it)->can_remove_by_RTREE = true;
-		} else if (res.status == UpdateStatus::RS_CONTINUE) {
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-				stopManaging(*it);
-			}
-			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-				beginManaging(*it);
-			}
-		} else {
-			throw std::runtime_error("Unknown/unexpected update() return status.");
-		}
-	}
-
-#endif
-        //updates the event manager.
-        eventManager.Update(currTime);
+	//Update the event manager.
+	eventManager.Update(currTime);
 }
 
-bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
-	for(vector<Link*>::iterator it=managedLinks.begin(); it!=managedLinks.end();it++){
-		if((*it)->linkID==linkID){
-			return true;
-		}
-	}
-	return false;
-}
-void sim_mob::Worker::perform_flip()
+
+
+EventManager& sim_mob::Worker::getEventManager()
 {
-	//Flip all data managed by this worker.
-	this->flip();
-}
-
-//Methods to manage list of links managed by the worker
-//added by Jenny
-void sim_mob::Worker::addLink(Link* link)
-{
-	//Save this entity in the data vector.
-	managedLinks.push_back(link);
-}
-
-
-void sim_mob::Worker::remLink(Link* link)
-{
-	//Remove this entity from the data vector.
-	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
-	if (it!=managedLinks.end()) {
-		managedLinks.erase(it);
-	}
-}
-bool sim_mob::Worker::isLinkManaged(Link* link)
-{
-	//Remove this entity from the data vector.
-	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
-	if (it!=managedLinks.end()) {
-		return true;
-	}
-	return false;
-}
-
-
-EventManager& sim_mob::Worker::GetEventManager(){
     return eventManager;
 }
+
+bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
+{
+	return managedConfluxes.insert(cf).second;
+}
+
+

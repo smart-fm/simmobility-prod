@@ -1,8 +1,12 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusStopAgent.hpp"
+
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
+#include "geospatial/BusStop.hpp"
 #include "workers/WorkGroup.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
@@ -126,7 +130,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 void sim_mob::BusStopAgent::unregisterAlightedPerons()
 {
 	for(int i = 0; i < alighted_Persons.size(); i++) {
-		if(!(alighted_Persons[i]->currWorker)) {// currWorker is nullptr
+		if(!(alighted_Persons[i]->currWorkerProvider)) {
 			std::cout << "alighted_Persons[i]->getRole(): " << alighted_Persons[i]->getRole() << std::endl;
 			alighted_Persons.erase(alighted_Persons.begin() + i);// ghost, erase this person from the BusStopAgent
 		} else {

@@ -7,10 +7,12 @@
  * Created on May 16, 2013, 5:13 PM
  */
 #pragma once
+#include <boost/unordered_map.hpp>
 #include "role/LT_Role.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
+#include "database/entity/housing-market/BidderParams.hpp"
 
 namespace sim_mob {
 
@@ -30,10 +32,10 @@ namespace sim_mob {
          * only able to do the next bid on the next day.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
-        public MessageReceiver {
+        public messaging::MessageReceiver {
         public:
-            HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
-                    HousingMarket* market);
+            HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
+                    const BidderParams& params, HousingMarket* market);
             virtual ~HouseholdBidderRole();
 
             /**
@@ -46,8 +48,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
         private:
             /**
              * Handler for wakeup event.
@@ -56,8 +58,8 @@ namespace sim_mob {
              * @param sender EVentManager responsible for the fired event.
              * @param args {@link EM_EventArgs} instance.
              */
-            void OnWakeUp(EventId id, Context ctx,
-                    EventPublisher* sender, const EM_EventArgs& args);
+            void OnWakeUp(event::EventId id, event::Context ctx,
+                    event::EventPublisher* sender, const event::EM_EventArgs& args);
 
             /**
              * Handler for Market action event.
@@ -65,7 +67,7 @@ namespace sim_mob {
              * @param sender of the event.
              * @param args of the event.
              */
-            void OnMarketAction(EventId id, EventPublisher* sender,
+            void OnMarketAction(event::EventId id, event::EventPublisher* sender,
                     const HM_ActionEventArgs& args);
 
             /**
@@ -141,11 +143,12 @@ namespace sim_mob {
         private:
             Household* hh;
             HousingMarket* market;
+            BidderParams params;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
-            typedef map<UnitId, int> BidsCounterMap; // bids made per unit.  
-            typedef pair<UnitId, int> BidCounterEntry;
+            typedef boost::unordered_map<UnitId, int> BidsCounterMap; // bids made per unit.  
+            typedef std::pair<UnitId, int> BidCounterEntry;
             BidsCounterMap bidsPerUnit;
         };
     }

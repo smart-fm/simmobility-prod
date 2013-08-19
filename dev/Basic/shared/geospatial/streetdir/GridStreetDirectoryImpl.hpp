@@ -4,7 +4,6 @@
 
 #include "util/LangHelpers.hpp"
 #include "metrics/Length.hpp"
-#include "geospatial/Point2D.hpp"
 
 #include <map>
 #include <vector>
@@ -17,6 +16,8 @@
 
 namespace sim_mob {
 
+class Point2D;
+
 class GridStreetDirectoryImpl : public StreetDirectory::Impl {
 public:
 	GridStreetDirectoryImpl(const RoadNetwork& network, centimeter_t gridWidth, centimeter_t gridHeight);
@@ -24,6 +25,8 @@ public:
 
 protected:
 	virtual const BusStop* getBusStop(const Point2D& position) const;
+
+	virtual const Node* getNode(const int id) const;
 
 	virtual StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
 
@@ -84,6 +87,7 @@ private:
     GridType grid_;
     std::map<std::string, const RoadSegment*> roadSegments_;
     std::set<const BusStop*> busStops_;
+    std::set<const Node*> nodes;
 
 };
 

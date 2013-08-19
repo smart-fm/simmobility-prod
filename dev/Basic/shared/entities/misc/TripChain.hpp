@@ -3,15 +3,12 @@
 #pragma once
 
 #include <vector>
-#include <map>
 #include <string>
-#include <set>
 #include <string>
 
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -19,6 +16,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
+
 namespace geo
 {
 //Forward Declaration
@@ -62,12 +60,24 @@ public:
 		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM
 	};
 
-	std::string personID;//replaces entityID
+
+private:
+	///Note: The personID was being used quite randomly; being set to -1, to agent.getId(), and to other
+	//       bogus integer values. So I'm making it private, and requiring all modifications to use the
+	//       setPersonID() public function. Please be careful! This kind of usage can easily corrupt memory. ~Seth
+	std::string personID; //replaces entityID
+
+public:
 	ItemType itemType;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 	int requestTime;
+
+	//Get/set personID. Please make sure not to set the personID to an Integer!
+	std::string getPersonID() const;
+	void setPersonID(const std::string& val);
+	void setPersonID(int val);
 
 	//TripChainItem();
 	TripChainItem(std::string entId= "", std::string type="Trip",
@@ -77,9 +87,14 @@ public:
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
+
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
-	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pur virtual coz the class will turn to abstract and we will face problem in XML reader
+	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
+
+	//Helper: Convert a location type string to an object of that type.
+	//TODO: This SHOULD NOT be different for the database and for XML.
+	static sim_mob::TripChainItem::LocationType  GetLocationTypeXML(std::string name);
 };
 
 /**
@@ -127,47 +142,91 @@ public:
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
 
-	const std::vector<sim_mob::SubTrip>& getSubTrips() const {
-		return subTrips;
-	}
+	const std::vector<sim_mob::SubTrip>& getSubTrips() const;
 
-	std::vector<sim_mob::SubTrip>& getSubTripsRW() {
-		return subTrips;
-	}
+	std::vector<sim_mob::SubTrip>& getSubTripsRW();
 
-	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips) {
-		this->subTrips = subTrips;
-	}
+	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips);
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	 const std::string getMode(const sim_mob::SubTrip *subTrip) const;
+	const std::string getMode(const sim_mob::SubTrip *subTrip) const;
+
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
 };
 
-
+class FMODSchedule{
+public:
+	struct STOP
+	{
+		int stop_id;
+		int schedule_id;
+		double dwell_time;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< int > boardingpassengers;
+		std::vector< int > alightingpassengers;
+	};
+	std::vector<STOP> stop_schdules;
+	std::vector<Node*> routes;
+	std::vector<const Person*> insidepassengers;
+};
 /**
  * \author Harish
  * \author zhang huai peng
  */
 class SubTrip: public sim_mob::Trip {
 public:
+	virtual ~SubTrip() {}
+
 	//sim_mob::Trip* parentTrip;
 	std::string mode;
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
+
+	FMODSchedule* schedule;
 
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
 			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	const std::string getMode() const ;
-//	{
-//		std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
-//		return mode;
-//	}//this is not implementation of a vrtual function
-	virtual ~SubTrip() {}
 };
 
+/**
+ * \author zhang huai peng
+ *//*
+class FMODTrip : public sim_mob::Trip {
+
+public:
+	struct STOP
+	{
+		std::string stop_id;
+		std::string arrival_time;
+		std::string depature_time;
+		std::vector< std::string > boardingpassengers;
+		std::vector< std::string > alightingpassengers;
+	};
+	std::vector<STOP> stop_schdules;
+	struct PASSENGER
+	{
+		std::string client_id;
+		int price;
+	};
+	std::vector<PASSENGER> passengers;
+	struct ROUTE
+	{
+		std::string id;
+		int type;
+	};
+	std::vector<ROUTE> routes;
+
+	FMODTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node");
+
+	virtual ~FMODTrip() {}
+};
+*/
 
 //Non-member comparison functions
 bool operator==(const SubTrip& s1, const SubTrip& s2);

@@ -20,12 +20,6 @@ public:
 	explicit WaitBusActivityRoleBehavior(sim_mob::Person* parentAgent = nullptr);
 	virtual ~WaitBusActivityRoleBehavior();
 
-//	//Virtual overrides
-//	virtual void frame_init(UpdateParams& p);
-//	virtual void frame_tick(UpdateParams& p);
-//	virtual void frame_tick_output(const UpdateParams& p);
-//	virtual void frame_tick_output_mpi(timeslice now);
-
 	WaitBusActivityRole* getParentWaitBusActivityRole() const {
 		return parentWaitBusActivityRole;
 	}
@@ -44,18 +38,10 @@ public:
 	explicit WaitBusActivityRoleMovement(sim_mob::Person* parentAgent = nullptr, std::string buslineid = "");
 	virtual ~WaitBusActivityRoleMovement();
 
-//	virtual void frame_init(UpdateParams& p);
-//	virtual void frame_tick(UpdateParams& p);
-//	virtual void frame_tick_output(const UpdateParams& p);
-//	virtual void frame_tick_output_mpi(timeslice now);
-//	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
-
 	bool getRegisteredFlag() { return registered; } // get the registered flag
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; } // set the registered flag
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
-//	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
-	//void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 	std::string getBuslineID() { return buslineid; }
 
 	//bool isOnCrossing() const;

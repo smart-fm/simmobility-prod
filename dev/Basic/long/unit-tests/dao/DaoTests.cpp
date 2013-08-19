@@ -8,50 +8,61 @@
  */
 
 #include "DaoTests.hpp"
-#include "database/dao/IndividualDao.hpp"
+#include <typeinfo>
+#include <string>
+#include "database/dao/GlobalParamsDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
-#include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
-#include "database/dao/LandUseTypeDao.hpp"
-#include "database/dao/GenericLandUseTypeDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/BuildingTypeDao.hpp"
+#include "database/dao/housing-market/BidderParamsDao.hpp"
+#include "database/dao/housing-market/SellerParamsDao.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using namespace unit_tests;
+using std::cout;
+using std::endl;
 
 //"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
 //"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
-#define CONNECTION_STRING "host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
-#define ID_TO_GET 1
+//"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
+const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
+const int ID_TO_GET =1;
 
 template <typename T, typename K>
 void TestDao() {
-    DBConnection conn(POSTGRES, CONNECTION_STRING);
+    PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
+    DBConnection conn(sim_mob::db::POSTGRES, CONNECTION_STRING);
     conn.Connect();
     if (conn.IsConnected()) {
         T dao(&conn);
         K valueById;
         //Get by id
-        dao::Parameters keys;
+        sim_mob::db::Parameters keys;
         keys.push_back(ID_TO_GET);
         if (dao.GetById(keys, valueById)) {
-            LogOut("Get by id: " << valueById << endl);
+        	PrintOut("Get by id: " << valueById << endl);
         }
 
-        vector<K> values;
+        std::vector<K> values;
         dao.GetAll(values);
-        LogOut("GetAll Size: " << values.size() << endl);
-        for (typename vector<K>::iterator it = values.begin(); it != values.end(); it++) {
-            LogOut("Value: " << (*it) << endl);
+        PrintOut("GetAll Size: " << values.size() << endl);
+        for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
+        	PrintOut("Value: " << (*it) << endl);
         }
     }
 }
 
 void DaoTests::TestAll() {
-    TestDao<IndividualDao, Individual>();
+    TestDao<GlobalParamsDao, GlobalParams>();
+    TestDao<UnitTypeDao, UnitType>();
     TestDao<HouseholdDao, Household>();
-    TestDao<BuildingTypeDao, BuildingType>();
     TestDao<BuildingDao, Building>();
-    TestDao<LandUseTypeDao, LandUseType>();
-    TestDao<GenericLandUseTypeDao, GenericLandUseType>();
+    TestDao<UnitDao, Unit>();
+    TestDao<BuildingTypeDao, BuildingType>();
+
+    TestDao<SellerParamsDao, SellerParams>();
+    TestDao<BidderParamsDao, BidderParams>();
 }

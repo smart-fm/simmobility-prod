@@ -1,33 +1,22 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
-/* *
- * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
- * of the link which is unidirectional) which are upstream to the intersection. For all downstream half-links (which
- * conceptually belong to another Conflux), we maintain a temporary data structure.
- *
- * Conflux.hpp
- *
- *  Created on: Oct 2, 2012
- *      Author: Harish Loganathan
- */
 #pragma once
 
-#include<map>
+#include <map>
+
 #include "entities/Agent.hpp"
-#include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "SegmentStats.hpp"
-#include "workers/Worker.hpp"
-#include "buffering/Buffered.hpp"
-#include "buffering/BufferedDataManager.hpp"
 
 namespace sim_mob {
 
+class Person;
 class RoadSegment;
 class SegmentStats;
+class MultiNode;
+class Worker;
+
 
 namespace aimsun
 {
@@ -42,6 +31,13 @@ struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
 //Sort all agents in lane (based on remaining time this tick)
 void sortPersons_DecreasingRemTime(std::deque<Person*> personList);
 
+/**
+ * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
+ * of the link which is unidirectional) which are upstream to the intersection. For all downstream half-links (which
+ * conceptually belong to another Conflux), we maintain a temporary data structure.
+ *
+ * \author Harish Loganathan
+ */
 class Conflux : public sim_mob::Agent {
 
 	friend class sim_mob::aimsun::Loader;
@@ -137,14 +133,8 @@ protected:
 
 public:
 	//constructors and destructor
-	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1)
-		: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-		  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out) {}
-	virtual ~Conflux() {
-		for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
-			safe_delete_item(i->second);
-		}
-	}
+	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
+	virtual ~Conflux() ;
 
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
@@ -249,6 +239,8 @@ public:
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
 	void resetOutputBounds();
+
+	std::deque<sim_mob::Person*> getAllPersons();
 };
 
 } /* namespace sim_mob */

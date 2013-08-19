@@ -12,7 +12,6 @@
 
 #include "entities/roles/Role.hpp"
 #include "buffering/Shared.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
@@ -85,6 +84,8 @@ public:
 	//Virtual implementations
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
+
 
 //Buffered data
 public:
@@ -99,6 +100,15 @@ public:
 	Shared<double> latVelocity;
 	Shared<double> fwdAccel;
 	Shared<LANE_CHANGE_SIDE> turningDirection;
+
+	//for fmod request
+	Shared<std::string> stop_event_time;
+	Shared<int> stop_event_type;
+	Shared<int> stop_event_scheduleid;
+	Shared<int> stop_event_nodeid;
+	Shared< std::vector<int> > stop_event_lastBoardingPassengers;
+	Shared< std::vector<int> > stop_event_lastAlightingPassengers;
+
 	Vehicle* getVehicle() { return vehicle; }
 //
 public:

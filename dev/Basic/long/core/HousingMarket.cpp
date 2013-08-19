@@ -11,8 +11,10 @@
 #include "workers/Worker.hpp"
 #include "event/LT_EventArgs.hpp"
 
-using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
+using sim_mob::Entity;
+using std::vector;
 
 HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {
     RegisterEvent(LTEID_HM_UNIT_ADDED);

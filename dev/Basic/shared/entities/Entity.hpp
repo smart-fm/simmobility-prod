@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -9,23 +11,17 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "conf/settings/DisableMPI.h"
-
-#include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "util/OutputUtil.hpp"
+#include "util/LangHelpers.hpp"
 
-namespace sim_mob
-{
 
+namespace sim_mob {
+
+class BufferedBase;
 class Worker;
+class WorkerProvider;
 class WorkGroup;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
-#endif
 
 
 
@@ -129,16 +125,17 @@ protected:
 	// Link* currLink;
 
 public:
-	///Who is currently managing this Entity?
-	Worker* currWorker;
-
 	//xuyan:only used by Sim-Tree
 	bool can_remove_by_RTREE;
 
 	// parent may create children.
 	Entity* parentEntity;
 
-	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
+	///Who is currently managing this Entity?
+	///NOTE: Do *not* replace this with a direct pointer to the Worker; it's too dangerous.
+	WorkerProvider* currWorkerProvider;
+
+	//Only the WorkGroup can retrieve/set the currWorkerProvider flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
 	friend class Worker;
 	friend class WorkerGroup;

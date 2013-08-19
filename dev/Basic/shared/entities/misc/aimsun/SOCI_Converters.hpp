@@ -19,10 +19,10 @@ namespace soci
 {
 
 
-template<> struct type_conversion<TripChainItem>
+template<> struct type_conversion<sim_mob::aimsun::TripChainItem>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, TripChainItem &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::TripChainItem &res)
     {
     	res.personID = vals.get<std::string>("entityid","");
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
@@ -61,7 +61,7 @@ template<> struct type_conversion<TripChainItem>
     	}
     }
 
-    static void to_base(const TripChainItem& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::aimsun::TripChainItem& src, soci::values& vals, soci::indicator& ind)
     {
     	throw std::runtime_error("TripChainItem::to_base() not implemented");
     }

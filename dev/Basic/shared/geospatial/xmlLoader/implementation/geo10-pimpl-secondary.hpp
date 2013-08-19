@@ -1,12 +1,41 @@
 //This class contains all "secondary" classes; i.e., helper classes and temporaries required for parsing.
 #pragma once
 
+//NOTE: This is a rare example of when relative path lookup is acceptable. ~Seth
+#include "../skeleton/geo10-pskel.hpp"
+
 namespace sim_mob {
 namespace xml {
 
 
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
+
+
+class scale_source_t_pimpl: public virtual scale_source_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_source_t ();
+
+	virtual void x_range (const ::std::string&);
+	virtual void y_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
+
+
+class scale_destination_t_pimpl: public virtual scale_destination_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_destination_t ();
+
+	virtual void longitude_range (const ::std::string&);
+	virtual void latitude_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
 
 
 ///TODO: Can we remove this class?

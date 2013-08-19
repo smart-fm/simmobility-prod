@@ -11,16 +11,17 @@
 
 #include "GenConfig.h"
 
-#include <math.h>
+#include <cmath>
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "logging/Log.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -136,11 +137,12 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
-//    setupIndexMaps();  I guess this function is Not needed any more
+
+	//TODO: Why all the ifdefs? Why does this depend on whether we're loading from XML or not? ~Seth
 #ifndef SIMMOB_XML_WRITER
-#ifndef SIMMOB_XML_READER
-	findSignalLinksAndCrossings();
-#endif
+	if (ConfigParams::GetInstance().networkSource==ConfigParams::NETSRC_DATABASE) {
+		findSignalLinksAndCrossings();
+	}
 #else
 	findSignalLinksAndCrossings();
 #endif

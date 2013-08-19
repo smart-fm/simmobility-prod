@@ -15,39 +15,6 @@
 
 //TODO: These helper functions should eventually go somewhere else.
 namespace {
-//Takes "xxxx,yyyy" or "(xxxx,yyyy)" and returns the x's and y's in a pair.
-//Ignores spaces (but not tabs/newlines)
-std::pair<uint32_t, uint32_t> parse_point(const std::string& src) {
-	std::pair<uint32_t, uint32_t> res;
-	std::stringstream curr;
-	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {
-		//Skip whitespace, parens
-		const char c = *it;
-		if (c==' ') { continue; }
-		if (c=='(' && it==src.begin()) { continue; }
-		if (c==')' && (it+1)==src.end()) { continue; }
-
-		//Append digits?
-		if (c>='0' && c<='9') {
-			curr <<c;
-			continue;
-		}
-
-		//Done with the X's?
-		if (c==',') {
-			if (curr.str().empty()) { throw std::runtime_error("Can't parse point; empty X"); }
-			res.first = boost::lexical_cast<uint32_t>(curr.str());
-			curr.str("");
-		}
-	}
-
-	//Done with the Y's
-	if (curr.str().empty()) { throw std::runtime_error("Can't parse point; empty Y"); }
-	res.second = boost::lexical_cast<uint32_t>(curr.str());
-
-	return res;
-}
-
 //Helper: Parse "1ms". Also accepts "1 ms", but not much else (for now)
 uint32_t parse_start_time_ms(const std::string& src) {
 	//Quick check: negative numbers

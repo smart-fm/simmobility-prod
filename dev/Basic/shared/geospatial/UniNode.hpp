@@ -6,10 +6,8 @@
 
 #include <vector>
 #include <map>
-#include <set>
 
-
-#include "Node.hpp"
+#include "geospatial/Node.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace geo {

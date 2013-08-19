@@ -10,7 +10,11 @@
 #include "EventManager.hpp"
 #include "util/LangHelpers.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::event;
+using boost::shared_mutex;
+using boost::shared_lock;
+using boost::upgrade_lock;
+using boost::upgrade_to_unique_lock;
 using std::map;
 using std::list;
 using std::pair;
@@ -46,7 +50,8 @@ void EventManager::Update(const timeslice& currTime) {
     this->currTime = currTime;
     
     {// synchronized scope
-        SharedWriteLock(windowsMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         TemporalWindowMap::iterator itr = temporalWindows.find(currTime);
         if (itr != temporalWindows.end()) { //we have windows to update.
             TemporalWindowList* wList = itr->second;
@@ -78,7 +83,8 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
         ListenerContextCallback callback) {
 
     {// synchronized scope
-        SharedWriteLock(windowsMutex);
+    	upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
+    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         TemporalWindowMap::iterator itr = temporalWindows.find(target);
         TemporalWindowList* listPtr = nullptr;
         if (itr == temporalWindows.end()) { // is not registered

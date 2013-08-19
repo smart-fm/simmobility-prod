@@ -9,8 +9,23 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "geospatial/BusStop.hpp"
 
 using namespace sim_mob;
+
+
+namespace {
+
+Point2D WayPointToLocation(const WayPoint& wp) {
+	if (wp.type_==WayPoint::NODE) { return wp.node_->location; }
+	if (wp.type_==WayPoint::BUS_STOP) { return Point2D(wp.busStop_->xPos, wp.busStop_->yPos ); }
+
+	//TODO: Exception?
+	return Point2D(0,0);
+}
+
+} //End unnamed namespace
+
 
 #ifdef USE_REBALANCE
 
@@ -138,8 +153,11 @@ struct VisitFunctor: std::unary_function<const TreeItem *, void>
 //loop the tree
 struct QueryFunctor: std::unary_function<const TreeItem, void>
 {
-	const AcceptEnclosing &accept;
-	Collecting_Visitor_sim& visitor;
+	//NOTE: "visitor" should not be a reference, since it is set by a value-type.
+	//      I am also making "accept" a value-type, even though this is not strictly
+	//      required (because it seems that you are being careless with references). ~Seth
+	const AcceptEnclosing accept;
+	Collecting_Visitor_sim visitor;
 
 	explicit QueryFunctor(AcceptEnclosing a, Collecting_Visitor_sim v) :
 			accept(a), visitor(v)
@@ -741,9 +759,14 @@ SimRTree::BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent)
 
 SimRTree::BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent)
 {
+	//Retrieve the location (Point) of the OriginWayPoint.
+	//TODO: This only occurs here, so I'm removing it from the WayPoint class.
+	//      We need a better way to do this; it really has nothing to do with WayPoints ~Seth.
+	Point2D originLoc = WayPointToLocation(agent->originNode);
+
 	SimRTree::BoundingBox box;
-	box.edges[0].first = box.edges[0].second = agent->originNode.location().getX();
-	box.edges[1].first = box.edges[1].second = agent->originNode.location().getY();
+	box.edges[0].first = box.edges[0].second = originLoc.getX();
+	box.edges[1].first = box.edges[1].second = originLoc.getY();
 
 	//	std::cout << "Agent:xPos" << agent->xPos.get();
 	//	std::cout << ",Agent:yPos" << agent->yPos.get() << std::endl;

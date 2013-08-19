@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -48,7 +50,7 @@ public:
 	/// 3) Discard the AIMSUN classes; return the Sim Mobility classes.
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
-	static std::string LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
+	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
 
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
@@ -89,7 +91,7 @@ public:
 
 private:
 	BusStop* findNearbyBusStop(const Node* src);
-	Busline* findBusLineToTaken();
+	//Busline* findBusLineToTaken();
 	BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment);
 
 private:

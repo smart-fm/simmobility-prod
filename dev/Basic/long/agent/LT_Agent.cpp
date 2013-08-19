@@ -13,6 +13,11 @@
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
+using namespace sim_mob::messaging;
+using std::vector;
+using std::string;
+using std::map;
 
 LT_Agent::LT_Agent(int id)
 : Agent(ConfigParams::GetInstance().mutexStategy, id) {
@@ -25,7 +30,7 @@ void LT_Agent::load(const map<string, string>& configProps) {
 }
 
 EventManager& LT_Agent::GetEventManager() {
-    currWorker->GetEventManager();
+    return currWorkerProvider->getEventManager();
 }
 
 bool LT_Agent::frame_init(timeslice now) {
@@ -54,7 +59,7 @@ bool LT_Agent::isNonspatial() {
     return false;
 }
 
-void LT_Agent::HandleMessage(MessageType type, MessageReceiver& sender,
+void LT_Agent::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
         const Message& message) {
     int x=0;
 }

@@ -1,9 +1,11 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "SegmentStats.hpp"
 
 #include <algorithm>
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "conf/simpleconf.hpp"
 #include <cmath>
 
@@ -57,6 +59,15 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Lane* lane, bool isQueuing
 
 std::deque<sim_mob::Person*> SegmentStats::getAgents(const sim_mob::Lane* lane) {
 	return laneStatsMap.find(lane)->second->laneAgents;
+}
+
+std::deque<sim_mob::Person*> SegmentStats::getAgents() {
+	std::deque<sim_mob::Person*> segAgents, lnAgents;
+	for(std::vector<sim_mob::Lane*>::const_iterator lnIt=roadSegment->getLanes().begin(); lnIt!=roadSegment->getLanes().end(); lnIt++) {
+		lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
+		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
+	}
+	return segAgents;
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
@@ -117,18 +128,18 @@ double SegmentStats::getDensity(bool hasVehicle) {
 		}
 		laneIt++;
 	}
-	movingLength = roadSegment->computeLaneZeroLength() * vehLaneCount - numQueueingInSegment(true) * vehicle_length;
-	if (movingLength > 0) {
-		if (roadSegment->computeLaneZeroLength() > 10 * vehicle_length) {
-			density = numMovingInSegment(true) / (movingLength / 100.0);
-		} else {
-			density = numQueueingInSegment(true) / (movingLength / 100.0);
+	movingLength = roadSegment->computeLaneZeroLength()*vehLaneCount - numQueueingInSegment(true)*vehicle_length;
+	if(movingLength > 0) {
+		if (roadSegment->computeLaneZeroLength() > 10*vehicle_length) {
+			density = numMovingInSegment(true)/(movingLength/100.0);
+		}
+		else {
+			density = numQueueingInSegment(true)/(movingLength/100.0);
 		}
 	}
 	else {
-		density = 1 / (vehicle_length / 100.0);
+		density = 1/(vehicle_length/100.0);
 	}
-
 	return density;
 }
 
@@ -491,27 +502,27 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 	}
 }
 
-void sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-//		("segmentState",20,0xa0e30d8,{"speed":"10.4","flow":"8","density":"12"})
-	LogOut("(\"segmentState\""
+std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
+	if (ConfigParams::GetInstance().OutputEnabled()) {
+		std::stringstream msg;
+		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed
 			<<"\",\"flow\":\""<<segFlow
 			<<"\",\"density\":\""<<segDensity
-			<<"\"})"<<std::endl);
-#endif
+			<<"\"})"<<std::endl;
+		return msg.str();
+	}
+	return "";
 }
 
 double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) {
 	if (hasVehicle) {
 		return segVehicleSpeed;
 	}
-	else {
-		return segPedSpeed;
-	}
+	return segPedSpeed;
 }
 
 bool SegmentStats::hasAgents() {
@@ -566,8 +577,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick() {
 }
 
 void SegmentStats::printAgents() {
-	Print() << "\nSegment " << "[" << roadSegment->getStart()->getID() << ","
-			<< roadSegment->getEnd()->getID() << "]" << "|length "
+	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|length "
 			<< roadSegment->computeLaneZeroLength() << std::endl;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();
@@ -611,9 +621,8 @@ void LaneStats::verifyOrdering() {
 		if (distance >= (*i)->distanceToEndOfSegment) {
 			debugMsgs
 					<< "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
-					<< "\nSegment: ["
-					<< lane->getRoadSegment()->getStart()->getID() << ","
-					<< lane->getRoadSegment()->getEnd()->getID() << "] "
+					<< "\nSegment: "
+					<< lane->getRoadSegment()->getStartEnd()
 					<< " length = "
 					<< lane->getRoadSegment()->computeLaneZeroLength()
 					<< "\nLane: " << lane->getLaneID() << "\nCulprit Person: "

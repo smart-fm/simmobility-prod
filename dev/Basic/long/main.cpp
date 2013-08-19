@@ -13,6 +13,7 @@
 #include <vector>
 #include <ctime>
 #include <unistd.h>
+#include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
 #include "tinyxml.h"
@@ -21,6 +22,7 @@
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "unit-tests/dao/DaoTests.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
@@ -28,11 +30,25 @@
 #include "util/Math.hpp"
 #include "util/Statistics.hpp"
 
+//DAOs
+#include "database/dao/GlobalParamsDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
+#include "database/dao/HouseholdDao.hpp"
+#include "database/dao/BuildingDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/BuildingTypeDao.hpp"
+#include "database/dao/housing-market/BidderParamsDao.hpp"
+#include "database/dao/housing-market/SellerParamsDao.hpp"
+
+using namespace sim_mob::db;
+
 using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-
+using std::list;
+using std::pair;
+using std::map;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
@@ -114,11 +130,12 @@ int TEST_HH [][4] = {
 float UNIT_FIXED_COST = 0.1f;
 
 //SIMOBILITY TEST PARAMS
-#define MAX_ITERATIONS 1
-#define TICK_STEP 1
-#define DAYS 365
-#define WORKERS 2
-#define DATA_SIZE 30
+const int MAX_ITERATIONS =1;
+const int TICK_STEP =1;
+const int DAYS =365;
+const int WORKERS =2;
+const int DATA_SIZE =30;
+const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
 
 /**
  * Runs all unit-tests.
@@ -128,58 +145,155 @@ void RunTests() {
     tests.TestAll();
 }
 
-void perform_main() {
-
-    LogOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+void SimulateWithDB(std::list<std::string>& resLogFiles) {
+	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
     ConfigParams::GetInstance().baseGranMS = TICK_STEP;
     ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
     ConfigParams::GetInstance().defaultWrkGrpAssignment =
             WorkGroup::ASSIGN_ROUNDROBIN;
-
-    //Work Group specifications
-    WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(WORKERS, DAYS, TICK_STEP);
-    WorkGroup::InitAllGroups();
-    agentWorkers->initWorkers(nullptr);
-
+    ConfigParams::GetInstance().singleThreaded = false;
+    list<HouseholdAgent*> agents;
+    vector<Unit> units;
+    vector<Household> households;
     HousingMarket market;
-    agentWorkers->assignAWorker(&market);
+    {
+        WorkGroupManager wgMgr;
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+
+        //Work Group specifications
+        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        wgMgr.initAllGroups();
+        agentWorkers->initWorkers(nullptr);
+
+        agentWorkers->assignAWorker(&market);
+        // Connect to database and load data.
+        DBConnection conn(sim_mob::db::POSTGRES, CONNECTION_STRING);
+        conn.Connect();
+
+        if (conn.IsConnected()) {
+            // Households
+            HouseholdDao hhDao(&conn);
+            hhDao.GetAll(households);
+            //units
+            UnitDao unitDao(&conn);
+            unitDao.GetAll(units);
+            SellerParamsDao sellerDao(&conn);
+            BidderParamsDao bidderDao(&conn);
+            for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
+                Household* household = &(*it);
+                PrintOut("Household: " << (*household) << endl);
+                sim_mob::db::Parameters keys;
+                keys.push_back(household->GetId());
+                SellerParams sellerParams;
+                BidderParams bidderParams;
+                sellerDao.GetById(keys, sellerParams);
+                bidderDao.GetById(keys, bidderParams);
+                PrintOut("Seller: " << sellerParams << endl);
+                PrintOut("Bidder: " << bidderParams << endl);
+                HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, sellerParams, bidderParams, &market);
+                for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
+                    if (it->GetId() == household->GetUnitId()) {
+                        Unit* unit = new Unit(*it);
+                        unit->SetAvailable(true);
+                        hhAgent->AddUnit(unit);
+                        PrintOut("Household: " << household->GetUnitId() << " Unit: " << unit->GetId() << endl);
+                    }
+                }
+                agents.push_back(hhAgent);
+                agentWorkers->assignAWorker(hhAgent);
+            }
+        }
+
+        //Start work groups and all threads.
+        wgMgr.startAllWorkGroups();
+
+        PrintOut("Started all workgroups." << endl);
+        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+        	PrintOut("Day: " << currTick << endl);
+            wgMgr.waitAllGroups();
+        }
+
+        PrintOut("Finalizing workgroups: " << endl);
+
+    	//Save our output files if we are merging them later.
+    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+    		resLogFiles = wgMgr.retrieveOutFileNames();
+    	}
+    }
+
+    PrintOut("Destroying agents: " << endl);
+    //destroy all agents.
+    for (list<HouseholdAgent*>::iterator itr = agents.begin();
+            itr != agents.end(); itr++) {
+        HouseholdAgent* ag = *(itr);
+        safe_delete_item(ag);
+    }
+    agents.clear();
+    households.clear();
+    units.clear();
+}
+
+void perform_main() {
+
+	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
+    // Milliseconds step (Application crashes if this is 0).
+    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
+    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
+    ConfigParams::GetInstance().defaultWrkGrpAssignment =
+            WorkGroup::ASSIGN_ROUNDROBIN;
+    ConfigParams::GetInstance().singleThreaded = false;
+
     //create all units.
     list<HouseholdAgent*> agents;
     list<Household*> entities;
-    //create all households.
-    for (int i = 0; i < DATA_SIZE; i++) {
-        Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
-        LogOut("Household: " << (*hh) << endl);
-        HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
-        //LogOut("Household: " << (*hh) << endl);
-        //add agents units.
-        for (int j = 0; j < DATA_SIZE; j++) {
-            if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
-                Unit* unit = new Unit((TEST_UNITS[j][0]), true,
-                        UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
-                hhAgent->AddUnit(unit);
-                LogOut("Unit: " << (*unit) << endl);
+
+    {
+        WorkGroupManager wgMgr;
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+
+        //Work Group specifications
+        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        wgMgr.initAllGroups();
+        agentWorkers->initWorkers(nullptr);
+
+        HousingMarket market;
+        agentWorkers->assignAWorker(&market);
+        //create all households.
+        for (int i = 0; i < DATA_SIZE; i++) {
+            Household* hh = new Household((TEST_HH[i][0]), (TEST_HH[i][1]), (TEST_HH[i][2]));
+
+            PrintOut("Household: " << (*hh) << endl);
+            HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, SellerParams(), BidderParams(), &market);
+            //LogOut("Household: " << (*hh) << endl);
+            //add agents units.
+            for (int j = 0; j < DATA_SIZE; j++) {
+                if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
+                    /*Unit* unit = new Unit((TEST_UNITS[j][0]), true,
+                            UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
+                    hhAgent->AddUnit(unit);
+                    LogOut("Unit: " << (*unit) << endl);*/
+                }
             }
+            agents.push_back(hhAgent);
+            agentWorkers->assignAWorker(hhAgent);
+            entities.push_back(hh);
         }
-        agents.push_back(hhAgent);
-        agentWorkers->assignAWorker(hhAgent);
-        entities.push_back(hh);
-    }
-    //Start work groups and all threads.
-    WorkGroup::StartAllWorkGroups();
+        //Start work groups and all threads.
+        wgMgr.startAllWorkGroups();
 
-    LogOut("Started all workgroups." << endl);
-    for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-        LogOut("Day: " << currTick << endl);
-        WorkGroup::WaitAllGroups();
-    }
+        PrintOut("Started all workgroups." << endl);
+        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+        	PrintOut("Day: " << currTick << endl);
+            wgMgr.waitAllGroups();
+        }
 
-    LogOut("Finalizing workgroups: " << endl);
-    WorkGroup::FinalizeAllWorkGroups();
+        PrintOut("Finalizing workgroups: " << endl);
+    } //End WorkGroupManager scope.
 
-    LogOut("Destroying agents: " << endl);
+    PrintOut("Destroying agents: " << endl);
     //destroy all agents.
     for (list<HouseholdAgent*>::iterator itr = agents.begin();
             itr != agents.end(); itr++) {
@@ -196,22 +310,29 @@ void perform_main() {
     entities.clear();
 }
 
-int main(int argc, char* argv[]) {
-    Logger::log_init("");
+int main(int ARGC, char* ARGV[]) {
+	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
     StopWatch watch;
+
     //get start time of the simulation.
+    std::list<std::string> resLogFiles;
     watch.Start();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
-        LogOut("Simulation #:  " << (i + 1) << endl);
+    	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
-        perform_main();
+        SimulateWithDB(resLogFiles);
+        //perform_main();
     }
     watch.Stop();
-    LogOut("Long-term simulation complete. In " << watch.GetTime() << " seconds."
-            << endl);
     Statistics::Print();
-    LogOut("#################### FINISED WITH SUCCESS ####################" << endl);
+    PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
 
-    Logger::log_done();
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		Utils::PrintAndDeleteLogFiles(resLogFiles);
+	}
+
+    PrintOut("#################### FINISED WITH SUCCESS ####################" << endl);
     return 0;
 }

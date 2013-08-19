@@ -10,13 +10,9 @@
 #include "agent/LT_Agent.hpp"
 #include "core/HousingMarket.hpp"
 #include "database/entity/Household.hpp"
+#include "database/entity/housing-market/BidderParams.hpp"
+#include "database/entity/housing-market/SellerParams.hpp"
 #include "role/LT_Role.hpp"
-
-
-using namespace sim_mob;
-using std::vector;
-using std::string;
-using std::map;
 
 namespace sim_mob {
 
@@ -30,16 +26,17 @@ namespace sim_mob {
          */
         class HouseholdAgent : public LT_Agent, public UnitHolder {
         public:
-            HouseholdAgent(int id, Household* hh, HousingMarket* market);
+            HouseholdAgent(int id, Household* hh, const SellerParams& sellerParams,  
+        const BidderParams& bidderParams, HousingMarket* market);
             virtual ~HouseholdAgent();
         protected:
             /**
              * Inherited from LT_Agent.
              */
-            virtual void HandleMessage(MessageType type,
-                    MessageReceiver& sender, const Message& message);
+            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
+                    messaging::MessageReceiver& sender, const messaging::Message& message);
             bool OnFrameInit(timeslice now);
-            Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
+            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
             void OnFrameOutput(timeslice now);
         private:
             HousingMarket* market;

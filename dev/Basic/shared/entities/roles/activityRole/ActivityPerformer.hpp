@@ -74,7 +74,6 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual UpdateParams& make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
@@ -99,6 +98,7 @@ private:
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil) = 0;
@@ -107,6 +107,7 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) = 0;
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
+
 
 	friend class ActivityPerformerBehavior;
 	friend class ActivityPerformerMovement;

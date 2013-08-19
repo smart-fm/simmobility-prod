@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 
 #include "DynamicVector.hpp"
 
@@ -42,14 +43,39 @@ class Section;
  *
  * Various alternative forms of this function exist, all of which reduce to this form.
  */
+double dist(DPoint pt1, DPoint pt2);
+
+//More distance functions; these use "get_distarg()" to dispatch down to the primary dist() function.
 double dist(double x1, double y1, double x2, double y2);
-double dist(const sim_mob::aimsun::Crossing* c1, const sim_mob::aimsun::Crossing* c2);
+
+template <class T>
+double dist(double x1, double y1, const T& point2);
+
+template <class T>
+double dist(const T& point1, double x2, double y2);
+
+template <class T, class Y>
+double dist(const T& point1, const Y& point2);
+
+
+///Helper: Convert a Lane/Crossing/Point2D into a DPoint for use in the dist() function.
+///See specializations at the bottom of this file.
+template <class T>
+DPoint get_distarg(const T& item);
+
+template <class T>
+DPoint get_distarg(const T* item) { return get_distarg(*item); }
+
+template <class T>
+DPoint get_distarg(T* item) { return get_distarg(*item); }
+
+/*double dist(const sim_mob::aimsun::Crossing* c1, const sim_mob::aimsun::Crossing* c2);
 double dist(const sim_mob::aimsun::Lane* ln, const sim_mob::aimsun::Node* nd);
 double dist(const sim_mob::aimsun::Lane* ln1, const sim_mob::aimsun::Lane* ln2);
 double dist(const sim_mob::aimsun::Node* n1, const sim_mob::aimsun::Node* n2);
 double dist(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2);
 double dist(const sim_mob::DPoint& p1, const sim_mob::Point2D& p2);
-double dist(const sim_mob::Agent& ag, const sim_mob::Point2D& pt);
+double dist(const sim_mob::Agent& ag, const sim_mob::Point2D& pt);*/
 
 
 /**
@@ -191,5 +217,52 @@ sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, d
 //TODO: This should eventually go into its own "Parser" class
 sim_mob::Point2D parse_point(const std::string& str);
 
+//Takes "xxxx,yyyy" or "(xxxx,yyyy)" and returns the x's and y's in a pair.
+//Ignores spaces (but not tabs/newlines)
+//TODO: This is stronger than parse_point, but we can't merge them yet (different return types).
+std::pair<uint32_t, uint32_t> parse_point_pair(const std::string& src);
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+// Template implementations for dist()
+///////////////////////////////////////////////////////////////////////////
+
+template <class T>
+double dist(double x1, double y1, const T& point2) {
+	return dist(DPoint(x1,y1), get_distarg(point2));
+}
+
+template <class T>
+double dist(const T& point1, double x2, double y2) {
+	return dist(get_distarg(point1), DPoint(x2,y2));
+}
+
+template <class T, class Y>
+double dist(const T& point1, const Y& point2) {
+	return dist(get_distarg(point1), get_distarg(point2));
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+// Template specializations for get_distarg()
+///////////////////////////////////////////////////////////////////////////
+
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::aimsun::Crossing& item);
+
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::aimsun::Lane& item);
+
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::aimsun::Node& item);
+
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::Point2D& item);
+
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::Agent& item);
 
 }
+

@@ -7,25 +7,20 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-
+#include "entities/conflux/Conflux.hpp"
 #include "entities/Agent.hpp"
-#include "roles/Role.hpp"
-#include "buffering/Shared.hpp"
-#include "entities/UpdateParams.hpp"
-#include "entities/misc/TripChain.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
 
+class Role;
 class TripChainItem;
 class SubTrip;
-class Conflux;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
-#endif
+class UpdateParams;
 
 /**
  * Basic Person class.
@@ -169,6 +164,7 @@ public:
     std::string specialStr;
 
     std::stringstream debugMsgs;
+    int client_id;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -213,15 +209,12 @@ private:
     // person's alighting time secs
     double ALIGTHING_TIME_SEC;
 
-#ifndef SIMMOB_DISABLE_MPI
 public:
-	virtual void pack(PackageUtils& packageUtil);
-	virtual void unpack(UnPackageUtils& unpackageUtil);
+	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;
+	virtual void unpack(UnPackageUtils& unpackageUtil) CHECK_MPI_THROW;
 
-	virtual void packProxy(PackageUtils& packageUtil);
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
-
-#endif
+	virtual void packProxy(PackageUtils& packageUtil) CHECK_MPI_THROW;
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil) CHECK_MPI_THROW;
 
 	friend class Conflux;
 };

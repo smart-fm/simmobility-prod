@@ -6,50 +6,40 @@
  */
 
 #include "Conflux.hpp"
+
 #include <map>
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
 #include "conf/simpleconf.hpp"
+#include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/conflux/SegmentStats.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
+#include "workers/Worker.hpp"
 
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
-namespace {
-//Ensure all time ticks are valid.
-void check_frame_times(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
-	//Has update() been called early?
-	if (now<startTime) {
-		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
-				<< " but it is currently: " << now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
 
-	//Has update() been called too late?
-	if (wasRemoved) {
-		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
+	: Agent(mtxStrat, id),
+	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out)
+{
+}
 
-	//Was frame_init() called at the wrong point in time?
-	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
-			std::stringstream msg;
-			msg <<"Agent was not started within one timespan of its requested start time.";
-			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
-			msg <<"Agent ID: " <<agentId <<"\n";
-			throw std::runtime_error(msg.str().c_str());
-		}
+sim_mob::Conflux::~Conflux()
+{
+	for(std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator i=segmentAgents.begin(); i!=segmentAgents.end(); i++) {
+		safe_delete_item(i->second);
 	}
 }
-} //End un-named namespace
 
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg) {
@@ -104,7 +94,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		//if the person is moved for the first time in this tick
 		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
 	}
-
+	person->currWorkerProvider = parentWorker; // Let the person know which worker managing him... for logs to work.
 	const sim_mob::RoadSegment* segBeforeUpdate = person->getCurrSegment();
 	const sim_mob::Lane* laneBeforeUpdate = person->getCurrLane();
 	bool isQueuingBeforeUpdate = person->isQueuing;
@@ -444,7 +434,9 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	for( ; it != segmentAgents.end(); ++it )
 	{
 		(it->second)->updateLaneParams(frameNumber);
-		(it->second)->reportSegmentStats(frameNumber);
+		if (ConfigParams::GetInstance().OutputEnabled()) {
+			Log() <<(it->second)->reportSegmentStats(frameNumber);
+		}
 	}
 }
 
@@ -460,7 +452,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment
 	if (prevLane) {
 		findSegStats(prevRdSeg)->removeAgent(prevLane, ag, wasQueuing);
 	} /*else the person must have started from a VQ*/
-	ag->currWorker = parentWorker;
+	Print() << "Killing " << ag->getId() << std::endl;
 	parentWorker->remEntity(ag);
 	parentWorker->scheduleForRemoval(ag);
 }
@@ -617,7 +609,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			Print() << "nxtConflux:" << nxtConflux->getMultiNode()->getID()
 					<< "|lastUpdatedFrame:" << nxtConflux->getLastUpdatedFrame()
 					<< "|currFrame:" << now.frame()
-					<< "|requestedNextSegment: [" << person->requestedNextSegment->getStart()->getID() <<","<< person->requestedNextSegment->getEnd()->getID() << "]"
+					<< "|requestedNextSegment: " << person->requestedNextSegment->getStartEnd()
 					<< std::endl;
 
 			person->canMoveToNextSegment = Person::GRANTED; // grant permission. But check whether the subsequent frame_tick can be called now.
@@ -724,7 +716,7 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	check_frame_times(person->getId(), now.ms(), person->getStartTime(), calledFrameInit, person->isToBeRemoved());
+	CheckFrameTimes(person->getId(), now.ms(), person->getStartTime(), calledFrameInit, person->isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);
@@ -765,4 +757,21 @@ void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
 	if(personList.size() > 1) {
 		std::sort(personList.begin(), personList.end(), cmp_person_remainingTimeThisTick_obj);
 	}
+}
+
+std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
+	std::deque<sim_mob::Person*> allPersonsInCfx, tmpAgents;
+	sim_mob::SegmentStats* segStats = nullptr;
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
+			segStats = findSegStats(*rdSegIt);
+			tmpAgents = segStats->getAgents();
+			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
+		}
+	}
+	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqMapIt = virtualQueuesMap.begin(); vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
+		tmpAgents = vqMapIt->second;
+		allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
+	}
+	return allPersonsInCfx;
 }

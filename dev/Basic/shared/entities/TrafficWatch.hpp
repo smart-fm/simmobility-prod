@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -25,18 +27,15 @@
 
 
 #include <map>
-#include <vector>
 
-#include "conf/settings/DisableMPI.h"
-
-#include "Agent.hpp"
-#include "roles/Role.hpp"
 #include "buffering/Shared.hpp"
-#include "entities/UpdateParams.hpp"
+#include "conf/settings/DisableMPI.h"
+#include "metrics/Frame.hpp"
 
 namespace sim_mob
 {
 
+class RoadSegment;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;

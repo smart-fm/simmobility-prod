@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <fstream>
 
 
 namespace sim_mob {
@@ -51,6 +52,9 @@ private:
 private:
 	//The config file we are currently printing.
 	const Config& cfg;
+
+	//Where we are printing it.
+	mutable std::ofstream out; //The const exists for the config file; the ostream is obviously mutable.
 };
 
 }

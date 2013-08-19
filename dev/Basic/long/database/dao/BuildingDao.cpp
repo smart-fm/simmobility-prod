@@ -8,9 +8,9 @@
  */
 
 #include "BuildingDao.hpp"
-#include "DatabaseHelper.h"
+#include "DatabaseHelper.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 BuildingDao::BuildingDao(DBConnection* connection)
@@ -25,19 +25,13 @@ BuildingDao::~BuildingDao() {
 }
 
 void BuildingDao::FromRow(Row& result, Building& outObj) {
-    outObj.id = result.get<int>(DB_FIELD_BUILDING_ID);
-    outObj.improvementValue = result.get<int>(DB_FIELD_IMPROVEMENT_VALUE);
-    outObj.landArea = result.get<double>(DB_FIELD_LAND_AREA);
-    outObj.nonResidentialSqft = result.get<int>(DB_FIELD_NON_RESIDENTIAL_SQFT);
-    outObj.parcelId = result.get<int>(DB_FIELD_PARCEL_ID);
-    outObj.qualityId = result.get<int>(DB_FIELD_BUILDING_QUALITY_ID);
-    outObj.residentialUnits = result.get<int>(DB_FIELD_RESIDENTIAL_UNITS);
-    outObj.stories = result.get<int>(DB_FIELD_STORIES);
-    outObj.taxExempt = (result.get<int>(DB_FIELD_TAX_EXEMPT) == 0) ? false : true;
-    outObj.templateId = result.get<int>(DB_FIELD_TEMPLATE_ID);
-    outObj.typeId = result.get<int>(DB_FIELD_BUILDING_TYPE_ID);
-    outObj.unitSqft = result.get<int>(DB_FIELD_SQFT_PER_UNIT);
-    outObj.year = result.get<int>(DB_FIELD_YEAR_BUILT);
+    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID, INVALID_ID);
+    outObj.parcelId = result.get<BigSerial>(DB_FIELD_PARCEL_ID, INVALID_ID);
+    outObj.builtYear = result.get<int>(DB_FIELD_BUILT_YEAR, 0);
+    outObj.floorArea = result.get<double>(DB_FIELD_FLOOR_AREA, 0);
+    outObj.storeys = result.get<int>(DB_FIELD_STOREYS, 0);
+    outObj.parkingSpaces = result.get<int>(DB_FIELD_PARKING_SPACES, 0);
 }
 
 void BuildingDao::ToRow(Building& data, Parameters& outParams, bool update) {

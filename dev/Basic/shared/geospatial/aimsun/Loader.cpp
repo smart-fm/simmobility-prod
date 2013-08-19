@@ -2235,15 +2235,16 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 	 return bs1;
 }
 
-sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
+//Commenting out; this function doesn't return anything and is never used.
+/*sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 {
 	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
 	 int prev=0;
 	 for(int i=0;i<buslines.size();i++)
 	 {
-	  /*query through the busstops for each available busline at the busstop
-	  and see if it goes to the passengers destination.If more than one busline avaiable
-	  choose the busline with the shortest path*/
+	  //query through the busstops for each available busline at the busstop
+	  //and see if it goes to the passengers destination.If more than one busline avaiable
+	  //choose the busline with the shortest path
 
 	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
 
@@ -2277,7 +2278,7 @@ sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 		  noOfBusstops++;
 	  }
 	 }
-}
+}*/
 
 sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
 {

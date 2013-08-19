@@ -44,6 +44,8 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 //	}
 //	sim_mob::BufferContainer<Json::Value> & t  = sendBuffer[cnnHandler];
 	sendBuffer[cnnHandler].add(value);
+
+	return true;
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), EventListener()
@@ -262,6 +264,8 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 						break;
 					case SIMMOB_SRV_LOCATION:
 						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						break;
+					default:
 						break;
 					}
 				}

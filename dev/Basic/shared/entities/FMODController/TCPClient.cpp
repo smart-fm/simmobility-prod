@@ -139,6 +139,8 @@ bool TCPClient::sendData()
 		std::cerr <<"start: "<< e.what() << std::endl;
 		return false;
 	}
+
+	return true;
 }
 bool TCPClient::receiveData()
 {
@@ -160,6 +162,8 @@ bool TCPClient::receiveData()
 		std::cerr <<"start: "<< e.what() << std::endl;
 		return false;
 	}
+
+	return true;
 }
 
 

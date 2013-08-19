@@ -181,6 +181,8 @@ public:
 //			getServiceType(array[index].asString());
 			services.insert(getServiceType(array[index].asString()));
 		}
+
+		return true;
 	}
 
 	static Json::Value createPacketHeader(pckt_header pHeader_) {

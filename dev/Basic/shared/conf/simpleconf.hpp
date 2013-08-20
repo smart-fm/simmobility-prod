@@ -23,13 +23,13 @@
 #include <set>
 #include <string>
 
+#include "conf/RawConfigParams.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/xmlWriter/xmlWriter.hpp"
-#include "util/ProtectedCopyable.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
@@ -73,49 +73,7 @@ class ControlManager;
 };*/
 
 
-/**
- * Class containing CMake-defined parameters.
- */
-class CMakeConfigParams : private sim_mob::ProtectedCopyable {
-public:
-	//@{
-	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
-	bool MPI_Enabled() const;
-	bool MPI_Disabled() const;
-	//@}
-
-	//@{
-	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool OutputEnabled() const;
-	bool OutputDisabled() const;
-	//@}
-
-	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
-	bool StrictAgentErrors() const;
-
-	///Synced to the value of SIMMOB_PROFILE_ON; used for runtime checks.
-	bool ProfileOn() const;
-
-	///Synced to the value of SIMMOB_PROFILE_AGENT_UPDATES; used for runtime checks.
-	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	bool ProfileAgentUpdates(bool accountForOnFlag=true) const;
-
-	///Synced to the value of SIMMOB_PROFILE_WORKER_UPDATES; used for runtime checks.
-	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	bool ProfileWorkerUpdates(bool accountForOnFlag=true) const;
-
-	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
-	bool UsingConfluxes() const;
-
-	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
-	/// with the GUI or console.
-	bool InteractiveMode() const;
-
-
-};
-
-
-class ConfigParams : public CMakeConfigParams {
+class ConfigParams : public RawConfigParams {
 
 public:
 	enum ClientType
@@ -309,7 +267,8 @@ public:
 	std::set<sim_mob::Conflux*>& getConfluxes() { return confluxes; }
 
 private:
-	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
+	ConfigParams() : RawConfigParams(),
+		baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
 		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
 		/*day_of_week(MONDAY),*/ aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		/*dynamicDispatchDisabled(false),*/ signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),

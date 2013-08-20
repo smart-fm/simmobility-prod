@@ -235,7 +235,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+	if (p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);
@@ -1046,7 +1046,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 
 
 	//Misc.: disable dynamic dispatch?
-	handle = TiXmlHandle(&document);
+/*	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("disable_dynamic_dispatch").ToElement();
 	if (node) {
 		const char* valStr_c = node->Attribute("value");
@@ -1062,7 +1062,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 	}
 
-	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;*/
 
 
 	//Series of one-line checks.

@@ -193,7 +193,7 @@ public:
 //      be modified once set.
 private:
 	//Is dynamic dispatch disabled?
-	bool dynamicDispatchDisabled;
+	//bool dynamicDispatchDisabled;
 
 public:
 	int signalTimingMode;
@@ -220,14 +220,12 @@ public:
 	bool TEMP_ManualFixDemoIntersection;
 
 	//TODO: Replace with the "sealed" version we use elsewhere.
-	void SetDynamicDispatchDisabled(bool val) {
+	/*void SetDynamicDispatchDisabled(bool val) {
 		dynamicDispatchDisabled = val;
-	}
+	}*/
 
-	///Synced to the value of disable_dynamic_dispatch in the config file; used for runtime checks.
-	bool DynamicDispatchDisabled() const {
-		return dynamicDispatchDisabled;
-	}
+	///Old property that is now always true.
+	//bool DynamicDispatchDisabled() const { return true; }
 
 	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
 	bool UsingConfluxes() const;
@@ -338,7 +336,7 @@ private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
 		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
 		/*day_of_week(MONDAY),*/ aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
+		/*dynamicDispatchDisabled(false),*/ signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
 		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),
 		networkSource(NETSRC_XML)

@@ -120,11 +120,11 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 	this->loader = loader;
 
 	//Init our worker list-backs
-	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
-	if (UseDynamicDispatch) {
+	//const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
+	//if (UseDynamicDispatch) {
 		entToBeRemovedPerWorker.resize(numWorkers, vector<Entity*>());
 		entToBeBredPerWorker.resize(numWorkers, vector<Entity*>());
-	}
+	//}
 
 	//Number Worker output threads something like:  "out_1_2.txt", where "1" is the WG number and "2" is the Worker number.
 	std::stringstream prefixS;
@@ -143,8 +143,11 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 			managed_logs.push_back(logFile);
 		}
 
-		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
-		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		//std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
+		//std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		std::vector<Entity*>* entWorker = &entToBeRemovedPerWorker.at(i);
+		std::vector<Entity*>* entBredPerWorker = &entToBeBredPerWorker.at(i);
+
 		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
@@ -187,8 +190,8 @@ void sim_mob::WorkGroup::scheduleEntity(Agent* ag)
 
 void sim_mob::WorkGroup::stageEntities()
 {
-	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
+	//Even with dynamic dispatch, some WorkGroups simply don't manage entities.
+	if (!loader) {
 		return;
 	}
 
@@ -240,8 +243,8 @@ void sim_mob::WorkGroup::stageEntities()
 
 void sim_mob::WorkGroup::collectRemovedEntities()
 {
-	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
+	//Even with dynamic dispatch, some WorkGroups simply don't manage entities.
+	if (!loader) {
 		return;
 	}
 

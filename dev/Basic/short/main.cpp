@@ -206,7 +206,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PartitionManager::instance().initBoundaryTrafficItems();
 	}
 
-	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	//bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -242,7 +242,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
-	personWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
@@ -411,11 +411,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	cout << "Starting Agents: " << numStartAgents;
 	cout << ",     Pending: ";
-	if (NoDynamicDispatch) {
+	//if (NoDynamicDispatch) {
 		cout <<"<Disabled>";
-	} else {
+	//} else {
 		cout <<numPendingAgents;
-	}
+	//}
 	cout << endl;
 
 	//xuyan:show measure time
@@ -463,9 +463,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}
+		}*/
 	}
 
 	//Save our output files if we are merging them later.

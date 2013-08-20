@@ -484,7 +484,7 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+	if (p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();

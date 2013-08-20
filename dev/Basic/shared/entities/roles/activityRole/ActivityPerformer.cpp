@@ -9,7 +9,7 @@
 #include "ActivityPerformer.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Node.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -32,15 +32,11 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Acti
 //xuyan: Error, Do not what to do, comment out
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
-//<<<<<<< HEAD
 	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
 	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");
+	//movement->parentActivity = activityRole;
 	return activityRole;
-//=======
-////	return new ActivityPerformer(parent);
-//	return NULL;
-//>>>>>>> master
 }
 
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams( boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(true) {
@@ -85,8 +81,6 @@ void sim_mob::ActivityPerformer::initializeRemainingTime() {
 			- this->activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 }
 
-void sim_mob::ActivityPerformer::frame_tick_output_mpi(timeslice now) {
-}
 
 UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) {
 	params.reset(now);

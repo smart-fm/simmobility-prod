@@ -2,6 +2,7 @@
 
 #include "GeomHelpers.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <iostream>
 #include <limits>
@@ -16,6 +17,7 @@
 #include "logging/Log.hpp"
 
 //add by xuyan
+#include "boost/lexical_cast.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/simpleconf.hpp"
@@ -32,19 +34,20 @@ using namespace sim_mob;
 using std::vector;
 using std::string;
 
-//add by xuyan
-//used in function PointInsidePolygon
-#define MIN(x,y) (x < y ? x : y)
-#define MAX(x,y) (x > y ? x : y)
 
-double sim_mob::dist(double x1, double y1, double x2, double y2)
+double sim_mob::dist(DPoint pt1, DPoint pt2)
 {
-	double dx = x2 - x1;
-	double dy = y2 - y1;
+	double dx = pt2.x - pt1.x;
+	double dy = pt2.y - pt1.y;
 	return sqrt(dx * dx + dy * dy);
 }
 
-double sim_mob::dist(const aimsun::Crossing* c1, const aimsun::Crossing* c2)
+double sim_mob::dist(double x1, double y1, double x2, double y2)
+{
+	return dist(DPoint(x1,y1), DPoint(x2,y2));
+}
+
+/*double sim_mob::dist(const aimsun::Crossing* c1, const aimsun::Crossing* c2)
 {
 	return dist(c1->xPos, c1->yPos, c2->xPos, c2->yPos);
 }
@@ -71,7 +74,7 @@ double sim_mob::dist(const DPoint& p1, const Point2D& p2)
 double sim_mob::dist(const Agent& ag, const Point2D& pt)
 {
 	return dist(ag.xPos.get(), ag.yPos.get(), pt.getX(), pt.getY());
-}
+}*/
 
 
 Point2D sim_mob::normal_intersect(const sim_mob::Point2D& pt, const sim_mob::DynamicVector& line)
@@ -405,11 +408,11 @@ bool sim_mob::PointInsidePolygon(const sim_mob::Point2D* polygon, int N, const s
 	for (i = 1; i <= N; i++)
 	{
 		p2 = polygon[i % N];
-		if (p.getY() > MIN(p1.getY(), p2.getY()))
+		if (p.getY() > std::min(p1.getY(), p2.getY()))
 		{
-			if (p.getY() <= MAX(p1.getY(), p2.getY()))
+			if (p.getY() <= std::max(p1.getY(), p2.getY()))
 			{
-				if (p.getX() <= MAX(p1.getX(), p2.getX()))
+				if (p.getX() <= std::max(p1.getX(), p2.getX()))
 				{
 					if (p1.getY() != p2.getY())
 					{
@@ -544,4 +547,69 @@ Point2D sim_mob::parse_point(const string& str)
 	return Point2D(xPos, yPos);
 }
 
+std::pair<uint32_t, uint32_t> sim_mob::parse_point_pair(const std::string& src)
+{
+	std::pair<uint32_t, uint32_t> res;
+	std::stringstream curr;
+	for (std::string::const_iterator it=src.begin(); it!=src.end(); it++) {
+		//Skip whitespace, parens
+		const char c = *it;
+		if (c==' ') { continue; }
+		if (c=='(' && it==src.begin()) { continue; }
+		if (c==')' && (it+1)==src.end()) { continue; }
+
+		//Append digits?
+		if (c>='0' && c<='9') {
+			curr <<c;
+			continue;
+		}
+
+		//Done with the X's?
+		if (c==',') {
+			if (curr.str().empty()) { throw std::runtime_error("Can't parse point; empty X"); }
+			res.first = boost::lexical_cast<uint32_t>(curr.str());
+			curr.str("");
+		}
+	}
+
+	//Done with the Y's
+	if (curr.str().empty()) { throw std::runtime_error("Can't parse point; empty Y"); }
+	res.second = boost::lexical_cast<uint32_t>(curr.str());
+
+	return res;
+}
+
+
+
+////Specialization implementations
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Crossing& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Lane& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::aimsun::Node& item)
+{
+	return sim_mob::DPoint(item.xPos, item.yPos);
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Point2D& item)
+{
+	return sim_mob::DPoint(item.getX(), item.getY());
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Agent& item)
+{
+	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
+}
 

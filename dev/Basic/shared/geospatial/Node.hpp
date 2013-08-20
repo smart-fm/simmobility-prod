@@ -4,17 +4,12 @@
 
 #pragma once
 
-#include <vector>
-#include <map>
-#include <set>
 #include <string>
-#include <math.h>
 
 #include "conf/settings/DisableMPI.h"
-
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
-#include "Point2D.hpp"
+#include "geospatial/Point2D.hpp"
 
 
 
@@ -28,7 +23,6 @@ class GeoSpatial_t_pimpl;
 namespace sim_mob
 {
 //Forward declarations
-class Link;
 class Lane;
 class LaneConnector;
 class RoadSegment;

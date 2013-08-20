@@ -9,7 +9,7 @@
 #include "MessageReceiver.hpp"
 #include "util/LangHelpers.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::messaging;
 using boost::shared_mutex;
 using boost::shared_lock;
 using boost::upgrade_lock;

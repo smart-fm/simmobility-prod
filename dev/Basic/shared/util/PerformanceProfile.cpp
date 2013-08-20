@@ -2,19 +2,12 @@
 
 #include "PerformanceProfile.hpp"
 
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
+#include "util/Utils.hpp"
 
 using std::vector;
 
 namespace sim_mob {
-
-namespace {
-//return ms
-double diff_ms(timeval t1, timeval t2)
-{
-	return (((t1.tv_sec - t2.tv_sec) * 1000.0) + (t1.tv_usec - t2.tv_usec) / 1000.0);
-}
-} //End unnamed namespace
 
 
 
@@ -64,7 +57,7 @@ void sim_mob::PerformanceProfile::markEndUpdate()
 {
 	if (start_measure) {
 		gettimeofday(&end_update_time, nullptr);
-		total_update_cost += diff_ms(end_update_time, start_update_time);
+		total_update_cost += Utils::diff_ms(end_update_time, start_update_time);
 	}
 }
 
@@ -105,13 +98,13 @@ void sim_mob::PerformanceProfile::markEndQuery(int thread_id)
 	if (measureParallel) {
 		if (start_measure && thread_id >= 0) {
 			gettimeofday(&(end_query_times.at(thread_id)), NULL);
-			measured_query_cost_array.at(thread_id) += diff_ms(end_query_times.at(thread_id), start_query_times.at(thread_id));
+			measured_query_cost_array.at(thread_id) += Utils::diff_ms(end_query_times.at(thread_id), start_query_times.at(thread_id));
 		}
 	} else {
 		if (start_measure && thread_id == 0) {
 			gettimeofday(&(end_query_times.front()), NULL);
 			gettimeofday(&end_query_times.front(), NULL);
-			total_query_cost += diff_ms(end_query_times.front(), start_query_times.front());
+			total_query_cost += Utils::diff_ms(end_query_times.front(), start_query_times.front());
 		}
 	}
 }
@@ -126,7 +119,7 @@ void sim_mob::PerformanceProfile::markEndSimulation()
 {
 	if (start_measure) {
 		gettimeofday(&end_simulation_time, NULL);
-		total_simulation_cost += diff_ms(end_simulation_time, start_simulation_time);
+		total_simulation_cost += Utils::diff_ms(end_simulation_time, start_simulation_time);
 
 		//			std::cout << "total_simulation_cost (ms)" << total_simulation_cost << std::endl;
 	}
@@ -143,7 +136,7 @@ double sim_mob::PerformanceProfile::markAnthingEnd()
 {
 	if (start_measure) {
 		gettimeofday(&anything_end_time, NULL);
-		double time = diff_ms(anything_end_time, anything_start_time);
+		double time = Utils::diff_ms(anything_end_time, anything_start_time);
 		std::cout << time << std::endl;
 		return time;
 	}
@@ -161,7 +154,7 @@ double sim_mob::PerformanceProfile::markAnthingEnd2()
 {
 	if (start_measure) {
 		gettimeofday(&anything_end_time2, NULL);
-		double time = diff_ms(anything_end_time2, anything_start_time2);
+		double time = Utils::diff_ms(anything_end_time2, anything_start_time2);
 		return time;
 	}
 	return 0;

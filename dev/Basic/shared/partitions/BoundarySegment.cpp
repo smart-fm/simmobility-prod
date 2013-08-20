@@ -11,7 +11,7 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -22,7 +22,7 @@ void outputLine(Point2D& start_p, Point2D& end_p, std::string color)
 {
 	static int line_id = 100;
 std::cout.operator <<(std::endl);
-	LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
+	PrintOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
 			<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
 			<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" <<"\n");
 }
@@ -89,7 +89,7 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 void sim_mob::BoundarySegment::output()
 {
 	if (bounary_box.size() < 3) {
-		LogOut("Error: Boundary box has < 3 points");
+		WarnOut("Error: Boundary box has < 3 points");
 		return;
 	}
 

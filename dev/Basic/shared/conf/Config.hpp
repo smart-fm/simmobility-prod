@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /**
  * \file Config.hpp
@@ -22,6 +24,7 @@
 #include "Constructs.hpp"
 #include "System.hpp"
 #include "Simulation.hpp"
+#include "entities/roles/RoleFactory.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "buffering/Shared.hpp"
 

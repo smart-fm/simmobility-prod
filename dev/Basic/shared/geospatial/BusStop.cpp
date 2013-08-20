@@ -4,9 +4,10 @@
 
 #include "BusStop.hpp"
 
-#include "Pavement.hpp"
-#include "RoadSegment.hpp"
-#include "Lane.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/Pavement.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
 #include "util/GeomHelpers.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"

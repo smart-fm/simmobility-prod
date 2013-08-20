@@ -27,7 +27,7 @@ template<class T>
 class AgentCommUtility;
 class Agent;
 
-class ClientHandler: public sim_mob::EventListener {
+class ClientHandler: public sim_mob::event::EventListener {
 	sim_mob::Broker & broker;
 	bool valid;
 public:
@@ -41,9 +41,9 @@ public:
 	sim_mob::Broker &getBroker();
 	virtual ~ClientHandler();
 	//event functions:
-	void OnLocation(EventId id, Context context, EventPublisher* sender, const LocationEventArgs& args);
-	void OnAllLocations(EventId id, Context context, EventPublisher* sender, const AllLocationsEventArgs& argums);
-	 void OnTime(EventId id, EventPublisher* sender, const TimeEventArgs& args);
+	void OnLocation(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const LocationEventArgs& args);
+	void OnAllLocations(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const AllLocationsEventArgs& argums);
+	 void OnTime(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args);
 	 bool isValid();
 	 void setValidation(bool);
 };

@@ -1,6 +1,8 @@
+#pragma once
+
 #include "defaults.hpp"
-namespace sim_mob
-{
+
+namespace sim_mob {
 
 class Offset {
 public:

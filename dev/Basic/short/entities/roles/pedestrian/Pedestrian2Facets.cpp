@@ -7,6 +7,7 @@
 
 #include "Pedestrian2Facets.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 
@@ -30,9 +31,6 @@ void Pedestrian2Behavior::frame_tick_output(const UpdateParams& p) {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output_mpi is not implemented yet");
-}
 
 double Pedestrian2Movement::collisionForce = 20;
 double Pedestrian2Movement::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
@@ -64,8 +62,8 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 }
 
 void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
-	if(parentAgent) {
-		parentAgent->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+	if(getParent()) {
+		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
 	setSubPath();
 
@@ -103,16 +101,16 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 		else
 		{
 			//Person* person = dynamic_cast<Person*> (parent);
-			if(parentAgent && (parentAgent->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
-				if(!parentAgent->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+			if(getParent() && (getParent()->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
+				if(!getParent()->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
 				}
-				Passenger* passenger = dynamic_cast<Passenger*> (parentAgent->getNextRole());
+				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
 				if(passenger) {// nextRole is passenger
 					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", parentAgent);
-					parentAgent->changeRole(newRole);
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
+					getParent()->changeRole(newRole);
 					newRole->Movement()->frame_init(p);
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
@@ -120,15 +118,15 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 //					passenger->AlightedBus.set(false);
 				}
 			} else {// not at the busstop, set to be removed
-				parentAgent->setToBeRemoved();
+				getParent()->setToBeRemoved();
 			}
 		}
 	}
 
 		pedMovement.advance(vel);
 
-		parentAgent->xPos.set(pedMovement.getPosition().x);
-		parentAgent->yPos.set(pedMovement.getPosition().y);
+		getParent()->xPos.set(pedMovement.getPosition().x);
+		getParent()->yPos.set(pedMovement.getPosition().y);
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
@@ -136,28 +134,21 @@ void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
 	//		return;
 	//	}
 
-		if (ConfigParams::GetInstance().using_MPI) {
-			return;
-		}
+	//MPI-specific output.
+	std::stringstream addLine;
+	if (ConfigParams::GetInstance().using_MPI) {
+		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+	}
+
 
 	//	std::ostringstream stream;
 	//	stream<<"("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})";
 	//	std::string s=stream.str();
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<parentAgent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parentAgent->yPos.get()<<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output_mpi(timeslice now) {
-	if (now.frame() < 1 || now.frame() < parentAgent->getStartTime())
-		return;
-
-	if (this->parentAgent->isFake) {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<parentAgent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parentAgent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-	} else {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parentAgent->getId()<<","<<"{\"xPos\":\""<<parentAgent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parentAgent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-	}
-}
 
 void sim_mob::Pedestrian2Movement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 
@@ -167,20 +158,19 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 	const StreetDirectory& stdir = StreetDirectory::instance();
 
 	StreetDirectory::VertexDesc source, destination;
-	if(parentAgent->originNode.type_==WayPoint::NODE)
-		source = stdir.WalkingVertex(*parentAgent->originNode.node_);
-	else if(parentAgent->originNode.type_==WayPoint::BUS_STOP)
-		source = stdir.WalkingVertex(*parentAgent->originNode.busStop_);
+	if(getParent()->originNode.type_==WayPoint::NODE)
+		source = stdir.WalkingVertex(*getParent()->originNode.node_);
+	else if(getParent()->originNode.type_==WayPoint::BUS_STOP)
+		source = stdir.WalkingVertex(*getParent()->originNode.busStop_);
 
-	if(parentAgent->destNode.type_==WayPoint::NODE)
-		destination = stdir.WalkingVertex(*parentAgent->destNode.node_);
-	else if(parentAgent->destNode.type_==WayPoint::BUS_STOP)
-		destination = stdir.WalkingVertex(*parentAgent->destNode.busStop_);
+	if(getParent()->destNode.type_==WayPoint::NODE)
+		destination = stdir.WalkingVertex(*getParent()->destNode.node_);
+	else if(getParent()->destNode.type_==WayPoint::BUS_STOP)
+		destination = stdir.WalkingVertex(*getParent()->destNode.busStop_);
 
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
-//	std::cout<<"Pedestrian requested path from: " <<parentAgent->originNode.getID() <<" => " <<parentAgent->destNode.node_->getID() <<"  {" <<std::endl;
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
@@ -259,14 +249,14 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.
 
-		if (other->getId() == parentAgent->getId()) {
+		if (other->getId() == getParent()->getId()) {
 			other = nullptr;
 			continue;
 		}
 
 		//Check.
-		double dx = other->xPos.get() - parentAgent->xPos.get();
-		double dy = other->yPos.get() - parentAgent->yPos.get();
+		double dx = other->xPos.get() - getParent()->xPos.get();
+		double dy = other->yPos.get() - getParent()->yPos.get();
 		double distance = sqrt(dx * dx + dy * dy);
 		if (distance < 2 * agentRadius) {
 			break; //Collision
@@ -277,14 +267,14 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 	//Set collision vector. Overrides previous setting, if any.
 	if (other) {
 		//Get a heading.
-		double dx = other->xPos.get() - parentAgent->xPos.get();
-		double dy = other->yPos.get() - parentAgent->yPos.get();
+		double dx = other->xPos.get() - getParent()->xPos.get();
+		double dy = other->yPos.get() - getParent()->yPos.get();
 
 		//If the two agents are directly on top of each other, set
 		//  their distances to something non-crashable.
 		if (dx == 0 && dy == 0) {
-			dx = other->getId() - parentAgent->getId();
-			dy = parentAgent->getId() - other->getId();
+			dx = other->getId() - getParent()->getId();
+			dy = getParent()->getId() - other->getId();
 		}
 
 		//Normalize

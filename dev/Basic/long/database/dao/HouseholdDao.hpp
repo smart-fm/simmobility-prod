@@ -19,9 +19,9 @@ namespace sim_mob {
         /**
          * Data Access Object to Household table on datasource.
          */
-        class HouseholdDao : public AbstractDao<Household> {
+        class HouseholdDao : public db::AbstractDao<Household> {
         public:
-            HouseholdDao(DBConnection* connection);
+            HouseholdDao(db::DBConnection* connection);
             virtual ~HouseholdDao();
 
         private:
@@ -31,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(Row& result, Household& outObj);
+            void FromRow(db::Row& result, Household& outObj);
             
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Household& data, Parameters& outParams, bool update);
+            void ToRow(Household& data, db::Parameters& outParams, bool update);
         };
     }
 }

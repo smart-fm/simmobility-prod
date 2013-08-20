@@ -51,35 +51,6 @@
 
 
 
-///Temporary definitions of final and override. These are keywords in the new standard, and it is
-/// useful to be able to tag (some) methods with these during the design stage. Feel free to ignore
-/// these if you don't see the need; just be aware of what they do if you see them after a function name.
-///
-///\note
-///We use "newstd_" because boost has their own "final" keyword in multi-index. When we switch to the new
-///  standard, this problem will go away (because "final" is not a keyword, but a context-dependant identifier).
-///
-///\note
-///"Final" doesn't seem to be supported in gcc yet. Disabling this for now; it's more trouble than it's worth to
-///  support.
-#define newstd_final
-#define newstd_override
-
-
-
-///Transitional namespace "sm_trans::" can be used when "boost::" is required pre-C++0x, and "std::" is required
-///  for the new standard. This is actually quite common, as many of the new standard libraries were taken from boost.
-///Note that we can't use typedefs here because of template-typedef issues. The new standard adds a fix for that, of course...
-///
-///\note
-///As with all macros, be careful with these.
-#ifndef SIMMOB_LATEST_STANDARD
-#define sm_trans      boost
-#else
-#define sm_trans      std
-#endif
-
-
 
 
 #ifndef SIMMOB_LATEST_STANDARD

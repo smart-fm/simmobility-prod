@@ -25,17 +25,18 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-//#include "entities/roles/passenger/Passenger.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
 #include "logging/Log.hpp"
 #include "entities/BusController.hpp"
 
@@ -60,11 +61,7 @@ using namespace sim_mob::medium;
 //Start time of program
 timeval start_time_med;
 
-//Helper for computing differences. May be off by ~1ms
 namespace {
-int diff_ms(timeval t1, timeval t2) {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
-}
 
 /**
  * For now, the medium-term expects the following models to be available. We have to fake these,
@@ -121,7 +118,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMainMed(const std::string& configFileName) {
+bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
 	//Enable or disable logging (all together, for now).
@@ -129,18 +126,18 @@ bool performMainMed(const std::string& configFileName) {
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
 	if (ConfigParams::GetInstance().OutputEnabled()) {
-		Log::Init("out.txt");
+		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
 	} else {
-		Log::Ignore();
+		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
 	}
 
-#ifdef SIMMOB_USE_CONFLUXES
-	std::cout << "Confluxes ON!" << std::endl;
-#endif
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		std::cout << "Confluxes ON!" << std::endl;
+	}
 
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
@@ -187,12 +184,15 @@ bool performMainMed(const std::string& configFileName) {
 	}
 
 	{ //Begin scope: WorkGroups
+	WorkGroupManager wgMgr;
+	wgMgr.setSingleThreadMode(config.singleThreaded);
+
 	//Work Group specifications
-	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
-	WorkGroup::InitAllGroups();
+	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
@@ -225,7 +225,7 @@ bool performMainMed(const std::string& configFileName) {
 	AuraManager::instance().init(config.aura_manager_impl, nullptr);
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgMgr.startAllWorkGroups();
 
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -247,7 +247,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = diff_ms(loop_start_time, start_time_med);
+	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
@@ -279,7 +279,7 @@ bool performMainMed(const std::string& configFileName) {
 		}
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
-		WorkGroup::WaitAllGroups();
+		wgMgr.waitAllGroups();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -347,6 +347,11 @@ bool performMainMed(const std::string& configFileName) {
 		}
 	}
 
+	//Save our output files if we are merging them later.
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+		resLogFiles = wgMgr.retrieveOutFileNames();
+	}
+
 	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
 	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 
@@ -356,7 +361,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-	WorkGroup::FinalizeAllWorkGroups();
+	//wgMgr.finalizeAllWorkGroups();
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
@@ -369,13 +374,9 @@ bool performMainMed(const std::string& configFileName) {
 	return true;
 }
 
-int main(int argc, char* argv[])
+int main(int ARGC, char* ARGV[])
 {
-	std::cout << "Using New Signal Model" << std::endl;
-
-#if 0
-	std::cout << "Not Using New Signal Model" << std::endl;
-#endif
+	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
@@ -386,7 +387,7 @@ int main(int argc, char* argv[])
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
-	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
+	if (args.size() > 2 && args[2]=="mpi") {
 		config.using_MPI = true;
 	}
 #endif
@@ -403,7 +404,7 @@ int main(int argc, char* argv[])
 	if (config.using_MPI)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
+		std::string mpi_result = partitionImpl.startMPIEnvironment(ARGC, ARGV);
 		if (mpi_result.compare("") != 0)
 		{
 			Warn() << "MPI Error:" << mpi_result << endl;
@@ -416,23 +417,21 @@ int main(int argc, char* argv[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	if (argc > 1)
-	{
-		configFileName = argv[1];
-	}
-	else
-	{
+
+	if (args.size() > 1) {
+		configFileName = args[1];
+	} else {
 		cout << "No config file specified; using default." << endl;
 	}
-	cout << "Using config file: " << configFileName << endl;
+	Print() << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	string logFileName = argc>2 ? argv[2] : "";
+	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
-			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
+			Print() <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
-	}
+	}*/
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -443,13 +442,16 @@ int main(int argc, char* argv[])
 
 	//Perform main loop
 	clock_t simStartTime = clock();
-	int returnVal = performMainMed(configFileName) ? 0 : 1;
+	std::list<std::string> resLogFiles;
+	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
 
-	//Close log file, return.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		Logger::log_done();
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
-	cout << "Done" << endl;
+
+	Print() << "Done" << endl;
 	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;
 }

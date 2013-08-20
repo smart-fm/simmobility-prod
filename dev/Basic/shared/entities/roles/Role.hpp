@@ -4,14 +4,16 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/random.hpp>
+
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
-#include "boost/thread/thread.hpp"
-#include "boost/thread/locks.hpp"
-#include "util/OutputUtil.hpp"
-#include <boost/random.hpp>
+#include "workers/Worker.hpp"
+#include "logging/Log.hpp"
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"
 
@@ -87,6 +89,7 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams() {return std::vector<BufferedBase*>();}
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.
@@ -135,15 +138,6 @@ public:
 			second_try = dist(gen);
 
 			third_try = dist(gen);
-
-//			if (one_try != second_try || third_try != second_try)
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << "," << one_try << "," << second_try << "," << third_try << "\n");
-//			}
-//			else
-//			{
-//				LogOut("Random:" << this->getParent()->getId() << ",Use Seed:" << dynamic_seed << ", Get:" << one_try << "," << second_try<< "," << third_try<< "\n");
-//			}
 		}
 
 		dynamic_seed = one_try;
@@ -168,6 +162,10 @@ protected:
 
 	//add by xuyan
 protected:
+	NullableOutputStream Log() {
+		return NullableOutputStream(parent->currWorkerProvider->getLogFile());
+	}
+
 	int dynamic_seed;
 
 	//Random number generator

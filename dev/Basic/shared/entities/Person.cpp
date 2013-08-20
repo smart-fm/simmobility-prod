@@ -6,11 +6,13 @@
 #include <sstream>
 
 //For debugging
+#include "roles/Role.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
-#include "util/OutputUtil.hpp"
 
+#include "boost/lexical_cast.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -42,7 +44,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make the trip itself
 	Trip* res = new Trip();
-	res->personID = ag.getId();
+	res->setPersonID(ag.getId());
 	res->itemType = TripChainItem::getItemType("Trip");
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
@@ -58,7 +60,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
-	subTrip.personID = -1;
+	subTrip.setPersonID(-1);
 	subTrip.itemType = TripChainItem::getItemType("Trip");
 	subTrip.sequenceNumber = 1;
 	subTrip.startTime = res->startTime;
@@ -82,32 +84,25 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr), remainingTimeThisTick(0.0),
 	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
-	  databaseID(tcs.front()->personID), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0)
+	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1)
 {
-//	prevRole = 0;
-//	currRole = 0;
-//	laneID = -1;
-//	agentSrc = src;
-//	tripChain = tcs;
-//	tripchainInitialized = false;
-#ifndef SIMMOB_USE_CONFLUXES
-	simplyModifyTripChain(tcs);
-#endif
+	if (!ConfigParams::GetInstance().UsingConfluxes()) {
+		simplyModifyTripChain(tcs);
+	}
 	initTripChain();
 }
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-	unsigned int start = getStartTime();
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
 		//consider putting this in IT_TRIP clause
@@ -379,7 +374,10 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 //		prevRole = currRole;
 
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-		const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*currSubTrip) : 0);
+
+		const sim_mob::SubTrip* str = 0;
+		if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
+			str =  &(*currSubTrip);
 
 		if(newRole == 0)
 			newRole = rf.createRole(tci, str, this);
@@ -466,7 +464,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 			for(subChainItem1 = subtrip.begin();subChainItem1!=subtrip.end(); subChainItem1++)
 			{
-				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
 			}
 			subChainItem2 = subChainItem1 = subtrip.begin();
 			subChainItem2++;
@@ -474,8 +472,8 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			newsubchain.push_back(*subChainItem1);
 			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
 			{
-				std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
-				std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
+				//std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
 
 				WayPoint source, destination;
 				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
@@ -490,7 +488,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 				else if((subChainItem2->mode=="Walk") && (subChainItem1->mode=="BusTravel"))
 				{
 					BusStopFinder finder(subChainItem1->fromLocation.node_, subChainItem1->toLocation.node_);
-					if(finder.getSourceBusStop())
+					if(finder.getSourceBusStop() && finder.getDestinationBusStop())
 					{
 						source = WayPoint(finder.getDestinationBusStop());
 						destination = subChainItem2->fromLocation;
@@ -499,7 +497,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 				if(source.type_!=WayPoint::INVALID && destination.type_!=WayPoint::INVALID )
 				{
 					sim_mob::SubTrip subTrip;
-					subTrip.personID = -1;
+					subTrip.setPersonID(-1);
 					subTrip.itemType = TripChainItem::getItemType("Trip");
 					subTrip.sequenceNumber = 1;
 					subTrip.startTime = subChainItem1->endTime;
@@ -547,7 +545,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 
 				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
 				{
-					std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
+					//std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
 				}
 			}
 		}
@@ -731,14 +729,13 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;
 	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
-//	std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->personID << std::endl;
 	//first check if you just need to advance the subtrip
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{
 		//dont advance to next tripchainItem immidiately, check the subtrip first
 		res = advanceCurrentSubTrip();
-		if(res)
-		std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
+		//if(res)
+		//std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
 
 	}
 
@@ -756,7 +753,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//so far, advancing the tripchainitem has been successful
 
 	//Also set the currSubTrip to the beginning of trip , just in case
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 		currSubTrip = resetCurrSubTrip();
 
 	return true;
@@ -781,20 +778,19 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (currRole) {
 		currRole->setParent(nullptr);
-		if (this->currWorker) {
-			this->currWorker->stopManaging(currRole->getSubscriptionParams());
-			this->currWorker->stopManaging(currRole->getDriverRequestParams().asVector());
+		if (this->currWorkerProvider) {
+			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->stopManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 	prevRole = currRole;
 	currRole = newRole;
-//	Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);
-		if (this->currWorker) {
-			this->currWorker->beginManaging(currRole->getSubscriptionParams());
-			this->currWorker->beginManaging(currRole->getDriverRequestParams().asVector());
+		if (this->currWorkerProvider) {
+			this->currWorkerProvider->beginManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->beginManaging(currRole->getDriverRequestParams().asVector());
 		}
 	}
 }

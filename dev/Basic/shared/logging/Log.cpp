@@ -12,9 +12,9 @@ using std::map;
 map<const std::ostream*, boost::shared_ptr<boost::mutex> > sim_mob::StaticLogManager::stream_locks;
 
 //Log
-boost::shared_ptr<boost::mutex>   sim_mob::Log::log_mutex;
-std::ostream*   sim_mob::Log::log_handle = &std::cout;
-std::ofstream   sim_mob::Log::log_file;
+//boost::shared_ptr<boost::mutex>   sim_mob::Log::log_mutex;
+//std::ostream*   sim_mob::Log::log_handle = &std::cout;
+//std::ofstream   sim_mob::Log::log_file;
 
 //Warn
 boost::shared_ptr<boost::mutex>   sim_mob::Warn::log_mutex;
@@ -43,44 +43,6 @@ std::ostream* sim_mob::StaticLogManager::OpenStream(const string& path, std::ofs
 	file.open(path.c_str());
 	if (file.fail()) { return &std::cout; }
 	return &file;
-}
-
-
-//////////////////////////////////////////////////////////////
-// Log implementation
-//////////////////////////////////////////////////////////////
-
-sim_mob::Log::Log()
-{
-	if (log_mutex) {
-		local_lock = boost::mutex::scoped_lock(*log_mutex);
-	}
-}
-
-
-sim_mob::Log::~Log()
-{
-	//Flush any pending output to stdout.
-	if (log_handle) {
-		(*log_handle) <<std::flush;
-	}
-}
-
-void sim_mob::Log::Init(const string& path)
-{
-	log_handle = OpenStream(path, log_file);
-	log_mutex = RegisterStream(log_handle);
-}
-
-void sim_mob::Log::Ignore()
-{
-	log_handle = nullptr;
-	log_mutex.reset();
-}
-
-bool sim_mob::Log::IsEnabled()
-{
-	return log_handle;
 }
 
 

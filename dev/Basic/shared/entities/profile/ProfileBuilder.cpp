@@ -148,7 +148,7 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
 			<<"\"" <<"agent" <<"\"" <<":" <<"\"" <<ag.getId() <<"\"" <<","
-			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<ag.currWorker <<"\"" <<",";
+			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<ag.currWorkerProvider <<"\"" <<",";
 	if (now) {
 		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame() <<"\"" <<",";
 	}

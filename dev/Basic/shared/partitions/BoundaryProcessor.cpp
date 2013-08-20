@@ -16,13 +16,11 @@
 
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
-#include "util/OutputUtil.hpp"
+#include "logging/Log.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/WorkGroup.hpp"
 
 #include "partitions/PartitionManager.hpp"
-
-#define BOUNDARY_BOX_SIZE 4
 
 namespace mpi = boost::mpi;
 

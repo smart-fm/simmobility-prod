@@ -5,13 +5,11 @@
 #pragma once
 
 #include <vector>
-#include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
 
 #include "util/OpaqueProperty.hpp"
-#include "Pavement.hpp"
-#include "Link.hpp"
+#include "geospatial/Pavement.hpp"
 
 
 namespace geo {
@@ -61,7 +59,7 @@ struct SupplyParams {
 };
 
 /**
- * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
+ * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *
  * \author Seth N. Hetu
  * \author Matthew Bremer Bruchon

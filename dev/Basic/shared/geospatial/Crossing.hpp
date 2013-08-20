@@ -5,23 +5,22 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
 
-#include "RoadItem.hpp"
-#include "Point2D.hpp"
-#include "geospatial/RoadSegment.hpp"
-namespace geo
-{
+#include "geospatial/RoadItem.hpp"
+#include "geospatial/Point2D.hpp"
+
+namespace geo {
 class crossing_t_pimpl;
-}
+} //End namespace geo
 
 namespace sim_mob
 {
-#ifndef SIMMOB_DISABLE_MPI
+class RoadSegment;
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 /**
  * A Crossing is a RoadItem that crosses one (or more) RoadSegment(s).
@@ -33,11 +32,10 @@ class UnPackageUtils;
  */
 class Crossing : public RoadItem {
 public:
-	Crossing() : RoadItem(), /*crossingID(0),*/ roadSegment(NULL) {}
-//	void setParentSegment(RoadSegment *rs) {setRoadSegment(rs);};//since the name of elements in various road items is not unigorm, a virtual function is added at RoadItem level for this purpose.
+	Crossing() : RoadItem() /*crossingID(0),*/ {}
 
-	RoadSegment* getRoadSegment() const { return roadSegment; };
-	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
+//	RoadSegment* getRoadSegment() const;
+//	void setRoadSegment(RoadSegment *rs);
 
 	//protected:
 	//The line (start/end points that make up the line) "near" the intersection
@@ -46,8 +44,7 @@ public:
 	//The line that is "far" from the intersection (further down the road)
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> farLine;
 //	unsigned int crossingID;
-private:
-	RoadSegment *roadSegment;
+
 public:
 	const unsigned int getCrossingID() const{return  getRoadItemID();}
 

@@ -86,6 +86,18 @@ public:
     	return current_;
     }
 
+    T& getRW() {
+    	if (strategy_==MtxStrat_Locked) {
+    		//NOTE: I'm not entirely sure if this will work or is even needed.
+    		//      Have to double-check mutex-locking in boost (but no-one uses locking
+    		//      right now anyway). ~Seth
+    		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+    		return current_;
+    	}
+    	return current_;
+    }
+
+
 	/**
 	 * Set the next value. Set the next value of the data type. This value will
 	 * only take effect when "flip" is called.

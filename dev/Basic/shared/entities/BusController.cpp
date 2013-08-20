@@ -1,10 +1,16 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusController.hpp"
 
 #include <stdexcept>
 
+#include "conf/simpleconf.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/misc/BusTrip.hpp"
+#include "geospatial/BusStop.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -43,9 +49,10 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 	}
 
 	//Initialize every item in the list.
+
 	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
-		(*it)->assignBusTripChainWithPerson(agents_list);
+		//(*it)->assignBusTripChainWithPerson(agents_list);
 	}
 
 
@@ -105,7 +112,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 
 		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
 			if(tripIt->startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
-				Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->personID);
+				Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->getPersonID());
 				currAg->setPersonCharacteristics();
 				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 
@@ -121,7 +128,47 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		}
 	}
 
-	all_children.clear();
+	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
+		(*it)->parentEntity = this;
+		all_children.push_back( (*it) );
+	}
+}
+
+void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents)
+{
+	ConfigParams& config = ConfigParams::GetInstance();
+	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
+	if(0 == buslines.size()) {
+		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
+	}
+
+	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
+		Busline* busline = buslinesIt->second;
+		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+
+		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
+			if(tripIt->startTime.isAfterEqual(ConfigParams::GetInstance().simStartTime)) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
+
+				unsigned int tripStartTime = tripIt->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+				if( tripStartTime>preTicks && tripStartTime<=curTicks)
+				{
+					Person* currAg = new Person("BusController", config.mutexStategy, -1, tripIt->getPersonID());
+					currAg->setStartTime(tripStartTime);
+
+					vector<TripChainItem*> currAgTripChain;
+					currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
+					currAg->setTripChain(currAgTripChain);
+					currAg->initTripChain();
+					Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<currAg->getStartTime()<<std::endl;
+
+					// scheduled for dispatch
+					active_agents.push_back(currAg);
+				}
+			}
+		}
+	}
+
 	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
 		(*it)->parentEntity = this;
 		all_children.push_back( (*it) );
@@ -134,6 +181,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	vector<const BusStop*> stops;
 	sim_mob::Busline* busline = nullptr;
 	int step = 0;
+	all_children.clear();
 	bool busstop_busline_registered=false;
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
@@ -514,7 +562,22 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
 	//      would stage the Bus as soon as it was 100% sure that this bus would run. (We can add functionality later for
 	//      updating a pending request). In other words, let the WorkGroup do what it does best. ~Seth
-	nextTimeTickToStage += tickStep;
+	unsigned int preTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (++nextTimeTickToStage)*ConfigParams::GetInstance().baseGranMS;
+
+	std::vector<Entity*> active_agents;
+	dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
+
+	for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
+		this->currWorkerProvider->scheduleForBred((*it));
+		//this->currWorker->scheduleForBred((*it));
+	}
+
+	handleDriverRequest();
+
+	return Entity::UpdateStatus::Continue;
+
+	/*nextTimeTickToStage += tickStep;
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigParams::GetInstance().baseGranMS;
 
 	//Stage any pending entities that will start during this time tick.
@@ -537,13 +600,13 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		Agent* child = pending_buses.top();
 		pending_buses.pop();
 		child->parentEntity = this;
-		currWorker->scheduleForBred(child);
+		currWorkerProvider->scheduleForBred(child);
 		all_children.push_back(child);
 	}
 
 	handleDriverRequest();
 
-	return Entity::UpdateStatus::Continue;
+	return Entity::UpdateStatus::Continue;*/
 }
 
 

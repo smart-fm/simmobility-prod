@@ -1,12 +1,12 @@
-/*
- * DriverFacets.cpp
- *
- *  Created on: Apr 1, 2013
- *      Author: melani
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusDriverFacets.hpp"
+
+#include "conf/simpleconf.hpp"
 #include "entities/Person.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
@@ -34,9 +34,6 @@ void sim_mob::medium::BusDriverBehavior::frame_tick_output(const UpdateParams& p
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
-void sim_mob::medium::BusDriverBehavior::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("BusDriverBehavior::frame_tick_output_mpi is not implemented yet");
-}
 
 sim_mob::medium::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
 	DriverMovement(parentAgent), parentBusDriver(nullptr) {}
@@ -67,14 +64,14 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p
 
 	std::stringstream logout;
 	logout << "(\"BusDriver\""
-			<<","<<parentAgent->getId()
+			<<","<<getParent()->getId()
 			<<","<<p.now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (parentAgent->getCurrSegment()->getSegmentID())
-			<<"\",\"Lane\":\""<<(parentAgent->getCurrLane()->getLaneID())
-			<<"\",\"UpNode\":\""<<(parentAgent->getCurrSegment()->getStart()->getID())
-			<<"\",\"DistanceToEndSeg\":\""<<parentAgent->distanceToEndOfSegment;
-	if (this->parentAgent->isQueuing) {
+			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegment()->getSegmentID())
+			<<"\",\"Lane\":\""<<(getParent()->getCurrLane()->getLaneID())
+			<<"\",\"UpNode\":\""<<(getParent()->getCurrSegment()->getStart()->getID())
+			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
+	if (this->getParent()->isQueuing) {
 			logout << "\",\"queuing\":\"" << "true";
 	} else {
 			logout << "\",\"queuing\":\"" << "false";
@@ -84,9 +81,6 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p
 	LogOut(logout.str());
 }
 
-void sim_mob::medium::BusDriverMovement::frame_tick_output_mpi(timeslice now) {
-	throw std::runtime_error("BusDriverMovement::frame_tick_output_mpi is not implemented yet");
-}
 
 void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
@@ -96,20 +90,20 @@ void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams
 sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool allocateVehicle)
 {
 	Vehicle* res = nullptr;
-	if ( !parentAgent) {
+	if ( !getParent()) {
 		Print()<<"Person of BusDriverMovement is null" << std::endl;
 		return nullptr;
 	}
 
 	//Only initialize if the next path has not been planned for yet.
-	if(!parentAgent->getNextPathPlanned()){
+	if(!getParent()->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		if( parentAgent->originNode.type_ != WayPoint::INVALID){
-			parentBusDriver->origin.node = parentAgent->originNode.node_;
+		if( getParent()->originNode.type_ != WayPoint::INVALID){
+			parentBusDriver->origin.node = getParent()->originNode.node_;
 			parentBusDriver->origin.point = parentBusDriver->origin.node->location;
 		}
-		if( parentAgent->destNode.type_ != WayPoint::INVALID ){
-			parentBusDriver->goal.node = parentAgent->destNode.node_;
+		if( getParent()->destNode.type_ != WayPoint::INVALID ){
+			parentBusDriver->goal.node = getParent()->destNode.node_;
 			parentBusDriver->goal.point = parentBusDriver->goal.node->location;
 		}
 
@@ -118,10 +112,10 @@ sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool alloca
 
 		vector<const RoadSegment*> pathRoadSeg;
 
-		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(parentAgent->currTripChainItem));
+		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
 		if (!bustrip)
 			Print()<< "bustrip is null"<<std::endl;
-		if (bustrip&& (*(parentAgent->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
+		if (bustrip&& (*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
 			pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
 			Print()<< "BusTrip path size = " << pathRoadSeg.size() << std::endl;
 			std::vector<const RoadSegment*>::iterator itor;
@@ -129,13 +123,13 @@ sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool alloca
 				path.push_back(WayPoint(*itor));
 			}
 		} else {
-			if ((*(parentAgent->currTripChainItem))->itemType== TripChainItem::IT_TRIP)
+			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_TRIP)
 				Print()<< TripChainItem::IT_TRIP << " IT_TRIP\n";
-			if ((*(parentAgent->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY)
+			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY)
 				Print()<< "IT_ACTIVITY\n";
-			if ((*(parentAgent->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP)
+			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP)
 				Print()<< "IT_BUSTRIP\n";
-			std::cout<< "BusTrip path not initialized coz it is not a bustrip, (*(parentAgent->currTripChainItem))->itemType = "<< (*(parentAgent->currTripChainItem))->itemType<< std::endl;
+			std::cout<< "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "<< (*(getParent()->currTripChainItem))->itemType<< std::endl;
 		}
 
 		//For now, empty paths aren't supported.
@@ -157,7 +151,7 @@ sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool alloca
 	}
 
 	//to indicate that the path to next activity is already planned
-	parentAgent->setNextPathPlanned(true);
+	getParent()->setNextPathPlanned(true);
 	return res;
 
 }

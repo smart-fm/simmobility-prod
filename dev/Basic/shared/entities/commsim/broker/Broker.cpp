@@ -105,7 +105,7 @@ boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> Broker:
 	return m_messageReceiveCallback;
 }
 
-void Broker::OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
+void Broker::OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
 //	Print() << "Agent " << args.GetAgent() << "  is dying" << std::endl;
 	unRegisterEntity(args.GetAgent());
 	//FUTURE when we have reentrant locks inside of Publisher.
@@ -369,7 +369,7 @@ void Broker::processPublishers(timeslice now) {
 	{
 		//easy reading
 		SIM_MOB_SERVICE service = publisher_pair.first;
-		sim_mob::EventPublisher & publisher = *publisher_pair.second;
+		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
 
 		switch (service) {
 		case sim_mob::SIMMOB_SRV_TIME: {
@@ -472,13 +472,13 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 	}
 	try {
 
-		if (!(info->getEntity().currWorker)) {
+		if (!(info->getEntity().currWorkerProvider)) {
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity().currWorker->getEntities();
+				info->getEntity().currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
@@ -508,12 +508,12 @@ void Broker::refineSubscriptionList() {
 	{
 		const sim_mob::Agent * target = (*it).first;
 		//you or your worker are probably dead already. you just don't know it
-		if (!target->currWorker)
+		if (!target->currWorkerProvider)
 			{
 				unRegisterEntity(target);
 				continue;
 			}
-		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorker)->getEntities();
+		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorkerProvider)->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{

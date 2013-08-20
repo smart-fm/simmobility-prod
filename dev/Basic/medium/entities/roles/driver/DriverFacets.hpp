@@ -1,9 +1,6 @@
-/*
- * DriverFacets.hpp
- *
- *  Created on: Apr 1, 2013
- *      Author: harish
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 #include "conf/settings/DisableMPI.h"
@@ -24,7 +21,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 
 	sim_mob::medium::Driver* getParentDriver() const {
 		return parentDriver;
@@ -48,7 +44,6 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(timeslice now);
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	void setParentData(DriverUpdateParams& p);			///<set next data to parent buffer data

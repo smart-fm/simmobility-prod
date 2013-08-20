@@ -12,7 +12,7 @@
 #include "EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::event;
 using boost::shared_mutex;
 using boost::shared_lock;
 using boost::upgrade_lock;

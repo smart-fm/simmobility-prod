@@ -1,12 +1,11 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include <vector>
-#include <algorithm>
-#include <cassert>
-
-#include <boost/utility.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace sim_mob
 {
@@ -42,9 +41,7 @@ class BufferedBase : private boost::noncopyable
 {
 protected:
 	BufferedBase() : refCount(0) {}
-    virtual ~BufferedBase() {
-    	assert(refCount==0);   //Error if refCount's not zero.
-    }
+    virtual ~BufferedBase();
 
     /**
      * Update the current data value with the old value. Makes no guarantees about

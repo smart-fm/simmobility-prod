@@ -12,8 +12,8 @@
 #include "event/LT_EventArgs.hpp"
 
 using namespace sim_mob::long_term;
+using namespace sim_mob::event;
 using sim_mob::Entity;
-using sim_mob::EventPublisher;
 using std::vector;
 
 HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {

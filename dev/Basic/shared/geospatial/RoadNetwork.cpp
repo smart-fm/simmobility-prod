@@ -4,12 +4,15 @@
 
 #include "RoadNetwork.hpp"
 
-#include "Node.hpp"
-#include "UniNode.hpp"
-#include "MultiNode.hpp"
-#include "Point2D.hpp"
-//#include "Conflux.hpp"
 #include <cmath>
+#include <stdexcept>
+
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "util/GeomHelpers.hpp"
 
 using std::set;
 using std::pair;
@@ -18,20 +21,7 @@ using namespace sim_mob;
 
 
 namespace {
-//Temporary
-int dist(const Point2D& p1, const Point2D& p2) {
-	double dx = p2.getX() - p1.getX();
-	double dy = p2.getY() - p1.getY();
-	double d2 = sqrt(dx*dx + dy*dy);
-	return (int)d2;
-}
 
-int dist(const Point2D& p1, double xPos, double yPos) {
-	double dx = xPos - p1.getX();
-	double dy = yPos - p1.getY();
-	double d2 = sqrt(dx*dx + dy*dy);
-	return (int)d2;
-}
 
 //Sort RoadSegments by ID
 struct RS_ID_Sorter {
@@ -78,7 +68,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	Node* candidate = nullptr;
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); (it!=nodes.end())&&(minDist!=0); it++) {
 //		std::cout << "Checking the node at [" << (*it)->location.getX() << " , " << (*it)->location.getY() << std::endl;
-		int newDist = dist((*it)->location, position);
+		int newDist = sim_mob::dist((*it)->location, position);
 		if (newDist < minDist) {
 			minDist = newDist;
 			candidate = *it;
@@ -88,7 +78,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	//Next, check the UniNodes, if the flag is set.
 	if (includeUniNodes) {
 		for (set<UniNode*>::const_iterator it=segmentnodes.begin(); (it!=segmentnodes.end())&&(minDist!=0); it++) {
-			int newDist = dist((*it)->location, position);
+			int newDist = sim_mob::dist((*it)->location, position);
 			if (newDist < minDist) {
 				minDist = newDist;
 				candidate = *it;
@@ -97,6 +87,55 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	}
 //	std::cout << candidate << std::endl;
 	return candidate;
+}
+
+std::vector<sim_mob::MultiNode*>& sim_mob::RoadNetwork::getNodes()
+{
+	return nodes;
+}
+const std::vector<sim_mob::MultiNode*>& sim_mob::RoadNetwork::getNodes() const
+{
+	return nodes;
+}
+std::set<sim_mob::UniNode*>& sim_mob::RoadNetwork::getUniNodes()
+{
+	return segmentnodes;
+}
+const std::set<sim_mob::UniNode*>& sim_mob::RoadNetwork::getUniNodes() const
+{
+	return segmentnodes;
+}
+
+std::vector<sim_mob::Link*>& sim_mob::RoadNetwork::getLinks()
+{
+	return links;
+}
+const std::vector<sim_mob::Link*>& sim_mob::RoadNetwork::getLinks() const
+{
+	return links;
+}
+
+void sim_mob::RoadNetwork::setLinks(const std::vector<sim_mob::Link*>& lnks)
+{
+	this->links = lnks;
+}
+
+void sim_mob::RoadNetwork::setSegmentNodes(const std::set<sim_mob::UniNode*>& sn)
+{
+	this->segmentnodes = sn;
+}
+
+void sim_mob::RoadNetwork::addNodes(const std::vector<sim_mob::MultiNode*>& vals)
+{
+	nodes.insert(nodes.begin(),vals.begin(),vals.end());
+}
+
+sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform() const
+{
+	if (coordinateMap.empty()) {
+		throw std::runtime_error("No coordinate transform: coordmap is empty.");
+	}
+	return coordinateMap.front();
 }
 
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const

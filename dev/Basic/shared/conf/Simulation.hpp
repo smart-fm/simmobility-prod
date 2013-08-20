@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -11,7 +13,6 @@
 #include "geospatial/Point2D.hpp"
 
 #include "conf/LoadAgents.hpp"
-#include "entities/roles/RoleFactory.hpp"
 
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
@@ -19,7 +20,9 @@
 namespace sim_mob {
 
 //Forward declarations
+class ReactionTimeDist;
 class Config;
+class Agent;
 
 
 /**

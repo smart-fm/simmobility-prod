@@ -1,5 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Loader.hpp"
 
@@ -8,25 +9,18 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
+
+//NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
+#include <soci.h>
+#include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
-#include "entities/AuraManager.hpp"
-//NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
-//      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
-//      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
-//      we might want to use something like pkg-config to manage header file directories
-//      eventually.
-#include "soci.h"
-#include "soci-postgresql.h"
 
-#include "logging/Log.hpp"
-
-#include "CrossingLoader.hpp"
-#include "LaneLoader.hpp"
-
+#include "conf/simpleconf.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "entities/AuraManager.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 
-#include "util/GeomHelpers.hpp"
-
+#include "entities/misc/BusTrip.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -40,15 +34,17 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/aimsun/CrossingLoader.hpp"
+#include "geospatial/aimsun/LaneLoader.hpp"
+#include "geospatial/aimsun/SOCI_Converters.hpp"
 
-#include "conf/simpleconf.hpp"
-
-#include "util/DynamicVector.hpp"
+#include "logging/Log.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/DynamicVector.hpp"
 #include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 
-#include "SOCI_Converters.hpp"
 //todo: almost all the following are already included in the above include-SOCI_Converters.hpp -->vahid
 #include "BusStop.hpp"
 #include "Node.hpp"
@@ -69,14 +65,12 @@
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/conflux/Conflux.hpp"
-
+#include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/BusStopAgent.hpp"
 
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
-#include "conf/simpleconf.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
@@ -883,7 +877,7 @@ void DatabaseLoader::PostProcessNetwork()
 
 sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	sim_mob::Activity* res = new sim_mob::Activity();
-	res->personID = tcItem.personID;
+	res->setPersonID(tcItem.personID);
 	res->itemType = tcItem.itemType;
 	res->sequenceNumber = tcItem.sequenceNumber;
 	res->description = tcItem.description;
@@ -901,7 +895,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
-	tripToSave->personID = tcItem.personID;
+	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
 	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
@@ -1047,7 +1041,7 @@ sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::s
 
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
-	aSubTripInTrip.personID = tcItem.personID;
+	aSubTripInTrip.setPersonID(tcItem.personID);
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
 	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
@@ -1310,18 +1304,20 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		}
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
+		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->setParentSegment(parentSeg);
+
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;
 
 		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
-		busstop->parentSegment_->addObstacle(distOrigin, busstop);
+		busstop->getParentSegment()->addObstacle(distOrigin, busstop);
 
 		(sim_mob::ConfigParams::GetInstance().getBusStopNo_BusStops())[busstop->busstopno_] = busstop;
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
 		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigParams::GetInstance().mutexStategy);
 //		if(100001500 == busstop->parentSegment_->getSegmentID())
 //		{
@@ -1994,7 +1990,7 @@ std::map<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Lo
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
+void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
 
@@ -2062,7 +2058,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_MapRW());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), ConfigParams::GetInstance().getPT_bus_stops(), ConfigParams::GetInstance().getBusStops_Map());
-	return "";
 }
 
 /*
@@ -2089,21 +2084,12 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-	//	debugMsgs << "\nProcessConfluxes\t Multinode: " << *i;
 		conflux = new sim_mob::Conflux(*i, mtxStrat);
 
-		//upsegCtr = 0;
-
-		//NOTE: This probably wasn't doing what you thought it was. ~Seth
-		//for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin(); segmt!=(*i)->roadSegmentsCircular.end();segmt++ ) {
 		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
 		if (segsAt!=roadSegmentsAt.end()) {
 			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
-
-
-			//	debugMsgs << "\nProcessConfluxes\t roadSegmentsCircular: " << (*segmt).first << "\t" << (*segmt).second;
 				sim_mob::Link* lnk = (*segmt)->getLink();
-			//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
 				std::vector<sim_mob::RoadSegment*> upSegs;
 				std::vector<sim_mob::RoadSegment*> downSegs;
 
@@ -2111,19 +2097,14 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				if(lnk->getEnd() == (*i))
 				{
 					//NOTE: There will *only* be upstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
 					upSegs = lnk->getSegments();
-					//downSegs = lnk->getRevSegments();
 					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-					//conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<sim_mob::Person*>()));
 				}
 				else if (lnk->getStart() == (*i))
 				{
 					//NOTE: There will *only* be downstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
-					//upSegs = lnk->getRevSegments();
 					downSegs = lnk->getSegments();
-					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
 
@@ -2136,7 +2117,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-						//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
@@ -2147,12 +2127,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 			} // for
 		}
-		conflux->prepareLengthsOfSegmentsAhead();
 		confluxes.insert(conflux);
-//		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
-//				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
-//	std::cout << debugMsgs.str();
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
@@ -2241,15 +2217,16 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 	 return bs1;
 }
 
-sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
+//Commenting out; this function doesn't return anything and is never used.
+/*sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 {
 	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
 	 int prev=0;
 	 for(int i=0;i<buslines.size();i++)
 	 {
-	  /*query through the busstops for each available busline at the busstop
-	  and see if it goes to the passengers destination.If more than one busline avaiable
-	  choose the busline with the shortest path*/
+	  //query through the busstops for each available busline at the busstop
+	  //and see if it goes to the passengers destination.If more than one busline avaiable
+	  //choose the busline with the shortest path
 
 	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
 
@@ -2283,7 +2260,7 @@ sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 		  noOfBusstops++;
 	  }
 	 }
-}
+}*/
 
 sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
 {

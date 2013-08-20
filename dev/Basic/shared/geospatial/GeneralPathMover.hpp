@@ -9,9 +9,9 @@
 
 #include "conf/settings/DisableMPI.h"
 
-#include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "metrics/Length.hpp"
+#include "util/DynamicVector.hpp"
 
 
 namespace sim_mob
@@ -20,6 +20,7 @@ namespace sim_mob
 //Forward declarations
 class RoadSegment;
 class Link;
+class Lane;
 
 class PackageUtils;
 class UnPackageUtils;
@@ -147,14 +148,7 @@ public:
 	//Movement along a single line
 	double distAlongPolyline;
 	double distAlongSegment; //for mid-term use
-	double currPolylineLength() const {
-		//TEMP: Just making sure.
-		if (isInIntersection()) {
-			return distAlongPolyline;
-		}
-		DynamicVector temp(currPolypoint->getX(), currPolypoint->getY(),nextPolypoint->getX(), nextPolypoint->getY());
-		return temp.getMagnitude();
-	}
+	double currPolylineLength() const;
 
 	//Counter
 	//NOTE: This is always the same regardless of what lane you're in. In other words,

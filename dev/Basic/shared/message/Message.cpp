@@ -9,17 +9,17 @@
 
 #include "Message.hpp"
 
-using namespace sim_mob;
+using namespace sim_mob::messaging;
 
-Message::Message() {
+sim_mob::messaging::Message::Message() {
 }
 
-Message::Message(const Message& source) {
+sim_mob::messaging::Message::Message(const sim_mob::messaging::Message& source) {
 }
 
-Message::~Message() {
+sim_mob::messaging::Message::~Message() {
 }
 
-Message& Message::operator=(const Message& source) {
+sim_mob::messaging::Message& sim_mob::messaging::Message::operator=(const sim_mob::messaging::Message& source) {
     return *this;
 }

@@ -7,7 +7,12 @@
  * Created on June 12, 2013, 4:59 PM
  */
 #pragma once
+
 #include <ctime>
+#include <vector>
+#include <list>
+#include <string>
+#include <utility>
 
 namespace sim_mob {
 
@@ -29,6 +34,23 @@ namespace sim_mob {
          * @return the generated value. 
          */
         static int GenerateInt(int min, int max);
+
+        /**
+         * Convert argc/argv into a vector of strings representing each argument.
+         */
+        static std::vector<std::string> ParseArgs(int argc, char* argv[]);
+
+        /**
+         *
+         */
+        static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
+
+        //Helper for computing differences. May be off by ~1ms
+        static int diff_ms(timeval t1, timeval t2);
+
+        //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
+        //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
+        static std::pair<double, double> parse_scale_minmax(const std::string& src);
     };
 
     /**

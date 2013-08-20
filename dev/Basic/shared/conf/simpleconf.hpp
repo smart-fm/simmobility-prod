@@ -1,5 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /**
  * \file simpleconf.hpp
@@ -21,30 +22,19 @@
 #include <map>
 #include <set>
 #include <string>
-#include <sstream>
-
-#include "geospatial/xmlWriter/xmlWriter.hpp"
-#include <boost/utility.hpp>
-
-#include "buffering/Shared.hpp"
-#include "util/DailyTime.hpp"
-#include "util/LangHelpers.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/RoadNetwork.hpp"
 
 #include "entities/AuraManager.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/roles/RoleFactory.hpp"
-#include "util/ReactionTimeDistributions.hpp"
-#include "util/PassengerDistribution.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/xmlWriter/xmlWriter.hpp"
+#include "util/ProtectedCopyable.hpp"
+#include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 
-#include "network/CommunicationDataManager.hpp"
-#include "network/CommunicationManager.hpp"
-#include "network/ControlManager.hpp"
-
+//Special case: Make sure Config.hpp compiles.
 #include "Config.hpp"
 
 
@@ -55,11 +45,16 @@ namespace sim_mob
 class Entity;
 class Agent;
 class Person;
-class BusController;// add by Yao Jin
+class BusController;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
 class BusSchedule;
+class TripChainItem;
+class ReactionTimeDist;
+class PassengerDist;
+class CommunicationDataManager;
+class ControlManager;
 
 
 /**
@@ -77,7 +72,7 @@ enum DAY_OF_WEEK {
 	SUNDAY
 };
 
-class ConfigParams : private boost::noncopyable {
+class ConfigParams : private sim_mob::ProtectedCopyable {
 
 public:
 	enum ClientType
@@ -86,6 +81,12 @@ public:
 		NS3_SIMULATOR = 2,
 		//add your client type here
 	};
+
+	enum NetworkSource {
+		NETSRC_XML,
+		NETSRC_DATABASE,
+	};
+
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
@@ -98,6 +99,15 @@ public:
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
 	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
+
+	bool singleThreaded; ///<If true, we are running everything on one thread.
+	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
+
+	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
+	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
+
+	///TEMP: Need to customize this later.
+	std::string outNetworkFileName;
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string roadNetworkXsdSchemaFile;
@@ -147,7 +157,7 @@ public:
 
 //TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
 //      be modified once set.
-//private:
+private:
 	//Is dynamic dispatch disabled?
 	bool dynamicDispatchDisabled;
 
@@ -157,8 +167,6 @@ public:
 
 	//When the simulation begins(based on configuration)
 	DailyTime simStartTime;
-	//when Simulation really begins
-	timeval realSimStartTime;
 
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
@@ -178,10 +186,18 @@ public:
 
 	bool TEMP_ManualFixDemoIntersection;
 
+	//TODO: Replace with the "sealed" version we use elsewhere.
+	void SetDynamicDispatchDisabled(bool val) {
+		dynamicDispatchDisabled = val;
+	}
+
 	///Synced to the value of disable_dynamic_dispatch in the config file; used for runtime checks.
 	bool DynamicDispatchDisabled() const {
 		return dynamicDispatchDisabled;
 	}
+
+	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
+	bool UsingConfluxes() const;
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
 	bool MPI_Disabled() const;
@@ -196,14 +212,7 @@ public:
 
 	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
 	/// with the GUI or console.
-	bool InteractiveMode() const {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		return true;
-#else
-		return false;
-#endif
-	}
-
+	bool InteractiveMode() const;
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
 	bool StrictAgentErrors() const;
@@ -224,12 +233,14 @@ public:
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
 	static ConfigParams& GetInstance() { return ConfigParams::instance; }
-	void reset()
-	{
-		sealedNetwork=false;
-		roleFact.clear();
-	}
+
+	///Reset this instance of the static ConfigParams instance.
+	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
+	void reset();
+
+
 	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
+
 
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
@@ -263,28 +274,11 @@ public:
 		sealedNetwork = true;
 	}
 
-	sim_mob::CommunicationDataManager&  getCommDataMgr() {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		return commDataMgr;
-#else
-		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-#endif
-	}
+	sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
 
-	sim_mob::ControlManager* getControlMgr() {
-#ifdef SIMMOB_INTERACTIVE_MODE
-		//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
-		if (!controlMgr) {
-			controlMgr = new ControlManager();
-		}
-		return controlMgr;
-#else
-		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-#endif
-	}
+	sim_mob::ControlManager* getControlMgr() const;
 
 	///Retrieve a reference to the list of trip chains.
-//	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
@@ -308,11 +302,12 @@ public:
 
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granAgentsTicks(0), granSignalsTicks(0),
-		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), day_of_week(MONDAY),
-		aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
+		granPathsTicks(0), granDecompTicks(0), agentWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
+		day_of_week(MONDAY), aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
+		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
+		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
+		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),
+		networkSource(NETSRC_XML)
 	{}
 
 	static ConfigParams instance;
@@ -322,8 +317,9 @@ private:
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
-	CommunicationDataManager commDataMgr;
-	ControlManager* controlMgr;
+	//Mutable because they are set when retrieved.
+	mutable CommunicationDataManager* commDataMgr;
+	mutable ControlManager* controlMgr;
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary

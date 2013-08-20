@@ -4,12 +4,14 @@
 
 #include "RoadSegment.hpp"
 
+#include <stdexcept>
+
 #include "conf/settings/DisableMPI.h"
 
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"
 
-#include "streetdir/StreetDirectory.hpp"
+#include "geospatial/Link.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 
@@ -21,11 +23,11 @@
 #include "Lane.hpp"
 #include "entities/conflux/Conflux.hpp"
 
-using namespace sim_mob;
-
 using std::pair;
 using std::vector;
 using std::set;
+
+using namespace sim_mob;
 
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {

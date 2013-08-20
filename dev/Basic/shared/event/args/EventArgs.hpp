@@ -10,16 +10,19 @@
 #pragma once
 
 namespace sim_mob {
+    
+    namespace event {
 
-    /**
-     * Represents an event data.
-     */
-    class EventArgs {
-    public:
-        EventArgs();
-        EventArgs(const EventArgs& source);
-        virtual ~EventArgs();
-        virtual EventArgs& operator=(const EventArgs& source);
-    };
+        /**
+         * Represents an event data.
+         */
+        class EventArgs {
+        public:
+            EventArgs();
+            EventArgs(const EventArgs& source);
+            virtual ~EventArgs();
+            virtual EventArgs& operator=(const EventArgs& source);
+        };
+    }
 }
 

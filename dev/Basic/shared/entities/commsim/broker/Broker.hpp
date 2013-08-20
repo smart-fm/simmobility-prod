@@ -4,6 +4,7 @@
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
+//#include "event/EventListener.hpp"
 
 //external libraries
 #include <boost/thread/condition_variable.hpp>
@@ -68,7 +69,7 @@ typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandl
 typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
 };
 
-class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>*/ , public EventListener//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent, public sim_mob::event::EventListener
 {
 private:
 	//Is this Broker currently enabled?
@@ -133,7 +134,7 @@ private:
 	//	checks to see every registered agent has completed its operations for the current tick or not
 	bool allAgentUpdatesDone();
 	//	handlers executed when an agent is going out of simulation(die)
-	void OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
+	void OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
 	//	publish various data the broker has subscibed to
 	void processPublishers(timeslice now);
 	//	sends a signal to clients(through send buffer) telling them broker is ready to receive their data for the current tick

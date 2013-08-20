@@ -1,10 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-/*
- * BusTrip.hpp
- *
- *  Created on: Sep 16, 2012
- *      Author: Yao Jin
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -12,11 +8,10 @@
 #include <map>
 #include <string>
 
-#include "TripChain.hpp"
-#include "buffering/Shared.hpp"
-#include "conf/simpleconf.hpp"
 
+#include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "entities/misc/TripChain.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -24,9 +19,16 @@
 #endif
 
 namespace sim_mob {
+
+/**
+ * \author Yao Jin
+ */
 class Busline;
 
 // offsetMS_From(ConfigParams::GetInstance().simStartTime)???
+/**
+ * \author Yao Jin
+ */
 class BusStop_ScheduledTimes{
 public:
 	explicit BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime);
@@ -36,6 +38,9 @@ public:
 	DailyTime scheduled_DepartureTime;
 };
 
+/**
+ * \author Yao Jin
+ */
 class BusStop_RealTimes{
 public:
 	explicit BusStop_RealTimes(DailyTime real_ArrivalTime = DailyTime("00:00:00"), DailyTime real_DepartureTime = DailyTime("00:00:00"));
@@ -47,6 +52,9 @@ public:
 	DailyTime real_DepartureTime;// real Departure Time
 };
 
+/**
+ * \author Yao Jin
+ */
 class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
 public:
 	BusRouteInfo(std::string busRoute_id="");
@@ -69,6 +77,9 @@ private:
 	std::vector<const BusStop*> busStop_vec;
 };
 
+/**
+ * \author Yao Jin
+ */
 class BusTrip: public sim_mob::Trip {// Can be inside the TripChain generation or BusLine stored in BusController
 public:
 	//Note: I am changing the default entID value to "-1", which *should* generate Agent IDs correctly.
@@ -123,6 +134,9 @@ enum CONTROL_TYPE {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
+/**
+ * \author Yao Jin
+ */
 class Frequency_Busline {
 public:
 	Frequency_Busline(DailyTime start_Time=DailyTime("00:00:00"), DailyTime end_Time=DailyTime("00:00:00"), int headway=0);
@@ -131,6 +145,9 @@ public:
 	int headway;// sec
 };
 
+/**
+ * \author Yao Jin
+ */
 class Busline { // busSchedule later inside PT_Schedule
 public:
 	Busline(std::string busline_id="", std::string controlType="no_control"); // default no control(only follow the schedule given)

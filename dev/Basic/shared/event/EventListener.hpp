@@ -14,52 +14,66 @@
 
 namespace sim_mob {
 
-    class EventPublisher;
-    typedef unsigned int EventId;
-    typedef void* Context;
-
-    /**
-     * Interface for all event listener implementation.
-     */
-    class EventListener {
-    public:
+    namespace event {
+        
+        typedef void* Context;
+        typedef unsigned int EventId;
+        class EventPublisher;
 
         /**
-         * Handles the received global event.
-         * @param sender pointer for the event producer.
-         * @param id event identifier.
-         * @param args event arguments.
+         * Interface for all event listener implementation.
          */
-        virtual void OnEvent(EventId id, EventPublisher* sender, const EventArgs& args) {
+        class EventListener {
+        public:
+
+            /**
+             * Handles the received global event.
+             * @param sender pointer for the event producer.
+             * @param id event identifier.
+             * @param args event arguments.
+             */
+            virtual void OnEvent(sim_mob::event::EventId id, 
+                                 sim_mob::event::EventPublisher* sender, 
+                                 const EventArgs& args) {
+            };
+
+            /**
+             * Handles the received context event.
+             * @param sender pointer for the event producer.
+             * @param id event identifier.
+             * @param args event arguments.
+             */
+            virtual void OnEvent(sim_mob::event::EventId id, 
+                                 sim_mob::event::Context ctxId, 
+                                 sim_mob::event::EventPublisher* sender, 
+                                 const EventArgs& args) {
+            };
+
+            /**
+             * Functions for calls.
+             */
+            typedef void (EventListener::*EventCallback)(
+                sim_mob::event::EventId id, 
+                sim_mob::event::EventPublisher* sender, 
+                const EventArgs& args);
+            typedef void (EventListener::*EventContextCallback)(
+                sim_mob::event::EventId id, 
+                sim_mob::event::Context ctxId, 
+                sim_mob::event::EventPublisher* sender, 
+                const sim_mob::event::EventArgs& args);
         };
-
-        /**
-         * Handles the received context event.
-         * @param sender pointer for the event producer.
-         * @param id event identifier.
-         * @param args event arguments.
-         */
-        virtual void OnEvent(EventId id, Context ctxId, EventPublisher* sender, const EventArgs& args) {
-        };
-
-        /**
-         * Functions for calls.
-         */
-        typedef void (EventListener::*EventCallback)(EventId id, EventPublisher* sender, const EventArgs& args);
-        typedef void (EventListener::*EventContextCallback)(EventId id, Context ctxId, EventPublisher* sender, const EventArgs& args);
-    };
-
-    /**
-     * Call this before you EventArgs implementation.
-     */
-#define DECLARE_CUSTOM_CALLBACK_TYPE(type) class type; \
-        typedef void (EventListener::*type##Callback)(EventId id, EventPublisher* sender, const type& args); \
-        typedef void (EventListener::*type##ContextCallback)(EventId id, Context ctxId, EventPublisher* sender, const type& args); 
-
-    /**
-     * Call to pass your handler to the Publisher.
-     * Example: Subscribe(evt3, sub3, CALLBACK_HANDLER(MyArgs, Subscriber::OnMyArgs));
-     */
-#define CALLBACK_HANDLER(type, func) (EventListener::EventCallback)(type##Callback) &func
-#define CONTEXT_CALLBACK_HANDLER(type, func) (EventListener::EventContextCallback)(type##ContextCallback) &func
+    }
 }
+/**
+ * Call this before you EventArgs implementation.
+ */
+#define DECLARE_CUSTOM_CALLBACK_TYPE(type) class type; \
+        typedef void (sim_mob::event::EventListener::*type##Callback)(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const type& args); \
+        typedef void (sim_mob::event::EventListener::*type##ContextCallback)(sim_mob::event::EventId id, sim_mob::event::Context ctxId, sim_mob::event::EventPublisher* sender, const type& args); 
+
+/**
+ * Call to pass your handler to the Publisher.
+ * Example: Subscribe(evt3, sub3, CALLBACK_HANDLER(MyArgs, Subscriber::OnMyArgs));
+ */
+#define CALLBACK_HANDLER(type, func) (sim_mob::event::EventListener::EventCallback)(type##Callback) &func
+#define CONTEXT_CALLBACK_HANDLER(type, func) (sim_mob::event::EventListener::EventContextCallback)(type##ContextCallback) &func

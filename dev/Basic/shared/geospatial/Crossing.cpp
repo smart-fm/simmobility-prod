@@ -5,13 +5,25 @@
 #include "Crossing.hpp"
 #include <boost/multi_index_container.hpp>
 
-#ifndef SIMMOB_DISABLE_MPI
 
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/GeomHelpers.hpp"
 
-namespace sim_mob {
+using namespace sim_mob;
 
-}
-#endif
+/*RoadSegment* sim_mob::Crossing::getRoadSegment() const
+{
+	return roadSegment;
+};
+
+
+void sim_mob::Crossing::setRoadSegment(RoadSegment *rs)
+{
+	//TODO: Evaluate why we can't set the RoadSegment to a null value.
+	if(rs) {
+		roadSegment = rs;
+	}
+}*/
+
+

@@ -1,24 +1,28 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Agent.hpp"
 
-#include "conf/settings/ProfileOptions.h"
-#include "conf/settings/DisableMPI.h"
-#include "conf/settings/StrictAgentErrors.h"
-
-#include "util/DebugFlags.hpp"
-#include "util/OutputUtil.hpp"
-#include "partitions/PartitionManager.hpp"
 #include <cstdlib>
 #include <cmath>
 
 #include "conf/simpleconf.hpp"
-
-#ifndef SIMMOB_DISABLE_MPI
+#include "conf/settings/ProfileOptions.h"
+#include "conf/settings/DisableMPI.h"
+#include "conf/settings/StrictAgentErrors.h"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#endif
+#include "workers/Worker.hpp"
+#include "util/LangHelpers.hpp"
+#include "util/DebugFlags.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -99,7 +103,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr), travelStatsMap(mtxStrat)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -124,15 +128,29 @@ void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
-namespace {
-//Ensure all time ticks are valid.
-void check_frame_times(unsigned int agentId, uint32_t now,
-		unsigned int startTime, bool wasFirstFrame, bool wasRemoved) {
+//long sim_mob::Agent::getLastUpdatedFrame() const {
+//	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
+//	return lastUpdatedFrame;
+//}
+
+long sim_mob::Agent::getLastUpdatedFrame() {
+	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
+	return lastUpdatedFrame;
+}
+
+void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
+	boost::mutex::scoped_lock lastUpdatedFrame_lock(lastUpdatedFrame_mutex);
+	this->lastUpdatedFrame = lastUpdatedFrame;
+}
+
+
+void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
+{
 	//Has update() been called early?
-	if (now < startTime) {
+	if (now<startTime) {
 		std::stringstream msg;
-		msg << "Agent(" << agentId << ") specifies a start time of: "
-				<< startTime << " but it is currently: " << now
+		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
+				<< " but it is currently: " << now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
@@ -140,27 +158,24 @@ void check_frame_times(unsigned int agentId, uint32_t now,
 	//Has update() been called too late?
 	if (wasRemoved) {
 		std::stringstream msg;
-		msg << "Agent(" << agentId
-				<< ") should have already been removed, but was instead updated at: "
-				<< now
+		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now - startTime) >= ConfigParams::GetInstance().baseGranMS) {
+		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
-			msg
-					<< "Agent was not started within one timespan of its requested start time.";
-			msg << "\nStart was: " << startTime << ",  Curr time is: " << now
-					<< "\n";
-			msg << "Agent ID: " << agentId << "\n";
+			msg <<"Agent was not started within one timespan of its requested start time.";
+			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
+			msg <<"Agent ID: " <<agentId <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 }
-} //End un-named namespace
+
+
 
 UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
@@ -179,8 +194,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	check_frame_times(getId(), now.ms(), getStartTime(), calledFrameInit,
-			isToBeRemoved());
+	CheckFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = frame_tick(now);
@@ -294,9 +308,16 @@ void sim_mob::Agent::initTravelStats(const Link* link, double entryTime) {
 	currTravelStats.linkEntryTime_ = entryTime;
 }
 
-void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime) {
-	travelStatsMap.insert(std::make_pair(exitTime, ts));
+void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
+	std::map<double, travelStats>& travelMap = travelStatsMap.getRW();
+	travelMap.insert(std::make_pair(exitTime, ts));
 }
+
+NullableOutputStream sim_mob::Agent::Log()
+{
+	return NullableOutputStream(currWorkerProvider->getLogFile());
+}
+
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent::getOwnRandomNumber() {
@@ -336,3 +357,6 @@ sim_mob::AgentLifeEventArgs::~AgentLifeEventArgs() {
 const Agent* sim_mob::AgentLifeEventArgs::GetAgent() const {
 	return agent;
 }
+
+
+

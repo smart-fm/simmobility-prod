@@ -33,7 +33,6 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/OutputUtil.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
@@ -180,7 +179,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator())
+	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator()),
+	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
+	,stop_event_nodeid(mtxStrat, -1)
 {
 //	if (Debug::Drivers) {
 //		DebugStream <<"Driver starting: ";
@@ -230,9 +231,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 
 Role* sim_mob::Driver::clone(Person* parent) const
 {
-//	Role* role = 0;
-//	role = new Driver(parent, parent->getMutexStrategy());
-//	return role;
 	DriverBehavior* behavior = new DriverBehavior(parent);
 	DriverMovement* movement = new DriverMovement(parent);
 	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
@@ -243,205 +241,7 @@ Role* sim_mob::Driver::clone(Person* parent) const
 
 
 
-//void sim_mob::Driver::frame_init(UpdateParams& p)
-//{
-//<<<<<<< HEAD
-//	//Save the path from orign to next activity location in allRoadSegments
-//	Vehicle* newVeh = initializePath(true);
-//	if (newVeh) {
-//		safe_delete_item(vehicle);
-//		vehicle = newVeh;
-//	}
-//
-//	//Set some properties about the current path, such as the current polyline, etc.
-//	if (vehicle && vehicle->hasPath()) {
-//		setOrigin(params);
-//	} else {
-//		LogOut("ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl);
-//	}
-//=======
-//	//Save the path from orign to next activity location in allRoadSegments
-//	Vehicle* newVeh = initializePath(true);
-//	if (newVeh) {
-//		safe_delete_item(vehicle);
-//		vehicle = newVeh;
-//	}
-//
-//	//Set some properties about the current path, such as the current polyline, etc.
-//	if (vehicle && vehicle->hasPath()) {
-//		setOrigin(params);
-//	} else {
-//		Warn() <<"ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl;
-//	}
-//>>>>>>> master
-//}
 
-//Main update functionality
-//void sim_mob::Driver::frame_tick(UpdateParams& p)
-//{
-//
-//	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
-//	// lost some params
-//	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
-//
-//	if(!vehicle)
-//		throw std::runtime_error("Something wrong, Vehicle is NULL");
-//	//Are we done already?
-//	if (vehicle->isDone()) {
-//		parent->setToBeRemoved();
-//		return;
-//	}
-//
-//	//Just a bit glitchy...
-//	updateAdjacentLanes(p2);
-//
-//	//Update "current" time
-//	perceivedFwdVel->update(params.now.ms());
-//	perceivedFwdAcc->update(params.now.ms());
-//	perceivedDistToFwdCar->update(params.now.ms());
-//	perceivedVelOfFwdCar->update(params.now.ms());
-//	perceivedAccOfFwdCar->update(params.now.ms());
-//	perceivedTrafficColor->update(params.now.ms());
-//	perceivedDistToTrafficSignal->update(params.now.ms());
-//
-//	//retrieved their current "sensed" values.
-//	if (perceivedFwdVel->can_sense()) {
-//		p2.perceivedFwdVelocity = perceivedFwdVel->sense();
-//	}
-//	else
-//		p2.perceivedFwdVelocity = vehicle->getVelocity();
-//
-//	//General update behavior.
-//	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
-//	if (p2.currLane && vehicle) {
-//
-//		if (update_sensors(p2, p.now) && update_movement(p2, p.now) && update_post_movement(p2, p.now)) {
-//
-//			//Update parent data. Only works if we're not "done" for a bad reason.
-//			setParentBufferedData();
-//		}
-//	}
-//
-//
-//	//Update our Buffered types
-//	//TODO: Update parent buffered properties, or perhaps delegate this.
-//	if (!vehicle->isInIntersection()) {
-//		currLane_.set(vehicle->getCurrLane());
-//		currLaneOffset_.set(vehicle->getDistanceMovedInSegment());
-//		currLaneLength_.set(vehicle->getCurrLinkLaneZeroLength());
-//	}
-//
-//	isInIntersection.set(vehicle->isInIntersection());
-//	latMovement.set(vehicle->getLateralMovement());
-//	fwdVelocity.set(vehicle->getVelocity());
-//	latVelocity.set(vehicle->getLatVelocity());
-//	fwdAccel.set(vehicle->getAcceleration());
-//	turningDirection.set(vehicle->getTurningDirection());
-//	//Update your perceptions
-//	perceivedFwdVel->delay(vehicle->getVelocity());
-//	perceivedFwdAcc->delay(vehicle->getAcceleration());
-//
-//	//Print output for this frame.
-//	disToFwdVehicleLastFrame = p2.nvFwd.distance;
-//}
-
-//void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
-//{
-//<<<<<<< HEAD
-//	//Skip?
-//	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
-//		return;
-//	}
-//
-//	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
-//
-//	//Inform the GUI if interactive mode is active.
-//	if (ConfigParams::GetInstance().InteractiveMode()) {
-//		std::ostringstream stream;
-//		stream<<"DriverSegment"
-//				<<","<<p.now.frame()
-//				<<","<<vehicle->getCurrSegment()
-//				<<","<<vehicle->getCurrentSegmentLength()/100.0;
-//		std::string s=stream.str();
-//		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
-//	}
-//
-//	LogOut("(\"Driver\""
-//			<<","<<p.now.frame()
-//			<<","<<parent->getId()
-//			<<",{"
-//			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
-//			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-//			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-//			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
-//			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
-//			<<"\"})"<<std::endl);
-//=======
-//	//Skip?
-//	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI) {
-//		return;
-//	}
-//
-//	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
-//
-//	//Inform the GUI if interactive mode is active.
-//	if (ConfigParams::GetInstance().InteractiveMode()) {
-//		std::ostringstream stream;
-//		stream<<"DriverSegment"
-//				<<","<<p.now.frame()
-//				<<","<<vehicle->getCurrSegment()
-//				<<","<<vehicle->getCurrentSegmentLength()/100.0;
-//		std::string s=stream.str();
-//		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
-//	}
-//
-//	const bool inLane = vehicle && (!vehicle->isInIntersection());
-//
-//	LogOut("(\"Driver\""
-//			<<","<<p.now.frame()
-//			<<","<<parent->getId()
-//			<<",{"
-//			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
-//			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-//			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-//			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
-//			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
-//			<<"\",\"curr-segment\":\""<<(inLane?vehicle->getCurrLane()->getRoadSegment():0x0)
-//			<<"\",\"fwd-speed\":\""<<vehicle->getVelocity()
-//			<<"\",\"fwd-accel\":\""<<vehicle->getAcceleration()
-//			<<"\"})"<<std::endl);
-//>>>>>>> master
-//}
-
-//void sim_mob::Driver::frame_tick_output_mpi(timeslice now)
-//{
-//	if (now.frame() < parent->getStartTime())
-//		return;
-//
-//	if (vehicle->isDone())
-//		return;
-//
-//	if (ConfigParams::GetInstance().OutputEnabled()) {
-//		double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
-//		std::stringstream logout;
-//
-//		logout << "(\"Driver\"" << "," << now.frame() << "," << parent->getId() << ",{" << "\"xPos\":\""
-//				<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
-//				<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
-//				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-//				<< static_cast<int> (vehicle->length) << "\",\"width\":\"" << static_cast<int> (vehicle->width);
-//
-//		if (this->parent->isFake) {
-//			logout << "\",\"fake\":\"" << "true";
-//		} else {
-//			logout << "\",\"fake\":\"" << "false";
-//		}
-//
-//		logout << "\"})" << std::endl;
-//
-//		LogOut(logout.str());
-//	}
-//}
 
 sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(timeslice now)
 {
@@ -454,11 +254,6 @@ sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(timeslice now)
 ///  If you want to remove its registered properties from the Worker (which you should do!) then
 ///  this should occur elsewhere.
 sim_mob::Driver::~Driver() {
-//	//Our movement models.
-//	safe_delete_item(lcModel);
-//	safe_delete_item(cfModel);
-//	safe_delete_item(intModel);
-//
 //	//Our vehicle
 	safe_delete_item(vehicle);
 }
@@ -475,6 +270,26 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(latVelocity));
 	res.push_back(&(fwdAccel));
 	res.push_back(&(turningDirection));
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
+	return res;
+}
+
+std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
+{
+	vector<BufferedBase*> res;
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
 	return res;
 }
 

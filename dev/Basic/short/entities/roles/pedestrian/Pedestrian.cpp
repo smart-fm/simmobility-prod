@@ -10,12 +10,13 @@
  */
 
 #include "Pedestrian.hpp"
+
 #include "entities/Person.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
+
 #include "geospatial/Node.hpp"
-#include "util/OutputUtil.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -25,9 +26,11 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
-#include "entities/signal/Signal.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/Log.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/GeomHelpers.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -288,24 +291,15 @@ void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
+	//MPI-specific output.
+	std::stringstream addLine;
 	if (ConfigParams::GetInstance().using_MPI) {
-		return;
+		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 	}
 
-	LogOut("("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+	LogOut("("<<"\"pedestrian\","<<p.now.frame() <<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
 }
 
-void sim_mob::Pedestrian::frame_tick_output_mpi(timeslice now)
-{
-	if (now.frame() < 1 || now.frame() < parent->getStartTime())
-		return;
-
-	if (this->parent->isFake) {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
-	} else {
-		LogOut("("<<"\"pedestrian\","<<now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
-	}
-}
 
 /*---------------------Perception-related functions----------------------*/
 

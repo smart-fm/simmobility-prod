@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -9,10 +11,6 @@
 #include "entities/Person.hpp"
 
 namespace sim_mob {
-
-struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
-};
 
 class LaneParams {
 	friend class LaneStats;
@@ -68,9 +66,6 @@ public:
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
-
-	//Sort all agents in lane (based on remaining time this tick)
-	void sortPersons_DecreasingRemTime();
 
 	// This function prints all agents in laneAgents
 	void printAgents(bool copy = false);
@@ -156,11 +151,11 @@ public:
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
-	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
+	std::deque<Person*> getAgents();
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
@@ -185,14 +180,15 @@ public:
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
 	void updateLaneParams(timeslice frameNumber);
-	void reportSegmentStats(timeslice frameNumber);
+
+	std::string reportSegmentStats(timeslice frameNumber);
+
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
 	double getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
-	void sortPersons_DecreasingRemTime(const Lane* l);
 	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment
@@ -205,7 +201,7 @@ public:
 	 * and moving/queuing status is still unknown for agents in laneInfinity. The frame_init function of the agent's role will have
 	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 *
-	 * Agents who are performing an activity are stashed in laneInfinity.
+	 * Agents who are performing an activity are also stashed in laneInfinity. TODO: Double check this
 	 */
 	const sim_mob::Lane* laneInfinity;
 

@@ -59,10 +59,10 @@ class ControlManager;
 
 /**
  * Temporary configuration pConfigParamsarser. Operates as a singleton. Contains all basic
- * configuation parameters.
+ * configuration parameters.
  */
 
-enum DAY_OF_WEEK {
+/*enum DAY_OF_WEEK {
 	MONDAY,
 	TUESDAY,
 	WEDNESDAY,
@@ -70,9 +70,44 @@ enum DAY_OF_WEEK {
 	FRIDAY,
 	SATURDAY,
 	SUNDAY
+};*/
+
+
+/**
+ * Class containing CMake-defined parameters.
+ */
+class CMakeConfigParams : private sim_mob::ProtectedCopyable {
+public:
+	//@{
+	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
+	bool MPI_Enabled() const;
+	bool MPI_Disabled() const;
+	//@}
+
+	//@{
+	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
+	bool OutputEnabled() const;
+	bool OutputDisabled() const;
+	//@}
+
+	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
+	bool StrictAgentErrors() const;
+
+	///Synced to the value of SIMMOB_PROFILE_ON; used for runtime checks.
+	bool ProfileOn() const;
+
+	///Synced to the value of SIMMOB_PROFILE_AGENT_UPDATES; used for runtime checks.
+	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
+	bool ProfileAgentUpdates(bool accountForOnFlag=true) const;
+
+	///Synced to the value of SIMMOB_PROFILE_WORKER_UPDATES; used for runtime checks.
+	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
+	bool ProfileWorkerUpdates(bool accountForOnFlag=true) const;
+
 };
 
-class ConfigParams : private sim_mob::ProtectedCopyable {
+
+class ConfigParams : public CMakeConfigParams {
 
 public:
 	enum ClientType
@@ -111,7 +146,7 @@ public:
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string roadNetworkXsdSchemaFile;
 
-	DAY_OF_WEEK day_of_week;
+	//DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.
 	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
@@ -198,33 +233,33 @@ public:
 	bool UsingConfluxes() const;
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
-	bool MPI_Disabled() const;
+	//bool MPI_Disabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool OutputDisabled() const;
+	/*bool OutputDisabled() const;
 
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const {
 		return !OutputDisabled();
-	}
+	}*/
 
 	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
 	/// with the GUI or console.
 	bool InteractiveMode() const;
 
 	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
-	bool StrictAgentErrors() const;
+	//bool StrictAgentErrors() const;
 
 	///Synced to the value of SIMMOB_PROFILE_ON; used for runtime checks.
-	bool ProfileOn() const ;
+	//bool ProfileOn() const ;
 
 	///Synced to the value of SIMMOB_PROFILE_AGENT_UPDATES; used for runtime checks.
 	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	bool ProfileAgentUpdates(bool accountForOnFlag=true) const ;
+	//bool ProfileAgentUpdates(bool accountForOnFlag=true) const ;
 
 	///Synced to the value of SIMMOB_PROFILE_WORKER_UPDATES; used for runtime checks.
 	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	bool ProfileWorkerUpdates(bool accountForOnFlag=true) const ;
+	//bool ProfileWorkerUpdates(bool accountForOnFlag=true) const ;
 
 public:
 	/***
@@ -302,7 +337,7 @@ public:
 private:
 	ConfigParams() : baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
 		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
-		day_of_week(MONDAY), aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
+		/*day_of_week(MONDAY),*/ aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		dynamicDispatchDisabled(false), signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
 		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),

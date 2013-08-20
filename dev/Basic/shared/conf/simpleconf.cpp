@@ -1471,6 +1471,77 @@ sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 //////////////////////////////////////////
 
 
+
+bool sim_mob::CMakeConfigParams::MPI_Enabled() const
+{
+	return !MPI_Disabled();
+}
+bool sim_mob::CMakeConfigParams::MPI_Disabled() const
+{
+#ifdef SIMMOB_DISABLE_MPI
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfigParams::OutputEnabled() const
+{
+	return !OutputDisabled();
+}
+bool sim_mob::CMakeConfigParams::OutputDisabled() const
+{
+#ifdef SIMMOB_DISABLE_OUTPUT
+	return true;
+#else
+	return false;
+#endif
+}
+
+
+bool sim_mob::CMakeConfigParams::StrictAgentErrors() const
+{
+#ifdef SIMMOB_STRICT_AGENT_ERRORS
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfigParams::ProfileOn() const
+{
+#ifdef SIMMOB_PROFILE_ON
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_AGENT_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool sim_mob::CMakeConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_WORKER_UPDATES
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
+
 bool sim_mob::ConfigParams::UsingConfluxes() const
 {
 #ifdef SIMMOB_USE_CONFLUXES
@@ -1481,24 +1552,24 @@ bool sim_mob::ConfigParams::UsingConfluxes() const
 }
 
 
-bool sim_mob::ConfigParams::MPI_Disabled() const
+/*bool sim_mob::ConfigParams::MPI_Disabled() const
 {
 #ifdef SIMMOB_DISABLE_MPI
 	return true;
 #else
 	return false;
 #endif
-}
+}*/
 
 
-bool sim_mob::ConfigParams::OutputDisabled() const
+/*bool sim_mob::ConfigParams::OutputDisabled() const
 {
 #ifdef SIMMOB_DISABLE_OUTPUT
 	return true;
 #else
 	return false;
 #endif
-}
+}*/
 
 bool sim_mob::ConfigParams::InteractiveMode() const
 {
@@ -1509,25 +1580,25 @@ bool sim_mob::ConfigParams::InteractiveMode() const
 #endif
 }
 
-bool sim_mob::ConfigParams::StrictAgentErrors() const
+/*bool sim_mob::ConfigParams::StrictAgentErrors() const
 {
 #ifdef SIMMOB_STRICT_AGENT_ERRORS
 	return true;
 #else
 	return false;
 #endif
-}
+}*/
 
-bool sim_mob::ConfigParams::ProfileOn() const
+/*bool sim_mob::ConfigParams::ProfileOn() const
 {
 #ifdef SIMMOB_PROFILE_ON
 	return true;
 #else
 	return false;
 #endif
-}
+}*/
 
-bool sim_mob::ConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
+/*bool sim_mob::ConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
 {
 
 #ifdef SIMMOB_PROFILE_AGENT_UPDATES
@@ -1550,7 +1621,7 @@ bool sim_mob::ConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
 #else
 	return false;
 #endif
-}
+}*/
 
 
 //////////////////////////////////////////

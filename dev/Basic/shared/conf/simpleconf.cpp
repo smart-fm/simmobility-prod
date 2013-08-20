@@ -255,8 +255,25 @@ bool isAndroidClientEnabled(TiXmlHandle& handle)
 {
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
 	ConfigParams::GetInstance().androidClientEnabled = false;
+	if(!node->Attribute("type"))
+	{
+		int i = 0;
+	}
+	else
+	{
+		int i = 0;
+	}
 	std::string androidYesNo = std::string(node->Attribute("enabled"));
 	if (androidYesNo == "yes") {
+		if(!node->Attribute("type"))
+		{
+			int i = 0;
+		}
+		else
+		{
+			int i = 0;
+		}
+		ConfigParams::GetInstance().androidClientType = std::string(node->Attribute("type"));
 		return true;
 	}
 	return false;
@@ -1356,10 +1373,14 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			//createCommunicator();
 		}
 	}
-
+	ConfigParams::GetInstance().androidClientType = "";
 	if(commSimYesNo == "yes")
 	{
-		ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle);
+		if((ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle)) == true)
+		{
+//			TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
+//			ConfigParams::GetInstance().androidClientType = std::string(node->Attribute("type"));
+		}
 	}
 
 

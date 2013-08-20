@@ -152,6 +152,7 @@ public:
 	//Is our communication simulator enabled?
 	bool commSimEnabled;
 	bool androidClientEnabled;
+	std::string androidClientType; //android-only and android-ns3
 	// temporary maps
 	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 

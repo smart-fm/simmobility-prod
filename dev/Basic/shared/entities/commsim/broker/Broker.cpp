@@ -38,31 +38,92 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
 : Agent(mtxStrat, id), EventListener()
-,enabled(true)
+,enabled(true), configured(false)
 {
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
 	 brokerCanTickForward = false;
 	 m_messageReceiveCallback = boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)>
 	 	(boost::bind(&Broker::messageReceiveCallback,this, _1, _2));
-//int i;
-	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
-	 //publishers
-	 publishers.insert( std::make_pair(SIMMOB_SRV_LOCATION, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
-	 publishers.insert( std::make_pair(SIMMOB_SRV_ALL_LOCATIONS, boost::shared_ptr<sim_mob::Publisher>(new sim_mob::LocationPublisher()) ));
-	 publishers.insert(std::make_pair(SIMMOB_SRV_TIME, boost::shared_ptr<sim_mob::Publisher> (new sim_mob::TimePublisher())));
-	 //current message factory
-	 //todo: choose a factory based on configurations not hardcoding
-	 boost::shared_ptr<sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > android_factory(new sim_mob::rr_android_ns3::RR_Android_Factory() );
-	 //note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-	 messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory) );
-	 messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, android_factory) );//todo: change this to ns3
 
-	 // wait for connection criteria for this broker
-	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,  boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this, 1))));
-	 waitForClientConnectionList.insert(std::make_pair(ConfigParams::NS3_SIMULATOR,  boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this, 1))));
+
 }
 
+void Broker::configure() {
+	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
+	 if(ConfigParams::GetInstance().androidClientType == "android-ns3")
+	 {
+		//publishers
+		publishers.insert(
+				std::make_pair(SIMMOB_SRV_LOCATION,
+						boost::shared_ptr<sim_mob::Publisher>(
+								new sim_mob::LocationPublisher())));
+		publishers.insert(
+				std::make_pair(SIMMOB_SRV_ALL_LOCATIONS,
+						boost::shared_ptr<sim_mob::Publisher>(
+								new sim_mob::LocationPublisher())));
+		publishers.insert(
+				std::make_pair(SIMMOB_SRV_TIME,
+						boost::shared_ptr<sim_mob::Publisher>(
+								new sim_mob::TimePublisher())));
+		//current message factory
+		//todo: choose a factory based on configurations not hardcoding
+		boost::shared_ptr<
+				sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > android_factory(
+				new sim_mob::rr_android_ns3::RR_Android_Factory());
+		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
+		messageFactories.insert(
+				std::make_pair(ConfigParams::ANDROID_EMULATOR,
+						android_factory));
+		messageFactories.insert(
+				std::make_pair(ConfigParams::NS3_SIMULATOR, android_factory));//todo: change this to ns3
+
+		// wait for connection criteria for this broker
+		waitForClientConnectionList.insert(
+				std::make_pair(ConfigParams::ANDROID_EMULATOR,
+						boost::shared_ptr<WaitForAndroidConnection>(
+								new WaitForAndroidConnection(*this, 1))));
+		waitForClientConnectionList.insert(
+				std::make_pair(ConfigParams::NS3_SIMULATOR,
+						boost::shared_ptr<WaitForNS3Connection>(
+								new WaitForNS3Connection(*this, 1))));
+	 }
+	 else
+		 if(ConfigParams::GetInstance().androidClientType == "android-only") {
+				//publishers
+				publishers.insert(
+						std::make_pair(SIMMOB_SRV_LOCATION,
+								boost::shared_ptr<sim_mob::Publisher>(
+										new sim_mob::LocationPublisher())));
+				publishers.insert(
+						std::make_pair(SIMMOB_SRV_ALL_LOCATIONS,
+								boost::shared_ptr<sim_mob::Publisher>(
+										new sim_mob::LocationPublisher())));
+				publishers.insert(
+						std::make_pair(SIMMOB_SRV_TIME,
+								boost::shared_ptr<sim_mob::Publisher>(
+										new sim_mob::TimePublisher())));
+				//current message factory
+				//todo: choose a factory based on configurations not hardcoding
+				boost::shared_ptr<
+						sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > android_factory(
+						new sim_mob::roadrunner::RR_Factory());
+				//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
+				messageFactories.insert(
+						std::make_pair(ConfigParams::ANDROID_EMULATOR,
+								android_factory));
+
+				// wait for connection criteria for this broker
+				waitForClientConnectionList.insert(
+						std::make_pair(ConfigParams::ANDROID_EMULATOR,
+								boost::shared_ptr<WaitForAndroidConnection>(
+										new WaitForAndroidConnection(*this, 1))));
+
+		 }
+	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().androidClientType << "]"
+			 <<" waitForClientConnectionList.size()=" << waitForClientConnectionList.size() << std::endl;
+	 configured = true;
+}
 
 Broker::~Broker()
 {
@@ -165,6 +226,7 @@ void Broker::insertClientList(std::string clientID, unsigned int clientType, boo
 void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
 {
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
+	Print() << "Inserting into clientRegistrationWaitingList" << std::endl;
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
@@ -218,6 +280,7 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 //	}
 
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
+	Print() << "Broker::registerEntity [" << registeredAgents.size() << "]" << std::endl;
 	value->registrationCallBack(true);
 	const_cast<Agent&>(value->getEntity()).Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
 			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
@@ -537,7 +600,7 @@ bool Broker::subscriptionsQualify() const
 		WarnOut("subscriptionsQualify is not qualified");
 //		Print() << "subscriptionsQualify is not qualified" << std::endl;
 	}
-//	Print() << "subscriptionsQualify is qualified" << std::endl;
+	Print() << "subscriptionsQualify is qualified" << std::endl;
 	return res;
 }
 //todo:  put a better condition here. this is just a placeholder
@@ -548,6 +611,7 @@ bool Broker::clientsQualify() const
 
 //returns true if you need to wait
 bool Broker::isWaitingForAnyClientConnection() {
+//	Print() << "inside isWaitingForAnyClientConnection " << waitForClientConnectionList.size() << std::endl;
 	WaitForClientConnections::IdPair pp;
 	int i = -1;
 	BOOST_FOREACH(pp, waitForClientConnectionList) {
@@ -557,7 +621,7 @@ bool Broker::isWaitingForAnyClientConnection() {
 			return true;
 		}
 	}
-//	Print() << i << " isWaitingForAnyClientConnection : Dont wait" << std::endl;
+	Print() << i << " isWaitingForAnyClientConnection : Dont wait" << std::endl;
 	return false;
 }
 
@@ -567,8 +631,13 @@ bool Broker::waitForClientsConnection()
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
-	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
-//	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << brokerCanTickForward << std::endl;
+	bool res1 = subscriptionsQualify() ;
+	bool res2 = isWaitingForAnyClientConnection();
+	bool res3 = res1 && !res2;
+	bool res = brokerCanTickForward || res3;
+	brokerCanTickForward = res;
+//	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
+	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
 	}
 
 	/**if:
@@ -585,9 +654,18 @@ bool Broker::waitForClientsConnection()
 		Print() << ++i << " brokerCanTickForward->WAITING" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		COND_VAR_CLIENT_REQUEST.wait(lock);
-//		Print() << "brokerCanTickForward-> NOT WAITING" << std::endl;
+		Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
 		processClientRegistrationRequests();
-		brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
+//		brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
+
+		bool res1 = subscriptionsQualify() ;
+		bool res2 = isWaitingForAnyClientConnection();
+		bool res3 = res1 && !res2;
+		bool res = brokerCanTickForward || res3;
+		brokerCanTickForward = res;
+	//	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
+		Print() << "Broker::waitForClientsConnection()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
+
 	}
 
 
@@ -672,6 +750,10 @@ Entity::UpdateStatus Broker::update(timeslice now)
 //	Print() << "=====================Broker tick:"<< now.frame() << "=======================================" << std::endl;
 	//step-1 : open the door to ouside world
 	if(now.frame() == 0) {
+		if(!configured)
+		{
+			configure();
+		}
 		connection->start();
 	}
 //	Print() << "=====================ConnectionStarted =======================================" << std::endl;
@@ -680,6 +762,7 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//Block the simulation here(if you have to)
 //	if(now.frame() == 0) {
 		waitForClientsConnection();
+		Print() << "Broker NOT Blocking" << std::endl;
 //	}
 //	Print() << "===================== waitForClientsConnection Done =======================================" << std::endl;
 //	if (!waitForClientsConnection()) {

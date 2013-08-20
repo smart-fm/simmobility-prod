@@ -147,7 +147,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
-		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
+		//TODO: Check with Vahid if this is likely to cause problems. ~Seth ... except Yaojin :) -Vahid
 		if (ConfigParams::GetInstance().commSimEnabled) {
 			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
 		} else {

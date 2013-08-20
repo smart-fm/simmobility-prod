@@ -20,6 +20,7 @@ AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType 
 
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
 {
+	Print() << "AndroidClientRegistration::handle" << std::endl;
 	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
@@ -27,6 +28,11 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 			|| usedAgents.size() == broker.getRegisteredAgents().size()
 			)
 	{
+		Print() << "AndroidClientRegistration::handle initial failure, returning false" <<
+				broker.getClientWaitingList().empty() <<
+				broker.getRegisteredAgents().empty() <<
+				broker.getRegisteredAgents().size()
+				<< std::endl;
 		return false;
 	}
 
@@ -45,6 +51,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	if(freeAgent == it_end)
 	{
 		//you couldn't find a free function
+		Print() << "AndroidClientRegistration::handle couldn't find a free agent, returning false" << std::endl;
 		return false;
 	}
 
@@ -95,6 +102,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
+		Print() << "AndroidClientRegistration::handle returning true" << std::endl;
 		return true;
 }
 AndroidClientRegistration::~AndroidClientRegistration() {

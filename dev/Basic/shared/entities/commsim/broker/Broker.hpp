@@ -74,6 +74,7 @@ class Broker  : public sim_mob::Agent, public sim_mob::event::EventListener
 private:
 	//Is this Broker currently enabled?
 	bool enabled;
+	bool configured;
 	//	list of the registered agents and their corresponding communication equipment
 	AgentsMap<std::string>::type registeredAgents;
 	//	waiting list for external clients willing to communication with simmobility
@@ -147,6 +148,8 @@ private:
 public:
 	//constructor and destructor
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
+	//	configure publisher, message handlers and waiting criteria...
+	void configure();
 	~Broker();
 	//	enable broker
 	void enable();

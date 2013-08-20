@@ -104,6 +104,14 @@ public:
 	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
 	bool ProfileWorkerUpdates(bool accountForOnFlag=true) const;
 
+	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
+	bool UsingConfluxes() const;
+
+	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
+	/// with the GUI or console.
+	bool InteractiveMode() const;
+
+
 };
 
 
@@ -224,40 +232,8 @@ public:
 		dynamicDispatchDisabled = val;
 	}*/
 
-	///Old property that is now always true.
-	//bool DynamicDispatchDisabled() const { return true; }
 
-	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
-	bool UsingConfluxes() const;
 
-	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
-	//bool MPI_Disabled() const;
-
-	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	/*bool OutputDisabled() const;
-
-	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
-	bool OutputEnabled() const {
-		return !OutputDisabled();
-	}*/
-
-	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
-	/// with the GUI or console.
-	bool InteractiveMode() const;
-
-	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
-	//bool StrictAgentErrors() const;
-
-	///Synced to the value of SIMMOB_PROFILE_ON; used for runtime checks.
-	//bool ProfileOn() const ;
-
-	///Synced to the value of SIMMOB_PROFILE_AGENT_UPDATES; used for runtime checks.
-	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	//bool ProfileAgentUpdates(bool accountForOnFlag=true) const ;
-
-	///Synced to the value of SIMMOB_PROFILE_WORKER_UPDATES; used for runtime checks.
-	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
-	//bool ProfileWorkerUpdates(bool accountForOnFlag=true) const ;
 
 public:
 	/***

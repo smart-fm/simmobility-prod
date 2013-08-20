@@ -1542,7 +1542,7 @@ bool sim_mob::CMakeConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) con
 }
 
 
-bool sim_mob::ConfigParams::UsingConfluxes() const
+bool sim_mob::CMakeConfigParams::UsingConfluxes() const
 {
 #ifdef SIMMOB_USE_CONFLUXES
 	return true;
@@ -1550,6 +1550,18 @@ bool sim_mob::ConfigParams::UsingConfluxes() const
 	return false;
 #endif
 }
+
+bool sim_mob::CMakeConfigParams::InteractiveMode() const
+{
+#ifdef SIMMOB_INTERACTIVE_MODE
+	return true;
+#else
+	return false;
+#endif
+}
+
+
+
 
 
 /*bool sim_mob::ConfigParams::MPI_Disabled() const
@@ -1571,14 +1583,6 @@ bool sim_mob::ConfigParams::UsingConfluxes() const
 #endif
 }*/
 
-bool sim_mob::ConfigParams::InteractiveMode() const
-{
-#ifdef SIMMOB_INTERACTIVE_MODE
-	return true;
-#else
-	return false;
-#endif
-}
 
 /*bool sim_mob::ConfigParams::StrictAgentErrors() const
 {

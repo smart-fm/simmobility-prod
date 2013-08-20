@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <fstream>
 
@@ -52,6 +53,11 @@ private:
 	void LogLegacyCrossing(const sim_mob::Crossing* const cr) const;
 	void LogLegacyBusStop(const sim_mob::BusStop* const bs) const;
 	void LogLegacyLaneConnectors(const sim_mob::LaneConnector* const lc) const;
+
+	///Helper function: Print to the output file AND to the GUI, if Interactive mode is on.
+	///Appends a newline to file output; no newline is appended to GUI output.
+	void PrintToFileAndGui(const std::stringstream& str) const;
+
 
 private:
 	//The config file we are currently printing.

@@ -125,27 +125,15 @@ void sim_mob::PrintNetwork::LogLegacyUniNodeProps(set<const RoadSegment*>& cache
 	//Print all Uni-Nodes, caching RoadSegments as you go.
 	const set<UniNode*>& nodes = cfg.getNetwork().getUniNodes();
 	for (set<UniNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 		out <<"(\"uni-node\", 0, " <<*it <<", {";
 		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
 		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
 			out <<(*it)->originalDB_ID.getLogItem();
 		}
-		out <<"})" <<std::endl;
-
-		//Send this data to the GUI if it's active.
-		if (cfg.InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"uni-node\", 0, " <<*it <<", {";
-			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
-			stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
-			if (!(*it)->originalDB_ID.getLogItem().empty()) {
-				stream<<(*it)->originalDB_ID.getLogItem();
-					}
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
+		out <<"})";
+		PrintToFileAndGui(out);
 
 		//Cache all segments at this Node.
 		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
@@ -162,27 +150,15 @@ void sim_mob::PrintNetwork::LogLegacyMultiNodeProps(set<const RoadSegment*>& cac
 	const vector<MultiNode*>& nodes = cfg.getNetwork().getNodes();
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		const MultiNode* node = *it;
+		std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 		out <<"(\"multi-node\", 0, " <<node <<", {";
 		out <<"\"xPos\":\"" <<node->location.getX() <<"\",";
 		out <<"\"yPos\":\"" <<node->location.getY() <<"\",";
 		if (!node->originalDB_ID.getLogItem().empty()) {
 			out <<node->originalDB_ID.getLogItem();
 		}
-		out <<"})" <<std::endl;
-
-		//Push this information to the GUI if it's active.
-		if (cfg.InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"multi-node\", 0, " <<node <<", {";
-			stream<<"\"xPos\":\"" <<node->location.getX() <<"\",";
-			stream<<"\"yPos\":\"" <<node->location.getY() <<"\",";
-			if (!node->originalDB_ID.getLogItem().empty()) {
-				stream<<node->originalDB_ID.getLogItem();
-					}
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
+		out <<"})";
+		PrintToFileAndGui(out);
 
 		//Cache all segments
 		const std::set<sim_mob::RoadSegment*>& segs = node->getRoadSegments();
@@ -208,6 +184,7 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 {
 	const vector<Link*>& links = cfg.getNetwork().getLinks();
 	for (vector<Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
+		std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 		out <<"(\"link\", 0, " <<*it <<", {";
 		out <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
 		out <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
@@ -218,24 +195,8 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 			out <<*segIt <<",";
 		}
 		out <<"]\",";
-		out <<"})" <<std::endl;
-
-		//If the GUI is on, pass this along to it.
-		if (cfg.InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"link\", 0, " <<*it <<", {";
-			stream<<"\"road-name\":\"" <<(*it)->roadName <<"\",";
-			stream<<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
-			stream<<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
-			stream<<"\"fwd-path\":\"[";
-			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-				stream<<*segIt <<",";
-			}
-			stream<<"]\",";
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
+		out <<"})";
+		PrintToFileAndGui(out);
 	}
 }
 
@@ -244,6 +205,7 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 
 void sim_mob::PrintNetwork::LogLegacySegment(const RoadSegment* const rs, set<const Crossing*>& cachedCrossings, set<const BusStop*>& cachedBusStops) const
 {
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"road-segment\", 0, " <<rs <<", {";
 	out <<"\"parent-link\":\"" <<rs->getLink() <<"\",";
 	out <<"\"max-speed\":\"" <<rs->maxSpeed <<"\",";
@@ -254,25 +216,8 @@ void sim_mob::PrintNetwork::LogLegacySegment(const RoadSegment* const rs, set<co
 	if (!rs->originalDB_ID.getLogItem().empty()) {
 		out <<rs->originalDB_ID.getLogItem();
 	}
-	out <<"})" <<std::endl;
-
-	//Send to the GUI if it's active.
-	if (cfg.InteractiveMode()) {
-		std::ostringstream stream;
-		stream<<"(\"road-segment\", 0, " <<rs <<", {";
-		stream<<"\"parent-link\":\"" <<rs->getLink() <<"\",";
-		stream<<"\"max-speed\":\"" <<rs->maxSpeed <<"\",";
-		stream<<"\"width\":\"" <<rs->width <<"\",";
-		stream<<"\"lanes\":\"" <<rs->getLanes().size() <<"\",";
-		stream<<"\"from-node\":\"" <<rs->getStart() <<"\",";
-		stream<<"\"to-node\":\"" <<rs->getEnd() <<"\",";
-		if (!rs->originalDB_ID.getLogItem().empty()) {
-			stream<<rs->originalDB_ID.getLogItem();
-		}
-		stream<<"})";
-		std::string s1=stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s1);
-	}
+	out <<"})";
+	PrintToFileAndGui(out);
 
 	//Cache obstacles for display later.
 	const map<centimeter_t, const RoadItem*>& obstacles = rs->obstacles;
@@ -300,6 +245,7 @@ void sim_mob::PrintNetwork::LogLegacySegPolyline(const RoadSegment* const rs) co
 	//No polyline?
 	if (rs->polyline.empty()) { return; }
 
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"polyline\", 0, " <<&(rs->polyline) <<", {";
 	out <<"\"parent-segment\":\"" <<rs <<"\",";
 	out <<"\"points\":\"[";
@@ -307,27 +253,15 @@ void sim_mob::PrintNetwork::LogLegacySegPolyline(const RoadSegment* const rs) co
 		out <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 	}
 	out <<"]\",";
-	out <<"})" <<std::endl;
+	out <<"})";
 
-	//Pass this along to the GUI
-	if (cfg.InteractiveMode()) {
-		std::ostringstream stream;
-		stream<<"(\"polyline\", 0, " <<&(rs->polyline) <<", {";
-		stream<<"\"parent-segment\":\"" <<rs <<"\",";
-		stream<<"\"points\":\"[";
-		for (vector<Point2D>::const_iterator ptIt=rs->polyline.begin(); ptIt!=rs->polyline.end(); ptIt++) {
-			stream<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-		}
-		stream<<"]\",";
-		stream<<"})";
-		std::string ss=stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(ss);
-	}
+	PrintToFileAndGui(out);
 }
 
 void sim_mob::PrintNetwork::LogLegacySegLanes(const RoadSegment* const rs) const
 {
 	//Header.
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"lane\", 0, " <<&(rs->getLanes()) <<", {";
 	out <<"\"parent-segment\":\"" <<rs <<"\",";
 
@@ -345,53 +279,23 @@ void sim_mob::PrintNetwork::LogLegacySegLanes(const RoadSegment* const rs) const
 		}
 	}
 
-	out <<"})" <<std::endl;
+	out <<"})";
 
-	//Send to the GUI.
-	if (cfg.InteractiveMode()) {
-		std::stringstream stream;
-		stream <<"(\"lane\", 0, " <<&(rs->getLanes()) <<", {";
-		stream <<"\"parent-segment\":\"" <<rs <<"\",";
-		for (size_t laneID=0; laneID <= rs->getLanes().size(); laneID++) {
-			const vector<Point2D>& points =rs->laneEdgePolylines_cached[laneID];
-			stream <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
-			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-				stream <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-			}
-			stream <<"]\",";
-
-			if (laneID<rs->getLanes().size() && rs->getLanes()[laneID]->is_pedestrian_lane()) {
-				stream <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
-			}
-		}
-		stream<<"})";
-		string s = stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-	}
+	PrintToFileAndGui(out);
 }
 
 
 void sim_mob::PrintNetwork::LogLegacyCrossing(const Crossing* const cr) const
 {
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"crossing\", 0, " <<cr <<", {";
 	out <<"\"near-1\":\"" <<cr->nearLine.first.getX() <<"," <<cr->nearLine.first.getY() <<"\",";
 	out <<"\"near-2\":\"" <<cr->nearLine.second.getX() <<"," <<cr->nearLine.second.getY() <<"\",";
 	out <<"\"far-1\":\"" <<cr->farLine.first.getX() <<"," <<cr->farLine.first.getY() <<"\",";
 	out <<"\"far-2\":\"" <<cr->farLine.second.getX() <<"," <<cr->farLine.second.getY() <<"\",";
-	out <<"})" <<std::endl;
+	out <<"})";
 
-	//Hand off to the GUI.
-	if (cfg.InteractiveMode()) {
-		std::ostringstream stream;
-		stream<<"(\"crossing\", 0, " <<cr <<", {";
-		stream<<"\"near-1\":\"" <<cr->nearLine.first.getX() <<"," <<cr->nearLine.first.getY() <<"\",";
-		stream<<"\"near-2\":\"" <<cr->nearLine.second.getX() <<"," <<cr->nearLine.second.getY() <<"\",";
-		stream<<"\"far-1\":\"" <<cr->farLine.first.getX() <<"," <<cr->farLine.first.getY() <<"\",";
-		stream<<"\"far-2\":\"" <<cr->farLine.second.getX() <<"," <<cr->farLine.second.getY() <<"\",";
-		stream<<"})";
-		string s = stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-	}
+	PrintToFileAndGui(out);
 }
 
 
@@ -438,12 +342,14 @@ void sim_mob::PrintNetwork::LogLegacyBusStop(const BusStop* const bs) const
 	far.flipLeft().scaleVectTo(length);
 
 	//Save it.
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"busstop\", 0, " <<bs <<", {";
 	out <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
 	out <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
 	out <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
 	out <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
-	out <<"})" <<std::endl;
+	out <<"})";
+	PrintToFileAndGui(out);
 
 	//Old code; this just fakes the bus stop at a 40 degree angle.
 	//TODO: Remove this code once we verify that the above code is better.
@@ -472,19 +378,6 @@ void sim_mob::PrintNetwork::LogLegacyBusStop(const BusStop* const bs) const
 	out <<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
 	out <<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
 	out <<"})" <<endl;*/
-
-	//Send it to the GUI.
-	if (cfg.InteractiveMode()) {
-		std::ostringstream stream;
-		stream<<"(\"busstop\", 0, " <<bs <<", {";
-		stream <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
-		stream <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
-		stream <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
-		stream <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
-		stream<<"})";
-		string s = stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-	}
 }
 
 void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const lc) const
@@ -495,31 +388,28 @@ void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const l
 	const RoadSegment* toSeg = lc->getLaneTo()->getRoadSegment();
 	unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),lc->getLaneTo()));
 
-
 	//Output
+	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"lane-connector\", 0, " <<lc <<", {";
 	out <<"\"from-segment\":\"" <<fromSeg <<"\",";
 	out <<"\"from-lane\":\"" <<fromLane <<"\",";
 	out <<"\"to-segment\":\"" <<toSeg <<"\",";
 	out <<"\"to-lane\":\"" <<toLane <<"\",";
-	out <<"})" <<std::endl;
+	out <<"})";
 
-	//Pass along to the GUI.
-	if (cfg.InteractiveMode()) {
-		std::ostringstream stream;
-		stream<<"(\"lane-connector\", 0, " <<lc <<", {";
-		stream<<"\"from-segment\":\"" <<fromSeg <<"\",";
-		stream<<"\"from-lane\":\"" <<fromLane <<"\",";
-		stream<<"\"to-segment\":\"" <<toSeg <<"\",";
-		stream<<"\"to-lane\":\"" <<toLane <<"\",";
-		stream<<"})";
-		string s = stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-	}
+	PrintToFileAndGui(out);
 }
 
+void sim_mob::PrintNetwork::PrintToFileAndGui(const std::stringstream& str) const
+{
+	//Print to file.
+	out <<str.str() <<std::endl;
 
-
+	//Print to GUI (if it's active).
+	if (cfg.InteractiveMode()) {
+		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
+	}
+}
 
 
 

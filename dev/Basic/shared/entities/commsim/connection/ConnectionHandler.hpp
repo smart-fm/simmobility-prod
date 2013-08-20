@@ -11,21 +11,13 @@
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include "logging/Log.hpp"
+#include "Session.hpp"
 
 namespace sim_mob {
-
-//Macro used for callbacks
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
-//Forward Declaration
-class Broker;
-class Session;
 class ConnectionHandler;
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler>
 {
-	boost::shared_ptr<Session> mySession;
-//	typedef void (Broker::*messageReceiveCallback)(boost::shared_ptr<ConnectionHandler>,std::string);
-//	messageReceiveCallback receiveCallBack;
-//	Broker &theBroker;
+	session_ptr mySession;
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
 	std::string incomingMessage;
 	bool valid;
@@ -38,9 +30,7 @@ public:
 	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
 	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(
-			boost::shared_ptr<Session> session_ ,
-//			Broker& broker,
-//			messageReceiveCallback callback,
+			session_ptr session_ ,
 			boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
 			std::string clientID_ = "'\0'",
 			unsigned int ClienType_ = 0,

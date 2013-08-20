@@ -84,7 +84,6 @@ bool EventPublisher::IsEventRegistered(EventId id) const {
 
 void EventPublisher::Publish(EventId id, const EventArgs& args) {
     {// thread-safe scope
-    	std::cout << "Inside EventPublisher::Publish" << std::endl;
     	upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
     	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         // publish using the global context.    

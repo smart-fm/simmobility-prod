@@ -71,12 +71,10 @@ void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequ
 	session_ptr session_;
 	std::pair<std::string,ClientRegistrationRequest > p(request.client_type, request);
 	broker.insertClientWaitingList(p);
-//	std::cout << " RequestClientRegistration Done, returning" << std::endl;
 }
 
 void ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess) {
 	if (!e) {
-//		Print() << "read Successful" << std::endl;
 	} else {
 		std::cout << "read Failed" << std::endl;
 	}
@@ -94,6 +92,8 @@ void ConnectionServer::general_send_handler(const boost::system::error_code& e, 
 
 ConnectionServer::~ConnectionServer()
 {
+	acceptor_.cancel();
+	acceptor_.close();
 	io_service_.stop();
 	io_service_thread.join();
 }

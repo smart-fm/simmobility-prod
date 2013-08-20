@@ -10,18 +10,19 @@
 #include <set>
 #include<map>
 #include "entities/commsim/service/services.hpp"
+#include "entities/commsim/connection/Session.hpp"
 #include <boost/shared_ptr.hpp>
 namespace sim_mob
 {
 //Forward declaration
-class Session;
+//class Session;
 class ClientRegistrationRequest
 {
 public:
 	std::string clientID;
 	std::string client_type; //ns3, android emulator, FMOD etc
 	std::set<sim_mob::SIM_MOB_SERVICE> requiredServices;
-	boost::shared_ptr<Session> session_;
+	/*boost::shared_ptr<Session>*/session_ptr session_;
 	ClientRegistrationRequest(const ClientRegistrationRequest& other);
 	ClientRegistrationRequest();
 	ClientRegistrationRequest & operator=(const ClientRegistrationRequest & rhs);

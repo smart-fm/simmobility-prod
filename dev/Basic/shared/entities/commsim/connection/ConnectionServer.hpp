@@ -22,7 +22,6 @@
 #include <entities/commsim/client/base/ClientRegistration.hpp>
 #include <entities/commsim/connection/Session.hpp>
 namespace sim_mob {
-//class Session;
 class Broker;
 
 class ConnectionServer {

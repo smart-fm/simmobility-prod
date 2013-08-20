@@ -568,7 +568,7 @@ bool Broker::waitForClientsConnection()
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 	processClientRegistrationRequests();
 	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
-	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << brokerCanTickForward << std::endl;
+//	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << brokerCanTickForward << std::endl;
 	}
 
 	/**if:
@@ -724,7 +724,7 @@ Entity::UpdateStatus Broker::update(timeslice now)
 //		Print() << std::endl;
 //	}
 //	}
-	Print()<< "waiting For Clients" <<  std::endl;
+//	Print()<< "waiting For Clients" <<  std::endl;
 	waitForClientsDone();
 //	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
 	//step-8: final steps that should be taken before leaving the tick

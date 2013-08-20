@@ -7,7 +7,7 @@
 
 #include "ConnectionHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "Session.hpp"
+//#include "Session.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
 
 namespace sim_mob {

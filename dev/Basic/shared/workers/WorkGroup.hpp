@@ -16,7 +16,6 @@
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
-#include "event/EventBusSystem.hpp"
 #include "logging/Log.hpp"
 
 
@@ -186,8 +185,6 @@ private:
 	// one additional locking barrier is required to prevent Workers from rushing ahead
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
-
-	event::EventBusSystem eventBusSystem;
 };
 
 

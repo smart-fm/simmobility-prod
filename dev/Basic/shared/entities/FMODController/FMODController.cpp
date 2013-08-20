@@ -66,6 +66,7 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	// test event message transmition system
 	static int testEvt = 0;
 	if( testEvt++ == 20000 ) {
+
 		event::EventCollectionMgr& eventManager = currWorkerProvider->getEventManager();
 		event::MessagePtr messagePtr(new event::EventMessage());
 

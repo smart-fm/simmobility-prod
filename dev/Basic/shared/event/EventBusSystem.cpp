@@ -12,6 +12,17 @@ namespace sim_mob {
 
 namespace event{
 
+EventBusSystem* EventBusSystem::pInstance = 0;
+
+EventBusSystem* EventBusSystem::Instance()
+{
+	if(pInstance == 0 ) {
+		pInstance = new EventBusSystem();
+	}
+
+	return pInstance;
+}
+
 EventBusSystem::EventBusSystem() {
 	// TODO Auto-generated constructor stub
 

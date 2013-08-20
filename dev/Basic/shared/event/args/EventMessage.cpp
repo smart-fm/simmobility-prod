@@ -11,9 +11,8 @@ namespace sim_mob {
 
 namespace event {
 
-EventMessage::EventMessage() {
+EventMessage::EventMessage() : eventId(0), duration(0), detention(0), data(0){
 	// TODO Auto-generated constructor stub
-
 }
 
 EventMessage::~EventMessage() {

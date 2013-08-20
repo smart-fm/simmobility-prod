@@ -25,9 +25,13 @@ public:
 	void UnregisteChildManager(EventCollectionMgr* child);
 	void ProcessTransimition();
 
+public:
+	static EventBusSystem* Instance();
+
 protected:
 
 private:
+	static EventBusSystem* pInstance;
 	std::vector<EventCollectionMgr*> childrenManagers;
 };
 

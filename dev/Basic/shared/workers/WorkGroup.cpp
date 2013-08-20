@@ -26,6 +26,7 @@
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
+#include "event/EventBusSystem.hpp"
 
 using std::vector;
 
@@ -150,7 +151,7 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 
 	//register each event collection manager;
 	for(size_t i=0; i<numWorkers; i++) {
-		eventBusSystem.RegisterChildManager( &(workers[i]->getEventManager()) );
+		event::EventBusSystem::Instance()->RegisterChildManager( &(workers[i]->getEventManager()) );
 	}
 }
 
@@ -391,7 +392,7 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
 		//buff_flip_barr->contribute(); //No.
-		eventBusSystem.ProcessTransimition();
+
 	} else {
 		//Tick on behalf of all your workers.
 		if (buff_flip_barr) {

@@ -117,6 +117,10 @@ void EventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
     Subscribe(id, listener, &EventListener::OnEvent);
 }
 
+void EventPublisher::SubscribeEntry(EventId id, EventListenerPtr listener) {
+    Subscribe(id, listener, &EventListener::OnEventEntry);
+}
+
 void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
         ListenerCallback callback) {
     {// thread-safe scope

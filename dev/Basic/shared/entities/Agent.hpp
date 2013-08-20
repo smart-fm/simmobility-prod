@@ -171,7 +171,7 @@ public:
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
-	virtual void OnEventHandler(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
+	virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
 
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is

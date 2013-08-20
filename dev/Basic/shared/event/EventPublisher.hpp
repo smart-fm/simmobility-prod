@@ -103,6 +103,8 @@ namespace sim_mob {
              */
             virtual void Subscribe(EventId id, EventListenerPtr listener);
 
+            virtual void SubscribeEntry(EventId id, EventListenerPtr listener);
+
             /**
              * Subscribes the given global listener to the given EventId.
              * This listener will receive all events of the given EventId.

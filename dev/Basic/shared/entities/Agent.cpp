@@ -135,8 +135,9 @@ void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
 }
 
-void sim_mob::Agent::OnEventHandler(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args){
-	std::cout << "incident event happen, agent id is " << this->getId() << std::endl;
+void sim_mob::Agent::OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args){
+	const event::EventMessage& message = dynamic_cast<const event::EventMessage&> (args);
+	std::cout << "incident event (id : " << eventId << ")" << "happen, receiver agent id is " << this->getId() << std::endl;
 };
 
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
@@ -188,7 +189,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 		calledFrameInit = true;
 
 		if( currWorkerProvider )
-			currWorkerProvider->getEventManager().Subscribe(AGENT_INCIDENT_EVENT_ID, this, &EventListener::OnEventCallBackEntry);
+			currWorkerProvider->getEventManager().SubscribeEntry(AGENT_INCIDENT_EVENT_ID, this);
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.

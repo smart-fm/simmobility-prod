@@ -253,6 +253,7 @@ public:
 	 * Retrieve a reference to the current RoadNetwork.
 	 */
 	const sim_mob::RoadNetwork& getNetwork() { return network; }
+	const sim_mob::RoadNetwork& getNetwork() const { return network; }
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork; read-write access.

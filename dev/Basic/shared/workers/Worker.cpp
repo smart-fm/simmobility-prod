@@ -25,6 +25,7 @@
 #include "workers/WorkGroup.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
+#include "message/MessageBus.hpp"
 
 using std::set;
 using std::vector;
@@ -244,7 +245,7 @@ void sim_mob::Worker::perform_frame_tick()
 
 	//Add Agents as required.
 	addPendingEntities();
-
+        
 	//Perform all our Agent updates, etc.
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
 
@@ -283,10 +284,12 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
+        messaging::MessageBus::RegisterThreadMessageQueue();
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
+                messaging::MessageBus::ThreadDispatchMessages();
 		perform_frame_tick();
 
 		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.

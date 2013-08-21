@@ -9,6 +9,7 @@
 #include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
+#include "message/MessageBus.hpp"
 
 using std::vector;
 
@@ -131,6 +132,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (frameTickBarr) {
 		frameTickBarr->wait();
 	}
+        sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
@@ -145,7 +147,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (buffFlipBarr) {
 		buffFlipBarr->wait();
-	}
+	}            
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()

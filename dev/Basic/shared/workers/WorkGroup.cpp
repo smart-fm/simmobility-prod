@@ -319,7 +319,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 	// (We can allow per-workgroup configuration later).
 	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
 	if (strat == ASSIGN_ROUNDROBIN) {
-		workers.at(nextWorkerID++)->scheduleForAddition(ag);
+		workers.at(nextWorkerID)->scheduleForAddition(ag);
 	} else {
 		GetLeastCongestedWorker(workers)->scheduleForAddition(ag);
 	}

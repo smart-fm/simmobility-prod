@@ -147,12 +147,13 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
 		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
 
-		//TODO: Check with Vahid if this is likely to cause problems. ~Seth ... except Yaojin :) -Vahid
-		if (ConfigParams::GetInstance().commSimEnabled) {
+		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
+		//just for now, we comment out driver and use drivercomm. don't worry it is all same except it registers to a broker -Vahid
+//		if (ConfigParams::GetInstance().commSimEnabled) {
 			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
-		} else {
-			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
-		}
+//		} else {
+//			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+//		}
 
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));

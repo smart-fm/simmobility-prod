@@ -353,10 +353,11 @@ void test_main() {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
-
+        // last messages distributions. (Only for main thread (e.g delete contexts)).
         PrintOut("Finalizing workgroups: " << endl);
     } //End WorkGroupManager scope.
-
+    //sim_mob::messaging::MessageBus::DistributeMessages();      
+  
     PrintOut("Destroying agents: " << endl);
     //destroy all agents.
     for (list<TestAgent*>::iterator itr = agents.begin();
@@ -376,7 +377,7 @@ int main(int ARGC, char* ARGV[]) {
     watch.Start();
     
     // registers and creates the global message collector.
-    sim_mob::messaging::MessageBus::RegisterMainCollector();
+    sim_mob::messaging::MessageBus::RegisterMainThread();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
     	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
@@ -384,6 +385,7 @@ int main(int ARGC, char* ARGV[]) {
         //perform_main();
         test_main();
     }
+    sim_mob::messaging::MessageBus::UnRegisterMainThread();
     watch.Stop();
     Statistics::Print();
     PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);

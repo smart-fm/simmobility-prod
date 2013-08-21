@@ -46,8 +46,11 @@ bool TestAgent::frame_init(timeslice now) {
 
 Entity::UpdateStatus TestAgent::frame_tick(timeslice now) {
     if (this->GetId() % 2 != 0 && receiver){
-        MessageBus::PostMessage(receiver, 11, new Message());
+        MessageBus::PostMessage(receiver, 11, MessageBus::MessagePtr(new Message()));
         cout << "Message from:" << GetId() << " to: "<< receiver->GetId() << " Thread: "<< boost::lexical_cast<std::string>(boost::this_thread::get_id()) <<  std::endl;
+    }
+    if(now.ms() == 364){
+        sim_mob::messaging::MessageBus::UnRegisterHandler(this);
     }
     return Entity::UpdateStatus::Continue;
 }

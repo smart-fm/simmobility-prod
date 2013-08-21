@@ -132,23 +132,23 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                         // that his bid was not accepted.
                         //reply to sender.
                         MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
-                                new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER));
+                                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER)));
                         maxBidsOfDay.erase(unit->GetId());
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(BidEntry(unit->GetId(), msg.GetBid()));
                     } else {
                         MessageBus::PostMessage(msg.GetBid().GetBidder(), 
-                                LTMID_BID_RSP, new BidMessage(Bid(msg.GetBid()), 
-                                BETTER_OFFER));
+                                LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), 
+                                BETTER_OFFER)));
                     }
                 } else {
                     MessageBus::PostMessage(msg.GetBid().GetBidder(),LTMID_BID_RSP,
-                            new BidMessage(Bid(msg.GetBid()), NOT_ACCEPTED));
+                            MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), NOT_ACCEPTED)));
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
                 MessageBus::PostMessage(msg.GetBid().GetBidder(), LTMID_BID_RSP,
-                        new BidMessage(Bid(msg.GetBid()), NOT_AVAILABLE));
+                        MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), NOT_AVAILABLE)));
             }
             Statistics::Increment(Statistics::N_BIDS);
             break;
@@ -183,7 +183,7 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
             itr++) {
         Bid* maxBidOfDay = &(itr->second);
         MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
-                new BidMessage(Bid(*maxBidOfDay), ACCEPTED));
+                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
         
         Unit* unit = GetParent()->GetUnitById(maxBidOfDay->GetUnitId());
         if (unit && unit->IsAvailable()) {

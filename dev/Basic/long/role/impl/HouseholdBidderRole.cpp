@@ -163,8 +163,9 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
             float bidValue = maxSurplus + CalculateWP(*unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
-                MessageBus::PostMessage(owner, LTMID_BID, new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
-                        GetParent(), bidValue, now)));
+                MessageBus::PostMessage(owner, LTMID_BID, 
+                        MessageBus::MessagePtr(new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
+                        GetParent(), bidValue, now))));
                 return true;
             }
         }

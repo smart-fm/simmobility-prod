@@ -46,12 +46,22 @@ namespace sim_mob {
         /**
          * Represents a message data that can be exchanged on Messaging Entities.
          */
+        class MessageHandler;
         class Message {
         public:
+            
+            typedef int MessageType;
             Message();
             Message(const Message& orig);
             virtual ~Message();
             Message& operator=(const Message& source);
+            int GetPriority() const;
+            MessageHandler* GetSender() const;
+            void SetSender(MessageHandler* sender);
+        protected:
+            friend class MessageBus;
+            int priority;
+            MessageHandler* sender;
         };
     }
 }

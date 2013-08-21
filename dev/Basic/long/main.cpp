@@ -30,6 +30,7 @@
 #include "util/Math.hpp"
 #include "util/Statistics.hpp"
 
+
 //DAOs
 #include "database/dao/GlobalParamsDao.hpp"
 #include "database/dao/UnitTypeDao.hpp"
@@ -39,6 +40,10 @@
 #include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/housing-market/BidderParamsDao.hpp"
 #include "database/dao/housing-market/SellerParamsDao.hpp"
+#include "message/MessageBus.hpp"
+
+
+#include "agent/TestAgent.hpp"
 
 using namespace sim_mob::db;
 
@@ -133,7 +138,7 @@ float UNIT_FIXED_COST = 0.1f;
 const int MAX_ITERATIONS =1;
 const int TICK_STEP =1;
 const int DAYS =365;
-const int WORKERS =2;
+const int WORKERS =4;
 const int DATA_SIZE =30;
 const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
 
@@ -212,7 +217,9 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
         PrintOut("Started all workgroups." << endl);
         for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
         	PrintOut("Day: " << currTick << endl);
+            //sim_mob::messaging::MessageBus::DispatchMessages();
             wgMgr.waitAllGroups();
+            //sim_mob::messaging::MessageBus::CollectMessages();
         }
 
         PrintOut("Finalizing workgroups: " << endl);
@@ -310,6 +317,56 @@ void perform_main() {
     entities.clear();
 }
 
+void test_main() {
+
+    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
+    // Milliseconds step (Application crashes if this is 0).
+    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
+    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
+    ConfigParams::GetInstance().defaultWrkGrpAssignment =
+            WorkGroup::ASSIGN_ROUNDROBIN;
+    ConfigParams::GetInstance().singleThreaded = false;
+
+    //create all units.
+    list<TestAgent*> agents;
+    {
+        WorkGroupManager wgMgr;
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+
+        //Work Group specifications
+        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        wgMgr.initAllGroups();
+        agentWorkers->initWorkers(nullptr);
+        TestAgent* agent = NULL;
+        for (unsigned int i = 0; i < 10; i++) {
+            agent = new TestAgent(i, agent);
+            agentWorkers->assignAWorker(agent);
+            agents.push_back(agent);
+        }
+        
+        //Start work groups and all threads.
+        wgMgr.startAllWorkGroups();
+
+        PrintOut("Started all workgroups." << endl);
+        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+            PrintOut("Day: " << currTick << endl);
+            wgMgr.waitAllGroups();
+        }
+
+        PrintOut("Finalizing workgroups: " << endl);
+    } //End WorkGroupManager scope.
+
+    PrintOut("Destroying agents: " << endl);
+    //destroy all agents.
+    for (list<TestAgent*>::iterator itr = agents.begin();
+            itr != agents.end(); itr++) {
+        TestAgent* ag = *(itr);
+        safe_delete_item(ag);
+    }
+    agents.clear();
+}
+
 int main(int ARGC, char* ARGV[]) {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
     StopWatch watch;
@@ -317,11 +374,15 @@ int main(int ARGC, char* ARGV[]) {
     //get start time of the simulation.
     std::list<std::string> resLogFiles;
     watch.Start();
+    
+    // registers and creates the global message collector.
+    sim_mob::messaging::MessageBus::RegisterMainCollector();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
     	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
-        SimulateWithDB(resLogFiles);
+        //SimulateWithDB(resLogFiles);
         //perform_main();
+        test_main();
     }
     watch.Stop();
     Statistics::Print();

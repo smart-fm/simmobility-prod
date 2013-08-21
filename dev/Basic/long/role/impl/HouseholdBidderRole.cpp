@@ -15,9 +15,11 @@
 #include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
+#include "message/MessageBus.hpp"
 
 using std::list;
 using std::endl;
+using std::cout;
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
@@ -62,7 +64,7 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     }
 }
 
-void HouseholdBidderRole::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
+void HouseholdBidderRole::HandleMessage(Message::MessageType type,
         const Message& message) {
     switch (type) {
         case LTMID_BID_RSP:// Bid response received 
@@ -76,9 +78,9 @@ void HouseholdBidderRole::HandleMessage(MessageReceiver::MessageType type, Messa
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
-                        LogOut("Bidder: [" << GetParent()->getId() <<
+                        cout << "Bidder: [" << GetParent()->getId() <<
                                 "] bid: " << msg.GetBid() <<
-                                " was accepted " << endl);
+                                " was accepted " << endl;
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
                                 lastTime.frame() + 10);
@@ -93,9 +95,9 @@ void HouseholdBidderRole::HandleMessage(MessageReceiver::MessageType type, Messa
                 }
                 case NOT_ACCEPTED:
                 {
-                    LogOut("Bidder: [" << GetParent()->getId() <<
+                    cout<< "Bidder: [" << GetParent()->getId() <<
                             "] bid: " << msg.GetBid() <<
-                            " was not accepted " << endl);
+                            " was not accepted " << endl;
                     IncrementBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
@@ -157,12 +159,11 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         }
         // Exists some unit to bid.
         if (unit) {
-            MessageReceiver* owner = dynamic_cast<MessageReceiver*> (unit->GetOwner());
+            MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
             float bidValue = maxSurplus + CalculateWP(*unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
-                owner->Post(LTMID_BID, GetParent(),
-                        new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
+                MessageBus::PostMessage(owner, LTMID_BID, new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
                         GetParent(), bidValue, now)));
                 return true;
             }

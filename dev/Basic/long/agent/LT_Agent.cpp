@@ -10,6 +10,11 @@
 #include "LT_Agent.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
+#include "message/MessageBus.hpp"
+
+
+#include <boost/thread.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -20,7 +25,8 @@ using std::string;
 using std::map;
 
 LT_Agent::LT_Agent(int id)
-: Agent(ConfigParams::GetInstance().mutexStategy, id) {
+: Agent(ConfigParams::GetInstance().mutexStategy, id), MessageHandler(id) {
+    isRegistered = false;
 }
 
 LT_Agent::~LT_Agent() {
@@ -34,21 +40,15 @@ EventManager& LT_Agent::GetEventManager() {
 }
 
 bool LT_Agent::frame_init(timeslice now) {
+    if (!isRegistered){
+        messaging::MessageBus::RegisterHandler(this);
+        isRegistered = true;
+    }
     return OnFrameInit(now);
 }
 
 Entity::UpdateStatus LT_Agent::frame_tick(timeslice now) {
-    int messageCounter = 0;
-    Entity::UpdateStatus status = UpdateStatus::Continue;
-    do {
-        status = OnFrameTick(now, messageCounter);
-        //abort because agent is done.
-        if (status.status == UpdateStatus::RS_DONE) {
-            break;
-        }
-        messageCounter++;
-    } while (ReadMessage());
-    return status;
+    return OnFrameTick(now);
 }
 
 void LT_Agent::frame_output(timeslice now) {
@@ -59,7 +59,5 @@ bool LT_Agent::isNonspatial() {
     return false;
 }
 
-void LT_Agent::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
-        const Message& message) {
-    int x=0;
+void LT_Agent::HandleMessage(Message::MessageType type, const Message& message) {
 }

@@ -31,8 +31,7 @@ namespace sim_mob {
          * If he is waiting for a response he will 
          * only able to do the next bid on the next day.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
-        public messaging::MessageReceiver {
+        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>{
         public:
             HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
                     const BidderParams& params, HousingMarket* market);
@@ -48,8 +47,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
-                    messaging::MessageReceiver& sender, const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type,
+                const messaging::Message& message);
         private:
             /**
              * Handler for wakeup event.

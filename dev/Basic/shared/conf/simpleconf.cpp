@@ -1001,14 +1001,14 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 
 
 	//Miscellaneous settings
-	handle = TiXmlHandle(&document);
+	/*handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement();
 	if (node) {
 		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
 		cout <<"*******************************************" <<endl;
 		cout <<"Manual override used for demo intersection." <<endl;
 		cout <<"*******************************************" <<endl;
-	}
+	}*/
 
 	//Check if we have options for a manual schema specification.
 	handle = TiXmlHandle(&document);

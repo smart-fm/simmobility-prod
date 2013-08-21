@@ -864,9 +864,8 @@ void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<
  */
 void DatabaseLoader::PostProcessNetwork()
 {
-	//TEMP: Heavy-handed tactics like this should only be used if you're desperate.
-	// You know, like if you've got a demo tomorrow.
-	bool TEMP_FLAG_ON = sim_mob::ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection;
+	//This was a fix for a very old demo. Leaving it in here as an example of post-processing; you shouldn't use this. ~Seth.
+	bool TEMP_FLAG_ON = false;
 	if (TEMP_FLAG_ON) {
 		ManuallyFixVictoriaStreetMiddleRoadIntersection(nodes_, sections_, crossings_, lanes_, turnings_, polylines_);
 	}

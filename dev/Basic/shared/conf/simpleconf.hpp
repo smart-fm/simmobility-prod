@@ -137,7 +137,7 @@ public:
 	int percent_alighting;
 //	PassengerDist* passengerDist_alighting;
 
-	//Defautl assignment strategy for Workgroups.
+	//Default assignment strategy for Workgroups.
 	WorkGroup::ASSIGNMENT_STRATEGY defaultWrkGrpAssignment;
 
 	//Number of agents skipped in loading
@@ -183,7 +183,7 @@ public:
 	unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
 	unsigned int communicationTimeStepInMilliSeconds() const { return granCommunicationTicks * baseGranMS; }
 
-	bool TEMP_ManualFixDemoIntersection;
+	//bool TEMP_ManualFixDemoIntersection;
 
 	//TODO: Replace with the "sealed" version we use elsewhere.
 	/*void SetDynamicDispatchDisabled(bool val) {
@@ -272,7 +272,7 @@ private:
 		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
 		/*day_of_week(MONDAY),*/ aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
 		/*dynamicDispatchDisabled(false),*/ signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
-		is_simulation_repeatable(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
+		is_simulation_repeatable(false), /*TEMP_ManualFixDemoIntersection(false),*/ sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
 		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),
 		networkSource(NETSRC_XML)
 	{}

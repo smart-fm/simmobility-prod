@@ -19,6 +19,15 @@ EventMessage::~EventMessage() {
 	// TODO Auto-generated destructor stub
 }
 
+EventMessage& EventMessage::operator=(const EventMessage& source)
+{
+	this->eventId = source.eventId;
+	this->duration = source.duration;
+	this->detention = source.detention;
+	this->recipients = source.recipients;
+	this->data = source.data;
+}
+
 void EventMessage::SetEventId(EventId id) {
 	eventId = id;
 }

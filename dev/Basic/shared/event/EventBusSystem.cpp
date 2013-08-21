@@ -48,7 +48,7 @@ void EventBusSystem::UnregisteChildManager(EventCollectionMgr* child)
 	}
 }
 
-void EventBusSystem::ProcessTransimition()
+void EventBusSystem::ProcessTransimission()
 {
 	std::vector<EventCollectionMgr*>::iterator it;
 	std::vector<MessagePtr> collectors;

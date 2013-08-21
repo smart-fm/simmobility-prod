@@ -23,7 +23,7 @@ public:
 
 	void RegisterChildManager(EventCollectionMgr* child);
 	void UnregisteChildManager(EventCollectionMgr* child);
-	void ProcessTransimition();
+	void ProcessTransimission();
 
 public:
 	static EventBusSystem* Instance();

@@ -19,6 +19,7 @@ class EventMessage : public EventArgs {
 public:
 	EventMessage();
 	virtual ~EventMessage();
+	virtual EventMessage& operator=(const EventMessage& source);
 
 public:
 	void SetEventId(EventId id);

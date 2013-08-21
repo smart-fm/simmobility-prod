@@ -60,15 +60,9 @@ void EventCollectionMgr::ProcessMessages()
 void EventCollectionMgr::SendMessage(MessagePtr message )
 {
 	EventId id = message->GetEventId();
-	SendMessage(id, message);
-}
-
-void EventCollectionMgr::SendMessage(EventId id, MessagePtr message )
-{
 	RegisterEvent( id );
 	receivingCollector.push_back( message );
 }
-
 
 }
 

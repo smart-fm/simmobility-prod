@@ -23,7 +23,6 @@ public:
 
 public:
 	void SendMessage(MessagePtr message );
-	void SendMessage(EventId, MessagePtr message );
     void Update(const timeslice& currTime);
 
 protected:

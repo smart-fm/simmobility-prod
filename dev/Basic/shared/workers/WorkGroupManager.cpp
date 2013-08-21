@@ -148,7 +148,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 		buffFlipBarr->wait();
 	}
 
-	event::EventBusSystem::Instance()->ProcessTransimition();
+	event::EventBusSystem::Instance()->ProcessTransimission();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()

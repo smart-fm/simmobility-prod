@@ -21,8 +21,11 @@ namespace sim_mob {
             virtual void HandleMessage(Message::MessageType type, const Message& message) = 0;
             
             int GetId();
-        protected: 
+        protected:
             int id;
+        private:
+            friend class MessageBus;
+            void* context;
         };
     }
 }

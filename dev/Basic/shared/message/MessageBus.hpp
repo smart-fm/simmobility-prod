@@ -7,28 +7,123 @@
  * Created on Aug 15, 2013, 9:30 PM
  */
 #pragma once
-#include <queue>
 #include "MessageHandler.hpp"
-#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace sim_mob {
 
     namespace messaging {
 
-        class MessageBus {
+        class MessageBus : MessageHandler {
         public:
-            static void RegisterMainCollector();
-            static void RegisterThreadMessageQueue();
-            static void RegisterHandler(MessageHandler* target);
+            typedef boost::shared_ptr<Message> MessagePtr;
+            /**
+             * Registers the main thread that will manage all MessageBus system.
+             * @throws runtime_exception if the system has 
+             *         already a context for the main thread.
+             */
+            static void RegisterMainThread();
+
+            /**
+             * Registers a new thread creating a context on it.
+             * @throws runtime_exception if the system has 
+             *         already a context for the current thread.
+             */
+            static void RegisterThread();
+
+            /**
+             * Registers a new handler using the context of the thread that is calling
+             * the system.
+             * @param handler to register.
+             * @throws runtime_exception if the given the handler 
+             *         has already a context associated or if the thread that calls 
+             *         is not registered.
+             */
+            static void RegisterHandler(MessageHandler* handler);
             
+            /**
+             * UnRegisters the main thread.
+             * @throws runtime_exception if the system has 
+             *         already a context for the main thread.
+             */
+            static void UnRegisterMainThread();
+
+            /**
+             * UnRegisters the current thread.
+             * @throws runtime_exception if the system has 
+             *         already a context for the current thread.
+             */
+            static void UnRegisterThread();
+
+            /**
+             * UnRegisters given handler.
+             * @param handler to unregister.
+             * @throws runtime_exception if the given the handler 
+             *         has already a context associated or if the thread that calls 
+             *         is not registered.
+             */
+            static void UnRegisterHandler(MessageHandler* handler);
+
+
+            /**
+             * MessageBus distributes all messages for all registered threads.
+             * Collects all messages from output queues of all thread contexts and
+             * copies them to the output queue of the main message handler.
+             * After that messages are distributed for the correspondent
+             * thread input queue.
+             * 
+             * Note: All internal messages are processed before all custom messages.
+             * Attention: This function should be called by the main thread.
+             * 
+             * @throws runtime_exception if the thread that calls is not the main thread.
+             */
             static void DistributeMessages();
-            
+
+            /**
+             * MessageBus distributes all messages for all registered threads.
+             * Attention: This function should be called using each thread (context).
+             * You don't need to call this function for the main thread.
+             * @throws runtime_exception if the thread that calls has not any context associated.
+             */
             static void ThreadDispatchMessages();
-            static void PostMessage(MessageHandler* target, Message::MessageType type, Message* message);
+
+            /**
+             * Posts a message on the current thread output queue.
+             * @param target of the message.
+             * @param type of the message.
+             * @param message to send.
+             */
+            static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
         private:
+            /**
+             * Constructor.
+             */
+            MessageBus();
+
+            /**
+             * Handles all internal messages. 
+             * @param type of the message.
+             * @param message to be processed internally.
+             */
+            void HandleMessage(Message::MessageType type, const Message& message);
+
+            /**
+             * Collects messages from all thread contexts.
+             * Attention: This function should be called by the main thread.
+             */
             static void CollectMessages();
+
+            /**
+             * Dispatches messages to all thread contexts.
+             * Attention: This function should be called by the main thread.
+             */
             static void DispatchMessages();
             
+            /**
+             * Gets the main message bus instance.
+             * @return MessageBus instance.
+             */
+            static MessageBus& GetInstance();
         };
     }
 }

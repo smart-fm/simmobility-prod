@@ -284,7 +284,7 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
-        messaging::MessageBus::RegisterThreadMessageQueue();
+        messaging::MessageBus::RegisterThread();
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
@@ -331,6 +331,7 @@ void sim_mob::Worker::threaded_function_loop()
 		}
 #endif
 	}
+        sim_mob::messaging::MessageBus::UnRegisterThread();
 }
 
 

@@ -238,12 +238,17 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		}
 		else {
 			//insert to FMOD controller so that collection of requests
-			sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			if (sim_mob::FMOD::FMODController::InstanceExists()) {
+				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			} else {
+				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
+			}
 		}
 	}//outer for loop(map)
 
-	if( sim_mob::FMOD::FMODController::Instance() )
+	if( sim_mob::FMOD::FMODController::InstanceExists() ) {
 		sim_mob::FMOD::FMODController::Instance()->Initialize();
+	}
 }
 
 bool isAndroidClientEnabled(TiXmlHandle& handle)
@@ -391,8 +396,8 @@ bool loadXMLFMODController(TiXmlDocument& document)
 {
 	TiXmlHandle handle(&document);
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("fmodcontroller").ToElement();
-	if(node == nullptr)	{
-		return false;
+	if(!node)	{
+		return true;
 	}
 
 	std::string swit = node->Attribute("switch");
@@ -604,297 +609,6 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	return true;
 }
 
-
-
-bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr, const string& childStr, map<string, Point2D>& result)
-{
-	//Quick check.
-	if (parentStr!="boundaries" && parentStr!="crossings") {
-		return false;
-	}
-	if (childStr!="boundary" && childStr!="crossing") {
-		return false;
-	}
-
-	//Build the expression dynamically.
-	TiXmlHandle handle(&document);
-	TiXmlElement* node = handle.FirstChild("config").FirstChild(parentStr).FirstChild(childStr).ToElement();
-	if (!node) {
-		//Boundaries/crossings are optional
-		return true;
-	}
-
-	//Move through results
-	for (;node; node=node->NextSiblingElement()) {
-		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
-		string key;
-		double xPos;
-		double yPos;
-		unsigned int flagCheck = 0;
-		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
-			//Read each attribute.
-			std::string name = attr->NameTStr();
-			std::string value = attr->ValueStr();
-			if (name.empty() || value.empty()) {
-				return false;
-			}
-
-			//Assign it.
-			if (name=="position") {
-				key = value;
-				flagCheck |= 1;
-			} else {
-				int valueI;
-				std::istringstream(value) >> valueI;
-				if (name=="xPos") {
-					xPos = valueI;
-					flagCheck |= 2;
-				} else if (name=="yPos") {
-					yPos = valueI;
-					flagCheck |= 4;
-				} else {
-					return false;
-				}
-			}
-		}
-
-		if (flagCheck!=7) {
-			return false;
-		}
-
-		//Save it.
-		result[key] = Point2D(xPos, yPos);
-	}
-
-	return true;
-}
-
-
-
-//NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
-//      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
-/*void PrintDB_Network()
-{
-	if (ConfigParams::GetInstance().OutputDisabled()) {
-		return;
-	}
-
-	//Save RoadSegments/Connectors to make output simpler
-	std::set<const RoadSegment*> cachedSegments;
-	std::set<LaneConnector*> cachedConnectors;
-
-	//Initial message
-	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOut("Printing node network" <<endl);
-	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
-
-	//Print some properties of the simulation itself
-	LogOut("(\"simulation\", 0, 0, {");
-	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOut("})" <<endl);
-
-
-	sim_mob::Signal::all_signals_const_Iterator it;
-	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-	{
-		//Print the Signal representation.
-		LogOut((*it)->toString() <<endl);
-	}
-
-
-	//Print nodes first
-	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOut("(\"uni-node\", 0, " <<*it <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOut("(\"multi-node\", 0, " <<*it <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
-		//      and RoadSegments will have to be extracted.
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-			//std::cout <<"   Has segement: " <<*i2 <<"\n";
-		}
-
-		//Now cache all lane connectors at this node
-		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
-			if (nodeInt->hasOutgoingLanes(*rsIt)) {
-				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(*rsIt).begin(); i2!=nodeInt->getOutgoingLanes(*rsIt).end(); i2++) {
-					//Cache the connector
-					cachedConnectors.insert(*i2);
-				}
-			}
-		}
-	}
-
-	//Links can go next.
-	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOut("(\"link\", 0, " <<*it <<", {");
-		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOut("\"start-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOut("\"end-node\":\"" <<(*it)->getEnd() <<"\",");
-		LogOut("\"fwd-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOut(*segIt <<",");
-		}
-		LogOut("]\",");
-		LogOut("})" <<endl);
-	}
-
-
-
-
-	//Now print all Segments
-	std::set<const Crossing*> cachedCrossings;
-	std::set<const BusStop*> cachedBusStops;
-	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOut("(\"road-segment\", 0, " <<*it <<", {");
-		LogOut("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
-		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOut("\"from-node\":\"" <<(*it)->getStart() <<"\",");
-		LogOut("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		if (!(*it)->polyline.empty()) {
-			LogOut("(\"polyline\", 0, " <<&((*it)->polyline) <<", {");
-			LogOut("\"parent-segment\":\"" <<*it <<"\",");
-			LogOut("\"points\":\"[");
-			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
-			}
-			LogOut("]\",");
-			LogOut("})" <<endl);
-		}
-
-		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-		for (std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
-			const RoadItem* ri = itBusStops->second;
-			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-			if (resBS) {
-				cachedBusStops.insert(resBS);
-			}
-		}
-
-		//Save crossing info for later
-		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings)
-		{
-			const RoadItem* ri = itCrossings->second;
-			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
-			if (resC) {
-				cachedCrossings.insert(resC);
-			}
-		}
-
-		//Save Lane info for later
-		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
-		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
-		//      and we can switch to a full "lane" output type.
-		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
-		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
-		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
-			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
-			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-			}
-			laneBuffer <<"]\",";
-
-			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
-				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
-			}
-
-		}
-		laneBuffer <<"})" <<endl;
-		LogOut(laneBuffer.str());
-	}
-
-	//Crossings are part of Segments
-	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOut("(\"crossing\", 0, " <<*it <<", {");
-		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOut("})" <<endl);
-	}
-
-	//Bus Stops are part of Segments
-	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		LogOut("(\"busstop\", 0, " <<*it <<", {");
-		double x = (*it)->xPos;
-		double y = (*it)->yPos;
-		int angle = 40;
-		double length = 400;
-		double width = 250;
-		double theta = atan(width / length);
-		double phi = M_PI * angle / 180;
-		double diagonal_half = (sqrt(length * length + width * width)) / 2;
-
-		double x1d = x + diagonal_half * cos(phi + theta);
-		double y1d = y + diagonal_half * sin(phi + theta);
-		double x2d = x + diagonal_half * cos(M_PI + phi - theta);
-		double y2d = y + diagonal_half * sin(M_PI + phi - theta);
-		double x3d = x + diagonal_half * cos(M_PI + phi + theta);
-		double y3d = y + diagonal_half * sin(M_PI + phi + theta);
-		double x4d = x + diagonal_half * cos(phi - theta);
-		double y4d = y + diagonal_half * sin(phi - theta);
-
-		LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-		LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-		LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-		LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-		LogOut("})" <<endl);
-	}
-
-
-	//Now print all Connectors
-	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
-		//Retrieve relevant information
-		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
-		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
-		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
-		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
-
-		//Output
-		LogOut("(\"lane-connector\", 0, " <<*it <<", {");
-		LogOut("\"from-segment\":\"" <<fromSeg <<"\",");
-		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOut("\"to-segment\":\"" <<toSeg <<"\",");
-		LogOut("\"to-lane\":\"" <<toLane <<"\",");
-		LogOut("})" <<endl);
-	}
-
-	//Print the StreetDirectory graphs.
-	StreetDirectory::instance().printDrivingGraph();
-	StreetDirectory::instance().printWalkingGraph();
-}*/
 
 struct Sorter {
   bool operator() (const sim_mob::RoadSegment* a,const sim_mob::RoadSegment* b)
@@ -1186,7 +900,6 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 				{
 					int i = 0;
 					i++;
-//					std::cout << "simpleconf.cpp:: A sidewalk in the middle of the road!\n";
 				}
 				//debug ends
 			}
@@ -1249,6 +962,9 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 
 		//Use the magnitude of the parent segment to set the Bus Stop's direction and extension.
 		const BusStop* bs = *it;
+
+		//std::cout <<"Bust stop: " <<bs <<" id: " <<bs->id <<std::endl;
+
 		Point2D dir;
 		{
 			const Node* start = 0;
@@ -1372,317 +1088,10 @@ void PrintDB_NetworkToFile(const std::string& fileName)
 }
 
 
-//NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
-//      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
-//obsolete
-/*void PrintDB_Network_idBased()
-{
-	if (ConfigParams::GetInstance().OutputDisabled()) {
-		return;
-	}
-
-	//Save RoadSegments/Connectors to make output simpler
-	std::set<const RoadSegment*,Sorter> cachedSegments;
-	std::set<LaneConnector*,Sorter> cachedConnectors;
-
-	//Initial message
-	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	LogOut("Printing node network" <<endl);
-	LogOut("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
-
-	//Print some properties of the simulation itself
-	LogOut("(\"simulation\", 0, 0, {");
-	LogOut("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
-	LogOut("})" <<endl);
-	//Print nodes first
-	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		LogOut("(\"uni-node\", 0, " <<(*it)->getID() <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-
-	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		LogOut("(\"multi-node\", 0, " <<(*it)->getID() <<", {");
-		LogOut("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
-		LogOut("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
-		//      and RoadSegments will have to be extracted.
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-
-		//Now cache all lane connectors at this node
-		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
-			if (nodeInt->hasOutgoingLanes(*rsIt)) {
-				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(*rsIt).begin(); i2!=nodeInt->getOutgoingLanes(*rsIt).end(); i2++) {
-					//Cache the connector
-					cachedConnectors.insert(*i2);
-				}
-			}
-		}
-	}
-
-	//Links can go next.
-	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		LogOut("(\"link\", 0, " <<(*it)->getLinkId() <<", {");
-		LogOut("\"road-name\":\"" <<(*it)->roadName <<"\",");
-		LogOut("\"start-node\":\"" <<(*it)->getStart()->getID() <<"\",");
-		LogOut("\"end-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
-		LogOut("\"fwd-path\":\"[");
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			LogOut((*segIt)->getSegmentID() <<",");
-		}
-		LogOut("]\",");
-		LogOut("})" <<endl);
-	}
-
-
-
-
-	//Now print all Segments
-	std::set<const Crossing*,Sorter> cachedCrossings;
-	std::set<const BusStop*,Sorter> cachedBusStops;
-	int i = 0;
-
-	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		LogOut("(\"road-segment\", 0, " <<(*it)->getSegmentID() <<", {");
-		LogOut("\"parent-link\":\"" <<(*it)->getLink()->getLinkId() <<"\",");
-		LogOut("\"max-speed\":\"" <<(*it)->maxSpeed <<"\",");
-		LogOut("\"width\":\"" <<(*it)->width <<"\",");
-		LogOut("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
-		LogOut("\"from-node\":\"" <<(*it)->getStart()->getID() <<"\",");
-		LogOut("\"to-node\":\"" <<(*it)->getEnd()->getID() <<"\",");
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			LogOut((*it)->originalDB_ID.getLogItem());
-		}
-		LogOut("})" <<endl);
-
-		if (!(*it)->polyline.empty()) {
-			LogOut("(\"polyline\", 0, " <<", {");
-			LogOut("\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",");
-			LogOut("\"points\":\"[");
-			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				LogOut("(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),");
-			}
-			LogOut("]\",");
-			LogOut("})" <<endl);
-		}
-
-
-		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
-			const RoadItem* ri = itBusStops->second;
-			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-			if (resBS) {
-				cachedBusStops.insert(resBS);
-			}
-		}
-
-//TODO: add other types of obstacle.
-		//Save crossing info for later
-		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings) {
-			const Crossing* resC = dynamic_cast<const Crossing*>(itCrossings->second);
-				if (resC) {
-				cachedCrossings.insert(resC);
-			}
-		}
-
-		//Save Lane info for later
-		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
-		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
-		//      and we can switch to a full "lane" output type.
-		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
-		laneBuffer <<"(\"lane\", 0, " <<", {";
-		laneBuffer <<"\"parent-segment\":\"" <<(*it)->getSegmentID() <<"\",";
-		size_t laneID=0;
-
-		laneID = 0;
-		for (std::vector<sim_mob::Lane*>::const_iterator it_l = (*it)->getLanes().begin(); it_l != (*it)->getLanes().end(); it_l++, laneID++) {
-
-			laneBuffer <<"\"lane-" <<(*it_l)->getLaneID() <<"\":\"[";
-			const vector<Point2D>& points =(*it_l)->getPolyline(false);
-
-			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-			}
-			laneBuffer <<"]\",width: " << (*it_l)->getWidth_real();
-
-			if ((*it_l)->is_pedestrian_lane()) {
-				laneBuffer <<"\"line-" <<(*it_l)->getLaneID() <<"is-sidewalk\":\"true\",";
-			}
-		}
-		laneBuffer <<"})" <<endl;
-		LogOut(laneBuffer.str());
-	}
-
-	//Crossings are part of Segments
-	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		LogOut("(\"crossing\", 0, " <<(*it)->getRoadItemID() <<", {");
-		LogOut("\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",");
-		LogOut("\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",");
-		LogOut("\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",");
-		LogOut("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
-		LogOut("})" <<endl);
-	}
-
-	//Bus Stops are part of Segments
-		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
-			//LogOut("Surav's loop  is here!");
-			LogOut("(\"busstop\", 0, " <<", {");
-		//	LogOut("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
-			// LogOut("\"xPos\":\"" <<(*it)->xPos<<"\",");
-		//	LogOut("\"yPos\":\"" <<(*it)->yPos<<"\",");
-		double x = (*it)->xPos;
-		double y = (*it)->yPos;
-		int angle = 40;
-			                                double length = 400;
-							        		double width = 250;
-							        		double theta = atan(width/length);
-							        		double phi = M_PI*angle/180;
-							                double diagonal_half = (sqrt(length*length + width*width))/2;
-
-							        		double x1d = x + diagonal_half*cos(phi+theta);
-							        		double y1d = y + diagonal_half*sin(phi+theta);
-							        		double x2d = x + diagonal_half*cos(M_PI+phi-theta);
-							        		double y2d = y + diagonal_half*sin(M_PI+phi-theta);
-							        		double x3d = x + diagonal_half*cos(M_PI+phi+theta);
-							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
-							        		double x4d = x + diagonal_half*cos(phi-theta);
-							        		double y4d = y + diagonal_half*sin(phi-theta);
-			LogOut("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
-			LogOut("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
-			LogOut("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
-			LogOut("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
-			LogOut("})" <<endl);
-		}
-
-
-	//Now print all Connectors
-	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
-		//Retrieve relevant information
-		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
-		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
-		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
-		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
-
-		//Output
-		LogOut("(\"lane-connector\", 0, "  <<", {");
-		LogOut("\"from-segment\":\"" <<fromSeg->getSegmentID() <<"\",");
-		LogOut("\"from-lane\":\"" <<fromLane <<"\",");
-		LogOut("\"to-segment\":\"" <<toSeg->getSegmentID() <<"\",");
-		LogOut("\"to-lane\":\"" <<toLane <<"\",");
-		LogOut("})" <<endl);
-	}
-
-}*/
-
-
-//obsolete
-/*void printRoadNetwork_console()
-{
-	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
-	std::cout << "Testin Road Network :\n";
-
-	std::vector<Link*>  & links = ConfigParams::GetInstance().getNetworkRW().getLinks();
-	std::cout << "\n\n\nList of Links\n";
-	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
-	{
-		std::cout << "LinkId: " << (*it)->getLinkId() << std::endl;
-	}
-	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
-	{
-		std::cout << "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl;
-		sum_lane = 0;
-		std::cout << "Segments:\n";
-
-		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getSegments().begin(); it_seg != (*it)->getSegments().end(); it_seg++)
-		{
-			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
-			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
-			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
-			std::sort(tmpLanes.begin(), tmpLanes.end(), sorter_);
-			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
-			{
-				std::cout << "		laneId: " << 	(*lane_it)->getLaneID()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
-			}
-			sum_lane += (*it_seg)->getLanes().size();
-		}
-		std::cout << "\n\n\n\n";
-		sum_segments += (*it)->getUniqueSegments().size();
-
-		std::cout << "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl;
-		sum_lanes += sum_lane;
-		std::cout << "--------------------------------------------------------\n";
-	}
-
-
-	int temp_rs_cnt = 0;
-	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)
-	{
-		std::cout << "\n\nConnectors for Node : " << (*it)->getID() << " has connectors for " << (*it)->getConnectors().size() << " segments: \n";
-		temp_rs_cnt += (*it)->getConnectors().size();
-		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
-		{
-			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
-			const std::set<sim_mob::LaneConnector*> & tempLC = ((*it_cnn).second);
-			std::set<sim_mob::LaneConnector *, Sorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
-			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
-			{
-				s.insert(*it);
-			}
-			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
-			{
-				std::cout << "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
-			}
-			std::cout << "\n";
-		}
-	}
-	std::cout << "Total Number rs for mn connectors: " << temp_rs_cnt << std::endl << std::endl;
-
-
-	std::cout << "Total Number of Links: " << links.size() << std::endl;
-	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
-	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
-	std::cout << "\n\nTotal Number of Segment Nodes : " <<ConfigParams::GetInstance().getNetworkRW().getNodes().size() << std::endl;
-	std::cout << "Total Number of UniNodes : " <<ConfigParams::GetInstance().getNetworkRW().getUniNodes().size() << std::endl;
-
-
-	std::cout << "Testing Road Network Done\n";
-}*/
-
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
+void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
-	//NOTE: You can set "SIMMOB_XML_IN_FILE" (without quotes) in your CMakeCache file to override this.
-	//For example, the default CMakeCache.txt file contains:
-	//   SIMMOB_XML_IN_FILE:STRING=
-	//...which you might change to, e.g.,
-	//   SIMMOB_XML_IN_FILE:STRING=../tools/sumo-convert/simmob.network.xml
-	std::string XML_OutPutFileName = SIMMOB_XML_IN_FILE;
-	if (XML_OutPutFileName.empty()) {
-		XML_OutPutFileName = "data/SimMobilityInput.xml"; //Default
-	}
-
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
@@ -1844,6 +1253,42 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	ConfigParams::GetInstance().singleThreaded = singleThreaded;
 
+
+	//Save "network_source" if it exists.
+	ConfigParams::NetworkSource netSrc = ConfigParams::NETSRC_XML;
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("network_source").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			std::string valS(val);
+			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
+			if (valS=="database") {
+				netSrc = ConfigParams::NETSRC_DATABASE;
+			} else if (valS=="xml") {
+				netSrc = ConfigParams::NETSRC_XML;
+			} else {
+				throw std::runtime_error("Unknown road network source entry.");
+			}
+		}
+	}
+	ConfigParams::GetInstance().networkSource = netSrc;
+
+
+	//Save "network_xml_file", if it exists.
+	std::string netXmlFile = "";
+	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("network_xml_file").ToElement();
+	if (node) {
+		const char* val = node->Attribute("value");
+		if (val) {
+			netXmlFile = val;
+		}
+	}
+	if (netXmlFile.empty()) {
+		netXmlFile = "data/SimMobilityInput.xml"; //Default
+	}
+	ConfigParams::GetInstance().networkXmlFile = netXmlFile;
+
+
 	//Save "mergeLogFiles", if it exists.
 	bool mergeLogFiles = false;
 	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("merge_log_files").ToElement();
@@ -1895,7 +1340,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		if (mutexStrat == "locked") {
 			mtStrat = MtxStrat_Locked;
 		} else if (mutexStrat != "buffered") {
-			return string("Unknown mutex strategy: ") + mutexStrat;
+			throw std::runtime_error("Unknown mutex strategy");
 		}
 	}
 
@@ -1994,7 +1439,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			} else if (valStr == "false") {
 				ConfigParams::GetInstance().SetDynamicDispatchDisabled(false);
 			} else {
-				return "Invalid parameter; expecting boolean.";
+				throw std::runtime_error("Invalid parameter; expecting boolean.");
 			}
 		}
 	}
@@ -2003,33 +1448,43 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 
 	//Series of one-line checks.
-	if(baseGran == -1) { return "Config file fails to specify base granularity."; }
-	if(totalRuntime == -1) { return "Config file fails to specify total runtime."; }
-	if(totalWarmup == -1) { return "Config file fails to specify total warmup."; }
-	if(granAgent == -1) { return "Config file fails to specify agent granularity."; }
-	if(granSignal == -1) { return "Config file fails to specify signal granularity."; }
-	if(agentWgSize == -1) { return "Config file fails to specify agent workgroup size."; }
-	if(signalWgSize == -1) { return "Config file fails to specify signal workgroup size."; }
-	if (!simStartStr) { return "Config file fails to specify simulation start time."; }
+	if(baseGran == -1) { throw std::runtime_error("Config file fails to specify base granularity."); }
+	if(totalRuntime == -1) { throw std::runtime_error("Config file fails to specify total runtime."); }
+	if(totalWarmup == -1) { throw std::runtime_error("Config file fails to specify total warmup."); }
+	if(granAgent == -1) { throw std::runtime_error("Config file fails to specify agent granularity."); }
+	if(granSignal == -1) { throw std::runtime_error("Config file fails to specify signal granularity."); }
+	if(agentWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
+	if(signalWgSize == -1) { throw std::runtime_error("Config file fails to specify signal workgroup size."); }
+	if (!simStartStr) { throw std::runtime_error("Config file fails to specify simulation start time."); }
 
     //Granularity check
-    if (granAgent < baseGran) return "Agent granularity cannot be smaller than base granularity.";
+    if (granAgent < baseGran) {
+    	throw std::runtime_error("Agent granularity cannot be smaller than base granularity.");
+    }
     if (granAgent%baseGran != 0) {
-    	return "Agent granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Agent granularity not a multiple of base granularity.");
     }
-    if (granSignal < baseGran) return "Signal granularity cannot be smaller than base granularity.";
+    if (granSignal < baseGran) {
+    	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
+    }
     if (granSignal%baseGran != 0) {
-    	return "Signal granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (granPaths < baseGran) return "Path granularity cannot be smaller than base granularity.";
+    if (granPaths < baseGran) {
+    	throw std::runtime_error("Path granularity cannot be smaller than base granularity.");
+    }
     if (granPaths%baseGran != 0) {
-    	return "Path granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Path granularity not a multiple of base granularity.");
     }
-    if (granDecomp < baseGran) return "Decomposition granularity cannot be smaller than base granularity.";
+    if (granDecomp < baseGran) {
+    	throw std::runtime_error("Decomposition granularity cannot be smaller than base granularity.");
+    }
     if (granDecomp%baseGran != 0) {
-    	return "Decomposition granularity not a multiple of base granularity.";
+    	throw std::runtime_error("Decomposition granularity not a multiple of base granularity.");
     }
-    if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
+    if (totalRuntime < baseGran) {
+    	throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
+    }
     if (totalRuntime%baseGran != 0) {
     	Warn() <<"Total runtime (" <<totalRuntime <<") will be truncated by the base granularity (" <<baseGran <<")\n";
     }
@@ -2098,59 +1553,34 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if (geomElem) {
     	const char* geomType = geomElem->Attribute("type");
     	if (geomType && string(geomType) == "simple") {
-    		//Load boundaries
-    		if (!LoadXMLBoundariesCrossings(document, "boundaries", "boundary", ConfigParams::GetInstance().boundaries)) {
-    			return "Couldn't load boundaries";
-    		}
-
-    		//Load crossings
-    		if (!LoadXMLBoundariesCrossings(document, "crossings", "crossing", ConfigParams::GetInstance().crossings)) {
-    			return "Couldn't load crossings";
-    		}
+    		throw std::runtime_error("\"simple\" geometry type no longer supported.");
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
-    			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
+    			throw std::runtime_error("Unknown geometry source");
     		}
 
-    		/**************************************************
-    		 *
-    		 * ***********  DATABASE **************************
-    		 *
-    		 ***************************************************/
-#ifndef SIMMOB_XML_READER
-    		//Load the AIMSUM network details
-    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
-    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
-    			return "Unable to load database connection settings....";
+    		//Load from the database or from XML, depending.
+    		if (ConfigParams::GetInstance().networkSource==ConfigParams::NETSRC_DATABASE) {
+    			cout <<"Loading from DATABASE\n";
+
+				//Load the AIMSUM network details
+				if (prof) { prof->logGenericStart("Database", "main-prof"); }
+				map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
+				if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+						throw std::runtime_error("Unable to load database connection settings...");
+				}
+
+				//Actually load it
+				sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
+    		} else {
+    			cout <<"Loading from XML\n";
+				if (!sim_mob::xml::InitAndLoadXML(ConfigParams::GetInstance().networkXmlFile, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
+					throw std::runtime_error("Error loading/parsing XML file (see stderr).");
+				}
     		}
 
-    		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
-    		if (!dbErrorMsg.empty()) {
-    			return "Database loading error: " + dbErrorMsg;
-    		}
-#else
-       		/**************************************************
-       		 *
-       		 * ****************  XML-READER *******************
-        	 *
-        	 *************************************************/
-//#ifdef SIMMOB_PARTIAL_XML_READER
-
-
-    		if (!sim_mob::xml::InitAndLoadXML(XML_OutPutFileName, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
-    			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
-    		}
-//#else
- //   		geo::InitAndLoadXML(XML_OutPutFileName);
-//#endif
-    		//Re-enable if you need diagnostic information. ~Seth
-    		//runXmlChecks(ConfigParams::GetInstance().getNetwork().getLinks());
-#endif
-//////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
     		size_t check = s.find("password=");
@@ -2161,7 +1591,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			s = s.replace(start, amt, amt, '*');
     		}
     	} else {
-    		return "Unknown geometry type: " + (geomType?string(geomType):"");
+    		throw std::runtime_error("Unknown geometry type");
     	}
     }
 
@@ -2229,12 +1659,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Attempt to load all "BusController" elements from the config file.
     if(!loadXMLBusControllers(document, active_agents, pending_agents)) {
     	std::cout << "loadXMLBusControllers Failed!" << std::endl;
-    	return "Couldn't load buscontrollers";
+    	throw std::runtime_error("Couldn't load buscontrollers");
     }
 
     if(!loadXMLFMODController(document)) {
     	std::cout << "loadXMLFMODController Failed!" << std::endl;
-    	return "Couldn't load FMOD controller";
+    	throw std::runtime_error("Couldn't load FMOD controller");
     }
 
     //Initialize all BusControllers.
@@ -2253,28 +1683,28 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		} else if ((*it) == "drivers") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"driver", constraints)) {
-				return "Couldn't load drivers";
+				throw std::runtime_error("Couldn't load drivers");
 			}
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"busdriver", constraints)) {
-				return "Couldn't load bus drivers";
+				throw std::runtime_error("Couldn't load bus drivers");
 			}
 			cout << "Loaded Driver Agents (from config file)." << endl;
 
 		} else if ((*it) == "pedestrians") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"pedestrian", constraints)) {
-				return "Couldn't load pedestrians";
+				throw std::runtime_error("Couldn't load pedestrians");
 			}
 			cout << "Loaded Pedestrian Agents (from config file)." << endl;
 		} else if ((*it) == "passengers") {
 			if (!loadXMLAgents(document, active_agents, pending_agents,
 					"passenger", constraints)) {
-				return "Couldn't load passengers";
+				throw std::runtime_error("Couldn't load passengers");
 			}
 			cout << "Loaded Passenger Agents (from config file)." << endl;
 		} else {
-			return string("Unknown item in load_agents: ") + (*it);
+			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
 	std::cout
@@ -2288,7 +1718,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 #endif
     		"signal")) {
     	std::cout << "loadXMLSignals Failed!" << std::endl;
-    	return	 "Couldn't load signals";
+    	throw std::runtime_error("Couldn't load signals");
     }
 
     //Display
@@ -2382,9 +1812,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
-
-	//No error
-	return "";
 }
 
 
@@ -2576,12 +2003,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 		//Parse it
-		string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
-		if (!errorMsg.empty()) {
-			std::stringstream msg;
-			msg <<"Aborting on Config error: \n" <<errorMsg;
-			throw std::runtime_error(msg.str().c_str());
-		}
+		loadXMLConf(*doc, active_agents, pending_agents, prof);
 		delete doc;
 	}
 }

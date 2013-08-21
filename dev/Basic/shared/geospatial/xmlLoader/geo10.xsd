@@ -7,6 +7,43 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
 
+  <xs:complexType name="coordinate_map_t">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+    <xs:choice>
+      <xs:element name="utm_projection" type="geo:utm_projection_t"/>
+      <xs:element name="linear_scale" type="geo:linear_scale_t"/>
+    </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="utm_projection_t">
+    <xs:sequence>
+      <xs:element name="coordinate_system" type="xs:string"/>
+      <xs:element name="utm_zone" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="linear_scale_t">
+    <xs:sequence>
+      <xs:element name="source" type="geo:scale_source_t"/>
+      <xs:element name="destination" type="geo:scale_destination_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="scale_source_t">
+    <xs:sequence>
+      <xs:element name="x_range" type="xs:string"/>
+      <xs:element name="y_range" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="scale_destination_t">
+    <xs:sequence>
+      <xs:element name="longitude_range" type="xs:string"/>
+      <xs:element name="latitude_range" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="Point2D_t">
     <xs:sequence>
       <xs:element name="xPos" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
@@ -369,14 +406,15 @@
 
   <xs:complexType name="RoadNetwork_t">
     <xs:sequence>
+      <xs:element name="coordinate_map" type="geo:coordinate_map_t" minOccurs="0" maxOccurs="1"/>
+
       <xs:element name="Nodes">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="UniNodes" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element name="UniNode" type="geo:UniNode_t" minOccurs="0"
-                    maxOccurs="unbounded"/>
+                  <xs:element name="UniNode" type="geo:UniNode_t" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>

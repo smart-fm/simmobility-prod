@@ -89,7 +89,7 @@ def _write_node_lanes(out, n, rnInd):
     for ln in seg.lanes:
       out.write('        <LANE\n')
       out.write('          LINKID = "%s"\n' % rnInd.segParents[seg.segId].linkId)
-      out.write('          INDEX = "%s"\n' % ln.laneNumber)
+      out.write('          INDEX = "%d"\n' % (int(ln.laneNumber)+1)) #Lane index must not start from 0
       out.write('          POCKET = "%s"\n' % 'false')
       out.write('          POCKETLENGTH = "%s"\n' % 0.0000)
       out.write('          WIDTH = "%s"\n' % 3.5) #TODO: Actual lane width.
@@ -97,18 +97,37 @@ def _write_node_lanes(out, n, rnInd):
 
 
 def _write_node_lane_turns(out, n, rnInd):
+  #Avoid duplicate turnings.
+  turnings = {}
+  act_turn = 0
+
   #These are relatively simple, and match our LaneConnector format. But we use "links" instead of segments, again.
   for seg in rnInd.segsAtNodes[n.nodeId]:
+    #Only if the Segment is *arriving* at this node
+    if seg.fromNode.nodeId == n.nodeId:
+      continue
+
     for lcGrp in seg.lane_connectors.values():
       for lc in lcGrp:
         #We only care where lc.fromSeg matches the current segment (otherwise we're on the opposite end of the Segment).
         if lc.fromSegment.segId == seg.segId:
-          out.write('        <LANETURN\n')
-          out.write('          FROMLINKID = "%s"\n' % rnInd.segParents[lc.fromSegment.segId].linkId)
-          out.write('          FROMLANEINDEX = "%s"\n' % lc.fromLane.laneNumber)
-          out.write('          TOLINKID = "%s"\n' % rnInd.segParents[lc.toSegment.segId].linkId)
-          out.write('          TOLANEINDEX = "%s"\n' % lc.toLane.laneNumber)
-          out.write('        />\n')
+          #Print later.
+          tup = (rnInd.segParents[lc.fromSegment.segId].linkId, (int(lc.fromLane.laneNumber)+1), rnInd.segParents[lc.toSegment.segId].linkId, (int(lc.toLane.laneNumber)+1))
+          turnings[tup] = True
+          act_turn += 1
+
+  #NOTE: This doesn't seem to do anything...
+  if (act_turn-len(turnings))>0:
+    print('Trimmed: %s turnings.' % (act_turn-len(turnings)))
+
+  #Now print all turnings
+  for turn in turnings.keys():
+    out.write('        <LANETURN\n')
+    out.write('          FROMLINKID = "%s"\n' % turn[0])
+    out.write('          FROMLANEINDEX = "%s"\n' % turn[1])
+    out.write('          TOLINKID = "%s"\n' % turn[2])
+    out.write('          TOLANEINDEX = "%s"\n' % turn[3])
+    out.write('        />\n')
 
 
 def __write_links(out, rn):

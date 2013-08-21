@@ -137,11 +137,12 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
-//    setupIndexMaps();  I guess this function is Not needed any more
+
+	//TODO: Why all the ifdefs? Why does this depend on whether we're loading from XML or not? ~Seth
 #ifndef SIMMOB_XML_WRITER
-#ifndef SIMMOB_XML_READER
-	findSignalLinksAndCrossings();
-#endif
+	if (ConfigParams::GetInstance().networkSource==ConfigParams::NETSRC_DATABASE) {
+		findSignalLinksAndCrossings();
+	}
 #else
 	findSignalLinksAndCrossings();
 #endif

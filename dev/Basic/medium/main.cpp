@@ -214,10 +214,6 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
-	if(sim_mob::FMOD::FMODController::Instance()){
-		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
-	}
-
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
 		signalStatusWorkers->assignAWorker(*it);
@@ -421,18 +417,19 @@ int main(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
+
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {
 		cout << "No config file specified; using default." << endl;
 	}
-	cout << "Using config file: " << configFileName << endl;
+	Print() << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
 	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
-			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
+			Print() <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}*/
 
@@ -454,8 +451,7 @@ int main(int ARGC, char* ARGV[])
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 
-	//Close log file, return.
-	cout << "Done" << endl;
+	Print() << "Done" << endl;
 	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
 	return returnVal;
 }

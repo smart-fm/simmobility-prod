@@ -7,9 +7,7 @@
 #include <ostream>
 #include <vector>
 #include <set>
-
 #include <boost/thread.hpp>
-
 #include "buffering/BufferedDataManager.hpp"
 #include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
@@ -98,7 +96,10 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
+	void processVirtualQueues();
+	void outputSupplyStats(uint32_t currTick);
 	event::EventCollectionMgr& getEventManager();
+
 	virtual std::ostream* getLogFile() const;
 
 protected:
@@ -136,6 +137,7 @@ private:
 	virtual void update_entities(timeslice currTime);
 
 	void migrateOut(Entity& ent);
+	void migrateOutConflux(Conflux& cfx);
 	void migrateIn(Entity& ent);
 
 	//Entity management. Adding is restricted (use WorkGroups).

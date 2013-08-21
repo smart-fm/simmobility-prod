@@ -23,11 +23,11 @@
 #include "Lane.hpp"
 #include "entities/conflux/Conflux.hpp"
 
-using namespace sim_mob;
-
 using std::pair;
 using std::vector;
 using std::set;
+
+using namespace sim_mob;
 
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {

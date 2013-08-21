@@ -261,7 +261,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 
-	if(sim_mob::FMOD::FMODController::Instance()){
+	if(sim_mob::FMOD::FMODController::InstanceExists()){
 		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
 	}
 

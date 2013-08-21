@@ -17,14 +17,13 @@
 //TODO: Need to move the useful "Constructs" out of this file (e.g., Passwords)
 #include "conf/Constructs.hpp"
 
-
 namespace sim_mob {
-
-
 
 //helper class: to be moved.
 class SimulationParams {
 public:
+	SimulationParams();
+
 	///Sources of Agents.
 	enum LoadAgentsOrderOption {
 		LoadAg_Drivers,     ///<Load Drivers from the config file.
@@ -77,6 +76,7 @@ public:
 class WorkerParams {
 public:
 	struct Worker {
+		Worker();
 		int count;
 		int granularityMs;
 	};
@@ -90,6 +90,8 @@ public:
 //helper class: to be moved.
 class SystemParams {
 public:
+	SystemParams();
+
 	enum NetworkSource {
 		NETSRC_XML,
 		NETSRC_DATABASE,
@@ -118,6 +120,7 @@ public:
 
 //helper class: to be moved.
 struct EntityTemplate {
+	EntityTemplate();
 	Point2D originPos;
 	Point2D destPos;
 	unsigned int startTimeMs;

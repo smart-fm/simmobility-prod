@@ -75,7 +75,7 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	DispatchPendingAgents(now);
 
 	// test event message transmition system
-	static int testEvt = 0;
+	/*static int testEvt = 0;
 	if( testEvt++ == 20000 ) {
 
 		event::EventCollectionMgr& eventManager = currWorkerProvider->getEventManager();
@@ -87,7 +87,7 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 		messagePtr->SetRecipients( agentIds, sizeof(agentIds)/sizeof(unsigned int) );
 
 		eventManager.SendMessage( messagePtr );
-	}
+	}*/
 
 	return Entity::UpdateStatus::Continue;
 }

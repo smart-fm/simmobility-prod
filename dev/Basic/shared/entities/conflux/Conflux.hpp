@@ -9,7 +9,6 @@
 #include "entities/Agent.hpp"
 #include "entities/signal/Signal.hpp"
 
-
 namespace sim_mob {
 
 class Person;
@@ -25,6 +24,12 @@ namespace aimsun
 class Loader;
 }
 
+struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
+  bool operator() (const Person* x, const Person* y) const;
+};
+
+//Sort all agents in lane (based on remaining time this tick)
+void sortPersons_DecreasingRemTime(std::deque<Person*> personList);
 
 /**
  * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
@@ -48,6 +53,12 @@ private:
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
+	/*
+	 * virtual queues are used to hold persons which come from previous conflux when the this conflux is not
+	 * processed for the current tick. Each link in the conflux has a virtual queue
+	 */
+	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
+
 	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
@@ -70,17 +81,15 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
-	/* For each downstream link (or rather, the first segment of the downstream link), this map stores the number of persons that can be allowed
-	 * to enter from this conflux to that link in the current tick.
+	/* For each downstream link, this map stores the number of persons that can be
+	 * accepted by that link in this conflux in this tick
 	 */
-	std::map<const sim_mob::RoadSegment*, unsigned int> outputBounds;
+	std::map<sim_mob::Link*, unsigned int> vqBounds;
 
 	/*holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
 
 	std::vector<Entity*> toBeRemoved;
-
-	void prepareLengthsOfSegmentsAhead();
 
 	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
@@ -114,9 +123,7 @@ private:
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing);
 
-	void decrementBound(const sim_mob::RoadSegment* rdSeg);
-
-	void resetRemTimesInLaneInfinities();
+	void resetPersonRemTimesInVQ();
 
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
 protected:
@@ -131,6 +138,8 @@ public:
 
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
+
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
@@ -161,7 +170,8 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
-	bool hasSpaceInVirtualQueue(const sim_mob::RoadSegment* rdSeg);
+	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
+	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 
 	// adds the agent into this conflux
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
@@ -173,8 +183,6 @@ public:
 	// moving and queuing counts
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
-
-	void updateOutputBounds();
 
 	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
@@ -199,6 +207,9 @@ public:
 
 	/* updates lane params for all lanes within the conflux */
 	void updateAndReportSupplyStats(timeslice frameNumber);
+
+	/*process persons in the virtual queue*/
+	void processVirtualQueues();
 
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
@@ -228,6 +239,8 @@ public:
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
 	void resetOutputBounds();
+
+	std::deque<sim_mob::Person*> getAllPersons();
 };
 
 } /* namespace sim_mob */

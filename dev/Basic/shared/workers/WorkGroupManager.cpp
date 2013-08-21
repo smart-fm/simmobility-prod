@@ -9,6 +9,7 @@
 #include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
+#include "event/EventBusSystem.hpp"
 
 using std::vector;
 
@@ -146,6 +147,8 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	if (buffFlipBarr) {
 		buffFlipBarr->wait();
 	}
+
+	event::EventBusSystem::Instance()->ProcessTransimission();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()

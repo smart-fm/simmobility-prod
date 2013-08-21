@@ -1999,6 +1999,9 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			else
 				p.trafficColor = sim_mob::Red;
 				break;
+		default:
+			Warn() <<"Unknown signal color.\n";
+			break;
 		}
 
 		parentDriver->perceivedTrafficColor->set_delay(parentDriver->reacTime);

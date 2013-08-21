@@ -13,6 +13,8 @@ namespace sim_mob {
     
     namespace event {
 
+    	typedef unsigned int EventId;
+
         /**
          * Represents an event data.
          */

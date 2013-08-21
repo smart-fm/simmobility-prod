@@ -26,6 +26,7 @@
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
+#include "event/EventBusSystem.hpp"
 
 using std::vector;
 
@@ -146,6 +147,11 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
 		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
 		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
+	}
+
+	//register each event collection manager;
+	for(size_t i=0; i<numWorkers; i++) {
+		event::EventBusSystem::Instance()->RegisterChildManager( &(workers[i]->getEventManager()) );
 	}
 }
 
@@ -386,6 +392,7 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
 		//buff_flip_barr->contribute(); //No.
+
 	} else {
 		//Tick on behalf of all your workers.
 		if (buff_flip_barr) {
@@ -520,9 +527,29 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
 			if (worker->beginManagingConflux(*i)) {
 				(*i)->setParentWorker(worker);
+				(*i)->currWorkerProvider = worker;
 			}
 		}
 		confluxes.clear();
+	}
+
+	for(std::vector<Worker*>::iterator iWorker = workers.begin(); iWorker != workers.end(); iWorker++) {
+		for(std::set<Conflux*>::iterator iConflux = (*iWorker)->managedConfluxes.begin(); iConflux != (*iWorker)->managedConfluxes.end(); iConflux++) {
+			// begin managing properties of the conflux
+			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
+		}
+	}
+}
+
+void sim_mob::WorkGroup::processVirtualQueues() {
+	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
+		(*wrkr)->processVirtualQueues();
+	}
+}
+
+void sim_mob::WorkGroup::outputSupplyStats() {
+	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
+		(*wrkr)->outputSupplyStats(currTimeTick);
 	}
 }
 
@@ -537,12 +564,11 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 
 	if(numConfluxesToAddInWorker > 0)
 	{
-		//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert(conflux);
-		//if (insertResult.second) {
 		if (worker->beginManagingConflux(conflux)) {
 			confluxes.erase(conflux);
 			numConfluxesToAddInWorker--;
 			conflux->setParentWorker(worker);
+			conflux->currWorkerProvider = worker;
 		}
 
 		SegmentSet downStreamSegs = conflux->getDownstreamSegments();
@@ -555,8 +581,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 			if(!(*i)->getParentConflux()->getParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
 				// the set container for managedConfluxes takes care of eliminating duplicates
-				//std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
-				//if (insertResult.second)
 				if (worker->beginManagingConflux((*i)->getParentConflux()))
 				{
 					// One conflux was added by the insert. So...
@@ -564,6 +588,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 					numConfluxesToAddInWorker--;
 					// set the worker pointer in the Conflux
 					(*i)->getParentConflux()->setParentWorker(worker);
+					(*i)->getParentConflux()->currWorkerProvider = worker;
 				}
 			}
 		}
@@ -599,6 +624,9 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 }
 
 const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
+	/*
+	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
+	 */
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 

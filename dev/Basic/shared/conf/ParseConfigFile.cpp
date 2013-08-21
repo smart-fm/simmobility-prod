@@ -33,7 +33,7 @@ void sim_mob::ParseConfigFile::ParseXmlAndProcess()
 		//Retrieve, copy, release.
 		char* raw = XMLString::transcode(toCatch.getMessage());
 		errorMsg << "Error during initialization! :\n" << raw << "\n";
-		XMLString::release(&message);
+		XMLString::release(&raw);
 
 		//Throw it now.
 		throw std::runtime_error(errorMsg.str().c_str());
@@ -53,14 +53,14 @@ void sim_mob::ParseConfigFile::ParseXmlAndProcess()
 		parser->parse(inFilePath.c_str());
 	} catch (const XMLException& toCatch) {
 		//Retrieve, save, release.
-		char* message = XMLString::transcode(toCatch.getMessage());
-		errorMsg << "Exception message is: \n" << message << "\n";
-		XMLString::release(&message);
+		char* raw = XMLString::transcode(toCatch.getMessage());
+		errorMsg << "Exception message is: \n" << raw << "\n";
+		XMLString::release(&raw);
      } catch (const DOMException& toCatch) {
     	//Retrieve, save, release.
-    	char* message = XMLString::transcode(toCatch.msg);
-    	errorMsg<< "Exception message is: \n" << message << "\n";
-    	XMLString::release(&message);
+    	char* raw = XMLString::transcode(toCatch.msg);
+    	errorMsg<< "Exception message is: \n" << raw << "\n";
+    	XMLString::release(&raw);
      } catch (...) {
     	 errorMsg << "Unexpected Exception parsing config file.\n" ;
      }

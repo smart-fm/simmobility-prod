@@ -11,10 +11,13 @@
 //include publishing services that you provide in simmobility
 //#include "derived/TimePublisher.hpp"
 //#include "derived/LocationPublisher.hpp"
-#include "conf/simpleconf.hpp"
 #include <boost/assign/list_of.hpp>
 #include <map>
+#include <string>
 #include <sstream>
+
+#include "conf/simpleconf.hpp"
+
 namespace sim_mob
 {
 	enum SIM_MOB_SERVICE

@@ -34,8 +34,9 @@ protected:
 
 private:
 	//These functions are called by ParseXmlAndProcess()
+	void InitXerces();
 	std::string ParseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler); //Returns "" or an error message.
-	void ProcessXmlFile(const xercesc::XercesDOMParser& parser);
+	void ProcessXmlFile(xercesc::XercesDOMParser& parser);
 
 
 

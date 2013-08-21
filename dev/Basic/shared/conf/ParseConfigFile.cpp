@@ -18,12 +18,11 @@ using namespace xercesc;
 
 namespace {
 //Helper: turn a Xerces error message into a string.
-template <class XmlError>
-std::string TranscodeErrorMessage(const XmlError& error) {
-	char* raw = XMLString::transcode(error.getMessage());
-	std::string errorMsg(raw);
+std::string TranscodeString(const XMLCh* str) {
+	char* raw = XMLString::transcode(str);
+	std::string res(raw);
 	XMLString::release(&raw);
-	return errorMsg;
+	return res;
 }
 
 } //End un-named namespace
@@ -38,6 +37,7 @@ sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, Raw
 void sim_mob::ParseConfigFile::ParseXmlAndProcess()
 {
 	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
+	InitXerces();
 	HandlerBase handBase;
 	XercesDOMParser parser;
 
@@ -53,15 +53,18 @@ void sim_mob::ParseConfigFile::ParseXmlAndProcess()
 	ProcessXmlFile(parser);
 }
 
-std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, ErrorHandler& errorHandler)
+void sim_mob::ParseConfigFile::InitXerces()
 {
 	//Xerces initialization.
 	try {
 		XMLPlatformUtils::Initialize();
 	} catch (const XMLException& error) {
-		return TranscodeErrorMessage(error);
+		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
 	}
+}
 
+std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, ErrorHandler& errorHandler)
+{
 	//Build a parser, set relevant properties on it.
 	parser.setValidationScheme(XercesDOMParser::Val_Always);
 	parser.setDoNamespaces(true); //This is optional.
@@ -73,9 +76,9 @@ std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, Erro
 	try {
 		parser.parse(inFilePath.c_str());
 	} catch (const XMLException& error) {
-		return TranscodeErrorMessage(error);
+		return TranscodeString(error.getMessage());
 	} catch (const DOMException& error) {
-		return TranscodeErrorMessage(error);
+		return TranscodeString(error.getMessage());
 	} catch (...) {
 		return "Unexpected Exception parsing config file.\n" ;
 	}
@@ -85,9 +88,11 @@ std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, Erro
 }
 
 
-void sim_mob::ParseConfigFile::ProcessXmlFile(const XercesDOMParser& parser)
+void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 {
+	std::cout <<TranscodeString(parser.getDocument()->getDocumentElement()->getTagName()) <<std::endl;
 
+	throw 1;
 }
 
 

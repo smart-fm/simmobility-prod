@@ -61,6 +61,7 @@
 #include "conf/PrintNetwork.hpp"
 #include "conf/LoadAgents.hpp"
 #include "conf/LoadNetwork.hpp"
+#include "conf/ParseConfigFile.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -1477,6 +1478,10 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
 	const bool LOAD_NEW_CONFIG_FILE = false;
+
+
+	//Try parsing with the new syntax
+	ParseConfigFile(configPath, ConfigParams::GetInstance());
 
 
 	if (LOAD_NEW_CONFIG_FILE) {

@@ -25,6 +25,14 @@ std::string TranscodeString(const XMLCh* str) {
 	return res;
 }
 
+//Helper: retrieve child elements without leaking memory
+DOMNodeList* GetElementsByName(DOMElement* node, const std::string& key) {
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNodeList* res = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+	return res;
+}
+
 } //End un-named namespace
 
 
@@ -90,10 +98,28 @@ std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, Erro
 
 void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 {
-	std::cout <<TranscodeString(parser.getDocument()->getDocumentElement()->getTagName()) <<std::endl;
+	//Verify that the root node is "config"
+	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
+	if (TranscodeString(rootNode->getTagName()) != "config") {
+		throw std::runtime_error("xml parse error: root node must be \"config\"");
+	}
 
+	//Now just parse the document recursively.
+	ProcessSystemNode(GetElementsByName(rootNode,"system"));
+	ProcessSystemNode(GetElementsByName(rootNode,"systemz"));
+
+	//TEMP
 	throw 1;
 }
+
+
+void sim_mob::ParseConfigFile::ProcessSystemNode(DOMNodeList* nodes)
+{
+	std::cout <<"found: " <<nodes->getLength() <<"\n";
+
+
+}
+
 
 
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <boost/noncopyable.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/dom/DOMNodeList.hpp>
 
 
 
@@ -37,6 +38,9 @@ private:
 	void InitXerces();
 	std::string ParseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler); //Returns "" or an error message.
 	void ProcessXmlFile(xercesc::XercesDOMParser& parser);
+
+	//Process through recursive descent.
+	void ProcessSystemNode(xercesc::DOMNodeList* nodes);
 
 
 

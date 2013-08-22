@@ -256,8 +256,8 @@ void sim_mob::Worker::breedPendingEntities()
 
 void sim_mob::Worker::perform_frame_tick()
 {
-	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
 	MgmtParams& par = loop_params;
+	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, par.currTick, (managedEntities.size()+toBeAdded.size()));
 
 	//Short-circuit if we're in "pause" mode.
 	if (ConfigParams::GetInstance().InteractiveMode()) {
@@ -279,10 +279,18 @@ void sim_mob::Worker::perform_frame_tick()
 	//TODO: This name has *got* to change. ~Seth
 	breedPendingEntities();
 
-	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
+	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, par.currTick);
 
 	//Advance local time-step.
 	par.currTick += tickStep;
+
+	//Every so many time ticks, flush the ProfileBuilder (just so *some* output is retained if the program is killed).
+	const uint32_t TickAmt = 100; //"Every X ticks"
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
+	if ((par.currTick/tickStep)%TickAmt==0) {
+		profile->flushLogFile();
+	}
+#endif
 
 	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
 	if (ConfigParams::GetInstance().InteractiveMode()) {

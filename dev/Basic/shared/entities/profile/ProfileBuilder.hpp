@@ -105,6 +105,9 @@ public:
 	void logGenericStart(const std::string& caption, const std::string& group);
 	void logGenericEnd(const std::string& caption, const std::string& group);
 
+	///Can be used to flush the log file early (also called on destruction). Be careful; this locks!
+	void flushLogFile();
+
 private:
 	//Increase or decrease the shared reference count. Returns the total reference count after
 	// accounting for the new amount to be added. Thread-safe.
@@ -112,7 +115,6 @@ private:
 
 	static std::string GetCurrentTime();
 
-	void flushLogFile();
 	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
 	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");

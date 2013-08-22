@@ -23,8 +23,8 @@ void ConnectionServer::handleNewClient(session_ptr &sess)
 
 void ConnectionServer::CreatSocketAndAccept() {
 	// Start an accept operation for a new connection.
-	std::cout << "Accepting..." << std::endl;
-//	sim_mob::session_ptr new_sess;
+	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
+
 	new_sess.reset(new sim_mob::Session(io_service_));
 	acceptor_.async_accept(new_sess->socket(),
 			boost::bind(&ConnectionServer::handle_accept, this,
@@ -52,12 +52,10 @@ void ConnectionServer::io_service_run()
 }
 void ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess) {
 	if (!e) {
-		Print() << "accepted a connection" << std::endl;
+		std::cout<< "accepted a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
 		handleNewClient(sess);
-	}
-	else
-	{
-		Print() << "not accepted a connection" << std::endl;
+	} else {
+		std::cout<< "refused a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
 		WarnOut("Connection Refused" << std::endl);
 	}
 	CreatSocketAndAccept();

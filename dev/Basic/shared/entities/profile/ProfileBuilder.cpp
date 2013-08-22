@@ -74,6 +74,7 @@ void ProfileBuilder::flushLogFile()
 	//Write and flush the current buffer.
 	boost::mutex::scoped_lock local_lock(profile_mutex);
 	LogFile <<currLogStr;
+	LogFile.flush();
 	currLog.str("");
 }
 

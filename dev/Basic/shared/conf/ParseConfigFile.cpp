@@ -33,6 +33,63 @@ DOMNodeList* GetElementsByName(DOMElement* node, const std::string& key) {
 	return res;
 }
 
+//Helper: retrieve a single element; optionally required.
+DOMNode* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false) {
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNodeList* res = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	//Check.
+	if (res->getLength()>1) {
+		throw std::runtime_error("Error: single element expected, but returned more than 1.");
+	} else if (res->getLength()==1) {
+		return res->item(0);
+	} else if (required) {
+		throw std::runtime_error("Error: single element expected, but returned zero.");
+	}
+
+	return nullptr;
+}
+
+//Helper: retrieve an attribute
+DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) {
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNode* res = node->getAttributes()->getNamedItem(keyX);
+	XMLString::release(&keyX);
+
+	//Check.
+	if (required && !res) {
+		throw std::runtime_error("Error: attribute expected, but none found.");
+	}
+
+	DOMAttr* resAttr = dynamic_cast<DOMAttr*>(res);
+	if (!resAttr) {
+		throw std::runtime_error("Error: attribute expected, but couldn't be cast.");
+	}
+
+	return resAttr;
+}
+
+
+//Helper: make sure we actually have an element
+DOMElement* NodeToElement(DOMNode* node) {
+	DOMElement* res = dynamic_cast<DOMElement*>(node);
+	if (!res) {
+		throw std::runtime_error("DOMNode is expected to be a DOMElement.");
+	}
+	return res;
+}
+
+//Helper: boolean stuff
+bool ParseBoolean(const std::string& src) {
+	if (src=="true") {
+		return true;
+	} else if (src=="false") {
+		return false;
+	}
+	throw std::runtime_error("Expected boolean value.");
+}
+
 } //End un-named namespace
 
 
@@ -105,25 +162,73 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	}
 
 	//Now just parse the document recursively.
-	ProcessSystemNode(GetElementsByName(rootNode,"system"));
-	ProcessSystemNode(GetElementsByName(rootNode,"systemz"));
+	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
+	ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
+	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
+	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
+	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
+	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 
 	//TEMP
 	throw 1;
 }
 
 
-void sim_mob::ParseConfigFile::ProcessSystemNode(DOMNodeList* nodes)
+void sim_mob::ParseConfigFile::ProcessSystemNode(DOMNode* node)
 {
-	std::cout <<"found: " <<nodes->getLength() <<"\n";
-
-
+	ProcessSystemSimulationNode(GetSingleElementByName(NodeToElement(node), "simulation", true));
+	ProcessSystemWorkersNode(GetSingleElementByName(NodeToElement(node), "workers", true));
+	ProcessSystemSingleThreadedNode(GetSingleElementByName(NodeToElement(node), "single_threaded"));
+    //single_threaded
+	//merge_log_files value
+	//network_source value
+	//network_xml_file
+	//xsd_schema_files
+	//generic_props
 }
 
 
+void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMNode* node)
+{
+}
 
+void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMNode* node)
+{
+}
 
+void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMNode* node)
+{
+}
 
+void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMNode* node)
+{
+}
+
+void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMNode* node)
+{
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMNode* node)
+{
+
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMNode* node)
+{
+
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemSingleThreadedNode(xercesc::DOMNode* node)
+{
+	bool singleThreaded = false;
+	if (node) {
+		DOMAttr* attr = GetNamedAttribute(NodeToElement(node), "value");
+		if (attr) {
+			singleThreaded = ParseBoolean(TranscodeString(attr->getNodeValue()));
+		}
+	}
+	cfg.system.singleThreaded = singleThreaded;
+}
 
 
 

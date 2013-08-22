@@ -5,6 +5,7 @@
 #include <string>
 #include <boost/noncopyable.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
 
@@ -40,7 +41,17 @@ private:
 	void ProcessXmlFile(xercesc::XercesDOMParser& parser);
 
 	//Process through recursive descent.
-	void ProcessSystemNode(xercesc::DOMNodeList* nodes);
+	void ProcessSystemNode(xercesc::DOMNode* node);
+	void ProcessGeometryNode(xercesc::DOMNode* node);
+	void ProcessDriversNode(xercesc::DOMNode* node);
+	void ProcessPedestriansNode(xercesc::DOMNode* node);
+	void ProcessBusDriversNode(xercesc::DOMNode* node);
+	void ProcessSignalsNode(xercesc::DOMNode* node);
+
+	//Descend through System
+	void ProcessSystemSimulationNode(xercesc::DOMNode* node);
+	void ProcessSystemWorkersNode(xercesc::DOMNode* node);
+	void ProcessSystemSingleThreadedNode(xercesc::DOMNode* node);
 
 
 

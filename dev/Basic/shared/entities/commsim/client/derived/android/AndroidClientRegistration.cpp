@@ -105,6 +105,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		Print() << "AndroidClientRegistration::handle returning true" << std::endl;
 		return true;
 }
+
 AndroidClientRegistration::~AndroidClientRegistration() {
 	// TODO Auto-generated destructor stub
 }

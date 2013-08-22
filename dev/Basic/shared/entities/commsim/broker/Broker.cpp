@@ -2,8 +2,10 @@
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
+#include <sstream>
 //core simmobility
 #include "entities/AuraManager.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
 //communication simulator
@@ -46,6 +48,11 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 m_messageReceiveCallback = boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)>
 	 	(boost::bind(&Broker::messageReceiveCallback,this, _1, _2));
 
+
+	 //TEMP: Hijack the Worker profile update loop.
+	 if (ConfigParams::GetInstance().ProfileWorkerUpdates() && !profile) {
+		profile = new ProfileBuilder();
+	 }
 
 }
 
@@ -809,6 +816,28 @@ Entity::UpdateStatus Broker::update(timeslice now)
 //	}
 //	Print()<< "waiting For Clients" <<  std::endl;
 	waitForClientsDone();
+
+	//Step 7.5: output
+	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
+		//TODO: This is a bit of a hack; won't work with both ns3/Android enabled. ~Seth.
+		size_t sz = 0;
+		for (ClientList::type::iterator it=clientList.begin(); it!=clientList.end(); it++) {
+			sz += it->second.size();
+		}
+		std::stringstream msg;
+		msg <<sz;
+		profile->logAgentCustomMessage(*this, now, "custom-num-connected-clients", msg.str());
+		//TODO: End hack.
+
+		//TODO: And another hack!
+		const uint32_t TickAmt = 100; //"Every X ticks"
+		const uint32_t TickStep = 1; //HACK: For what the Worker sees (for all Agents).
+		if ((now.frame()/TickStep)%TickAmt==0) {
+			profile->flushLogFile();
+		}
+	}
+
+
 //	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
 	//step-8: final steps that should be taken before leaving the tick
 	//prepare for next tick.

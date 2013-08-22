@@ -144,6 +144,12 @@ void ProfileBuilder::logAgentDeleted(const Agent& ag)
 }
 
 
+void ProfileBuilder::logAgentCustomMessage(const Agent& ag, timeslice now, const std::string& custom, const std::string& msg)
+{
+	logAgentUpdateGeneric(ag, custom, &now, msg);
+}
+
+
 void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const timeslice* const now, const string& message)
 {
 	currLog <<"{"

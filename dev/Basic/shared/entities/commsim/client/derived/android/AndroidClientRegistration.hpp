@@ -17,7 +17,7 @@ class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 	sim_mob::AgentsMap<std::string>::type usedAgents;
 public:
 	AndroidClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::ANDROID_EMULATOR*/);
-	bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
 	virtual ~AndroidClientRegistration();
 };
 

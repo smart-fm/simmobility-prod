@@ -101,6 +101,9 @@ public:
 	void logAgentDeleted(const Agent& ag);
 	void logAgentException(const Agent& ag, timeslice now, const std::exception& ex);
 
+	///NOTE: Start your messages here with "custom-" please. Will clean up later. ~Seth
+	void logAgentCustomMessage(const Agent& ag, timeslice now, const std::string& custom, const std::string& msg);
+
 	///Used to log generic (non-agent) behavior.
 	void logGenericStart(const std::string& caption, const std::string& group);
 	void logGenericEnd(const std::string& caption, const std::string& group);

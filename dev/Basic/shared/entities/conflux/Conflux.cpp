@@ -20,6 +20,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
+#include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 
 
@@ -56,7 +57,12 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
-	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame() << std::endl;
+	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame()
+			<< "Number of persons on conflux: " << this->getAllPersons().size()
+			<< std::endl;
+	timeval startTime;
+	gettimeofday(&startTime, nullptr);
+
 	currFrameNumber = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -64,12 +70,26 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	//reset the remaining times of persons in lane infinity if required.
 	resetPersonRemTimesInVQ();
 
+	timeval startUpdateTime;
+	gettimeofday(&startUpdateTime, nullptr);
+
+	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame()
+			<< " execution time before updateUnsignalized: "<< Utils::diff_ms(startUpdateTime, startTime)
+			<< " ms." << std::endl;
+
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented and called here
 	}
 	else {
 		updateUnsignalized();
 	}
+
+	timeval endUpdateTime;
+	gettimeofday(&endUpdateTime, nullptr);
+
+	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame()
+			<< " execution time for updateUnsignalized: "<< Utils::diff_ms(endUpdateTime,startUpdateTime)
+			<< " ms." << std::endl;
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	setLastUpdatedFrame(frameNumber.frame());

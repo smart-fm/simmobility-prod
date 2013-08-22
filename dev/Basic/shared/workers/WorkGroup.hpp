@@ -83,6 +83,8 @@ public:
 	void assignAWorker(Entity* ag);
 	void assignConfluxToWorkers();
 	void putAgentOnConflux(Agent* ag);
+	void processVirtualQueues();
+	void outputSupplyStats();
 
 private:
 	void clear();
@@ -100,9 +102,6 @@ private:
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorkerConstraint(Entity* ag);
-
-	void processVirtualQueues();
-	void outputSupplyStats();
 
 	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 

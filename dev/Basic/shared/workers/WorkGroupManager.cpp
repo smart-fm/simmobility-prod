@@ -170,7 +170,18 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 		return;
 	}
 
+	timeval startTime;
+	gettimeofday(&startTime, nullptr);
+
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
+#ifdef SIMMOB_USE_CONFLUXES
+		(*it)->processVirtualQueues();
+		(*it)->outputSupplyStats();
+#endif
+		timeval endTime;
+		gettimeofday(&endTime, nullptr);
+		Print()<< "ProcessVirtualQueue|execution time:"<< Utils::diff_ms(endTime, startTime) << std::endl;
+
 		(*it)->waitAuraManager();
 	}
 

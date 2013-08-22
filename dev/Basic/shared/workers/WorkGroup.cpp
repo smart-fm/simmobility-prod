@@ -169,6 +169,7 @@ void sim_mob::WorkGroup::startAll(bool singleThreaded)
 
 	//Start all workers
 	tickOffset = 0; //Always start with an update.
+
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		(*it)->start();
 	}
@@ -671,7 +672,6 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 
 	return rdSeg;
 }
-
 
 
 

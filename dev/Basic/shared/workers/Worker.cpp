@@ -26,6 +26,7 @@
 #include "workers/WorkGroup.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
 
 using std::set;
 using std::vector;
@@ -513,8 +514,16 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->resetOutputBounds();
 		}
+
+		struct timeval startTime;
+		gettimeofday(&startTime, NULL);
+
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
+
+		timeval endTime;
+		gettimeofday(&endTime, nullptr);
+		Print() << "Worker::EntityUpdater<advance>|execution time: " << Utils::diff_ms(endTime,startTime) << std::endl;
 
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->updateAndReportSupplyStats(currTime);
@@ -522,6 +531,10 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			(*it)->resetSegmentFlows();
 			(*it)->resetLinkTravelTimes(currTime);
 		}
+		timeval endUpdateTime;
+		gettimeofday(&endUpdateTime, nullptr);
+		Print() << "Worker::EntityUpdater<update>|execution time: " << Utils::diff_ms(endUpdateTime,endTime) << std::endl;
+
 	}
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.

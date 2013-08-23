@@ -26,7 +26,7 @@ using std::map;
 using std::cout;
 
 TestAgent::TestAgent(int id, messaging::MessageHandler* receiver)
-: Agent(ConfigParams::GetInstance().mutexStategy, id), MessageHandler(id), receiver(receiver) {
+: Agent(ConfigParams::GetInstance().mutexStategy, id), receiver(receiver) {
     isRegistered = false;
 }
 
@@ -37,20 +37,13 @@ void TestAgent::load(const map<string, string>& configProps) {
 }
 
 bool TestAgent::frame_init(timeslice now) {
-    if (!isRegistered){
-        messaging::MessageBus::RegisterHandler(this);
-        isRegistered = true;
-    }
     return true;
 }
 
 Entity::UpdateStatus TestAgent::frame_tick(timeslice now) {
-    if (this->GetId() % 2 != 0 && receiver){
+    if (this->GetId() % 2 != 0 && receiver) {
         MessageBus::PostMessage(receiver, 11, MessageBus::MessagePtr(new Message()));
-        cout << "Message from:" << GetId() << " to: "<< receiver->GetId() << " Thread: "<< boost::lexical_cast<std::string>(boost::this_thread::get_id()) <<  std::endl;
-    }
-    if(now.ms() == 364){
-        sim_mob::messaging::MessageBus::UnRegisterHandler(this);
+        //cout << "Message from:" << GetId() << " to: "<< receiver->GetId() << " Thread: "<< boost::lexical_cast<std::string>(boost::this_thread::get_id()) <<  std::endl;
     }
     return Entity::UpdateStatus::Continue;
 }
@@ -63,5 +56,5 @@ bool TestAgent::isNonspatial() {
 }
 
 void TestAgent::HandleMessage(Message::MessageType type, const Message& message) {
-    cout << "Hello Message, id:" << GetId() << " Type: "<< type << " Thread: "<< boost::lexical_cast<std::string>(boost::this_thread::get_id()) <<  std::endl;
+    //cout << "Hello Message, id:" << GetId() << " Type: "<< type << " Thread: "<< boost::lexical_cast<std::string>(boost::this_thread::get_id()) <<  std::endl;
 }

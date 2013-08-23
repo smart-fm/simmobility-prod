@@ -26,7 +26,7 @@ namespace sim_mob {
          * - Both
          * It will depend of the context.
          */
-        class LT_Agent : public sim_mob::Agent, public messaging::MessageHandler {
+        class LT_Agent : public sim_mob::Agent{
         public:
             LT_Agent(int id);
             virtual ~LT_Agent();

@@ -18,7 +18,7 @@ namespace sim_mob {
 
     namespace long_term {
 
-        class TestAgent : public sim_mob::Agent, public messaging::MessageHandler {
+        class TestAgent : public sim_mob::Agent{
         public:
             TestAgent(int id, messaging::MessageHandler* receiver);
             virtual ~TestAgent();

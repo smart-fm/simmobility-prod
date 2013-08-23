@@ -8,6 +8,7 @@
  */
 #pragma once
 #include "MessageHandler.hpp"
+#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace sim_mob {
@@ -19,13 +20,15 @@ namespace sim_mob {
             typedef boost::shared_ptr<Message> MessagePtr;
             /**
              * Registers the main thread that will manage all MessageBus system.
+             * Attention: You must call this function using the main thread.
              * @throws runtime_exception if the system has 
              *         already a context for the main thread.
              */
             static void RegisterMainThread();
 
             /**
-             * Registers a new thread creating a context on it.
+             * Registers a new thread creating a context for it.
+             * Attention: You must call this function using the thread context.
              * @throws runtime_exception if the system has 
              *         already a context for the current thread.
              */
@@ -40,9 +43,10 @@ namespace sim_mob {
              *         is not registered.
              */
             static void RegisterHandler(MessageHandler* handler);
-            
+
             /**
              * UnRegisters the main thread.
+             * Attention: You must call this function using the main thread.
              * @throws runtime_exception if the system has 
              *         already a context for the main thread.
              */
@@ -50,6 +54,7 @@ namespace sim_mob {
 
             /**
              * UnRegisters the current thread.
+             * Attention: You must call this function using the thread context.
              * @throws runtime_exception if the system has 
              *         already a context for the current thread.
              */
@@ -63,7 +68,6 @@ namespace sim_mob {
              *         is not registered.
              */
             static void UnRegisterHandler(MessageHandler* handler);
-
 
             /**
              * MessageBus distributes all messages for all registered threads.
@@ -94,7 +98,13 @@ namespace sim_mob {
              * @param message to send.
              */
             static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+
+        public:
+            static const unsigned int MB_MIN_MSG_PRIORITY;
+            static const unsigned int MB_MSG_START;
+
         private:
+
             /**
              * Constructor.
              */
@@ -118,7 +128,7 @@ namespace sim_mob {
              * Attention: This function should be called by the main thread.
              */
             static void DispatchMessages();
-            
+
             /**
              * Gets the main message bus instance.
              * @return MessageBus instance.

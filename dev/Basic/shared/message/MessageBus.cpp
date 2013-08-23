@@ -8,10 +8,8 @@
  */
 #include "MessageBus.hpp"
 #include "util/LangHelpers.hpp"
-#include "entities/Entity.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/unordered/unordered_map.hpp>
 #include <queue>
 #include <list>
@@ -33,12 +31,17 @@ using boost::shared_lock;
 using boost::upgrade_lock;
 using boost::upgrade_to_unique_lock;
 
+const unsigned int MessageBus::MB_MIN_MSG_PRIORITY = 5;
+const unsigned int MessageBus::MB_MSG_START = 1000000;
+            
 namespace {
-    const int MIN_CUSTOM_PRIORITY  = 5;
-    const int MSGI_ADD_HANDLER     = 1;
-    const int MSGI_REMOVE_HANDLER  = 2;
-    const int MSGI_REMOVE_THREAD   = 3;
-
+    const unsigned int MB_MSGI_START = 1000;
+    
+    enum InternalMessages{
+        MSGI_ADD_HANDLER = MB_MSGI_START,
+        MSGI_REMOVE_HANDLER,
+        MSGI_REMOVE_THREAD
+    };
 
     /***************************************************************************
      *                              Internal Types
@@ -59,24 +62,25 @@ namespace {
      *        Notice that each message should have a priority => MIN_CUSTOM_PRIORITY,
      *        Otherwise the default priority will be MIN_CUSTOM_PRIORITY.
      */
-    struct MessageEntry {
+    typedef struct MessageEntry {
+
+        MessageEntry() : destination(NULL), internal(false), priority(MessageBus::MB_MIN_MSG_PRIORITY) {
+        }
         MessageHandler* destination;
         MessageBus::MessagePtr message;
         Message::MessageType type;
         bool internal;
         int priority;
-    };
-    typedef boost::shared_ptr<MessageEntry> MessageQueueEntry;
-    
-    class ComparePriority {
-    public:
+    } *MessageEntryPtr;
 
-        bool operator()(MessageQueueEntry& t1, MessageQueueEntry& t2) {
-            return (t1->priority < t2->priority);
+    struct ComparePriority {
+
+        bool operator()(const MessageEntryPtr t1, const MessageEntryPtr t2) const {
+            return (t1 && t2 && t1->priority < t2->priority);
         }
     };
-    
-    typedef priority_queue<MessageQueueEntry, vector<MessageQueueEntry>, ComparePriority> MessageQueue;
+
+    typedef priority_queue<MessageEntryPtr, std::deque<MessageEntryPtr>, ComparePriority> MessageQueue;
 
     /**
      * Represents a thread context.
@@ -87,98 +91,25 @@ namespace {
      * @param output queue for messages.
      */
     struct ThreadContext {
-        ThreadContext() 
-        : input(ComparePriority()), 
-          output(ComparePriority()){
+
+        ThreadContext()
+        : input(ComparePriority()),
+        output(ComparePriority()),
+        main(false),
+        totalMessages(0),
+        deletedMessages(0) {
         }
-        string threadId;
+        boost::thread::id threadId;
         bool main;
         MessageQueue input;
         MessageQueue output;
+        // statistics
+        long long totalMessages;
+        long long deletedMessages;
     };
-
-    /***************************************************************************
-     *                              Helper Functions
-     **************************************************************************/
-
-    /**
-     * Destroys the content associated with the given 
-     * MessageQueueEntry reference.
-     * @param entry to destroy.
-     */
-    void DeleteEntry(MessageQueueEntry& entry) {
-        if (entry) {
-            if (!(entry->message.unique())) {
-                throw runtime_error("Message must be managed only by MessageBus.");
-            }
-            entry->message.reset();
-            if (!entry.unique()) {
-                throw runtime_error("MessageQueueEntry must be managed only by MessageBus.");
-            }
-            entry.reset();
-        }
-    }
-
-    /**
-     * Cleanup the given queue reference.
-     * @param queue to clean up.
-     */
-    void ClearQueue(MessageQueue& queue) {
-        MessageQueueEntry entry;
-        if (!queue.empty()) {
-            entry = queue.top();
-            queue.pop();
-            DeleteEntry(entry);
-        }
-    }
-
-    /**
-     * Destroys the given thread context.
-     * @param context to destroy. 
-     */
-    void DeleteContext(ThreadContext* context) {
-        if (context) {
-            ClearQueue(context->input);
-            ClearQueue(context->output);
-            safe_delete_item(context);
-        }
-    }
-
+    
     typedef list<ThreadContext*> ContextList;
-    boost::thread_specific_ptr<ThreadContext> threadContext(DeleteContext);
-    ContextList threadContexts;
-
-    /***************************************************************************
-     *                              Helper Functions
-     **************************************************************************/
-
-    /**
-     * Checks the if the current context belongs to the main thread.
-     * Notice some actions must be processed in the main thread only.
-     */
-    void CheckMainThread() {
-        if (!threadContext.get() && threadContext.get()->main) {
-            throw runtime_error("This call should be done using the registered main thread context.");
-        }
-    }
-
-    /**
-     * Checks the thread that called the function has a registered context or not.
-     */
-    void CheckThreadContext() {
-        if (!threadContext.get()) {
-            throw runtime_error("This thread does not have any MessageCollector associated.");
-        }
-    }
-
-    /**
-     * Gets the context associated with the current thread.
-     * @return ThreadContext pointer or NULL.
-     */
-    ThreadContext* GetThreadContext() {
-        return threadContext.get();
-    }
-
+    
     /***************************************************************************
      *                              Internal Classes
      **************************************************************************/
@@ -208,6 +139,52 @@ namespace {
         MessageHandler* handler;
     };
 
+    /***************************************************************************
+     *                              Helper Functions
+     **************************************************************************/
+
+    /**
+     * Checks the if the current context belongs to the main thread.
+     * Notice some actions must be processed in the main thread only.
+     */
+    void CheckMainThread();
+
+    /**
+     * Checks the thread that called the function has a registered context or not.
+     */
+    void CheckThreadContext();
+
+    /**
+     * Gets the context associated with the current thread.
+     * @return ThreadContext pointer or NULL.
+     */
+    ThreadContext* GetThreadContext();
+
+    /**
+     * Destroys the content associated with the given 
+     * MessageQueueEntry reference.
+     * @param entry to destroy.
+     */
+    void DeleteEntry(MessageEntryPtr& entry);
+
+    /**
+     * Cleanup the given queue reference.
+     * @param queue to clean up.
+     */
+    void CleanUpQueue(MessageQueue& queue);
+
+    /**
+     * Destroys the given thread context.
+     * @param context to destroy. 
+     */
+    void DeleteContext(ThreadContext* context);
+
+    /***************************************************************************
+     *                              Global variables
+     **************************************************************************/
+
+    boost::thread_specific_ptr<ThreadContext> threadContext(DeleteContext);
+    ContextList threadContexts;
     boost::shared_mutex contextsMutex;
 }// anonymous namespace
 
@@ -217,110 +194,89 @@ namespace {
 
 void MessageBus::RegisterMainThread() {
     if (!threadContext.get()) {
-        ThreadContext* context = new ThreadContext();
-        context->threadId = boost::lexical_cast<std::string>(boost::this_thread::get_id());
-        context->main = true;
-        threadContext.reset(context);
-        GetInstance().context = context;
-        cout << "Registered Main: " << GetInstance().context << std::endl;
+        ThreadContext* mainContext = new ThreadContext();
+        mainContext->threadId = boost::this_thread::get_id();
+        mainContext->main = true;
+        GetInstance().context = static_cast<void*> (mainContext);
+        threadContext.reset(mainContext);
+        threadContexts.push_back(mainContext);
+        cout << "Registered Main: " << mainContext->threadId << std::endl;
     } else {
-        throw runtime_error("Main thread already has a context associated.");
+        throw runtime_error("MessageBus - Main thread already has a context associated.");
     }
+}
+
+void MessageBus::UnRegisterMainThread() {
+    CheckMainThread();
+    GetInstance().context = NULL;
+    threadContexts.clear();
+    threadContext.reset();
+    cout << "UnRegistered Main." << std::endl;
 }
 
 void MessageBus::RegisterThread() {
     if (!threadContext.get()) {
         ThreadContext* context = new ThreadContext();
-        context->threadId = boost::lexical_cast<std::string>(boost::this_thread::get_id());
+        context->threadId = boost::this_thread::get_id();
         context->main = false;
-        threadContext.reset(context);
-        { //we only need this lock to register the thread context.
+        {// thread-safe scope
             upgrade_lock<shared_mutex> upgradeLock(contextsMutex);
             upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
             threadContexts.push_back(context);
-            cout << "Registered Thread: " << context << std::endl;
         }
+        threadContext.reset(context);
     } else {
-        throw runtime_error("Thread already has a context associated.");
+        throw runtime_error("MessageBus - Current thread already has a context associated.");
     }
+}
+
+void MessageBus::UnRegisterThread() {
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    {// thread-safe scope
+        upgrade_lock<shared_mutex> upgradeLock(contextsMutex);
+        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
+        threadContexts.remove(context);
+    }
+    threadContext.reset();
 }
 
 void MessageBus::RegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
     if (handler) {
         ThreadContext* context = GetThreadContext();
-        PostMessage(&GetInstance(), MSGI_ADD_HANDLER,
-                MessagePtr(new InternalMessage(context, handler)));
+        if (!(handler->context)) {
+            handler->context = static_cast<void*> (context);            
+        } else if (context != handler->context) {
+            // just assign the context.
+            throw runtime_error("MessageBus - To register the handler in other thread context it is necessary to unregister it first.");
+        }
     }
-}
-
-void MessageBus::UnRegisterMainThread() {
-    CheckMainThread();
-    threadContexts.clear();
-    threadContext.reset();
-    cout << "UnRegistered Main." << std::endl;
-}
-
-void MessageBus::UnRegisterThread() {
-    CheckThreadContext();
-    ThreadContext* context = GetThreadContext();
-    PostMessage(&GetInstance(), MSGI_REMOVE_THREAD,
-            MessagePtr(new InternalMessage(context, NULL)));
-    threadContext.reset();
 }
 
 void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
-    if (handler) {
+    if (handler && handler->context) {
         ThreadContext* context = GetThreadContext();
-        PostMessage(&GetInstance(), MSGI_REMOVE_HANDLER,
-                MessagePtr(new InternalMessage(context, handler)));
+        if (context == handler->context) {
+            handler->context = NULL;
+        } else {
+            throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
+        }
     }
 }
 
 void MessageBus::DistributeMessages() {
     CheckMainThread();
+    ThreadContext* context = GetThreadContext();
+    //cout << "1 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
     CollectMessages();
+    //cout << "2 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
     // dispatch internal messages first.
     ThreadDispatchMessages();
+    //cout << "3 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
     DispatchMessages();
-}
-
-void MessageBus::ThreadDispatchMessages() {
-    CheckThreadContext();
-    //gets main collector;
-    ThreadContext* context = GetThreadContext();
-    if (context) {
-        while (!context->input.empty()) {
-            MessageQueueEntry entry = context->input.top();
-            context->input.pop();
-            if (entry->destination && entry->message.get()) {
-                entry->destination->HandleMessage(entry->type, *(entry->message.get()));
-            }
-            DeleteEntry(entry);
-        }
-    } else {
-        throw runtime_error("This thread does not have a context associated.");
-    }
-}
-
-void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message) {
-    CheckThreadContext();
-    if (destination) {
-        ThreadContext* context = GetThreadContext();
-        if (context) {
-            InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
-            MessageEntry* entry = new MessageEntry();
-            entry->destination = destination;
-            entry->type = type;
-            entry->message = message;
-            entry->priority = (!internalMsg && message->GetPriority() < MIN_CUSTOM_PRIORITY) ? MIN_CUSTOM_PRIORITY : message->priority;
-            entry->internal = (internalMsg != nullptr);
-            context->output.push(MessageQueueEntry(entry));
-        } else {
-            throw runtime_error("This thread does not have a context associated.");
-        }
-    }
+    //cout << "4 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
 }
 
 void MessageBus::CollectMessages() {
@@ -331,19 +287,38 @@ void MessageBus::CollectMessages() {
         while (lstItr != threadContexts.end()) {
             ThreadContext* context = (*lstItr);
             while (!context->output.empty()) {
-                MessageQueueEntry entry = context->output.top();
-                context->output.pop();
+                MessageEntryPtr entry = context->output.top();
                 // internal messages go to the input queue of the main context.
-                if (entry->internal) {
+                if (entry->internal || context == mainContext) {
                     mainContext->input.push(entry);
                 } else {
                     mainContext->output.push(entry);
                 }
+                context->output.pop();
             }
             lstItr++;
         }
-    } else {
-        throw runtime_error("Main thread does not have a context associated.");
+    }
+}
+
+void MessageBus::ThreadDispatchMessages() {
+    CheckThreadContext();
+    //gets main collector;
+    ThreadContext* context = GetThreadContext();
+    if (context) {
+        while (!context->input.empty()) {
+            MessageEntryPtr entry = context->input.top();
+            if (entry && entry->destination && entry->message.get()) {
+                ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
+                if (context->threadId != destinationContext->threadId) {
+                    throw runtime_error("Thread contexts inconsistency.");
+                }
+                entry->destination->HandleMessage(entry->type, *(entry->message.get()));
+            }
+            context->input.pop();
+            DeleteEntry(entry);
+            context->deletedMessages++;
+        }
     }
 }
 
@@ -352,16 +327,32 @@ void MessageBus::DispatchMessages() {
     ThreadContext* mainContext = GetThreadContext();
     if (mainContext) {
         while (!mainContext->output.empty()) {
-            MessageQueueEntry entry = mainContext->output.top();
-            mainContext->output.pop();
-            ThreadContext* destinationContext = reinterpret_cast<ThreadContext*> (entry->destination->context);
+            MessageEntryPtr entry = mainContext->output.top();
+            ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
             if (destinationContext) {
                 //sends the message to the input queue of the destination thread.
                 destinationContext->input.push(entry);
             }
+            mainContext->output.pop();
         }
-    } else {
-        throw runtime_error("Main thread does not have a context associated.");
+    }
+}
+
+void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message) {
+    CheckThreadContext();
+    if (destination) {
+        ThreadContext* context = GetThreadContext();
+        if (context) {
+            InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
+            MessageEntryPtr entry = new MessageEntry();
+            entry->destination = destination;
+            entry->type = type;
+            entry->message = message;
+            entry->priority = (!internalMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
+            entry->internal = (internalMsg != nullptr);
+            context->output.push(entry);
+            context->totalMessages++;
+        }
     }
 }
 
@@ -370,36 +361,67 @@ MessageBus::MessageBus() : MessageHandler(0) {
 
 void MessageBus::HandleMessage(Message::MessageType type, const Message& message) {
     CheckMainThread();
-    switch (type) {
-        case MSGI_ADD_HANDLER:
-        {
-            // adds a nee message handler to the system.
-            const InternalMessage& msg = static_cast<const InternalMessage&> (message);
-            msg.GetHandler()->context = msg.GetContext();
-            cout << "Registered Handler: " << msg.GetHandler() << " into " << msg.GetHandler()->context << std::endl;
-            break;
-        }
-        case MSGI_REMOVE_HANDLER:
-        {
-            // adds a nee message handler to the system.
-            const InternalMessage& msg = static_cast<const InternalMessage&> (message);
-            msg.GetHandler()->context = NULL;
-            cout << "UnRegistered Handler: " << msg.GetHandler() << std::endl;
-            break;
-        }
-        case MSGI_REMOVE_THREAD:
-        {
-            // adds a nee message handler to the system.
-            const InternalMessage& msg = static_cast<const InternalMessage&> (message);
-            threadContexts.remove(msg.GetContext());
-            cout << "UnRegistered Thread: " << msg.GetContext() << std::endl;
-            break;
-        }
+    // FUTURE 
+    /*switch (type) {
         default: break;
-    }
+    }*/
 }
 
 MessageBus& MessageBus::GetInstance() {
     static MessageBus instance;
     return instance;
+}
+
+/***************************************************************************
+ *                          Helper Functions Impl
+ **************************************************************************/
+namespace {
+
+    void CheckMainThread() {
+        if (!threadContext.get() && threadContext.get()->main) {
+            throw runtime_error("MessageBus - This call must be done using the registered main thread context.");
+        }
+    }
+
+    void CheckThreadContext() {
+        boost::thread::id threadId = boost::this_thread::get_id();
+        if (!threadContext.get() && threadId == threadContext.get()->threadId) {
+            throw runtime_error("MessageBus - This call must be done using a registered thread context.");
+        }
+    }
+
+    ThreadContext* GetThreadContext() {
+        return threadContext.get();
+    }
+
+    void DeleteEntry(MessageEntryPtr& entry) {
+        if (entry) {
+            if (!(entry->message.unique())) {
+                throw runtime_error("MessageBus - Message must be managed only by the MessageBus.");
+            }
+            entry->message.reset();
+            safe_delete_item(entry);
+        }
+    }
+
+    void CleanUpQueue(MessageQueue& queue) {
+        MessageEntryPtr entry = NULL;
+        while (!queue.empty()) {
+            entry = queue.top();
+            DeleteEntry(entry);
+            queue.pop();
+        }
+    }
+
+    void DeleteContext(ThreadContext* context) {
+        if (context) {
+            CleanUpQueue(context->input);
+            CleanUpQueue(context->output);
+            /*cout << "Thread: " << context->threadId
+                    << " Received: " << context->totalMessages
+                    << " Deleted: " << context->deletedMessages
+                    << std::endl;*/
+            safe_delete_item(context);
+        }
+    }
 }

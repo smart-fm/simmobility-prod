@@ -68,7 +68,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 
 sim_mob::Worker::~Worker()
 {
-	//Clear all tracked entitites
+        //Clear all tracked entitites
 	while (!managedEntities.empty()) {
 		remEntity(managedEntities.front());
 	}
@@ -189,6 +189,7 @@ void sim_mob::Worker::addPendingEntities()
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
+                messaging::MessageBus::RegisterHandler((*it));
 	}
 	toBeAdded.clear();
 }
@@ -208,6 +209,7 @@ void sim_mob::Worker::removePendingEntities()
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
 		entityRemovalList->push_back(*it);
+                messaging::MessageBus::UnRegisterHandler((*it));
 	}
 	toBeRemoved.clear();
 }
@@ -284,7 +286,9 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
+        // Register thread on MessageBus.
         messaging::MessageBus::RegisterThread();
+    
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
@@ -331,7 +335,8 @@ void sim_mob::Worker::threaded_function_loop()
 		}
 #endif
 	}
-        sim_mob::messaging::MessageBus::UnRegisterThread();
+        // Register thread from MessageBus.
+        messaging::MessageBus::UnRegisterThread();
 }
 
 

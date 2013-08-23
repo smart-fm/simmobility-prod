@@ -13,18 +13,34 @@ namespace sim_mob {
 
     namespace messaging {
 
+        /**
+         * Interface for all classes which are capable to receive messages from 
+         * MessageBus. 
+         * @see MessageBus to get more details.
+         */
         class MessageHandler {
         public:
-            MessageHandler(int id);
+            MessageHandler(unsigned int id);
+
             virtual ~MessageHandler();
-            
+            /**
+             * Handles all messages sent to the MessageHandler implementation.
+             * @param type of the message.
+             * @param message data received.
+             */
             virtual void HandleMessage(Message::MessageType type, const Message& message) = 0;
-            
-            int GetId();
-        protected:
-            int id;
+
+            /**
+             * Gets the id associated with this handler.
+             * NOTE: used only for debug but it will be necessary on the future.
+             * @return id value associated.
+             */
+            unsigned int GetId();
+
         private:
             friend class MessageBus;
+            unsigned int id;
+            //MessageBus exclusive
             void* context;
         };
     }

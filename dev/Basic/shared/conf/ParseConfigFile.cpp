@@ -26,50 +26,12 @@ std::string TranscodeString(const XMLCh* str) {
 }
 
 //Helper: retrieve child elements without leaking memory
-DOMNodeList* GetElementsByName(DOMElement* node, const std::string& key) {
+/*DOMNodeList* GetElementsByName(DOMElement* node, const std::string& key) {
 	XMLCh* keyX = XMLString::transcode(key.c_str());
 	DOMNodeList* res = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);
 	return res;
-}
-
-//Helper: retrieve a single element; optionally required.
-DOMNode* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false) {
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNodeList* res = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
-
-	//Check.
-	if (res->getLength()>1) {
-		throw std::runtime_error("Error: single element expected, but returned more than 1.");
-	} else if (res->getLength()==1) {
-		return res->item(0);
-	} else if (required) {
-		throw std::runtime_error("Error: single element expected, but returned zero.");
-	}
-
-	return nullptr;
-}
-
-//Helper: retrieve an attribute
-DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) {
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNode* res = node->getAttributes()->getNamedItem(keyX);
-	XMLString::release(&keyX);
-
-	//Check.
-	if (required && !res) {
-		throw std::runtime_error("Error: attribute expected, but none found.");
-	}
-
-	DOMAttr* resAttr = dynamic_cast<DOMAttr*>(res);
-	if (!resAttr) {
-		throw std::runtime_error("Error: attribute expected, but couldn't be cast.");
-	}
-
-	return resAttr;
-}
-
+}*/
 
 //Helper: make sure we actually have an element
 DOMElement* NodeToElement(DOMNode* node) {
@@ -80,15 +42,87 @@ DOMElement* NodeToElement(DOMNode* node) {
 	return res;
 }
 
-//Helper: boolean stuff
-bool ParseBoolean(const std::string& src) {
-	if (src=="true") {
-		return true;
-	} else if (src=="false") {
-		return false;
+//Helper: retrieve a single element; optionally required.
+DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false) {
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNodeList* res = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	//Check.
+	if (res->getLength()>1) {
+		throw std::runtime_error("Error: single element expected, but returned more than 1.");
+	} else if (res->getLength()==1) {
+		return NodeToElement(res->item(0));
+	} else if (required) {
+		throw std::runtime_error("Error: single element expected, but returned zero.");
 	}
-	throw std::runtime_error("Expected boolean value.");
+
+	return nullptr;
 }
+
+//Helper: retrieve an attribute
+DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) {
+	if (!node) {
+		return nullptr;
+	}
+
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNode* res= node->getAttributes()->getNamedItem(keyX);
+	XMLString::release(&keyX);
+
+	//Check.
+	if (!res) {
+		if (required) {
+			throw std::runtime_error("Error: attribute expected, but none found.");
+		} else {
+			return nullptr;
+		}
+	}
+
+	DOMAttr* resAttr = dynamic_cast<DOMAttr*>(res);
+	if (!resAttr) {
+		throw std::runtime_error("Error: attribute expected, but couldn't be cast.");
+	}
+
+	return resAttr;
+}
+
+//Helper
+const XMLCh* GetAttributeValue(const DOMAttr* attr) {
+	if (!attr) {
+		return nullptr;
+	}
+	return attr->getNodeValue();
+}
+
+//Helper: boolean stuff
+bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		if (src=="true") {
+			return true;
+		} else if (src=="false") {
+			return false;
+		}
+		throw std::runtime_error("Expected boolean value.");
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory boolean variable; no default available.");
+	}
+	return *defValue;
+}
+
+//How to do defaults
+bool ParseBoolean(const XMLCh* src, bool defValue) {
+	return ParseBoolean(src, &defValue);
+}
+bool ParseBoolean(const XMLCh* src) { //No default
+	return ParseBoolean(src, nullptr);
+}
+
+
 
 } //End un-named namespace
 
@@ -174,60 +208,68 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 }
 
 
-void sim_mob::ParseConfigFile::ProcessSystemNode(DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 {
-	ProcessSystemSimulationNode(GetSingleElementByName(NodeToElement(node), "simulation", true));
-	ProcessSystemWorkersNode(GetSingleElementByName(NodeToElement(node), "workers", true));
-	ProcessSystemSingleThreadedNode(GetSingleElementByName(NodeToElement(node), "single_threaded"));
-    //single_threaded
-	//merge_log_files value
-	//network_source value
+	ProcessSystemSimulationNode(GetSingleElementByName(node, "simulation", true));
+	ProcessSystemWorkersNode(GetSingleElementByName(node, "workers", true));
+	ProcessSystemSingleThreadedNode(GetSingleElementByName(node, "single_threaded"));
+	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
+	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
+
+	// value
 	//network_xml_file
 	//xsd_schema_files
 	//generic_props
 }
 
 
-void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 {
 }
 
-void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {
 }
 
-void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
 {
 }
 
-void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
 {
 }
 
-void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 {
 }
 
-void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMNode* node)
-{
-
-}
-
-void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {
 
 }
 
-void sim_mob::ParseConfigFile::ProcessSystemSingleThreadedNode(xercesc::DOMNode* node)
+void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* node)
 {
-	bool singleThreaded = false;
-	if (node) {
-		DOMAttr* attr = GetNamedAttribute(NodeToElement(node), "value");
-		if (attr) {
-			singleThreaded = ParseBoolean(TranscodeString(attr->getNodeValue()));
-		}
-	}
-	cfg.system.singleThreaded = singleThreaded;
+
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemSingleThreadedNode(xercesc::DOMElement* node)
+{
+	//TODO: GetAttribute not working; there's a null throwing it off.
+	cfg.system.singleThreaded = ParseBoolean(GetAttributeValue(GetNamedAttribute(node, "value")), false);
+	std::cout <<"Single: " <<cfg.system.singleThreaded <<std::endl;
+}
+
+
+void sim_mob::ParseConfigFile::ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node)
+{
+	cfg.system.mergeLogFiles = ParseBoolean(GetAttributeValue(GetNamedAttribute(node, "value")), false);
+}
+
+
+void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElement* node)
+{
+
 }
 
 

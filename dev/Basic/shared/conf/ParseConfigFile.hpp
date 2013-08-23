@@ -41,17 +41,19 @@ private:
 	void ProcessXmlFile(xercesc::XercesDOMParser& parser);
 
 	//Process through recursive descent.
-	void ProcessSystemNode(xercesc::DOMNode* node);
-	void ProcessGeometryNode(xercesc::DOMNode* node);
-	void ProcessDriversNode(xercesc::DOMNode* node);
-	void ProcessPedestriansNode(xercesc::DOMNode* node);
-	void ProcessBusDriversNode(xercesc::DOMNode* node);
-	void ProcessSignalsNode(xercesc::DOMNode* node);
+	void ProcessSystemNode(xercesc::DOMElement* node);
+	void ProcessGeometryNode(xercesc::DOMElement* node);
+	void ProcessDriversNode(xercesc::DOMElement* node);
+	void ProcessPedestriansNode(xercesc::DOMElement* node);
+	void ProcessBusDriversNode(xercesc::DOMElement* node);
+	void ProcessSignalsNode(xercesc::DOMElement* node);
 
 	//Descend through System
-	void ProcessSystemSimulationNode(xercesc::DOMNode* node);
-	void ProcessSystemWorkersNode(xercesc::DOMNode* node);
-	void ProcessSystemSingleThreadedNode(xercesc::DOMNode* node);
+	void ProcessSystemSimulationNode(xercesc::DOMElement* node);
+	void ProcessSystemWorkersNode(xercesc::DOMElement* node);
+	void ProcessSystemSingleThreadedNode(xercesc::DOMElement* node);
+	void ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node);
+	void ProcessSystemNetworkSourceNode(xercesc::DOMElement* node);
 
 
 

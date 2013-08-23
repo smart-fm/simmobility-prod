@@ -141,6 +141,33 @@ SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::
 }
 
 
+
+std::string ParseString(const XMLCh* srcX, std::string* defValue) {
+	if (srcX) {
+		return TranscodeString(srcX);
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory string variable; no default available.");
+	}
+	return *defValue;
+}
+
+std::string ParseNonemptyString(const XMLCh* srcX, std::string* defValue) {
+	std::string res = ParseString(srcX, defValue);
+	if (!res.empty()) {
+		return res;
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory string variable; no default available. (Empty strings NOT allowed.)");
+	}
+	return *defValue;
+}
+
+
 //How to do defaults
 bool ParseBoolean(const XMLCh* src, bool defValue) {
 	return ParseBoolean(src, &defValue);
@@ -153,6 +180,18 @@ SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::
 }
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
 	return ParseNetSourceEnum(srcX, nullptr);
+}
+std::string ParseString(const XMLCh* src, std::string defValue) {
+	return ParseString(src, &defValue);
+}
+std::string ParseString(const XMLCh* src) { //No default
+	return ParseString(src, nullptr);
+}
+std::string ParseNonemptyString(const XMLCh* src, std::string defValue) {
+	return ParseNonemptyString(src, &defValue);
+}
+std::string ParseNonemptyString(const XMLCh* src) { //No default
+	return ParseNonemptyString(src, nullptr);
 }
 
 
@@ -248,9 +287,9 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemSingleThreadedNode(GetSingleElementByName(node, "single_threaded"));
 	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
 	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
+	ProcessSystemNetworkXmlFileNode(GetSingleElementByName(node, "network_xml_file"));
 
-	// value
-	//network_xml_file
+
 	//xsd_schema_files
 	//generic_props
 }
@@ -290,7 +329,6 @@ void sim_mob::ParseConfigFile::ProcessSystemSingleThreadedNode(xercesc::DOMEleme
 {
 	//TODO: GetAttribute not working; there's a null throwing it off.
 	cfg.system.singleThreaded = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
-	std::cout <<"Single: " <<cfg.system.singleThreaded <<std::endl;
 }
 
 
@@ -303,9 +341,13 @@ void sim_mob::ParseConfigFile::ProcessSystemMergeLogFilesNode(xercesc::DOMElemen
 void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElement* node)
 {
 	cfg.system.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), SystemParams::NETSRC_XML);
-	std::cout <<"NetSrc: " <<cfg.system.networkSource <<" , " <<SystemParams::NETSRC_DATABASE <<" , " <<SystemParams::NETSRC_XML <<"\n";
 }
 
+
+void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node)
+{
+	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "data/SimMobilityInput.xml");
+}
 
 
 

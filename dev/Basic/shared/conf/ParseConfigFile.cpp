@@ -95,6 +95,13 @@ const XMLCh* GetAttributeValue(const DOMAttr* attr) {
 	return attr->getNodeValue();
 }
 
+
+//Helper: Combined
+const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=false) {
+	return GetAttributeValue(GetNamedAttribute(node, key, required));
+}
+
+
 //Helper: boolean stuff
 bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
 	if (srcX) {
@@ -114,12 +121,38 @@ bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
 	return *defValue;
 }
 
+
+SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		if (src=="xml") {
+			return SystemParams::NETSRC_XML;
+		} else if (src=="database") {
+			return SystemParams::NETSRC_DATABASE;
+		}
+		throw std::runtime_error("Expected SystemParams::NetworkSource value.");
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory SystemParams::NetworkSource variable; no default available.");
+	}
+	return *defValue;
+}
+
+
 //How to do defaults
 bool ParseBoolean(const XMLCh* src, bool defValue) {
 	return ParseBoolean(src, &defValue);
 }
 bool ParseBoolean(const XMLCh* src) { //No default
 	return ParseBoolean(src, nullptr);
+}
+SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource defValue) {
+	return ParseNetSourceEnum(srcX, &defValue);
+}
+SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
+	return ParseNetSourceEnum(srcX, nullptr);
 }
 
 
@@ -256,20 +289,21 @@ void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* nod
 void sim_mob::ParseConfigFile::ProcessSystemSingleThreadedNode(xercesc::DOMElement* node)
 {
 	//TODO: GetAttribute not working; there's a null throwing it off.
-	cfg.system.singleThreaded = ParseBoolean(GetAttributeValue(GetNamedAttribute(node, "value")), false);
+	cfg.system.singleThreaded = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 	std::cout <<"Single: " <<cfg.system.singleThreaded <<std::endl;
 }
 
 
 void sim_mob::ParseConfigFile::ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node)
 {
-	cfg.system.mergeLogFiles = ParseBoolean(GetAttributeValue(GetNamedAttribute(node, "value")), false);
+	cfg.system.mergeLogFiles = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 }
 
 
 void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElement* node)
 {
-
+	cfg.system.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), SystemParams::NETSRC_XML);
+	std::cout <<"NetSrc: " <<cfg.system.networkSource <<" , " <<SystemParams::NETSRC_DATABASE <<" , " <<SystemParams::NETSRC_XML <<"\n";
 }
 
 

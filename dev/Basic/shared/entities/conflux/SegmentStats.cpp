@@ -67,6 +67,9 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 		lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
 		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 	}
+	lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
+	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
+
 	return segAgents;
 }
 
@@ -279,12 +282,19 @@ unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
 }
 
 void sim_mob::LaneStats::addPerson(sim_mob::Person* p) {
+	Print()<<"LaneStats::addPerson| Person:"<<p->getId()<<std::endl;
+	Print()<<"LaneStats::addPerson| Person:"<<p->getId()<<" |lane:"<<this->getLane()->getLaneID()<<std::endl;
 	if(laneInfinity) {
 		laneAgents.push_back(p);
 	}
 	else {
 		if(laneAgents.size() > 0) {
 			std::deque<Person*>::iterator i=laneAgents.end()-1; // last person's iterator
+			Print()<<"Person |distanceToEndOfSegment: "<<p->distanceToEndOfSegment
+					<<"|isQueuing:"<<(p->isQueuing? 1:0)
+					<<std::endl;
+			Print()<<"Last Person in laneAgents: "<< (*i)->getId()<<" |distanceToEndOfSegment: "<<(*i)->distanceToEndOfSegment
+					<<"|isQueuing:"<<((*i)->isQueuing? 1:0) <<std::endl;
 			while(p->distanceToEndOfSegment < (*i)->distanceToEndOfSegment) {
 				i--;
 			}
@@ -383,7 +393,7 @@ void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed,
 	int numLanes = lane->getRoadSegment()->getLanes().size();
 	if (numLanes > 0) {
 		double orig = (lane->getRoadSegment()->capacity)
-				/ (numLanes/**3600.0*/);
+				/ (numLanes*3600.0);
 		laneParams->setOrigOutputFlowRate(orig);
 	}
 	laneParams->outputFlowRate = laneParams->origOutputFlowRate;
@@ -569,11 +579,11 @@ void SegmentStats::resetSegFlow() {
 }
 
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
-	unsigned int count = 0;
+	float count = 0;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-		count += std::floor((*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS / 1000.0);
+		count += (*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS / 1000.0;
 	}
-	return count;
+	return std::floor(count);
 }
 
 void SegmentStats::printAgents() {
@@ -637,6 +647,72 @@ void LaneStats::verifyOrdering() {
 			distance = (*i)->distanceToEndOfSegment;
 		}
 	}
+}
+
+sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate) {
+	return laneStatsMap.find(lane)->second->dequeue(person, isQueuingBfrUpdate);
+}
+
+sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate) {
+	if (laneAgents.size() == 0) {
+		throw std::runtime_error("Trying to dequeue from empty lane.");
+	}
+	sim_mob::Person* p;
+	if(person == laneAgents.front() || ( !laneInfinity)){
+		p = this->dequeue(isQueuingBfrUpdate);
+	}
+	else{
+	//Print()<<"Dequeuing agent in between! |Person: "<< person->getId()<<" |Lane:"<< this->getLane()->getLaneID()<<std::endl;
+		if (laneInfinity) {
+			std::deque<sim_mob::Person*>::iterator it;
+			for (it = laneAgents.begin(); it != laneAgents.end() ; /*NOTE: no incrementation of the iterator here*/) {
+				if ((*it)==person){
+					p = (*it);
+					it = laneAgents.erase(it); // erase returns the next iterator
+					if (isQueuingBfrUpdate) {
+						if (queueCount > 0) {
+							// we have removed a queuing agent
+							queueCount--;
+						}
+						else {
+							debugMsgs
+									<< "Error in dequeue(): queueCount cannot be lesser than 0 in lane."
+									<< "\nlane:" << lane->getLaneID() << "|Segment: "
+									<< lane->getRoadSegment()->getStartEnd() << "|Person: "
+									<< p->getId() << "\nQueuing: " << queueCount
+									<< "|Total: " << laneAgents.size() << std::endl;
+							Print() << debugMsgs.str();
+							throw std::runtime_error(debugMsgs.str());
+						}
+					}
+				}
+			else{
+				++it; // otherwise increment it by yourself
+			  }
+			}
+		}
+	}
+	/*else{
+		p = laneAgents.front();
+		laneAgents.pop_front();
+		if (isQueuingBfrUpdate) {
+			if (queueCount > 0) {
+				// we have removed a queuing agent
+				queueCount--;
+			}
+			else {
+				debugMsgs
+						<< "Error in dequeue(): queueCount cannot be lesser than 0 in lane."
+						<< "\nlane:" << lane->getLaneID() << "|Segment: "
+						<< lane->getRoadSegment()->getStartEnd() << "|Person: "
+						<< p->getId() << "\nQueuing: " << queueCount
+						<< "|Total: " << laneAgents.size() << std::endl;
+				Print() << debugMsgs.str();
+				throw std::runtime_error(debugMsgs.str());
+			}
+		}
+	}*/
+	return p;
 }
 
 } // end of namespace sim_mob

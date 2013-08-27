@@ -459,6 +459,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 }
 
 void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
+	Print()<<"Worker::migrateOutConflux"<<cfx.getMultiNode()->getID()<<std::endl;
 	std::deque<sim_mob::Person*> cfxPersons = cfx.getAllPersons();
 	for(std::deque<sim_mob::Person*>::iterator pIt = cfxPersons.begin(); pIt != cfxPersons.end(); pIt++) {
 		Person* person = *pIt;
@@ -515,8 +516,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			(*it)->resetOutputBounds();
 		}
 
-		struct timeval startTime;
-		gettimeofday(&startTime, NULL);
+		timeval startTime;
+		gettimeofday(&startTime, nullptr);
 
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
@@ -524,17 +525,6 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 		timeval endTime;
 		gettimeofday(&endTime, nullptr);
 		Print() << "Worker::EntityUpdater<advance>|execution time: " << Utils::diff_ms(endTime,startTime) << std::endl;
-
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-			(*it)->updateAndReportSupplyStats(currTime);
-			(*it)->reportLinkTravelTimes(currTime);
-			(*it)->resetSegmentFlows();
-			(*it)->resetLinkTravelTimes(currTime);
-		}
-		timeval endUpdateTime;
-		gettimeofday(&endUpdateTime, nullptr);
-		Print() << "Worker::EntityUpdater<update>|execution time: " << Utils::diff_ms(endUpdateTime,endTime) << std::endl;
-
 	}
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.

@@ -453,6 +453,9 @@ int main(int ARGC, char* ARGV[])
 
 	Print() << "Done" << endl;
 	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+	//to get simulation time when debug_output is switched off
+	cout << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+
 	return returnVal;
 }
 

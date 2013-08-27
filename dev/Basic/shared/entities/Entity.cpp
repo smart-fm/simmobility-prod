@@ -29,9 +29,11 @@ sim_mob::Entity::~Entity()
 		//      we can't throw an exception since that may lead to a call of terminate().
 		//      So we'll output a message and terminate manually, since throwing exceptions from
 		//      a destructor is iffy at best.
+		Print() <<"Error: Deleting an Entity which is still being managed by a Worker|"<< this->getId() <<std::endl;
 		Warn() <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
 		abort();
 	}
+	Print() <<"Successfully deleting Entity "<< this->getId() <<std::endl;
 }
 
 string sim_mob::Entity::getGlobalId() const

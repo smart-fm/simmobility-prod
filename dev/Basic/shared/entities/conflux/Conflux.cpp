@@ -145,6 +145,8 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (!laneBeforeUpdate) /*If the person was in virtual queue*/ {
 		if(laneAfterUpdate) /*If the person has moved to another lane in some segment*/ {
+			Print()<<"laneAfterUpdate: "<<laneAfterUpdate->getLaneID()<<std::endl;
+			Print()<<"segAftrUpdt: "<<segAfterUpdate->getSegmentID()<<std::endl;
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
 			Print() << "Frame:" << currFrameNumber.frame() << "|updateAgent()|Conflux:" << this->multiNode->getID() << "|Person moved out of VQ:" << person->getId() << std::endl;
 		}
@@ -160,13 +162,23 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());
 			}
+			else {
+				/* This is typically the person who was not accepted by the next lane in the next segment.
+				 * We push this person back to the same virtual queue and let him update in the next tick.
+				 */
+				person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+				Print() << "Person " << person->getId() << " is pushed to VQ of Conflux " << segAfterUpdate->getParentConflux()->getMultiNode()->getID() << "|link " << segAfterUpdate->getStartEnd() << std::endl;
+				segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
+			}
 		}
 	}
 	else if((segBeforeUpdate != segAfterUpdate) /*if the person has moved to another segment*/
 			|| (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate) /* or if the person has moved out of lane infinity*/)
 	{
-		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate, isQueuingBeforeUpdate);
+		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
+	//	Person* dequeuedPerson = segStatsBfrUpdt->dequeue(laneBeforeUpdate, isQueuingBeforeUpdate);
 		if(dequeuedPerson != person) {
+			Print()<< "Error: Dequeued Person " << dequeuedPerson->getId() << " Person " << person->getId()<<std::endl;
 			segStatsBfrUpdt->printAgents();
 			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
 					<< "\n Person " << person->getId() << ": segment: " << segBeforeUpdate->getStartEnd()
@@ -202,15 +214,21 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 }
 
 void sim_mob::Conflux::processVirtualQueues() {
+	int counter = 0;
 	//sort the virtual queues before starting to move agents for this tick
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
+		counter = i->second.size();
 		sortPersons_DecreasingRemTime(i->second);
 		Print() << "Frame:" << currFrameNumber.frame() << "|processVirtualQueues()|Conflux:" << this->multiNode->getID() << "|VQ size:" << i->second.size() << std::endl;
-		int count = 0;
-		for(std::deque<sim_mob::Person*>::iterator pIt=i->second.begin(); pIt!=i->second.end(); pIt++) {
-			updateAgent(*pIt);
+		while(counter > 0){
+			sim_mob::Person* p = i->second.front();
+			i->second.pop_front();
+			Print() << "processVirtualQueues()|Before update|Person: "<<p->getId()
+					<< "|segment: "<<p->getCurrSegment()->getStartEnd()
+					<< "|segID: "<<p->getCurrSegment()->getSegmentID()<<std::endl;
+			updateAgent(p);
+			counter--;
 		}
-		i->second.clear(); // All persons currently in the virtual queue have been moved to their correct positions
 	}
 }
 
@@ -651,7 +669,9 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 				}
 				else {
 					person->canMoveToNextSegment = Person::DENIED;
+					person->requestedNextSegment = nullptr;
 				}
+
 			}
 			else if(now.frame() == nxtConflux->getLastUpdatedFrame()) {
 				// nxtConflux is processed for the current tick. Can move to the next link.

@@ -178,19 +178,41 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	//if vehicle is still in lane infinity, it shouldn't be advanced
 	if (currLane && getParent()->canMoveToNextSegment == Person::NONE)
 	{
+		Print()<< std::endl;
+		Print() << "Before advance() ";
+		if(!getParent()->isToBeRemoved()){
+			Print() << "Person: "<<getParent()->getId() << "|Frame: "<< p2.now.frame()
+					<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd()
+					<< "|CurrSegmentID:" << vehicle->getCurrSegment()->getSegmentID()
+					<< "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
+					<< "|DRIVER	|CurrLane:" << currLane->getLaneID()
+					<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
+					<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
+					<< "|CurrLane:" << getParent()->getCurrLane()->getLaneID()
+					<< "|Queuing: " << getParent()->isQueuing
+					<< "|Distance: " << getParent()->distanceToEndOfSegment
+					<< "|RemainingTime: " << getParent()->getRemainingTimeThisTick()
+					<< std::endl;
+		}
 		advance(p2);
 		setParentData(p2);
 		Print() << "After advance() ";
+		Print() << "Person: "<<getParent()->getId() << "|Frame: "<< p2.now.frame();
 		if(!getParent()->isToBeRemoved()){
-		Print() << "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd() << "|CurrLane:" << getParent()->getCurrLane()->getLaneID() << std::endl;
+			Print()
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd()
+				<< "|CurrSegmentID:" << vehicle->getCurrSegment()->getSegmentID()
+				<< "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
+				<< "|DRIVER|CurrLane:" << currLane->getLaneID()
+				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
+				<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
+				<< "|CurrLane:" << getParent()->getCurrLane()->getLaneID() << std::endl;
 		}
 		Print()	<< "|Queuing: " << getParent()->isQueuing
 				<< "|Distance: " << getParent()->distanceToEndOfSegment
 				<< "|RemainingTime: " << getParent()->getRemainingTimeThisTick()
 				<< "|To Be Removed: " << getParent()->isToBeRemoved()
 				<< std::endl;
-
 	}
 	else {
 		Print() << "|missed advance() and setParentData()" << "|canMoveToNextSegment: " << getParent()->canMoveToNextSegment << std::endl;
@@ -311,6 +333,7 @@ bool DriverMovement::advance(DriverUpdateParams& p) {
 }
 
 bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
+	Print()<<"|called moveToNextSegment()"<<std::endl;
 	bool res = false;
 	bool isNewLinkNext = ( !vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false));
 	const sim_mob::RoadSegment* nextRdSeg = nullptr;
@@ -478,7 +501,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		}
 		//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 		else if (vehicle->getNextSegment(false) == getParent()->getCurrSegment() ){
-			Print() << "Driver remains in virtual queue a.k.a. lane infinity" << std::endl;
+			Print() << "Driver remains in virtual queue" << std::endl;
 		}
 		else{
 			DebugStream << "Driver " << getParent()->getId()
@@ -587,6 +610,7 @@ bool DriverMovement::moveInSegment(DriverUpdateParams& p2, double distance) {
 
 bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& p) {
 
+	Print()<<"calling advanceQueuingVehicle"<<std::endl;
 	bool res = false;
 
 	double t0 = p.elapsedSeconds;
@@ -596,8 +620,9 @@ bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& p) {
 
 	double output = getOutputCounter(currLane);
 	double outRate = getOutputFlowRate(currLane);
-	tf = t0 + x0/(vehicle->length*outRate); //assuming vehicle length is in cm
-	if (output > 0 && tf < p.secondsInTick)
+	tf = t0 + x0/(4.0*vehicle->length*outRate); //assuming vehicle length is in cm
+	if (output > 0 && tf < p.secondsInTick &&
+			currLane->getRoadSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
 		res = moveToNextSegment(p);
 		xf = vehicle->getPositionInSegment();
@@ -651,6 +676,7 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 	}
 	else if (laneQueueLength > 0)
 	{
+		Print()<<"has queue in lane | LaneQueueLength: "<<laneQueueLength <<" |LaneID: "<<currLane->getLaneID()<<std::endl;
 /*		std::cout<<parent->getId() << " has queue: lane: "
 								<<currLane->getLaneID_str()<<
 								" segment: "<<vehicle->getCurrSegment()->getStart()->getID() <<std::endl;
@@ -675,12 +701,13 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 	}
 	else if (getInitialQueueLength(currLane) > 0)
 	{
+		Print()<<"has initial queue in lane | InitialQueueLength: "<<getInitialQueueLength(currLane) <<" |LaneID: "<<currLane->getLaneID()<<std::endl;
 //		std::cout<< "has initial queue"<< std::endl;
 		res = advanceMovingVehicleWithInitialQ(p);
 	}
 	else //no queue or no initial queue
 	{
-//		std::cout << "no queue" << std::endl;
+		Print() << "no queue" << " |Lane:" << currLane->getLaneID()<< std::endl;
 		tf = t0 + x0/vu;
 		if (tf < p.secondsInTick)
 		{
@@ -753,7 +780,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 	double output = getOutputCounter(currLane);
 	double outRate = getOutputFlowRate(currLane);
 
-	double timeToDissipateQ = getInitialQueueLength(currLane)/(outRate*vehicle->length); //assuming vehicle length is in cm
+	double timeToDissipateQ = getInitialQueueLength(currLane)/(4.0*outRate*vehicle->length); //assuming vehicle length is in cm
 	double timeToReachEndSeg = t0 + x0/vu;
 	tf = std::max(timeToDissipateQ, timeToReachEndSeg);
 
@@ -761,12 +788,13 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 	{
 		if (output > 0)
 		{
+			vehicle->setPositionInSegment(0.0);
+			p.elapsedSeconds = tf;
 			res = moveToNextSegment(p);
 		}
 		else
 		{
 			addToQueue(currLane);
-			//tf = p.secondsInTick; // melani 17-May
 			p.elapsedSeconds = p.secondsInTick; //harish 20-May
 		}
 	}

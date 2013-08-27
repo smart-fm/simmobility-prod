@@ -538,6 +538,8 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 void sim_mob::WorkGroup::processVirtualQueues() {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
+		(*wrkr)->removePendingEntities();
+		collectRemovedEntities();
 	}
 }
 

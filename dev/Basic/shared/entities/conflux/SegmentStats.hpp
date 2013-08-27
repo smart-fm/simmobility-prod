@@ -56,6 +56,7 @@ public:
 	void removePerson(sim_mob::Person* p, bool wasQueuing);
 	void clear();
 	sim_mob::Person* dequeue(bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
 	unsigned int getQueuingAgentsCount();
 	unsigned int getMovingAgentsCount();
 
@@ -153,6 +154,7 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
 	std::deque<Person*> getAgents();

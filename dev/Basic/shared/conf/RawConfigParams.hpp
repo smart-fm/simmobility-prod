@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include "buffering/Shared.hpp"
@@ -107,6 +108,8 @@ public:
 	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
 
 	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.
+
+	std::map<std::string, std::string> genericProps; ///<Generic properties, for testing new features.
 };
 
 

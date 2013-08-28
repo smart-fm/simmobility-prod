@@ -5,6 +5,8 @@
 
 #include <sstream>
 
+#include <boost/filesystem.hpp>
+
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/sax/HandlerBase.hpp>
 #include <xercesc/util/XMLString.hpp>
@@ -25,14 +27,6 @@ std::string TranscodeString(const XMLCh* str) {
 	return res;
 }
 
-//Helper: retrieve child elements without leaking memory
-/*DOMNodeList* GetElementsByName(DOMElement* node, const std::string& key) {
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNodeList* res = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
-	return res;
-}*/
-
 //Helper: make sure we actually have an element
 DOMElement* NodeToElement(DOMNode* node) {
 	DOMElement* res = dynamic_cast<DOMElement*>(node);
@@ -40,6 +34,24 @@ DOMElement* NodeToElement(DOMNode* node) {
 		throw std::runtime_error("DOMNode is expected to be a DOMElement.");
 	}
 	return res;
+}
+
+//Helper: retrieve child elements without leaking memory
+std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& key, bool required=false) {
+	XMLCh* keyX = XMLString::transcode(key.c_str());
+	DOMNodeList* res = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	if (res->getLength()==0 && required) {
+		throw std::runtime_error("Elements expected, but none returned.");
+	}
+
+	std::vector<DOMElement*> resV;
+	for (XMLSize_t i=0; i<res->getLength(); i++) {
+		resV.push_back(NodeToElement(res->item(i)));
+	}
+
+	return resV;
 }
 
 //Helper: retrieve a single element; optionally required.
@@ -288,10 +300,8 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
 	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
 	ProcessSystemNetworkXmlFileNode(GetSingleElementByName(node, "network_xml_file"));
-
-
-	//xsd_schema_files
-	//generic_props
+	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
+	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 }
 
 
@@ -347,6 +357,49 @@ void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElemen
 void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node)
 {
 	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "data/SimMobilityInput.xml");
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node)
+{
+	//For now, only the Road Network has an XSD file (doing this for the config file from within it would be difficult).
+	DOMElement* rn = GetSingleElementByName(node, "road_network");
+	if (rn) {
+		std::vector<DOMElement*> options = GetElementsByName(rn, "option");
+		for (std::vector<DOMElement*>::const_iterator it=options.begin(); it!=options.end(); it++) {
+			std::string path = ParseString(GetNamedAttributeValue(*it, "value"), "");
+			if (!path.empty()) {
+				//See if the file exists.
+				if (boost::filesystem::exists(path)) {
+					//Convert it to an absolute path.
+					boost::filesystem::path abs_path = boost::filesystem::absolute(path);
+					cfg.system.roadNetworkXsdSchemaFile = abs_path.string();
+					break;
+				}
+			}
+		}
+
+		//Did we try and find nothing?
+		if (!options.empty() && cfg.system.roadNetworkXsdSchemaFile.empty()) {
+			Warn() <<"Warning: No viable options for road_network schema file." <<std::endl;
+		}
+	}
+}
+
+
+void sim_mob::ParseConfigFile::ProcessSystemGenericPropsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	std::vector<DOMElement*> properties = GetElementsByName(node, "property");
+	for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); it++) {
+		std::string key = ParseString(GetNamedAttributeValue(*it, "key"), "");
+		std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
+		if (!(key.empty() && val.empty())) {
+			cfg.system.genericProps[key] = val;
+		}
+	}
 }
 
 

@@ -55,6 +55,8 @@ private:
 	void ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemNetworkSourceNode(xercesc::DOMElement* node);
 	void ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node);
+	void ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node);
+	void ProcessSystemGenericPropsNode(xercesc::DOMElement* node);
 
 
 

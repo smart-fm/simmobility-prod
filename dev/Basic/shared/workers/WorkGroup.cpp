@@ -657,7 +657,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
 	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
 	 */
-	if(path.size() > 0) {
+/*	if(path.size() > 0) {
 		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
 		 // you will get into.
 		if (role == "busdriver") {
@@ -671,7 +671,18 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 			}
 		}
 	}
-
+*/
+	if(path.size() > 0) {
+		//Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node
+		// BusDriver code, and pathSet code, generates only segment-list
+		p->setCurrPath(path);
+		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
+			if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rdSeg = it->roadSegment_;
+					break;
+			}
+		}
+	}
 	return rdSeg;
 }
 

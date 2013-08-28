@@ -256,16 +256,19 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-		vector<WayPoint> path;
-		if (!getParent() || getParent()->specialStr.empty()) {
-			const StreetDirectory& stdir = StreetDirectory::instance();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
+		vector<WayPoint> path = getParent()->getCurrPath();
+		if(path.empty()){
+			if (!getParent() || getParent()->specialStr.empty()) {
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
+			}
 		}
-
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
+
+		getParent()->clearCurrPath();	//this will be set again for the next sub-trip
 
 		//TODO: Start in lane 0?
 		int startlaneID = 0;

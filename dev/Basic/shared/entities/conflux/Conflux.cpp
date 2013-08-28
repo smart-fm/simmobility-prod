@@ -57,9 +57,6 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
-	Print() << "Conflux: " << multiNode->getID() << "|Frame: " << frameNumber.frame()
-			<< "Number of persons on conflux: " << this->getAllPersons().size()
-			<< std::endl;
 	timeval startTime;
 	gettimeofday(&startTime, nullptr);
 

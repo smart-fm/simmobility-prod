@@ -5,7 +5,7 @@
  *      Author: vahid
  */
 
-#include "android_unicast_message.hpp"
+#include "unicast_message.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
 namespace sim_mob {
@@ -13,7 +13,6 @@ class Handler;
 
 namespace rr_android_ns3
 {
-class ANDROID_HDL_UNICAST;
 ANDROID_MSG_UNICAST::ANDROID_MSG_UNICAST(msg_data_t& data_): Message(data_)
 {
 
@@ -94,6 +93,23 @@ void ANDROID_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,data);
 }
 
+/***************************************************************************************************************************************************
+ *****************************   NS3   ************************************************************************************************************
+ **************************************************************************************************************************************************/
+NS3_MSG_UNICAST::NS3_MSG_UNICAST(msg_data_t& data_): Message(data_)
+{
+
+}
+Handler * NS3_MSG_UNICAST::newHandler()
+{
+	return new NS3_HDL_UNICAST();
+}
+
+//handler implementation
+
+void NS3_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
+
+}
 }/* namespace rr_android_ns3 */
 } /* namespace sim_mob */
 

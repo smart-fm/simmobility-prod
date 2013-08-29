@@ -14,14 +14,14 @@
 namespace sim_mob {
 namespace rr_android_ns3 {
 
-RR_Android_Factory::RR_Android_Factory() {
+RR_Android_NS3_Factory::RR_Android_NS3_Factory() {
 	// TODO Auto-generated constructor stub
 	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
 
 }
-RR_Android_Factory::~RR_Android_Factory() {}
+RR_Android_NS3_Factory::~RR_Android_NS3_Factory() {}
 //gets a handler either from a chche or by creating a new one
-hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
+hdlr_ptr  RR_Android_NS3_Factory::getHandler(MessageType type){
 	hdlr_ptr handler;
 	//if handler is already registered && the registered handler is not null
 	std::map<MessageType, hdlr_ptr >::iterator it = HandlerMap.find(type);
@@ -57,10 +57,10 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
- bool RR_Android_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
+ bool RR_Android_NS3_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
 {
 //	std::vector<msg_t> result;
-//	 Print() << "inside RR_Android_Factory::createMessage" << std::endl;
+//	 Print() << "inside RR_Android_NS3_Factory::createMessage" << std::endl;
 	std::string type, data;
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

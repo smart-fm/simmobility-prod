@@ -77,7 +77,7 @@ void Broker::configure() {
 		//todo: choose a factory based on configurations not hardcoding
 		boost::shared_ptr<
 				sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > android_factory(
-				new sim_mob::rr_android_ns3::RR_Android_Factory());
+				new sim_mob::rr_android_ns3::RR_Android_NS3_Factory());
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(
 				std::make_pair(ConfigParams::ANDROID_EMULATOR,

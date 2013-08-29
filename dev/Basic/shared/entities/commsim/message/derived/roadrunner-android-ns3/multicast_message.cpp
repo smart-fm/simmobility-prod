@@ -5,7 +5,7 @@
  *      Author: vahid
  */
 
-#include "android_multicast_message.hpp"
+#include "multicast_message.hpp"
 
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/AuraManager.hpp"
@@ -15,7 +15,6 @@ class Handler;
 
 namespace rr_android_ns3
 {
-class ANDROID_HDL_MULTICAST;
 ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(msg_data_t data_): Message(data_)
 {
 
@@ -34,6 +33,7 @@ Handler * ANDROID_MSG_MULTICAST::newHandler()
 //2-although it is like a broadcast, simmobility will add the specific receiver
 //information while redirecting to NS3(as opposed to letting NS3 find the recipients)
 void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
+	Print() << "Inside a ANDROID_HDL_MULTICAST::handle" << std::endl;
 //steps:
 	/*
 	 * 1- Find the sending agent
@@ -51,6 +51,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	if(!sim_mob::JsonParser::parseMessageHeader(jdata,msg_header_))
 	{
 		WarnOut("ANDROID_HDL_MULTICAST::handle: message header incomplete" << std::endl);
+		Print() << "ANDROID_HDL_MULTICAST::handle: message header incomplete" << std::endl;
 		return;
 	}
 
@@ -108,10 +109,15 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		Print()<< "Error: nearby agents doesn't even include the central agent" << std::endl;
 		return;
 	}
+
 	if(nearby_agents.size() == 0)
 	{
-		Print() << "Debug: No agent qualified(out of " << nearby_agents.size() << ")" << std::endl;
+		Print() << "Debug: No agent qualified" << std::endl;
 		return;
+	}
+	else
+	{
+		Print() << nearby_agents.size() <<" Agents qualified for Multicast" << std::endl;
 	}
 
 	//step-3: for each agent find the client handler
@@ -125,18 +131,25 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		// only the android emulators
 		if(clientTypes.first != ConfigParams::ANDROID_EMULATOR)
 		{
+			Print() << "*" << std::endl;
 			continue;
 		}
 
 		ClientList::IdPair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
+		if(inner.size() == 0){
+			Print() << "Debug: Empty Inner Container" << std::endl;
+		}
+		else{
+			Print() << "Checking agents associated with " << inner.size() << " clients " << std::endl;
+		}
 		BOOST_FOREACH(clientIds , inner)
 		{
 			boost::shared_ptr<sim_mob::ClientHandler> destination_agent_clnHandler  = clientIds.second;
 			//get the agent associated with the client handler and see if it is among the nearby_agents
 			if(std::find(nearby_agents.begin(), nearby_agents.end(), destination_agent_clnHandler->agent) == nearby_agents.end())
 			{
-//				Print() << "Debug: agent not found" << std::endl;
+				Print() << "Debug: agent not found" << std::endl;
 				continue;
 			}
 			else
@@ -158,7 +171,40 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		jdata["SENDING_AGENT"] = sending_agent->getId();
 		jdata["RECIPIENTS"] = recipients;
 		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,jdata);
+		Print() << "ANDROID_HDL_MULTICAST::handle=> success " << std::endl;
 	}
+	else
+	{
+		Print() << "ANDROID_HDL_MULTICAST::handle=> no recipients " << std::endl;
+	}
+}//handle()
+
+
+
+/***************************************************************************************************************************************************
+ * ****************************   NS3   ************************************************************************************************************
+ * ************************************************************************************************************************************************
+ */
+NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(msg_data_t data_): Message(data_)
+{
+
+}
+Handler * NS3_MSG_MULTICAST::newHandler()
+{
+	return new NS3_HDL_MULTICAST();
+}
+
+
+//handler implementation
+//this handler handles the multicast requests sent by NS3
+//the hadler does this by finding the sender's nearby agents
+//please take note that in this implementation:
+//1-multicast is treated same as broadcast
+//2-although it is like a broadcast, simmobility will add the specific receiver
+//information while redirecting to NS3(as opposed to letting NS3 find the recipients)
+void NS3_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
+	Print() << "Inside a NS3_HDL_MULTICAST::handle" << std::endl;
+
 }//handle()
 
 }/* namespace rr_android_ns3 */

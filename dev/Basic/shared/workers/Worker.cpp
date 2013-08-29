@@ -215,13 +215,10 @@ void sim_mob::Worker::removePendingEntities()
 
 void sim_mob::Worker::processVirtualQueues() {
 #ifdef SIMMOB_USE_CONFLUXES
-	unsigned int count = 0;
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
-		count += (*it)->getAllPersons().size();
 		(*it)->processVirtualQueues();
 	}
-	std::cout<<"Worker: "<<this<<"|Person count: "<<count<<std::endl;
 #endif
 }
 

@@ -185,7 +185,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 					<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd()
 					<< "|CurrSegmentID:" << vehicle->getCurrSegment()->getSegmentID()
 					<< "|CurrLane:" << vehicle->getCurrLane()->getLaneID()
-					<< "|DRIVER	|CurrLane:" << currLane->getLaneID()
+					<< "|DRIVER|CurrLane:" << currLane->getLaneID()
 					<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
 					<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
 					<< "|CurrLane:" << getParent()->getCurrLane()->getLaneID()
@@ -379,35 +379,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
-
-		/*if (isNewLinkNext)
-		{
-			//set Link Travel time for previous link
-			const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
-			if (prevSeg){
-				const Link* prevLink = prevSeg->getLink();
-				//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
-				if(prevLink == getParent()->getTravelStats().link_){
-					getParent()->addToTravelStatsMap(getParent()->getTravelStats(), linkExitTimeSec); //in seconds
-					prevSeg->getParentConflux()->setTravelTimes(getParent(), linkExitTimeSec);
-				}
-				//creating a new entry in agent's travelStats for the new link, with entry time
-				getParent()->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
-			}
-		}
-*/
-		/*	std::cout<< parent->getId()<<" Driver is movedToNextSeg at: "<< linkExitTimeSec*1000 << "ms to lane "
-		 	 	 	<< currLane->getLaneID_str()
-					<<" in RdSeg "<< vehicle->getCurrSegment()->getStart()->getID()
-					<<" last Accept: "<< getLastAccept(currLane)
-					<<" accept rate: "<<getAcceptRate(currLane)
-					<<" timeThisTick: "<<p.timeThisTick
-					<<" now: "<<p.now.ms()
-					<< " dist2End: "<<vehicle->getPositionInSegment()
-					<< std::endl;*/
-
-			setLastAccept(currLane, linkExitTimeSec);
-			res = advance(p);
+		setLastAccept(currLane, linkExitTimeSec);
+		res = advance(p);
 	}
 	else{
 		Print() <<"moveToNextRdSeg | canGoTo failed!"<<std::endl;
@@ -786,7 +759,16 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 	double timeToDissipateQ = getInitialQueueLength(currLane)/(4.0*outRate*vehicle->length); //assuming vehicle length is in cm
 	double timeToReachEndSeg = t0 + x0/vu;
 	tf = std::max(timeToDissipateQ, timeToReachEndSeg);
-
+	Print() << "getInitialQueueLength(currLane) " << getInitialQueueLength(currLane)
+			<< "|output " << output << "|outRate " << outRate
+			<< "|timeToDissipateQ " << timeToDissipateQ
+			<< "|timeToReachEndSeg " << timeToReachEndSeg
+			<< "|tf " << tf
+			<< "|t0 " << t0
+			<< "|x0 " << x0
+			<< "|vu " << vu
+			<< "|vehicle->length " << vehicle->length
+			<< "|currLane " << currLane->getLaneID() << std::endl;
 	if (tf < p.secondsInTick)
 	{
 		if (output > 0)
@@ -806,6 +788,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 		//cannot use == operator since it is double variable. tzl, Oct 18, 02
 		if( fabs(tf-timeToReachEndSeg) < 0.001 && timeToReachEndSeg > p.secondsInTick)
 		{
+			Print() << "In if" << std::endl;
 			tf = p.secondsInTick;
 			xf = x0-vu*(tf-t0);
 			res = moveInSegment(p, x0-xf);
@@ -813,6 +796,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 		}
 		else
 		{
+			Print() << "In else" << std::endl;
 			xf = 0.0 ;
 			res = moveInSegment(p, x0-xf);
 		}

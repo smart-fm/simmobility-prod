@@ -33,7 +33,6 @@ sim_mob::Entity::~Entity()
 		Warn() <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
 		abort();
 	}
-	Print() <<"Successfully deleting Entity "<< this->getId() <<std::endl;
 }
 
 string sim_mob::Entity::getGlobalId() const

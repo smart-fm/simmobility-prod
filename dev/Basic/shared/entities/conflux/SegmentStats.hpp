@@ -32,6 +32,7 @@ public:
 	int getOutputCounter() {return outputCounter;}
 	double getAcceptRate() {return acceptRate;}
 
+	void setOutputCounter(int count) { outputCounter = count; }
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
 

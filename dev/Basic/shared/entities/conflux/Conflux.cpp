@@ -452,6 +452,10 @@ int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
 	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getOutputCounter();
 }
 
+void sim_mob::Conflux::setOutputCounter(const Lane* lane, int count) {
+	findSegStats(lane->getRoadSegment())->getLaneParams(lane)->setOutputCounter(count);
+}
+
 double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
 	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getAcceptRate();
 }

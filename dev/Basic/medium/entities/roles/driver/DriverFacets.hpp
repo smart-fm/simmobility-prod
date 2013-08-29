@@ -59,6 +59,7 @@ public:
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p);
 	void getSegSpeed();
 	int getOutputCounter(const Lane* l);
+	void setOutputCounter(const Lane* l, int count);
 	double getOutputFlowRate(const Lane* l);
 	double getAcceptRate(const Lane* l);
 	double getQueueLength(const Lane* l);

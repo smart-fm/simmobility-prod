@@ -189,6 +189,7 @@ public:
 
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);
+	void setOutputCounter(const Lane* lane, int count);
 	double getAcceptRate(const Lane* lane);
 	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
 	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);

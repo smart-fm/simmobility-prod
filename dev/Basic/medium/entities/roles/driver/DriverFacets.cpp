@@ -348,6 +348,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		//vehicle is done
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 		if (vehicle->isDone()) {
+			setOutputCounter(currLane, (getOutputCounter(currLane)-1));
 			currLane = nullptr;
 			getParent()->setToBeRemoved();
 		}
@@ -370,10 +371,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		if (vehicle->isQueuing){
 			removeFromQueue();
 		}
-		else{
-		//	removeFromMovingList();
-		}
 
+		setOutputCounter(currLane, (getOutputCounter(currLane)-1)); // decrement from the currLane before updating it
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
@@ -415,6 +414,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 			removeFromQueue();
 		}
 
+		setOutputCounter(currLane, (getOutputCounter(currLane)-1));
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
 		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
@@ -785,31 +785,25 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 	}
 	else
 	{
-		//cannot use == operator since it is double variable. tzl, Oct 18, 02
 		if( fabs(tf-timeToReachEndSeg) < 0.001 && timeToReachEndSeg > p.secondsInTick)
 		{
 			Print() << "In if" << std::endl;
 			tf = p.secondsInTick;
 			xf = x0-vu*(tf-t0);
 			res = moveInSegment(p, x0-xf);
-			//p.currLaneOffset = vehicle->getDistanceMovedInSegment();
 		}
 		else
 		{
 			Print() << "In else" << std::endl;
 			xf = 0.0 ;
 			res = moveInSegment(p, x0-xf);
+			addToQueue(currLane);
+			tf = p.secondsInTick;
 		}
 
 		vehicle->setPositionInSegment(xf); //harish 20-May
 		p.elapsedSeconds = tf; //harish 20-May
 	}
-	//1. update current position of vehicle/driver with xf
-	//2. update current time with tf
-//	std::cout<<"advanceMoving with initial Q rdSeg: "<<vehicle->getCurrSegment()->getStart()->getID()<<" setPos: "<< xf<<std::endl;
-
-	//vehicle->setPositionInSegment(xf); commented by harish 20-May
-	//p.elapsedSeconds = tf; commented harish 20-May
 	return res;
 }
 
@@ -820,6 +814,10 @@ void DriverMovement::getSegSpeed() {
 
 int DriverMovement::getOutputCounter(const Lane* l) {
 	return getParent()->getCurrSegment()->getParentConflux()->getOutputCounter(l);
+}
+
+void DriverMovement::setOutputCounter(const Lane* l, int count) {
+	return getParent()->getCurrSegment()->getParentConflux()->setOutputCounter(l, count);
 }
 
 double DriverMovement::getOutputFlowRate(const Lane* l) {

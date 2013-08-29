@@ -214,16 +214,13 @@ void sim_mob::Worker::removePendingEntities()
 }
 
 void sim_mob::Worker::processVirtualQueues() {
-#ifdef SIMMOB_USE_CONFLUXES
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		(*it)->processVirtualQueues();
 	}
-#endif
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-#ifdef SIMMOB_USE_CONFLUXES
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
@@ -233,7 +230,6 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 		(*it)->resetSegmentFlows();
 		(*it)->resetLinkTravelTimes(currTime);
 	}
-#endif
 }
 
 void sim_mob::Worker::breedPendingEntities()
@@ -459,7 +455,6 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 }
 
 void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
-	Print()<<"Worker::migrateOutConflux"<<cfx.getMultiNode()->getID()<<std::endl;
 	std::deque<sim_mob::Person*> cfxPersons = cfx.getAllPersons();
 	for(std::deque<sim_mob::Person*>::iterator pIt = cfxPersons.begin(); pIt != cfxPersons.end(); pIt++) {
 		Person* person = *pIt;

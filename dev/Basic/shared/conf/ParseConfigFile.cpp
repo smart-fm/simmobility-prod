@@ -6,6 +6,8 @@
 #include <sstream>
 
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/sax/HandlerBase.hpp>
@@ -118,9 +120,10 @@ const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bo
 bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
-		if (src=="true") {
+		std::transform(src.begin(), src.end(), src.begin(), ::tolower);
+		if (src=="true" || src=="yes") {
 			return true;
-		} else if (src=="false") {
+		} else if (src=="false" || src=="no") {
 			return false;
 		}
 		throw std::runtime_error("Expected boolean value.");
@@ -131,6 +134,41 @@ bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
 		throw std::runtime_error("Mandatory boolean variable; no default available.");
 	}
 	return *defValue;
+}
+
+//Helper: Time units such as "10", "seconds"
+unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue) {
+	double amount = boost::lexical_cast<double>(TranscodeString(amountX));
+	std::string units = TranscodeString(unitsX);
+
+	//Handle plural
+	if (units=="second") { units="seconds"; }
+	if (units=="minute") { units="minutes"; }
+
+	//Detect errors
+	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
+		if (defValue) {
+			return *defValue;
+		} else {
+			throw std::runtime_error("Invalid units in parsing time granularity.");
+		}
+	}
+
+	//Reduce to ms
+    if (units == "minutes") {
+    	amount *= 60*1000;
+    }
+    if (units == "seconds") {
+    	amount *= 1000;
+    }
+
+    //Check for overflow:
+    unsigned int res = static_cast<unsigned int>(amount);
+    if (static_cast<double>(res) != amount) {
+    	Warn() <<"NOTE: Rounding value in ms from " <<amount <<" to " <<res <<"\n";
+    }
+
+    return res;
 }
 
 
@@ -148,6 +186,91 @@ SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::
 	//Wasn't found.
 	if (!defValue) {
 		throw std::runtime_error("Mandatory SystemParams::NetworkSource variable; no default available.");
+	}
+	return *defValue;
+}
+
+
+AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		if (src=="simtree") {
+			return AuraManager::IMPL_SIMTREE;
+		} else if (src=="rdu") {
+			return AuraManager::IMPL_RDU;
+		} else if (src=="rstar") {
+			return AuraManager::IMPL_RSTAR;
+		}
+		throw std::runtime_error("Expected AuraManager::AuraManagerImplementation value.");
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory AuraManager::AuraManagerImplementation variable; no default available.");
+	}
+	return *defValue;
+}
+
+
+WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX, WorkGroup::ASSIGNMENT_STRATEGY* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		if (src=="roundrobin") {
+			return WorkGroup::ASSIGN_ROUNDROBIN;
+		} else if (src=="smallest") {
+			return WorkGroup::ASSIGN_SMALLEST;
+		}
+		throw std::runtime_error("Expected WorkGroup::ASSIGNMENT_STRATEGY value.");
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory WorkGroup::ASSIGNMENT_STRATEGY variable; no default available.");
+	}
+	return *defValue;
+}
+
+
+MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		if (src=="buffered") {
+			return MtxStrat_Buffered;
+		} else if (src=="locked") {
+			return MtxStrat_Locked;
+		}
+		throw std::runtime_error("Expected sim_mob::MutexStrategy value.");
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory sim_mob::MutexStrategy variable; no default available.");
+	}
+	return *defValue;
+}
+
+
+int ParseInteger(const XMLCh* srcX, int* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		return boost::lexical_cast<int>(src);
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory integer variable; no default available.");
+	}
+	return *defValue;
+}
+
+DailyTime ParseDailyTime(const XMLCh* srcX, DailyTime* defValue) {
+	if (srcX) {
+		return DailyTime(TranscodeString(srcX));
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory integer variable; no default available.");
 	}
 	return *defValue;
 }
@@ -187,11 +310,41 @@ bool ParseBoolean(const XMLCh* src, bool defValue) {
 bool ParseBoolean(const XMLCh* src) { //No default
 	return ParseBoolean(src, nullptr);
 }
+int ParseInteger(const XMLCh* src, int defValue) {
+	return ParseInteger(src, &defValue);
+}
+int ParseInteger(const XMLCh* src) { //No default
+	return ParseInteger(src, nullptr);
+}
+DailyTime ParseDailyTime(const XMLCh* src, DailyTime defValue) {
+	return ParseDailyTime(src, &defValue);
+}
+DailyTime ParseDailyTime(const XMLCh* src) { //No default
+	return ParseDailyTime(src, nullptr);
+}
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource defValue) {
 	return ParseNetSourceEnum(srcX, &defValue);
 }
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
 	return ParseNetSourceEnum(srcX, nullptr);
+}
+AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation defValue) {
+	return ParseAuraMgrImplEnum(srcX, &defValue);
+}
+AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX) {
+	return ParseAuraMgrImplEnum(srcX, nullptr);
+}
+WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX, WorkGroup::ASSIGNMENT_STRATEGY defValue) {
+	return ParseWrkGrpAssignEnum(srcX, &defValue);
+}
+WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX) {
+	return ParseWrkGrpAssignEnum(srcX, nullptr);
+}
+MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy defValue) {
+	return ParseMutexStrategyEnum(srcX, &defValue);
+}
+MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX) {
+	return ParseMutexStrategyEnum(srcX, nullptr);
 }
 std::string ParseString(const XMLCh* src, std::string defValue) {
 	return ParseString(src, &defValue);
@@ -205,7 +358,19 @@ std::string ParseNonemptyString(const XMLCh* src, std::string defValue) {
 std::string ParseNonemptyString(const XMLCh* src) { //No default
 	return ParseNonemptyString(src, nullptr);
 }
+unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned int defValue) {
+	return ParseTimegranAsMs(amount, units, &defValue);
+}
+unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units) { //No default
+	return ParseTimegranAsMs(amount, units, nullptr);
+}
 
+
+//TODO: Now we are starting to overlap...
+int ProcessValueInteger2(xercesc::DOMElement* node, int defVal)
+{
+	return ParseInteger(GetNamedAttributeValue(node, "value"), defVal);
+}
 
 
 } //End un-named namespace
@@ -327,7 +492,31 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {
+	//Several properties are set up as "x ms", or "x seconds", etc.
+	cfg.system.simulation.baseGranMS = ProcessTimegranUnits(GetSingleElementByName(node, "base_granularity", true));
+	cfg.system.simulation.totalRuntimeMS = ProcessTimegranUnits(GetSingleElementByName(node, "total_runtime", true));
+	cfg.system.simulation.totalWarmupMS = ProcessTimegranUnits(GetSingleElementByName(node, "total_warmup"));
 
+	//These should all be moved; for now we copy them over with one command.
+	cfg.system.simulation.reacTime_distributionType1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType1"));
+	cfg.system.simulation.reacTime_distributionType2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType2"));
+	cfg.system.simulation.reacTime_mean1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean1"));
+	cfg.system.simulation.reacTime_mean2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean2"));
+	cfg.system.simulation.reacTime_standardDev1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev1"));
+	cfg.system.simulation.reacTime_standardDev2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
+
+	cfg.system.simulation.simStartTime = ProcessValueDailyTime(GetSingleElementByName(node, "start_time", true));
+
+	//Now we're getting back to real properties.
+	ProcessSystemAuraManagerImplNode(GetSingleElementByName(node, "aura_manager_impl"));
+	ProcessSystemWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
+	cfg.system.simulation.partitioningSolutionId = ProcessValueInteger(GetSingleElementByName(node, "partitioning_solution_id"));
+	ProcessSystemLoadAgentsOrderNode(GetSingleElementByName(node, "load_agents"));
+	cfg.system.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
+	ProcessSystemMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
+	ProcessSystemCommunicationNode(GetSingleElementByName(node, "communication"));
+
+	throw 1;
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* node)
@@ -400,6 +589,71 @@ void sim_mob::ParseConfigFile::ProcessSystemGenericPropsNode(xercesc::DOMElement
 			cfg.system.genericProps[key] = val;
 		}
 	}
+}
+
+
+unsigned int sim_mob::ParseConfigFile::ProcessTimegranUnits(xercesc::DOMElement* node)
+{
+	return ParseTimegranAsMs(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"));
+}
+
+
+int sim_mob::ParseConfigFile::ProcessValueInteger(xercesc::DOMElement* node)
+{
+	return ParseInteger(GetNamedAttributeValue(node, "value"));
+}
+
+DailyTime sim_mob::ParseConfigFile::ProcessValueDailyTime(xercesc::DOMElement* node)
+{
+	return ParseDailyTime(GetNamedAttributeValue(node, "value"));
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemAuraManagerImplNode(xercesc::DOMElement* node)
+{
+	cfg.system.simulation.auraManagerImplementation = ParseAuraMgrImplEnum(GetNamedAttributeValue(node, "value"), AuraManager::IMPL_RSTAR);
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemWorkgroupAssignmentNode(xercesc::DOMElement* node)
+{
+	cfg.system.simulation.workGroupAssigmentStrategy = ParseWrkGrpAssignEnum(GetNamedAttributeValue(node, "value"), WorkGroup::ASSIGN_SMALLEST);
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElement* node)
+{
+	//Separate into a string array.
+	std::string value = ParseString(GetNamedAttributeValue(node, "order"), "");
+	std::vector<std::string> valArray;
+	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
+
+	//Now, turn into an enum array.
+	for (std::vector<std::string>::const_iterator it=valArray.begin(); it!=valArray.end(); it++) {
+		SimulationParams::LoadAgentsOrderOption opt(SimulationParams::LoadAg_Database);
+		if ((*it) == "database") {
+			opt = SimulationParams::LoadAg_Database;
+		} else if ((*it) == "drivers") {
+			opt = SimulationParams::LoadAg_Drivers;
+		} else if ((*it) == "pedestrians") {
+			opt = SimulationParams::LoadAg_Pedestrians;
+		} else {
+			throw std::runtime_error("Unexpected load_agents order param.");
+		}
+		cfg.system.simulation.loadAgentsOrder.push_back(opt);
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMElement* node)
+{
+	cfg.system.simulation.mutexStategy = ParseMutexStrategyEnum(GetNamedAttributeValue(node, "strategy"), MtxStrat_Buffered);
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
+{
+	//The commsim config has an attribute and a child node.
+	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//TODO: There is a "type" attribute here too, in the latest branch.
+	xercesc::DOMElement* androidNode = GetSingleElementByName(node, "android_testbed");
+	cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false);
 }
 
 

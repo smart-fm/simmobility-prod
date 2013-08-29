@@ -8,6 +8,7 @@
 #include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
+#include "util/DailyTime.hpp"
 
 
 namespace sim_mob {
@@ -57,6 +58,16 @@ private:
 	void ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node);
 	void ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemGenericPropsNode(xercesc::DOMElement* node);
+
+	//Descend through System/Simulation
+	unsigned int ProcessTimegranUnits(xercesc::DOMElement* node); //This is reused in several places.
+	int ProcessValueInteger(xercesc::DOMElement* node); //Represents nodes with "value" attributes.
+	sim_mob::DailyTime ProcessValueDailyTime(xercesc::DOMElement* node);
+	void ProcessSystemAuraManagerImplNode(xercesc::DOMElement* node);
+	void ProcessSystemWorkgroupAssignmentNode(xercesc::DOMElement* node);
+	void ProcessSystemLoadAgentsOrderNode(xercesc::DOMElement* node);
+	void ProcessSystemMutexEnforcementNode(xercesc::DOMElement* node);
+	void ProcessSystemCommunicationNode(xercesc::DOMElement* node);
 
 
 

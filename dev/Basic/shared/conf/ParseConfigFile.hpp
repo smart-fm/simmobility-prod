@@ -69,6 +69,11 @@ private:
 	void ProcessSystemMutexEnforcementNode(xercesc::DOMElement* node);
 	void ProcessSystemCommunicationNode(xercesc::DOMElement* node);
 
+	//Descend through System/Workers
+	void ProcessWorkerPersonNode(xercesc::DOMElement* node);
+	void ProcessWorkerSignalNode(xercesc::DOMElement* node);
+	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
+
 
 
 private:

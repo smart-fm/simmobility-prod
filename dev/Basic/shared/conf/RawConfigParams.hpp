@@ -78,8 +78,8 @@ class WorkerParams {
 public:
 	struct Worker {
 		Worker();
-		int count;
-		int granularityMs;
+		unsigned int count;
+		unsigned int granularityMs;
 	};
 
 	Worker person;

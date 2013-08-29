@@ -136,11 +136,8 @@ bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
 	return *defValue;
 }
 
-//Helper: Time units such as "10", "seconds"
-unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue) {
-	double amount = boost::lexical_cast<double>(TranscodeString(amountX));
-	std::string units = TranscodeString(unitsX);
-
+//Helper: amount+value for time-granularities.
+unsigned int GetValueInMs(double amount, std::string units, unsigned int* defValue) {
 	//Handle plural
 	if (units=="second") { units="seconds"; }
 	if (units=="minute") { units="minutes"; }
@@ -169,6 +166,14 @@ unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsign
     }
 
     return res;
+}
+
+//Helper: Time units such as "10", "seconds"
+unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue) {
+	double amount = boost::lexical_cast<double>(TranscodeString(amountX));
+	std::string units = TranscodeString(unitsX);
+
+	return GetValueInMs(amount, units, defValue);
 }
 
 
@@ -263,6 +268,31 @@ int ParseInteger(const XMLCh* srcX, int* defValue) {
 	return *defValue;
 }
 
+unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
+	if (srcX) {
+		//Search for "[0-9]+ ?[^0-9]+), roughly.
+		std::string src = TranscodeString(srcX);
+		size_t digStart = src.find_first_of("1234567890");
+		size_t digEnd = src.find_first_not_of("1234567890", digStart+1);
+		size_t unitStart = src.find_first_not_of(" ", digEnd);
+		if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos) {
+			throw std::runtime_error("Badly formatted single-granularity string.");
+		}
+
+		//Now split/parse it.
+		double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd-digStart)));
+		std::string units = src.substr(unitStart, std::string::npos);
+
+		return GetValueInMs(value, units, defValue);
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory integer (granularity) variable; no default available.");
+	}
+	return *defValue;
+}
+
 DailyTime ParseDailyTime(const XMLCh* srcX, DailyTime* defValue) {
 	if (srcX) {
 		return DailyTime(TranscodeString(srcX));
@@ -315,6 +345,12 @@ int ParseInteger(const XMLCh* src, int defValue) {
 }
 int ParseInteger(const XMLCh* src) { //No default
 	return ParseInteger(src, nullptr);
+}
+unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
+	return ParseGranularitySingle(src, &defValue);
+}
+unsigned int ParseGranularitySingle(const XMLCh* src) { //No default
+	return ParseGranularitySingle(src, nullptr);
 }
 DailyTime ParseDailyTime(const XMLCh* src, DailyTime defValue) {
 	return ParseDailyTime(src, &defValue);
@@ -515,12 +551,13 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	cfg.system.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
 	ProcessSystemMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
 	ProcessSystemCommunicationNode(GetSingleElementByName(node, "communication"));
-
-	throw 1;
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* node)
 {
+	ProcessWorkerPersonNode(GetSingleElementByName(node, "person", true));
+	ProcessWorkerSignalNode(GetSingleElementByName(node, "signal", true));
+	ProcessWorkerCommunicationNode(GetSingleElementByName(node, "communication", true));
 
 }
 
@@ -656,6 +693,23 @@ void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElemen
 	cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false);
 }
 
+void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)
+{
+	cfg.system.workers.person.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+	cfg.system.workers.person.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
 
+
+void sim_mob::ParseConfigFile::ProcessWorkerSignalNode(xercesc::DOMElement* node)
+{
+	cfg.system.workers.signal.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+	cfg.system.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
+
+void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElement* node)
+{
+	cfg.system.workers.communication.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+	cfg.system.workers.communication.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
 
 

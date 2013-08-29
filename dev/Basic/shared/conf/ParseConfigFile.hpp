@@ -74,6 +74,9 @@ private:
 	void ProcessWorkerSignalNode(xercesc::DOMElement* node);
 	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
 
+	//Dabase mappings/connection
+	void ProcessGeomDbConnection(xercesc::DOMElement* node);
+	void ProcessGeomDbMappings(xercesc::DOMElement* node);
 
 
 private:

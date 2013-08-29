@@ -508,6 +508,27 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 
 void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 {
+	//The geometry tag has some attributes.
+	std::string geomType = ParseString(GetNamedAttributeValue(node, "type"));
+	std::string geomSource = ParseString(GetNamedAttributeValue(node, "source"));
+
+	//Quick validation
+	if (geomType=="simple") {
+		throw std::runtime_error("\"simple\" geometry type no longer supported.");
+	}
+	if (geomType!="aimsun") {
+		throw std::runtime_error("Unknown geometry type.");
+	}
+	if (geomSource!="database") {
+		throw std::runtime_error("Unknown geometry source.");
+	}
+
+	//This is kind of backwards...
+	cfg.geometry.procedures.dbFormat = "aimsun";
+
+	//Now parse the rest.
+	ProcessGeomDbConnection(GetSingleElementByName(node, "connection"));
+	ProcessGeomDbMappings(GetSingleElementByName(node, "mappings"));
 }
 
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
@@ -710,6 +731,51 @@ void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElemen
 {
 	cfg.system.workers.communication.count = ParseInteger(GetNamedAttributeValue(node, "count"));
 	cfg.system.workers.communication.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
+
+void sim_mob::ParseConfigFile::ProcessGeomDbConnection(xercesc::DOMElement* node)
+{
+	std::set<std::string> passed; //Kind of messy; format needs a redesign.
+	std::vector<DOMElement*> params = GetElementsByName(node, "param");
+	for (std::vector<DOMElement*>::const_iterator it=params.begin(); it!=params.end(); it++) {
+		std::string pKey = ParseString(GetNamedAttributeValue(*it, "name", true));
+		std::transform(pKey.begin(), pKey.end(), pKey.begin(), ::tolower);
+		std::string pVal = ParseString(GetNamedAttributeValue(*it, "value", true));
+
+		//Make sure we tag each property.
+		if (pKey=="host") {
+			cfg.geometry.connection.host = pVal;
+		} else if (pKey=="port") {
+			cfg.geometry.connection.port = pVal;
+		} else if (pKey=="dbname") {
+			cfg.geometry.connection.dbName = pVal;
+		} else if (pKey=="user") {
+			cfg.geometry.connection.user = pVal;
+		} else if (pKey=="password") {
+			cfg.geometry.connection.password = Password(pVal);
+		} else {
+			//Skip unknown properties (can also do an error).
+			continue;
+		}
+
+		//Tag it.
+		passed.insert(pKey);
+	}
+
+	//Did we get everything?
+	if (passed.size()<5) {
+		Warn() <<"Database connection has too few parameters; connection attempts may fail.\n";
+	}
+}
+
+
+void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
+{
+	//These are so backwards...
+	for (DOMElement* prop=node->getFirstElementChild(); prop; prop=prop->getNextElementSibling()) {
+		//Save its name/procedure type in the procedures map.
+		cfg.geometry.procedures.procedureMappings[TranscodeString(prop->getNodeName())] = TranscodeString(GetNamedAttributeValue(prop, "procedure", true));
+	}
 }
 
 

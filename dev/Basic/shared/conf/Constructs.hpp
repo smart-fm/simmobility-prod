@@ -24,7 +24,7 @@ class ReactionTimeDist;
  */
 class Password {
 public:
-	Password(const std::string& rawPwd="") : rawPwd(rawPwd) {}
+	explicit Password(const std::string& rawPwd="") : rawPwd(rawPwd) {}
 
 	//Provide a small amount of protection on deletion
 	~Password() {

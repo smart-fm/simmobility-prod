@@ -10,6 +10,7 @@
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
+#include "event/EventBusSystem.hpp"
 
 using std::vector;
 
@@ -147,7 +148,9 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (buffFlipBarr) {
 		buffFlipBarr->wait();
-	}            
+	}
+
+	event::EventBusSystem::Instance()->ProcessTransimission();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()

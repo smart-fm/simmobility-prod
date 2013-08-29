@@ -15,7 +15,7 @@ NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_) :
 }
 
 bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request){
-
+	return true;
 }
 NS3ClientRegistration::~NS3ClientRegistration() {
 	// TODO Auto-generated destructor stub

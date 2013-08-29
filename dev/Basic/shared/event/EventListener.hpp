@@ -17,7 +17,6 @@ namespace sim_mob {
     namespace event {
         
         typedef void* Context;
-        typedef unsigned int EventId;
         class EventPublisher;
 
         /**
@@ -25,6 +24,7 @@ namespace sim_mob {
          */
         class EventListener {
         public:
+        	unsigned int receiverId;
 
             /**
              * Handles the received global event.
@@ -48,6 +48,12 @@ namespace sim_mob {
                                  sim_mob::event::EventPublisher* sender, 
                                  const EventArgs& args) {
             };
+
+        	void OnEventEntry(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args)
+        	{
+        		OnEvent(eventId, sender, args);
+        	};
+
 
             /**
              * Functions for calls.

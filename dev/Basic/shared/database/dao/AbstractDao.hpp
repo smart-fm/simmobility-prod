@@ -108,7 +108,7 @@ namespace sim_mob {
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
-                    int found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+                    size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
                     if (found == std::string::npos) {
                         upperQuery += DB_RETURNING_ALL_CLAUSE;
                     }

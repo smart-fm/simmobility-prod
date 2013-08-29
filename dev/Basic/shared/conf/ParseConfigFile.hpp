@@ -8,12 +8,13 @@
 #include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
+#include "conf/RawConfigParams.hpp" //For EntityTemplate.
 #include "util/DailyTime.hpp"
 
 
 namespace sim_mob {
 
-class RawConfigParams;
+//class RawConfigParams;
 
 
 /**
@@ -77,6 +78,9 @@ private:
 	//Dabase mappings/connection
 	void ProcessGeomDbConnection(xercesc::DOMElement* node);
 	void ProcessGeomDbMappings(xercesc::DOMElement* node);
+
+	//All entities are added to a "pending" list in the same manner.
+	void ProcessFutureAgentList(xercesc::DOMNodeList* nodes, std::vector<sim_mob::EntityTemplate>& res);
 
 
 private:

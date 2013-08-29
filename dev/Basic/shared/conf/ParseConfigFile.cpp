@@ -15,6 +15,8 @@
 #include <xercesc/util/PlatformUtils.hpp>
 
 #include "conf/RawConfigParams.hpp"
+#include "geospatial/Point2D.hpp"
+#include "util/GeomHelpers.hpp"
 
 using namespace sim_mob;
 using namespace xercesc;
@@ -255,6 +257,20 @@ MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue)
 }
 
 
+Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		return parse_point(src);
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory Point2D variable; no default available.");
+	}
+	return *defValue;
+}
+
+
 int ParseInteger(const XMLCh* srcX, int* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -264,6 +280,19 @@ int ParseInteger(const XMLCh* srcX, int* defValue) {
 	//Wasn't found.
 	if (!defValue) {
 		throw std::runtime_error("Mandatory integer variable; no default available.");
+	}
+	return *defValue;
+}
+
+unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		return boost::lexical_cast<unsigned int>(src);
+	}
+
+	//Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory unsigned integer variable; no default available.");
 	}
 	return *defValue;
 }
@@ -345,6 +374,18 @@ int ParseInteger(const XMLCh* src, int defValue) {
 }
 int ParseInteger(const XMLCh* src) { //No default
 	return ParseInteger(src, nullptr);
+}
+Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
+	return ParsePoint2D(src, &defValue);
+}
+Point2D ParsePoint2D(const XMLCh* src) { //No default
+	return ParsePoint2D(src, nullptr);
+}
+unsigned int ParseUnsignedInt(const XMLCh* src, unsigned int defValue) {
+	return ParseUnsignedInt(src, &defValue);
+}
+unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
+	return ParseUnsignedInt(src, nullptr);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
@@ -487,9 +528,6 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
-
-	//TEMP
-	throw 1;
 }
 
 
@@ -533,18 +571,50 @@ void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {
+	if (!node) {
+		return;
+	}
+	XMLCh* keyX = XMLString::transcode("driver");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	ProcessFutureAgentList(nodes, cfg.driverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
 {
+	if (!node) {
+		return;
+	}
+	XMLCh* keyX = XMLString::transcode("pedestrian");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	ProcessFutureAgentList(nodes, cfg.pedestrianTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
 {
+	if (!node) {
+		return;
+	}
+	XMLCh* keyX = XMLString::transcode("busdriver");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	ProcessFutureAgentList(nodes, cfg.busDriverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 {
+	if (!node) {
+		return;
+	}
+	XMLCh* keyX = XMLString::transcode("signal");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+
+	ProcessFutureAgentList(nodes, cfg.signalTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -775,6 +845,19 @@ void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
 	for (DOMElement* prop=node->getFirstElementChild(); prop; prop=prop->getNextElementSibling()) {
 		//Save its name/procedure type in the procedures map.
 		cfg.geometry.procedures.procedureMappings[TranscodeString(prop->getNodeName())] = TranscodeString(GetNamedAttributeValue(prop, "procedure", true));
+	}
+}
+
+
+void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMNodeList* nodes, std::vector<EntityTemplate>& res)
+{
+	for (XMLSize_t i=0; i<nodes->getLength(); i++) {
+		EntityTemplate ent;
+		DOMElement* node = NodeToElement(nodes->item(i));
+		ent.originPos = ParsePoint2D(GetNamedAttributeValue(node, "originPos"));
+		ent.destPos = ParsePoint2D(GetNamedAttributeValue(node, "destPos"));
+		ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(node, "time"), static_cast<unsigned int>(0));
+		res.push_back(ent);
 	}
 }
 

@@ -509,7 +509,7 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
@@ -555,7 +555,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 {
 	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
 
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	bool workerFilled = false;
 
 	if(numConfluxesToAddInWorker > 0)

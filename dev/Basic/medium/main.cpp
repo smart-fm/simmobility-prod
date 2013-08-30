@@ -151,7 +151,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy()));
@@ -384,7 +384,7 @@ int main(int ARGC, char* ARGV[])
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size() > 2 && args[2]=="mpi") {

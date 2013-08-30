@@ -100,7 +100,7 @@ void sim_mob::BusController::remBus(Bus* bus)
 
 void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& active_agents)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigParams::GetInstance();
 	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
 	if(0 == buslines.size()) {
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
@@ -136,7 +136,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 
 void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigParams::GetInstance();
 	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
 	if(0 == buslines.size()) {
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
@@ -177,7 +177,7 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 
 void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigParams::GetInstance();
 	vector<const BusStop*> stops;
 	sim_mob::Busline* busline = nullptr;
 	int step = 0;
@@ -253,7 +253,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 	realTime = (busStop_RealTimes);
 
 	// here need test, need add fake RealTimes first
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigParams::GetInstance();
 	Shared<BusStop_RealTimes>* busStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(), busStop_RealTimes);
 	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStopRealTimes);// set this value for next step
 

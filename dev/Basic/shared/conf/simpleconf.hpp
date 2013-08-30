@@ -99,7 +99,7 @@ public:
 	std::string outNetworkFileName;
 
 	//The role factory used for generating roles.
-	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
+	const sim_mob::RoleFactory& getRoleFactory() const { return roleFact; }
 
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
@@ -137,107 +137,68 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	///Number of workers handling Agents.
-	unsigned int& personWorkGroupSize() {
-		return system.workers.person.count;
-	}
-	const unsigned int& personWorkGroupSize() const {
-		return system.workers.person.count;
-	}
+	unsigned int& personWorkGroupSize();
+	const unsigned int& personWorkGroupSize() const;
 
 	///Number of workers handling Signals.
-	unsigned int& signalWorkGroupSize() {
-		return system.workers.signal.count;
-	}
-	const unsigned int& signalWorkGroupSize() const {
-		return system.workers.signal.count;
-	}
+	unsigned int& signalWorkGroupSize();
+	const unsigned int& signalWorkGroupSize() const;
 
 	///Number of workers handling Signals.
-	unsigned int& commWorkGroupSize() {
-		return system.workers.communication.count;
-	}
-	const unsigned int& commWorkGroupSize() const {
-		return system.workers.communication.count;
-	}
+	unsigned int& commWorkGroupSize();
+	const unsigned int& commWorkGroupSize() const;
 
 	///Base system granularity, in milliseconds. Each "tick" is this long.
-	unsigned int& baseGranMS() {
-		return system.simulation.baseGranMS;
-	}
-	const unsigned int& baseGranMS() const {
-		return system.simulation.baseGranMS;
-	}
+	unsigned int& baseGranMS();
+	const unsigned int& baseGranMS() const;
 
 	///If true, we are running everything on one thread.
-	bool& singleThreaded() {
-		return system.singleThreaded;
-	}
-	const bool& singleThreaded() const {
-		return system.singleThreaded;
-	}
+	bool& singleThreaded();
+	const bool& singleThreaded() const;
 
 	///If true, we take time to merge the output of the individual log files after the simulation is complete.
-	bool& mergeLogFiles() {
-		return system.mergeLogFiles;
-	}
+	bool& mergeLogFiles();
+	const bool& mergeLogFiles() const;
 
 	///Whether to load the network from the database or from an XML file.
-	SystemParams::NetworkSource& networkSource() {
-		return system.networkSource;
-	}
+	SystemParams::NetworkSource& networkSource();
+	const SystemParams::NetworkSource& networkSource() const;
 
 	///If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
-	std::string& networkXmlFile() {
-		return system.networkXmlFile;
-	}
+	std::string& networkXmlFile();
+	const std::string& networkXmlFile() const;
 
 	///If empty, use the default provided in "xsi:schemaLocation".
-	std::string& roadNetworkXsdSchemaFile() {
-		return system.roadNetworkXsdSchemaFile;
-	}
+	std::string& roadNetworkXsdSchemaFile();
+	const std::string& roadNetworkXsdSchemaFile() const;
 
-	AuraManager::AuraManagerImplementation& aura_manager_impl() {
-		return system.simulation.auraManagerImplementation;
-	}
-	const AuraManager::AuraManagerImplementation& aura_manager_impl() const {
-		return system.simulation.auraManagerImplementation;
-	}
+	///Which tree implementation to use for spatial partitioning for the aura manager.
+	AuraManager::AuraManagerImplementation& aura_manager_impl();
+	const AuraManager::AuraManagerImplementation& aura_manager_impl() const;
 
-	int& percent_boarding() {
-		return system.simulation.passenger_percent_boarding;
-	}
-	int& percent_alighting() {
-		return system.simulation.passenger_percent_alighting;
-	}
+	int& percent_boarding();
+	const int& percent_boarding() const;
 
-	WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() {
-		return system.simulation.workGroupAssigmentStrategy;
-	}
+	int& percent_alighting();
+	const int& percent_alighting() const;
 
-	sim_mob::MutexStrategy& mutexStategy() {
-		return system.simulation.mutexStategy;
-	}
+	WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment();
+	const WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() const;
 
-	bool& commSimEnabled() {
-		return system.simulation.commSimEnabled;
-	}
+	sim_mob::MutexStrategy& mutexStategy();
+	const sim_mob::MutexStrategy& mutexStategy() const;
 
-	bool& androidClientEnabled() {
-		return system.simulation.androidClientEnabled;
-	}
+	bool& commSimEnabled();
+	const bool& commSimEnabled() const;
 
-	DailyTime& simStartTime() {
-		return system.simulation.simStartTime;
-	}
+	bool& androidClientEnabled();
+	const bool& androidClientEnabled() const;
+
+	DailyTime& simStartTime();
+	const DailyTime& simStartTime() const;
 
 	//This one's slightly tricky, as it's in generic_props
-	std::string busline_control_type() {
-		std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
-		if (it==system.genericProps.end()) {
-			throw std::runtime_error("busline_control_type property not found.");
-		}
-		return it->second;
-	}
+	std::string busline_control_type() const;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	//These are sort of similar, but might need some fixing after we validate the input file.
@@ -268,10 +229,11 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////
 
 public:
-	/***
-	 * Singleton. Retrieve an instance of the ConfigParams object.
-	 */
-	static ConfigParams& GetInstance() { return ConfigParams::instance; }
+	///Retrieve a read-only version of the singleton. Use this function often.
+	static const ConfigParams& GetInstance() { return ConfigParams::instance; }
+
+	///Retrieve a writable version of the singleton. Use this function sparingly.
+	static ConfigParams& GetInstanceRW() { return ConfigParams::instance; }
 
 	///Reset this instance of the static ConfigParams instance.
 	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
@@ -290,7 +252,6 @@ public:
 	/**
 	 * Retrieve a reference to the current RoadNetwork.
 	 */
-	const sim_mob::RoadNetwork& getNetwork() { return network; }
 	const sim_mob::RoadNetwork& getNetwork() const { return network; }
 
 	/**
@@ -317,9 +278,14 @@ public:
 
 	///Retrieve a reference to the list of trip chains.
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
+	const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() const { return tripchains; }
+
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
+
 	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
+	const std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() const { return pt_busdispatch_freq; }
+
 	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes() { return pt_bus_routes; }
 	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops() { return pt_bus_stops; }
 
@@ -330,12 +296,16 @@ public:
 	//      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
 	//      it also indicates that these data structures should not be located in simpleconf.hpp. ~Seth
 	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() const { return routeID_roadSegments;}
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_MapRW() { return routeID_roadSegments;}
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
+	const std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() const { return busStopNo_busStops; }
+
 	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() { return routeID_busStops; }
+	const std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() const { return routeID_busStops; }
 
 	std::set<sim_mob::Conflux*>& getConfluxes() { return confluxes; }
+	const std::set<sim_mob::Conflux*>& getConfluxes() const { return confluxes; }
 
 private:
 	ConfigParams() : RawConfigParams(),

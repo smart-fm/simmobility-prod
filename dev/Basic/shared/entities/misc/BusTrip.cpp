@@ -111,7 +111,7 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegme
 		bus_RouteInfo.addBusStop(*it);
 	}
 	// addBusStopRealTimes, first time fake Times
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigParams::GetInstance();
 	for(int k = 0; k < busStop_vec.size(); k++) {
 		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(),BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);

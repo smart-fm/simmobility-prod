@@ -149,11 +149,11 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS() = TICK_STEP;
-    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment() =
-            WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded() = false;
+	ConfigParams& config = ConfigParams::GetInstanceRW();
+	config.baseGranMS() = TICK_STEP;
+	config.totalRuntimeTicks = DAYS;
+	config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+	config.singleThreaded() = false;
     list<HouseholdAgent*> agents;
     vector<Unit> units;
     vector<Household> households;
@@ -240,11 +240,11 @@ void perform_main() {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS() = TICK_STEP;
-    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment() =
-            WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded() = false;
+	ConfigParams& config = ConfigParams::GetInstanceRW();
+    config.baseGranMS() = TICK_STEP;
+    config.totalRuntimeTicks = DAYS;
+    config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+    config.singleThreaded() = false;
 
     //create all units.
     list<HouseholdAgent*> agents;

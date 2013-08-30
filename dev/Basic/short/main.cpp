@@ -142,10 +142,17 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	for (int i=0; i<2; i++) {
+
+	//TODO: Why were we looping? ~Seth
+	//for (int i=0; i<2; i++) {
+
 		//Set for the old-style config first, new-style config second.
-		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
-		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy() : Config::GetInstance().mutexStrategy();
+		//RoleFactory& rf = (i==0) ? ConfigParams::GetInstanceRW().getRoleFactoryRW() : Config::GetInstanceRW().getRoleFactoryRW();
+		//const MutexStrategy& mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy() : Config::GetInstance().mutexStrategy();
+
+		RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
+		const MutexStrategy& mtx = ConfigParams::GetInstance().mutexStategy();
+
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
 		if (ConfigParams::GetInstance().commSimEnabled()) {
@@ -162,7 +169,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//cannot allocate an object of abstract type
 		//rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
-	}
+//	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -519,7 +526,7 @@ int run_simmob_interactive_loop(){
 			std::string configFileName = paras["configFileName"];
 			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
-			ConfigParams::GetInstance().reset();
+			ConfigParams::GetInstanceRW().reset();
 			std::cout<<"scenario finished"<<std::cout;
 		}
 		if(ctrlMgr->getSimState() == QUIT)
@@ -554,7 +561,7 @@ int main(int ARGC, char* ARGV[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size()>2 && args[2]=="mpi") {

@@ -525,7 +525,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
 {
-	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstanceRW();
 	if (storedProc.empty())
 	{
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
@@ -537,7 +537,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
 //		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
-		sim_mob::BusStop* bs = (config.getBusStopNo_BusStops())[pt_bus_stopsTemp.busstop_no];
+		sim_mob::BusStop* bs = config.getBusStopNo_BusStops()[pt_bus_stopsTemp.busstop_no];
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 //			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
@@ -1313,7 +1313,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->getParentSegment()->addObstacle(distOrigin, busstop);
 
-		(sim_mob::ConfigParams::GetInstance().getBusStopNo_BusStops())[busstop->busstopno_] = busstop;
+		sim_mob::ConfigParams::GetInstanceRW().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
@@ -1998,11 +1998,14 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	DatabaseLoader loader(connectionStr);
 	std::cout << ">Success." << std::endl;
 
+	//Mutable config file reference.
+	ConfigParams& config = ConfigParams::GetInstanceRW();
+
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
-	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
+	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
 
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
@@ -2054,9 +2057,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
-	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
-	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_MapRW());
-	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), ConfigParams::GetInstance().getPT_bus_stops(), ConfigParams::GetInstance().getBusStops_Map());
+	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
+	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
 }
 
 /*
@@ -2065,8 +2068,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::stringstream debugMsgs(std::stringstream::out);
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
-	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
+	const sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy();
 	sim_mob::Conflux* conflux = nullptr;
 
 	//Make a temporary map of road nodes-to-road segments

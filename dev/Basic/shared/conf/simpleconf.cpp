@@ -251,14 +251,13 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
-	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+	const ConfigParams& config = ConfigParams::GetInstance();
+	const std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
 	//The current agent we are working on.
 	Person* person = nullptr;
 	std::string trip_mode;
-	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
+	typedef std::map<std::string, vector<TripChainItem*> >::const_iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
@@ -287,7 +286,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 bool isAndroidClientEnabled(TiXmlHandle& handle)
 {
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
-	ConfigParams::GetInstance().androidClientEnabled() = false;
 	std::string androidYesNo = std::string(node->Attribute("enabled"));
 	if (androidYesNo == "yes") {
 		return true;
@@ -297,7 +295,7 @@ bool isAndroidClientEnabled(TiXmlHandle& handle)
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
 	// This will only generate an error if someone actually tries to load an agent of this type.
@@ -709,6 +707,9 @@ struct Sorter {
 //Returns the error message, or an empty string if no error.
 void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+	//Writable config file.
+	ConfigParams& config = ConfigParams::GetInstanceRW();
+
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
@@ -730,9 +731,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//Reaction time 1
 	//TODO: Refactor to avoid magic numbers
 	if (distributionType1==0) {
-		ConfigParams::GetInstance().reactDist1 = new NormalReactionTimeDist(mean1, standardDev1);
+		config.reactDist1 = new NormalReactionTimeDist(mean1, standardDev1);
 	} else if (distributionType1==1) {
-		ConfigParams::GetInstance().reactDist1 = new LognormalReactionTimeDist(mean1, standardDev1);
+		config.reactDist1 = new LognormalReactionTimeDist(mean1, standardDev1);
 	} else {
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
@@ -740,9 +741,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//Reaction time 2
 	//TODO: Refactor to avoid magic numbers
 	if (distributionType2==0) {
-		ConfigParams::GetInstance().reactDist2 = new NormalReactionTimeDist(mean2, standardDev2);
+		config.reactDist2 = new NormalReactionTimeDist(mean2, standardDev2);
 	} else if (distributionType2==1) {
-		ConfigParams::GetInstance().reactDist2 = new LognormalReactionTimeDist(mean2, standardDev2);
+		config.reactDist2 = new LognormalReactionTimeDist(mean2, standardDev2);
 	} else {
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
@@ -765,16 +766,16 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//for alighting passengers
 	//TODO: Refactor to avoid magic numbers
 	int no_of_passengers;
-	srand(time(NULL));
-	ConfigParams::GetInstance().percent_boarding()= passenger_percent_boarding;
-	ConfigParams::GetInstance().percent_alighting() = passenger_percent_alighting;
+	srand(time(nullptr));
+	config.percent_boarding()= passenger_percent_boarding;
+	config.percent_alighting() = passenger_percent_alighting;
 	if (passenger_busstop_dist ==0) {// normal distribution
-		ConfigParams::GetInstance().passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		config.passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
 	} else if (passenger_busstop_dist==1) {// log normal distribution
-		ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		config.passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 	} else if(passenger_busstop_dist==2) {// uniform distribution
-		ConfigParams::GetInstance().passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
+		config.passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
 	} else {
 		throw std::runtime_error("Unknown magic passenger distribution number.");
 	}
@@ -870,7 +871,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			}
 		}
 	}
-	ConfigParams::GetInstance().singleThreaded() = singleThreaded;
+	config.singleThreaded() = singleThreaded;
 
 
 	//Save "network_source" if it exists.
@@ -890,7 +891,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			}
 		}
 	}
-	ConfigParams::GetInstance().networkSource() = netSrc;
+	config.networkSource() = netSrc;
 
 
 	//Save "network_xml_file", if it exists.
@@ -905,7 +906,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	if (netXmlFile.empty()) {
 		netXmlFile = "data/SimMobilityInput.xml"; //Default
 	}
-	ConfigParams::GetInstance().networkXmlFile() = netXmlFile;
+	config.networkXmlFile() = netXmlFile;
 
 
 	//Save "mergeLogFiles", if it exists.
@@ -921,7 +922,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			}
 		}
 	}
-	ConfigParams::GetInstance().mergeLogFiles() = mergeLogFiles;
+	config.mergeLogFiles() = mergeLogFiles;
 
 
 	//Determine what order we will load Agents in
@@ -964,21 +965,21 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	}
 
 	//Communication Simulator (optional)
-	ConfigParams::GetInstance().commSimEnabled() = false;
+	config.commSimEnabled() = false;
 	std::string commSimYesNo;
 	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
 	if (node) {
 		commSimYesNo = std::string(node->Attribute("enabled"));
 		if (commSimYesNo == "yes") {
-			ConfigParams::GetInstance().commSimEnabled() = true;
+			config.commSimEnabled() = true;
 			//createCommunicator();
 		}
 	}
 
-	if(commSimYesNo == "yes")
-	{
-		ConfigParams::GetInstance().androidClientEnabled() = isAndroidClientEnabled(handle);
+	config.androidClientEnabled() = false;
+	if(commSimYesNo == "yes") {
+		config.androidClientEnabled() = isAndroidClientEnabled(handle);
 	}
 
 
@@ -1025,7 +1026,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 				if (boost::filesystem::exists(optVal)) {
 					//Convert it to an absolute path.
 					boost::filesystem::path abs_path = boost::filesystem::absolute(optVal);
-					ConfigParams::GetInstance().roadNetworkXsdSchemaFile() = abs_path.string();
+					config.roadNetworkXsdSchemaFile() = abs_path.string();
 					break;
 				}
 			}
@@ -1112,7 +1113,6 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 
     //Save params
     {
-    	ConfigParams& config = ConfigParams::GetInstance();
     	config.baseGranMS() = baseGran;
     	config.totalRuntimeTicks = totalRuntime/baseGran;
     	config.totalWarmupTicks = totalWarmup/baseGran;
@@ -1158,7 +1158,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			times.push_back(AT);
 			times.push_back(DT);
 			std::pair<int, vector<int> > nextLink(stop, times);
-			ConfigParams::GetInstance().scheduledTimes.insert(nextLink);
+			config.scheduledTimes.insert(nextLink);
 			++stop;
 		}
 	}
@@ -1184,21 +1184,21 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 				//Load the AIMSUM network details
 				if (prof) { prof->logGenericStart("Database", "main-prof"); }
 				map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-				if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+				if (!LoadDatabaseDetails(*geomElem, config.connectionString, storedProcedures)) {
 						throw std::runtime_error("Unable to load database connection settings...");
 				}
 
 				//Actually load it
-				sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
+				sim_mob::aimsun::Loader::LoadNetwork(config.connectionString, storedProcedures, config.getNetworkRW(), config.getTripChains(), prof);
     		} else {
     			cout <<"Loading from XML\n";
-				if (!sim_mob::xml::InitAndLoadXML(ConfigParams::GetInstance().networkXmlFile(), ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
+				if (!sim_mob::xml::InitAndLoadXML(config.networkXmlFile(), config.getNetworkRW(), config.getTripChains())) {
 					throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 				}
     		}
 
     		//Finally, mask the password
-    		string& s = ConfigParams::GetInstance().connectionString;
+    		string& s = config.connectionString;
     		size_t check = s.find("password=");
     		if (check!=string::npos) {
     			size_t start = s.find("=", check) + 1;
@@ -1212,11 +1212,11 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     }
 
     //TEMP: Test network output via boost.
-    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
+    BoostSaveXML("NetworkCopy.xml", config.getNetworkRW());
 
     //debug: detect sidewalks which are in the middle of road
     {
-    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	sim_mob::RoadNetwork &rn = config.getNetworkRW();
     	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
     	{
     		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
@@ -1234,10 +1234,10 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     //debug.. end
 
  	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(config.getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
-    ConfigParams::GetInstance().sealNetwork();
+ 	config.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
     //Basically, we need to write the XML as soon as the network is sealed.
  //This is the real place to extract xml from road network, tripchian, signal etc but since 'seal network' is not respected (especially in street directory)
@@ -1482,7 +1482,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	const bool LOAD_NEW_CONFIG_FILE = false;
 
 	//Load using our new config syntax.
-	ParseConfigFile(configPath, ConfigParams::GetInstance());
+	ParseConfigFile(configPath, ConfigParams::GetInstanceRW());
 
 	if (LOAD_NEW_CONFIG_FILE) {
 		//Load and parse the file, create xml-based objects.
@@ -1526,5 +1526,177 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		delete doc;
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////////
+// Getters/setters
+////////////////////////////////////////////////////////////////////////////
+
+
+unsigned int& sim_mob::ConfigParams::personWorkGroupSize()
+{
+	return system.workers.person.count;
+}
+const unsigned int& sim_mob::ConfigParams::personWorkGroupSize() const
+{
+	return system.workers.person.count;
+}
+
+unsigned int& sim_mob::ConfigParams::signalWorkGroupSize()
+{
+	return system.workers.signal.count;
+}
+const unsigned int& sim_mob::ConfigParams::signalWorkGroupSize() const
+{
+	return system.workers.signal.count;
+}
+
+unsigned int& sim_mob::ConfigParams::commWorkGroupSize()
+{
+	return system.workers.communication.count;
+}
+const unsigned int& sim_mob::ConfigParams::commWorkGroupSize() const
+{
+	return system.workers.communication.count;
+}
+
+unsigned int& sim_mob::ConfigParams::baseGranMS()
+{
+	return system.simulation.baseGranMS;
+}
+const unsigned int& sim_mob::ConfigParams::baseGranMS() const
+{
+	return system.simulation.baseGranMS;
+}
+
+bool& sim_mob::ConfigParams::singleThreaded()
+{
+	return system.singleThreaded;
+}
+const bool& sim_mob::ConfigParams::singleThreaded() const
+{
+	return system.singleThreaded;
+}
+
+bool& sim_mob::ConfigParams::mergeLogFiles()
+{
+	return system.mergeLogFiles;
+}
+const bool& sim_mob::ConfigParams::mergeLogFiles() const
+{
+	return system.mergeLogFiles;
+}
+
+SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource()
+{
+	return system.networkSource;
+}
+const SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource() const
+{
+	return system.networkSource;
+}
+
+std::string& sim_mob::ConfigParams::networkXmlFile()
+{
+	return system.networkXmlFile;
+}
+const std::string& sim_mob::ConfigParams::networkXmlFile() const
+{
+	return system.networkXmlFile;
+}
+
+std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile()
+{
+	return system.roadNetworkXsdSchemaFile;
+}
+const std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile() const
+{
+	return system.roadNetworkXsdSchemaFile;
+}
+
+AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl()
+{
+	return system.simulation.auraManagerImplementation;
+}
+const AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl() const
+{
+	return system.simulation.auraManagerImplementation;
+}
+
+int& sim_mob::ConfigParams::percent_boarding()
+{
+	return system.simulation.passenger_percent_boarding;
+}
+const int& sim_mob::ConfigParams::percent_boarding() const
+{
+	return system.simulation.passenger_percent_boarding;
+}
+
+int& sim_mob::ConfigParams::percent_alighting()
+{
+	return system.simulation.passenger_percent_alighting;
+}
+const int& sim_mob::ConfigParams::percent_alighting() const
+{
+	return system.simulation.passenger_percent_alighting;
+}
+
+WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment()
+{
+	return system.simulation.workGroupAssigmentStrategy;
+}
+const WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment() const
+{
+	return system.simulation.workGroupAssigmentStrategy;
+}
+
+sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy()
+{
+	return system.simulation.mutexStategy;
+}
+const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
+{
+	return system.simulation.mutexStategy;
+}
+
+bool& sim_mob::ConfigParams::commSimEnabled()
+{
+	return system.simulation.commSimEnabled;
+}
+const bool& sim_mob::ConfigParams::commSimEnabled() const
+{
+	return system.simulation.commSimEnabled;
+}
+
+bool& sim_mob::ConfigParams::androidClientEnabled()
+{
+	return system.simulation.androidClientEnabled;
+}
+const bool& sim_mob::ConfigParams::androidClientEnabled() const
+{
+	return system.simulation.androidClientEnabled;
+}
+
+DailyTime& sim_mob::ConfigParams::simStartTime()
+{
+	return system.simulation.simStartTime;
+}
+const DailyTime& sim_mob::ConfigParams::simStartTime() const
+{
+	return system.simulation.simStartTime;
+}
+
+std::string sim_mob::ConfigParams::busline_control_type() const
+{
+	std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
+	if (it==system.genericProps.end()) {
+		throw std::runtime_error("busline_control_type property not found.");
+	}
+	return it->second;
+}
+
+
+
+
 
 

@@ -8,6 +8,7 @@
  */
 #pragma once
 #include "MessageHandler.hpp"
+#include "event/EventListener.hpp"
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -15,9 +16,10 @@ namespace sim_mob {
 
     namespace messaging {
 
-        class MessageBus : MessageHandler {
+        class MessageBus : public MessageHandler {
         public:
             typedef boost::shared_ptr<Message> MessagePtr;
+            typedef boost::shared_ptr<event::EventArgs> EventArgsPtr;
             /**
              * Registers the main thread that will manage all MessageBus system.
              * Attention: You must call this function using the main thread.
@@ -93,11 +95,82 @@ namespace sim_mob {
 
             /**
              * Posts a message on the current thread output queue.
+             * The message will be posted& processed on the right queue
+             * after the DistributeMessages() and ThreadDispatchMessages() calls.
              * @param target of the message.
              * @param type of the message.
              * @param message to send.
              */
             static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+
+            /**
+             * Subscribes to the given event. 
+             * This listener will receive *all* notifications for this event.
+             * @param id of the event.
+             * @param listener to handle the event.
+             */
+            static void SubscribeEvent(event::EventId id, event::EventListener* listener);
+
+            /**
+             * Subscribes to the given event and context. 
+             * This listener will receive *only* notifications for 
+             * this event published by the given context.
+             * @param id of the event.
+             * @param ctx of the event.
+             * @param listener to handle the event.
+             */
+            static void SubscribeEvent(event::EventId id, event::Context ctx, event::EventListener* listener);
+            
+            /**
+             * UnSubscribes the given listener from the given event. 
+             * @param id of the event.
+             * @param listener to unsubscribe.
+             */
+            static void UnSubscribeEvent(event::EventId id, event::EventListener* listener);
+
+            /**
+             * UnSubscribes the given listener from the given context and event. 
+             * @param id of the event.
+             * @param ctx of the event.
+             * @param listener to unsubscribe.
+             */
+            static void UnSubscribeEvent(event::EventId id, event::Context ctx, event::EventListener* listener);
+            
+            /**
+             * UnSubscribes the all listeners from given event.
+             * A message will be posted on event publishers of all threads 
+             * to remove the listeners.
+             * Once the priority of this message is higher than the event message
+             * It is guarantee that listeners will receive last events.
+             * @param id of the event.
+             */
+            static void UnSubscribeAll(event::EventId id);
+
+            /**
+             * UnSubscribes the all listeners from given event and context.
+             * A message will be posted on event publishers of all threads 
+             * to remove the listeners.
+             * Once the priority of this message is higher than the event message
+             * It is guarantee that listeners will receive last events.
+             * @param id of the event.
+             * @param ctx to remove all listeners.
+             */
+            static void UnSubscribeAll(event::EventId id, event::Context ctx);
+            
+            /**
+             * Publishes a global event.
+             * @param id of the event.
+             * @param args event data.
+             */
+            static void PublishEvent(event::EventId id, EventArgsPtr args);
+
+            /**
+             * Publishes an event only for the given context listeners.
+             * @param id of the event.
+             * @param ctx of the event.
+             * @param args event data.
+             */
+            static void PublishEvent(event::EventId id, event::Context ctx, EventArgsPtr args);
 
         public:
             static const unsigned int MB_MIN_MSG_PRIORITY;
@@ -118,13 +191,7 @@ namespace sim_mob {
             void HandleMessage(Message::MessageType type, const Message& message);
 
             /**
-             * Collects messages from all thread contexts.
-             * Attention: This function should be called by the main thread.
-             */
-            static void CollectMessages();
-
-            /**
-             * Dispatches messages to all thread contexts.
+             * Collects & dispatches messages from&to all thread contexts.
              * Attention: This function should be called by the main thread.
              */
             static void DispatchMessages();

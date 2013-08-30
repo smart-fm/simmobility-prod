@@ -7,6 +7,7 @@
  * Created on Aug 15, l2013, 9:30 PM
  */
 #include "MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
@@ -16,6 +17,7 @@
 #include <iostream>
 
 using namespace sim_mob::messaging;
+using namespace sim_mob::event;
 using std::priority_queue;
 using std::runtime_error;
 using std::list;
@@ -33,14 +35,20 @@ using boost::upgrade_to_unique_lock;
 
 const unsigned int MessageBus::MB_MIN_MSG_PRIORITY = 5;
 const unsigned int MessageBus::MB_MSG_START = 1000000;
-            
+
 namespace {
     const unsigned int MB_MSGI_START = 1000;
-    
-    enum InternalMessages{
+    const unsigned int INTERNAL_EVENT_MSG_PRIORITY = 3;
+    const unsigned int INTERNAL_EVENT_ACTION_PRIORITY = 4;
+
+    enum InternalMessages {
         MSGI_ADD_HANDLER = MB_MSGI_START,
         MSGI_REMOVE_HANDLER,
-        MSGI_REMOVE_THREAD
+        MSGI_REMOVE_THREAD,
+        MSGI_EVENT_MSG,
+        //events
+        MSGI_PUBLISH_EVENT,
+        MSGI_UNSUBSCRIBE_ALL,
     };
 
     /***************************************************************************
@@ -64,19 +72,32 @@ namespace {
      */
     typedef struct MessageEntry {
 
-        MessageEntry() : destination(NULL), internal(false), priority(MessageBus::MB_MIN_MSG_PRIORITY) {
+        MessageEntry()
+        : destination(nullptr), internal(false), event(false),
+        priority(MessageBus::MB_MIN_MSG_PRIORITY) {
         }
+
+        MessageEntry(const MessageEntry& source) {
+            this->destination = source.destination;
+            this->message = source.message;
+            this->type = source.type;
+            this->internal = source.internal;
+            this->priority = source.priority;
+            this->event = source.event;
+        }
+
         MessageHandler* destination;
         MessageBus::MessagePtr message;
         Message::MessageType type;
         bool internal;
         int priority;
+        bool event;
     } *MessageEntryPtr;
 
     struct ComparePriority {
 
         bool operator()(const MessageEntryPtr t1, const MessageEntryPtr t2) const {
-            return (t1 && t2 && t1->priority < t2->priority);
+            return (t1 && t2 && t1->priority > t2->priority);
         }
     };
 
@@ -93,23 +114,46 @@ namespace {
     struct ThreadContext {
 
         ThreadContext()
-        : input(ComparePriority()),
+        : eventPublisher(nullptr),
+        input(ComparePriority()),
         output(ComparePriority()),
         main(false),
         totalMessages(0),
         deletedMessages(0) {
         }
+
+        virtual ~ThreadContext() {
+            CleanUpQueue(input);
+            CleanUpQueue(output);
+            safe_delete_item(eventPublisher);
+        }
+
+        /**
+         * Cleanup the given queue reference.
+         * @param queue to clean up.
+         */
+        void CleanUpQueue(MessageQueue& queue) {
+            MessageEntryPtr entry = nullptr;
+            while (!queue.empty()) {
+                entry = queue.top();
+                safe_delete_item(entry);
+                queue.pop();
+            }
+        }
+
         boost::thread::id threadId;
         bool main;
         MessageQueue input;
         MessageQueue output;
+        //event publisher for each thread context.
+        EventPublisher* eventPublisher;
         // statistics
-        long long totalMessages;
-        long long deletedMessages;
+        unsigned long long int totalMessages;
+        unsigned long long int deletedMessages;
     };
-    
+
     typedef list<ThreadContext*> ContextList;
-    
+
     /***************************************************************************
      *                              Internal Classes
      **************************************************************************/
@@ -122,6 +166,7 @@ namespace {
 
         InternalMessage(ThreadContext* context, MessageHandler* handler)
         : context(context), handler(handler) {
+            this->priority = 1;
         }
 
         virtual ~InternalMessage() {
@@ -137,6 +182,93 @@ namespace {
     private:
         ThreadContext* context;
         MessageHandler* handler;
+    };
+
+    /**
+     * Represents an internal message
+     */
+    class InternalEventMessage : public Message {
+    public:
+
+        InternalEventMessage(EventId id, Context ctx, MessageBus::EventArgsPtr data)
+        : id(id), ctx(ctx), data(data) {
+            this->priority = INTERNAL_EVENT_MSG_PRIORITY;
+        }
+        InternalEventMessage(EventId id, Context ctx)
+        : id(id), ctx(ctx){
+            this->priority = INTERNAL_EVENT_MSG_PRIORITY;
+        }
+
+        InternalEventMessage(const InternalEventMessage& source) : Message(source) {
+            this->ctx = source.ctx;
+            this->data = source.data;
+            this->id = source.id;
+        }
+
+        virtual ~InternalEventMessage() {
+        }
+
+        EventId GetEventId() const {
+            return id;
+        }
+
+        Context GetContext() const {
+            return ctx;
+        }
+
+        MessageBus::EventArgsPtr GetData() const {
+            return data;
+        }
+
+    private:
+        EventId id;
+        Context ctx;
+        MessageBus::EventArgsPtr data;
+    };
+
+    /**
+     *
+     * Internal EventPublisher.
+     *
+     */
+    class InternalEventPublisher : public EventPublisher, public MessageHandler {
+    public:
+
+        InternalEventPublisher() : EventPublisher(), MessageHandler(-1) {
+        }
+
+        virtual ~InternalEventPublisher() {
+        }
+    private:
+
+        void HandleMessage(Message::MessageType type, const Message& message) {
+            const InternalEventMessage& evt =
+                    static_cast<const InternalEventMessage&> (message);
+            bool isGlobalEvent = (evt.GetContext() == nullptr);
+            switch (type) {
+                case MSGI_PUBLISH_EVENT:
+                {
+                    if (isGlobalEvent) {
+                        Publish(evt.GetEventId(),
+                                *(evt.GetData().get()));
+                    } else {
+                        Publish(evt.GetEventId(),
+                                evt.GetContext(), *(evt.GetData().get()));
+                    }
+                    break;
+                }
+                case MSGI_UNSUBSCRIBE_ALL:
+                {
+                    if (isGlobalEvent) {
+                        UnSubscribeAll(evt.GetEventId());
+                    } else {
+                        UnSubscribeAll(evt.GetEventId(),evt.GetContext());
+                    }
+                    break;
+                }
+                default: break;
+            }
+        }
     };
 
     /***************************************************************************
@@ -156,22 +288,9 @@ namespace {
 
     /**
      * Gets the context associated with the current thread.
-     * @return ThreadContext pointer or NULL.
+     * @return ThreadContext pointer or nullptr.
      */
     ThreadContext* GetThreadContext();
-
-    /**
-     * Destroys the content associated with the given 
-     * MessageQueueEntry reference.
-     * @param entry to destroy.
-     */
-    void DeleteEntry(MessageEntryPtr& entry);
-
-    /**
-     * Cleanup the given queue reference.
-     * @param queue to clean up.
-     */
-    void CleanUpQueue(MessageQueue& queue);
 
     /**
      * Destroys the given thread context.
@@ -196,11 +315,12 @@ void MessageBus::RegisterMainThread() {
     if (!threadContext.get()) {
         ThreadContext* mainContext = new ThreadContext();
         mainContext->threadId = boost::this_thread::get_id();
+        mainContext->eventPublisher = new InternalEventPublisher();
         mainContext->main = true;
         GetInstance().context = static_cast<void*> (mainContext);
         threadContext.reset(mainContext);
         threadContexts.push_back(mainContext);
-        cout << "Registered Main: " << mainContext->threadId << std::endl;
+        RegisterHandler(dynamic_cast<MessageHandler*> (mainContext->eventPublisher));
     } else {
         throw runtime_error("MessageBus - Main thread already has a context associated.");
     }
@@ -208,16 +328,16 @@ void MessageBus::RegisterMainThread() {
 
 void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
-    GetInstance().context = NULL;
+    GetInstance().context = nullptr;
     threadContexts.clear();
     threadContext.reset();
-    cout << "UnRegistered Main." << std::endl;
 }
 
 void MessageBus::RegisterThread() {
     if (!threadContext.get()) {
         ThreadContext* context = new ThreadContext();
         context->threadId = boost::this_thread::get_id();
+        context->eventPublisher = new InternalEventPublisher();
         context->main = false;
         {// thread-safe scope
             upgrade_lock<shared_mutex> upgradeLock(contextsMutex);
@@ -225,6 +345,7 @@ void MessageBus::RegisterThread() {
             threadContexts.push_back(context);
         }
         threadContext.reset(context);
+        RegisterHandler(dynamic_cast<MessageHandler*> (context->eventPublisher));
     } else {
         throw runtime_error("MessageBus - Current thread already has a context associated.");
     }
@@ -246,7 +367,7 @@ void MessageBus::RegisterHandler(MessageHandler* handler) {
     if (handler) {
         ThreadContext* context = GetThreadContext();
         if (!(handler->context)) {
-            handler->context = static_cast<void*> (context);            
+            handler->context = static_cast<void*> (context);
         } else if (context != handler->context) {
             // just assign the context.
             throw runtime_error("MessageBus - To register the handler in other thread context it is necessary to unregister it first.");
@@ -259,7 +380,7 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     if (handler && handler->context) {
         ThreadContext* context = GetThreadContext();
         if (context == handler->context) {
-            handler->context = NULL;
+            handler->context = nullptr;
         } else {
             throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
         }
@@ -268,18 +389,12 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
 
 void MessageBus::DistributeMessages() {
     CheckMainThread();
-    ThreadContext* context = GetThreadContext();
-    //cout << "1 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
-    CollectMessages();
-    //cout << "2 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
-    // dispatch internal messages first.
-    ThreadDispatchMessages();
-    //cout << "3 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
     DispatchMessages();
-    //cout << "4 - Input: " << context->input.size() << " Output: " << context->output.size() << std::endl;
+    // dispatch internal/main messages first.
+    ThreadDispatchMessages();
 }
 
-void MessageBus::CollectMessages() {
+void MessageBus::DispatchMessages() {
     CheckMainThread();
     ThreadContext* mainContext = GetThreadContext();
     if (mainContext) {
@@ -288,12 +403,33 @@ void MessageBus::CollectMessages() {
             ThreadContext* context = (*lstItr);
             while (!context->output.empty()) {
                 MessageEntryPtr entry = context->output.top();
-                // internal messages go to the input queue of the main context.
-                if (entry->internal || context == mainContext) {
-                    mainContext->input.push(entry);
-                } else {
-                    mainContext->output.push(entry);
+                if (entry->event) {
+                    //if it is an event then we need to distribute the event for all
+                    //publishers in the system.
+                    ContextList::iterator lstItr1 = threadContexts.begin();
+                    while (lstItr1 != threadContexts.end()) {
+                        ThreadContext* ctx = (*lstItr1);
+                        //main context will receive the original message 
+                        //for other the message entry is cloned.
+                        MessageEntryPtr newEntry = (ctx->main) ? entry : new MessageEntry(*entry);
+                        newEntry->destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+                        ctx->input.push(newEntry);
+                        lstItr1++;
+                        if (!(ctx->main)){
+                           context->totalMessages++;
+                        }
+                    }
+                } else {// is is a regular/single message
+                    ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
+                    if (destinationContext) {
+                        destinationContext->input.push(entry);
+                    }else{
+                        // handler is no longer available.
+                        safe_delete_item(entry);
+                        context->deletedMessages++;
+                    }
                 }
+                // internal messages go to the input queue of the main context.
                 context->output.pop();
             }
             lstItr++;
@@ -316,43 +452,97 @@ void MessageBus::ThreadDispatchMessages() {
                 entry->destination->HandleMessage(entry->type, *(entry->message.get()));
             }
             context->input.pop();
-            DeleteEntry(entry);
+            safe_delete_item(entry);
             context->deletedMessages++;
-        }
-    }
-}
-
-void MessageBus::DispatchMessages() {
-    CheckMainThread();
-    ThreadContext* mainContext = GetThreadContext();
-    if (mainContext) {
-        while (!mainContext->output.empty()) {
-            MessageEntryPtr entry = mainContext->output.top();
-            ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
-            if (destinationContext) {
-                //sends the message to the input queue of the destination thread.
-                destinationContext->input.push(entry);
-            }
-            mainContext->output.pop();
         }
     }
 }
 
 void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message) {
     CheckThreadContext();
-    if (destination) {
-        ThreadContext* context = GetThreadContext();
-        if (context) {
-            InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
+    ThreadContext* context = GetThreadContext();
+    if (context) {
+        InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
+        InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
+        if (destination || eventMsg) {
             MessageEntryPtr entry = new MessageEntry();
             entry->destination = destination;
             entry->type = type;
             entry->message = message;
-            entry->priority = (!internalMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
+            entry->priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
             entry->internal = (internalMsg != nullptr);
+            entry->event = (eventMsg != nullptr);
             context->output.push(entry);
             context->totalMessages++;
         }
+    }
+}
+
+void MessageBus::SubscribeEvent(EventId id, EventListener* listener) {
+    CheckThreadContext();
+    if (listener) {
+        ThreadContext* context = GetThreadContext();
+        if (context) {
+            context->eventPublisher->RegisterEvent(id);
+            context->eventPublisher->Subscribe(id, listener);
+        }
+    }
+}
+
+void MessageBus::SubscribeEvent(EventId id, Context ctx, EventListener* listener) {
+    CheckThreadContext();
+    if (listener && ctx) {
+        ThreadContext* context = GetThreadContext();
+        if (context) {
+            context->eventPublisher->RegisterEvent(id);
+            context->eventPublisher->Subscribe(id, ctx, listener);
+        }
+    }
+}
+
+void MessageBus::UnSubscribeEvent(EventId id, EventListener* listener) {
+    CheckThreadContext();
+    if (listener) {
+        ThreadContext* context = GetThreadContext();
+        if (context) {
+            context->eventPublisher->UnSubscribe(id, listener);
+        }
+    }
+}
+
+void MessageBus::UnSubscribeEvent(EventId id, Context ctx, EventListener* listener) {
+    CheckThreadContext();
+    if (listener && ctx) {
+        ThreadContext* context = GetThreadContext();
+        if (context) {
+            context->eventPublisher->UnSubscribe(id, ctx, listener);
+        }
+    }
+}
+
+void MessageBus::UnSubscribeAll(event::EventId id){
+    UnSubscribeAll(id, nullptr);
+}
+
+void MessageBus::UnSubscribeAll(event::EventId id, event::Context ctx){
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context) {
+        InternalEventMessage*  msg = new InternalEventMessage(id, ctx);
+        msg->priority = INTERNAL_EVENT_ACTION_PRIORITY;
+        PostMessage(nullptr, MSGI_UNSUBSCRIBE_ALL, MessagePtr(msg));
+    }
+}
+
+void MessageBus::PublishEvent(EventId id, EventArgsPtr args) {
+    PublishEvent(id, nullptr, args);
+}
+
+void MessageBus::PublishEvent(event::EventId id, event::Context ctx, EventArgsPtr args) {
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context) {
+        PostMessage(nullptr, MSGI_PUBLISH_EVENT, MessagePtr(new InternalEventMessage(id, ctx, args)));
     }
 }
 
@@ -378,14 +568,14 @@ MessageBus& MessageBus::GetInstance() {
 namespace {
 
     void CheckMainThread() {
-        if (!threadContext.get() && threadContext.get()->main) {
+        if (!threadContext.get() || !threadContext.get()->main) {
             throw runtime_error("MessageBus - This call must be done using the registered main thread context.");
         }
     }
 
     void CheckThreadContext() {
         boost::thread::id threadId = boost::this_thread::get_id();
-        if (!threadContext.get() && threadId == threadContext.get()->threadId) {
+        if (!threadContext.get() || threadId != threadContext.get()->threadId) {
             throw runtime_error("MessageBus - This call must be done using a registered thread context.");
         }
     }
@@ -394,33 +584,12 @@ namespace {
         return threadContext.get();
     }
 
-    void DeleteEntry(MessageEntryPtr& entry) {
-        if (entry) {
-            if (!(entry->message.unique())) {
-                throw runtime_error("MessageBus - Message must be managed only by the MessageBus.");
-            }
-            entry->message.reset();
-            safe_delete_item(entry);
-        }
-    }
-
-    void CleanUpQueue(MessageQueue& queue) {
-        MessageEntryPtr entry = NULL;
-        while (!queue.empty()) {
-            entry = queue.top();
-            DeleteEntry(entry);
-            queue.pop();
-        }
-    }
-
     void DeleteContext(ThreadContext* context) {
         if (context) {
-            CleanUpQueue(context->input);
-            CleanUpQueue(context->output);
-            /*cout << "Thread: " << context->threadId
+            cout << "Thread: " << context->threadId
                     << " Received: " << context->totalMessages
-                    << " Deleted: " << context->deletedMessages
-                    << std::endl;*/
+                    << " Deleted: " << context->deletedMessages + context->input.size() + context->output.size()
+                    << std::endl;
             safe_delete_item(context);
         }
     }

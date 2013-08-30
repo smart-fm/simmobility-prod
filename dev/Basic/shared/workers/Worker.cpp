@@ -65,8 +65,6 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
-
-	eventManager.RegisterEvent(Agent::AGENT_INCIDENT_EVENT_ID);
 }
 
 
@@ -538,17 +536,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
 	std::for_each(managedEntities.begin(), managedEntities.end(), RestrictedEntityUpdater<Conflux>(*this, currTime));
-
-	//Update the event manager.
-	eventManager.Update(currTime);
 }
 
-
-
-EventCollectionMgr& sim_mob::Worker::getEventManager()
-{
-    return eventManager;
-}
 
 bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 {

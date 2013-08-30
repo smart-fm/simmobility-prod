@@ -5,6 +5,7 @@
 #include "entities/commsim/communicator/message/base/MessageQueue.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistrationFactory.hpp"
 #include "entities/commsim/communicator/buffer/BufferContainer.hpp"
+#include <boost/unordered_map.hpp>
 
 //external libraries
 #include <boost/thread/condition_variable.hpp>
@@ -103,7 +104,9 @@ private:
 	/**
 	 * Handles the agent finished event.
 	 */
-	void OnAgentFinished(event::EventId eventId, event::EventPublisher* sender, const AgentLifeEventArgs& args);
+	virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
+        virtual void OnEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 
 public:
 

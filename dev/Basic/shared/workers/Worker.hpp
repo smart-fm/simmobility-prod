@@ -41,8 +41,6 @@ public:
 	virtual void scheduleForBred(Entity* entity) = 0;
 
 	virtual const std::vector<Entity*>& getEntities() const = 0;
-
-	virtual event::EventCollectionMgr& getEventManager() = 0;
 };
 
 
@@ -194,7 +192,6 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	event::EventCollectionMgr eventManager;
 };
 
 }

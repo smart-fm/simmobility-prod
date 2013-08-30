@@ -28,6 +28,8 @@ WorkGroupManager::~WorkGroupManager()
 	safe_delete_item(frameTickBarr);
 	safe_delete_item(buffFlipBarr);
 	safe_delete_item(auraMgrBarr);
+        // UnRegisters the main thread for message bus.
+        messaging::MessageBus::UnRegisterMainThread();
 }
 
 
@@ -77,6 +79,8 @@ void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
 
 void sim_mob::WorkGroupManager::initAllGroups()
 {
+        // Registers the main thread for message bus.
+        messaging::MessageBus::RegisterMainThread();
 	//Sanity check
 	bool pass = currState.test(CREATE) && currState.set(BARRIERS);
 	if (!pass) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
@@ -148,9 +152,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (buffFlipBarr) {
 		buffFlipBarr->wait();
-	}
-
-	event::EventBusSystem::Instance()->ProcessTransimission();
+	}	
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()

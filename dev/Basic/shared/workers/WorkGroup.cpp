@@ -148,11 +148,6 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
 		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
-
-	//register each event collection manager;
-	for(size_t i=0; i<numWorkers; i++) {
-		event::EventBusSystem::Instance()->RegisterChildManager( &(workers[i]->getEventManager()) );
-	}
 }
 
 

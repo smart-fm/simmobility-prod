@@ -1480,14 +1480,6 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	const bool LOAD_NEW_CONFIG_FILE = false;
 
 
-	//Try parsing with the new syntax
-	time_t start = time(0);
-	time_t newParse;
-	time_t oldParse;
-	ParseConfigFile(configPath, ConfigParams::GetInstance());
-	newParse = time(0)-start;
-
-
 	if (LOAD_NEW_CONFIG_FILE) {
 		//Load using our new config syntax.
 
@@ -1515,9 +1507,6 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Finally, print general logging information to stdout
 		GeneralOutput out(cfg);
 	} else {
-		//Load using our old config syntax.
-		start = time(0);
-
 		//Load our config file into an XML document object.
 		//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
 		TiXmlDocument* doc = new TiXmlDocument(configPath);
@@ -1533,15 +1522,7 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Parse it
 		loadXMLConf(*doc, active_agents, pending_agents, prof);
 		delete doc;
-
-		oldParse = time(0)-start;
 	}
-
-	std::cout <<"New file parsed in: " <<newParse <<"\n";
-	std::cout <<"Old file parsed in: " <<oldParse <<"\n";
-
-	//temp
-	throw 1;
 }
 
 

@@ -574,11 +574,11 @@ void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	XMLCh* keyX = XMLString::transcode("driver");
+	/*XMLCh* keyX = XMLString::transcode("driver");
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
+	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(nodes, cfg.driverTemplates);
+	ProcessFutureAgentList(node, "driver", cfg.driverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
@@ -586,11 +586,11 @@ void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	XMLCh* keyX = XMLString::transcode("pedestrian");
+	/*XMLCh* keyX = XMLString::transcode("pedestrian");
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
+	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(nodes, cfg.pedestrianTemplates);
+	ProcessFutureAgentList(node, "pedestrian", cfg.pedestrianTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
@@ -598,11 +598,11 @@ void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	XMLCh* keyX = XMLString::transcode("busdriver");
+	/*XMLCh* keyX = XMLString::transcode("busdriver");
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
+	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(nodes, cfg.busDriverTemplates);
+	ProcessFutureAgentList(node, "busdriver", cfg.busDriverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
@@ -610,11 +610,11 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	XMLCh* keyX = XMLString::transcode("signal");
+	/*XMLCh* keyX = XMLString::transcode("signal");
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
+	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(nodes, cfg.signalTemplates);
+	ProcessFutureAgentList(node, "signal", cfg.signalTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -849,15 +849,17 @@ void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
 }
 
 
-void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMNodeList* nodes, std::vector<EntityTemplate>& res)
+void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res)
 {
-	for (XMLSize_t i=0; i<nodes->getLength(); i++) {
-		EntityTemplate ent;
-		DOMElement* node = NodeToElement(nodes->item(i));
-		ent.originPos = ParsePoint2D(GetNamedAttributeValue(node, "originPos"));
-		ent.destPos = ParsePoint2D(GetNamedAttributeValue(node, "destPos"));
-		ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(node, "time"), static_cast<unsigned int>(0));
-		res.push_back(ent);
+	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		if (TranscodeString(item->getNodeName())==itemName) {
+			EntityTemplate ent;
+			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos"));
+			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos"));
+			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time"), static_cast<unsigned int>(0));
+			res.push_back(ent);
+		}
 	}
 }
 

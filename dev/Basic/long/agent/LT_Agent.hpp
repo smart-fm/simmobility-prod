@@ -36,12 +36,6 @@ namespace sim_mob {
              */
             virtual void load(const std::map<std::string, std::string>& configProps);
 
-            /**
-             * Gets the EventManager reference from worker parent.
-             * @return EventManager reference. 
-             */
-            sim_mob::event::EventManager& GetEventManager();
-
         protected:
 
             /**

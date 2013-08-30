@@ -35,10 +35,6 @@ LT_Agent::~LT_Agent() {
 void LT_Agent::load(const map<string, string>& configProps) {
 }
 
-EventManager& LT_Agent::GetEventManager() {
-    return currWorkerProvider->getEventManager();
-}
-
 bool LT_Agent::frame_init(timeslice now) {
     if (!isRegistered){
         messaging::MessageBus::RegisterHandler(this);

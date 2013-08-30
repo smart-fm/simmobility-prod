@@ -41,6 +41,7 @@
 #include "database/dao/housing-market/BidderParamsDao.hpp"
 #include "database/dao/housing-market/SellerParamsDao.hpp"
 #include "message/MessageBus.hpp"
+#include "event/SystemEvents.hpp"
 
 
 #include "agent/TestAgent.hpp"
@@ -264,6 +265,7 @@ void perform_main() {
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         wgMgr.initAllGroups();
+        
         agentWorkers->initWorkers(nullptr);
 
         HousingMarket market;
@@ -339,7 +341,7 @@ void test_main() {
         wgMgr.initAllGroups();
         agentWorkers->initWorkers(nullptr);
         TestAgent* agent = NULL;
-        for (unsigned int i = 0; i < 10; i++) {
+        for (unsigned int i = 0; i < 100; i++) {
             agent = new TestAgent(i, agent);
             agentWorkers->assignAWorker(agent);
             agents.push_back(agent);
@@ -352,6 +354,8 @@ void test_main() {
         for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
+            messaging::MessageBus::PublishEvent(event::EVT_CORE_SYTEM_START, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
+            messaging::MessageBus::PublishEvent(9999999, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
         }
         // last messages distributions. (Only for main thread (e.g delete contexts)).
         PrintOut("Finalizing workgroups: " << endl);
@@ -376,8 +380,6 @@ int main(int ARGC, char* ARGV[]) {
     std::list<std::string> resLogFiles;
     watch.Start();
     
-    // registers and creates the global message collector.
-    sim_mob::messaging::MessageBus::RegisterMainThread();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
     	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
@@ -385,7 +387,6 @@ int main(int ARGC, char* ARGV[]) {
         //perform_main();
         test_main();
     }
-    sim_mob::messaging::MessageBus::UnRegisterMainThread();
     watch.Stop();
     Statistics::Print();
     PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);

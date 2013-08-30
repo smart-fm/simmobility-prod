@@ -27,6 +27,15 @@ namespace sim_mob {
              * Inherited from Agent.
              */
             virtual void load(const std::map<std::string, std::string>& configProps);
+            
+            virtual void OnEvent(sim_mob::event::EventId id, 
+                                 sim_mob::event::EventPublisher* sender, 
+                                 const sim_mob::event::EventArgs& args);
+
+            virtual void OnEvent(sim_mob::event::EventId id, 
+                                 sim_mob::event::Context ctxId, 
+                                 sim_mob::event::EventPublisher* sender, 
+                                 const sim_mob::event::EventArgs& args);
 
         protected:
 
@@ -35,6 +44,8 @@ namespace sim_mob {
              */
             virtual void HandleMessage(messaging::Message::MessageType type,
                 const messaging::Message& message);
+            
+            
 
             /**
              * Inherited from Agent.

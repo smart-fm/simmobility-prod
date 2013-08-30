@@ -84,9 +84,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
                                 lastTime.frame() + 10);
-                        GetParent()->GetEventManager().Schedule(wakeUpTime, this,
+                        /*GetParent()->GetEventManager().Schedule(wakeUpTime, this,
                                 CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
-                                HouseholdBidderRole::OnWakeUp));
+                                HouseholdBidderRole::OnWakeUp));*/
                         UnFollowMarket();
                         DeleteBidsCounter(unit->GetId());
                         Statistics::Increment(Statistics::N_ACCEPTED_BIDS);

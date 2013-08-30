@@ -1479,10 +1479,10 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
 	const bool LOAD_NEW_CONFIG_FILE = false;
 
+	//Load using our new config syntax.
+	ParseConfigFile(configPath, ConfigParams::GetInstance());
 
 	if (LOAD_NEW_CONFIG_FILE) {
-		//Load using our new config syntax.
-
 		//Load and parse the file, create xml-based objects.
 		Config cfg;
 		cfg.InitBuiltInModels(builtInModels);

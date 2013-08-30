@@ -10,7 +10,6 @@
 #pragma once
 
 #include <list>
-#include <boost/thread.hpp>
 #include <boost/unordered_map.hpp>
 #include "EventListener.hpp"
 
@@ -22,10 +21,10 @@ namespace sim_mob {
         typedef EventListener::EventCallback ListenerCallback;
         typedef EventListener::EventContextCallback ListenerContextCallback;
 
-        union Callback {
+        typedef union _Callback {
             ListenerCallback callback;
             ListenerContextCallback contextCallback;
-        };
+        } Callback;
 
         /**
          * Struct to store a Listener entry.
@@ -50,7 +49,7 @@ namespace sim_mob {
         class EventPublisher {
         public:
             EventPublisher();
-            virtual ~EventPublisher();
+            virtual ~EventPublisher() = 0;
 
             /**
              * Registers a new event id on publisher.
@@ -78,14 +77,6 @@ namespace sim_mob {
             virtual void Publish(EventId id, const EventArgs& args);
 
             /**
-             * Publishes an event with given EventId.
-             * @param id to publish.
-             * @param receiver id to publish.
-             * @param args of the event.
-             */
-            virtual void Publish(EventId id, unsigned int receiverId, const EventArgs& args);
-
-            /**
              * Publishes an event with given EventId and ContextId.
              * @param id to publish.
              * @param ctxId Id of the context.
@@ -102,8 +93,6 @@ namespace sim_mob {
              * @param listener to subscribe.
              */
             virtual void Subscribe(EventId id, EventListenerPtr listener);
-
-            virtual void SubscribeEntry(EventId id, EventListenerPtr listener);
 
             /**
              * Subscribes the given global listener to the given EventId.
@@ -172,7 +161,7 @@ namespace sim_mob {
              * 
              */
             void UnSubscribeAll(EventId id);
-
+            
             /**
              * UnSubscribes all context subscribers for the given event id and context.
              *
@@ -182,10 +171,17 @@ namespace sim_mob {
              * @param ctx context.
              */
             void UnSubscribeAll(EventId id, Context ctx);
+            
+            /**
+             * UnSubscribes the given listener from all events.
+             * Attention: This method is not efficient 
+             * is not fast you should avoid to call this method. 
+             * @param listener to unsubscribe.
+             */
+            void UnSubscribeAll(EventListenerPtr listener);
 
         private:
             ContextListenersMap listeners;
-            mutable boost::shared_mutex listenersMutex;
         };
     }
 }

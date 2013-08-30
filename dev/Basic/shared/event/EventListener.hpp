@@ -24,8 +24,9 @@ namespace sim_mob {
          */
         class EventListener {
         public:
-        	unsigned int receiverId;
-
+            
+            virtual ~EventListener()=0;
+            
             /**
              * Handles the received global event.
              * @param sender pointer for the event producer.
@@ -49,12 +50,6 @@ namespace sim_mob {
                                  const EventArgs& args) {
             };
 
-        	void OnEventEntry(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args)
-        	{
-        		OnEvent(eventId, sender, args);
-        	};
-
-
             /**
              * Functions for calls.
              */
@@ -68,6 +63,8 @@ namespace sim_mob {
                 sim_mob::event::EventPublisher* sender, 
                 const sim_mob::event::EventArgs& args);
         };
+        
+        inline EventListener::~EventListener(){};
     }
 }
 /**

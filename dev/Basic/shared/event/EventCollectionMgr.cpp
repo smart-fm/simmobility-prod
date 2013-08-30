@@ -49,7 +49,7 @@ void EventCollectionMgr::ProcessMessages()
 			std::vector<unsigned int>::iterator itRec;
 			for(itRec=recipients.begin(); itRec!=recipients.end(); itRec++){
 				unsigned int receiverid = (*itRec);
-				Publish( id, receiverid, *(*it) );
+				//Publish(id, receiverid, *(*it) );
 			}
 		}
 	}

@@ -39,7 +39,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
-	msPerFrame(ConfigParams::GetInstance().baseGranMS),
+	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
 	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
 	currTick(0),
 	active(true)

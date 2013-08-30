@@ -207,7 +207,7 @@ void sim_mob::WorkGroup::stageEntities()
 	}
 
 	//Keep assigning the next entity until none are left.
-	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS;
+	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS();
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
 		Agent* ag = loader->pending_source.top();
@@ -320,7 +320,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
 	//For now, just rely on static access to ConfigParams.
 	// (We can allow per-workgroup configuration later).
-	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
+	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment();
 	if (strat == ASSIGN_ROUNDROBIN) {
 		workers.at(nextWorkerID++)->scheduleForAddition(ag);
 	} else {

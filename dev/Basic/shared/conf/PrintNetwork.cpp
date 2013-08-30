@@ -105,7 +105,7 @@ void sim_mob::PrintNetwork::LogLegacySimulationProps() const
 
 	//Print some properties of the simulation itself
 	out <<"(\"simulation\", 0, 0, {";
-	out <<"\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",";
+	out <<"\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS() <<"\",";
 	out <<"})" <<std::endl;
 }
 

@@ -145,10 +145,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	for (int i=0; i<2; i++) {
 		//Set for the old-style config first, new-style config second.
 		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
-		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
+		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy() : Config::GetInstance().mutexStrategy();
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
-		if (ConfigParams::GetInstance().commSimEnabled) {
+		if (ConfigParams::GetInstance().commSimEnabled()) {
 			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
 		} else {
 			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
@@ -217,17 +217,17 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	{ //Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded);
+	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize, config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granCommunicationTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks, &AuraManager::instance(), partMgr);
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -236,7 +236,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	bool measureInParallel = true;
 	PerformanceProfile perfProfile;
 	if (doPerformanceMeasurement) {
-		perfProfile.init(config.personWorkGroupSize, measureInParallel);
+		perfProfile.init(config.personWorkGroupSize(), measureInParallel);
 	}
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
@@ -273,7 +273,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
 
-	if(ConfigParams::GetInstance().commSimEnabled && ConfigParams::GetInstance().androidClientEnabled )
+	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
 	{
 		communicationWorkers->assignAWorker(&androidBroker);
 		androidBroker.enable();
@@ -282,7 +282,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
+	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
 
 
 	///
@@ -375,7 +375,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				std::stringstream msg;
 				msg << "Approximate Tick Boundary: " << currTick << ", ";
-				msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+				msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
 				if (!warmupDone) {
 					msg << "  Warmup; output ignored." << endl;
 				}
@@ -470,7 +470,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 

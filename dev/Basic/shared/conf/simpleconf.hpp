@@ -83,12 +83,11 @@ public:
 		//add your client type here
 	};
 
-	enum NetworkSource {
+	/*enum NetworkSource {
 		NETSRC_XML,
 		NETSRC_DATABASE,
-	};
+	};*/
 
-	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
 
@@ -96,23 +95,8 @@ public:
 	unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
 	unsigned int granCommunicationTicks;      ///<Number of ticks to wait before updating all communication brokers.
 
-	unsigned int personWorkGroupSize;   ///<Number of workers handling Agents.
-	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
-	unsigned int commWorkGroupSize;  ///<Number of workers handling Signals.
-
-	bool singleThreaded; ///<If true, we are running everything on one thread.
-	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
-
-	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
-	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
-
 	///TEMP: Need to customize this later.
 	std::string outNetworkFileName;
-
-	///If empty, use the default provided in "xsi:schemaLocation".
-	std::string roadNetworkXsdSchemaFile;
-
-	//DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.
 	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
@@ -120,56 +104,19 @@ public:
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
 
-	///What type of Aura Manager we're using.
-	AuraManager::AuraManagerImplementation aura_manager_impl;
-
-
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
 	ReactionTimeDist* reactDist2;
+
 	//for generating passenger distribution
-
-
 	PassengerDist* passengerDist_busstop;
 	PassengerDist* passengerDist_crowdness;
-
-	int percent_boarding;
-	int percent_alighting;
-//	PassengerDist* passengerDist_alighting;
-
-	//Default assignment strategy for Workgroups.
-	WorkGroup::ASSIGNMENT_STRATEGY defaultWrkGrpAssignment;
 
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
 
-	//Locking strategy
-	sim_mob::MutexStrategy mutexStategy;
-
-	//Busline_Control_Type
-	std::string busline_control_type;
-
-	//Is our communication simulator enabled?
-	bool commSimEnabled;
-	bool androidClientEnabled;
 	// temporary maps
 	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
-
-//TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
-//      be modified once set.
-private:
-	//Is dynamic dispatch disabled?
-	//bool dynamicDispatchDisabled;
-
-public:
-	int signalTimingMode;
-	int signalAlgorithm;
-
-	//When the simulation begins(based on configuration)
-	DailyTime simStartTime;
-
-	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
-	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
 
 	std::string connectionString;
 
@@ -177,21 +124,148 @@ public:
 	bool is_run_on_many_computers;
 	bool is_simulation_repeatable;
 
-	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
-	unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
-	unsigned int personTimeStepInMilliSeconds() const { return granPersonTicks * baseGranMS; }
-	unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
-	unsigned int communicationTimeStepInMilliSeconds() const { return granCommunicationTicks * baseGranMS; }
+	//These no longer appear to be set-able.
+	//int signalTimingMode;
+	//int signalAlgorithm;
 
-	//bool TEMP_ManualFixDemoIntersection;
-
-	//TODO: Replace with the "sealed" version we use elsewhere.
-	/*void SetDynamicDispatchDisabled(bool val) {
-		dynamicDispatchDisabled = val;
-	}*/
+	//std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
 
 
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	//These are helper functions, to make compatibility between old/new parsing easier.
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	///Number of workers handling Agents.
+	unsigned int& personWorkGroupSize() {
+		return system.workers.person.count;
+	}
+	const unsigned int& personWorkGroupSize() const {
+		return system.workers.person.count;
+	}
+
+	///Number of workers handling Signals.
+	unsigned int& signalWorkGroupSize() {
+		return system.workers.signal.count;
+	}
+	const unsigned int& signalWorkGroupSize() const {
+		return system.workers.signal.count;
+	}
+
+	///Number of workers handling Signals.
+	unsigned int& commWorkGroupSize() {
+		return system.workers.communication.count;
+	}
+	const unsigned int& commWorkGroupSize() const {
+		return system.workers.communication.count;
+	}
+
+	///Base system granularity, in milliseconds. Each "tick" is this long.
+	unsigned int& baseGranMS() {
+		return system.simulation.baseGranMS;
+	}
+	const unsigned int& baseGranMS() const {
+		return system.simulation.baseGranMS;
+	}
+
+	///If true, we are running everything on one thread.
+	bool& singleThreaded() {
+		return system.singleThreaded;
+	}
+	const bool& singleThreaded() const {
+		return system.singleThreaded;
+	}
+
+	///If true, we take time to merge the output of the individual log files after the simulation is complete.
+	bool& mergeLogFiles() {
+		return system.mergeLogFiles;
+	}
+
+	///Whether to load the network from the database or from an XML file.
+	SystemParams::NetworkSource& networkSource() {
+		return system.networkSource;
+	}
+
+	///If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
+	std::string& networkXmlFile() {
+		return system.networkXmlFile;
+	}
+
+	///If empty, use the default provided in "xsi:schemaLocation".
+	std::string& roadNetworkXsdSchemaFile() {
+		return system.roadNetworkXsdSchemaFile;
+	}
+
+	AuraManager::AuraManagerImplementation& aura_manager_impl() {
+		return system.simulation.auraManagerImplementation;
+	}
+	const AuraManager::AuraManagerImplementation& aura_manager_impl() const {
+		return system.simulation.auraManagerImplementation;
+	}
+
+	int& percent_boarding() {
+		return system.simulation.passenger_percent_boarding;
+	}
+	int& percent_alighting() {
+		return system.simulation.passenger_percent_alighting;
+	}
+
+	WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() {
+		return system.simulation.workGroupAssigmentStrategy;
+	}
+
+	sim_mob::MutexStrategy& mutexStategy() {
+		return system.simulation.mutexStategy;
+	}
+
+	bool& commSimEnabled() {
+		return system.simulation.commSimEnabled;
+	}
+
+	bool& androidClientEnabled() {
+		return system.simulation.androidClientEnabled;
+	}
+
+	DailyTime& simStartTime() {
+		return system.simulation.simStartTime;
+	}
+
+	//This one's slightly tricky, as it's in generic_props
+	std::string busline_control_type() {
+		std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
+		if (it==system.genericProps.end()) {
+			throw std::runtime_error("busline_control_type property not found.");
+		}
+		return it->second;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	//These are sort of similar, but might need some fixing after we validate the input file.
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	unsigned int totalRuntimeInMilliSeconds() const {
+		return system.simulation.totalRuntimeMS;
+	}
+
+	unsigned int warmupTimeInMilliSeconds() const {
+		return system.simulation.totalWarmupMS;
+	}
+
+	unsigned int personTimeStepInMilliSeconds() const {
+		return system.workers.person.granularityMs;
+	}
+
+	unsigned int signalTimeStepInMilliSeconds() const {
+		return system.workers.signal.granularityMs;
+	}
+
+	unsigned int communicationTimeStepInMilliSeconds() const {
+		return system.workers.communication.granularityMs;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	//End weird methods.
+	/////////////////////////////////////////////////////////////////////////////////////
 
 public:
 	/***
@@ -202,9 +276,6 @@ public:
 	///Reset this instance of the static ConfigParams instance.
 	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
 	void reset();
-
-
-	std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
 
 
 	/**
@@ -268,13 +339,21 @@ public:
 
 private:
 	ConfigParams() : RawConfigParams(),
-		baseGranMS(0), totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
-		granCommunicationTicks(0), personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
-		/*day_of_week(MONDAY),*/ aura_manager_impl(AuraManager::IMPL_RSTAR), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0), mutexStategy(MtxStrat_Buffered),
-		/*dynamicDispatchDisabled(false),*/ signalAlgorithm(0), using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
+		//baseGranMS(0),
+		totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
+		granCommunicationTicks(0),
+		//personWorkGroupSize(0), signalWorkGroupSize(0), commWorkGroupSize(0), singleThreaded(false), mergeLogFiles(false),
+		/*day_of_week(MONDAY),*/
+		//aura_manager_impl(AuraManager::IMPL_RSTAR),
+		reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0),
+		//mutexStategy(MtxStrat_Buffered),
+		/*dynamicDispatchDisabled(false),*/
+		//signalAlgorithm(0),
+		using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 		is_simulation_repeatable(false), /*TEMP_ManualFixDemoIntersection(false),*/ sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
-		defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false), passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr),
-		networkSource(NETSRC_XML)
+		//defaultWrkGrpAssignment(WorkGroup::ASSIGN_ROUNDROBIN), commSimEnabled(false),
+		passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
+		//,networkSource(NETSRC_XML)
 	{}
 
 	static ConfigParams instance;

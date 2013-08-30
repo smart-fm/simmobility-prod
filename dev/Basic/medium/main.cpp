@@ -152,9 +152,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy()));
 	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
 
 
@@ -185,11 +185,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded);
+	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize, config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -222,7 +222,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl, nullptr);
+	AuraManager::instance().init(config.aura_manager_impl(), nullptr);
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -264,7 +264,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
@@ -348,7 +348,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 

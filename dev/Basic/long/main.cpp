@@ -149,18 +149,18 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
+    ConfigParams::GetInstance().baseGranMS() = TICK_STEP;
     ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment =
+    ConfigParams::GetInstance().defaultWrkGrpAssignment() =
             WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded = false;
+    ConfigParams::GetInstance().singleThreaded() = false;
     list<HouseholdAgent*> agents;
     vector<Unit> units;
     vector<Household> households;
     HousingMarket market;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -218,7 +218,7 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
         PrintOut("Finalizing workgroups: " << endl);
 
     	//Save our output files if we are merging them later.
-    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
     		resLogFiles = wgMgr.retrieveOutFileNames();
     	}
     }
@@ -240,11 +240,11 @@ void perform_main() {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
+    ConfigParams::GetInstance().baseGranMS() = TICK_STEP;
     ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment =
+    ConfigParams::GetInstance().defaultWrkGrpAssignment() =
             WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded = false;
+    ConfigParams::GetInstance().singleThreaded() = false;
 
     //create all units.
     list<HouseholdAgent*> agents;
@@ -252,7 +252,7 @@ void perform_main() {
 
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);

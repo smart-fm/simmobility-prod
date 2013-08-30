@@ -113,12 +113,12 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegme
 	// addBusStopRealTimes, first time fake Times
 	ConfigParams& config = ConfigParams::GetInstance();
 	for(int k = 0; k < busStop_vec.size(); k++) {
-		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
+		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(),BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
 
 	// addBusStopScheduledTimes since only "schedule_based", "evenheadway_based" and "hybrid_based" need these
-	if(config.busline_control_type == "schedule_based" || config.busline_control_type == "evenheadway_based" || config.busline_control_type == "hybrid_based") {
+	if(config.busline_control_type() == "schedule_based" || config.busline_control_type() == "evenheadway_based" || config.busline_control_type() == "hybrid_based") {
 		std::map<int,std::vector<int> > scheduledTimes =  config.scheduledTimes;
 		for(std::map<int,std::vector<int> >::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
 		{

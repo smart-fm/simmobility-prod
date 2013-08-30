@@ -20,7 +20,7 @@ using std::string;
 using std::map;
 
 LT_Agent::LT_Agent(int id)
-: Agent(ConfigParams::GetInstance().mutexStategy, id) {
+: Agent(ConfigParams::GetInstance().mutexStategy(), id) {
 }
 
 LT_Agent::~LT_Agent() {

@@ -186,8 +186,8 @@ public:
 
 	/*--------Miscellaneous----------*/
 
-	int getSignalTimingMode() { return signalTimingMode;}
-	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
+	//int getSignalTimingMode() { return signalTimingMode;}
+	//void setSignalTimingMode(int mode) { signalTimingMode = mode;}
 	
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
@@ -242,7 +242,7 @@ private:
     unsigned int signalID;//currently is equal to nodeId
 
     /* Fixed time or adaptive control */
-    int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
+   // int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/

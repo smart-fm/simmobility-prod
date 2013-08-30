@@ -320,7 +320,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedTrafficColor = sim_mob::Green;
 
 	trafficSignalStopDistance = Driver::maxVisibleDis;
-	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	elapsedSeconds = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;

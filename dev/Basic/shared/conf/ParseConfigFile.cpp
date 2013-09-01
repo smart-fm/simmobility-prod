@@ -455,7 +455,6 @@ int ProcessValueInteger2(xercesc::DOMElement* node, int defVal)
 
 sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), inFilePath(configFileName)
 {
-	//Print the network legacy format to our log file.
 	ParseXmlAndProcess();
 }
 
@@ -625,12 +624,12 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	cfg.system.simulation.totalWarmupMS = ProcessTimegranUnits(GetSingleElementByName(node, "total_warmup"));
 
 	//These should all be moved; for now we copy them over with one command.
-	cfg.system.simulation.reacTime_distributionType1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType1"));
-	cfg.system.simulation.reacTime_distributionType2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType2"));
-	cfg.system.simulation.reacTime_mean1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean1"));
-	cfg.system.simulation.reacTime_mean2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean2"));
-	cfg.system.simulation.reacTime_standardDev1 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev1"));
-	cfg.system.simulation.reacTime_standardDev2 = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
+	cfg.system.simulation.reactTimeDistribution1.typeId = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType1"));
+	cfg.system.simulation.reactTimeDistribution2.typeId = ProcessValueInteger(GetSingleElementByName(node, "reacTime_distributionType2"));
+	cfg.system.simulation.reactTimeDistribution1.mean = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean1"));
+	cfg.system.simulation.reactTimeDistribution2.mean = ProcessValueInteger(GetSingleElementByName(node, "reacTime_mean2"));
+	cfg.system.simulation.reactTimeDistribution1.stdev = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev1"));
+	cfg.system.simulation.reactTimeDistribution2.stdev = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
 
 	cfg.system.simulation.simStartTime = ProcessValueDailyTime(GetSingleElementByName(node, "start_time", true));
 

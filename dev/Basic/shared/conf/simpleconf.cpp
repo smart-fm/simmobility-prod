@@ -62,6 +62,7 @@
 #include "conf/LoadAgents.hpp"
 #include "conf/LoadNetwork.hpp"
 #include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -1482,7 +1483,8 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	const bool LOAD_NEW_CONFIG_FILE = false;
 
 	//Load using our new config syntax.
-	ParseConfigFile(configPath, ConfigParams::GetInstanceRW());
+	ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW());
 
 	if (LOAD_NEW_CONFIG_FILE) {
 		//Load and parse the file, create xml-based objects.

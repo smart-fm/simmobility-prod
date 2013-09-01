@@ -32,6 +32,15 @@ public:
 		LoadAg_Database     ///<Load Trip-Chain based entities from the database.
 	};
 
+	///Our reaction time distributions.
+	struct ReactionTimeDistDescription {
+		ReactionTimeDistDescription() : typeId(0), mean(0), stdev(0) {}
+
+		int typeId;
+		int mean;
+		int stdev;
+	};
+
 	unsigned int baseGranMS;       ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	unsigned int totalRuntimeMS;   ///<Total time (in milliseconds) to run the simulation for. (Includes "warmup" time.)
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
@@ -55,12 +64,8 @@ public:
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
-    int reacTime_distributionType1;
-    int reacTime_distributionType2;
-    int reacTime_mean1;
-    int reacTime_mean2;
-    int reacTime_standardDev1;
-    int reacTime_standardDev2;
+	ReactionTimeDistDescription reactTimeDistribution1;
+	ReactionTimeDistDescription reactTimeDistribution2;
 
     //Passenger distribution parameters.
     //TODO: This should be the second thing we clean up.

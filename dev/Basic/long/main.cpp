@@ -16,7 +16,7 @@
 #include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
-#include "tinyxml.h"
+//#include "tinyxml.h"
 
 #include "entities/roles/RoleFactory.hpp"
 #include "conf/simpleconf.hpp"

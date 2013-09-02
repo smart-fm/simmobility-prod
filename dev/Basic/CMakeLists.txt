@@ -147,10 +147,9 @@ SET(CPACK_PACKAGE_CONTACT "Seth N. Hetu <seth@smart.mit.edu>")
 #This is where it starts to get complicated
 SET(COMMA ",")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-           "libtinyxml-dev (>= 2.5.3)"
+           "libboost-all-dev (>= 1.40)"
   ${COMMA} "libsoci-core-gcc-dev (>= 3.0.0)"
   ${COMMA} "libsoci-postgresql-gcc (>= 3.0.0)"
-  ${COMMA} "libboost-all-dev (>= 1.40)"
   ${COMMA} "libxerces-c-dev (>= 3.1.0)"
   ${COMMA} "xsdcxx (>= 3.3.0)"
   ${COMMA} "libpq-dev (>= 8.4.17)"
@@ -331,10 +330,12 @@ find_package(Boost COMPONENTS system thread filesystem serialization date_time R
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
-#Find TinyXML
+#Find TinyXML (optional; not used any more)
 find_package(TinyXML REQUIRED)
-include_directories(${TINYXML_INCLUDE_DIR})
-LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
+if (TINYXML_FOUND)
+  include_directories(${TINYXML_INCLUDE_DIR})
+  LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
+endif()
 
 #Find Xsd (headers only)
 find_package(Xsd REQUIRED)

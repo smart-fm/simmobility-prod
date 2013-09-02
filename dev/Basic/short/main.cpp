@@ -77,7 +77,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
-#include <tinyxml.h>
+//#include <tinyxml.h>
 
 using std::cout;
 using std::endl;

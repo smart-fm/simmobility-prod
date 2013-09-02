@@ -1,29 +1,69 @@
-# - Find TinyXML
-# Find the native TinyXML includes and library
-#
-#   TINYXML_FOUND       - True if TinyXML found.
-#   TINYXML_INCLUDE_DIR - where to find tinyxml.h, etc.
-#   TINYXML_LIBRARIES   - List of libraries when using TinyXML.
-#
+## - Find TinyXML
+## Find the native TinyXML includes and library
+##
+## Copyright (c) 2010 Jamie Jones <jamie_jones_au@yahoo.com.au>
+## This file is licensed under the GNU GPLv2 or any later versions,
+##
+## Copyright (c) 2011 Seth Hetu <seth.hetu@gmail.com>
+##
+## This module defines
+##   TINYXML_FOUND       - True if TinyXML found.
+##   TINYXML_INCLUDE_DIR - where to find tinyxml.h, etc.
+##   TINYXML_LIBRARIES   - List of libraries when using TinyXML.
+##
 
-IF( TINYXML_INCLUDE_DIR )
-    # Already in cache, be silent
-    SET( TinyXML_FIND_QUIETLY TRUE )
-ENDIF( TINYXML_INCLUDE_DIR )
-	
-FIND_PATH( TINYXML_INCLUDE_DIR tinyxml.h
-           HINTS C:/MinGW/include  C:/MinGW32/include
-           PATH_SUFFIXES tinyxml )
 
-FIND_LIBRARY( TINYXML_LIBRARIES
-              NAMES tinyxml
-              PATHS  C:/MinGW/lib  C:/MinGW32/lib
-              PATH_SUFFIXES tinyxml )
+if (TINYXML_INCLUDE_DIR AND TINYXML_LIBRARIES)
+  #Do nothing; the cached values of these already exist
 
-# handle the QUIETLY and REQUIRED arguments and set TINYXML_FOUND to TRUE if
-# all listed variables are TRUE
-INCLUDE( FindPackageHandleStandardArgs )
-FIND_PACKAGE_HANDLE_STANDARD_ARGS( TinyXML DEFAULT_MSG TINYXML_INCLUDE_DIR TINYXML_LIBRARIES )
+else ()
 
-MARK_AS_ADVANCED( TINYXML_INCLUDE_DIR TINYXML_LIBRARIES )
+  FIND_PATH(TINYXML_INCLUDE_DIR tinyxml.h
+      ${TINYXML_DIR}/include
+      $ENV{TINYXML_DIR}/include
+      $ENV{TINYXML_DIR}
+      C:/MinGW/include
+      C:/MinGW32/include
+      ~/Library/Frameworks
+      /Library/Frameworks
+      /usr/local/include
+      /usr/include
+      /sw/include # Fink
+      /opt/local/include # DarwinPorts
+      /opt/csw/include # Blastwave
+      /opt/include
+  )
+
+  FIND_LIBRARY(TINYXML_LIBRARIES
+      NAMES tinyxml
+      PATHS
+      ${TINYXML_DIR}/lib
+      $ENV{TINYXML_DIR}/lib
+      $ENV{TINYXML_DIR}
+      C:/MinGW/lib
+      C:/MinGW32/lib
+      ~/Library/Frameworks
+      /Library/Frameworks
+      /usr/local/lib
+      /usr/local/lib64
+      /usr/lib
+      /sw/lib
+      /opt/local/lib
+      /opt/csw/lib
+      /opt/lib
+  )
+
+  IF(TINYXML_LIBRARIES)
+      IF (NOT TINYXML_FIND_QUIETLY)
+      MESSAGE(STATUS "Found the TinyXML library at ${TINYXML_LIBRARIES}")
+      MESSAGE(STATUS "Found the TinyXML headers at ${TINYXML_INCLUDE_DIR}")
+      ENDIF ()
+  ENDIF()
+
+  IF(NOT TINYXML_LIBRARIES)
+      IF (TINYXML_FIND_REQUIRED)
+      MESSAGE(FATAL_ERROR "TinyXML Not Found.")
+      ENDIF ()
+  ENDIF()
+endif ()
 

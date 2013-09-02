@@ -1,5 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
+
+#if 0
+
 #include "simpleconf.hpp"
 
 #include <sstream>
@@ -1654,6 +1657,6 @@ std::string sim_mob::ConfigParams::busline_control_type() const
 
 
 
-
+#endif
 
 

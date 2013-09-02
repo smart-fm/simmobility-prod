@@ -6,10 +6,12 @@
  */
 
 #include "Pedestrian2Facets.hpp"
+
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/signal/Signal.hpp"
 
 using namespace sim_mob;
 

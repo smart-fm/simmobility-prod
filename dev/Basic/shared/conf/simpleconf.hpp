@@ -2,6 +2,14 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+
+//Replaced with:
+#include "conf/ConfigParams.hpp"
+
+
+
+#if 0
+
 /**
  * \file simpleconf.hpp
  * Central location for configuration-loading code.
@@ -364,3 +372,4 @@ private:
 };
 
 }
+#endif

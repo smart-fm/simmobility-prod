@@ -41,7 +41,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
-	msPerFrame(ConfigParams::GetInstance().baseGranMS),
+	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
 	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
 	currTick(0),
 	active(true)
@@ -115,37 +115,37 @@ std::ostream* sim_mob::Worker::getLogFile() const
 
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		std::ostringstream out ;
 		out << "worker::scheduleForAddition[" << this << "] calling migrateIn()\n ";
 		std::cout << out.str();
 		//Add it now.
 		migrateIn(*entity);
-	} else {
+	} else {*/
 		//Save for later
 		toBeAdded.push_back(entity);
-	}
+	/*}*/
 }
 
 
 void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		//Nothing to be done.
-	} else {
+	} else {*/
 		//Save for later
 		toBeRemoved.push_back(entity);
-	}
+	/*}*/
 }
 
 void sim_mob::Worker::scheduleForBred(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		//Nothing to be done.
-	} else {
+	} else {*/
 		//Save for later
 		toBeBred.push_back(entity);
-	}
+	/*}*/
 }
 
 
@@ -184,9 +184,9 @@ int sim_mob::Worker::getAgentSize(bool includeToBeAdded)
 
 void sim_mob::Worker::addPendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 	int i = 0;
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
@@ -198,9 +198,9 @@ void sim_mob::Worker::addPendingEntities()
 
 void sim_mob::Worker::removePendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 
 	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 		//Migrate out its buffered properties.
@@ -241,9 +241,9 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 
 void sim_mob::Worker::breedPendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 
 	for (vector<Entity*>::iterator it=toBeBred.begin(); it!=toBeBred.end(); it++) {
 		//Remove it from our global list.

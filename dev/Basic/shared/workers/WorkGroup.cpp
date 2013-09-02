@@ -121,11 +121,11 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 	this->loader = loader;
 
 	//Init our worker list-backs
-	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
-	if (UseDynamicDispatch) {
+	//const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
+	//if (UseDynamicDispatch) {
 		entToBeRemovedPerWorker.resize(numWorkers, vector<Entity*>());
 		entToBeBredPerWorker.resize(numWorkers, vector<Entity*>());
-	}
+	//}
 
 	//Number Worker output threads something like:  "out_1_2.txt", where "1" is the WG number and "2" is the Worker number.
 	std::stringstream prefixS;
@@ -144,8 +144,11 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 			managed_logs.push_back(logFile);
 		}
 
-		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
-		std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		//std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
+		//std::vector<Entity*>* entBredPerWorker = UseDynamicDispatch ? &entToBeBredPerWorker.at(i) : nullptr;
+		std::vector<Entity*>* entWorker = &entToBeRemovedPerWorker.at(i);
+		std::vector<Entity*>* entBredPerWorker = &entToBeBredPerWorker.at(i);
+
 		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
@@ -188,8 +191,8 @@ void sim_mob::WorkGroup::scheduleEntity(Agent* ag)
 
 void sim_mob::WorkGroup::stageEntities()
 {
-	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
+	//Even with dynamic dispatch, some WorkGroups simply don't manage entities.
+	if (!loader) {
 		return;
 	}
 
@@ -205,7 +208,7 @@ void sim_mob::WorkGroup::stageEntities()
 	}
 
 	//Keep assigning the next entity until none are left.
-	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS;
+	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS();
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
 		Agent* ag = loader->pending_source.top();
@@ -241,8 +244,8 @@ void sim_mob::WorkGroup::stageEntities()
 
 void sim_mob::WorkGroup::collectRemovedEntities()
 {
-	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
+	//Even with dynamic dispatch, some WorkGroups simply don't manage entities.
+	if (!loader) {
 		return;
 	}
 
@@ -318,7 +321,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
 	//For now, just rely on static access to ConfigParams.
 	// (We can allow per-workgroup configuration later).
-	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
+	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment();
 	if (strat == ASSIGN_ROUNDROBIN) {
 		workers.at(nextWorkerID)->scheduleForAddition(ag);
 	} else {
@@ -508,7 +511,7 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
@@ -554,7 +557,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 {
 	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
 
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	bool workerFilled = false;
 
 	if(numConfluxesToAddInWorker > 0)

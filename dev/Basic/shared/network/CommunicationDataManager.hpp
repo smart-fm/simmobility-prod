@@ -27,7 +27,7 @@ class ControlManager;
 class CommunicationDataManager {
 public:
 	void sendTrafficData(std::string &s);
-	void sendRoadNetworkData(std::string &s);
+	void sendRoadNetworkData(const std::string &s);
 	bool getTrafficData(std::string &s);
 	bool getCmdData(std::string &s);
 	bool getRoadNetworkData(std::string &s);

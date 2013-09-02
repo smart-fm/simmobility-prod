@@ -173,7 +173,7 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
+		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS()) {
 			std::stringstream msg;
 			msg <<"Agent was not started within one timespan of its requested start time.";
 			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";

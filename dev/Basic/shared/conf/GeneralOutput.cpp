@@ -30,7 +30,7 @@ void sim_mob::GeneralOutput::LogRelevantOutput() const
 	if (cfg.OutputDisabled()) { return; }
 
     //TEMP: Test network output via boost.
-    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
+    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstanceRW().getNetworkRW());
 
     //Print general properties.
     std::cout <<"Config parameters:\n";

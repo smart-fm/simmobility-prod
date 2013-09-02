@@ -172,7 +172,7 @@ void SplitPlan::Update(std::vector<double> &DS)
  */
 
 
-SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),signalTimingMode(ConfigParams::GetInstance().signalTimingMode),TMP_PlanID(TMP_PlanID_)
+SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),TMP_PlanID(TMP_PlanID_)
 {
 //	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 	nextSplitPlanID = 0;
@@ -191,9 +191,13 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
+	//NOTE: This is barely used; may want to remove it entirely.
+	const int signalTimingMode = 1;
+
 	NOF_Plans = 5;
-	if(signalTimingMode == 0)//fixed plan
+	if(signalTimingMode == 0) {//fixed plan
 		NOF_Plans = 1;
+	}
 	int ii=5,jj=0;
 	double defaultChoiceSet_1[5][10] = {
 			{100},

@@ -14,6 +14,7 @@
 namespace sim_mob {
 
 class Pedestrian2;
+class Signal;
 
 class Pedestrian2Behavior: public sim_mob::BehaviorFacet {
 public:

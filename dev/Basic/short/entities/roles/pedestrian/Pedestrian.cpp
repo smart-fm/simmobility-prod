@@ -212,7 +212,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 
 	if(atSidewalk){
-		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
 
 		prevSeg = fwdMovement.getCurrSegment();
 		fwdMovement.advance(vel);
@@ -629,18 +629,15 @@ void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
-			//LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
 			trafficSignal = nullptr;
 		}
 
 		if (!trafficSignal){
-			std::cout << "Traffic signal not found!" << std::endl;
-		//	LogOut("noteForDebug Traffic signal not found!"<<std::endl);
+			//std::cout << "Traffic signal not found!" << std::endl;
 		}
 		else {
 			if (currCrossing) {
 				sigColor = trafficSignal->getPedestrianLight(*currCrossing);
-				//			std::cout<<"Debug: signal color "<<sigColor<<std::endl;
 			} else
 			std::cout << "Current crossing not found!" << std::endl;
 		}
@@ -650,18 +647,15 @@ void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
-		//	LogOut("noteForDebug node for Traffic signal not found! "<<std::endl);
 			trafficSignal = nullptr;
 		}
 
 		if (!trafficSignal){
-			std::cout << "Traffic signal not found!" << std::endl;
-			//LogOut("noteForDebug Traffic signal not found!"<<std::endl);
+			//std::cout << "Traffic signal not found!" << std::endl;
 		}
 		else {
 			if (currCrossing) {
 				sigColor = trafficSignal->getPedestrianLight(*currCrossing);
-				//			std::cout<<"Debug: signal color "<<sigColor<<std::endl;
 			} else
 			std::cout << "Current crossing not found!" << std::endl;
 		}
@@ -753,9 +747,9 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 void sim_mob::Pedestrian::updatePosition() {
 	//Compute
 	int newX = (int) (parent->xPos.get() + xVel * 100
-			* (((double) ConfigParams::GetInstance().agentTimeStepInMilliSeconds()) / 1000));
+			* (((double) ConfigParams::GetInstance().personTimeStepInMilliSeconds()) / 1000));
 	int newY = (int) (parent->yPos.get() + yVel * 100
-			* (((double) ConfigParams::GetInstance().agentTimeStepInMilliSeconds()) / 1000));
+			* (((double) ConfigParams::GetInstance().personTimeStepInMilliSeconds()) / 1000));
 
 	//Set
 	parent->xPos.set(newX);

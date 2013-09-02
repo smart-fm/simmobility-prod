@@ -51,7 +51,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 	ag->setCurrSegment(rdSeg);
 	ag->setCurrLane(rdSegStats->laneInfinity);
 	ag->distanceToEndOfSegment = rdSeg->computeLaneZeroLength();
-	ag->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	ag->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
 
@@ -92,7 +92,7 @@ void sim_mob::Conflux::updateUnsignalized() {
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	if (person->getLastUpdatedFrame() < currFrameNumber.frame()) {
 		//if the person is moved for the first time in this tick
-		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+		person->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 	}
 	person->currWorkerProvider = parentWorker; // Let the person know which worker managing him... for logs to work.
 	const sim_mob::RoadSegment* segBeforeUpdate = person->getCurrSegment();
@@ -264,7 +264,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 			for(std::deque<sim_mob::Person*>::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
 				if ((*personIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
 					//if the person is going to be moved for the first time in this tick
-					(*personIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+					(*personIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 				}
 			}
 		}
@@ -274,7 +274,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 		for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
 			if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
 				//if the person is going to be moved for the first time in this tick
-				(*pIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+				(*pIt)->remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 			}
 		}
 	}
@@ -586,8 +586,8 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that it waits for exact amount of time
 					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
-					ap->setActivityStartTime(sim_mob::DailyTime((*person->currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
-					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*person->currTripChainItem)->endTime.getValue()));
+					ap->setActivityStartTime(sim_mob::DailyTime((*person->currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS()));
+					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS() + (*person->currTripChainItem)->endTime.getValue()));
 					ap->initializeRemainingTime();
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {

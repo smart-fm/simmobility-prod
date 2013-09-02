@@ -132,15 +132,18 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 //	findSignalLinksAndCrossings(); todo:eoved temporarily
 
 	//for future use when user needs to switch between fixed and adaptive control
-	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
+	//NOTE: This wasn't being used, so I'm hard-coding it. ~Seth
+	//signalTimingMode = ConfigParams::GetInstance().signalTimingMode();
+	//signalTimingMode = 1;
+
 //	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
-	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
+	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS() / 1000;
 	currCycleTimer = 0;
 
 	//TODO: Why all the ifdefs? Why does this depend on whether we're loading from XML or not? ~Seth
 #ifndef SIMMOB_XML_WRITER
-	if (ConfigParams::GetInstance().networkSource==ConfigParams::NETSRC_DATABASE) {
+	if (ConfigParams::GetInstance().networkSource()==SystemParams::NETSRC_DATABASE) {
 		findSignalLinksAndCrossings();
 	}
 #else
@@ -507,8 +510,12 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 		{
 			getPhases()[temp_PhaseId].update(currCycleTimer);
 		}
-	else
+	else {
 		throw std::runtime_error("currPhaseID out of range");
+	}
+
+	//Temporarily set to the old value; use an enum if you actually want different timing modes.
+	const bool signalTimingMode = true;
 
 	if((currPhaseID != temp_PhaseId) && signalTimingMode)//separated coz we may need to transfer computeDS here
 		{

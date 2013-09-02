@@ -27,7 +27,7 @@ using std::map;
 using std::cout;
 
 TestAgent::TestAgent(int id, messaging::MessageHandler* receiver)
-: Agent(ConfigParams::GetInstance().mutexStategy, id), receiver(receiver) {
+: Agent(ConfigParams::GetInstance().mutexStategy(), id), receiver(receiver) {
     isRegistered = false;
 }
 

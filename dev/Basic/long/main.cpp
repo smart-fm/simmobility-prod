@@ -324,17 +324,16 @@ void test_main() {
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
-    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment =
-            WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded = false;
+    ConfigParams::GetInstanceRW().baseGranMS() = TICK_STEP;
+    ConfigParams::GetInstanceRW().totalRuntimeTicks = DAYS;
+    ConfigParams::GetInstanceRW().defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+    ConfigParams::GetInstanceRW().singleThreaded() = false;
 
     //create all units.
     list<TestAgent*> agents;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);

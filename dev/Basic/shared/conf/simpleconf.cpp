@@ -81,15 +81,6 @@ using namespace sim_mob;
 
 namespace {
 
-//If any Agents specify manual IDs, we must ensure that:
-//   * the ID is < startingAutoAgentID
-//   * all manual IDs are unique.
-//We do this using the Agent constraints struct
-struct AgentConstraints {
-	int startingAutoAgentID;
-	std::set<unsigned int> manualAgentIDs;
-};
-
 
 //Helper sort
 bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
@@ -230,59 +221,6 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 }
 
 
-////
-//// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
-////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
-////
-void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
-{
-	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) {
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
-		active_agents.push_back(p);
-	} else {
-		//Start later.
-		pending_agents.push(p);
-	}
-}
-
-
-
-//NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
-{
-	const ConfigParams& config = ConfigParams::GetInstance();
-	const std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
-	//The current agent we are working on.
-	Person* person = nullptr;
-	std::string trip_mode;
-	typedef std::map<std::string, vector<TripChainItem*> >::const_iterator TCMapIt;
-	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
-		TripChainItem* tc = it_map->second.front();
-		if( tc->itemType != TripChainItem::IT_FMODSIM){
-			person = new Person("XML_TripChain", config.mutexStategy(), it_map->second);
-			person->setPersonCharacteristics();
-			addOrStashEntity(person, active_agents, pending_agents);
-			//Reset for the next (possible) Agent
-			person = nullptr;
-		}
-		else {
-			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMODController::InstanceExists()) {
-				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
-			} else {
-				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
-			}
-		}
-	}//outer for loop(map)
-
-	if( sim_mob::FMOD::FMODController::InstanceExists() ) {
-		sim_mob::FMOD::FMODController::Instance()->Initialize();
-	}
-}
 
 bool isAndroidClientEnabled(TiXmlHandle& handle)
 {
@@ -294,7 +232,7 @@ bool isAndroidClientEnabled(TiXmlHandle& handle)
 	return false;
 }
 
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, ConfigParams::AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstanceRW();
 
@@ -418,7 +356,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		agent->setStartTime(startTime);
 
 		//Add it or stash it
-		addOrStashEntity(agent, active_agents, pending_agents);
+		throw std::runtime_error("addOrStashEntity() disabled in simpleconf");
+		//addOrStashEntity(agent, active_agents, pending_agents);
 	}
 
 	return true;
@@ -1148,7 +1087,8 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     }
 
 	//load scheduledTImes if any
-	handle = TiXmlHandle(&document);
+    //Doesn't appear to be used any more. ~Seth
+	/*handle = TiXmlHandle(&document);
 	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
 	if(busScheduleTimes){
 		int stop = 0;
@@ -1162,7 +1102,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			config.scheduledTimes.insert(nextLink);
 			++stop;
 		}
-	}
+	}*/
 
     //Check the type of geometry
     handle = TiXmlHandle(&document);
@@ -1181,16 +1121,17 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     		//Load from the database or from XML, depending.
     		if (ConfigParams::GetInstance().networkSource()==SystemParams::NETSRC_DATABASE) {
     			cout <<"Loading from DATABASE\n";
+    			throw std::runtime_error("Network loading from database DISABLED for old simpleconf.cpp routines.");
 
 				//Load the AIMSUM network details
-				if (prof) { prof->logGenericStart("Database", "main-prof"); }
+				/*if (prof) { prof->logGenericStart("Database", "main-prof"); }
 				map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-				if (!LoadDatabaseDetails(*geomElem, config.connectionString, storedProcedures)) {
+				if (!LoadDatabaseDetails(*geomElem, config.getDatabaseConnectionString(), storedProcedures)) {
 						throw std::runtime_error("Unable to load database connection settings...");
 				}
 
 				//Actually load it
-				sim_mob::aimsun::Loader::LoadNetwork(config.connectionString, storedProcedures, config.getNetworkRW(), config.getTripChains(), prof);
+				sim_mob::aimsun::Loader::LoadNetwork(config.getDatabaseConnectionString(), storedProcedures, config.getNetworkRW(), config.getTripChains(), prof);*/
     		} else {
     			cout <<"Loading from XML\n";
 				if (!sim_mob::xml::InitAndLoadXML(config.networkXmlFile(), config.getNetworkRW(), config.getTripChains())) {
@@ -1198,15 +1139,16 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 				}
     		}
 
+
     		//Finally, mask the password
-    		string& s = config.connectionString;
+    		/*string& s = config.connectionString;
     		size_t check = s.find("password=");
     		if (check!=string::npos) {
     			size_t start = s.find("=", check) + 1;
     			size_t end = s.find(" ", start);
     			size_t amt = ((end==string::npos) ? s.size() : end) - start;
     			s = s.replace(start, amt, amt, '*');
-    		}
+    		}*/
     	} else {
     		throw std::runtime_error("Unknown geometry type");
     	}
@@ -1270,7 +1212,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     std::cout << "confluxes size after: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
 
     //Maintain unique/non-colliding IDs.
-    AgentConstraints constraints;
+    ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
 
     //Attempt to load all "BusController" elements from the config file.
@@ -1294,29 +1236,25 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			it != loadAgentOrder.end(); it++) {
 		if (((*it) == "database") || ((*it) == "xml-tripchains")) {
 			//Create an agent for each Trip Chain in the database.
-			generateAgentsFromTripChain(active_agents, pending_agents,
-					constraints);
+			throw std::runtime_error("generateAgentsFromTripChain()");
+			//generateAgentsFromTripChain(active_agents, pending_agents, constraints);
 			cout << "Loaded Database Agents (from Trip Chains)." << endl;
 		} else if ((*it) == "drivers") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"driver", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
 				throw std::runtime_error("Couldn't load drivers");
 			}
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"busdriver", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints)) {
 				throw std::runtime_error("Couldn't load bus drivers");
 			}
 			cout << "Loaded Driver Agents (from config file)." << endl;
 
 		} else if ((*it) == "pedestrians") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"pedestrian", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
 				throw std::runtime_error("Couldn't load pedestrians");
 			}
 			cout << "Loaded Pedestrian Agents (from config file)." << endl;
 		} else if ((*it) == "passengers") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"passenger", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
 				throw std::runtime_error("Couldn't load passengers");
 			}
 			cout << "Loaded Passenger Agents (from config file)." << endl;
@@ -1371,7 +1309,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     }*/
 
 	//Output AIMSUN data
-	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().getDatabaseConnectionString() <<"\n";
 	std::cout <<"------------------\n";
 	{
 	PrintNetwork(ConfigParams::GetInstance(), ConfigParams::GetInstance().outNetworkFileName);
@@ -1484,9 +1422,9 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 
 	//Load using our new config syntax.
 	ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
-	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW());
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), active_agents, pending_agents);
 
-	if (LOAD_NEW_CONFIG_FILE) {
+/*	if (LOAD_NEW_CONFIG_FILE) {
 		//Load and parse the file, create xml-based objects.
 		Config cfg;
 		cfg.InitBuiltInModels(builtInModels);
@@ -1526,8 +1464,25 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Parse it
 		loadXMLConf(*doc, active_agents, pending_agents, prof);
 		delete doc;
-	}
+	}*/
 }
+
+
+
+std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
+{
+	const DatabaseConnection& dbConn = geometry.connection;
+	std::stringstream res;
+
+	res <<"host="   <<dbConn.host   <<" "
+		<<"port="   <<dbConn.port   <<" "
+		<<"dbname=" <<dbConn.dbName <<" "
+		<<"user="   <<dbConn.user   <<" "
+//		<<"password=" <<dbConn.password.toString(maskPassword);
+		<<"password=" <<(maskPassword?"***":sim_mob::simple_password::load(string())); //NOTE: This is in no way secure. ~Seth
+	return res.str();
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////

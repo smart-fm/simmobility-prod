@@ -55,6 +55,9 @@ public:
 	/// with the GUI or console.
 	bool InteractiveMode() const;
 
+	///Synced to the value of SIMMOB_XML_WRITER; this should probably be a config-file flag.
+	bool XmlWriterOn() const;
+
 
 };
 

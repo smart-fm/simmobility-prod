@@ -76,8 +76,17 @@ class ControlManager;
 class ConfigParams : public RawConfigParams {
 
 public:
-	enum ClientType
-	{
+	//If any Agents specify manual IDs, we must ensure that:
+	//   * the ID is < startingAutoAgentID
+	//   * all manual IDs are unique.
+	//We do this using the Agent constraints struct
+	struct AgentConstraints {
+		AgentConstraints() : startingAutoAgentID(0) {}
+		int startingAutoAgentID;
+		std::set<unsigned int> manualAgentIDs;
+	};
+
+	enum ClientType {
 		ANDROID_EMULATOR = 1,
 		NS3_SIMULATOR = 2,
 		//add your client type here
@@ -115,10 +124,8 @@ public:
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
 
-	// temporary maps
-	std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
-
-	std::string connectionString;
+	//Does not appear to be used any more. ~Seth
+	//std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
 	bool using_MPI;
 	bool is_run_on_many_computers;
@@ -238,6 +245,9 @@ public:
 	///Reset this instance of the static ConfigParams instance.
 	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
 	void reset();
+
+	///Retrieve/build the connection string.
+	std::string getDatabaseConnectionString(bool maskPassword=true) const;
 
 
 	/**

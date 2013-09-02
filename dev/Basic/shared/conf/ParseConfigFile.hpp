@@ -45,10 +45,14 @@ private:
 	//Process through recursive descent.
 	void ProcessSystemNode(xercesc::DOMElement* node);
 	void ProcessGeometryNode(xercesc::DOMElement* node);
+	void ProcessFMOD_Node(xercesc::DOMElement* node);
+	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
 	void ProcessPedestriansNode(xercesc::DOMElement* node);
 	void ProcessBusDriversNode(xercesc::DOMElement* node);
+	void ProcessPassengersNode(xercesc::DOMElement* node);
 	void ProcessSignalsNode(xercesc::DOMElement* node);
+	void ProcessBusControllersNode(xercesc::DOMElement* node);
 
 	//Descend through System
 	void ProcessSystemSimulationNode(xercesc::DOMElement* node);
@@ -80,7 +84,7 @@ private:
 	void ProcessGeomDbMappings(xercesc::DOMElement* node);
 
 	//All entities are added to a "pending" list in the same manner.
-	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res);
+	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true);
 
 
 private:

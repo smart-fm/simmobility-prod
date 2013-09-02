@@ -523,10 +523,16 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	//Now just parse the document recursively.
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
+	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
+
+	//Agents all follow a template.
 	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
+	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
+	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 }
 
 
@@ -568,6 +574,49 @@ void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 	ProcessGeomDbMappings(GetSingleElementByName(node, "mappings"));
 }
 
+
+void sim_mob::ParseConfigFile::ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//Loop through all children
+	int count=0;
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		if (TranscodeString(item->getNodeName())!="stop") {
+			Warn() <<"Invalid busStopScheduledTimes child node.\n";
+			continue;
+		}
+
+		//Retrieve properties, add a new item to the vector.
+		BusStopScheduledTime res;
+		res.offsetAT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetAT"), static_cast<unsigned int>(0));
+		res.offsetDT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetDT"), static_cast<unsigned int>(0));
+		cfg.busScheduledTimes[count++] = res;
+	}
+}
+
+
+void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//The fmod tag has an attribute
+	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "switch"), false);
+
+	//Now set the rest.
+	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ipaddress"), "value"), "");
+	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "updateTimeMS"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mapfile"), "value"), "");
+	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blockingTimeSec"), "value"), static_cast<unsigned int>(0));
+}
+
+
+
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {
 	if (!node) {
@@ -604,6 +653,18 @@ void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
 	ProcessFutureAgentList(node, "busdriver", cfg.busDriverTemplates);
 }
 
+void sim_mob::ParseConfigFile::ProcessPassengersNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+	/*XMLCh* keyX = XMLString::transcode("busdriver");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);*/
+
+	ProcessFutureAgentList(node, "passenger", cfg.passengerTemplates);
+}
+
 void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 {
 	if (!node) {
@@ -613,7 +674,19 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(node, "signal", cfg.signalTemplates);
+	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false);
+}
+
+void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+	/*XMLCh* keyX = XMLString::transcode("signal");
+	DOMNodeList* nodes = node->getElementsByTagName(keyX);
+	XMLString::release(&keyX);*/
+
+	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true);
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -761,6 +834,10 @@ void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElem
 			opt = SimulationParams::LoadAg_Drivers;
 		} else if ((*it) == "pedestrians") {
 			opt = SimulationParams::LoadAg_Pedestrians;
+		} else if ((*it) == "passengers") {
+			opt = SimulationParams::LoadAg_Passengers;
+		} else if ((*it) == "xml-tripchains") {
+			opt = SimulationParams::LoadAg_XmlTripChains;
 		} else {
 			throw std::runtime_error("Unexpected load_agents order param.");
 		}
@@ -848,15 +925,15 @@ void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
 }
 
 
-void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res)
+void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq)
 {
 	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
 		if (TranscodeString(item->getNodeName())==itemName) {
 			EntityTemplate ent;
-			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos"));
-			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos"));
-			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time"), static_cast<unsigned int>(0));
+			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos", originReq),Point2D());
+			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
+			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			res.push_back(ent);
 		}
 	}

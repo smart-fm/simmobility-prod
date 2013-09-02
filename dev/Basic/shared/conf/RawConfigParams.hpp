@@ -21,15 +21,39 @@
 namespace sim_mob {
 
 //helper class: to be moved.
+struct FMOD_ControllerParams {
+	FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
+
+	bool enabled;
+	std::string ipAddress;
+	unsigned int port;
+	unsigned int updateTimeMS;
+	std::string mapfile;
+	unsigned int blockingTimeSec;
+};
+
+
+//helper class: to be moved.
+struct BusStopScheduledTime {
+	BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
+
+	unsigned int offsetAT; //<Presumably arrival time?
+	unsigned int offsetDT; //<Presumably departure time?
+};
+
+
+//helper class: to be moved.
 class SimulationParams {
 public:
 	SimulationParams();
 
 	///Sources of Agents.
 	enum LoadAgentsOrderOption {
-		LoadAg_Drivers,     ///<Load Drivers from the config file.
-		LoadAg_Pedestrians, ///<Load Pedestrians from the config file.
-		LoadAg_Database     ///<Load Trip-Chain based entities from the database.
+		LoadAg_Drivers,       ///<Load Drivers from the config file.
+		LoadAg_Pedestrians,   ///<Load Pedestrians from the config file.
+		LoadAg_Passengers,    ///<Load Passengers from the config file.
+		LoadAg_Database,      ///<Load Trip-Chain based entities from the database.
+		LoadAg_XmlTripChains, ///<Not sure what this does exactly....
 	};
 
 	///Our reaction time distributions.
@@ -152,12 +176,20 @@ public:
 	///Available gemetries (currently only database geometries).
 	GeometryParams geometry;
 
+	///Settings for the FMOD controller.
+	FMOD_ControllerParams fmod;
+
+	///Some settings for bus stop arrivals/departures.
+	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+
 	//@{
 	///Templates for creating entities of various types.
 	std::vector<EntityTemplate> driverTemplates;
 	std::vector<EntityTemplate> pedestrianTemplates;
 	std::vector<EntityTemplate> busDriverTemplates;
 	std::vector<EntityTemplate> signalTemplates;
+	std::vector<EntityTemplate> passengerTemplates;
+	std::vector<EntityTemplate> busControllerTemplates;
 	//@}
 };
 

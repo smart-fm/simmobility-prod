@@ -94,3 +94,13 @@ bool sim_mob::CMakeConfigParams::InteractiveMode() const
 #endif
 }
 
+bool sim_mob::CMakeConfigParams::XmlWriterOn() const
+{
+#ifdef SIMMOB_XML_WRITER
+	return true;
+#else
+	return false;
+#endif
+}
+
+

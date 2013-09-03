@@ -449,6 +449,12 @@ int ProcessValueInteger2(xercesc::DOMElement* node, int defVal)
 	return ParseInteger(GetNamedAttributeValue(node, "value"), defVal);
 }
 
+//TODO: Same issue; needs to be easier access to these things.
+std::string ProcessValueString(xercesc::DOMElement* node)
+{
+	return ParseString(GetNamedAttributeValue(node, "value"));
+}
+
 
 } //End un-named namespace
 
@@ -524,6 +530,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 
 	//Agents all follow a template.
@@ -595,6 +602,89 @@ void sim_mob::ParseConfigFile::ProcessBusStopScheduledTimesNode(xercesc::DOMElem
 		res.offsetDT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetDT"), static_cast<unsigned int>(0));
 		cfg.busScheduledTimes[count++] = res;
 	}
+}
+
+
+void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//Process each item in order.
+	//ProcessConstructDistributionsNode(GetSingleElementByName(node, "distributions")); //<TODO
+	ProcessConstructDatabasesNode(GetSingleElementByName(node, "databases"));
+	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
+	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
+}
+
+
+void sim_mob::ParseConfigFile::ProcessConstructDatabasesNode(xercesc::DOMElement* node)
+{
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		if (TranscodeString(item->getNodeName())!="database") {
+			Warn() <<"Invalid databases child node.\n";
+			continue;
+		}
+
+		//Retrieve some attributes from the Node itself.
+		Database db(ParseString(GetNamedAttributeValue(item, "id")));
+		std::string dbType = ParseString(GetNamedAttributeValue(item, "dbtype"), "");
+		if (dbType != "postgres") {
+			throw std::runtime_error("Database type not supported.");
+		}
+
+		//Now retrieve the required parameters from child nodes.
+		db.host = ProcessValueString(GetSingleElementByName(item, "host"));
+		db.port = ProcessValueInteger(GetSingleElementByName(item, "port"));
+		db.dbName = ProcessValueString(GetSingleElementByName(item, "dbname"));
+
+		cfg.constructs.databases[db.getId()] = db;
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node)
+{
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		if (TranscodeString(item->getNodeName())!="proc_map") {
+			Warn() <<"Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		//Retrieve some attributes from the Node itself.
+		StoredProcedureMap pm(ParseString(GetNamedAttributeValue(item, "id")));
+		pm.dbFormat = ParseString(GetNamedAttributeValue(item, "format"), "");
+		if (pm.dbFormat != "aimsun") {
+			throw std::runtime_error("Stored procedure map format not supported.");
+		}
+
+		//Loop through and save child attributes.
+		for (DOMElement* mapItem=item->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling()) {
+			if (TranscodeString(mapItem->getNodeName())!="mapping") {
+				Warn() <<"Invalid proc_map child node.\n";
+				continue;
+			}
+
+			std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+			std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+			if (key.empty() || val.empty()) {
+				Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
+				continue;
+			}
+
+			pm.procedureMappings[key] = val;
+		}
+
+		cfg.constructs.procedureMaps[pm.getId()] = pm;
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMElement* node)
+{
+
+
+	//todo
+	throw 1;
 }
 
 

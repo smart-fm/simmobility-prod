@@ -45,6 +45,7 @@ private:
 	//Process through recursive descent.
 	void ProcessSystemNode(xercesc::DOMElement* node);
 	void ProcessGeometryNode(xercesc::DOMElement* node);
+	void ProcessConstructsNode(xercesc::DOMElement* node);
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
@@ -53,6 +54,11 @@ private:
 	void ProcessPassengersNode(xercesc::DOMElement* node);
 	void ProcessSignalsNode(xercesc::DOMElement* node);
 	void ProcessBusControllersNode(xercesc::DOMElement* node);
+
+	//Descend through Constructs
+	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);
+	void ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node);
+	void ProcessConstructCredentialsNode(xercesc::DOMElement* node);
 
 	//Descend through System
 	void ProcessSystemSimulationNode(xercesc::DOMElement* node);

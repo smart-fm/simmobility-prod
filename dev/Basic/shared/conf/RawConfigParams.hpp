@@ -221,6 +221,9 @@ class RawConfigParams : public sim_mob::CMakeConfigParams {
 public:
 	RawConfigParams();
 
+	///"Constructs" for general re-use.
+	Constructs constructs;
+
 	///"Sytem" level settings, including simulation parameters and global flags.
 	SystemParams system;
 

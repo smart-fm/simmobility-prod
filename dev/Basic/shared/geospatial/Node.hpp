@@ -26,6 +26,7 @@ namespace sim_mob
 class Lane;
 class LaneConnector;
 class RoadSegment;
+class Conflux;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -75,7 +76,7 @@ public:
 
 
 //protected:
-    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y), parentConflux(nullptr) {}
 
 //private:
 //    sim_mob::Link* linkLoc;
@@ -87,6 +88,13 @@ public:
 
   //  sim_mob::Link* getLinkLoc() const;
   const Point2D getLocation() const { return location;}
+
+  sim_mob::Conflux* getParentConflux() const { return parentConflux; }
+
+  void setParentConflux(sim_mob::Conflux* parentConflux) { this->parentConflux = parentConflux; }
+
+  // Conflux to which this node belongs to
+  mutable sim_mob::Conflux* parentConflux;
 };
 
 

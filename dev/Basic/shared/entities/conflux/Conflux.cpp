@@ -816,3 +816,76 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	}
 	return allPersonsInCfx;
 }
+
+void sim_mob::Conflux::loadNewAgents() {
+	std::vector<sim_mob::Person*>::iterator pIt = toBeAdded.begin();
+	for (; pIt != toBeAdded.end(); pIt++){
+		if(*pIt) {
+			const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(*pIt);
+			if(rdSeg) {
+				rdSeg->getParentConflux()->addAgent(*pIt,rdSeg);
+			}
+			else {
+				Print() << "Conflux::loadNewAgents()| Agent ID: " << (*pIt)->getId() << "| Agent DB_id:"
+						<< (*pIt)->getDatabaseId() << " : has no Path. Not added into the simulation"<<std::endl;
+			}
+		}
+	}
+	toBeAdded.clear();
+}
+
+void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::Node* startingNode) {
+	/**
+	 * The agents always start at a node (for now).
+	 * we will always add the Person to the road segment in "lane infinity".
+	 */
+	toBeAdded.push_back(ag);
+}
+
+const sim_mob::RoadSegment* sim_mob::Conflux::findStartingRoadSegment(Person* p) {
+	/*
+	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
+	 */
+	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	const sim_mob::TripChainItem* firstItem = agTripChain.front();
+
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	std::string role = rf.GetTripChainMode(firstItem);
+
+	StreetDirectory& stdir = StreetDirectory::instance();
+
+	std::vector<WayPoint> path;
+	const sim_mob::RoadSegment* rdSeg = nullptr;
+	if (role == "driver") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
+	}
+	else if (role == "pedestrian") {
+		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
+	}
+	else if (role == "busdriver") {
+		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
+		std::vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
+		std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
+		std::vector<const RoadSegment*>::iterator itor;
+		for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
+			path.push_back(WayPoint(*itor));
+		}
+	}
+
+	if(path.size() > 0) {
+		//Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node
+		// BusDriver code, and pathSet code, generates only segment-list
+		p->setCurrPath(path);
+		for (std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
+			if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rdSeg = it->roadSegment_;
+					break;
+			}
+		}
+	}
+	return rdSeg;
+}
+

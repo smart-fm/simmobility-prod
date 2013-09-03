@@ -2117,16 +2117,33 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
+
+						//set the parent conflux the node belongs to
+						if ((*segIt)->getEnd()->getParentConflux() == nullptr){
+
+							((*segIt)->getEnd())->setParentConflux(conflux);
+						}
+						else if ((*segIt)->getEnd()->getParentConflux() != conflux){
+							debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for node " << (*segIt)->getEnd()->getID()<< std::endl;
+					//		throw std::runtime_error(debugMsgs.str());
+						}
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment [" << (*segIt)->getStart()->getID() << "->" << (*segIt)->getEnd()->getID() << "]";
+						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << (*segIt)->getStartEnd()<< std::endl;
 						throw std::runtime_error(debugMsgs.str());
 					}
 				}
 
 			} // for
 		}
+
+		//setting parent conflux of any multi-nodes that were not already assigned
+		if((*i)->getParentConflux() == nullptr)
+		{
+			(*i)->setParentConflux(conflux);
+		}
+
 		confluxes.insert(conflux);
 	}
 }

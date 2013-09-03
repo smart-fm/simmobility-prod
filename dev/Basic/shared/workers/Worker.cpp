@@ -514,6 +514,10 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 		timeval startTime;
 		gettimeofday(&startTime, nullptr);
 
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			(*it)->loadNewAgents();
+		}
+
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
 

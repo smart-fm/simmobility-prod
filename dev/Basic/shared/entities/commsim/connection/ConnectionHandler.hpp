@@ -44,6 +44,7 @@ public:
 	bool send(std::string str,boost::system::error_code& e);
 	bool send(std::string str);
 	void sendHandler(const boost::system::error_code& e) ;
+	session_ptr &session();
 	bool is_open();
 	bool isValid();
 	void setValidation(bool);

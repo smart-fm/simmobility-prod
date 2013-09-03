@@ -77,13 +77,16 @@ void Broker::configure() {
 		//todo: choose a factory based on configurations not hardcoding
 		boost::shared_ptr<
 				sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > android_factory(
-				new sim_mob::rr_android_ns3::RR_Android_NS3_Factory());
-		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
+				new sim_mob::rr_android_ns3::RR_Android_Factory());
+		boost::shared_ptr<
+				sim_mob::MessageFactory<std::vector<msg_ptr>&, std::string&> > ns3_factory(
+				new sim_mob::rr_android_ns3::RR_NS3_Factory());
+
 		messageFactories.insert(
 				std::make_pair(ConfigParams::ANDROID_EMULATOR,
 						android_factory));
 		messageFactories.insert(
-				std::make_pair(ConfigParams::NS3_SIMULATOR, android_factory));//todo: change this to ns3
+				std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
 
 		// wait for connection criteria for this broker
 		waitForClientConnectionList.insert(
@@ -145,6 +148,9 @@ Broker::~Broker()
 void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
 	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	if(ConfigParams::NS3_SIMULATOR == cnnHandler->clientType) {
+		Print() << "A message from NS3 is received" << std::endl;
+	}
 	std::vector<msg_ptr> messages;
 	m_f->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)
@@ -287,7 +293,7 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 //	}
 
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
-	Print() << "Broker::registerEntity [" << registeredAgents.size() << "]" << std::endl;
+	Print()<< registeredAgents.size() << ":  Broker::registerEntity [" << value->getEntity().getId() << "]" << std::endl;
 	value->registrationCallBack(true);
 	const_cast<Agent&>(value->getEntity()).Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
 			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
@@ -499,38 +505,42 @@ void Broker::sendReadyToReceive()
 void Broker::processOutgoingData(timeslice now)
 {
 //	now send what you have to send:
-	for(SEND_BUFFER<Json::Value>::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++)
+	int debug_sendBuffer_cnt = sendBuffer.size();
+	int debug_cnt = 0;
+	int debug_buffer_size;
+	Json::FastWriter debug_writer;
+	std::ostringstream debug_out;
+	for(SEND_BUFFER<Json::Value>::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++, debug_cnt++)
 	{
 		sim_mob::BufferContainer<Json::Value> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
 
 		//build a jsoncpp structure comprising of a header and data array(containing messages)
-		Json::Value packet;
-		Json::Value header;
-		Json::Value packetData;
-		Json::Value msg;
-
-		packetData.clear();
-		while(buffer.pop(msg))
+		Json::Value jpacket;
+		Json::Value jheader;
+		Json::Value jpacketData;
+		Json::Value jmsg;
+		debug_buffer_size = buffer.size();
+		jpacketData.clear();
+		while(buffer.pop(jmsg))
 		{
-			packetData.append(msg);
+			jpacketData.append(jmsg);
 		}
 		int nof_messages;
-		if(!(nof_messages = packetData.size()))
+		if(!(nof_messages = jpacketData.size()))
 		{
 			continue;
 		}
-		header = JsonParser::createPacketHeader(pckt_header(nof_messages));
-		packet.clear();
-		packet["PACKET_HEADER"] = header;
-		packet["DATA"] = packetData;
+		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages));
+		jpacket.clear();
+		jpacket["PACKET_HEADER"] = jheader;
+		jpacket["DATA"] = jpacketData;
 
 		//convert the jsoncpp packet to a json string
-		Json::FastWriter writer;
-		std::string str = writer.write(packet);
-//		std::cout << "Sending \n'" << str << std::endl;
+		std::string str = Json::FastWriter().write(jpacket);
 		cnn->async_send(str);
 	}
+	sendBuffer.clear();
 }
 
 

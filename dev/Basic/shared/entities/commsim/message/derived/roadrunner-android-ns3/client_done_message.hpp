@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef CLIENTDONE_MESSAGE_HPP_
-#define CLIENTDONE_MESSAGE_HPP_
+#ifndef RR_ANDROID_NS3_CLIENTDONE_MESSAGE_HPP_
+#define RR_ANDROID_NS3_CLIENTDONE_MESSAGE_HPP_
 #include "entities/commsim/message/base/Message.hpp"
 //#include "CLIENTDONE_Handler.hpp"
 //#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"

@@ -26,6 +26,7 @@ void ConnectionServer::CreatSocketAndAccept() {
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
 	new_sess.reset(new sim_mob::Session(io_service_));
+	Print() << "Valid Session[" << new_sess.get() << "]" << std::endl;
 	acceptor_.async_accept(new_sess->socket(),
 			boost::bind(&ConnectionServer::handle_accept, this,
 					boost::asio::placeholders::error, new_sess));

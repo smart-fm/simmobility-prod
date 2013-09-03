@@ -7,12 +7,14 @@
  *      are supposed to be routed to ns3
  */
 
-#ifndef ANDROID_NS3_MULTICAST_MESSAGE_HPP_
-#define ANDROID_NS3_MULTICAST_MESSAGE_HPP_
+#ifndef RR_ANDROID_NS3_MULTICAST_MESSAGE_HPP_
+#define RR_ANDROID_NS3_MULTICAST_MESSAGE_HPP_
 #include "entities/commsim/message/base/Message.hpp"
 namespace sim_mob {
 namespace rr_android_ns3 {
-
+/***************************************************************************************************************************************************
+ *****************************   ANDROID   ************************************************************************************************************
+ **************************************************************************************************************************************************/
 class ANDROID_MSG_MULTICAST : public sim_mob::comm::Message<msg_data_t> {
 	//...
 public:

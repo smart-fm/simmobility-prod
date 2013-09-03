@@ -106,6 +106,11 @@ const std::vector<T>& get() const{
 	return buffer;
 }
 
+ int size() {
+		boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);
+	 return buffer.size();
+ }
+
 bool pop(T & var) {
 	boost::unique_lock< boost::shared_mutex > lock(Owner_Mutex);
 	if (buffer.size() < 1)

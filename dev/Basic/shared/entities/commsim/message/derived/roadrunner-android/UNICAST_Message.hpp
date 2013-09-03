@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef UNICAST_MESSAGE_HPP_
-#define UNICAST_MESSAGE_HPP_
+#ifndef RR_ANDROID_UNICAST_MESSAGE_HPP_
+#define RR_ANDROID_UNICAST_MESSAGE_HPP_
 #include "entities/commsim/message/base/Message.hpp"
 //#include "UNICAST_Handler.hpp"
 //#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"

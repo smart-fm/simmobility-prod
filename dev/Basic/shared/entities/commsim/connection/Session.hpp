@@ -30,6 +30,7 @@ public:
 
   ~Session()
   {
+	  Print() << "Deleting Session [" << this << "]" << std::endl;
 //	  inbound_data_.clear();
   }
 

@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef  RR_FACTORY_HPP_
-#define RR_FACTORY_HPP_
+#ifndef  RR_ANDROID_FACTORY_HPP_
+#define  RR_ANDROID_FACTORY_HPP_
 
 #include "entities/commsim/serialization/Serialization.hpp"
 #include "MULTICAST_Message.hpp"

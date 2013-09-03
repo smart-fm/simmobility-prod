@@ -48,6 +48,8 @@ void ConnectionHandler::start()
 	mySession->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
 }
 
+
+
 void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::string str)
 {
 	if(e)
@@ -93,6 +95,10 @@ bool ConnectionHandler::send(std::string str) {
 }
 void ConnectionHandler::sendHandler(const boost::system::error_code& e) {
 //	Print() << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
+}
+
+session_ptr &ConnectionHandler::session(){
+	return mySession;
 }
 
 bool ConnectionHandler::is_open(){

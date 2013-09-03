@@ -5,8 +5,8 @@
  *      Author: vahid
  */
 
-#ifndef MULTICAST_MESSAGE_HPP_
-#define MULTICAST_MESSAGE_HPP_
+#ifndef RR_ANDROID_MULTICAST_MESSAGE_HPP_
+#define RR_ANDROID_MULTICAST_MESSAGE_HPP_
 //#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 namespace sim_mob {

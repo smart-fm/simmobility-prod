@@ -4,6 +4,9 @@
 
 #include "RawConfigParams.hpp"
 
+#include <boost/filesystem.hpp>
+#include <jsoncpp/json/json.h>
+
 using namespace sim_mob;
 
 sim_mob::RawConfigParams::RawConfigParams()
@@ -27,3 +30,44 @@ sim_mob::SimulationParams::SimulationParams() :
     passenger_mean_busstop(0), passenger_standardDev_busstop(0), passenger_percent_boarding(0),
     passenger_percent_alighting(0), passenger_min_uniform_distribution(0), passenger_max_uniform_distribution(0)
 {}
+
+
+void sim_mob::Credential::LoadFileCredentials(const std::vector<std::string>& paths)
+{
+	//Find the first file that actually exists.
+	for (std::vector<std::string>::const_iterator it=paths.begin(); it!=paths.end(); it++) {
+		if (boost::filesystem::exists(*it)) {
+			//Convert it to an absolute path.
+			boost::filesystem::path abs_path = boost::filesystem::absolute(*it);
+			LoadCredFile(abs_path.string());
+			break; //We only allow the first match to actually load.
+		}
+	}
+}
+
+
+void sim_mob::Credential::LoadCredFile(const std::string& path)
+{
+	//Parse a JSON file.
+	Json::Value root;
+	Json::Reader reader;
+	if (!reader.parse(path, root)) {
+		Warn() <<"Could not parse json credentials file: " <<path <<std::endl;
+		return;
+	}
+
+	//
+
+
+
+	//todo
+	throw 1;
+}
+
+
+void sim_mob::Credential::SetPlaintextCredentials(const std::string& username, const std::string& password)
+{
+	this->username = username;
+	this->password = password;
+}
+

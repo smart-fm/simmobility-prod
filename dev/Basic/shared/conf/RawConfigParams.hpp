@@ -72,10 +72,13 @@ public:
 	}
 
 	///Helper: load FileCredentials
-	static void LoadFileCredentials(const std::vector<std::string>& paths);
-	static void SetPlaintextCredentials(const std::string& username, const std::string& password);
+	void LoadFileCredentials(const std::vector<std::string>& paths);
+	void SetPlaintextCredentials(const std::string& username, const std::string& password);
 
-protected:
+private:
+	//Helper: actually load the file.
+	void LoadCredFile(const std::string& path);
+
 	std::string username;
 	std::string password;
 };

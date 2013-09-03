@@ -681,10 +681,45 @@ void sim_mob::ParseConfigFile::ProcessConstructDbProcGroupsNode(xercesc::DOMElem
 
 void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMElement* node)
 {
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		std::string name = TranscodeString(item->getNodeName());
+		if (name!="file-based-credential" && name!="plaintext-credential") {
+			Warn() <<"Invalid db_proc_groups child node.\n";
+			continue;
+		}
 
+		//Retrieve some attributes from the Node itself.
+		Credential cred(ParseString(GetNamedAttributeValue(item, "id")));
 
-	//todo
-	throw 1;
+		//Setting the actual credentials depends on the type of node.
+		if (name=="file-based-credential") {
+			//Scan children for "path" nodes.
+			std::vector<std::string> paths;
+			for (DOMElement* pathItem=item->getFirstElementChild(); pathItem; pathItem=pathItem->getNextElementSibling()) {
+				if (TranscodeString(pathItem->getNodeName())!="file") {
+					Warn() <<"file-based credentials contain invalid child node; expected path.\n";
+					continue;
+				}
+				std::string path = ParseString(GetNamedAttributeValue(pathItem, "path"), "");
+				if (!path.empty()) {
+					paths.push_back(path);
+				}
+			}
+
+			//Try setting it.
+			cred.LoadFileCredentials(paths);
+		} else if (name=="plaintext-credential") {
+			//Retrieve children manually.
+			std::string username = ParseString(GetNamedAttributeValue(GetSingleElementByName(item, "username"), "value"), "");
+			std::string password = ParseString(GetNamedAttributeValue(GetSingleElementByName(item, "password"), "value"), "");
+			cred.SetPlaintextCredentials(username, password);
+		} else {
+			throw std::runtime_error("Unexpected (but allowed) credentials.");
+		}
+
+		//Save it.
+		cfg.constructs.credentials[cred.getId()] = cred;
+	}
 }
 
 

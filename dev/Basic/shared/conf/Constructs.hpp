@@ -88,7 +88,7 @@ private:
 /**
  * Collection of various items "construct"ed from the config file.
  */
-struct Constructs {
+/*struct Constructs {
 	//Models
 	std::map<std::string, CarFollowModel*> carFollowModels;
 	std::map<std::string, LaneChangeModel*> laneChangeModels;
@@ -104,6 +104,6 @@ struct Constructs {
 	//Database Connections
 	std::map<std::string, DatabaseConnection> dbConnections;
 	std::map<std::string, StoredProcedureMap> storedProcedureMaps;
-};
+};*/
 
 }

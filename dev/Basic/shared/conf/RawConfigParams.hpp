@@ -10,6 +10,7 @@
 
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
+#include "conf/Constructs.hpp"
 #include "entities/AuraManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "workers/WorkGroup.hpp"
@@ -39,6 +40,56 @@ struct BusStopScheduledTime {
 
 	unsigned int offsetAT; //<Presumably arrival time?
 	unsigned int offsetDT; //<Presumably departure time?
+};
+
+
+//helper class. Note that this is somewhat different from the DatabaseConnection class, as it stores credentials elsewhere.
+class Database : public Identifiable {
+public:
+	Database(const std::string& id="") : Identifiable(id) {}
+
+	std::string host;
+	std::string port;
+	std::string dbName;
+};
+
+
+//helper class: to be moved.
+class Credential : public Identifiable {
+public:
+	Credential(const std::string& id="") : Identifiable(id) {}
+
+	std::string getUsername() {
+		return username;
+	}
+
+	std::string getPassword(bool mask=true) {
+		if (mask) {
+			return std::string(password.size(), '*');
+		} else {
+			return password;
+		}
+	}
+
+	///Helper: load FileCredentials
+	static void LoadFileCredentials(const std::vector<std::string>& paths);
+	static void SetPlaintextCredentials(const std::string& username, const std::string& password);
+
+protected:
+	std::string username;
+	std::string password;
+};
+
+
+
+
+//helper class: to be moved.
+class Constructs {
+public:
+	//std::map<std::string, Distribution> distributions; //<TODO
+	std::map<std::string, Database> databases;
+	std::map<std::string, StoredProcedureMap> procedureMaps;
+	std::map<std::string, Credential> credentials;
 };
 
 

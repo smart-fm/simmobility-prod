@@ -18,7 +18,7 @@ void sim_mob::conf::db_connections_pimpl::post_db_connections ()
 
 void sim_mob::conf::db_connections_pimpl::connection (const std::pair<std::string, sim_mob::DatabaseConnection>& value)
 {
-	config->constructs().dbConnections[value.first] = value.second;
+	//config->constructs().dbConnections[value.first] = value.second;
 }
 
 

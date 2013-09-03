@@ -251,8 +251,25 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	}
 }
 
-bool isAndroidClientEnabled(TiXmlHandle& handle)
+bool isCommunicationSimulatorEnabled(TiXmlDocument& document) {
+	//Communication Simulator (optional)
+	ConfigParams::GetInstance().commSimEnabled = false;
+	std::string commSimYesNo;
+	TiXmlHandle handle = TiXmlHandle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
+	if (node) {
+		commSimYesNo = std::string(node->Attribute("enabled"));
+		if (commSimYesNo == "yes") {
+			return true;
+			//createCommunicator();
+		}
+	}
+	return false;
+}
+
+bool isAndroidClientEnabled(TiXmlDocument& document)
 {
+	TiXmlHandle handle = TiXmlHandle(&document);
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
 	ConfigParams::GetInstance().androidClientEnabled = false;
 //	if(!node->Attribute("type"))
@@ -1361,23 +1378,27 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 	}
 
-	//Communication Simulator (optional)
-	ConfigParams::GetInstance().commSimEnabled = false;
-	std::string commSimYesNo;
-	handle = TiXmlHandle(&document);
-	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
-	if (node) {
-		commSimYesNo = std::string(node->Attribute("enabled"));
-		if (commSimYesNo == "yes") {
-			ConfigParams::GetInstance().commSimEnabled = true;
-			//createCommunicator();
-		}
-	}
+//	//Communication Simulator (optional)
+//	ConfigParams::GetInstance().commSimEnabled = isCommunicationSimulatorEnabled(document);
+//	std::string commSimYesNo;
+//	handle = TiXmlHandle(&document);
+//	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
+//	if (node) {
+//		commSimYesNo = std::string(node->Attribute("enabled"));
+//		if (commSimYesNo == "yes") {
+//			ConfigParams::GetInstance().commSimEnabled = true;
+//			//createCommunicator();
+//		}
+//	}
+
 	ConfigParams::GetInstance().androidClientType = "";
-	if(commSimYesNo == "yes")
+	if((ConfigParams::GetInstance().commSimEnabled = isCommunicationSimulatorEnabled(document)) == true)
 	{
-		if((ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle)) == true)
+		if((ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(document)) == true)
 		{
+			Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);//disabled by default
+			Print() << "androidBroker[" << androidBroker << "] of thype [" << ConfigParams::GetInstance().androidClientType << "] created" << std::endl;
+			ConfigParams::GetInstance().addExternalCommunicator(ConfigParams::GetInstance().androidClientType, androidBroker);
 //			TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
 //			ConfigParams::GetInstance().androidClientType = std::string(node->Attribute("type"));
 		}
@@ -1881,6 +1902,23 @@ sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 #else
 	throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
 #endif
+}
+
+
+std::map<std::string, sim_mob::Broker*> & sim_mob::ConfigParams::getExternalCommunicators()  {
+	return externalCommunicators;
+}
+
+sim_mob::Broker* sim_mob::ConfigParams::getExternalCommunicator(std::string & value) {
+	if(externalCommunicators.find(value) != externalCommunicators.end())
+	{
+		return externalCommunicators[value];
+	}
+	return 0;
+}
+
+void sim_mob::ConfigParams::addExternalCommunicator(std::string & name, sim_mob::Broker* broker){
+	externalCommunicators.insert(std::make_pair(name,broker));
 }
 
 

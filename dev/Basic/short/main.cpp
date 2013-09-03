@@ -137,8 +137,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		prof = new ProfileBuilder();
 	}
 
-	//This is kind of a mess.
-	sim_mob::Broker androidBroker(MtxStrat_Locked, 0);//disabled by default
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
@@ -150,7 +148,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
 		//just for now, we comment out driver and use drivercomm. don't worry it is all same except it registers to a broker -Vahid
 //		if (ConfigParams::GetInstance().commSimEnabled) {
-			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
 //		} else {
 //			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 //		}
@@ -273,10 +271,15 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
 
+
 	if(ConfigParams::GetInstance().commSimEnabled && ConfigParams::GetInstance().androidClientEnabled )
 	{
-		communicationWorkers->assignAWorker(&androidBroker);
-		androidBroker.enable();
+		std::string & name = ConfigParams::GetInstance().androidClientType;
+
+		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
+		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
+		communicationWorkers->assignAWorker(androidBroker);
+		androidBroker->enable();
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;

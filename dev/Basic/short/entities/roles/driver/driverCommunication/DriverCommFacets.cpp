@@ -44,7 +44,7 @@ sim_mob::DriverCommMovement::~DriverCommMovement()
 void sim_mob::DriverCommMovement::frame_init(UpdateParams& p) {
 	DriverMovement::frame_init(p);
 	sim_mob::Agent * agent = 0;
-	this->parentDriverCommRole->Register(this->parentDriverCommRole->getParent(), this->parentDriverCommRole->getBroker());
+	this->parentDriverCommRole->RegisterWithBroker(/*this->parentDriverCommRole->getParent(), this->parentDriverCommRole->getBroker()*/);
 }
 
 void sim_mob::DriverCommMovement::frame_tick(UpdateParams& p) {
@@ -68,6 +68,15 @@ void sim_mob::DriverCommMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::DriverCommMovement::frame_tick_output(const UpdateParams& p) {
 	DriverMovement::frame_tick_output(p);
+}
+
+
+DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const {
+	return parentDriverCommRole;
+}
+
+void sim_mob::DriverCommMovement::setParentDriverComm(DriverComm* parentDriverCommRole_) {
+	this->parentDriverCommRole = parentDriverCommRole_;
 }
 
 }

@@ -33,7 +33,7 @@ class ClientHandler: public sim_mob::event::EventListener {
 public:
 	ClientHandler(sim_mob::Broker &);
 	boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler;
-	sim_mob::AgentCommUtility<std::string>* AgentCommUtility_; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
+	sim_mob::AgentCommUtilityBase* AgentCommUtility_; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
 	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
 	std::string clientID;
 	unsigned int client_type; //ns3, android emulator, FMOD etc

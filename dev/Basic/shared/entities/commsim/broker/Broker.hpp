@@ -16,20 +16,19 @@ template <class RET,class MSG>
 class MessageFactory;
 template<class T>
 class Message;
-template<class T>
-class AgentCommUtility;
+class AgentCommUtilityBase;
 class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
 class WaitForClientConnection;
 
-template<class MSG_TYPE>
+
 struct AgentsMap
 {
-	typedef boost::unordered_map<const sim_mob::Agent *, AgentCommUtility<MSG_TYPE>* > type;
-	typedef typename boost::unordered_map<const sim_mob::Agent *, AgentCommUtility<MSG_TYPE>* >::iterator iterator;
-	typedef std::pair<const sim_mob::Agent *, AgentCommUtility<MSG_TYPE>* > pair;
+	typedef boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* > type;
+	typedef typename boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* >::iterator iterator;
+	typedef std::pair<const sim_mob::Agent *, AgentCommUtilityBase* > pair;
 };
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
@@ -76,7 +75,7 @@ private:
 	bool enabled;
 	bool configured;
 	//	list of the registered agents and their corresponding communication equipment
-	AgentsMap<std::string>::type registeredAgents;
+	AgentsMap::type registeredAgents;
 	//	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
 	//	list of authorized clients who have passed the registration process
@@ -117,7 +116,7 @@ private:
 	bool brokerCanProceed()const;
 	bool isWaitingForAnyClientConnection();
 	//checks wether an agent9entity) is dead or alive
-	bool deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info);
+	bool deadEntityCheck(sim_mob::AgentCommUtilityBase * info);
 	//revise the registration of the registered agents
 	void refineSubscriptionList();
 	///Returns true if enough subscriptions exist to allow the broker to update.
@@ -158,11 +157,11 @@ public:
 	//	returns true if broker is enabled
 	bool isEnabled() const;
 	//	list of registered agents
-	AgentsMap<std::string>::type & getRegisteredAgents();
+	AgentsMap::type & getRegisteredAgents();
 	//	register an agent
-	bool registerEntity(sim_mob::AgentCommUtility<std::string> * );
+	bool registerEntity(sim_mob::AgentCommUtilityBase * );
 	//	unregister an agent
-	void unRegisterEntity(sim_mob::AgentCommUtility<std::string> *value);
+	void unRegisterEntity(sim_mob::AgentCommUtilityBase *value);
 	//	unregister an agent
 	void unRegisterEntity(const sim_mob::Agent * agent);
 	//	returns list of clients waiting to be admitted as registered clients

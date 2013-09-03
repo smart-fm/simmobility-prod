@@ -14,7 +14,7 @@
 namespace sim_mob {
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
-	sim_mob::AgentsMap<std::string>::type usedAgents;
+	sim_mob::AgentsMap::type usedAgents;
 public:
 	AndroidClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::ANDROID_EMULATOR*/);
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);

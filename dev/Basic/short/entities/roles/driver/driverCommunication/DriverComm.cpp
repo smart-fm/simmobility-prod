@@ -10,9 +10,9 @@ namespace sim_mob
 
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
-sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
-		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(*managingBroker, *parent)
-{}
+sim_mob::DriverComm::DriverComm(Person* parent/*, */, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
+		Driver(parent,mtxStrat,behavior, movement), AgentCommUtilityBase(parent)
+{	}
 
 sim_mob::DriverComm::~DriverComm()
 {}
@@ -21,11 +21,18 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 {
 	DriverCommBehavior* behavior = new DriverCommBehavior(parent);
 	DriverCommMovement* movement = new DriverCommMovement(parent);
-	DriverComm* driver = new DriverComm(parent, &this->communicator, parent->getMutexStrategy(), behavior, movement);
+	DriverComm* driver = new DriverComm(parent, /*&this->communicator, */parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	behavior->setParentDriverComm(driver);
 	movement->setParentDriverComm(driver);
+	//broker, (external)communicator :( ... setting
+
+	ConfigParams &cfg = ConfigParams::GetInstance();
+	Broker* managingBroker = cfg.getExternalCommunicator(cfg.androidClientType);
+//	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
+	driver->setBroker(managingBroker);
+
 	return driver;
 }
 sim_mob::Agent * DriverComm::getParentAgent()
@@ -33,10 +40,6 @@ sim_mob::Agent * DriverComm::getParentAgent()
 	return parent;
 }
 
-sim_mob::Broker &DriverComm::getBroker()
-{
-	return communicator;
-}
 
 #if 0
 void sim_mob::DriverComm::receiveModule(timeslice now)

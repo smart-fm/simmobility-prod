@@ -55,6 +55,7 @@ class ReactionTimeDist;
 class PassengerDist;
 class CommunicationDataManager;
 class ControlManager;
+class Broker;
 
 
 /**
@@ -278,6 +279,9 @@ public:
 	sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
 
 	sim_mob::ControlManager* getControlMgr() const;
+	std::map<std::string, sim_mob::Broker*> & getExternalCommunicators() ;
+	sim_mob::Broker* getExternalCommunicator(std::string & value);
+	void addExternalCommunicator(std::string & name, sim_mob::Broker* broker);
 
 	///Retrieve a reference to the list of trip chains.
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
@@ -322,6 +326,8 @@ private:
 	mutable CommunicationDataManager* commDataMgr;
 	mutable ControlManager* controlMgr;
 
+	std::map<std::string, sim_mob::Broker*> externalCommunicators;
+	
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
 	std::vector<sim_mob::PT_trip*> pt_trip;

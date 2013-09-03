@@ -186,7 +186,7 @@ void Broker::OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* se
 	//const_cast<Agent*>(agent)->UnSubscribe(AGENT_LIFE_EVENT_FINISHED_ID, this);
 }
 
-AgentsMap<std::string>::type & Broker::getRegisteredAgents() {
+AgentsMap::type & Broker::getRegisteredAgents() {
 	return registeredAgents;
 }
 
@@ -282,7 +282,7 @@ void Broker::processClientRegistrationRequests()
 	}
 }
 
-bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
+bool  Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
 	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
 	//is established. That feed back will be done through agent's registrationCallBack()
@@ -292,17 +292,17 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 //		return 0;
 //	}
 
-	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
-	Print()<< registeredAgents.size() << ":  Broker::registerEntity [" << value->getEntity().getId() << "]" << std::endl;
+	registeredAgents.insert(std::make_pair(value->getEntity(), value));
+	Print()<< registeredAgents.size() << ":  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
 	value->registrationCallBack(true);
-	const_cast<Agent&>(value->getEntity()).Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
+	const_cast<Agent*>(value->getEntity())->Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
 			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
 	return true;
 }
 
-void  Broker::unRegisterEntity(sim_mob::AgentCommUtility<std::string> *value)
+void  Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
 {
-	unRegisterEntity(&value->getEntity());
+	unRegisterEntity(value->getEntity());
 }
 
 void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
@@ -388,12 +388,12 @@ Entity::UpdateStatus Broker::frame_tick(timeslice now){
 bool Broker::allAgentUpdatesDone()
 {
 
-	AgentsMap<std::string>::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
+	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
 
 	int i = 0;
 	while(it != it_end)
 	{
-		sim_mob::AgentCommUtility<std::string> *info = (it->second);//easy read
+		sim_mob::AgentCommUtilityBase *info = (it->second);//easy read
 			try
 			{
 				if(!info->registered)
@@ -545,20 +545,20 @@ void Broker::processOutgoingData(timeslice now)
 
 
 //checks to see if the subscribed entity(agent) is alive
-bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
+bool Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
 	if(!info)
 	{
 		throw std::runtime_error("Invalid AgentCommUtility\n");
 	}
 	try {
 
-		if (!(info->getEntity().currWorkerProvider)) {
+		if (!(info->getEntity()->currWorkerProvider)) {
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity().currWorkerProvider->getEntities();
+				info->getEntity()->currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
@@ -568,7 +568,7 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 		for (std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
-			if (*it == &(info->getEntity()))
+			if (*it == (info->getEntity()))
 				return false;
 		}
 	} catch (std::exception& e) {
@@ -583,7 +583,7 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 //you better hope they are dead otherwise you have to hold the simulation
 //tick waiting for them to finish
 void Broker::refineSubscriptionList() {
-	AgentsMap<std::string>::iterator it, it_end(registeredAgents.end());
+	AgentsMap::iterator it, it_end(registeredAgents.end());
 	for(it = registeredAgents.begin(); it != it_end; it++)
 	{
 		const sim_mob::Agent * target = (*it).first;

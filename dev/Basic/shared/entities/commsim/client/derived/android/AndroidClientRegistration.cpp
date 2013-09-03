@@ -36,10 +36,10 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		return false;
 	}
 
-	AgentsMap<std::string>::type &registeredAgents = broker.getRegisteredAgents();
+	AgentsMap::type &registeredAgents = broker.getRegisteredAgents();
 	//find a free agent(someone who is not yet been associated to an andriod client)
 //	 std::pair<const sim_mob::Agent *, AgentCommUtility<std::string> * >* freeAgent = 0;
-	 AgentsMap<std::string>::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
+	 AgentsMap::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
 	for(  ; freeAgent != it_end; freeAgent++)
 	{
 		if(usedAgents.find(freeAgent->first) == usedAgents.end())

@@ -63,15 +63,54 @@ void sim_mob::Credential::LoadCredFile(const std::string& path)
 		return;
 	}
 
-	//TEMP:
-	std::string temp = "X";
-	temp = Base64::decode(temp);
-	simple_password::decryptionFunc(temp);
-	std::cout <<"\"" <<temp <<"\"\n";
+	//The username is easy.
+	username = root.get("username", "").asString();
 
+	//The password requires loading the algorithm, which is something like this:
+	//["clear","xor23","base64","cipher"]
+	//It describes which mutations (xor23, base64) must be applied to get from the cleartext to the cipher, and vice-versa.
+	std::vector<std::string> algorithm;
+	const Json::Value steps = root["algorithm"];
+	for (int i=0; i<steps.size(); i++) {
+		std::string step = steps[i].asString();
+		algorithm.push_back(step);
 
-	//todo
-	throw 1;
+		//Double-check:
+		if (step!="clear" && step!="xor23" && step!="base64" && step!="cipher") {
+			throw std::runtime_error("Bad step in \"algorithm\" block.");
+		}
+	}
+
+	//Minimum size.
+	if (algorithm.size()<2) {
+		throw std::runtime_error("File credentials requires an \"algorithm\" with at least 2 steps.");
+	}
+
+	//Reverse, if necessary.
+	if (algorithm.front()=="clear" && algorithm.back()=="cipher") {
+		std::reverse(algorithm.begin(), algorithm.end());
+	}
+
+	//Make sure our first 2 elements are clear/cipher.
+	if (algorithm.front()!="cipher" || algorithm.back()!="clear") {
+		throw std::runtime_error("File credentials \"algorithm\" requires a clear/cipher boundaries.");
+	}
+
+	//Now retrieve the password and run it.
+	password = root.get("password", "").asString();
+	if (!password.empty()) {
+		for (std::vector<std::string>::const_iterator it=algorithm.begin(); it!=algorithm.end(); it++) {
+			if ((*it)=="clear" || (*it)=="cipher") {
+				continue; //TODO: This allows clear/cipher to appear in the middle, which is not allowed.
+			} else if ((*it)=="xor23") {
+				simple_password::decryptionFunc(password);
+			} else if ((*it)=="base64") {
+				password = Base64::decode(password);
+			} else {
+				throw std::runtime_error("Unexpected missing algorithm in file credentials.");
+			}
+		}
+	}
 }
 
 

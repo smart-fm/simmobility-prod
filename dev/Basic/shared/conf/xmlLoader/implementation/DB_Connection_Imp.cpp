@@ -26,15 +26,16 @@ pair<string, DatabaseConnection> sim_mob::conf::db_connection_pimpl::post_db_con
 	}
 
 	//Create a return type.
-	DatabaseConnection res(dbcID);
+	/*DatabaseConnection res(dbcID);
 	res.dbName = dbcParams.find("dbname")->second;
 	res.host = dbcParams.find("host")->second;
 	res.password = Password(dbcParams.find("password")->second);
 	res.port = boost::lexical_cast<int>(dbcParams.find("port")->second);
-	res.user = dbcParams.find("user")->second;
+	res.user = dbcParams.find("user")->second;*/
 
 	//Return it
-	return std::make_pair(res.getId(), res);
+	//return std::make_pair(res.getId(), res);
+	return std::make_pair("ERROR", DatabaseConnection());
 }
 
 void sim_mob::conf::db_connection_pimpl::param (const std::pair<std::string, std::string>& value)

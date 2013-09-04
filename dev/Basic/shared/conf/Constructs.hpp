@@ -50,7 +50,7 @@ public:
 private:
 	std::string id;
 };
-class DatabaseConnection : public Identifiable {
+/*class DatabaseConnection : public Identifiable {
 public:
 	DatabaseConnection(const std::string& id="") : Identifiable(id) {}
 
@@ -59,7 +59,7 @@ public:
 	std::string dbName;
 	std::string user;
 	Password password;
-};
+};*/
 class StoredProcedureMap : public Identifiable {
 public:
 	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}

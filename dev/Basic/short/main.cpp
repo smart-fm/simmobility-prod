@@ -138,7 +138,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//This is kind of a mess.
-	sim_mob::Broker androidBroker(MtxStrat_Locked, 0);//disabled by default
+	sim_mob::Broker* androidBroker = nullptr; //null = disabled.
+
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
@@ -156,7 +157,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
 		if (ConfigParams::GetInstance().commSimEnabled()) {
-			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
+			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, androidBroker, mtx));
 		} else {
 			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 		}
@@ -282,8 +284,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
 	{
-		communicationWorkers->assignAWorker(&androidBroker);
-		androidBroker.enable();
+		communicationWorkers->assignAWorker(androidBroker);
+		androidBroker->enable();
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
@@ -503,6 +505,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	cout << "Simulation complete; closing worker threads." << endl;
+
+	//Delete our broker.
+	safe_delete_item(androidBroker);
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);

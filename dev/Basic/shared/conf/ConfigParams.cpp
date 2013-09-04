@@ -86,16 +86,40 @@ void sim_mob::ConfigParams::InitUserConf(const std::string& configPath, std::vec
 
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {
-	const DatabaseConnection& dbConn = geometry.connection;
+	//The database.
+	std::string dbKey = system.networkDatabase.database;
+	std::map<std::string, Database>::const_iterator dbIt = constructs.databases.find(dbKey);
+	if (dbIt==constructs.databases.end()) {
+		throw std::runtime_error("Couldn't find default database.");
+	}
+
+	//The credentials
+	std::string credKey = system.networkDatabase.credentials;
+	std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
+	if (credIt==constructs.credentials.end()) {
+		throw std::runtime_error("Couldn't find default credentials..");
+	}
+
+	//Now build the string.
 	std::stringstream res;
 
-	res <<"host="   <<dbConn.host   <<" "
-		<<"port="   <<dbConn.port   <<" "
-		<<"dbname=" <<dbConn.dbName <<" "
-		<<"user="   <<dbConn.user   <<" "
-//		<<"password=" <<dbConn.password.toString(maskPassword);
-		<<"password=" <<(maskPassword?"***":sim_mob::simple_password::load(std::string())); //NOTE: This is in no way secure. ~Seth
+	res <<"host="   <<dbIt->second.host   <<" "
+		<<"port="   <<dbIt->second.port   <<" "
+		<<"dbname=" <<dbIt->second.dbName <<" "
+		<<"user="   <<credIt->second.getUsername()   <<" "
+		<<"password=" <<credIt->second.getPassword(maskPassword);
+//		<<"password=" <<(maskPassword?"***":sim_mob::simple_password::load(std::string())); //NOTE: This is in no way secure. ~Seth
 	return res.str();
+}
+
+StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
+{
+	std::string key = system.networkDatabase.procedures;
+	std::map<std::string, StoredProcedureMap>::const_iterator it = constructs.procedureMaps.find(key);
+	if (it==constructs.procedureMaps.end()) {
+		throw std::runtime_error("Couldn't find stored procedure key.");
+	}
+	return it->second;
 }
 
 

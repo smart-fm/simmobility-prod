@@ -31,6 +31,9 @@
 
 namespace sim_mob {
 
+//Placeholder
+class DatabaseConnection{};
+
 
 /**
  * Class containing CMake-defined parameters.

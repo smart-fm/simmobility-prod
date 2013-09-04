@@ -59,11 +59,11 @@ class Credential : public Identifiable {
 public:
 	Credential(const std::string& id="") : Identifiable(id) {}
 
-	std::string getUsername() {
+	std::string getUsername() const {
 		return username;
 	}
 
-	std::string getPassword(bool mask=true) {
+	std::string getPassword(bool mask=true) const {
 		if (mask) {
 			return std::string(password.size(), '*');
 		} else {
@@ -84,6 +84,12 @@ private:
 };
 
 
+//helper class: to be moved.
+struct DatabaseDetails {
+	std::string database;
+	std::string credentials;
+	std::string procedures;
+};
 
 
 //helper class: to be moved.
@@ -189,6 +195,7 @@ public:
 
 	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
 	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
+	DatabaseDetails networkDatabase; //<If loading from the database, how do we connect?
 
 	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.
 
@@ -197,11 +204,11 @@ public:
 
 
 //helper class: to be moved.
-class GeometryParams {
+/*class GeometryParams {
 public:
 	DatabaseConnection connection;
 	StoredProcedureMap procedures;
-};
+};*/
 
 
 //helper class: to be moved.
@@ -231,7 +238,7 @@ public:
 	SystemParams system;
 
 	///Available gemetries (currently only database geometries).
-	GeometryParams geometry;
+	//GeometryParams geometry;
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;

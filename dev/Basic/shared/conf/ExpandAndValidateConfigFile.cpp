@@ -253,7 +253,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 	//Load from the database or from XML, depending.
 	if (ConfigParams::GetInstance().networkSource()==SystemParams::NETSRC_DATABASE) {
 		std::cout <<"Loading Road Network from the database.\n";
-		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.geometry.procedures.procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
+		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlFile(), cfg.getNetworkRW(), cfg.getTripChains())) {

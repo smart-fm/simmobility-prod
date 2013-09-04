@@ -130,6 +130,7 @@ public:
 
 	///Retrieve/build the connection string.
 	std::string getDatabaseConnectionString(bool maskPassword=true) const;
+	StoredProcedureMap getDatabaseProcMappings() const;
 
 
 	/**

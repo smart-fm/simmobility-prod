@@ -345,6 +345,7 @@ std::string ParseString(const XMLCh* srcX, std::string* defValue) {
 	if (!defValue) {
 		throw std::runtime_error("Mandatory string variable; no default available.");
 	}
+
 	return *defValue;
 }
 
@@ -528,7 +529,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 
 	//Now just parse the document recursively.
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
-	ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
+	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
@@ -551,12 +552,13 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
 	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
 	ProcessSystemNetworkXmlFileNode(GetSingleElementByName(node, "network_xml_file"));
+	ProcessSystemDatabaseNode(GetSingleElementByName(node, "network_database"));
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 }
 
 
-void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
+/*void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 {
 	//The geometry tag has some attributes.
 	std::string geomType = ParseString(GetNamedAttributeValue(node, "type"));
@@ -579,7 +581,7 @@ void sim_mob::ParseConfigFile::ProcessGeometryNode(xercesc::DOMElement* node)
 	//Now parse the rest.
 	ProcessGeomDbConnection(GetSingleElementByName(node, "connection"));
 	ProcessGeomDbMappings(GetSingleElementByName(node, "mappings"));
-}
+}*/
 
 
 void sim_mob::ParseConfigFile::ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node)
@@ -636,7 +638,7 @@ void sim_mob::ParseConfigFile::ProcessConstructDatabasesNode(xercesc::DOMElement
 
 		//Now retrieve the required parameters from child nodes.
 		db.host = ProcessValueString(GetSingleElementByName(item, "host"));
-		db.port = ProcessValueInteger(GetSingleElementByName(item, "port"));
+		db.port = ProcessValueString(GetSingleElementByName(item, "port"));
 		db.dbName = ProcessValueString(GetSingleElementByName(item, "dbname"));
 
 		cfg.constructs.databases[db.getId()] = db;
@@ -873,6 +875,16 @@ void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMEleme
 	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "data/SimMobilityInput.xml");
 }
 
+void sim_mob::ParseConfigFile::ProcessSystemDatabaseNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+	cfg.system.networkDatabase.database = ParseString(GetNamedAttributeValue(node, "database"), "");
+	cfg.system.networkDatabase.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
+	cfg.system.networkDatabase.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
+}
+
 void sim_mob::ParseConfigFile::ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node)
 {
 	//For now, only the Road Network has an XSD file (doing this for the config file from within it would be difficult).
@@ -1004,7 +1016,7 @@ void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElemen
 	cfg.system.workers.communication.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 }
 
-void sim_mob::ParseConfigFile::ProcessGeomDbConnection(xercesc::DOMElement* node)
+/*void sim_mob::ParseConfigFile::ProcessGeomDbConnection(xercesc::DOMElement* node)
 {
 	std::set<std::string> passed; //Kind of messy; format needs a redesign.
 	std::vector<DOMElement*> params = GetElementsByName(node, "param");
@@ -1037,17 +1049,17 @@ void sim_mob::ParseConfigFile::ProcessGeomDbConnection(xercesc::DOMElement* node
 	if (passed.size()<5) {
 		Warn() <<"Database connection has too few parameters; connection attempts may fail.\n";
 	}
-}
+}*/
 
 
-void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
+/*void sim_mob::ParseConfigFile::ProcessGeomDbMappings(xercesc::DOMElement* node)
 {
 	//These are so backwards...
 	for (DOMElement* prop=node->getFirstElementChild(); prop; prop=prop->getNextElementSibling()) {
 		//Save its name/procedure type in the procedures map.
 		cfg.geometry.procedures.procedureMappings[TranscodeString(prop->getNodeName())] = TranscodeString(GetNamedAttributeValue(prop, "procedure", true));
 	}
-}
+}*/
 
 
 void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq)

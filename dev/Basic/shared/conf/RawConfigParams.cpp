@@ -4,8 +4,13 @@
 
 #include "RawConfigParams.hpp"
 
+#include <fstream>
+
 #include <boost/filesystem.hpp>
 #include <jsoncpp/json/json.h>
+
+#include "password/password.hpp"
+#include "util/Base64.hpp"
 
 using namespace sim_mob;
 
@@ -51,13 +56,18 @@ void sim_mob::Credential::LoadCredFile(const std::string& path)
 	//Parse a JSON file.
 	Json::Value root;
 	Json::Reader reader;
-	if (!reader.parse(path, root)) {
+	std::ifstream inFile(path.c_str(), std::ifstream::binary);
+	if (!reader.parse(inFile, root, false)) {
 		Warn() <<"Could not parse json credentials file: " <<path <<std::endl;
+		Warn() <<reader.getFormatedErrorMessages() <<std::endl;
 		return;
 	}
 
-	//
-
+	//TEMP:
+	std::string temp = "X";
+	temp = Base64::decode(temp);
+	simple_password::decryptionFunc(temp);
+	std::cout <<"\"" <<temp <<"\"\n";
 
 
 	//todo

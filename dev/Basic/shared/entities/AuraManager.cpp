@@ -51,13 +51,13 @@ AuraManager::Stats::printStatistics() const
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 void
-AuraManager::init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats)
+AuraManager::init(AuraManagerImplementation implType, bool keepStats)
 {
     if (keepStats) {
         stats_ = new Stats;
     }
 
-    this->perfProfile = perfProfile;
+    this->local_implType = implType;
 
     //Reset time tick.
     time_step = 0;
@@ -82,38 +82,44 @@ AuraManager::init(AuraManagerImplementation implType, PerformanceProfile* perfPr
 /* virtual */ void
 AuraManager::update()
 {
-	if (perfProfile) {
-		perfProfile->markStartUpdate();
-	}
+
 	if (impl_) {
 		impl_->update(time_step);
 	}
 
 	time_step++;
 
-	if (perfProfile) {
-		perfProfile->markEndUpdate();
-		perfProfile->update();
-	}
 }
 
 std::vector<Agent const *>
 AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight)
 const
 {
-	if (perfProfile) {
-		perfProfile->markStartQuery(1);
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->agentsInRect(lowerLeft, upperRight);
+	}
+	return results;
+}
+
+std::vector<Agent const *>
+AuraManager::advanaced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const
+{
+	if(local_implType != IMPL_SIMTREE)
+	{
+		return agentsInRect(lowerLeft, upperRight);
 	}
 
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->agentsInRect(lowerLeft, upperRight);
-		if (perfProfile) {
-			perfProfile->markEndQuery(1);
-		}
+		results = impl_->advanaced_agentsInRect(lowerLeft, upperRight, item);
 	}
-	return results;
 
+//	static long sum_count = 0;
+//	sum_count += results.size();
+//	std::cout << "advanaced_agentsInRect:" << results.size() << ",sum_count:" << sum_count << std::endl;
+
+	return results;
 }
 
 std::vector<Agent const *>
@@ -121,21 +127,56 @@ AuraManager::nearbyAgents(Point2D const & position, Lane const & lane,
                           centimeter_t distanceInFront, centimeter_t distanceBehind)
 const
 {
-	if (perfProfile) {
-		perfProfile->markStartQuery(1);
-	}
-
-
+//	std::cout << "----------------------------" << std::endl;
 	std::vector<Agent const *> results;
 	if (impl_) {
 		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind);
-		if (perfProfile) {
-			perfProfile->markEndQuery(1);
-		}
 	}
+
+//	static long sum_count = 0;
+//	sum_count += results.size();
+
+//	std::cout << "Range Query:" << results.size() << ",sum_count:" << sum_count << std::endl;
+
+//	for(int i=0;i<results.size();i++)
+//	{
+//		Person const* one_person = dynamic_cast<Person const*>(results[i]);
+//		if(one_person)
+//		{
+//			std::cout << results[i]->can_remove_by_RTREE << ", Person ID:" << results[i]->getId() <<",(" << results[i]->xPos.get() << "," <<  results[i]->yPos.get()  << ")" << std::endl;
+//		}
+//		else
+//		{
+//			std::cout << results[i]->can_remove_by_RTREE << "Non-Person ID:" << results[i]->getId() <<",(" << results[i]->xPos.get() << "," <<  results[i]->yPos.get()  << ")" << std::endl;
+//		}
+//	}
+//	std::cout << "----------------------------" << std::endl;
+
+//	static long sum_count = 0;
+//	sum_count += results.size();
+//	if (sum_count % 100000 == 0)
+//		std::cout << "nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
 
 	return results;
 
+}
+
+std::vector<Agent const *> AuraManager::advanaced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+	if (local_implType != IMPL_SIMTREE) {
+		return nearbyAgents(position, lane, distanceInFront, distanceBehind);
+	}
+
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->advanaced_nearbyAgents(position, lane, distanceInFront, distanceBehind, item);
+	}
+
+//	static long sum_count = 0;
+//	sum_count += results.size();
+//	if (sum_count % 100000 == 0)
+//	std::cout << "advanaced_nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
+
+	return results;
 }
 
 void
@@ -156,19 +197,10 @@ AuraManager::printStatistics() const
  */
 void AuraManager::registerNewAgent(Agent const* one_agent)
 {
-//	std::cout << "Add 1." << std::endl;
-	if (perfProfile) {
-		perfProfile->markStartUpdate();
-	}
-
-	if (impl_) {
+	if ((local_implType == IMPL_SIMTREE) && impl_) {
 		if (dynamic_cast<Person const*>(one_agent)) {
 			impl_->registerNewAgent(one_agent);
 		}
-	}
-
-	if (perfProfile) {
-		perfProfile->markEndUpdate();
 	}
 }
 

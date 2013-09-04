@@ -20,6 +20,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "network/CommunicationDataManager.hpp"
 
+#include "util/PerformanceProfile.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::set;
@@ -290,6 +292,15 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
+
+//	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
+//	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
+
+//	this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
+//	this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());
+
+//	std::cout << "ID:" << this->parent->getId() << ",this->parent->xPos_Sim:" << this->parent->xPos_Sim << std::endl;
+//	std::cout << "this->parent->yPos_Sim:" << this->parent->yPos_Sim << std::endl;
 }
 
 void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
@@ -538,7 +549,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			{
 				//
 				if(p.currLane->is_pedestrian_lane()) {
-					std::cout<<"drive on pedestrian lane"<<std::endl;
+					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+					//I remember the message is not critical
+					//std::cout<<"drive on pedestrian lane"<<std::endl;
 				}
 				bool currentLaneConnectToNextLink = false;
 				int targetLaneIndex=p.currLaneIndex;
@@ -1455,9 +1468,34 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	//Retrieve a list of nearby agents
 
 	double dis = 10000.0;
+
+#if 0
+//	std::cout << "this->parent->run_on_thread_id:" << this->parent->run_on_thread_id << std::endl;
+	sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(
 			Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
+	sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
+#else
+	sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
+	vector<const Agent*> nearby_agents;
+	if (this->parent->connector_to_Sim_Tree != NULL)
+	{
+                if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
+		nearby_agents = AuraManager::instance().advanaced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
+				this->parent->connector_to_Sim_Tree);
+                else
+                {
+                	Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
+                }
+	}
+	else
+	{
+		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
+		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
+	}
 
+	sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
+#endif
 	//Update each nearby Pedestrian/Driver
 
 	//

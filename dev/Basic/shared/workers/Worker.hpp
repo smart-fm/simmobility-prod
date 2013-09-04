@@ -193,6 +193,9 @@ private:
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
 	event::EventManager eventManager;
+
+	int thread_id;
+	static int auto_matical_thread_id;
 };
 
 }

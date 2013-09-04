@@ -35,7 +35,10 @@ void RStarAuraManager::update(int time_step)
 		}
 
 		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000)
-			continue;
+		{
+            Warn() << "A driver's location (x or y) is out of map, X:" << ag->xPos.get() << ",Y:" << ag->yPos.get() << std::endl;
+            continue;
+		}
 
 		if (ag->can_remove_by_RTREE == false) {
 			tree_rstar.insert(ag);

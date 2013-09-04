@@ -27,6 +27,8 @@
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 
+#include "util/PerformanceProfile.hpp"
+
 using std::vector;
 
 using namespace sim_mob;
@@ -231,9 +233,15 @@ void sim_mob::WorkGroup::stageEntities()
 			putAgentOnConflux(ag);
 		} else {
 			assignAWorker(ag);
+
+			//insert into AuraManager
 		}
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
+
+		//insert the object to AuraManager
+		AuraManager::instance().registerNewAgent(ag);
+
 	}
 }
 
@@ -319,7 +327,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 	// (We can allow per-workgroup configuration later).
 	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment;
 	if (strat == ASSIGN_ROUNDROBIN) {
-		workers.at(nextWorkerID++)->scheduleForAddition(ag);
+		workers.at(nextWorkerID)->scheduleForAddition(ag);
 	} else {
 		GetLeastCongestedWorker(workers)->scheduleForAddition(ag);
 	}
@@ -381,10 +389,11 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 			}
 		}
 
+		//move to after AuraManage's update()
 		//Stage Agent updates based on nextTimeTickToStage
-		stageEntities();
+//		stageEntities();
 		//Remove any Agents staged for removal.
-		collectRemovedEntities();
+//		collectRemovedEntities();
 		//buff_flip_barr->contribute(); //No.
 	} else {
 		//Tick on behalf of all your workers.
@@ -411,9 +420,19 @@ void sim_mob::WorkGroup::waitAuraManager()
 		}
 
 		//Update the aura manager, if we have one.
+		PerformanceProfile::instance().markStartUpdate();
+
 		if (auraMgr) {
 			auraMgr->update();
 		}
+
+		PerformanceProfile::instance().markEndUpdate();
+		//calculate query time
+		PerformanceProfile::instance().update();
+
+		stageEntities();
+		collectRemovedEntities();
+		//buff_flip_barr->contribute(); //No.
 
 		//aura_mgr_barr->contribute();  //No.
 	} else {

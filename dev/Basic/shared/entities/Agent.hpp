@@ -35,6 +35,10 @@ class PackageUtils;
 class UnPackageUtils;
 class ProfileBuilder;
 
+//It is not a good design, now. Need to verify.
+//The class is used in Sim-Tree for Bottom-Up Query
+struct TreeItem;
+
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Agent*> {
   bool operator() (const Agent* x, const Agent* y) const;
@@ -204,6 +208,10 @@ public:
 	WayPoint originNode;
 	WayPoint destNode;
 
+	//tmp for Sim_Tree to Work
+//	int xPos_Sim;
+//	int yPos_Sim;
+
 	sim_mob::Shared<int> xPos;  ///<The agent's position, X
 	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
@@ -305,7 +313,6 @@ private:
 
 	bool onActivity; //Determines if the person is conducting any activity
 
-	//add by xuyan
 protected:
 	int dynamic_seed;
 
@@ -320,7 +327,6 @@ protected:
 	sim_mob::ProfileBuilder* profile;
 
 public:
-	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
 	bool isCallFrameInit() const {
@@ -334,6 +340,8 @@ public:
 	friend class BoundaryProcessor;
 
 	friend class ShortTermBoundaryProcessor;
+
+	TreeItem* connector_to_Sim_Tree;
 
 
 	/**

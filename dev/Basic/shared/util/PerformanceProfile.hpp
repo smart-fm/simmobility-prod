@@ -40,13 +40,15 @@ private:
 	double total_query_cost; //ms
 	double total_simulation_cost; //ms
 
+	long total_update_count;
+
 	bool measureParallel;
 	bool start_measure;
 	int thread_size;
 
 public:
 
-	PerformanceProfile() : buffer_sum(0), total_update_cost(0),
+	PerformanceProfile() : buffer_sum(0), total_update_cost(0),total_update_count(0),
 						   total_query_cost(0), total_simulation_cost(0),
 						   measureParallel(false), start_measure(0), thread_size(0)
 	{}
@@ -72,6 +74,15 @@ public:
 	void markAnthingStart2();
 	double markAnthingEnd2();
 	void showPerformanceProfile();
+
+public:
+    static PerformanceProfile &
+    instance()
+    {
+        return instance_;
+    }
+
+	static PerformanceProfile instance_;
 };
 
 }

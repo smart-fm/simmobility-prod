@@ -19,6 +19,8 @@ class Lane;
 class TreeImpl;
 class PerformanceProfile;
 
+struct TreeItem;
+
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -83,6 +85,10 @@ public:
     std::vector<Agent const *>
     agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const;
 
+    //only avaiable for Sim-Tree
+    std::vector<Agent const *>
+    advanaced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;
+
     /**
      * Return a collection of agents that are on the left, right, front, and back of the specified
      * position.
@@ -104,6 +110,11 @@ public:
     nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
+    //only avaiable for Sim-Tree
+    std::vector<Agent const *>
+    advanaced_nearbyAgents(Point2D const & position, Lane const & lane,
+                 centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+
     /**
      * Initialize the AuraManager object (to be invoked by the simulator kernel).
      *
@@ -112,7 +123,7 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats = false);
+    init(AuraManagerImplementation implType, bool keepStats = false);
 
     /**
      * Print statistics collected on internal operationss.
@@ -127,7 +138,7 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : impl_(nullptr), stats_(0), time_step(0), perfProfile(nullptr)
+	AuraManager() : impl_(nullptr), stats_(0), time_step(0)
 	{}
 
     /*Map to store the vehicle counts of each road segment. */
@@ -137,6 +148,9 @@ private:
 
     static AuraManager instance_;
     static AuraManager instance2_;
+
+    //different impl
+    AuraManagerImplementation local_implType;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;
@@ -150,8 +164,6 @@ private:
     /*class Impl;
     Impl* pimpl_;
     friend class Impl;  // allow access to stats_.*/
-
-    PerformanceProfile* perfProfile;
 
     //Current time step.
     int time_step;

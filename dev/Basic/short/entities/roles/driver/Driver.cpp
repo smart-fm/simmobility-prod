@@ -395,7 +395,9 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 	Point2D rectMinPoint = Point2D(xmin, ymin);
 	Point2D rectMaxPoint = Point2D(xmax, ymax);
 
+//	PerformanceProfile::instance().markStartQuery(this->run_on_thread_id);
 	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint);
+//	PerformanceProfile::instance().markEndQuery(run_on_thread_id);
 }
 } //End anon namespace
 

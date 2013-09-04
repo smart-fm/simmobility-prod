@@ -35,7 +35,7 @@ void sim_mob::RDUAuraManager::update(int time_step)
 		//Spatial-Tree can not deal with such locations
 		if(an_agent->xPos.get() < 10000000 || an_agent->yPos.get() < 1000000)
 		{
-//			tree_du.remove(an_agent);
+			Warn() << "A driver's location (x or y) is out of map, X:" << an_agent->xPos.get() << ",Y:" << an_agent->yPos.get() << std::endl;
 			continue;
 		}
 

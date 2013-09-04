@@ -33,10 +33,10 @@ namespace sim_mob {
             /**
              * Inherited from LT_Agent.
              */
-            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
-                    messaging::MessageReceiver& sender, const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, 
+                    const messaging::Message& message);
             bool OnFrameInit(timeslice now);
-            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
+            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now);
             void OnFrameOutput(timeslice now);
         private:
             HousingMarket* market;

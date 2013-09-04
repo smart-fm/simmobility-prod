@@ -9,7 +9,7 @@
 #include <set>
 #include <boost/thread.hpp>
 #include "buffering/BufferedDataManager.hpp"
-#include "event/EventManager.hpp"
+#include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
 
 namespace sim_mob {
@@ -41,8 +41,6 @@ public:
 	virtual void scheduleForBred(Entity* entity) = 0;
 
 	virtual const std::vector<Entity*>& getEntities() const = 0;
-
-	virtual event::EventManager& getEventManager() = 0;
 };
 
 
@@ -95,9 +93,11 @@ public:
 	void remEntity(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
+
 	void processVirtualQueues();
 	void outputSupplyStats(uint32_t currTick);
-	event::EventManager& getEventManager();
+	event::EventCollectionMgr& getEventManager();
+
 	virtual std::ostream* getLogFile() const;
 
 protected:
@@ -192,7 +192,6 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	event::EventManager eventManager;
 };
 
 }

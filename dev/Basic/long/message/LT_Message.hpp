@@ -10,6 +10,7 @@
 #include "Common.hpp"
 #include "database/entity/Bid.hpp"
 #include "message/Message.hpp"
+#include "message/MessageHandler.hpp"
 
 namespace sim_mob {
 
@@ -47,6 +48,7 @@ namespace sim_mob {
              * @return {@link Bid} instance.
              */
             const Bid& GetBid()const;
+            
         private:
             Bid bid;
             BidResponse response;

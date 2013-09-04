@@ -193,10 +193,9 @@ public:
 template<class MSG_TYPE>
 class AgentCommUtility :public AgentCommUtilityBase{
 public:
-	AgentCommUtility(/*sim_mob::Broker* managingBroker, */sim_mob::Agent* entity_):
-		AgentCommUtilityBase(/*managingBroker,*/entity_)
+	AgentCommUtility(sim_mob::Agent* entity_):
+		AgentCommUtilityBase(entity_)
 {
-	Print() << "AgentCommUtility constructor...Double checling the agent's value[" << entity_ << "]" << std::endl;
 }
 ;
 	virtual ~AgentCommUtility(){};

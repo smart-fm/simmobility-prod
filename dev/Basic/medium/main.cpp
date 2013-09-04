@@ -151,10 +151,10 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy()));
 	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
 
 
@@ -176,7 +176,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 #endif
 
-	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	//bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -185,33 +185,33 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded);
+	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
-	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 
 
-	agentWorkers->assignConfluxToWorkers();
+	personWorkers->assignConfluxToWorkers();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
 	 * they will be assigned a worker.
 	 */
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		// agentWorkers->assignAWorker(*it);
-		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		// personWorkers->assignAWorker(*it);
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
 	if(BusController::HasBusControllers()){
-		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
+		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too
@@ -222,7 +222,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl, nullptr);
+	AuraManager::instance().init(config.aura_manager_impl(), nullptr);
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -230,7 +230,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}
@@ -264,7 +264,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		if (ConfigParams::GetInstance().OutputEnabled()) {
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
@@ -301,11 +301,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	cout << "Starting Agents: " << numStartAgents;
 	cout << ",     Pending: ";
-	if (NoDynamicDispatch) {
+	/*if (NoDynamicDispatch) {
 		cout <<"<Disabled>";
-	} else {
+	} else {*/
 		cout <<numPendingAgents;
-	}
+	//}
 	cout << endl;
 
 	if (Agent::all_agents.empty()) {
@@ -342,13 +342,13 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}
+		}*/
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -384,7 +384,7 @@ int main(int ARGC, char* ARGV[])
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size() > 2 && args[2]=="mpi") {

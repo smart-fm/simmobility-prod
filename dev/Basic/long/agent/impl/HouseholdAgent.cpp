@@ -17,6 +17,7 @@
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using sim_mob::Entity;
 using std::vector;
 using std::string;
@@ -48,7 +49,7 @@ bool HouseholdAgent::OnFrameInit(timeslice now) {
     return retVal;
 }
 
-Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCounter) {
+Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now) {
     currentRole->Update(now);
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -56,7 +57,6 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCount
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::HandleMessage(messaging::MessageReceiver::MessageType type, messaging::MessageReceiver& sender,
-        const messaging::Message& message) {
-    currentRole->HandleMessage(type, sender, message);
+void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& message) {
+    currentRole->HandleMessage(type, message);
 }

@@ -21,9 +21,12 @@
 #include "entities/commsim/service/derived/TimePublisher.hpp"
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
+#include "event/SystemEvents.hpp"
+#include "message/MessageBus.hpp"
 
 namespace sim_mob
 {
+std::map<std::string, sim_mob::Broker*> Broker::externalCommunicators;
 void Broker::enable() { enabled = true; }
 void Broker::disable() { enabled = false; }
 bool Broker::isEnabled() const { return enabled; }
@@ -39,7 +42,7 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 	sendBuffer[cnnHandler].add(value);
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id), EventListener()
+: Agent(mtxStrat, id)
 ,enabled(true), configured(false)
 {
 	//Various Initializations
@@ -58,7 +61,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 
 void Broker::configure() {
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
-	 if(ConfigParams::GetInstance().androidClientType == "android-ns3")
+	 if(ConfigParams::GetInstance().getAndroidClientType() == "android-ns3")
 	 {
 		//publishers
 		publishers.insert(
@@ -99,7 +102,7 @@ void Broker::configure() {
 								new WaitForNS3Connection(*this, 1))));
 	 }
 	 else
-		 if(ConfigParams::GetInstance().androidClientType == "android-only") {
+		 if(ConfigParams::GetInstance().getAndroidClientType() == "android-only") {
 				//publishers
 				publishers.insert(
 						std::make_pair(SIMMOB_SRV_LOCATION,
@@ -130,7 +133,7 @@ void Broker::configure() {
 										new WaitForAndroidConnection(*this, 1))));
 
 		 }
-	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().androidClientType << "]"
+	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().getAndroidClientType() << "]"
 			 <<" waitForClientConnectionList.size()=" << waitForClientConnectionList.size() << std::endl;
 	 configured = true;
 }
@@ -179,11 +182,24 @@ boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> Broker:
 	return m_messageReceiveCallback;
 }
 
-void Broker::OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
+/*void Broker::OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
 //	Print() << "Agent " << args.GetAgent() << "  is dying" << std::endl;
 	unRegisterEntity(args.GetAgent());
 	//FUTURE when we have reentrant locks inside of Publisher.
 	//const_cast<Agent*>(agent)->UnSubscribe(AGENT_LIFE_EVENT_FINISHED_ID, this);
+}*/
+void Broker::OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){
+
+	switch(eventId){
+		case sim_mob::event::EVT_CORE_AGENT_DIED:{
+			const event::AgentLifeCycleEventArgs& args_ = MSG_CAST(event::AgentLifeCycleEventArgs, args);
+			Print() << "Broker::registerINGEntity[" << args_.GetAgentId() << "]" << std::endl;
+			unRegisterEntity(args_.GetAgent());
+			break;
+		}
+	default:break;
+	}
+
 }
 
 AgentsMap::type & Broker::getRegisteredAgents() {
@@ -295,8 +311,10 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	Print()<< registeredAgents.size() << ":  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
 	value->registrationCallBack(true);
-	const_cast<Agent*>(value->getEntity())->Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
-			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
+	/*const_cast<Agent*>(value->getEntity())->Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
+			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));*/
+	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,
+			static_cast<event::Context>(value->getEntity()), this);
 	return true;
 }
 
@@ -923,6 +941,22 @@ void Broker::cleanup()
 //		}
 //	}
 
+}
+
+std::map<std::string, sim_mob::Broker*> & Broker::getExternalCommunicators()  {
+	return externalCommunicators;
+}
+
+sim_mob::Broker* Broker::getExternalCommunicator(const std::string & value) {
+	if(externalCommunicators.find(value) != externalCommunicators.end())
+	{
+		return externalCommunicators[value];
+	}
+	return 0;
+}
+
+void Broker::addExternalCommunicator(const std::string & name, sim_mob::Broker* broker){
+	externalCommunicators.insert(std::make_pair(name,broker));
 }
 
 //abstracts & virtuals

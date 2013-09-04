@@ -17,7 +17,6 @@ namespace sim_mob {
     namespace event {
         
         typedef void* Context;
-        typedef unsigned int EventId;
         class EventPublisher;
 
         /**
@@ -25,7 +24,9 @@ namespace sim_mob {
          */
         class EventListener {
         public:
-
+            
+            virtual ~EventListener()=0;
+            
             /**
              * Handles the received global event.
              * @param sender pointer for the event producer.
@@ -62,6 +63,8 @@ namespace sim_mob {
                 sim_mob::event::EventPublisher* sender, 
                 const sim_mob::event::EventArgs& args);
         };
+        
+        inline EventListener::~EventListener(){};
     }
 }
 /**

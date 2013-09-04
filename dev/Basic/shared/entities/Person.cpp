@@ -101,7 +101,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
-	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime()));
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
@@ -267,7 +267,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		retVal = checkTripChain(now.ms());
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS);
+		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS());
 
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
@@ -275,8 +275,8 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS + (*currTripChainItem)->endTime.getValue()));
+				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS()));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS() + (*currTripChainItem)->endTime.getValue()));
 				ap->initializeRemainingTime();
 			}
 		}

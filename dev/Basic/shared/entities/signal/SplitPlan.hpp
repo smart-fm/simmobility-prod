@@ -46,7 +46,7 @@ public:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
 private:
 
-    int signalTimingMode;//Fixed plan or adaptive control
+    //int signalTimingMode;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
 

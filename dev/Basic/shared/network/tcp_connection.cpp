@@ -11,6 +11,7 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+#include <boost/array.hpp>
 
 #include "CommunicationDataManager.hpp"
 #include "ControlManager.hpp"

@@ -13,6 +13,7 @@
 #include "conf/simpleconf.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Link.hpp"
+#include "event/EventCollectionMgr.hpp"
 #include <utility>
 #include <stdexcept>
 
@@ -59,7 +60,7 @@ bool FMODController::frame_init(timeslice now)
 Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 {
 	frameTicks++;
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 
 
 	if(frameTicks%2 == 0){
@@ -72,6 +73,21 @@ Entity::UpdateStatus FMODController::frame_tick(timeslice now)
 	}
 
 	DispatchPendingAgents(now);
+
+	// test event message transmition system
+	/*static int testEvt = 0;
+	if( testEvt++ == 20000 ) {
+
+		event::EventCollectionMgr& eventManager = currWorkerProvider->getEventManager();
+		event::MessagePtr messagePtr(new event::EventMessage());
+
+		unsigned int agentIds[] = {24, 25, 26, 28 };
+
+		messagePtr->SetEventId(AGENT_INCIDENT_EVENT_ID);
+		messagePtr->SetRecipients( agentIds, sizeof(agentIds)/sizeof(unsigned int) );
+
+		eventManager.SendMessage( messagePtr );
+	}*/
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -99,7 +115,7 @@ void FMODController::CollectPerson()
 		std::vector<sim_mob::TripChainItem*>  tcs;
 		tcs.push_back(tc);
 
-		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy(), tcs);
 		person->client_id = it->first->client_id;
 		all_persons.push_back(person);
 		std::cout << "create person id : "  << person->getId() << std::endl ;
@@ -175,7 +191,7 @@ bool FMODController::ConnectFMODService()
 		request.map_type = "osm";
 		request.map_file = mapFile; //"cityhall/cityhall.osm";
 		request.version = 1;
-		request.start_time = ConfigParams::GetInstance().simStartTime.toString();
+		request.start_time = ConfigParams::GetInstance().simStartTime().toString();
 		std::string msg = request.BuildToString();
 		std::cout << "FMOD Controller send message :" << msg << std::endl;
 		connectPoint->SendMessage(msg);
@@ -290,7 +306,7 @@ void FMODController::UpdateMessagesInBlocking(timeslice now)
 	if(!isConnectFMODServer)
 		return;
 
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 
 	std::string message;
 	MessageList ret = CollectVehStops();
@@ -327,7 +343,7 @@ void FMODController::UpdateMessages(timeslice now)
 	if(!isConnectFMODServer)
 		return;
 
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 
 	MessageList ret = CollectVehStops();
 	connectPoint->SendMessage(ret);
@@ -373,9 +389,9 @@ MessageList FMODController::CollectVehStops()
 							Msg_Vehicle_Stop msg_stop;
 							msg_stop.messageID_ = JMessage::MSG_VEHICLESTOP;
 
-							unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+							unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 							DailyTime curr(curTickMS);
-							DailyTime base(ConfigParams::GetInstance().simStartTime);
+							DailyTime base(ConfigParams::GetInstance().simStartTime());
 							DailyTime start(curr.getValue()+base.getValue());
 
 							msg_stop.current_time = start.toString();
@@ -410,10 +426,10 @@ MessageList FMODController::CollectVehPos()
 		if(person){
 			Msg_Vehicle_Pos msg_pos;
 			msg_pos.messageID_ = JMessage::MSG_VEHICLEPOS;
-			unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+			unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 
 			DailyTime curr(curTickMS);
-			DailyTime base(ConfigParams::GetInstance().simStartTime);
+			DailyTime base(ConfigParams::GetInstance().simStartTime());
 			DailyTime start(curr.getValue()+base.getValue());
 
 			msg_pos.current_time = start.toString();
@@ -453,9 +469,9 @@ MessageList FMODController::CollectLinkTravelTime()
 		}
 	}
 
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 	DailyTime curr(curTickMS);
-	DailyTime base(ConfigParams::GetInstance().simStartTime);
+	DailyTime base(ConfigParams::GetInstance().simStartTime());
 	DailyTime start(curr.getValue()+base.getValue());
 
 	Msg_Link_Travel msg_travel;
@@ -481,14 +497,14 @@ MessageList FMODController::GenerateRequest(timeslice now)
 {
 	MessageList msgs;
 
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 	DailyTime curr(curTickMS);
-	DailyTime base(ConfigParams::GetInstance().simStartTime);
+	DailyTime base(ConfigParams::GetInstance().simStartTime());
 	typedef std::map<Request*, TripChainItem*>::iterator RequestMap;
 	for (RequestMap it=all_requests.begin(); it!=all_requests.end(); it++) {
 
 		DailyTime tm(it->first->departure_time_early);
-		tm.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+		tm.offsetMS_From(ConfigParams::GetInstance().simStartTime());
 		DailyTime dias(1*3600*1000);
 
 		if( tm.getValue() > (curr.getValue()-dias.getValue() )){
@@ -508,9 +524,9 @@ MessageList FMODController::HandleOfferMessage(std::string msg)
 	Msg_Offer msg_offer;
 	msg_offer.CreateMessage(msg);
 
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 	DailyTime curr(curTickMS);
-	DailyTime base(ConfigParams::GetInstance().simStartTime);
+	DailyTime base(ConfigParams::GetInstance().simStartTime());
 
 	Msg_Accept msg_accept;
 	msg_accept.messageID_ = JMessage::MSG_ACCEPT;
@@ -589,7 +605,7 @@ void FMODController::HandleScheduleMessage(std::string msg)
 	tcs.push_back(tc);
 
 	if( parkingCoord.remove(msg_request.vehicle_id) ){
-		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy(), tcs);
 		person->client_id = msg_request.vehicle_id ;
 		person->parentEntity = this;
 		all_drivers.push_back(person);
@@ -628,7 +644,7 @@ void FMODController::HandleVehicleInit(std::string msg)
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 
-			sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy, tcs);
+			sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigParams::GetInstance().mutexStategy(), tcs);
 			person->parentEntity = this;
 			person->client_id = (*it).vehicle_id;
 
@@ -640,7 +656,7 @@ void FMODController::HandleVehicleInit(std::string msg)
 
 void FMODController::DispatchPendingAgents(timeslice now)
 {
-	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS;
+	unsigned int curTickMS = (frameTicks)*ConfigParams::GetInstance().baseGranMS();
 	std::vector<Agent*>::iterator it=all_persons.begin();
 	while(it!=all_persons.end()){
 		if( (*it)->getStartTime() < curTickMS ){

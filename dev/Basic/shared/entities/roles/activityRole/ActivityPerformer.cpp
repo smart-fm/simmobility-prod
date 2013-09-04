@@ -77,8 +77,8 @@ void sim_mob::ActivityPerformer::setLocation(sim_mob::Node* location) {
 
 void sim_mob::ActivityPerformer::initializeRemainingTime() {
 	this->remainingTimeToComplete =
-			this->activityEndTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
-			- this->activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+			this->activityEndTime.offsetMS_From(ConfigParams::GetInstance().simStartTime())
+			- this->activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime());
 }
 
 
@@ -88,5 +88,5 @@ UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) 
 }
 
 void sim_mob::ActivityPerformer::updateRemainingTime() {
-	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigParams::GetInstance().baseGranMS));
+	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigParams::GetInstance().baseGranMS()));
 }

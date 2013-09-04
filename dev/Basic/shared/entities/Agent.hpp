@@ -19,10 +19,8 @@
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
 #include "entities/PendingEvent.hpp"
-#include "event/args/EventArgs.hpp"
-#include "event/EventPublisher.hpp"
 #include "logging/NullableOutputStream.hpp"
-
+#include "event/EventListener.hpp"
 
 namespace sim_mob {
 
@@ -51,23 +49,6 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
-
-DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
-class AgentLifeEventArgs: public event::EventArgs {
-public:
-	AgentLifeEventArgs(Agent* agent);
-	AgentLifeEventArgs(const AgentLifeEventArgs& orig);
-	virtual ~AgentLifeEventArgs();
-
-	/**
-	 * Gets the unit affected by the action.
-	 * @return
-	 */
-	const Agent* GetAgent() const;
-private:
-	Agent* agent;
-};
-
 /**
  * Basic Agent class.
  *
@@ -80,12 +61,8 @@ private:
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity, public event::EventPublisher/*, public sim_mob::CommunicationSupport*/ {
+class Agent : public sim_mob::Entity, public event::EventListener/*, public sim_mob::CommunicationSupport*/ {
 public:
-	enum AgentLifecycleEvents {
-		AGENT_LIFE_EVENT_STARTED_ID = 3000,
-		AGENT_LIFE_EVENT_FINISHED_ID = 3001,
-	};
 
 	static int createdAgents;
 	static int diedAgents;
@@ -164,6 +141,12 @@ public:
 	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
+
+        /**
+         * Inherited from EventListener. 
+         */
+	virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
+    virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is

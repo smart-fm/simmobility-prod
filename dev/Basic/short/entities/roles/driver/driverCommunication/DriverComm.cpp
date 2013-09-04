@@ -11,7 +11,7 @@ namespace sim_mob
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
 sim_mob::DriverComm::DriverComm(Person* parent/*, */, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
-		Driver(parent,mtxStrat,behavior, movement), AgentCommUtilityBase(parent)
+		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(parent)
 {	}
 
 sim_mob::DriverComm::~DriverComm()
@@ -28,8 +28,9 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 	movement->setParentDriverComm(driver);
 	//broker, (external)communicator :( ... setting
 
-	ConfigParams &cfg = ConfigParams::GetInstance();
-	Broker* managingBroker = cfg.getExternalCommunicator(cfg.androidClientType);
+	const ConfigParams &cfg = ConfigParams::GetInstance();
+	const std::string &type = cfg.getAndroidClientType();
+	Broker* managingBroker = Broker::getExternalCommunicator(type);
 //	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
 	driver->setBroker(managingBroker);
 

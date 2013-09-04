@@ -102,7 +102,7 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 	//Reset; these will be set before they are used; the values here represent either default
 	//       values or are unimportant.
 
-	secondsInTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	secondsInTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 
 	elapsedSeconds = 0.0;
 

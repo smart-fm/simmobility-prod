@@ -443,10 +443,10 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    bool customSchema = false;
 	    xml_schema::properties props;
-	    if (!sim_mob::ConfigParams::GetInstance().roadNetworkXsdSchemaFile.empty()) {
+	    if (!sim_mob::ConfigParams::GetInstance().roadNetworkXsdSchemaFile().empty()) {
 	    	customSchema = true;
 	    	//props.no_namespace_schema_location(sim_mob::ConfigParams::GetInstance().roadNetworkXsdSchemaFile);
-	    	props.schema_location ("http://www.smart.mit.edu/geo", sim_mob::ConfigParams::GetInstance().roadNetworkXsdSchemaFile);
+	    	props.schema_location ("http://www.smart.mit.edu/geo", sim_mob::ConfigParams::GetInstance().roadNetworkXsdSchemaFile());
 	    }
 
 		//Parse differently depending on what we are trying to fill.

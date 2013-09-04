@@ -4,11 +4,10 @@
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
-//#include "event/EventListener.hpp"
 
 //external libraries
 #include <boost/thread/condition_variable.hpp>
-
+#include <boost/unordered_map.hpp>
 namespace sim_mob
 {
 //Forward Declarations
@@ -68,7 +67,7 @@ typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandl
 typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
 };
 
-class Broker  : public sim_mob::Agent, public sim_mob::event::EventListener
+class Broker  : public sim_mob::Agent
 {
 private:
 	//Is this Broker currently enabled?
@@ -102,6 +101,8 @@ private:
 	//	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
 	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
 	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
+	//	list of all brokers
+	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
 	//	used to help deciding whether Broker tick forward or block the simulation
 	bool brokerCanTickForward;
 	//	container for classes who evaluate wait-for-connection criteria for every type of client
@@ -134,7 +135,8 @@ private:
 	//	checks to see every registered agent has completed its operations for the current tick or not
 	bool allAgentUpdatesDone();
 	//	handlers executed when an agent is going out of simulation(die)
-	void OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
+	//void OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
+	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	//	publish various data the broker has subscibed to
 	void processPublishers(timeslice now);
 	//	sends a signal to clients(through send buffer) telling them broker is ready to receive their data for the current tick
@@ -183,13 +185,16 @@ public:
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
 	//	broker, as an agent, has an update function
 	Entity::UpdateStatus update(timeslice now);
+	//	static area
+	static std::map<std::string, sim_mob::Broker*> & getExternalCommunicators() ;
+	static sim_mob::Broker* getExternalCommunicator(const std::string & value) ;
+	static void addExternalCommunicator(const std::string & name, sim_mob::Broker* broker);
 	//abstracts & virtuals
 	void load(const std::map<std::string, std::string>& configProps);
 	bool frame_init(timeslice now);
 	Entity::UpdateStatus frame_tick(timeslice now);
 	void frame_output(timeslice now);
 	bool isNonspatial();
-
 protected:
 	// Wait for clients
 	bool waitForClientsConnection();

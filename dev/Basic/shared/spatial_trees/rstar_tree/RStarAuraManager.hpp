@@ -28,6 +28,12 @@ public:
 
 	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
+	virtual std::vector<Agent const *> advanaced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {return agentsInRect(lowerLeft, upperRight);}
+
+	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
+	virtual std::vector<Agent const *> advanaced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {return nearbyAgents(position, lane, distanceInFront, distanceBehind);}
+
+
 private:
 	sim_mob::R_tree tree_rstar;
 

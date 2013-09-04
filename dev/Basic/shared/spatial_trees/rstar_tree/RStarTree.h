@@ -39,12 +39,25 @@
 #include <sstream>
 #include <fstream>
 
+#include "spatial_trees/spatial_tree_include.hpp"
+
 #include "RStarBoundingBox.h"
 
 namespace {  //R* tree parameters, unique to this translational unit.
 
 const double RTREE_REINSERT_P = 0.30;
 const size_t RTREE_CHOOSE_SUBTREE_P = 32;
+}
+
+namespace {
+class Profiling_Counting_RSTAR{
+public:
+	static long counting;
+	static std::vector<long> count_buff;
+};
+
+long Profiling_Counting_RSTAR::counting = 0;
+std::vector<long> Profiling_Counting_RSTAR::count_buff;
 }
 
 // definition of an leaf
@@ -116,17 +129,24 @@ public:
 	// Single insert function, adds a new item to the tree
 	void Insert(LeafType leaf, const BoundingBox &bound)
 	{
+#ifdef MEAUSURE_COUNTS
+		static long Insert_counts = 0;
+		Insert_counts++;
+		std::cout << "Insert_counts:" << Insert_counts << std::endl;
+#endif
 		// ID1: Invoke Insert starting with the leaf level as a
 		// parameter, to Insert a new data rectangle
 		Leaf * newLeaf = new Leaf();
 		newLeaf->bound = bound;
 		newLeaf->leaf  = leaf;
+		newLeaf->is_a_leaf = true;
 
 		// create a new root node if necessary
 		if (!m_root)
 		{
 			m_root = new Node();
 			m_root->hasLeaves = true;
+			m_root->is_a_leaf = false;
 			
 			// reserve memory
 			m_root->items.reserve(min_child_items);
@@ -163,11 +183,30 @@ public:
 	template <typename Acceptor, typename Visitor>
 	Visitor Query(const Acceptor &accept, Visitor visitor)
 	{
+#ifdef QUERY_PROFILING
+		Profiling_Counting_RSTAR::counting = 0;
+#endif
+
 		if (m_root)
 		{	
 			QueryFunctor<Acceptor, Visitor> query(accept, visitor);
 			query(m_root);
 		}
+
+#ifdef QUERY_PROFILING
+		long one = Profiling_Counting_RSTAR::counting;
+		Profiling_Counting_RSTAR::count_buff.push_back(one);
+
+		if (Profiling_Counting_RSTAR::count_buff.size() % 1000000 == 0) {
+			double sum = 0;
+
+			for (int i = 0; i < Profiling_Counting_RSTAR::count_buff.size(); i++) {
+				sum += Profiling_Counting_RSTAR::count_buff[i];
+			}
+
+			std::cout << "Count:" << Profiling_Counting_RSTAR::count_buff.size() << ", Sum Cost:" << sum << std::endl;
+		}
+#endif
 		
 		return visitor;
 	}
@@ -193,6 +232,11 @@ public:
 	template <typename Acceptor, typename LeafRemover>
 	void Remove( const Acceptor &accept, LeafRemover leafRemover)
 	{
+#ifdef MEAUSURE_COUNTS
+		static long Remove_counts = 0;
+		Remove_counts++;
+		std::cout << "Remove_counts:" << Remove_counts << std::endl;
+#endif
 		std::list<Leaf*> itemsToReinsert;
 
 		if (!m_root)
@@ -203,6 +247,11 @@ public:
 		
 		if (!itemsToReinsert.empty())
 		{
+#ifdef MEAUSURE_COUNTS
+		static long Merge_counts = 0;
+		Merge_counts++;
+		std::cout << "Merge_counts:" << Merge_counts << std::endl;
+#endif
 			// reinsert anything that needs to be reinserted
 			typename std::list< Leaf* >::iterator it = itemsToReinsert.begin();
 			typename std::list< Leaf* >::iterator end = itemsToReinsert.end();
@@ -341,6 +390,11 @@ protected:
 	// TODO: probably could just merge this in with InsertInternal()
 	Node * OverflowTreatment(Node * level, bool firstInsert)
 	{
+#ifdef MEAUSURE_COUNTS
+		static long OverflowTreatment_counts = 0;
+		OverflowTreatment_counts++;
+		std::cout << "OverflowTreatment:" << OverflowTreatment_counts << std::endl;
+#endif
 		// OT1: If the level is not the root level AND this is the first
 		// call of OverflowTreatment in the given level during the 
 		// insertion of one data rectangle, then invoke Reinsert
@@ -357,6 +411,7 @@ protected:
 		{
 			Node * newRoot = new Node();
 			newRoot->hasLeaves = false;
+			newRoot->is_a_leaf = false;
 			
 			// reserve memory
 			newRoot->items.reserve(min_child_items);
@@ -384,8 +439,14 @@ protected:
 	// passed node's parent
 	Node * Split(Node * node)
 	{
+#ifdef MEAUSURE_COUNTS
+		static long Split_counts = 0;
+		Split_counts++;
+		std::cout << "Split:" << Split_counts << std::endl;
+#endif
 		Node * newNode = new Node();
 		newNode->hasLeaves = node->hasLeaves;
+		newNode->is_a_leaf = false;
 
 		const std::size_t n_items = node->items.size();
 		const std::size_t distribution_count = n_items - 2*min_child_items + 1;
@@ -511,6 +572,11 @@ protected:
 	// R* algorithm calls for
 	void Reinsert(Node * node)
 	{
+#ifdef MEAUSURE_COUNTS
+		static long Reinsert_counts = 0;
+		Reinsert_counts++;
+		std::cout << "Reinsert:" << Reinsert_counts << std::endl;
+#endif
 		std::vector< BoundedItem* > removed_items;
 
 		const std::size_t n_items = node->items.size();
@@ -576,6 +642,10 @@ protected:
 		void operator()(BoundedItem * item)
 		{
 			Node * node = static_cast<Node*>(item);
+
+#ifdef QUERY_PROFILING
+			Profiling_Counting_RSTAR::counting++;
+#endif
 		
 			if (visitor.ContinueVisiting && accept(node))
 			{
@@ -586,7 +656,6 @@ protected:
 			}
 		}
 	};
-	
 	
 	/****************************************************************
 	 * Used to remove items from the tree
@@ -615,7 +684,7 @@ protected:
 			if (accept(leaf) && remove(leaf))
 			{
 				--(*size);
-				delete leaf;
+//				delete leaf;
 				return true;
 			}
 			
@@ -662,6 +731,12 @@ protected:
 					}
 					else if (node->items.size() < min_child_items)
 					{
+#ifdef MEAUSURE_COUNTS
+		static long merge_counts = 0;
+		merge_counts++;
+		std::cout << "merge_counts:" << merge_counts << std::endl;
+#endif
+
 						// queue up the items that need to be reinserted
 						QueueItemsToReinsert(node);
 						return true;
@@ -702,9 +777,8 @@ protected:
 			delete node;
 		}
 	};
-	
 
-private:
+public:
 	Node * m_root;
 	
 	std::size_t m_size;

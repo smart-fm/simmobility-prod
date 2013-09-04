@@ -21,32 +21,63 @@ void sim_mob::RDUAuraManager::update(int time_step)
 {
 //	std::cout << "S:" << std::endl;
 
+//	int static correct_counts = 0;
+
 	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);
 		if ((!an_agent) || an_agent->isNonspatial()) {
 			continue;
 		}
 
+		//To-DO-In-Future
+		//This part should be improved in future;
+		//IN SimMobility, sometimes Agents' locations are out-of-map;
+		//Spatial-Tree can not deal with such locations
+		if(an_agent->xPos.get() < 10000000 || an_agent->yPos.get() < 1000000)
+		{
+//			tree_du.remove(an_agent);
+			continue;
+		}
+
+//		if (an_agent->can_remove_by_RTREE || ) {
+//			continue;
+//		}
+
 		if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE) {
 //			std::cout << "start 1:" << std::endl;
 			tree_du.remove(an_agent);
+//			correct_counts --;
+//			std::cout << "tree_du.remove ID:" << an_agent->getId() << std::endl;
 //			std::cout << "end 1:" << std::endl;
 		} else if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE == false) {
 //			std::cout << "start 2:" << std::endl;
-			tree_du.update(an_agent->getId(), an_agent->xPos, an_agent->yPos);
+
+			tree_du.update(an_agent->getId(), an_agent->xPos.get(), an_agent->yPos.get());
+//			std::cout << "tree_du.update ID:" << an_agent->getId() << ",new loc:" << an_agent->xPos.get() << "," << an_agent->yPos.get() << ",another loc:" << an_agent->xPos << "," << an_agent->yPos << std::endl;
 //			std::cout << "end 2:" << std::endl;
 		} else if (tree_du.has_one_agent(an_agent->getId()) == false && an_agent->can_remove_by_RTREE == false) {
-//			std::cout << "start 3:" << std::endl;
+//			std::cout << "tree_du.insert ID:" << an_agent->getId() << std::endl;
 			tree_du.insert(an_agent);
+//			correct_counts ++;
 //			std::cout << "end 3:" << std::endl;
 //			tree_.Check_();
 		} else {
-			std::cout << "---------------------" << std::endl;
-			std::cout << "error:" << std::endl;
-			std::cout << "an_agent->getId():" << an_agent->getId() << std::endl;
-			std::cout << "an_agent->can_remove_by_RTREE:" << an_agent->can_remove_by_RTREE << std::endl;
+//			std::cout << "unclear bug in tree_du, ID:" << an_agent->getId() << std::endl;
+			//try to remove
+//			if(an_agent != NULL)
+//				tree_du.remove(an_agent);
+//			std::cout << "---------------------" << std::endl;
+//			std::cout << "error:" << std::endl;
+//			std::cout << "an_agent->getId():" << an_agent->getId() << std::endl;
+//			std::cout << "an_agent->can_remove_by_RTREE:" << an_agent->can_remove_by_RTREE << std::endl;
 		}
+
+//		std::cout << "correct_counts DU:" << correct_counts << std::endl;
+//		tree_du.debug_all();
+//
 	}
+
+//
 
 //	std::cout << "Finished:" << std::endl;
 }
@@ -77,6 +108,13 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const &
 	// Adjust <p1> and <p2>.  The current approach is simplistic.  <distanceInFront> and
 	// <distanceBehind> may extend beyond the stretch marked out by <p1> and <p2>.
 	adjust(p1, p2, position, distanceInFront, distanceBehind);
+
+        if(p1.getX() < 0 || p2.getX() < 0)
+        {
+            std::vector<Agent const *> empty;
+            return empty;
+        }
+
 
 	// Calculate the search rectangle.  We use a quick and accurate method.  However the
 	// inaccurancy only makes the search rectangle bigger.

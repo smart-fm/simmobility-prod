@@ -6,10 +6,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "spatial_trees/rstar_tree/RStarBoundingBox.h"
-
-//it is very important, if no need for REBALANCE, change it to
-//#define NO_USE_REBALANCE
-#define USE_REBALANCE
+#include "spatial_trees/spatial_tree_include.hpp"
 
 //Note: this class is designed for SimMobility.
 //Agent class has been compiled into Tree Structure
@@ -44,7 +41,7 @@ private:
 	double leaf_agents_sum;
 	double unbalance_ratio;
 
-#ifdef USE_REBALANCE
+#ifdef SIM_TREE_USE_REBALANCE
 	//parameters for re-balance
 public:
 	//the border of the network
@@ -56,6 +53,9 @@ public:
 	static int division_x_unit_;
 	static int division_y_unit_;
 
+	static double maximum_Rectanle_Weight;
+	static double minimum_Rectanle_Border_Length;
+
 //	static int map_division_x_max;
 //	static int map_division_y_max;
 
@@ -64,15 +64,16 @@ public:
 
 	//if re-balance happens %rebalance_threshold times continuously, then need to rebuild the tree
 	int rebalance_threshold;
-	static const int checking_frequency;
+	double rebalance_load_balance_maximum;
+	int checking_frequency;
 
 	int rebalance_counts;
 #endif
 
 public:
 	SimRTree() : m_root(nullptr), first_leaf(nullptr), leaf_counts(0), leaf_agents_sum(0), unbalance_ratio(0)
-#ifdef USE_REBALANCE
-		,rebalance_counts(0), rebalance_threshold(2)
+#ifdef SIM_TREE_USE_REBALANCE
+		,rebalance_counts(0), rebalance_threshold(2), rebalance_load_balance_maximum(0.3), checking_frequency(10)
 #endif
 {}
 
@@ -106,6 +107,12 @@ public:
 	std::vector<Agent const *> rangeQuery(BoundingBox & box) const;
 
 	/**
+	 * Start Query From Somewhere, not from the root.
+	 * Bottom_Up Query
+	 */
+	std::vector<Agent const*> rangeQuery(SimRTree::BoundingBox & box, TreeItem* item) const;
+
+	/**
 	 * Automatically Update Internal Agents' Locations
 	 */
 	void updateAllInternalAgents();
@@ -135,6 +142,10 @@ public:
 	 */
 	void checkLeaf();
 
+#ifdef SIM_TREE_USE_REBALANCE
+	void init_rebalance_settings();
+#endif
+
 private:
 
 	//release memory
@@ -150,7 +161,10 @@ private:
 	void countLeaf();
 
 	//
-	void addNodeToFather(std::size_t father_id, TreeNode * from_node, TreeItem* new_node);
+	void addNodeToFather(std::size_t father_id, TreeNode * from_node, TreeNode* new_node);
+
+	//
+	void addLeafToFather(std::size_t father_id, TreeNode * from_node, TreeLeaf* new_node);
 
 	//must be a node ID
 	//	TreeNode * getNodeByID(std::size_t item_id);
@@ -192,15 +206,18 @@ struct TreeItem {
 	SimRTree::BoundingBox bound;
 	bool is_leaf;
 	std::size_t item_id;
+
+	//For Bottom-Up Query
+	TreeItem* father;
+};
+
+struct TreeNode: TreeItem {
+	std::vector<TreeItem*> items;
 };
 
 struct TreeLeaf: TreeItem {
 	std::vector<Agent*> agent_buffer;
 	TreeLeaf* next;
-};
-
-struct TreeNode: TreeItem {
-	std::vector<TreeItem*> items;
 };
 
 

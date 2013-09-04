@@ -30,6 +30,15 @@ public:
 
 	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
+	/**
+	 * Bottom-Up Query
+	 */
+	//Given the TreeItem the agent's standing on. This information is used to find a better start query point
+	virtual std::vector<Agent const *> advanaced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
+
+	virtual std::vector<Agent const *> advanaced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+
+
 public:
 	//	long sum_counts;
 //	int first_update;

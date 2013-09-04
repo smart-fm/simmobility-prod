@@ -15,12 +15,18 @@ using namespace sim_mob::temp_spatial;
 void RStarAuraManager::update(int time_step)
 {
 	// cleanup the tree because we are going to rebuild it.
+//	if (time_step % 100 == 0)
+//	{
+//		std::cout << "--------------------------" << std::endl;
+//		tree_rstar.display();
+//	}
+
 	tree_rstar.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
 	assert(tree_rstar.GetSize() == 0);
 
-	if (Agent::all_agents.empty()) {
-		return;
-	}
+//	if (Agent::all_agents.empty()) {
+//		return;
+//	}
 
 	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* ag = dynamic_cast<Agent*>(*itr);
@@ -28,10 +34,15 @@ void RStarAuraManager::update(int time_step)
 			continue;
 		}
 
+		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000)
+			continue;
+
 		if (ag->can_remove_by_RTREE == false) {
 			tree_rstar.insert(ag);
 		}
 	}
+
+//	tree_rstar.display();
 
 //	boost::unordered_set<Entity const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
 //
@@ -72,6 +83,9 @@ std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerL
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();
 	box.edges[1].second = upperRight.getY();
+
+//	std::cout <<  "Query: " << box.edges[0].first << "," << box.edges[1].first << "," << box.edges[0].second << "," << box.edges[1].second << std::endl;
+
 	return tree_rstar.query(box);
 }
 
@@ -90,6 +104,13 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 	// Adjust <p1> and <p2>.  The current approach is simplistic.  <distanceInFront> and
 	// <distanceBehind> may extend beyond the stretch marked out by <p1> and <p2>.
 	adjust(p1, p2, position, distanceInFront, distanceBehind);
+
+        if(p1.getX() < 0 || p2.getX() < 0)
+        {
+            std::vector<Agent const *> empty;
+            return empty;
+        }
+
 
 	// Calculate the search rectangle.  We use a quick and accurate method.  However the
 	// inaccurancy only makes the search rectangle bigger.

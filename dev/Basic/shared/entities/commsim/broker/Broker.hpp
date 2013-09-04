@@ -42,9 +42,10 @@ typedef std::pair<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg
 };
 
 struct PublisherList{
-typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > type;
-typedef std::map<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> >::iterator iterator;
-typedef std::pair<sim_mob::SIM_MOB_SERVICE, boost::shared_ptr<sim_mob::Publisher> > pair;
+typedef boost::shared_ptr<sim_mob::event::EventPublisher> dataType;
+typedef std::map<sim_mob::SIM_MOB_SERVICE, dataType> type;
+typedef std::map<sim_mob::SIM_MOB_SERVICE, dataType>::iterator iterator;
+typedef std::pair<sim_mob::SIM_MOB_SERVICE, dataType> pair;
 };
 
 struct ClientList{

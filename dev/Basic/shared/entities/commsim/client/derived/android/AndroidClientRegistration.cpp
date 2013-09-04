@@ -8,9 +8,9 @@
 #include "AndroidClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
-#include "entities/commsim/service/base/Publisher.hpp"
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
+#include "event/EventPublisher.hpp"
 namespace sim_mob {
 
 AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_) : ClientRegistrationHandler(type_*/){
@@ -81,12 +81,12 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 			switch(srv)
 			{
 			case SIMMOB_SRV_TIME:{
-				 boost::shared_ptr<sim_mob::Publisher> p = broker.getPublishers()[SIMMOB_SRV_TIME];
+				PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_TIME];
 				p->Subscribe(COMMEID_TIME, clientEntry.get(), CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
 				break;
 			}
 			case SIMMOB_SRV_LOCATION:{
-				 boost::shared_ptr<sim_mob::Publisher> p = broker.getPublishers()[SIMMOB_SRV_LOCATION];
+				PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_LOCATION];
 				p->Subscribe(COMMEID_LOCATION,(void*) clientEntry->agent, clientEntry.get()  ,CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation) );
 				break;
 			}

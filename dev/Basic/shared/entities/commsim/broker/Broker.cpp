@@ -17,12 +17,24 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 //temporary, used for hardcoding publishers in the constructor
-#include "entities/commsim/service/derived/LocationPublisher.hpp"
-#include "entities/commsim/service/derived/TimePublisher.hpp"
+//#include "entities/commsim/service/derived/LocationPublisher.hpp"
+//#include "entities/commsim/service/derived/TimePublisher.hpp"
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
+
+#include "event/EventPublisher.hpp"
+
+namespace{
+//subclassed Eventpublisher coz its destructor is pure virtual
+	class BrokerPublisher: public sim_mob::event::EventPublisher  {
+	public:
+		BrokerPublisher(){}
+		virtual ~BrokerPublisher(){}
+	};
+}
+
 
 namespace sim_mob
 {
@@ -63,19 +75,24 @@ void Broker::configure() {
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 if(ConfigParams::GetInstance().getAndroidClientType() == "android-ns3")
 	 {
+		BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
+		onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
 		//publishers
 		publishers.insert(
 				std::make_pair(SIMMOB_SRV_LOCATION,
-						boost::shared_ptr<sim_mob::Publisher>(
-								new sim_mob::LocationPublisher())));
+						PublisherList::dataType(onlyLocationsPublisher)));
+
+		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
+		allLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
 		publishers.insert(
 				std::make_pair(SIMMOB_SRV_ALL_LOCATIONS,
-						boost::shared_ptr<sim_mob::Publisher>(
-								new sim_mob::LocationPublisher())));
+						PublisherList::dataType(allLocationsPublisher)));
+
+		BrokerPublisher* timePublisher = new BrokerPublisher();
+		timePublisher->RegisterEvent(COMMEID_TIME);
 		publishers.insert(
 				std::make_pair(SIMMOB_SRV_TIME,
-						boost::shared_ptr<sim_mob::Publisher>(
-								new sim_mob::TimePublisher())));
+						PublisherList::dataType(timePublisher)));
 		//current message factory
 		//todo: choose a factory based on configurations not hardcoding
 		boost::shared_ptr<
@@ -104,18 +121,19 @@ void Broker::configure() {
 	 else
 		 if(ConfigParams::GetInstance().getAndroidClientType() == "android-only") {
 				//publishers
+
+				BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
+				onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
+				//publishers
 				publishers.insert(
 						std::make_pair(SIMMOB_SRV_LOCATION,
-								boost::shared_ptr<sim_mob::Publisher>(
-										new sim_mob::LocationPublisher())));
-				publishers.insert(
-						std::make_pair(SIMMOB_SRV_ALL_LOCATIONS,
-								boost::shared_ptr<sim_mob::Publisher>(
-										new sim_mob::LocationPublisher())));
+								PublisherList::dataType(onlyLocationsPublisher)));
+
+				BrokerPublisher* timePublisher = new BrokerPublisher();
+				timePublisher->RegisterEvent(COMMEID_TIME);
 				publishers.insert(
 						std::make_pair(SIMMOB_SRV_TIME,
-								boost::shared_ptr<sim_mob::Publisher>(
-										new sim_mob::TimePublisher())));
+								PublisherList::dataType(timePublisher)));
 				//current message factory
 				//todo: choose a factory based on configurations not hardcoding
 				boost::shared_ptr<

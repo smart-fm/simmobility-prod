@@ -527,6 +527,12 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
 
+	//Make sure we don't have a geometry node.
+	DOMElement* geom = GetSingleElementByName(rootNode, "geometry");
+	if (geom) {
+		throw std::runtime_error("Config file contains a <geometry> node, which is no longer allowed. See the <constructs> node for documentation.");
+	}
+
 	//Now just parse the document recursively.
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
@@ -872,7 +878,7 @@ void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElemen
 
 void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node)
 {
-	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "data/SimMobilityInput.xml");
+	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemDatabaseNode(xercesc::DOMElement* node)

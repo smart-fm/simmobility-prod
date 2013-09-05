@@ -603,7 +603,7 @@ int main(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
+	std::string XML_OutPutFileName = "private/SimMobilityInput.xml";
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {

@@ -30,8 +30,8 @@ else ()
       C:/MinGW32/include/soci
       C:/MinGW32/include/soci/postgresql
       ~/Library/Frameworks
-      ~/xuyan_SimMobility/soci/include
-      ~/xuyan_SimMobility/soci/include/soci
+      /home/xuyan/xuyan_SimMobility/soci/include
+      /home/xuyan/xuyan_SimMobility/soci/include/soci
       /Library/Frameworks
       /usr/local/include
       /usr/local/include/soci/postgresql
@@ -55,9 +55,10 @@ else ()
       C:/MinGW/lib
       C:/MinGW32/lib
       ~/Library/Frameworks
-      ~/xuyan_SimMobility/soci/lib64
+      /home/xuyan/xuyan_SimMobility/soci/lib64
       /Library/Frameworks
       /usr/local/lib
+      /usr/local/lib64
       /afs/csail.mit.edu/u/x/xuyan/lib/soci/soci-3.2.1/lib64
       /usr/lib
       /sw/lib

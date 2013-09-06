@@ -25,8 +25,8 @@ else ()
       C:/MinGW32/include
       C:/MinGW32/include/soci
       ~/Library/Frameworks
-      ~/xuyan_SimMobility/soci/include
-      ~/xuyan_SimMobility/soci/include/soci
+      /home/xuyan/xuyan_SimMobility/soci/include
+      /home/xuyan/xuyan_SimMobility/soci/include/soci
       /Library/Frameworks
       /usr/local/include
       /usr/local/include/soci
@@ -50,9 +50,10 @@ else ()
       $ENV{SOCI_DIR}/lib
       $ENV{SOCI_DIR}
       ~/Library/Frameworks
-      ~/xuyan_SimMobility/soci/lib64
+      /home/xuyan/xuyan_SimMobility/soci/lib64
       /Library/Frameworks
       /usr/local/lib
+      /usr/local/lib64
       /usr/lib
       /sw/lib
       /opt/local/lib

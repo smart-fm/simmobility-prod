@@ -441,7 +441,9 @@ int main(int ARGC, char* ARGV[])
 	//}
 
 	//Perform main loop
-	clock_t simStartTime = clock();
+	timeval simStartTime;
+	gettimeofday(&simStartTime, nullptr);
+
 	std::list<std::string> resLogFiles;
 	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
 
@@ -451,10 +453,13 @@ int main(int ARGC, char* ARGV[])
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 
+	timeval simEndTime;
+	gettimeofday(&simEndTime, nullptr);
+
 	Print() << "Done" << endl;
-	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+	Print() << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 	//to get simulation time when debug_output is switched off
-	cout << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+	cout << "Total simulation time: "<<  Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 
 	return returnVal;
 }

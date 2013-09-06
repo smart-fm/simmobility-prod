@@ -80,7 +80,7 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 
 
 int Utils::diff_ms(timeval t1, timeval t2) {
-	return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec) / 1000.0);
+	return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec) / 1000);
 }
 
 double Utils::diff_ms_db(timeval t1, timeval t2) {

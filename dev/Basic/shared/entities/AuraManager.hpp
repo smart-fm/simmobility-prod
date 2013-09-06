@@ -87,7 +87,7 @@ public:
 
     //only avaiable for Sim-Tree
     std::vector<Agent const *>
-    advanaced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;
+    advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;
 
     /**
      * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -112,7 +112,7 @@ public:
 
     //only avaiable for Sim-Tree
     std::vector<Agent const *>
-    advanaced_nearbyAgents(Point2D const & position, Lane const & lane,
+    advanced_nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
 
     /**

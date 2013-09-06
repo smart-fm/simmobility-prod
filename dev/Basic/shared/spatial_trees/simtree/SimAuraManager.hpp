@@ -34,9 +34,9 @@ public:
 	 * Bottom-Up Query
 	 */
 	//Given the TreeItem the agent's standing on. This information is used to find a better start query point
-	virtual std::vector<Agent const *> advanaced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
+	virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
 
-	virtual std::vector<Agent const *> advanaced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+	virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
 
 
 public:

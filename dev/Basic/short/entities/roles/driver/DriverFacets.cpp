@@ -1481,7 +1481,7 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	if (this->parent->connector_to_Sim_Tree != NULL)
 	{
                 if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
-		nearby_agents = AuraManager::instance().advanaced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
+		nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
 				this->parent->connector_to_Sim_Tree);
                 else
                 {

@@ -175,7 +175,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const &
 	return agentsInRect(lowerLeft, upperRight);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::advanaced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {
 	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
@@ -191,7 +191,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::advanaced_agentsInRect(const
 #endif
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::advanaced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
 	Point2D p1, p2;
@@ -235,7 +235,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::advanaced_nearbyAgents(const
 
 	//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
-	return advanaced_agentsInRect(lowerLeft, upperRight, item);
+	return advanced_agentsInRect(lowerLeft, upperRight, item);
 }
 
 void sim_mob::SimAuraManager::checkLeaf() {

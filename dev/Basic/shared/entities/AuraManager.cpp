@@ -103,7 +103,7 @@ const
 }
 
 std::vector<Agent const *>
-AuraManager::advanaced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const
+AuraManager::advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const
 {
 	if(local_implType != IMPL_SIMTREE)
 	{
@@ -112,12 +112,12 @@ AuraManager::advanaced_agentsInRect(Point2D const & lowerLeft, Point2D const & u
 
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->advanaced_agentsInRect(lowerLeft, upperRight, item);
+		results = impl_->advanced_agentsInRect(lowerLeft, upperRight, item);
 	}
 
 //	static long sum_count = 0;
 //	sum_count += results.size();
-//	std::cout << "advanaced_agentsInRect:" << results.size() << ",sum_count:" << sum_count << std::endl;
+//	std::cout << "advanced_agentsInRect:" << results.size() << ",sum_count:" << sum_count << std::endl;
 
 	return results;
 }
@@ -161,20 +161,20 @@ const
 
 }
 
-std::vector<Agent const *> AuraManager::advanaced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
 	if (local_implType != IMPL_SIMTREE) {
 		return nearbyAgents(position, lane, distanceInFront, distanceBehind);
 	}
 
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->advanaced_nearbyAgents(position, lane, distanceInFront, distanceBehind, item);
+		results = impl_->advanced_nearbyAgents(position, lane, distanceInFront, distanceBehind, item);
 	}
 
 //	static long sum_count = 0;
 //	sum_count += results.size();
 //	if (sum_count % 100000 == 0)
-//	std::cout << "advanaced_nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
+//	std::cout << "advanced_nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
 
 	return results;
 }

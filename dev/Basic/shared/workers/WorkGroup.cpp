@@ -412,7 +412,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 		}
 
 		//Update the aura manager, if we have one.
-		if (auraMgr) {
+		if (auraMgr || ( !ConfigParams::GetInstance().UsingConfluxes())) {
 			auraMgr->update();
 		}
 

@@ -188,7 +188,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 					<< "|DRIVER|CurrLane:" << currLane->getLaneID()
 					<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
 					<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
-					<< "|CurrLane:" << getParent()->getCurrLane()->getLaneID()
+					<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999)
 					<< "|Queuing: " << getParent()->isQueuing
 					<< "|Distance: " << getParent()->distanceToEndOfSegment
 					<< "|RemainingTime: " << getParent()->getRemainingTimeThisTick()
@@ -206,7 +206,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 				<< "|DRIVER|CurrLane:" << currLane->getLaneID()
 				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
 				<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
-				<< "|CurrLane:" << getParent()->getCurrLane()->getLaneID() << std::endl;
+				<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999) << std::endl;
 		}
 		Print()	<< "|Queuing: " << getParent()->isQueuing
 				<< "|Distance: " << getParent()->distanceToEndOfSegment
@@ -485,7 +485,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 					<< "\nvehicle| segment: " << vehicle->getCurrSegment()->getStartEnd() << "|id: " << vehicle->getCurrSegment()->getSegmentID()
 					<< "|lane: " << vehicle->getCurrLane()->getLaneID()
 					<< "\ngetParent()| segment: " << getParent()->getCurrSegment()->getStartEnd() << "|id: " << getParent()->getCurrSegment()->getSegmentID()
-					<< "|lane: " << getParent()->getCurrLane()->getLaneID()
+					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999)
 					<< std::endl;
 
 			throw::std::runtime_error(DebugStream.str());
@@ -546,7 +546,7 @@ void DriverMovement::moveInQueue() {
 	//1.update position in queue (vehicle->setPosition(distInQueue))
 	//2.update p.timeThisTick
 	Print() << "|called moveInQueue()"<< std::endl;
-	double positionOfLastUpdatedAgentInLane = getParent()->getCurrSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(getParent()->getCurrLane());
+	double positionOfLastUpdatedAgentInLane = vehicle->getCurrSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(currLane);
 
 	if(positionOfLastUpdatedAgentInLane == -1.0)
 	{

@@ -13,6 +13,31 @@ namespace xml {
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
+
+class roadrunner_regions_t_pimpl: public virtual roadrunner_regions_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::map<int, sim_mob::RoadRunnerRegion> post_roadrunner_regions_t ();
+
+	virtual void region (const sim_mob::RoadRunnerRegion&);
+
+private:
+	std::map<int, sim_mob::RoadRunnerRegion> model;
+};
+
+class roadrunner_region_t_pimpl: public virtual roadrunner_region_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::RoadRunnerRegion post_roadrunner_region_t ();
+
+	virtual void id (int);
+	virtual void shape (const std::vector<sim_mob::LatLngLocation>&);
+
+private:
+	sim_mob::RoadRunnerRegion model;
+};
+
+
 class coordinate_map_t_pimpl: public virtual coordinate_map_t_pskel {
 public:
 	virtual void pre ();

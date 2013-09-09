@@ -12,6 +12,7 @@ namespace http://www.smart.mit.edu/geo  {
 	include "geospatial/coord/CoordinateTransform.hpp";
 	include "geospatial/coord/LinearScale.hpp";
 	include "geospatial/coord/UTM_Projection.hpp";
+	include "geospatial/RoadRunnerRegion.hpp";
 	include "metrics/Length.hpp";
 	include "util/DailyTime.hpp";
 	include "entities/misc/TripChain.hpp";
@@ -30,6 +31,10 @@ Segments      "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob:
 #The coordinate map is essentially a container type, even though we only use the first element.
 coordinate_map_t "std::vector<sim_mob::CoordinateTransform*>";
 
+#Same deal with the regions
+roadrunner_regions_t "std::map<int, sim_mob::RoadRunnerRegion>";
+roadrunner_shape_t "std::vector<sim_mob::LatLngLocation>";
+
 #Note: It makes sense to return these by const reference, since we have a local field holding them anyway.
 Nodes          "const helper::NodesRes&";
 UniNodes       "const std::set<sim_mob::UniNode*>&";
@@ -47,6 +52,9 @@ utm_projection_t sim_mob::UTM_Projection*;
 linear_scale_t sim_mob::LinearScale*;
 scale_source_t "std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>";
 scale_destination_t "std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>";
+roadrunner_region_t sim_mob::RoadRunnerRegion;
+roadrunner_vertex_t sim_mob::LatLngLocation;
+
  
 #Older, un-edited mapping code.
 

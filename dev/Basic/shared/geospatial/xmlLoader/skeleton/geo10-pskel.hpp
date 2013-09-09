@@ -55,6 +55,10 @@ namespace sim_mob
 {
   namespace xml
   {
+    class roadrunner_regions_t_pskel;
+    class roadrunner_region_t_pskel;
+    class roadrunner_vertex_t_pskel;
+    class roadrunner_shape_t_pskel;
     class coordinate_map_t_pskel;
     class utm_projection_t_pskel;
     class linear_scale_t_pskel;
@@ -164,6 +168,7 @@ namespace sim_mob
 #include "geospatial/coord/CoordinateTransform.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/Roundabout.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadItem.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -372,6 +377,190 @@ namespace sim_mob
 {
   namespace xml
   {
+    class roadrunner_regions_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      region (const sim_mob::RoadRunnerRegion&);
+
+      virtual std::map<int, sim_mob::RoadRunnerRegion>
+      post_roadrunner_regions_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      region_parser (::sim_mob::xml::roadrunner_region_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::roadrunner_region_t_pskel& /* region */);
+
+      // Constructor.
+      //
+      roadrunner_regions_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::roadrunner_region_t_pskel* region_parser_;
+    };
+
+    class roadrunner_region_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      id (int);
+
+      virtual void
+      shape (const std::vector<sim_mob::LatLngLocation>&);
+
+      virtual sim_mob::RoadRunnerRegion
+      post_roadrunner_region_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      id_parser (::xml_schema::int_pskel&);
+
+      void
+      shape_parser (::sim_mob::xml::roadrunner_shape_t_pskel&);
+
+      void
+      parsers (::xml_schema::int_pskel& /* id */,
+               ::sim_mob::xml::roadrunner_shape_t_pskel& /* shape */);
+
+      // Constructor.
+      //
+      roadrunner_region_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::int_pskel* id_parser_;
+      ::sim_mob::xml::roadrunner_shape_t_pskel* shape_parser_;
+    };
+
+    class roadrunner_vertex_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      latitude (double);
+
+      virtual void
+      longitude (double);
+
+      virtual sim_mob::LatLngLocation
+      post_roadrunner_vertex_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      latitude_parser (::xml_schema::double_pskel&);
+
+      void
+      longitude_parser (::xml_schema::double_pskel&);
+
+      void
+      parsers (::xml_schema::double_pskel& /* latitude */,
+               ::xml_schema::double_pskel& /* longitude */);
+
+      // Constructor.
+      //
+      roadrunner_vertex_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::double_pskel* latitude_parser_;
+      ::xml_schema::double_pskel* longitude_parser_;
+    };
+
+    class roadrunner_shape_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      vertex (const sim_mob::LatLngLocation&);
+
+      virtual std::vector<sim_mob::LatLngLocation>
+      post_roadrunner_shape_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      vertex_parser (::sim_mob::xml::roadrunner_vertex_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::roadrunner_vertex_t_pskel& /* vertex */);
+
+      // Constructor.
+      //
+      roadrunner_shape_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::roadrunner_vertex_t_pskel* vertex_parser_;
+    };
+
     class coordinate_map_t_pskel: public ::xml_schema::complex_content
     {
       public:
@@ -2837,6 +3026,9 @@ namespace sim_mob
       coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&);
 
       virtual void
+      roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>&);
+
+      virtual void
       Nodes (const helper::NodesRes&);
 
       virtual void
@@ -2851,6 +3043,9 @@ namespace sim_mob
       coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel&);
 
       void
+      roadrunner_regions_parser (::sim_mob::xml::roadrunner_regions_t_pskel&);
+
+      void
       Nodes_parser (::sim_mob::xml::Nodes_pskel&);
 
       void
@@ -2858,6 +3053,7 @@ namespace sim_mob
 
       void
       parsers (::sim_mob::xml::coordinate_map_t_pskel& /* coordinate_map */,
+               ::sim_mob::xml::roadrunner_regions_t_pskel& /* roadrunner_regions */,
                ::sim_mob::xml::Nodes_pskel& /* Nodes */,
                ::sim_mob::xml::Links_pskel& /* Links */);
 
@@ -2879,6 +3075,7 @@ namespace sim_mob
 
       protected:
       ::sim_mob::xml::coordinate_map_t_pskel* coordinate_map_parser_;
+      ::sim_mob::xml::roadrunner_regions_t_pskel* roadrunner_regions_parser_;
       ::sim_mob::xml::Nodes_pskel* Nodes_parser_;
       ::sim_mob::xml::Links_pskel* Links_parser_;
     };

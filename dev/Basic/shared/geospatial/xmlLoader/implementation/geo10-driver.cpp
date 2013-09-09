@@ -57,6 +57,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::xml_schema::unsigned_int_pimpl unsigned_int_p;
 	    ::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
 	    ::sim_mob::xml::coordinate_map_t_pimpl coordinate_map_t_p;
+	    ::sim_mob::xml::roadrunner_regions_t_pimpl road_runner_regions_t_p;
 	    ::sim_mob::xml::utm_projection_t_pimpl utm_projection_t_p;
 	    ::sim_mob::xml::linear_scale_t_pimpl linear_scale_t_p;
 	    ::sim_mob::xml::scale_source_t_pimpl scale_source_t_p;
@@ -134,6 +135,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    GeoSpatial_t_p.parsers (RoadNetwork_t_p);
 
 	    RoadNetwork_t_p.parsers (coordinate_map_t_p,
+                                 road_runner_regions_t_p,
 	                             Nodes_p,
 	                             Links_p);
 

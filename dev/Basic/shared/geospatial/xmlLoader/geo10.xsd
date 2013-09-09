@@ -14,12 +14,25 @@
   </xs:complexType>
   
   <xs:complexType name="roadrunner_region_t">
-    <xs:sequence>
-      <xs:element name="coordinate_system" type="xs:string"/>
-      <xs:element name="utm_zone" type="xs:string"/>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="id" type="xs:int"/>
+      <xs:element name="shape" type="geo:roadrunner_shape_t"/>
     </xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="roadrunner_vertex_t">
+    <xs:sequence minOccurs="1" maxOccurs="1">
+      <xs:element name="latitude" type="xs:double"/>
+      <xs:element name="longitude" type="xs:double"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="roadrunner_shape_t">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="vertex" type="geo:roadrunner_vertex_t"/>
+    </xs:sequence>
+  </xs:complexType>
+    
   <xs:complexType name="coordinate_map_t">
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
     <xs:choice>

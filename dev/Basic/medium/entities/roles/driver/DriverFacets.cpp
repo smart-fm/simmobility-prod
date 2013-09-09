@@ -152,15 +152,15 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	Print() << "DriverMovement::frame_tick|Frame#: " << p2.now.frame() << "|Person: " << getParent()->getId();
 	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
 		Print()	<< "|Permission: Granted"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
-				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 999)
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 0)
+				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 0)
 				<< std::endl;
 		flowIntoNextLinkIfPossible(p2);
 	}
 	else if (getParent()->canMoveToNextSegment == Person::DENIED){
 		Print() << "|Permission: Denied"
-				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 999)
-				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 999)
+				<< "|VEHICLE|CurrSegment:" << vehicle->getCurrSegment()->getStartEnd() << "|CurrLane:" << (vehicle->getCurrLane()? vehicle->getCurrLane()->getLaneID() : 0)
+				<< "|PERSON|CurrSegment:" << parent->getCurrSegment()->getStartEnd() << "|CurrLane:" << (parent->getCurrLane()? parent->getCurrLane()->getLaneID() : 0)
 				<< std::endl;
 
 		if(currLane) {
@@ -188,7 +188,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 					<< "|DRIVER|CurrLane:" << currLane->getLaneID()
 					<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
 					<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
-					<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999)
+					<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
 					<< "|Queuing: " << getParent()->isQueuing
 					<< "|Distance: " << getParent()->distanceToEndOfSegment
 					<< "|RemainingTime: " << getParent()->getRemainingTimeThisTick()
@@ -206,7 +206,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 				<< "|DRIVER|CurrLane:" << currLane->getLaneID()
 				<< "|PERSON|CurrSegment:" << getParent()->getCurrSegment()->getStartEnd()
 				<< "|CurrSegmentID:" << getParent()->getCurrSegment()->getSegmentID()
-				<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999) << std::endl;
+				<< "|CurrLane:" << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0) << std::endl;
 		}
 		Print()	<< "|Queuing: " << getParent()->isQueuing
 				<< "|Distance: " << getParent()->distanceToEndOfSegment
@@ -485,7 +485,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 					<< "\nvehicle| segment: " << vehicle->getCurrSegment()->getStartEnd() << "|id: " << vehicle->getCurrSegment()->getSegmentID()
 					<< "|lane: " << vehicle->getCurrLane()->getLaneID()
 					<< "\ngetParent()| segment: " << getParent()->getCurrSegment()->getStartEnd() << "|id: " << getParent()->getCurrSegment()->getSegmentID()
-					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():999)
+					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
 					<< std::endl;
 
 			throw::std::runtime_error(DebugStream.str());

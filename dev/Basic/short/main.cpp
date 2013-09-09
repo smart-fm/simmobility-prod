@@ -38,6 +38,8 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "conf/simpleconf.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
@@ -117,6 +119,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -187,8 +192,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
-	std::cout << "start to Load our user config file." << std::endl;
-	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "Expanding our user config file." << std::endl;
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
 	std::cout << "finish to Load our user config file." << std::endl;
 
 
@@ -284,6 +289,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
 	{
+		if (!androidBroker) {
+			throw std::runtime_error("Android broker is null, but expected to exist.");
+		}
+
 		communicationWorkers->assignAWorker(androidBroker);
 		androidBroker->enable();
 	}

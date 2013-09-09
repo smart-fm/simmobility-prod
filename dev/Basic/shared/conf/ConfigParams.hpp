@@ -38,6 +38,16 @@ class TripChainItem;
  * Contains our ConfigParams class. Replaces simpleconf.hpp, providing a more logical ordering (e.g., the file
  *    is parsed FIRST) and some other benefits (fewer include dependencies).
  *
+ * To load this class, you can use something like this:
+ *
+ *   \code
+ *   ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
+ *   ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), active_agents, pending_agents);
+ *   \endcode
+ *
+ * Note that the separate "Parse" and "Expand" steps exist to allow config-file parameters (like ns3/android brokerage)
+ *  to be loaded without requiring anything to be constructed (since this might rely on parsed parameters).
+ *
  * \note
  * Developers should make sure NOT to include "GenConfig.h" here; otherwise, this forces most of the source
  * tree to be rebuilt whenever a single parameter changes. (In other words, don't implement any functions in
@@ -140,7 +150,7 @@ public:
 	 * \param active_agents Vector to hold all agents that will be active during time tick zero.
 	 * \param pending_agents Priority queue to hold all agents that will become active after time tick zero.
 	 */
-	static void InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
+	//static void InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.

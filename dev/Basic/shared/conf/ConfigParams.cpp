@@ -71,17 +71,12 @@ sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactoryRW()
 }
 
 
-void sim_mob::ConfigParams::InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
+/*void sim_mob::ConfigParams::InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
 {
-	//We'll be switching over pretty cleanly, so just use a local variable here.
-	//  * simpleconf.cpp will be removed (and InitUserConf will go somewhere else).
-	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
-	const bool LOAD_NEW_CONFIG_FILE = false;
-
 	//Load using our new config syntax.
 	ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
 	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), active_agents, pending_agents);
-}
+}*/
 
 
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const

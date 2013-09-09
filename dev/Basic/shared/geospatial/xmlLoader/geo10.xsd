@@ -7,6 +7,19 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
 
+  <xs:complexType name="roadrunner_regions_t">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="region" type="geo:roadrunner_region_t"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="roadrunner_region_t">
+    <xs:sequence>
+      <xs:element name="coordinate_system" type="xs:string"/>
+      <xs:element name="utm_zone" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="coordinate_map_t">
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
     <xs:choice>
@@ -407,6 +420,7 @@
   <xs:complexType name="RoadNetwork_t">
     <xs:sequence>
       <xs:element name="coordinate_map" type="geo:coordinate_map_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="roadrunner_regions" type="geo:roadrunner_regions_t" minOccurs="0" maxOccurs="1"/>
 
       <xs:element name="Nodes">
         <xs:complexType>

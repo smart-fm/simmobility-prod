@@ -197,6 +197,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	std::cout << "finish to Load our user config file." << std::endl;
 
 
+
 //	//DriverComms are only allowed if the communicator is enabled.
 //	if (ConfigParams::GetInstance().commSimEnabled) {
 //		androidBroker.enable();

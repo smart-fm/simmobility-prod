@@ -8,28 +8,28 @@
   targetNamespace="http://www.smart.mit.edu/geo">
 
   <xs:complexType name="roadrunner_regions_t">
-    <xs:sequence minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="region" type="geo:roadrunner_region_t"/>
+    <xs:sequence>
+      <xs:element name="region" type="geo:roadrunner_region_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   
   <xs:complexType name="roadrunner_region_t">
-    <xs:sequence minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="id" type="xs:int"/>
-      <xs:element name="shape" type="geo:roadrunner_shape_t"/>
+    <xs:sequence>
+      <xs:element name="id" type="xs:int" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="shape" type="geo:roadrunner_shape_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="roadrunner_vertex_t">
-    <xs:sequence minOccurs="1" maxOccurs="1">
-      <xs:element name="latitude" type="xs:double"/>
-      <xs:element name="longitude" type="xs:double"/>
+    <xs:sequence>
+      <xs:element name="latitude" type="xs:double" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="longitude" type="xs:double" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
   
   <xs:complexType name="roadrunner_shape_t">
-    <xs:sequence minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="vertex" type="geo:roadrunner_vertex_t"/>
+    <xs:sequence>
+      <xs:element name="vertex" type="geo:roadrunner_vertex_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
     
@@ -171,7 +171,7 @@
       <xs:element name="segmentID" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
       <!--      <xs:element name="segmentType" type="geo:SegmentType_t" minOccurs="1" maxOccurs="1"/>-->
       <!--      <xs:element name="parentLink" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
-      <xs:element name="startingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="startingNode" type="xs:unsignedInt" />
       <xs:element name="endingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="maxSpeed" type="xs:short"/>
       <xs:element name="Length" type="xs:unsignedInt"/>

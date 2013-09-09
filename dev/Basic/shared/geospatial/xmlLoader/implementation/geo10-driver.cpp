@@ -58,6 +58,9 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::Point2D_t_pimpl Point2D_t_p;
 	    ::sim_mob::xml::coordinate_map_t_pimpl coordinate_map_t_p;
 	    ::sim_mob::xml::roadrunner_regions_t_pimpl road_runner_regions_t_p;
+	    ::sim_mob::xml::roadrunner_region_t_pimpl roadrunner_region_t_p;
+	    ::sim_mob::xml::roadrunner_shape_t_pimpl roadrunner_shape_t_p;
+	    ::sim_mob::xml::roadrunner_vertex_t_pimpl roadrunner_vertex_t_p;
 	    ::sim_mob::xml::utm_projection_t_pimpl utm_projection_t_p;
 	    ::sim_mob::xml::linear_scale_t_pimpl linear_scale_t_p;
 	    ::sim_mob::xml::scale_source_t_pimpl scale_source_t_p;
@@ -153,6 +156,11 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    scale_destination_t_p.parsers (string_p,
 	                                   string_p);
+
+	    road_runner_regions_t_p.parsers(roadrunner_region_t_p);
+	    roadrunner_region_t_p.parsers(int_p, roadrunner_shape_t_p);
+	    roadrunner_shape_t_p.parsers(roadrunner_vertex_t_p);
+	    roadrunner_vertex_t_p.parsers(double_p, double_p);
 
 	    Nodes_p.parsers (UniNodes_p,
 	                     Intersections_p,

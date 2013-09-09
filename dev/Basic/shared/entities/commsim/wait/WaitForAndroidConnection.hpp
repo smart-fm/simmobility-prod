@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "WaitForClientConnection.hpp"
+#include "BrokerBlocker.hpp"
 
 namespace sim_mob {
 
-class WaitForAndroidConnection: public sim_mob::WaitForClientConnection {
+class WaitForAndroidConnection: public sim_mob::BrokerBlocker {
 	int min_nof_clients;
 public:
 	WaitForAndroidConnection(sim_mob::Broker &,int min_nof_clients_ = 1);

@@ -12,7 +12,7 @@
 namespace sim_mob {
 
 WaitForNS3Connection::WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ ):
-				WaitForClientConnection(broker_),
+				BrokerBlocker(broker_),
 				min_nof_clients(min_nof_clients_) {
 	// TODO Auto-generated constructor stub
 
@@ -32,10 +32,11 @@ bool WaitForNS3Connection::calculateWaitStatus() {
 	if(cnt >= min_nof_clients)
 	{
 		setWaitStatus(false);
-		return false;//no need to wait
 	}
+	else {
 	setWaitStatus(true);
-	return true;//need to wait
+	}
+	return isWaiting();//need to wait
 
 }
 

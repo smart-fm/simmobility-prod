@@ -20,7 +20,7 @@ class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
-class WaitForClientConnection;
+class BrokerBlocker;
 
 
 struct AgentsMap
@@ -55,10 +55,10 @@ typedef std::pair<unsigned int , boost::unordered_map<std::string , boost::share
 typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > IdPair;
 };
 
-struct WaitForClientConnections{
-typedef std::map<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> > type; //multimap<client type, WaitForClientConnection >
-typedef std::map<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> >::iterator iterator;
-typedef std::pair<unsigned int , boost::shared_ptr<sim_mob::WaitForClientConnection> > IdPair;
+struct BrokerBlockers{
+typedef std::map<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> > type; //multimap<Blocker type, BrokerBlocker >   [Blocker type: simmobility agents, android emulator, ns3 simulator  etc]
+typedef std::map<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> >::iterator iterator;
+typedef std::pair<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> > IdPair;
 };
 
 template<class TYPE>
@@ -107,7 +107,9 @@ private:
 	//	used to help deciding whether Broker tick forward or block the simulation
 	bool brokerCanTickForward;
 	//	container for classes who evaluate wait-for-connection criteria for every type of client
-	WaitForClientConnections::type waitForClientConnectionList; // <client type, WaitForClientConnection class>
+	BrokerBlockers::type clientBlockers; // <client type, BrokerBlocker class>
+	//	container for classes who evaluate wait-for-connection criteria for simmobility agents
+	BrokerBlockers::type agentBlockers; // <N/A, BrokerBlocker class>
 	//various controlling mutexes and condition variables
 	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
@@ -122,7 +124,7 @@ private:
 	//revise the registration of the registered agents
 	void refineSubscriptionList();
 	///Returns true if enough subscriptions exist to allow the broker to update.
-	bool subscriptionsQualify() const;
+	bool isWaitingForAgentRegistration() const;
 	//	Returns true if enough clients exist to allow the broker to update.
 	bool clientsQualify() const;
 	//	processes various clients requests to be registered with the broker
@@ -198,7 +200,7 @@ public:
 	bool isNonspatial();
 protected:
 	// Wait for clients
-	bool waitForClientsConnection();
+	bool wait();
 	// wait for the registered agents to complete their tick
 	void waitForAgentsUpdates();
 	//	wait for a message from the client stating that they are done sending messages for this tick

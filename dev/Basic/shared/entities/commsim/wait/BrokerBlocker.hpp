@@ -1,5 +1,5 @@
 /*
- * WaitForClientConnection.hpp
+ * BrokerBlocker.hpp
  *
  *  Created on: Jul 15, 2013
  *      Author: vahid
@@ -9,26 +9,26 @@
  *      have to work together.
  */
 
-#ifndef WAITFORCLIENTCONNECTION_HPP_
-#define WAITFORCLIENTCONNECTION_HPP_
+#ifndef BROKERBLOCKER_HPP_
+#define BROKERBLOCKER_HPP_
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
 namespace sim_mob {
 class Broker;
-class WaitForClientConnection {
+class BrokerBlocker {
 	sim_mob::Broker & broker;
 	bool wait_status;
 	boost::mutex	mutex_;
 protected:
 	void setWaitStatus(bool);
 public:
-	WaitForClientConnection(sim_mob::Broker &);
+	BrokerBlocker(sim_mob::Broker &);
 	sim_mob::Broker & getBroker() const;
 	virtual bool calculateWaitStatus() = 0;
 	bool isWaiting();
-	virtual ~WaitForClientConnection();
+	virtual ~BrokerBlocker();
 };
 
 } /* namespace sim_mob */
-#endif /* WAITFORCLIENTCONNECTION_HPP_ */
+#endif /* BROKERBLOCKER_HPP_ */

@@ -68,6 +68,7 @@ public:
 	};
 
 	enum ClientType {
+		UNKNOWN = 0,
 		ANDROID_EMULATOR = 1,
 		NS3_SIMULATOR = 2,
 		//add your client type here

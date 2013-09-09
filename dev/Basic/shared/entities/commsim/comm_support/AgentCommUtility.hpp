@@ -152,6 +152,10 @@ public:
 //		info.setEntity(registerr);
 //		communicator = communicator_;
 //		Print() << "AgentCommUtility::Registering With Broker[" << communicator << "]" << std::endl;
+		if(!communicator)
+		{
+			throw std::runtime_error("Broker Not specified");
+		}
 		return communicator->registerEntity(this);
 //		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 	}

@@ -12,7 +12,7 @@
 namespace sim_mob {
 
 WaitForAndroidConnection::WaitForAndroidConnection(sim_mob::Broker & broker_,int min_nof_clients_ ):
-		WaitForClientConnection(broker_),
+		BrokerBlocker(broker_),
 		min_nof_clients(min_nof_clients_) {
 	// TODO Auto-generated constructor stub
 
@@ -29,13 +29,15 @@ void WaitForAndroidConnection::set_MIN_NOF_Clients(int value) {
 bool WaitForAndroidConnection::calculateWaitStatus() {
 	ClientList::type & clients = getBroker().getClientList();
 	int cnt = clients[ConfigParams::ANDROID_EMULATOR].size();
+	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
 	if(cnt >= min_nof_clients)
 	{
 		setWaitStatus(false);
-		return false;//no need to wait
 	}
-	setWaitStatus(true);
-	return true;//need to wait
+	else{
+		setWaitStatus(true);
+	}
+	return isWaiting();
 }
 
 WaitForAndroidConnection::~WaitForAndroidConnection() {

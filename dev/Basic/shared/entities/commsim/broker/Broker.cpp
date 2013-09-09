@@ -21,6 +21,7 @@
 //#include "entities/commsim/service/derived/TimePublisher.hpp"
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
+#include "entities/commsim/wait/WaitForAgentRegistration.hpp"
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
 
@@ -109,14 +110,18 @@ void Broker::configure() {
 				std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
 
 		// wait for connection criteria for this broker
-		waitForClientConnectionList.insert(
+		clientBlockers.insert(
 				std::make_pair(ConfigParams::ANDROID_EMULATOR,
 						boost::shared_ptr<WaitForAndroidConnection>(
-								new WaitForAndroidConnection(*this, 1))));
-		waitForClientConnectionList.insert(
+								new WaitForAndroidConnection(*this,MIN_CLIENTS))));
+		clientBlockers.insert(
 				std::make_pair(ConfigParams::NS3_SIMULATOR,
 						boost::shared_ptr<WaitForNS3Connection>(
-								new WaitForNS3Connection(*this, 1))));
+								new WaitForNS3Connection(*this))));
+		agentBlockers.insert(
+				std::make_pair(0,
+						boost::shared_ptr<WaitForAgentRegistration>(
+								new WaitForAgentRegistration(*this,MIN_AGENTS))));
 	 }
 	 else
 		 if(ConfigParams::GetInstance().getAndroidClientType() == "android-only") {
@@ -145,14 +150,18 @@ void Broker::configure() {
 								android_factory));
 
 				// wait for connection criteria for this broker
-				waitForClientConnectionList.insert(
+				clientBlockers.insert(
 						std::make_pair(ConfigParams::ANDROID_EMULATOR,
 								boost::shared_ptr<WaitForAndroidConnection>(
-										new WaitForAndroidConnection(*this, 1))));
+										new WaitForAndroidConnection(*this, MIN_CLIENTS))));
+				agentBlockers.insert(
+						std::make_pair(0,
+								boost::shared_ptr<WaitForAgentRegistration>(
+										new WaitForAgentRegistration(*this, MIN_AGENTS))));
 
 		 }
-	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().getAndroidClientType() << "]"
-			 <<" waitForClientConnectionList.size()=" << waitForClientConnectionList.size() << std::endl;
+//	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().getAndroidClientType() << "]"
+//			 <<" clientBlockers.size()=" << clientBlockers.size() << std::endl;
 	 configured = true;
 }
 
@@ -294,7 +303,8 @@ void Broker::processClientRegistrationRequests()
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			bool wait = waitForClientConnectionList[ClientTypeMap[it->first]]->calculateWaitStatus();
+			bool wait = clientBlockers[ClientTypeMap[it->first]]->calculateWaitStatus();
+			Print() << "calculateWaitStatus for  " << it->first << "  " << (wait? "WAIT " : "DONT_WAIT") << std::endl;
 			if(!wait)
 			{
 				//	then, get this request out of registration list.
@@ -645,15 +655,18 @@ void Broker::refineSubscriptionList() {
 //sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
 //todo:  put a better condition here. this is just a placeholder
-bool Broker::subscriptionsQualify() const
+bool Broker::isWaitingForAgentRegistration() const
 {
-	bool res = registeredAgents.size() >= MIN_AGENTS;
-	if(!res)
+	bool res = agentBlockers.at(0)->calculateWaitStatus();
+	if(res)
 	{
-		WarnOut("subscriptionsQualify is not qualified");
-//		Print() << "subscriptionsQualify is not qualified" << std::endl;
+		Print() <<  "Evaluating Registered Agents: WAIT";
+//		Print() << "isWaitingForAgentRegistration is not qualified" << std::endl;
 	}
-	Print() << "subscriptionsQualify is qualified" << std::endl;
+	else
+	{
+		Print() << "Evaluating Registered Agents: DONT_WAIT" << std::endl;
+	}
 	return res;
 }
 //todo:  put a better condition here. this is just a placeholder
@@ -664,33 +677,38 @@ bool Broker::clientsQualify() const
 
 //returns true if you need to wait
 bool Broker::isWaitingForAnyClientConnection() {
-//	Print() << "inside isWaitingForAnyClientConnection " << waitForClientConnectionList.size() << std::endl;
-	WaitForClientConnections::IdPair pp;
+//	Print() << "inside isWaitingForAnyClientConnection " << clientBlockers.size() << std::endl;
+	BrokerBlockers::IdPair pp;
 	int i = -1;
-	BOOST_FOREACH(pp, waitForClientConnectionList) {
+	BOOST_FOREACH(pp, clientBlockers) {
 		i++;
 		if (pp.second->isWaiting()) {
-			Print() << i << " isWaitingForAnyClientConnection : wait" << std::endl;
+			Print() << " isWaitingForAnyClientConnection[" << i << "] : wait" << std::endl;
 			return true;
 		}
 	}
-	Print() << i << " isWaitingForAnyClientConnection : Dont wait" << std::endl;
+	Print() << "isWaitingForAnyClientConnection : Dont wait" << std::endl;
 	return false;
 }
 
-bool Broker::waitForClientsConnection()
+bool Broker::wait()
 {
 	//	Initial evaluation
 	{
-	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-	processClientRegistrationRequests();
-	bool res1 = subscriptionsQualify() ;
-	bool res2 = isWaitingForAnyClientConnection();
-	bool res3 = res1 && !res2;
-	bool res = brokerCanTickForward || res3;
-	brokerCanTickForward = res;
-//	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
-	Print() << "Broker::waitForClientsConnection()::Initial Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
+		boost::unique_lock<boost::mutex> lock(mutex_client_request);
+		processClientRegistrationRequests();
+		bool res1 = isWaitingForAgentRegistration();
+		bool res2 = isWaitingForAnyClientConnection();
+		bool res3 = !res1 && !res2;
+		bool res = brokerCanTickForward || res3;
+		brokerCanTickForward = res;
+//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
+		Print() << "Broker::wait()::Initial Evaluation => "
+				<< (brokerCanTickForward ? "True" : "false") << std::endl;
+		if (!brokerCanTickForward) {
+			Print() << "[(res1 && !res2)||res2] [" << res1 << res2 << res3
+					<< "]" << std::endl;
+		}
 	}
 
 	/**if:
@@ -709,21 +727,21 @@ bool Broker::waitForClientsConnection()
 		COND_VAR_CLIENT_REQUEST.wait(lock);
 		Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
 		processClientRegistrationRequests();
-//		brokerCanTickForward = (subscriptionsQualify() && !isWaitingForAnyClientConnection());
+//		brokerCanTickForward = (isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection());
 
-		bool res1 = subscriptionsQualify() ;
+		bool res1 = isWaitingForAgentRegistration() ;
 		bool res2 = isWaitingForAnyClientConnection();
-		bool res3 = res1 && !res2;
+		bool res3 = !res1 && !res2;
 		bool res = brokerCanTickForward || res3;
 		brokerCanTickForward = res;
-	//	brokerCanTickForward = brokerCanTickForward || ((subscriptionsQualify() && !isWaitingForAnyClientConnection()));
-		Print() << "Broker::waitForClientsConnection()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
+	//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
+		Print() << "Broker::wait()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
 
 	}
 
 
 	//broker started before but suddenly is no more qualified to run
-//	if(brokerCanTickForward && (!subscriptionsQualify())) {
+//	if(brokerCanTickForward && (!isWaitingForAgentRegistration())) {
 //		//don't block, just cooperate & don't do anything until this simulation ends
 //		//TODO: This might be why our client eventually gives up.
 //		return false;
@@ -814,11 +832,11 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
 //	if(now.frame() == 0) {
-		waitForClientsConnection();
+		wait();
 		Print() << "Broker NOT Blocking" << std::endl;
 //	}
-//	Print() << "===================== waitForClientsConnection Done =======================================" << std::endl;
-//	if (!waitForClientsConnection()) {
+//	Print() << "===================== wait Done =======================================" << std::endl;
+//	if (!wait()) {
 //		return UpdateStatus(UpdateStatus::RS_CONTINUE);
 //	}
 

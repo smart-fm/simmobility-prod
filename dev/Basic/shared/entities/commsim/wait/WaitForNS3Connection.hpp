@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "WaitForClientConnection.hpp"
+#include "BrokerBlocker.hpp"
 
 namespace sim_mob {
 class Broker;
 
-class WaitForNS3Connection: public sim_mob::WaitForClientConnection {
+class WaitForNS3Connection: public sim_mob::BrokerBlocker {
 	int min_nof_clients;
 public:
 	WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ = 1);

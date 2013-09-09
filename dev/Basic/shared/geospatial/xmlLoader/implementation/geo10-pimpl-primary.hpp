@@ -380,6 +380,7 @@ public:
 	virtual sim_mob::RoadNetwork& post_RoadNetwork_t ();
 
 	virtual void coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&);
+	virtual void roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>&);
 	virtual void Nodes (const sim_mob::xml::helper::NodesRes&);
 	virtual void Links (const std::vector<sim_mob::Link*>&);
 

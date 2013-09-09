@@ -32,7 +32,6 @@ class AuraManager;
 class Conflux;
 class Worker;
 class WorkGroupManager;
-class Node;
 
 
 
@@ -109,8 +108,6 @@ private:
 
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish
 	static const std::vector<sim_mob::WorkGroup*> getRegisteredWorkGroups();
-
-	const sim_mob::Node* findStartingNode(Person* p);
 
 //add by xuyan
 #ifndef SIMMOB_DISABLE_MPI

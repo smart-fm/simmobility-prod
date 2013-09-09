@@ -137,12 +137,12 @@ void sim_mob::Agent::resetFrameInit() {
 //}
 
 long sim_mob::Agent::getLastUpdatedFrame() {
-//	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
+	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
 	return lastUpdatedFrame;
 }
 
 void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
-//	boost::mutex::scoped_lock lastUpdatedFrame_lock(lastUpdatedFrame_mutex);
+	boost::mutex::scoped_lock lastUpdatedFrame_lock(lastUpdatedFrame_mutex);
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
 

@@ -355,6 +355,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(bool isQueuingBfrUpdate) {
 	}
 	sim_mob::Person* p = laneAgents.front();
 	laneAgents.pop_front();
+	Print() << "LaneStats::dequeue |Person: "<< p->getId() << "dequeued from lane " << this->getLane()->getLaneID()<<std::endl;
 	if (!laneInfinity) {
 		if (isQueuingBfrUpdate) {
 			if (queueCount > 0) {

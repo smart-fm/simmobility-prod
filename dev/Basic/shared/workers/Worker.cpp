@@ -511,19 +511,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			(*it)->resetOutputBounds();
 		}
 
-		timeval startTime;
-		gettimeofday(&startTime, nullptr);
-
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-			(*it)->loadNewAgents();
-		}
-
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
-
-		timeval endTime;
-		gettimeofday(&endTime, nullptr);
-		Print() << "Worker::EntityUpdater<advance>|execution time: " << Utils::diff_ms(endTime,startTime) << std::endl;
 	}
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.

@@ -90,7 +90,6 @@ private:
 	timeslice currFrameNumber;
 
 	std::vector<Entity*> toBeRemoved;
-	std::vector<Person*> toBeAdded;
 
 	/* function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
@@ -244,10 +243,6 @@ public:
 	void resetOutputBounds();
 
 	std::deque<sim_mob::Person*> getAllPersons();
-
-	void loadNewAgents();
-
-	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 };
 
 } /* namespace sim_mob */

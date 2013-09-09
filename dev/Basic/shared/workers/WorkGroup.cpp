@@ -412,7 +412,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 		}
 
 		//Update the aura manager, if we have one.
-		if (auraMgr || ( !ConfigParams::GetInstance().UsingConfluxes())) {
+		if (auraMgr && ( !ConfigParams::GetInstance().UsingConfluxes())) {
 			auraMgr->update();
 		}
 
@@ -609,19 +609,12 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-	/*	const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
+		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
 		if(rdSeg) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
-		*/
-		const sim_mob::Node* startingNode = findStartingNode(person);
-		if(startingNode){
-			Print()<<"addAgent|startingNode: "<< startingNode->getID()<<std::endl;
-			Print()<<"addAgent|parentConflux: "<< startingNode->getParentConflux()->getMultiNode()->getID()<<std::endl;
-			startingNode->getParentConflux()->addAgent(person,startingNode);
-		}
 		else {
-			Print() << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
+			Print() << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation"<<std::endl;
 		}
 	}
 }
@@ -691,34 +684,5 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 		}
 	}
 	return rdSeg;
-}
-
-const sim_mob::Node* sim_mob::WorkGroup::findStartingNode(Person* p) {
-	const sim_mob::Node* startingNode = nullptr;
-
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
-	const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
-
-	const sim_mob::RoadSegment* rdSeg = nullptr;
-	if (role == "driver") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		startingNode = firstSubTrip.fromLocation.node_;
-	}
-	else if (role == "pedestrian") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		startingNode = firstSubTrip.fromLocation.node_;
-	}
-	else if (role == "busdriver") {
-		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
-		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
-		vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
-		std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-		startingNode = pathRoadSeg.front()->getStart();
-	}
-
-	return startingNode;
 }
 

@@ -54,12 +54,18 @@ public:
     static AuraManager &
     instance()
     {
+    	if(ConfigParams::GetInstance().UsingConfluxes()){
+    		throw std::runtime_error("AuraManager is not used when confluxes are active");
+    	}
         return instance_;
     }
 
     static AuraManager &
     instance2()
     {
+    	if(ConfigParams::GetInstance().UsingConfluxes()){
+			throw std::runtime_error("AuraManager is not used when confluxes are active");
+		}
     	return instance2_;
     }
 

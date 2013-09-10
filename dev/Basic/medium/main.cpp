@@ -15,6 +15,9 @@
 #include "GenConfig.h"
 
 #include "buffering/BufferedDataManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
@@ -121,6 +124,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -163,7 +169,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	fakeModels(builtIn);
 
 	//Load our user config file
-	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();

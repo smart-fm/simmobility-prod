@@ -180,7 +180,7 @@ public:
 	SystemParams::NetworkSource& networkSource();
 	const SystemParams::NetworkSource& networkSource() const;
 
-	///If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
+	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
 	std::string& networkXmlFile();
 	const std::string& networkXmlFile() const;
 

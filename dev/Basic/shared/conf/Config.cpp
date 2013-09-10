@@ -161,18 +161,18 @@ void GenerateAgentsFromTripChains(std::list<sim_mob::Agent*>& res, LoadAgents::A
 void sim_mob::DatabaseAgentLoader::loadAgents(std::list<sim_mob::Agent*>& res, LoadAgents::AgentConstraints& constraints, const sim_mob::Config& cfg)
 {
 	//Find our stored procedure map (this should be guaranteed from our previous XML code).
-	std::map<std::string, StoredProcedureMap>::const_iterator it = cfg.constructs().storedProcedureMaps.find(mappings);
-	if (it==cfg.constructs().storedProcedureMaps.end()) { throw std::runtime_error("Unexpected; can't find mapping in loadAgents."); }
+	//std::map<std::string, StoredProcedureMap>::const_iterator it = cfg.constructs().storedProcedureMaps.find(mappings);
+	//if (it==cfg.constructs().storedProcedureMaps.end()) { throw std::runtime_error("Unexpected; can't find mapping in loadAgents."); }
 
 	//Ensure we're loading the right type.
-	if (it->second.dbFormat!="aimsun") { throw std::runtime_error("DatabaseAgentLoader error: only the aimsun format supported (for now)."); }
+	//if (it->second.dbFormat!="aimsun") { throw std::runtime_error("DatabaseAgentLoader error: only the aimsun format supported (for now)."); }
 
 	//Load using the same code found in our NetworkLoader.
 	typedef std::map<std::string, std::vector<sim_mob::TripChainItem*> > TripChainList;
-	TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
+	//TripChainList tripChains = sim_mob::aimsun::Loader::LoadTripChainsFromNetwork(connection, it->second.procedureMappings);
 
 	//Now use the same code for Db and Xml trip-chains.
-	GenerateAgentsFromTripChains(res, constraints, cfg.mutexStrategy(), tripChains);
+	//GenerateAgentsFromTripChains(res, constraints, cfg.mutexStrategy(), tripChains);
 }
 
 

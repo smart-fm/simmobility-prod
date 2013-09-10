@@ -18,7 +18,7 @@ void sim_mob::conf::workgroups_pimpl::post_workgroups ()
 
 void sim_mob::conf::workgroups_pimpl::workgroup (const std::pair<std::string, sim_mob::WorkGroupFactory>& value)
 {
-	config->constructs().workGroups[value.first] = value.second;
+	//config->constructs().workGroups[value.first] = value.second;
 }
 
 

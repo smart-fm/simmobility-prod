@@ -255,14 +255,14 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 			output = inner.at(clientId); //this is what we are looking for
 			return true;
 		}
-		catch(std::out_of_range e)
+		catch(std::out_of_range &e)
 		{
 			WarnOut("Client " <<  clientId << " of type " <<  clientType << " not found" << std::endl);
 			return false;
 		}
 
 	}
-	catch(std::out_of_range e)
+	catch(std::out_of_range &e)
 	{
 
 		Print() << "Client type" <<  clientType << " not found" << std::endl;
@@ -705,10 +705,10 @@ bool Broker::wait()
 //	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
 		Print() << "Broker::wait()::Initial Evaluation => "
 				<< (brokerCanTickForward ? "True" : "false") << std::endl;
-		if (!brokerCanTickForward) {
-			Print() << "[(res1 && !res2)||res2] [" << res1 << res2 << res3
-					<< "]" << std::endl;
-		}
+//		if (!brokerCanTickForward) {
+//			Print() << "[(res1 && !res2)||res2] [" << res1 << res2 << res3
+//					<< "]" << std::endl;
+//		}
 	}
 
 	/**if:

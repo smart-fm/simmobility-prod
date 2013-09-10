@@ -33,6 +33,29 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
   out.close()
 
 
+def __write_xml_region(out, region, regId, latCmp, lngCmp): 
+  #Calculate the region bounds.
+  latStart = latCmp*region[0] 
+  latEnd = latCmp*(region[0]+1)
+  lngStart = lngCmp*region[1] 
+  lngEnd = lngCmp*(region[1]+1)
+
+  #Now mutate each region slightly, so that we don't have uniform regions.
+  points = __mutate_region(latStart, latEnd, lngStart, lngEnd)
+
+  #Now print it.
+  out.write('        <region>\n')
+  out.write('          <id>%s</id>\n' % regId)
+  out.write('            <shape>\n')
+  for pt in points:
+    out.write('              <vertex>\n')
+    out.write('                <latitude>%f</latitude>\n' % pt.x)
+    out.write('                <longitude>%f</longitude>\n' % pt.y)
+    out.write('              </vertex>\n')
+  out.write('            </shape>\n')
+  out.write('        </region>\n')
+
+
 def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions): 
   #Little easier.
   minLat, minLng, maxLat, maxLng = latlng_vals
@@ -51,34 +74,15 @@ def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions):
     nextLng = random.randint(0,numGrids-1)
     regions[(nextLat,nextLng)] = True
 
-  out.write('/** Regions for Randomized road network. */\n')
-  out.write('/** Generated: %s */\n' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-  out.write('public static List<Region> MakeRandomNetworkRegions(LoggerI logger) {\n')
-  out.write('  List<Region> rs = new ArrayList<Region>();\n')
-  out.write('  Region r;\n')
-
+  #We now have to store these in XML format.
+  out.write('      <!-- Regions for use with the Road Runner software. -->\n')
+  out.write('      <roadrunner_regions>\n')
   count = 1
   for region in regions:
-    #Calculate the region bounds.
-    latStart = latCmp*region[0] 
-    latEnd = latCmp*(region[0]+1)
-    lngStart = lngCmp*region[1] 
-    lngEnd = lngCmp*(region[1]+1)
-
-    #Now mutate each region slightly, so that we don't have uniform regions.
-    points = __mutate_region(latStart, latEnd, lngStart, lngEnd)
-
-    #Now print it.
-    out.write('  \n')
-    out.write('  r = new Region("Region_%s");\n' % count)
+    __write_xml_region(out, region, count, latCmp, lngCmp)
     count += 1
-    for pt in points:
-      out.write('  r.addVertex(%f, %f);\n' % (pt.x, pt.y))
-    out.write('  rs.add(r);\n')
 
-  out.write('  \n')
-  out.write('  return rs;\n')
-  out.write('}\n')
+  out.write('      </roadrunner_regions>\n\n')
 
 
 
@@ -107,9 +111,8 @@ def __write_xml_coordmap(outFilePath, out, rn, rnIndex):
   dest_vals = calc_latlng_bounds(source_vals) # [minLat, minLng, maxLat, maxLng]
 
   #Recursive file opening! Generate and print a random map of regions
-  out2 = open(outFilePath+"-RRregions.txt", 'w')
-  __write_xml_random_regions(out2, dest_vals, 10, 20)
-  out2.close()
+  #out2 = open(outFilePath+"-RRregions.txt", 'w')
+  #out2.close()
 
   #Each converted file is written with a LinearScale coordmap entry that allows it to be converted to roughly believable lat/lng.
   #TODO: We can actually save the UTM-projection zone here, but Sim Mobility can't do much with that at the moment.
@@ -125,7 +128,10 @@ def __write_xml_coordmap(outFilePath, out, rn, rnIndex):
   out.write('            <latitude_range>%f : %f</latitude_range>\n' % (dest_vals[0], dest_vals[2]))
   out.write('          </destination>\n')
   out.write('        </linear_scale>\n')
-  out.write('      </coordinate_map>\n')
+  out.write('      </coordinate_map>\n\n')
+
+  #Now print our Regions.
+  __write_xml_random_regions(out, dest_vals, 10, 20)
 
 
 #Helper for calc_point_bounds

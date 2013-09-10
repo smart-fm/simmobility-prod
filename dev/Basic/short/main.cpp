@@ -38,6 +38,8 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "conf/simpleconf.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
@@ -117,6 +119,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -153,12 +158,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
-		//just for now, we comment out driver and use drivercomm. don't worry it is all same except it registers to a broker -Vahid
-//		if (ConfigParams::GetInstance().commSimEnabled) {
-			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
-//		} else {
-//			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
-//		}
+		if (ConfigParams::GetInstance().commSimEnabled()) {
+//			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr/*, androidBroker*/, mtx));
+		} else {
+			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		}
 
 		rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 		rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
@@ -184,8 +189,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
-	std::cout << "start to Load our user config file." << std::endl;
-	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "Expanding our user config file." << std::endl;
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
 	std::cout << "finish to Load our user config file." << std::endl;
 
 
@@ -602,7 +607,7 @@ int main(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
+	std::string XML_OutPutFileName = "private/SimMobilityInput.xml";
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {

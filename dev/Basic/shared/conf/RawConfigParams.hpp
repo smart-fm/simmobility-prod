@@ -10,6 +10,7 @@
 
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
+#include "conf/Constructs.hpp"
 #include "entities/AuraManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "workers/WorkGroup.hpp"
@@ -39,6 +40,65 @@ struct BusStopScheduledTime {
 
 	unsigned int offsetAT; //<Presumably arrival time?
 	unsigned int offsetDT; //<Presumably departure time?
+};
+
+
+//helper class. Note that this is somewhat different from the DatabaseConnection class, as it stores credentials elsewhere.
+class Database : public Identifiable {
+public:
+	Database(const std::string& id="") : Identifiable(id) {}
+
+	std::string host;
+	std::string port;
+	std::string dbName;
+};
+
+
+//helper class: to be moved.
+class Credential : public Identifiable {
+public:
+	Credential(const std::string& id="") : Identifiable(id) {}
+
+	std::string getUsername() const {
+		return username;
+	}
+
+	std::string getPassword(bool mask=true) const {
+		if (mask) {
+			return std::string(password.size(), '*');
+		} else {
+			return password;
+		}
+	}
+
+	///Helper: load FileCredentials
+	void LoadFileCredentials(const std::vector<std::string>& paths);
+	void SetPlaintextCredentials(const std::string& username, const std::string& password);
+
+private:
+	//Helper: actually load the file.
+	void LoadCredFile(const std::string& path);
+
+	std::string username;
+	std::string password;
+};
+
+
+//helper class: to be moved.
+struct DatabaseDetails {
+	std::string database;
+	std::string credentials;
+	std::string procedures;
+};
+
+
+//helper class: to be moved.
+class Constructs {
+public:
+	//std::map<std::string, Distribution> distributions; //<TODO
+	std::map<std::string, Database> databases;
+	std::map<std::string, StoredProcedureMap> procedureMaps;
+	std::map<std::string, Credential> credentials;
 };
 
 
@@ -135,7 +195,8 @@ public:
 	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
 
 	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
-	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=data/SimMobilityInput.xml
+	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
+	DatabaseDetails networkDatabase; //<If loading from the database, how do we connect?
 
 	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.
 
@@ -144,11 +205,11 @@ public:
 
 
 //helper class: to be moved.
-class GeometryParams {
+/*class GeometryParams {
 public:
 	DatabaseConnection connection;
 	StoredProcedureMap procedures;
-};
+};*/
 
 
 //helper class: to be moved.
@@ -171,11 +232,14 @@ class RawConfigParams : public sim_mob::CMakeConfigParams {
 public:
 	RawConfigParams();
 
+	///"Constructs" for general re-use.
+	Constructs constructs;
+
 	///"Sytem" level settings, including simulation parameters and global flags.
 	SystemParams system;
 
 	///Available gemetries (currently only database geometries).
-	GeometryParams geometry;
+	//GeometryParams geometry;
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;

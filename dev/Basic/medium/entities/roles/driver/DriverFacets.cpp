@@ -797,7 +797,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 			Print() << "In else" << std::endl;
 			xf = 0.0 ;
 			res = moveInSegment(p, x0-xf);
-			addToQueue(currLane);
+		//	addToQueue(currLane);
 			tf = p.secondsInTick;
 		}
 
@@ -983,6 +983,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	int test_count = 0;
 
 	vector<sim_mob::Lane* >::const_iterator i = nextRdSeg->getLanes().begin();
+	vector<sim_mob::Lane* > laneGroup;	//temporary container to save the connected lanes
 
 	//getBestLaneGroup logic
 	for ( ; i != nextRdSeg->getLanes().end(); ++i){
@@ -990,6 +991,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 			if(nextToNextRdSeg) {
 				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
 			}
+			laneGroup.push_back(*i);
 			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
 			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
 
@@ -1001,7 +1003,20 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	}
 
 	//getBestLane logic
-	for (i = nextRdSeg->getLanes().begin(); i != nextRdSeg->getLanes().end(); ++i){
+	for (i = laneGroup.begin(); i != laneGroup.end(); ++i){
+			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
+			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
+			if (minAllAgents == total){
+				if (minQueueLength > que){
+					minQueueLength = que;
+					minQueueLengthLane = *i;
+				}
+			}
+		}
+
+	laneGroup.clear();
+	//getBestLane logic
+/*	for (i = nextRdSeg->getLanes().begin(); i != nextRdSeg->getLanes().end(); ++i){
 		if ( !((*i)->is_pedestrian_lane())){
 			if(nextToNextRdSeg) {
 				if( !isConnectedToNextSeg(*i, nextToNextRdSeg)) continue;
@@ -1015,7 +1030,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 				}
 			}
 		}
-	}
+	}*/
 
 	if( !minQueueLengthLane){
 		Warn() <<"ERROR: best target lane was not set!" <<std::endl;

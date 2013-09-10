@@ -217,7 +217,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	}
 
 	// set the position of the last updated Person in his current lane (after update)
-	segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, person->getCurrLane());
+	if (laneAfterUpdate && laneAfterUpdate != segStatsAftrUpdt->laneInfinity) {
+		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+		segStatsAftrUpdt->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, laneAfterUpdate);
+	}
 }
 
 void sim_mob::Conflux::processVirtualQueues() {

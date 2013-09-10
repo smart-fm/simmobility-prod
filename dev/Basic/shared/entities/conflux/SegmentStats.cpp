@@ -544,9 +544,7 @@ double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
 }
 
 void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane) {
-	if (lane && lane != laneInfinity) {
 		laneStatsMap.find(lane)->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
-	}
 }
 
 unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane) {

@@ -92,11 +92,11 @@ public:
 private:
 	void throwIt() { throw std::runtime_error("Fake LC_model used for medium term."); }
 };
-void fakeModels(Config::BuiltInModels& builtIn) {
+/*void fakeModels(Config::BuiltInModels& builtIn) {
 	builtIn.carFollowModels["mitsim"] = new Fake_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new Fake_LC_Model();
 	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
-}
+}*/
 
 } //End anon namespace
 
@@ -165,8 +165,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 
 	//No built-in models available to the medium term (yet).
-	Config::BuiltInModels builtIn;
-	fakeModels(builtIn);
+	//Config::BuiltInModels builtIn;
+	//fakeModels(builtIn);
 
 	//Load our user config file
 	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);

@@ -1,6 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
-
+#if 0
 #include "Validate.hpp"
 
 #include <sstream>
@@ -186,3 +186,4 @@ void sim_mob::Validate::CheckAndSetGeneralProps() const
 
 
 
+#endif

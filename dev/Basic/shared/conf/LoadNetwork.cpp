@@ -1,3 +1,4 @@
+#if 0
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
 
@@ -26,3 +27,4 @@ sim_mob::LoadNetwork::LoadNetwork(Config& cfg) : cfg(cfg)
 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.network());
 
 }
+#endif

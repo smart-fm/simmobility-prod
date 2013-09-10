@@ -1,5 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
-
+#if 0
 #pragma once
 
 #include <boost/noncopyable.hpp>
@@ -40,3 +40,4 @@ private:
 };
 
 }
+#endif

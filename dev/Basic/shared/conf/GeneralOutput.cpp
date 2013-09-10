@@ -1,3 +1,4 @@
+#if 0
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
 
@@ -59,3 +60,4 @@ void sim_mob::GeneralOutput::LogRelevantOutput() const
 
 
 
+#endif

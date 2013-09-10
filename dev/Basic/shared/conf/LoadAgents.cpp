@@ -1,3 +1,4 @@
+#if 0
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
 
@@ -162,3 +163,4 @@ void sim_mob::LoadAgents::DispatchOrPend(const std::list<sim_mob::Agent*>& res_a
 
 
 
+#endif

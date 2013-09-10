@@ -186,10 +186,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//      A) If a built-in Construct is used then it will need these models.
 	//      B) We'll likely replace these with Factory classes later (static, etc.), so
 	//         memory management will cease to be an issue.
-	Config::BuiltInModels builtIn;
+	/*Config::BuiltInModels builtIn;
 	builtIn.carFollowModels["mitsim"] = new MITSIM_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new MITSIM_LC_Model();
-	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
+	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();*/
 
 	//Load our user config file
 	std::cout << "Expanding our user config file." << std::endl;

@@ -1,5 +1,4 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
-
 #pragma once
 
 #include <map>
@@ -9,6 +8,27 @@
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob {
+
+class Identifiable {
+public:
+	Identifiable(const std::string& id) : id(id) {}
+	std::string getId() { return id; }
+
+private:
+	std::string id;
+};
+
+
+class StoredProcedureMap : public Identifiable {
+public:
+	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}
+
+	std::string dbFormat; //Usually "aimsun"
+	std::map<std::string, std::string> procedureMappings; //key=>value
+};
+
+
+#if 0
 
 //Forward declarations
 class CarFollowModel;
@@ -42,14 +62,7 @@ public:
 private:
 	std::string rawPwd;
 };
-class Identifiable {
-public:
-	Identifiable(const std::string& id) : id(id) {}
-	std::string getId() { return id; }
 
-private:
-	std::string id;
-};
 /*class DatabaseConnection : public Identifiable {
 public:
 	DatabaseConnection(const std::string& id="") : Identifiable(id) {}
@@ -60,13 +73,7 @@ public:
 	std::string user;
 	Password password;
 };*/
-class StoredProcedureMap : public Identifiable {
-public:
-	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}
 
-	std::string dbFormat; //Usually "aimsun"
-	std::map<std::string, std::string> procedureMappings; //key=>value
-};
 
 
 /**
@@ -105,5 +112,8 @@ private:
 	std::map<std::string, DatabaseConnection> dbConnections;
 	std::map<std::string, StoredProcedureMap> storedProcedureMaps;
 };*/
+
+#endif
+
 
 }

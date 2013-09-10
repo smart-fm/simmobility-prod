@@ -1,3 +1,4 @@
+#if 0
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
@@ -75,3 +76,4 @@ private:
 };
 
 }
+#endif

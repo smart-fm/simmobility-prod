@@ -1,3 +1,4 @@
+#if 0
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
 #include "Config.hpp"
@@ -272,3 +273,4 @@ bool sim_mob::CMakeConfig::ProfileWorkerUpdates(bool accountForOnFlag) const
 
 
 
+#endif

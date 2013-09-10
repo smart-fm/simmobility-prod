@@ -866,7 +866,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 	}
 	if (netXmlFile.empty()) {
-		netXmlFile = "data/SimMobilityInput.xml"; //Default
+		netXmlFile = "private/SimMobilityInput.xml"; //Default
 	}
 	config.networkXmlFile() = netXmlFile;
 

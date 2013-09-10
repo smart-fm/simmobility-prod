@@ -178,9 +178,6 @@ Broker::~Broker()
 void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
 	boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
-	if(ConfigParams::NS3_SIMULATOR == cnnHandler->clientType) {
-		Print() << "A message from NS3 is received" << std::endl;
-	}
 	std::vector<msg_ptr> messages;
 	m_f->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)
@@ -189,11 +186,15 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 
 		msg_data_t &data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
+		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
 		if(type == "CLIENT_MESSAGES_DONE")
 		{
 //			Print() << "Broker::messageReceiveCallback=> mutex_clientDone locking" << std::endl;
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			//update() will wait until all clients send this message for each tick
+			Print()
+								<< "received CLIENT_MESSAGES_DONE for client["
+								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
 //			Print() << "Broker::messageReceiveCallback=> mutex_clientDone Unlocking" << std::endl;
@@ -220,7 +221,7 @@ void Broker::OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, even
 	switch(eventId){
 		case sim_mob::event::EVT_CORE_AGENT_DIED:{
 			const event::AgentLifeCycleEventArgs& args_ = MSG_CAST(event::AgentLifeCycleEventArgs, args);
-			Print() << "Broker::registerINGEntity[" << args_.GetAgentId() << "]" << std::endl;
+			Print() << "Broker::UNregisterINGEntity[" << args_.GetAgent() << "][" << args_.GetAgentId() << "]" << std::endl;
 			unRegisterEntity(args_.GetAgent());
 			break;
 		}
@@ -255,14 +256,14 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 			output = inner.at(clientId); //this is what we are looking for
 			return true;
 		}
-		catch(std::out_of_range e)
+		catch(std::out_of_range &e)
 		{
 			WarnOut("Client " <<  clientId << " of type " <<  clientType << " not found" << std::endl);
 			return false;
 		}
 
 	}
-	catch(std::out_of_range e)
+	catch(std::out_of_range &e)
 	{
 
 		Print() << "Client type" <<  clientType << " not found" << std::endl;
@@ -328,19 +329,11 @@ void Broker::processClientRegistrationRequests()
 
 bool  Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
-	//we won't feedback the requesting Agent until it its association with a client(or any other condition)
-	//is established. That feed back will be done through agent's registrationCallBack()
-	//tdo: testing. comment the following condition after testing
-//	if(registeredAgents.size() > 0)
-//	{
-//		return 0;
-//	}
-
 	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	Print()<< registeredAgents.size() << ":  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
+	//feedback
 	value->registrationCallBack(true);
-	/*const_cast<Agent*>(value->getEntity())->Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
-			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));*/
+	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,
 			static_cast<event::Context>(value->getEntity()), this);
 	return true;
@@ -442,19 +435,6 @@ bool Broker::allAgentUpdatesDone()
 		sim_mob::AgentCommUtilityBase *info = (it->second);//easy read
 			try
 			{
-				if(!info->registered)
-				{
-					//these agents are not actually participating, just get past them
-//					boost::unique_lock< boost::shared_mutex > lock(Broker_Mutex, boost::try_to_lock);
-//					if(!lock)
-//					{
-//						int i = 0;
-//					}
-					duplicateEntityDoneChecker.insert(it->first);
-					it++;
-					continue;
-				}
-				else
 				if (info->isAgentUpdateDone())
 				{
 					duplicateEntityDoneChecker.insert(it->first);
@@ -467,9 +447,10 @@ bool Broker::allAgentUpdatesDone()
 			catch(std::exception& e)
 			{
 				WarnOut( "Exception Occured " << e.what() << std::endl);
+				Print() << "Exception Occured " << e.what() << std::endl;
 				if(deadEntityCheck(info))
 				{
-//					Print()<< "Unregistering Agent " << &info->getEntity() << std::endl;
+					Print()<< "deadEntityCheck works " << info->getEntity() << std::endl;
 					it++;
 					unRegisterEntity(info);
 					continue;
@@ -596,30 +577,37 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
 	{
 		throw std::runtime_error("Invalid AgentCommUtility\n");
 	}
+
+	Agent * target = info->getEntity();
 	try {
 
-		if (!(info->getEntity()->currWorkerProvider)) {
+		if (!(target->currWorkerProvider)) {
+			Print() << "1-deadEntityCheck for[" << target << "]" << std::endl;
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
 		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity()->currWorkerProvider->getEntities();
+				target->currWorkerProvider->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
 		{
+			Print() << "2-deadEntityCheck for[" << target << "]" << std::endl;
 			return true;
 		}
 		for (std::vector<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
-			if (*it == (info->getEntity()))
+			if (*it == target)
 				return false;
 		}
 	} catch (std::exception& e) {
+		Print() << "3-deadEntityCheck for[" << target << "]" << std::endl;
 		return true;
 	}
+
+	Print() << "4-deadEntityCheck for[" << target << "]" << std::endl;
 
 	return true;
 }
@@ -634,15 +622,16 @@ void Broker::refineSubscriptionList() {
 	{
 		const sim_mob::Agent * target = (*it).first;
 		//you or your worker are probably dead already. you just don't know it
-		if (!target->currWorkerProvider)
-			{
-				unRegisterEntity(target);
-				continue;
-			}
+		if (!target->currWorkerProvider) {
+			Print() << "1-refine subscription for agent ["  << target << "]" << std::endl;
+			unRegisterEntity(target);
+			continue;
+		}
 		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorkerProvider)->getEntities();
 		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{
+			Print() << "2-refine subscription for agent ["  << target << "]" << std::endl;
 			unRegisterEntity(target);
 			continue;
 		}
@@ -700,15 +689,15 @@ bool Broker::wait()
 		bool res1 = isWaitingForAgentRegistration();
 		bool res2 = isWaitingForAnyClientConnection();
 		bool res3 = !res1 && !res2;
-		bool res = brokerCanTickForward || res3;
+		bool res = /*brokerCanTickForward || */res3;
 		brokerCanTickForward = res;
 //	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
 		Print() << "Broker::wait()::Initial Evaluation => "
 				<< (brokerCanTickForward ? "True" : "false") << std::endl;
-		if (!brokerCanTickForward) {
-			Print() << "[(res1 && !res2)||res2] [" << res1 << res2 << res3
-					<< "]" << std::endl;
-		}
+//		if (!brokerCanTickForward) {
+//			Print() << "[(res1 && !res2)||res2] [" << res1 << res2 << res3
+//					<< "]" << std::endl;
+//		}
 	}
 
 	/**if:
@@ -732,7 +721,7 @@ bool Broker::wait()
 		bool res1 = isWaitingForAgentRegistration() ;
 		bool res2 = isWaitingForAnyClientConnection();
 		bool res3 = !res1 && !res2;
-		bool res = brokerCanTickForward || res3;
+		bool res = /*brokerCanTickForward ||*/ res3;
 		brokerCanTickForward = res;
 	//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
 		Print() << "Broker::wait()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
@@ -781,44 +770,51 @@ bool Broker::allClientsAreDone()
 			BOOST_FOREACH(clientByID, clientByType.second)
 			{
 				clnHandler = clientByID.second;
+
+				Print()
+					<< "\nBroker::allClientsAreDone analyzing client["
+					<< clnHandler->client_type << ":" << clnHandler->clientID << "]" << std::endl;
+
 				if(!clnHandler)
 				{
+					Print() << "1 Not valid" << std::endl;
 					continue;
 				}
 				if(!(clnHandler->cnnHandler))
 				{
+					Print() << "2 Not valid" << std::endl;
 					continue;
 				}
 				if(!(clnHandler->cnnHandler->is_open()))
 				{
+					Print() << "3 Not open" << std::endl;
 					continue;
 				}
 				if(!(clnHandler->isValid()))
 				{
+					Print() << "4 Not valid" << std::endl;
 					continue;
 				}
 				if(!(clnHandler->cnnHandler->isValid()))
 				{
+					Print() << "5 Not valid" << std::endl;
 					continue;
 				}
 				//but
 				if(!isClientDone(clnHandler))
 				{
-//					Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList --client["
-//							<< clnHandler->client_type << ":" << clnHandler->clientID << "] not done!" <<
-//							(clnHandler->isValid() ? "" : " actually client handler is not valid")<< std::endl;
-
+					Print() << "Not Done yet" << std::endl;
 					return false;
 				}
 			}
 		}
-//		Print()<< "Broker::allClientsAreDone UNlocking mutex_clientList --true" << std::endl;
+		Print()<< "Broker::allClientsAreDone --true" << std::endl;
 		return true;
 }
 
 Entity::UpdateStatus Broker::update(timeslice now)
 {
-//	Print() << "=====================Broker tick:"<< now.frame() << "=======================================" << std::endl;
+	Print() << "=====================Broker tick:"<< now.frame() << "=======================================" << std::endl;
 	//step-1 : open the door to ouside world
 	if(now.frame() == 0) {
 		if(!configured)
@@ -831,14 +827,9 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-//	if(now.frame() == 0) {
 		wait();
 		Print() << "Broker NOT Blocking" << std::endl;
-//	}
 //	Print() << "===================== wait Done =======================================" << std::endl;
-//	if (!wait()) {
-//		return UpdateStatus(UpdateStatus::RS_CONTINUE);
-//	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
@@ -859,26 +850,6 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
-	ClientList::pair clientByType;
-	ClientList::IdPair clientByID;
-
-	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	msg_header msg_header_;
-//	{
-//	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-//	Print() << "Debug:" << std::endl;
-//	BOOST_FOREACH(clientByType, clientList)
-//	{
-//		Print() << "Type " << clientByType.first << "=> ClientIDs: ";
-//		BOOST_FOREACH(clientByID, clientByType.second)
-//		{
-//			clnHandler = clientByID.second;
-//			Print() << clnHandler->clientID << " - " ;
-//		}
-//		Print() << std::endl;
-//	}
-//	}
-//	Print()<< "waiting For Clients" <<  std::endl;
 	waitForClientsDone();
 
 	//Step 7.5: output
@@ -935,7 +906,9 @@ void Broker::waitForClientsDone()
 	boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 	while(!allClientsAreDone())
 	{
+		Print() << "Broker::waitForClientsDone-WAIT" << std::endl;
 		COND_VAR_CLIENT_DONE.wait(lock);
+		Print() << "Broker::waitForClientsDone-NOT WAIT" << std::endl;
 
 	}
 }

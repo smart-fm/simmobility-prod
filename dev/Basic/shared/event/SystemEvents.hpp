@@ -21,6 +21,7 @@ class Agent;
         
         enum CoreEvent {
             EVT_CORE_SYTEM_START = EVT_CORE_START,
+            EVT_CORE_ROLE_INIT,
             //agent life cycle.
             EVT_CORE_AGENT_DIED,
         };

@@ -31,6 +31,9 @@
 
 namespace sim_mob {
 
+//Placeholder
+class DatabaseConnection{};
+
 
 /**
  * Class containing CMake-defined parameters.
@@ -99,8 +102,8 @@ public:
 	//@{
 	///Accessor for the constructs array.
 	///A construct is anything that can be created (dynamically) from the XML config file.
-	sim_mob::Constructs& constructs() { return constructs_; }
-	const sim_mob::Constructs& constructs() const { return constructs_; }
+	//sim_mob::Constructs& constructs() { return constructs_; }
+	//const sim_mob::Constructs& constructs() const { return constructs_; }
 	///@
 
 	//@{
@@ -147,7 +150,7 @@ public:
 
 private:
 	//Data
-	sim_mob::Constructs constructs_;
+	//sim_mob::Constructs constructs_;
 	bool single_threaded;
 	sim_mob::System system_;
 	sim_mob::Simulation simulation_;

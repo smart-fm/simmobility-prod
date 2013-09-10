@@ -21,6 +21,13 @@ void sim_mob::xml::RoadNetwork_t_pimpl::coordinate_map (const std::vector<sim_mo
 	modelRef->coordinateMap = value;
 }
 
+void sim_mob::xml::RoadNetwork_t_pimpl::roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>& value)
+{
+	throw_if_null();
+	modelRef->roadRunnerRegions = value;
+}
+
+
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)
 {

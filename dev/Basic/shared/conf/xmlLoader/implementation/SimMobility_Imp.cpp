@@ -32,8 +32,8 @@ void sim_mob::conf::SimMobility_pimpl::pre ()
 void sim_mob::conf::SimMobility_pimpl::post_SimMobility ()
 {
 	//Initialize our default models.
-	hookUpPrototype(config->system().defaultModels.intDriving, config->constructs().intDriveModels);
-	config->system().defaultModels.intDriving.prototype = config->constructs().intDriveModels[config->system().defaultModels.intDriving.name];
+//	hookUpPrototype(config->system().defaultModels.intDriving, config->constructs().intDriveModels);
+	//config->system().defaultModels.intDriving.prototype = config->constructs().intDriveModels[config->system().defaultModels.intDriving.name];
 
 	//Initialize our default workgroups.
 	//TODO: Later; this will mess up our current WorkGroups if we do it now.

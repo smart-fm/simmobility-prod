@@ -44,7 +44,8 @@ private:
 
 	//Process through recursive descent.
 	void ProcessSystemNode(xercesc::DOMElement* node);
-	void ProcessGeometryNode(xercesc::DOMElement* node);
+	//void ProcessGeometryNode(xercesc::DOMElement* node);
+	void ProcessConstructsNode(xercesc::DOMElement* node);
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
@@ -54,6 +55,11 @@ private:
 	void ProcessSignalsNode(xercesc::DOMElement* node);
 	void ProcessBusControllersNode(xercesc::DOMElement* node);
 
+	//Descend through Constructs
+	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);
+	void ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node);
+	void ProcessConstructCredentialsNode(xercesc::DOMElement* node);
+
 	//Descend through System
 	void ProcessSystemSimulationNode(xercesc::DOMElement* node);
 	void ProcessSystemWorkersNode(xercesc::DOMElement* node);
@@ -61,6 +67,7 @@ private:
 	void ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemNetworkSourceNode(xercesc::DOMElement* node);
 	void ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node);
+	void ProcessSystemDatabaseNode(xercesc::DOMElement* node);
 	void ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemGenericPropsNode(xercesc::DOMElement* node);
 
@@ -80,8 +87,8 @@ private:
 	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
 
 	//Dabase mappings/connection
-	void ProcessGeomDbConnection(xercesc::DOMElement* node);
-	void ProcessGeomDbMappings(xercesc::DOMElement* node);
+	//void ProcessGeomDbConnection(xercesc::DOMElement* node);
+	//void ProcessGeomDbMappings(xercesc::DOMElement* node);
 
 	//All entities are added to a "pending" list in the same manner.
 	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true);

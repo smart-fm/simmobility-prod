@@ -127,7 +127,7 @@ private:
 
 class Signal_SCATS  : public sim_mob::Signal {
 	friend class sim_mob::xml::Signal_t_pimpl;
-friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
+//friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
 void *tempLoop;
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
@@ -186,8 +186,8 @@ public:
 
 	/*--------Miscellaneous----------*/
 
-	int getSignalTimingMode() { return signalTimingMode;}
-	void setSignalTimingMode(int mode) { signalTimingMode = mode;}
+	//int getSignalTimingMode() { return signalTimingMode;}
+	//void setSignalTimingMode(int mode) { signalTimingMode = mode;}
 	
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
@@ -242,7 +242,7 @@ private:
     unsigned int signalID;//currently is equal to nodeId
 
     /* Fixed time or adaptive control */
-    int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
+   // int signalTimingMode;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/

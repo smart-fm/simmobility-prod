@@ -1,5 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 //tripChains Branch
+
+#if 0
+
 #include "simpleconf.hpp"
 
 #include <sstream>
@@ -61,6 +64,8 @@
 #include "conf/PrintNetwork.hpp"
 #include "conf/LoadAgents.hpp"
 #include "conf/LoadNetwork.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 
 #include "geospatial/xmlLoader/geo10.hpp"
 
@@ -79,23 +84,18 @@ using namespace sim_mob;
 
 namespace {
 
-//If any Agents specify manual IDs, we must ensure that:
-//   * the ID is < startingAutoAgentID
-//   * all manual IDs are unique.
-//We do this using the Agent constraints struct
-struct AgentConstraints {
-	int startingAutoAgentID;
-	std::set<unsigned int> manualAgentIDs;
-};
-
 
 //Helper sort
 bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
 
 
-int getValueInMS(double value, const std::string& units)
+int getValueInMS(double value, std::string units)
 {
+	//Handle plural
+	if (units=="second") { units="seconds"; }
+	if (units=="minute") { units="minutes"; }
+
 	//Detect errors
 	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
 		return -1;
@@ -135,17 +135,45 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 	return getValueInMS(value, units);
 }
 
-
-
-int ReadValue(TiXmlHandle& handle, const std::string& propName, int defaultValue)
+int ReadGranularitySingle(TiXmlHandle& handle, const std::string& elemName, const std::string& granName)
 {
-	TiXmlElement* node = handle.FirstChild(propName).ToElement();
+	TiXmlElement* node = handle.FirstChild(elemName).ToElement();
+	if (!node) {
+		return -1;
+	}
+
+	const char* srcStr = node->Attribute(granName.c_str());
+	if (!srcStr) {
+		return -1;
+	}
+
+	//Search for "[0-9]+ ?[^0-9]+), roughly.
+	std::string src(srcStr);
+	size_t digStart = src.find_first_of("1234567890");
+	size_t digEnd = src.find_first_not_of("1234567890", digStart+1);
+	size_t unitStart = src.find_first_not_of(" ", digEnd);
+	if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos) {
+		return -1;
+	}
+
+	//Now split/parse it.
+	double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd-digStart)));
+	std::string units = src.substr(unitStart, std::string::npos);
+
+	return getValueInMS(value, units);
+}
+
+
+
+int ReadValue(TiXmlHandle& handle, const std::string& elemName, const std::string& propName="value", int defaultValue=0)
+{
+	TiXmlElement* node = handle.FirstChild(elemName).ToElement();
 	if (!node) {
 		return defaultValue;
 	}
 
 	int value;
-	if (!node->Attribute("value", &value)) {
+	if (!node->Attribute(propName, &value)) {
 		return defaultValue;
 	}
 
@@ -195,65 +223,9 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 	return res;
 }
 
-
-////
-//// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
-////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
-////
-void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
-{
-	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
-		active_agents.push_back(p);
-	} else {
-		//Start later.
-		pending_agents.push(p);
-	}
-}
-
-
-
-//NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
-{
-	ConfigParams& config = ConfigParams::GetInstance();
-	std::map<std::string, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
-	Print() << "Size of root tripchain container is " << tcs.size() << std::endl;
-	//The current agent we are working on.
-	Person* person = nullptr;
-	std::string trip_mode;
-	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
-	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		TripChainItem* tc = it_map->second.front();
-		if( tc->itemType != TripChainItem::IT_FMODSIM){
-			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);
-			person->setPersonCharacteristics();
-			addOrStashEntity(person, active_agents, pending_agents);
-			//Reset for the next (possible) Agent
-			person = nullptr;
-		}
-		else {
-			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMODController::InstanceExists()) {
-				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
-			} else {
-				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
-			}
-		}
-	}//outer for loop(map)
-
-	if( sim_mob::FMOD::FMODController::InstanceExists() ) {
-		sim_mob::FMOD::FMODController::Instance()->Initialize();
-	}
-}
-
 bool isAndroidClientEnabled(TiXmlHandle& handle)
 {
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();
-	ConfigParams::GetInstance().androidClientEnabled = false;
 	std::string androidYesNo = std::string(node->Attribute("enabled"));
 	if (androidYesNo == "yes") {
 		return true;
@@ -261,9 +233,9 @@ bool isAndroidClientEnabled(TiXmlHandle& handle)
 	return false;
 }
 
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, ConfigParams::AgentConstraints& constraints)
 {
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
 	// This will only generate an error if someone actually tries to load an agent of this type.
@@ -380,12 +352,13 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			props["#mode"] = "BusTravel";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
-		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
+		Person* agent = new Person("XML_Def", config.mutexStategy(), manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
 
 		//Add it or stash it
-		addOrStashEntity(agent, active_agents, pending_agents);
+		throw std::runtime_error("addOrStashEntity() disabled in simpleconf");
+		//addOrStashEntity(agent, active_agents, pending_agents);
 	}
 
 	return true;
@@ -435,7 +408,7 @@ bool loadXMLFMODController(TiXmlDocument& document)
 	std::string mapFile = node4->FirstChild()->Value();
 	int blockingTime = atoi( node5->FirstChild()->Value() );
 
-	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy);
+	sim_mob::FMOD::FMODController::RegisterController(-1, sim_mob::ConfigParams::GetInstance().mutexStategy());
 	sim_mob::FMOD::FMODController::Instance()->Settings(ipAddress, port, updateTiming, mapFile, blockingTime);
 	sim_mob::FMOD::FMODController::Instance()->ConnectFMODService();
 
@@ -462,7 +435,7 @@ bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active
                 return false;
             }
             props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
-            sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
+            sim_mob::BusController::RegisterNewBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy());
         } catch (boost::bad_lexical_cast &) {
         	Warn() << "catch the loop error try!\n"
         		   << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
@@ -669,428 +642,15 @@ struct Sorter {
   }
 } sorter_;
 
-void PrintDB_NetworkToFile(const std::string& fileName)
-{
-	//Short-circuit if output is disabled.
-	if (ConfigParams::GetInstance().OutputDisabled()) {
-		return;
-	}
-
-	//Else, open the file.
-	std::ofstream out(fileName.c_str());
-
-	//Save RoadSegments/Connectors to make output simpler
-	std::set<const RoadSegment*,Sorter> cachedSegments;
-	std::set<LaneConnector*,Sorter> cachedConnectors;
-
-	//Initial message
-	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	out <<"Printing node network" <<endl;
-	out <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl;
-
-	//Print some properties of the simulation itself
-	out <<"(\"simulation\", 0, 0, {";
-	out <<"\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",";
-	out <<"})" <<endl;
-
-	sim_mob::Signal::all_signals_const_Iterator it;
-	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
-	{
-		//Print the Signal representation.
-		out <<(*it)->toString() <<endl;
-	}
-
-
-	//Print nodes first
-	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		out <<"(\"uni-node\", 0, " <<*it <<", {";
-		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
-		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			out <<(*it)->originalDB_ID.getLogItem();
-		}
-		out <<"})" <<endl;
-
-		//
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"uni-node\", 0, " <<*it <<", {";
-			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
-			stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
-			if (!(*it)->originalDB_ID.getLogItem().empty()) {
-				stream<<(*it)->originalDB_ID.getLogItem();
-					}
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-
-		//Cache all segments
-		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-	}
-
-	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		out <<"(\"multi-node\", 0, " <<*it <<", {";
-		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
-		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			out <<(*it)->originalDB_ID.getLogItem();
-		}
-		out <<"})" <<endl;
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"multi-node\", 0, " <<*it <<", {";
-			stream<<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
-			stream<<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
-			if (!(*it)->originalDB_ID.getLogItem().empty()) {
-				stream<<(*it)->originalDB_ID.getLogItem();
-					}
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-
-		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
-		//      and RoadSegments will have to be extracted.
-		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
-
-		//Cache all segments
-		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
-			cachedSegments.insert(*i2);
-		}
-
-		//Now cache all lane connectors at this node
-		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
-			if (nodeInt->hasOutgoingLanes(*rsIt)) {
-				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(*rsIt).begin(); i2!=nodeInt->getOutgoingLanes(*rsIt).end(); i2++) {
-					//Cache the connector
-					cachedConnectors.insert(*i2);
-				}
-			}
-		}
-	}
-
-	//Links can go next.
-	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		out <<"(\"link\", 0, " <<*it <<", {";
-		out <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
-		out <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
-		out <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
-		out <<"\"fwd-path\":\"[";
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-			out <<*segIt <<",";
-		}
-		out <<"]\",";
-		out <<"})" <<endl;
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"link\", 0, " <<*it <<", {";
-			stream<<"\"road-name\":\"" <<(*it)->roadName <<"\",";
-			stream<<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
-			stream<<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
-			stream<<"\"fwd-path\":\"[";
-			for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath().begin(); segIt!=(*it)->getPath().end(); segIt++) {
-				stream<<*segIt <<",";
-			}
-			stream<<"]\",";
-			stream<<"})";
-			std::string s=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-	}
-
-	//Now print all Segments
-	std::set<const Crossing*,Sorter> cachedCrossings;
-	std::set<const BusStop*,Sorter> cachedBusStops;
-		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		out <<"(\"road-segment\", 0, " <<*it <<", {";
-		out <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
-		out <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
-		out <<"\"width\":\"" <<(*it)->width <<"\",";
-		out <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
-		out <<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
-		out <<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
-		if (!(*it)->originalDB_ID.getLogItem().empty()) {
-			out <<(*it)->originalDB_ID.getLogItem();
-		}
-		out <<"})" <<endl;
-
-		if (!(*it)->polyline.empty()) {
-			out <<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
-			out <<"\"parent-segment\":\"" <<*it <<"\",";
-			out <<"\"points\":\"[";
-			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				out <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-			}
-			out <<"]\",";
-			out <<"})" <<endl;
-		}
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"road-segment\", 0, " <<*it <<", {";
-			stream<<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
-			stream<<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
-			stream<<"\"width\":\"" <<(*it)->width <<"\",";
-			stream<<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
-			stream<<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
-			stream<<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
-			if (!(*it)->originalDB_ID.getLogItem().empty()) {
-				stream<<(*it)->originalDB_ID.getLogItem();
-			}
-			stream<<"})";
-			std::string s1=stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s1);
-
-			std::ostringstream stream2;
-			if (!(*it)->polyline.empty()) {
-				stream2<<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
-				stream2<<"\"parent-segment\":\"" <<*it <<"\",";
-				stream2<<"\"points\":\"[";
-				for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-					stream2<<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-				}
-				stream2<<"]\",";
-				stream2<<"})";
-			}
-			std::string ss=stream2.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(ss);
-		}
-
-		const std::map<centimeter_t, const RoadItem*>& obstacles = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); ++obsIt) {
-			//Save BusStops for later.
-			const BusStop* resBS = dynamic_cast<const BusStop*>(obsIt->second);
-			if (resBS) {
-				cachedBusStops.insert(resBS);
-			}
-
-			//Save crossings for later.
-			const Crossing* resC = dynamic_cast<const Crossing*>(obsIt->second);
-			if (resC) {
-				cachedCrossings.insert(resC);
-			}
-		}
-
-		//Save Lane info for later
-		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
-		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
-		//      and we can switch to a full "lane" output type.
-		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
-		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
-		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-		for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
-			laneBuffer <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
-			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-			}
-			laneBuffer <<"]\",";
-
-			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
-				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
-				//debug
-				if(laneID != 0 && laneID <(*it)->getLanes().size())
-				{
-					int i = 0;
-					i++;
-				}
-				//debug ends
-			}
-
-		}
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::stringstream stream1;
-			stream1 <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
-			stream1 <<"\"parent-segment\":\"" <<*it <<"\",";
-			for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
-				const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
-				stream1 <<"\"lane-" <<laneID /*(*it)->getLanes()[laneID]*/<<"\":\"[";
-				for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-					stream1 <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-				}
-				stream1 <<"]\",";
-
-				if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
-					stream1 <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
-				}
-			}
-			stream1<<"})";
-			string s = stream1.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-
-		laneBuffer <<"})" <<endl;
-		out <<laneBuffer.str();
-
-	}
-
-	//Crossings are part of Segments
-	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
-		out <<"(\"crossing\", 0, " <<*it <<", {";
-		out <<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
-		out <<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
-		out <<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
-		out <<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
-		out <<"})" <<endl;
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"crossing\", 0, " <<*it <<", {";
-			stream<<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
-			stream<<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
-			stream<<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
-			stream<<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
-			stream<<"})";
-			string s = stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-	}
-
-	//Bus Stops are part of Segments
-	for (std::set<const BusStop*>::iterator it = cachedBusStops.begin(); it != cachedBusStops.end(); it++) {
-		//Assumptions about the size of a Bus Stop
-		const centimeter_t length = 400;
-		const centimeter_t width  = 250;
-
-		//Use the magnitude of the parent segment to set the Bus Stop's direction and extension.
-		const BusStop* bs = *it;
-
-		//std::cout <<"Bust stop: " <<bs <<" id: " <<bs->id <<std::endl;
-
-		Point2D dir;
-		{
-			const Node* start = 0;
-			if(bs && bs->getParentSegment() )
-				start = bs->getParentSegment()->getStart();
-
-			const Node* end = 0;
-			if(bs && bs->getParentSegment() )
-				end = bs->getParentSegment()->getEnd();
-
-			if( start && end )
-				dir = Point2D(start->location.getX()-end->location.getX(),start->location.getY()-end->location.getY());
-			else
-				continue;
-		}
-
-		//Get a vector that is at the "lower-left" point of a bus stop, facing "up" and "right"
-		DynamicVector vec(bs->xPos, bs->yPos, bs->xPos+dir.getX(), bs->yPos+dir.getY());
-		vec.scaleVectTo(length/2).translateVect().flipRight();
-		vec.scaleVectTo(width/2).translateVect().flipRight();
-
-		//Now, create a "near" vector and a "far" vector
-		DynamicVector near(vec);
-		near.scaleVectTo(length);
-		DynamicVector far(vec);
-		far.flipRight().scaleVectTo(width).translateVect();
-		far.flipLeft().scaleVectTo(length);
-
-		//Save it.
-		out <<"(\"busstop\", 0, " <<bs <<", {";
-		out <<"\"near-1\":\"" <<near.getX()    <<"," <<near.getY()    <<"\",";
-		out <<"\"near-2\":\"" <<near.getEndX() <<"," <<near.getEndY() <<"\",";
-		out <<"\"far-1\":\""  <<far.getX()     <<"," <<far.getY()     <<"\",";
-		out <<"\"far-2\":\""  <<far.getEndX()  <<"," <<far.getEndY()  <<"\",";
-		out <<"})" <<std::endl;
-
-		//Old code; this just fakes the bus stop at a 40 degree angle.
-		//TODO: Remove this code once we verify that the above code is better.
-		/*out <<"(\"busstop\", 0, " <<*it <<", {";
-		double x = (*it)->xPos;
-		double y = (*it)->yPos;
-		int angle = 40;
-		double length = 400;
-		double width = 250;
-		double theta = atan(width / length);
-		double phi = M_PI * angle / 180;
-		double diagonal_half = (sqrt(length * length + width * width)) / 2;
-
-		//TODO: It looks like this can be easily replaced with DynamicVectors. Should be both faster and simpler.
-		double x1d = x + diagonal_half * cos(phi + theta);
-		double y1d = y + diagonal_half * sin(phi + theta);
-		double x2d = x + diagonal_half * cos(M_PI + phi - theta);
-		double y2d = y + diagonal_half * sin(M_PI + phi - theta);
-		double x3d = x + diagonal_half * cos(M_PI + phi + theta);
-		double y3d = y + diagonal_half * sin(M_PI + phi + theta);
-		double x4d = x + diagonal_half * cos(phi - theta);
-		double y4d = y + diagonal_half * sin(phi - theta);
-
-		out <<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
-		out <<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
-		out <<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
-		out <<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
-		out <<"})" <<endl;*/
-
-		//TODO: This code might be better, but it should still be replaced by the above code.
-		/*
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"busstop\", 0, " <<*it <<", {";
-			stream<<"\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",";
-			stream<<"\"near-2\":\""<<x2d<<","<<y2d<<"\",";
-			stream<<"\"far-1\":\""<<x3d<<","<<y3d<<"\",";
-			stream<<"\"far-2\":\""<<x4d<<","<<y4d<<"\",";
-			stream<<"})";
-			string s = stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}*/
-	}
-
-
-	//Now print all Connectors
-	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
-		//Retrieve relevant information
-		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
-		unsigned int fromLane = std::distance(fromSeg->getLanes().begin(), std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),(*it)->getLaneFrom()));
-		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
-		unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),(*it)->getLaneTo()));
-
-		//Output
-		out <<"(\"lane-connector\", 0, " <<*it <<", {";
-		out <<"\"from-segment\":\"" <<fromSeg <<"\",";
-		out <<"\"from-lane\":\"" <<fromLane <<"\",";
-		out <<"\"to-segment\":\"" <<toSeg <<"\",";
-		out <<"\"to-lane\":\"" <<toLane <<"\",";
-		out <<"})" <<endl;
-
-		if (ConfigParams::GetInstance().InteractiveMode()) {
-			std::ostringstream stream;
-			stream<<"(\"lane-connector\", 0, " <<*it <<", {";
-			stream<<"\"from-segment\":\"" <<fromSeg <<"\",";
-			stream<<"\"from-lane\":\"" <<fromLane <<"\",";
-			stream<<"\"to-segment\":\"" <<toSeg <<"\",";
-			stream<<"\"to-lane\":\"" <<toLane <<"\",";
-			stream<<"})";
-			string s = stream.str();
-			ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(s);
-		}
-	}
-
-	if (ConfigParams::GetInstance().InteractiveMode()) {
-		string end = "END";
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(end);
-	}
-
-	//Print the StreetDirectory graphs.
-	StreetDirectory::instance().printDrivingGraph(out);
-	StreetDirectory::instance().printWalkingGraph(out);
-
-	//Required for the visualizer
-	out <<"ROADNETWORK_DONE" <<endl;
-}
 
 
 
 //Returns the error message, or an empty string if no error.
 void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+	//Writable config file.
+	ConfigParams& config = ConfigParams::GetInstanceRW();
+
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
@@ -1112,9 +672,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//Reaction time 1
 	//TODO: Refactor to avoid magic numbers
 	if (distributionType1==0) {
-		ConfigParams::GetInstance().reactDist1 = new NormalReactionTimeDist(mean1, standardDev1);
+		config.reactDist1 = new NormalReactionTimeDist(mean1, standardDev1);
 	} else if (distributionType1==1) {
-		ConfigParams::GetInstance().reactDist1 = new LognormalReactionTimeDist(mean1, standardDev1);
+		config.reactDist1 = new LognormalReactionTimeDist(mean1, standardDev1);
 	} else {
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
@@ -1122,9 +682,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//Reaction time 2
 	//TODO: Refactor to avoid magic numbers
 	if (distributionType2==0) {
-		ConfigParams::GetInstance().reactDist2 = new NormalReactionTimeDist(mean2, standardDev2);
+		config.reactDist2 = new NormalReactionTimeDist(mean2, standardDev2);
 	} else if (distributionType2==1) {
-		ConfigParams::GetInstance().reactDist2 = new LognormalReactionTimeDist(mean2, standardDev2);
+		config.reactDist2 = new LognormalReactionTimeDist(mean2, standardDev2);
 	} else {
 		throw std::runtime_error("Unknown magic reaction time number.");
 	}
@@ -1147,32 +707,32 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	//for alighting passengers
 	//TODO: Refactor to avoid magic numbers
 	int no_of_passengers;
-	srand(time(NULL));
-	ConfigParams::GetInstance().percent_boarding=passenger_percent_boarding;
-	ConfigParams::GetInstance().percent_alighting=passenger_percent_alighting;
+	srand(time(nullptr));
+	config.percent_boarding()= passenger_percent_boarding;
+	config.percent_alighting() = passenger_percent_alighting;
 	if (passenger_busstop_dist ==0) {// normal distribution
-		ConfigParams::GetInstance().passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		config.passengerDist_busstop  = new NormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 		//	passenger_boardingmean=1+fmod(rand(),ConfigParams::GetInstance().passengerDist1->getnopassengers());
 	} else if (passenger_busstop_dist==1) {// log normal distribution
-		ConfigParams::GetInstance().passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
+		config.passengerDist_busstop = new LognormalPassengerDist(passenger_busstop_mean, passenger_busstop_standardDev);
 	} else if(passenger_busstop_dist==2) {// uniform distribution
-		ConfigParams::GetInstance().passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
+		config.passengerDist_busstop = new UniformPassengerDist(passengers_min_uniformDist,passengers_max_uniformDist);
 	} else {
 		throw std::runtime_error("Unknown magic passenger distribution number.");
 	}
 
 	//Driver::distributionType1 = distributionType1;
-	int signalTimingMode;
 
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
 
+	/*int signalTimingMode;
 	node = handle.FirstChild("signalTimingMode").ToElement();
 	if(node)
 	{
 		node->Attribute("value", &signalTimingMode);
-	}
+	}*/
 
 	//Save Aura Manager Implementation
 	AuraManager::AuraManagerImplementation aura_mgr_impl = AuraManager::IMPL_RSTAR;
@@ -1223,19 +783,21 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 #endif
 
 	//Save more granularities
-	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("granularities");
-	int granAgent = ReadGranularity(handle, "agent");
+	/*handle = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("granularities");
+	int granPerson = ReadGranularity(handle, "person");
 	int granSignal = ReadGranularity(handle, "signal");
-	int granPaths = ReadGranularity(handle, "paths");
-	int granDecomp = ReadGranularity(handle, "decomp");
+	int granCommsim = ReadGranularity(handle, "communication");*/
 
 	//Save work group sizes: system
-	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
-	int agentWgSize = ReadValue(handle, "agent", 0);
-	int signalWgSize = ReadValue(handle, "signal", 0);
-	int commWgSize = ReadValue(handle, "Android_Communication", 0);
+	handle = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("workers");
+	int personWgSize = ReadValue(handle, "person", "count", 0);
+	int signalWgSize = ReadValue(handle, "signal", "count", 0);
+	int commWgSize = ReadValue(handle, "communication", "count", 0);
+
+	//Read granularities.
+	int granPerson = ReadGranularitySingle(handle, "person", "granularity");
+	int granSignal = ReadGranularitySingle(handle, "signal", "granularity");
+	int granCommsim = ReadGranularitySingle(handle, "communication", "granularity");
 
 	//Save the "single-threaded" flag, if it exists.
 	bool singleThreaded = false;
@@ -1250,11 +812,11 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			}
 		}
 	}
-	ConfigParams::GetInstance().singleThreaded = singleThreaded;
+	config.singleThreaded() = singleThreaded;
 
 
 	//Save "network_source" if it exists.
-	ConfigParams::NetworkSource netSrc = ConfigParams::NETSRC_XML;
+	SystemParams::NetworkSource netSrc = SystemParams::NETSRC_XML;
 	node = TiXmlHandle(&document).FirstChild("config").FirstChild("system").FirstChild("network_source").ToElement();
 	if (node) {
 		const char* val = node->Attribute("value");
@@ -1262,15 +824,15 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			std::string valS(val);
 			std::transform(valS.begin(), valS.end(), valS.begin(), ::tolower);
 			if (valS=="database") {
-				netSrc = ConfigParams::NETSRC_DATABASE;
+				netSrc = SystemParams::NETSRC_DATABASE;
 			} else if (valS=="xml") {
-				netSrc = ConfigParams::NETSRC_XML;
+				netSrc = SystemParams::NETSRC_XML;
 			} else {
 				throw std::runtime_error("Unknown road network source entry.");
 			}
 		}
 	}
-	ConfigParams::GetInstance().networkSource = netSrc;
+	config.networkSource() = netSrc;
 
 
 	//Save "network_xml_file", if it exists.
@@ -1283,9 +845,9 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 	}
 	if (netXmlFile.empty()) {
-		netXmlFile = "data/SimMobilityInput.xml"; //Default
+		netXmlFile = "private/SimMobilityInput.xml"; //Default
 	}
-	ConfigParams::GetInstance().networkXmlFile = netXmlFile;
+	config.networkXmlFile() = netXmlFile;
 
 
 	//Save "mergeLogFiles", if it exists.
@@ -1301,7 +863,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			}
 		}
 	}
-	ConfigParams::GetInstance().mergeLogFiles = mergeLogFiles;
+	config.mergeLogFiles() = mergeLogFiles;
 
 
 	//Determine what order we will load Agents in
@@ -1344,21 +906,21 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 	}
 
 	//Communication Simulator (optional)
-	ConfigParams::GetInstance().commSimEnabled = false;
+	config.commSimEnabled() = false;
 	std::string commSimYesNo;
 	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").ToElement();
 	if (node) {
 		commSimYesNo = std::string(node->Attribute("enabled"));
 		if (commSimYesNo == "yes") {
-			ConfigParams::GetInstance().commSimEnabled = true;
+			config.commSimEnabled() = true;
 			//createCommunicator();
 		}
 	}
 
-	if(commSimYesNo == "yes")
-	{
-		ConfigParams::GetInstance().androidClientEnabled = isAndroidClientEnabled(handle);
+	config.androidClientEnabled() = false;
+	if(commSimYesNo == "yes") {
+		config.androidClientEnabled() = isAndroidClientEnabled(handle);
 	}
 
 
@@ -1372,24 +934,24 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		if(busline_control_type == "schedule_based" || busline_control_type == "headway_based"
 				|| busline_control_type == "evenheadway_based" || busline_control_type == "hybrid_based"
 				|| busline_control_type == "no_control") {
-			ConfigParams::GetInstance().busline_control_type = busline_control_type;
+			ConfigParams::GetInstance().busline_control_type() = busline_control_type;
 		} else {
-			ConfigParams::GetInstance().busline_control_type = "no_control";// default: no control
+			ConfigParams::GetInstance().busline_control_type() = "no_control";// default: no control
 		}
 	} else {
-		ConfigParams::GetInstance().busline_control_type = "no_control";// if no setting for this variable: also no control
+		ConfigParams::GetInstance().busline_control_type() = "no_control";// if no setting for this variable: also no control
 	}
 
 
 	//Miscellaneous settings
-	handle = TiXmlHandle(&document);
+	/*handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement();
 	if (node) {
 		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
 		cout <<"*******************************************" <<endl;
 		cout <<"Manual override used for demo intersection." <<endl;
 		cout <<"*******************************************" <<endl;
-	}
+	}*/
 
 	//Check if we have options for a manual schema specification.
 	handle = TiXmlHandle(&document);
@@ -1405,7 +967,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 				if (boost::filesystem::exists(optVal)) {
 					//Convert it to an absolute path.
 					boost::filesystem::path abs_path = boost::filesystem::absolute(optVal);
-					ConfigParams::GetInstance().roadNetworkXsdSchemaFile = abs_path.string();
+					config.roadNetworkXsdSchemaFile() = abs_path.string();
 					break;
 				}
 			}
@@ -1414,20 +976,20 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 
 		//Did we find nothing?
-		if (triedOnce && ConfigParams::GetInstance().roadNetworkXsdSchemaFile.empty()) {
+		if (triedOnce && ConfigParams::GetInstance().roadNetworkXsdSchemaFile().empty()) {
 			Warn() <<"Warning: No viable options for road_network schema file." <<std::endl;
 		}
 	}
 
 
 	//Output
-	const std::string schem = ConfigParams::GetInstance().roadNetworkXsdSchemaFile;
+	const std::string schem = ConfigParams::GetInstance().roadNetworkXsdSchemaFile();
 	Print() <<"XML (road network) schema file: "  <<(schem.empty()?"<default>":schem) <<std::endl;
 
 
 
 	//Misc.: disable dynamic dispatch?
-	handle = TiXmlHandle(&document);
+/*	handle = TiXmlHandle(&document);
 	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("disable_dynamic_dispatch").ToElement();
 	if (node) {
 		const char* valStr_c = node->Attribute("value");
@@ -1443,25 +1005,27 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		}
 	}
 
-	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().DynamicDispatchDisabled() ? "DISABLED" : "Enabled") <<std::endl;*/
 
 
 	//Series of one-line checks.
 	if(baseGran == -1) { throw std::runtime_error("Config file fails to specify base granularity."); }
 	if(totalRuntime == -1) { throw std::runtime_error("Config file fails to specify total runtime."); }
 	if(totalWarmup == -1) { throw std::runtime_error("Config file fails to specify total warmup."); }
-	if(granAgent == -1) { throw std::runtime_error("Config file fails to specify agent granularity."); }
+	if(granPerson == -1) { throw std::runtime_error("Config file fails to specify person granularity."); }
 	if(granSignal == -1) { throw std::runtime_error("Config file fails to specify signal granularity."); }
-	if(agentWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
+	if(granCommsim == -1) { throw std::runtime_error("Config file fails to specify communication granularity."); }
+	if(personWgSize == -1) { throw std::runtime_error("Config file fails to specify agent workgroup size."); }
 	if(signalWgSize == -1) { throw std::runtime_error("Config file fails to specify signal workgroup size."); }
+	if(commWgSize == -1) { throw std::runtime_error("Config file fails to specify communication workgroup size."); }
 	if (!simStartStr) { throw std::runtime_error("Config file fails to specify simulation start time."); }
 
     //Granularity check
-    if (granAgent < baseGran) {
-    	throw std::runtime_error("Agent granularity cannot be smaller than base granularity.");
+    if (granPerson < baseGran) {
+    	throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
     }
-    if (granAgent%baseGran != 0) {
-    	throw std::runtime_error("Agent granularity not a multiple of base granularity.");
+    if (granPerson%baseGran != 0) {
+    	throw std::runtime_error("Person granularity not a multiple of base granularity.");
     }
     if (granSignal < baseGran) {
     	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
@@ -1469,17 +1033,11 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     if (granSignal%baseGran != 0) {
     	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (granPaths < baseGran) {
-    	throw std::runtime_error("Path granularity cannot be smaller than base granularity.");
+    if (granCommsim < baseGran) {
+    	throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
     }
-    if (granPaths%baseGran != 0) {
-    	throw std::runtime_error("Path granularity not a multiple of base granularity.");
-    }
-    if (granDecomp < baseGran) {
-    	throw std::runtime_error("Decomposition granularity cannot be smaller than base granularity.");
-    }
-    if (granDecomp%baseGran != 0) {
-    	throw std::runtime_error("Decomposition granularity not a multiple of base granularity.");
+    if (granCommsim%baseGran != 0) {
+    	throw std::runtime_error("Communication granularity not a multiple of base granularity.");
     }
     if (totalRuntime < baseGran) {
     	throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
@@ -1496,26 +1054,26 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 
     //Save params
     {
-    	ConfigParams& config = ConfigParams::GetInstance();
-    	config.baseGranMS = baseGran;
+    	config.baseGranMS() = baseGran;
     	config.totalRuntimeTicks = totalRuntime/baseGran;
     	config.totalWarmupTicks = totalWarmup/baseGran;
-    	config.granAgentsTicks = granAgent/baseGran;
+    	config.granPersonTicks = granPerson/baseGran;
     	config.granSignalsTicks = granSignal/baseGran;
-    	config.granPathsTicks = granPaths/baseGran;
-    	config.granDecompTicks = granDecomp/baseGran;
-    	config.agentWorkGroupSize = agentWgSize;
-    	config.signalWorkGroupSize = signalWgSize;
-    	config.commWorkGroupSize = commWgSize;
-    	config.simStartTime = DailyTime(simStartStr);
-    	config.mutexStategy = mtStrat;
-    	config.signalTimingMode = signalTimingMode;
+    	config.granCommunicationTicks = granCommsim/baseGran;
+    	config.personWorkGroupSize() = personWgSize;
+    	config.signalWorkGroupSize() = signalWgSize;
+    	config.commWorkGroupSize() = commWgSize;
+    	config.simStartTime() = DailyTime(simStartStr);
+    	config.mutexStategy() = mtStrat;
+
+    	//WARNING: This does not appear to be used for anything any more.
+    	//config.signalTimingMode = signalTimingMode;
 
     	//Save the Aura Manager implementation type.
-    	config.aura_manager_impl = aura_mgr_impl;
+    	config.aura_manager_impl() = aura_mgr_impl;
 
     	//Save the WorkGroup strategy.
-    	config.defaultWrkGrpAssignment = wg_assign_strat;
+    	config.defaultWrkGrpAssignment() = wg_assign_strat;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
@@ -1530,7 +1088,8 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     }
 
 	//load scheduledTImes if any
-	handle = TiXmlHandle(&document);
+    //Doesn't appear to be used any more. ~Seth
+	/*handle = TiXmlHandle(&document);
 	TiXmlElement* busScheduleTimes = handle.FirstChild("config").FirstChild("scheduledTimes").FirstChild().ToElement();
 	if(busScheduleTimes){
 		int stop = 0;
@@ -1541,10 +1100,10 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			times.push_back(AT);
 			times.push_back(DT);
 			std::pair<int, vector<int> > nextLink(stop, times);
-			ConfigParams::GetInstance().scheduledTimes.insert(nextLink);
+			config.scheduledTimes.insert(nextLink);
 			++stop;
 		}
-	}
+	}*/
 
     //Check the type of geometry
     handle = TiXmlHandle(&document);
@@ -1561,45 +1120,47 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     		}
 
     		//Load from the database or from XML, depending.
-    		if (ConfigParams::GetInstance().networkSource==ConfigParams::NETSRC_DATABASE) {
+    		if (ConfigParams::GetInstance().networkSource()==SystemParams::NETSRC_DATABASE) {
     			cout <<"Loading from DATABASE\n";
+    			throw std::runtime_error("Network loading from database DISABLED for old simpleconf.cpp routines.");
 
 				//Load the AIMSUM network details
-				if (prof) { prof->logGenericStart("Database", "main-prof"); }
+				/*if (prof) { prof->logGenericStart("Database", "main-prof"); }
 				map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-				if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+				if (!LoadDatabaseDetails(*geomElem, config.getDatabaseConnectionString(), storedProcedures)) {
 						throw std::runtime_error("Unable to load database connection settings...");
 				}
 
 				//Actually load it
-				sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
+				sim_mob::aimsun::Loader::LoadNetwork(config.getDatabaseConnectionString(), storedProcedures, config.getNetworkRW(), config.getTripChains(), prof);*/
     		} else {
     			cout <<"Loading from XML\n";
-				if (!sim_mob::xml::InitAndLoadXML(ConfigParams::GetInstance().networkXmlFile, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains())) {
+				if (!sim_mob::xml::InitAndLoadXML(config.networkXmlFile(), config.getNetworkRW(), config.getTripChains())) {
 					throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 				}
     		}
 
+
     		//Finally, mask the password
-    		string& s = ConfigParams::GetInstance().connectionString;
+    		/*string& s = config.connectionString;
     		size_t check = s.find("password=");
     		if (check!=string::npos) {
     			size_t start = s.find("=", check) + 1;
     			size_t end = s.find(" ", start);
     			size_t amt = ((end==string::npos) ? s.size() : end) - start;
     			s = s.replace(start, amt, amt, '*');
-    		}
+    		}*/
     	} else {
     		throw std::runtime_error("Unknown geometry type");
     	}
     }
 
     //TEMP: Test network output via boost.
-    BoostSaveXML("NetworkCopy.xml", ConfigParams::GetInstance().getNetworkRW());
+    BoostSaveXML("NetworkCopy.xml", config.getNetworkRW());
 
     //debug: detect sidewalks which are in the middle of road
     {
-    	sim_mob::RoadNetwork &rn = ConfigParams::GetInstance().getNetworkRW();
+    	sim_mob::RoadNetwork &rn = config.getNetworkRW();
     	for(std::vector<sim_mob::Link *>::iterator it = rn.getLinks().begin(), it_end(rn.getLinks().end()); it != it_end ; it ++)
     	{
     		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
@@ -1617,10 +1178,10 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     //debug.. end
 
  	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(ConfigParams::GetInstance().getNetworkRW());
+ 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(config.getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
-    ConfigParams::GetInstance().sealNetwork();
+ 	config.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
     //Basically, we need to write the XML as soon as the network is sealed.
  //This is the real place to extract xml from road network, tripchian, signal etc but since 'seal network' is not respected (especially in street directory)
@@ -1652,7 +1213,7 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     std::cout << "confluxes size after: " << ConfigParams::GetInstance().getConfluxes().size() << std::endl;
 
     //Maintain unique/non-colliding IDs.
-    AgentConstraints constraints;
+    ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
 
     //Attempt to load all "BusController" elements from the config file.
@@ -1676,29 +1237,25 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 			it != loadAgentOrder.end(); it++) {
 		if (((*it) == "database") || ((*it) == "xml-tripchains")) {
 			//Create an agent for each Trip Chain in the database.
-			generateAgentsFromTripChain(active_agents, pending_agents,
-					constraints);
+			throw std::runtime_error("generateAgentsFromTripChain()");
+			//generateAgentsFromTripChain(active_agents, pending_agents, constraints);
 			cout << "Loaded Database Agents (from Trip Chains)." << endl;
 		} else if ((*it) == "drivers") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"driver", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
 				throw std::runtime_error("Couldn't load drivers");
 			}
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"busdriver", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints)) {
 				throw std::runtime_error("Couldn't load bus drivers");
 			}
 			cout << "Loaded Driver Agents (from config file)." << endl;
 
 		} else if ((*it) == "pedestrians") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"pedestrian", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
 				throw std::runtime_error("Couldn't load pedestrians");
 			}
 			cout << "Loaded Pedestrian Agents (from config file)." << endl;
 		} else if ((*it) == "passengers") {
-			if (!loadXMLAgents(document, active_agents, pending_agents,
-					"passenger", constraints)) {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "passenger", constraints)) {
 				throw std::runtime_error("Couldn't load passengers");
 			}
 			cout << "Loaded Passenger Agents (from config file)." << endl;
@@ -1723,26 +1280,25 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
-    std::cout <<"Force single-threaded: " <<(ConfigParams::GetInstance().singleThreaded?"yes":"no") <<"\n";
+    std::cout <<"Force single-threaded: " <<(ConfigParams::GetInstance().singleThreaded()?"yes":"no") <<"\n";
 	//Print the WorkGroup strategy.
 	std::cout <<"WorkGroup assignment: ";
-	if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_ROUNDROBIN) {
+	if (ConfigParams::GetInstance().defaultWrkGrpAssignment()==WorkGroup::ASSIGN_ROUNDROBIN) {
 		std::cout <<"roundrobin" <<std::endl;
-	} else if (ConfigParams::GetInstance().defaultWrkGrpAssignment==WorkGroup::ASSIGN_SMALLEST) {
+	} else if (ConfigParams::GetInstance().defaultWrkGrpAssignment()==WorkGroup::ASSIGN_SMALLEST) {
 		std::cout <<"smallest" <<std::endl;
 	} else {
 		std::cout <<"<unknown>" <<std::endl;
 	}
-	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
+	std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS() <<" " <<"ms" <<"\n";
     std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Person Granularity: " <<ConfigParams::GetInstance().granPersonTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
-    std::cout <<"  Mutex strategy: " <<(ConfigParams::GetInstance().mutexStategy==MtxStrat_Locked?"Locked":ConfigParams::GetInstance().mutexStategy==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
-    if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
+    std::cout <<"  Communication Granularity: " <<ConfigParams::GetInstance().granCommunicationTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime().toString() <<"\n";
+    std::cout <<"  Mutex strategy: " <<(ConfigParams::GetInstance().mutexStategy()==MtxStrat_Locked?"Locked":ConfigParams::GetInstance().mutexStategy()==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
+    /*if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
 			std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
@@ -1751,25 +1307,16 @@ void loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, S
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
-    }
-    //if (!ConfigParams::GetInstance().connectionString.empty()) {
-    	//Output AIMSUN data
-    	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
-    	std::cout <<"------------------\n";
-    	PrintDB_NetworkToFile(ConfigParams::GetInstance().outNetworkFileName);
-    	std::cout <<"------------------\n";
-   // }
-    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() << "|Agents Pending: " << Agent::pending_agents.size() <<"\n";
-    /*for (size_t i=0; i<active_agents.size(); i++) {
-    	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
-
-    	Person* p = dynamic_cast<Person*>(active_agents[i]);
-    	if (p && p->getTripChain()) {
-    		//const TripChain* const tc = p->getTripChain();
-    		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
-    	}
     }*/
-    std::cout <<"------------------\n";
+
+	//Output AIMSUN data
+	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().getDatabaseConnectionString() <<"\n";
+	std::cout <<"------------------\n";
+	{
+	PrintNetwork(ConfigParams::GetInstance(), ConfigParams::GetInstance().outNetworkFileName);
+	}
+	std::cout <<"------------------\n";
+
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
     //StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
@@ -1862,92 +1409,6 @@ sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 }
 
 
-//////////////////////////////////////////
-// Macro definitions
-//////////////////////////////////////////
-
-
-bool sim_mob::ConfigParams::UsingConfluxes() const
-{
-#ifdef SIMMOB_USE_CONFLUXES
-	return true;
-#else
-	return false;
-#endif
-}
-
-
-bool sim_mob::ConfigParams::MPI_Disabled() const
-{
-#ifdef SIMMOB_DISABLE_MPI
-	return true;
-#else
-	return false;
-#endif
-}
-
-
-bool sim_mob::ConfigParams::OutputDisabled() const
-{
-#ifdef SIMMOB_DISABLE_OUTPUT
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::InteractiveMode() const
-{
-#ifdef SIMMOB_INTERACTIVE_MODE
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::StrictAgentErrors() const
-{
-#ifdef SIMMOB_STRICT_AGENT_ERRORS
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::ProfileOn() const
-{
-#ifdef SIMMOB_PROFILE_ON
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
-{
-
-#ifdef SIMMOB_PROFILE_AGENT_UPDATES
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool sim_mob::ConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
-{
-#ifdef SIMMOB_PROFILE_WORKER_UPDATES
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
-#else
-	return false;
-#endif
-}
-
 
 //////////////////////////////////////////
 // Main external method
@@ -1960,10 +1421,11 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	//  * Various new "loaders" or "initializers" will take Config objects and perform their tasks.
 	const bool LOAD_NEW_CONFIG_FILE = false;
 
+	//Load using our new config syntax.
+	ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), active_agents, pending_agents);
 
-	if (LOAD_NEW_CONFIG_FILE) {
-		//Load using our new config syntax.
-
+/*	if (LOAD_NEW_CONFIG_FILE) {
 		//Load and parse the file, create xml-based objects.
 		Config cfg;
 		cfg.InitBuiltInModels(builtInModels);
@@ -1982,13 +1444,12 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		LoadAgents loadA(cfg, active_agents, pending_agents);
 
 		//Print the network.
-		PrintNetwork print(cfg);
+		//NOTE: PrintNetwork() now works on ConfigParams, not Config.
+		//PrintNetwork print(cfg);
 
 		//Finally, print general logging information to stdout
 		GeneralOutput out(cfg);
 	} else {
-		//Load using our old config syntax.
-
 		//Load our config file into an XML document object.
 		//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
 		TiXmlDocument* doc = new TiXmlDocument(configPath);
@@ -2004,7 +1465,196 @@ void sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		//Parse it
 		loadXMLConf(*doc, active_agents, pending_agents, prof);
 		delete doc;
-	}
+	}*/
 }
+
+
+
+std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
+{
+	const DatabaseConnection& dbConn = geometry.connection;
+	std::stringstream res;
+
+	res <<"host="   <<dbConn.host   <<" "
+		<<"port="   <<dbConn.port   <<" "
+		<<"dbname=" <<dbConn.dbName <<" "
+		<<"user="   <<dbConn.user   <<" "
+//		<<"password=" <<dbConn.password.toString(maskPassword);
+		<<"password=" <<(maskPassword?"***":sim_mob::simple_password::load(string())); //NOTE: This is in no way secure. ~Seth
+	return res.str();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+// Getters/setters
+////////////////////////////////////////////////////////////////////////////
+
+
+unsigned int& sim_mob::ConfigParams::personWorkGroupSize()
+{
+	return system.workers.person.count;
+}
+const unsigned int& sim_mob::ConfigParams::personWorkGroupSize() const
+{
+	return system.workers.person.count;
+}
+
+unsigned int& sim_mob::ConfigParams::signalWorkGroupSize()
+{
+	return system.workers.signal.count;
+}
+const unsigned int& sim_mob::ConfigParams::signalWorkGroupSize() const
+{
+	return system.workers.signal.count;
+}
+
+unsigned int& sim_mob::ConfigParams::commWorkGroupSize()
+{
+	return system.workers.communication.count;
+}
+const unsigned int& sim_mob::ConfigParams::commWorkGroupSize() const
+{
+	return system.workers.communication.count;
+}
+
+unsigned int& sim_mob::ConfigParams::baseGranMS()
+{
+	return system.simulation.baseGranMS;
+}
+const unsigned int& sim_mob::ConfigParams::baseGranMS() const
+{
+	return system.simulation.baseGranMS;
+}
+
+bool& sim_mob::ConfigParams::singleThreaded()
+{
+	return system.singleThreaded;
+}
+const bool& sim_mob::ConfigParams::singleThreaded() const
+{
+	return system.singleThreaded;
+}
+
+bool& sim_mob::ConfigParams::mergeLogFiles()
+{
+	return system.mergeLogFiles;
+}
+const bool& sim_mob::ConfigParams::mergeLogFiles() const
+{
+	return system.mergeLogFiles;
+}
+
+SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource()
+{
+	return system.networkSource;
+}
+const SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource() const
+{
+	return system.networkSource;
+}
+
+std::string& sim_mob::ConfigParams::networkXmlFile()
+{
+	return system.networkXmlFile;
+}
+const std::string& sim_mob::ConfigParams::networkXmlFile() const
+{
+	return system.networkXmlFile;
+}
+
+std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile()
+{
+	return system.roadNetworkXsdSchemaFile;
+}
+const std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile() const
+{
+	return system.roadNetworkXsdSchemaFile;
+}
+
+AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl()
+{
+	return system.simulation.auraManagerImplementation;
+}
+const AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl() const
+{
+	return system.simulation.auraManagerImplementation;
+}
+
+int& sim_mob::ConfigParams::percent_boarding()
+{
+	return system.simulation.passenger_percent_boarding;
+}
+const int& sim_mob::ConfigParams::percent_boarding() const
+{
+	return system.simulation.passenger_percent_boarding;
+}
+
+int& sim_mob::ConfigParams::percent_alighting()
+{
+	return system.simulation.passenger_percent_alighting;
+}
+const int& sim_mob::ConfigParams::percent_alighting() const
+{
+	return system.simulation.passenger_percent_alighting;
+}
+
+WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment()
+{
+	return system.simulation.workGroupAssigmentStrategy;
+}
+const WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment() const
+{
+	return system.simulation.workGroupAssigmentStrategy;
+}
+
+sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy()
+{
+	return system.simulation.mutexStategy;
+}
+const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
+{
+	return system.simulation.mutexStategy;
+}
+
+bool& sim_mob::ConfigParams::commSimEnabled()
+{
+	return system.simulation.commSimEnabled;
+}
+const bool& sim_mob::ConfigParams::commSimEnabled() const
+{
+	return system.simulation.commSimEnabled;
+}
+
+bool& sim_mob::ConfigParams::androidClientEnabled()
+{
+	return system.simulation.androidClientEnabled;
+}
+const bool& sim_mob::ConfigParams::androidClientEnabled() const
+{
+	return system.simulation.androidClientEnabled;
+}
+
+DailyTime& sim_mob::ConfigParams::simStartTime()
+{
+	return system.simulation.simStartTime;
+}
+const DailyTime& sim_mob::ConfigParams::simStartTime() const
+{
+	return system.simulation.simStartTime;
+}
+
+std::string sim_mob::ConfigParams::busline_control_type() const
+{
+	std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
+	if (it==system.genericProps.end()) {
+		throw std::runtime_error("busline_control_type property not found.");
+	}
+	return it->second;
+}
+
+
+
+#endif
 
 

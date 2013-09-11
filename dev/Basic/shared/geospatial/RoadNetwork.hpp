@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 
+#include "geospatial/RoadRunnerRegion.hpp"
 
 namespace sim_mob
 {
@@ -110,6 +111,9 @@ public:
 
 	//List of CoordinateTransforms this map contains. Only the first is guaranteed to be valid.
 	std::vector<sim_mob::CoordinateTransform*> coordinateMap;
+
+	//List of Road Runner Regions, if applicable.
+	std::map<int, sim_mob::RoadRunnerRegion> roadRunnerRegions;
 
 };
 

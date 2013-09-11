@@ -704,7 +704,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	uint32_t accumulated_alighted_ms = curr_ms;// set this to curr_frame, later add and advance
 	uint32_t last_boarding_ms = 0;
 	uint32_t last_alighting_ms = 0;
-	const uint32_t baseGranMS = ConfigParams::GetInstance().baseGranMS;// baseGran MS perFrame
+	const uint32_t baseGranMS = ConfigParams::GetInstance().baseGranMS();// baseGran MS perFrame
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;

@@ -21,7 +21,7 @@ void sim_mob::CommunicationDataManager::sendTrafficData(std::string &s)
 		boost::mutex::scoped_lock lock(trafficDataGuard);
 		trafficDataQueue.push(s);
 }
-void sim_mob::CommunicationDataManager::sendRoadNetworkData(std::string &s)
+void sim_mob::CommunicationDataManager::sendRoadNetworkData(const std::string &s)
 {
 		boost::mutex::scoped_lock lock(roadNetworkDataGuard);
 		roadNetworkDataQueue.push(s);

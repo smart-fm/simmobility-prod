@@ -17,6 +17,7 @@
 
 #include "conf/simpleconf.hpp"
 #include "entities/Entity.hpp"
+#include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
@@ -26,7 +27,7 @@
 #include "workers/WorkGroup.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
-#include "util/Utils.hpp"
+#include "message/MessageBus.hpp"
 
 using std::set;
 using std::vector;
@@ -40,7 +41,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
-	msPerFrame(ConfigParams::GetInstance().baseGranMS),
+	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
 	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
 	currTick(0),
 	active(true)
@@ -69,7 +70,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 
 sim_mob::Worker::~Worker()
 {
-	//Clear all tracked entitites
+        //Clear all tracked entitites
 	while (!managedEntities.empty()) {
 		remEntity(managedEntities.front());
 	}
@@ -114,37 +115,37 @@ std::ostream* sim_mob::Worker::getLogFile() const
 
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		std::ostringstream out ;
 		out << "worker::scheduleForAddition[" << this << "] calling migrateIn()\n ";
 		std::cout << out.str();
 		//Add it now.
 		migrateIn(*entity);
-	} else {
+	} else {*/
 		//Save for later
 		toBeAdded.push_back(entity);
-	}
+	/*}*/
 }
 
 
 void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		//Nothing to be done.
-	} else {
+	} else {*/
 		//Save for later
 		toBeRemoved.push_back(entity);
-	}
+	/*}*/
 }
 
 void sim_mob::Worker::scheduleForBred(Entity* entity)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+/*	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		//Nothing to be done.
-	} else {
+	} else {*/
 		//Save for later
 		toBeBred.push_back(entity);
-	}
+	/*}*/
 }
 
 
@@ -183,22 +184,23 @@ int sim_mob::Worker::getAgentSize(bool includeToBeAdded)
 
 void sim_mob::Worker::addPendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 	int i = 0;
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
+                messaging::MessageBus::RegisterHandler((*it));
 	}
 	toBeAdded.clear();
 }
 
 void sim_mob::Worker::removePendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 
 	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 		//Migrate out its buffered properties.
@@ -209,6 +211,7 @@ void sim_mob::Worker::removePendingEntities()
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
 		entityRemovalList->push_back(*it);
+                messaging::MessageBus::UnRegisterHandler((*it));
 	}
 	toBeRemoved.clear();
 }
@@ -221,22 +224,24 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
-		timeslice currTime = timeslice(currTick, currTick*msPerFrame);
-		(*it)->updateAndReportSupplyStats(currTime);
-		(*it)->reportLinkTravelTimes(currTime);
-		(*it)->resetSegmentFlows();
-		(*it)->resetLinkTravelTimes(currTime);
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			const unsigned int msPerFrame = ConfigParams::GetInstance().baseGranMS();
+			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
+			(*it)->updateAndReportSupplyStats(currTime);
+			(*it)->reportLinkTravelTimes(currTime);
+			(*it)->resetSegmentFlows();
+			(*it)->resetLinkTravelTimes(currTime);
+		}
 	}
 }
 
 void sim_mob::Worker::breedPendingEntities()
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 		return;
-	}
+	}*/
 
 	for (vector<Entity*>::iterator it=toBeBred.begin(); it!=toBeBred.end(); it++) {
 		//Remove it from our global list.
@@ -265,7 +270,7 @@ void sim_mob::Worker::perform_frame_tick()
 
 	//Add Agents as required.
 	addPendingEntities();
-
+        
 	//Perform all our Agent updates, etc.
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
 
@@ -304,10 +309,14 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
+        // Register thread on MessageBus.
+        messaging::MessageBus::RegisterThread();
+    
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
+                messaging::MessageBus::ThreadDispatchMessages();
 		perform_frame_tick();
 
 		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.
@@ -349,6 +358,8 @@ void sim_mob::Worker::threaded_function_loop()
 		}
 #endif
 	}
+        // Register thread from MessageBus.
+        messaging::MessageBus::UnRegisterThread();
 }
 
 namespace {
@@ -517,17 +528,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
 	std::for_each(managedEntities.begin(), managedEntities.end(), RestrictedEntityUpdater<Conflux>(*this, currTime));
-
-	//Update the event manager.
-	eventManager.Update(currTime);
 }
 
-
-
-EventManager& sim_mob::Worker::getEventManager()
-{
-    return eventManager;
-}
 
 bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 {

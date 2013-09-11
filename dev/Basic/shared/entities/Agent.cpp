@@ -23,11 +23,16 @@
 #include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+#include "event/SystemEvents.hpp"
+#include "message/MessageBus.hpp"
 
 int sim_mob::Agent::createdAgents = 0;
 int sim_mob::Agent::diedAgents = 0;
 
 using namespace sim_mob;
+using namespace sim_mob::event;
+using namespace sim_mob::messaging;
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 using std::vector;
@@ -112,16 +117,15 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	nextPathPlanned = false;
 	dynamic_seed = id;
 	//Register global life cycle events.
-	RegisterEvent(AGENT_LIFE_EVENT_STARTED_ID);
-	RegisterEvent(AGENT_LIFE_EVENT_FINISHED_ID);
 	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
 		profile->logAgentCreated(*this);
 	}
+
 }
 
 sim_mob::Agent::~Agent() {
-	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+        if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}
 	safe_delete_item(profile);
@@ -145,6 +149,7 @@ void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
 }
 
 
+
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
 	//Has update() been called early?
@@ -166,7 +171,7 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS) {
+		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS()) {
 			std::stringstream msg;
 			msg <<"Agent was not started within one timespan of its requested start time.";
 			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
@@ -255,8 +260,13 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 		setToBeRemoved();
 		diedAgents++;
 		//notify subscribers that this agent is done
-		Publish(AGENT_LIFE_EVENT_FINISHED_ID, AgentLifeEventArgs(this));
-		UnSubscribeAll(AGENT_LIFE_EVENT_FINISHED_ID);
+                MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
+                        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId())));
+                
+                //unsubscribes all listeners of this agent to this event. 
+                //(it is safe to do this here because the priority between events)
+                MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
+               
 	}
 
 	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
@@ -320,6 +330,12 @@ NullableOutputStream sim_mob::Agent::Log()
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
+void sim_mob::Agent::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args){
+};
+
+void sim_mob::Agent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args){
+}
+
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent::getOwnRandomNumber() {
@@ -343,22 +359,6 @@ int sim_mob::Agent::getOwnRandomNumber() {
 	return one_try;
 }
 #endif
-
-//////AGENT LIFE EVENT ARGS
-sim_mob::AgentLifeEventArgs::AgentLifeEventArgs(Agent* agent): agent(agent) {
-
-}
-
-sim_mob::AgentLifeEventArgs::AgentLifeEventArgs(
-		const AgentLifeEventArgs& orig) {
-	this->agent = orig.agent;
-}
-sim_mob::AgentLifeEventArgs::~AgentLifeEventArgs() {
-}
-
-const Agent* sim_mob::AgentLifeEventArgs::GetAgent() const {
-	return agent;
-}
 
 
 

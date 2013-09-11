@@ -1,3 +1,5 @@
+#if 0
+
 #include "xmlWriter.hpp"
 
 #include "buffering/Shared.hpp"
@@ -32,7 +34,7 @@
 
 #include "util/ReactionTimeDistributions.hpp"
 #include <iomanip>
-#if 0
+
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
 	std::ostringstream Id;

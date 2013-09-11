@@ -43,10 +43,10 @@ sim_mob::Validate::Validate(Config& cfg) : cfg(cfg)
 	CheckAndSetGeneralProps();
 
 	//TEMP: Workaround: Set our reaction time distribution. This really needs to be somewhere else.
-	map<string, ReactionTimeDist*>::const_iterator it = cfg.constructs().distributions.find("passenger_distribution_busstop");
+/*	map<string, ReactionTimeDist*>::const_iterator it = cfg.constructs().distributions.find("passenger_distribution_busstop");
 	if (it!=cfg.constructs().distributions.end()) {
 		cfg.system().passengerBusStopDistribution = it->second;
-	}
+	}*/
 }
 
 

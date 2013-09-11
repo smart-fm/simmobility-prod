@@ -406,10 +406,9 @@ void sim_mob::LaneStats::updateOutputFlowRate(const Lane* lane,
 }
 
 void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
-	double tick_size = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	double tick_size = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size
-			- float(tmp);
+	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
 	if (laneParams->fraction >= 1.0) {
 		laneParams->fraction -= 1.0;
 		laneParams->outputCounter = float(tmp) + 1.0;
@@ -421,7 +420,7 @@ void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
 void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 	const double omega = 0.01;
 	const double vehicle_length = 400;
-	double tick_size = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	double tick_size = ConfigParams::GetInstance().baseGranMS() / 1000.0;
 	double capacity = laneParams->outputFlowRate * tick_size;
 	double acceptRateA = (capacity > 0) ? tick_size / capacity : 0;
 	double acceptRateB = (omega * vehicle_length) / upSpeed;
@@ -569,7 +568,7 @@ void SegmentStats::resetSegFlow() {
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
 	float count = 0;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-		count += (*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS / 1000.0;
+		count += (*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS() / 1000.0;
 	}
 	return std::floor(count);
 }

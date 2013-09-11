@@ -10,14 +10,14 @@ sim_mob::FlexiBarrier::FlexiBarrier(unsigned int count) : m_threshold(count), m_
 
 bool sim_mob::FlexiBarrier::wait(unsigned int amount)
 {
-	//Can't wait more than the amount that would get us to zero.
-	if (amount>m_count) {
-		throw std::runtime_error("FlexiBarrier wait() overflow.");
-	}
-
     boost::mutex::scoped_lock lock(m_mutex);
     unsigned int gen = m_generation;
-
+    
+    //Can't wait more than the amount that would get us to zero.
+    if (amount>m_count) {
+       throw std::runtime_error("FlexiBarrier wait() overflow.");
+    }
+    
     m_count -= amount;
     if (m_count == 0) {
         m_generation++;
@@ -35,14 +35,15 @@ bool sim_mob::FlexiBarrier::wait(unsigned int amount)
 
 bool sim_mob::FlexiBarrier::contribute(unsigned int amount)
 {
-	//Can't wait more than the amount that would get us to zero.
-	if (amount>m_count) {
-		throw std::runtime_error("FlexiBarrier contribute() overflow.");
-	}
-
+    
     boost::mutex::scoped_lock lock(m_mutex);
     unsigned int gen = m_generation;
 
+    //Can't wait more than the amount that would get us to zero.
+    if (amount>m_count) {
+        throw std::runtime_error("FlexiBarrier contribute() overflow.");
+    }
+    
     //NOTE: The documentation indicates that notify_all doesn't need the mutex, but there is no harm
     //      in it being locked. Might cause some slowdown; we should double-check this.
     m_count -= amount;

@@ -1,3 +1,4 @@
+#if 0
 #include <tinyxml.h>
 #include <vector>
 #include <string>
@@ -63,3 +64,4 @@ void WriteXMLInput_TrafficSignal(TiXmlElement * Signals, sim_mob::Signal *signal
 void WriteXMLInput_TrafficSignals(TiXmlElement * SimMobility);
 void WriteXMLInput(const std::string& XML_OutPutFileName);
 }
+#endif

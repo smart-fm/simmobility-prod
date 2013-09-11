@@ -24,7 +24,7 @@ class ReactionTimeDist;
  */
 class Password {
 public:
-	Password(const std::string& rawPwd="") : rawPwd(rawPwd) {}
+	explicit Password(const std::string& rawPwd="") : rawPwd(rawPwd) {}
 
 	//Provide a small amount of protection on deletion
 	~Password() {
@@ -50,7 +50,7 @@ public:
 private:
 	std::string id;
 };
-class DatabaseConnection : public Identifiable {
+/*class DatabaseConnection : public Identifiable {
 public:
 	DatabaseConnection(const std::string& id="") : Identifiable(id) {}
 
@@ -59,7 +59,7 @@ public:
 	std::string dbName;
 	std::string user;
 	Password password;
-};
+};*/
 class StoredProcedureMap : public Identifiable {
 public:
 	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}
@@ -88,7 +88,7 @@ private:
 /**
  * Collection of various items "construct"ed from the config file.
  */
-struct Constructs {
+/*struct Constructs {
 	//Models
 	std::map<std::string, CarFollowModel*> carFollowModels;
 	std::map<std::string, LaneChangeModel*> laneChangeModels;
@@ -104,6 +104,6 @@ struct Constructs {
 	//Database Connections
 	std::map<std::string, DatabaseConnection> dbConnections;
 	std::map<std::string, StoredProcedureMap> storedProcedureMaps;
-};
+};*/
 
 }

@@ -38,6 +38,8 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/commsim/communicator/broker/Broker.hpp"
 #include "conf/simpleconf.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
@@ -77,7 +79,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
-#include <tinyxml.h>
+//#include <tinyxml.h>
 
 using std::cout;
 using std::endl;
@@ -117,6 +119,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -138,18 +143,27 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//This is kind of a mess.
-	sim_mob::Broker androidBroker(MtxStrat_Locked, 0);//disabled by default
+	sim_mob::Broker* androidBroker = nullptr; //null = disabled.
+
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	for (int i=0; i<2; i++) {
+
+	//TODO: Why were we looping? ~Seth
+	//for (int i=0; i<2; i++) {
+
 		//Set for the old-style config first, new-style config second.
-		RoleFactory& rf = (i==0) ? ConfigParams::GetInstance().getRoleFactoryRW() : Config::GetInstanceRW().roleFactory();
-		MutexStrategy mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy : Config::GetInstance().mutexStrategy();
+		//RoleFactory& rf = (i==0) ? ConfigParams::GetInstanceRW().getRoleFactoryRW() : Config::GetInstanceRW().getRoleFactoryRW();
+		//const MutexStrategy& mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy() : Config::GetInstance().mutexStrategy();
+
+		RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
+		const MutexStrategy& mtx = ConfigParams::GetInstance().mutexStategy();
+
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
-		if (ConfigParams::GetInstance().commSimEnabled) {
-			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, &androidBroker, mtx));
+		if (ConfigParams::GetInstance().commSimEnabled()) {
+			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, androidBroker, mtx));
 		} else {
 			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 		}
@@ -162,7 +176,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//cannot allocate an object of abstract type
 		//rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
-	}
+//	}
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -178,9 +192,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
 
 	//Load our user config file
-	std::cout << "start to Load our user config file." << std::endl;
-	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout << "Expanding our user config file." << std::endl;
+	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
 	std::cout << "finish to Load our user config file." << std::endl;
+
+
 
 //	//DriverComms are only allowed if the communicator is enabled.
 //	if (ConfigParams::GetInstance().commSimEnabled) {
@@ -206,7 +222,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PartitionManager::instance().initBoundaryTrafficItems();
 	}
 
-	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	//bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -216,17 +232,17 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	{ //Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded);
+	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks, &AuraManager::instance(), partMgr);
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -235,25 +251,25 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	bool measureInParallel = true;
 	PerformanceProfile perfProfile;
 	if (doPerformanceMeasurement) {
-		perfProfile.init(config.agentWorkGroupSize, measureInParallel);
+		perfProfile.init(config.personWorkGroupSize(), measureInParallel);
 	}
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
-	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		agentWorkers->assignAWorker(*it);
+		personWorkers->assignAWorker(*it);
 	}
 
 	//Assign all BusStopAgents
 	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
-	BusStopAgent::AssignAllBusStopAgents(*agentWorkers);
+	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
 
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
@@ -262,7 +278,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 
 	if(sim_mob::FMOD::FMODController::InstanceExists()){
-		agentWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
+		personWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
 	}
 
 	//..and Assign communication agent(currently a singleton
@@ -272,16 +288,20 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
 
-	if(ConfigParams::GetInstance().commSimEnabled && ConfigParams::GetInstance().androidClientEnabled )
+	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
 	{
-		communicationWorkers->assignAWorker(&androidBroker);
-		androidBroker.enable();
+		if (!androidBroker) {
+			throw std::runtime_error("Android broker is null, but expected to exist.");
+		}
+
+		communicationWorkers->assignAWorker(androidBroker);
+		androidBroker->enable();
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl, (doPerformanceMeasurement ? &perfProfile : nullptr));
+	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
 
 
 	///
@@ -296,7 +316,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}
@@ -374,7 +394,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			if (ConfigParams::GetInstance().OutputEnabled()) {
 				std::stringstream msg;
 				msg << "Approximate Tick Boundary: " << currTick << ", ";
-				msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+				msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
 				if (!warmupDone) {
 					msg << "  Warmup; output ignored." << endl;
 				}
@@ -411,11 +431,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	cout << "Starting Agents: " << numStartAgents;
 	cout << ",     Pending: ";
-	if (NoDynamicDispatch) {
+	//if (NoDynamicDispatch) {
 		cout <<"<Disabled>";
-	} else {
+	//} else {
 		cout <<numPendingAgents;
-	}
+	//}
 	cout << endl;
 
 	//xuyan:show measure time
@@ -463,13 +483,13 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}
+		}*/
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -496,6 +516,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	cout << "Simulation complete; closing worker threads." << endl;
 
+	//Delete our broker.
+	safe_delete_item(androidBroker);
+
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);
 	return true;
@@ -518,7 +541,7 @@ int run_simmob_interactive_loop(){
 			std::string configFileName = paras["configFileName"];
 			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
-			ConfigParams::GetInstance().reset();
+			ConfigParams::GetInstanceRW().reset();
 			std::cout<<"scenario finished"<<std::cout;
 		}
 		if(ctrlMgr->getSimState() == QUIT)
@@ -553,7 +576,7 @@ int main(int ARGC, char* ARGV[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigParams::GetInstanceRW();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size()>2 && args[2]=="mpi") {
@@ -590,7 +613,7 @@ int main(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
+	std::string XML_OutPutFileName = "private/SimMobilityInput.xml";
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {

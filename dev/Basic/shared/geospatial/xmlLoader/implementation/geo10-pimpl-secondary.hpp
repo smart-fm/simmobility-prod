@@ -12,6 +12,31 @@ namespace xml {
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
 
+class roadrunner_vertex_t_pimpl: public virtual roadrunner_vertex_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::LatLngLocation post_roadrunner_vertex_t ();
+
+	virtual void latitude (double);
+	virtual void longitude (double);
+
+private:
+	sim_mob::LatLngLocation model;
+};
+
+
+class roadrunner_shape_t_pimpl: public virtual roadrunner_shape_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::LatLngLocation> post_roadrunner_shape_t ();
+
+	virtual void vertex (const sim_mob::LatLngLocation&);
+
+private:
+	std::vector<sim_mob::LatLngLocation> model;
+};
+
+
 class scale_source_t_pimpl: public virtual scale_source_t_pskel {
 public:
 	virtual void pre ();

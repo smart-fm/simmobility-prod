@@ -6,10 +6,12 @@
  */
 
 #include "Pedestrian2Facets.hpp"
+
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/signal/Signal.hpp"
 
 using namespace sim_mob;
 
@@ -91,13 +93,13 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 		updatePedestrianSignal();
 
 		if (sigColor == signalGreen) //Green phase
-			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 			vel = 0;
 	}
 	else {
 		if (!pedMovement.isDoneWithEntireRoute())
-			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
+			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
 			//Person* person = dynamic_cast<Person*> (parent);
@@ -228,9 +230,9 @@ void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 	else
 		trafficSignal = nullptr;
 
-	if (!trafficSignal)
-		std::cout << "Traffic signal not found!" << std::endl;
-	else {
+	if (!trafficSignal) {
+		//std::cout << "Traffic signal not found!" << std::endl;
+	} else {
 		if (pedMovement.getCurrentWaypoint()->crossing_) {
 			sigColor = trafficSignal->getPedestrianLight(*pedMovement.getCurrentWaypoint()->crossing_);
 			//			std::cout<<"Debug: signal color "<<sigColor<<std::endl;

@@ -424,6 +424,7 @@ Entity::UpdateStatus Broker::frame_tick(timeslice now){
 	return Entity::UpdateStatus::Continue;
 }
 
+//todo consider scrabbing DriverComm
 bool Broker::allAgentUpdatesDone()
 {
 

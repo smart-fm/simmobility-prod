@@ -614,7 +614,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
 		else {
-			Print() << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation"<<std::endl;
+			Print() << "Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation"<<std::endl;
 		}
 	}
 }

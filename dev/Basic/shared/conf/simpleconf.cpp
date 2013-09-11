@@ -227,7 +227,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
 	typedef std::map<std::string, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		Print() << "Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
 		if( tc->itemType != TripChainItem::IT_FMODSIM){
 			person = new Person("XML_TripChain", config.mutexStategy, it_map->second);

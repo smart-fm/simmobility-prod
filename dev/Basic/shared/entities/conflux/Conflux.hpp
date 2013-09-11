@@ -43,82 +43,97 @@ class Conflux : public sim_mob::Agent {
 	friend class sim_mob::aimsun::Loader;
 
 private:
-	/* MultiNode around which this conflux is constructed */
+	/**
+	 *  MultiNode around which this conflux is constructed
+	 */
 	const sim_mob::MultiNode* multiNode;
 
 	const sim_mob::Signal* signal;
 
-	/* segments in this conflux (on upstream links)
+	/**
+	 * segments in this conflux (on upstream links)
 	 * stores std::map<link which flows into the multinode, segments on the link>
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
-	/*
+	/**
 	 * virtual queues are used to hold persons which come from previous conflux when the this conflux is not
 	 * processed for the current tick. Each link in the conflux has a virtual queue
 	 */
 	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
 
-	/* keeps a pointer to a road segment on each link to keep track of the current segment that is being processed*/
+	/**
+	 * keeps a pointer to a road segment on each link to keep track of the current segment that is being processed
+	 */
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
-	/* segments on downstream links
+	/**
+	 * segments on downstream links
 	 * These links conceptually belong to the adjacent confluxes.
 	 */
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
-	/* Map to store the vehicle counts of each road segment on this conflux */
+	/**
+	 *  Map to store the vehicle counts of each road segment on this conflux
+	 */
 	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
 
-	/* Worker to which this conflux belongs to*/
+	/**
+	 *  Worker to which this conflux belongs to
+	 */
 	sim_mob::Worker* parentWorker;
 
-	/*structure to store the frontal agents in each road segment*/
+	/**
+	 * structure to store the frontal agents in each road segment
+	 */
 	std::map<const sim_mob::RoadSegment*, sim_mob::Person* > candidateAgents;
 
-	/* cache the added lengths of road segments ahead in this link in this conflux
+	/**
+	 * cache the added lengths of road segments ahead in this link in this conflux
 	 * E.g. If there are 3 consecutive segments A, B and C in a link and the end node of C is the end of the link
-	 * this map stores (length-of-B+length-of-C) against A */
+	 * this map stores (length-of-B+length-of-C) against A
+	 */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
 
-	/* For each downstream link, this map stores the number of persons that can be
+	/**
+	 * For each downstream link, this map stores the number of persons that can be
 	 * accepted by that link in this conflux in this tick
 	 */
 	std::map<sim_mob::Link*, unsigned int> vqBounds;
 
-	/*holds the current frame number for which this conflux is being processed*/
+	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
 
 	std::vector<Entity*> toBeRemoved;
 
-	/* function to call agents' updates if the MultiNode is signalized */
+	/** function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
 
-	/* function to call agents' updates if the MultiNode is not signalized */
+	/** function to call agents' updates if the MultiNode is not signalized */
 	void updateUnsignalized();
 
-	/* calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
+	/** calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
 	void updateAgent(sim_mob::Person* p);
 
-	/* calls frame_tick() of the movement facet for the person's role*/
+	/** calls frame_tick() of the movement facet for the person's role*/
 	UpdateStatus perform_person_move(timeslice now, Person* person);
 
-	/* calls frame_init of the movement facet for the person's role*/
+	/** calls frame_init of the movement facet for the person's role*/
 	bool call_movement_frame_init(timeslice now, Person* person);
 
-	/* calls frame_tick of the movement facet for the person's role*/
+	/** calls frame_tick of the movement facet for the person's role*/
 	Entity::UpdateStatus call_movement_frame_tick(timeslice now, Person* person);
 
-	/* calls frame_tick of the movement facet for the person's role*/
+	/** calls frame_tick of the movement facet for the person's role*/
 	void call_movement_frame_output(timeslice now, Person* person);
 
-	/* function to initialize candidate agents in each tick*/
+	/** function to initialize candidate agents in each tick*/
 	void initCandidateAgents();
 
-	/* sets the iterators on currSegToUpLinks to the segments at the end of the half links*/
+	/** sets the iterators on currSegToUpLinks to the segments at the end of the half links*/
 	void resetCurrSegsOnUpLinks();
 
-	/* selects the agent closest to the intersection from candidateAgents;*/
+	/** selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Person* agentClosestToIntersection();
 
 	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing);
@@ -173,19 +188,24 @@ public:
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 
-	// adds the agent into this conflux
+	/**
+	 * adds the agent into this conflux
+	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 	void addAgent(sim_mob::Person* ag, const sim_mob::Node* startingNode);
 
-	// get agent counts in a segment
-	// lanewise
+	/**
+	 * get lanewise agent counts in a segment
+	 */
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
-	// moving and queuing counts
+	/**
+	 * moving and queuing counts
+	 */
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 
-	/*Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
+	/**Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 	double getOutputFlowRate(const Lane* lane);
@@ -207,10 +227,10 @@ public:
 	void resetSegmentFlows();
 	void resetLinkTravelTimes(timeslice frameNumber);
 
-	/* updates lane params for all lanes within the conflux */
+	/** updates lane params for all lanes within the conflux */
 	void updateAndReportSupplyStats(timeslice frameNumber);
 
-	/*process persons in the virtual queue*/
+	/**process persons in the virtual queue*/
 	void processVirtualQueues();
 
 	//TODO: To be removed after debugging.

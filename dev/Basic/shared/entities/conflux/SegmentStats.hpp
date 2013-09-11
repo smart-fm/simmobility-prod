@@ -5,13 +5,17 @@
 #pragma once
 
 #include <string>
-//#include <boost/unordered_set.hpp>
+#include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "entities/Person.hpp"
 
 namespace sim_mob {
 
+/**
+ * Data structure to store lane specific parameters for supply.
+ *
+ * \author Melani Jayasuriya
+ */
 class LaneParams {
 	friend class LaneStats;
 	friend class SegmentStats;
@@ -40,6 +44,13 @@ public:
 	double getLastAccept() {return lastAcceptTime;}
 };
 
+/**
+ * Data structure to store and maintain persons in a lane. Persons are maintained with relative ordering which
+ * reflects their positions in the real lane during simulation. The queuing and moving counts of the lane is
+ * also tracked by this class. Used by mid term supply.
+ *
+ * \author Harish Loganathan
+ */
 class LaneStats {
 
 public:
@@ -121,8 +132,10 @@ private:
 };
 
 /**
- * Keeps a lane wise count of moving and queuing vehicles in a road segment.
- * Used by mid term supply
+ * Keeps a lane wise count of moving and queuing vehicles in a road segment. Keeps a map of LaneStats corresponding
+ * to each lane in the road segment. Used by mid term supply.
+ *
+ * \author Harish Loganathan
  */
 class SegmentStats {
 
@@ -199,18 +212,16 @@ public:
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
-	 * The LaneStats object created for laneInfinity stores the new agents who will start at this road segment. An agent will be
-	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his  start time falls within the current tick. The lane
-	 * and moving/queuing status is still unknown for agents in laneInfinity. The frame_init function of the agent's role will have
-	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
+	 * The LaneStats object created for laneInfinity stores the new persons who will start at this roadSegment. A Person will be
+	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his start time falls within the current tick. The actual lane
+	 * and moving/queuing status is still unknown for persons in laneInfinity. The frame_init function of the agent's role will have
+	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 *
-	 * Agents who are performing an activity are also stashed in laneInfinity. TODO: Double check this
+	 * Persons who are performing an activity are also stashed in laneInfinity. TODO: Double check this
 	 */
 	const sim_mob::Lane* laneInfinity;
 
-
-	//TODO: To be removed after debugging.
-	std::stringstream debugMsgs;
+	std::stringstream debugMsgs; // handy to throw meaningful error messages
 };
 
 }

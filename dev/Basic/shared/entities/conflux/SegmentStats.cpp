@@ -5,9 +5,9 @@
 #include "SegmentStats.hpp"
 
 #include <algorithm>
-#include "logging/Log.hpp"
-#include "conf/simpleconf.hpp"
 #include <cmath>
+#include "conf/simpleconf.hpp"
+#include "logging/Log.hpp"
 
 using std::string;
 
@@ -282,7 +282,6 @@ unsigned int sim_mob::LaneStats::getMovingAgentsCount() {
 }
 
 void sim_mob::LaneStats::addPerson(sim_mob::Person* p) {
-	Print()<<"LaneStats::addPerson| Person:"<<p->getId()<<" |lane:"<<this->getLane()->getLaneID()<<std::endl;
 	if(laneInfinity) {
 		laneAgents.push_back(p);
 	}
@@ -360,7 +359,6 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(bool isQueuingBfrUpdate) {
 	}
 	sim_mob::Person* p = laneAgents.front();
 	laneAgents.pop_front();
-	Print() << "LaneStats::dequeue |Person: "<< p->getId() << "dequeued from lane " << this->getLane()->getLaneID()<<std::endl;
 	if (!laneInfinity) {
 		if (isQueuingBfrUpdate) {
 			if (queueCount > 0) {
@@ -440,10 +438,6 @@ sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) {
 
 double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 		double segDensity) {
-	//	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	//	if ( !rf.isKnownRole(roleName))
-	//	unsigned int numVehicles = numMovingInSegment(hasVehicle);
-	//	double segDensity = getDensity(hasVehicle); // computes density using only moving length
 	/**
 	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 	 * must be obtained from an external source (XML/Database)
@@ -462,10 +456,8 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 	double beta = 0.5645; //Model parameter of speed density function
 	double minDensity = 0.0048; // minimum traffic density
 	double speed = 0.0;
+
 	//Speed-Density function
-	//if(segDensity <= minDensity){
-	//	return freeFlowSpeed;
-	//}
 	if (segDensity >= jamDensity) {
 		speed = minSpeed;
 	} else if (segDensity >= minDensity) {
@@ -658,11 +650,10 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 		p = this->dequeue(isQueuingBfrUpdate);
 	}
 	else{
-	//Print()<<"Dequeuing agent in between! |Person: "<< person->getId()<<" |Lane:"<< this->getLane()->getLaneID()<<std::endl;
 		if (laneInfinity) {
 			std::deque<sim_mob::Person*>::iterator it;
 			for (it = laneAgents.begin(); it != laneAgents.end() ; /*NOTE: no incrementation of the iterator here*/) {
-				if ((*it)==person){
+				if ((*it) == person){
 					p = (*it);
 					it = laneAgents.erase(it); // erase returns the next iterator
 					if (isQueuingBfrUpdate) {
@@ -682,32 +673,12 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 						}
 					}
 				}
-			else{
-				++it; // otherwise increment it by yourself
-			  }
+				else {
+					++it; // otherwise increment it by yourself
+				}
 			}
 		}
 	}
-	/*else{
-		p = laneAgents.front();
-		laneAgents.pop_front();
-		if (isQueuingBfrUpdate) {
-			if (queueCount > 0) {
-				// we have removed a queuing agent
-				queueCount--;
-			}
-			else {
-				debugMsgs
-						<< "Error in dequeue(): queueCount cannot be lesser than 0 in lane."
-						<< "\nlane:" << lane->getLaneID() << "|Segment: "
-						<< lane->getRoadSegment()->getStartEnd() << "|Person: "
-						<< p->getId() << "\nQueuing: " << queueCount
-						<< "|Total: " << laneAgents.size() << std::endl;
-				Print() << debugMsgs.str();
-				throw std::runtime_error(debugMsgs.str());
-			}
-		}
-	}*/
 	return p;
 }
 

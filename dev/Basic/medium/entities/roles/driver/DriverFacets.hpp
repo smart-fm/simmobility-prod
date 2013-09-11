@@ -4,10 +4,10 @@
 
 #pragma once
 #include "conf/settings/DisableMPI.h"
-#include "entities/roles/RoleFacets.hpp"
-#include "DriverUpdateParams.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
+#include "DriverUpdateParams.hpp"
+#include "entities/roles/RoleFacets.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 
 namespace sim_mob {
 namespace medium {

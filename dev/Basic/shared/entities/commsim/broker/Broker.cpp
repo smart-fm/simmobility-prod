@@ -663,7 +663,7 @@ bool Broker::isWaitingForAgentRegistration() const
 	bool res = agentBlockers.at(0)->calculateWaitStatus();
 	if(res)
 	{
-		Print() <<  "Evaluating Registered Agents: WAIT";
+		Print() <<  "Evaluating Registered Agents: WAIT" << std::endl;;
 //		Print() << "isWaitingForAgentRegistration is not qualified" << std::endl;
 	}
 	else
@@ -762,7 +762,9 @@ void Broker::waitForAgentsUpdates()
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	refineSubscriptionList();
 	while(!allAgentUpdatesDone()) {
+		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
 		COND_VAR_AGENT_DONE.wait(lock);
+		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
 		refineSubscriptionList();
 	}
 }

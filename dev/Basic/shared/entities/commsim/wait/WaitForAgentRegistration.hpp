@@ -12,12 +12,12 @@
 namespace sim_mob {
 
 class WaitForAgentRegistration: public sim_mob::BrokerBlocker {
-	int min_start;
-	int min_stop;
+	unsigned int min_start;
+	unsigned int stop_threshold; //nof agents dropping 'below' this threshold will cause the broker to block
 	bool started; // has the broker previously satisfied the min_start criteria?
 
 public:
-	WaitForAgentRegistration(sim_mob::Broker & broker_,int min_start = 1, int min_stop = 0);
+	WaitForAgentRegistration(sim_mob::Broker & broker_,unsigned int min_start = 1, unsigned int stop_threshold = 0);
 	bool calculateWaitStatus();
 	virtual ~WaitForAgentRegistration();
 };

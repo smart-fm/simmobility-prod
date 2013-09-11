@@ -9,10 +9,10 @@
 #include "entities/commsim/broker/Broker.hpp"
 namespace sim_mob {
 
-WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker & broker_,int min_start, int min_stop):
+WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker & broker_,unsigned int min_start, unsigned int stop_threshold):
 				BrokerBlocker(broker_),
 				min_start(min_start),
-				min_stop(min_stop),
+				stop_threshold(stop_threshold),
 				started(false){
 	// TODO Auto-generated constructor stub
 
@@ -31,12 +31,14 @@ bool WaitForAgentRegistration::calculateWaitStatus() {
 		}
 		else
 		{
+			Print() << "min_start=>registeredAgents.size()= " << registeredAgents.size() << std::endl;
 			setWaitStatus(true);
 		}
 	}
 	else {//if already started
-		if(registeredAgents.size() <= min_stop)
+		if(registeredAgents.size() < stop_threshold)
 		{
+			Print() << "min_stop=>registeredAgents.size()= " << registeredAgents.size() << std::endl;
 			//you must wait
 			setWaitStatus(true);
 		}

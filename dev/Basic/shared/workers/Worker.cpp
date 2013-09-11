@@ -226,17 +226,17 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-#ifdef SIMMOB_USE_CONFLUXES
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
-		timeslice currTime = timeslice(currTick, currTick*msPerFrame);
-		(*it)->updateAndReportSupplyStats(currTime);
-		(*it)->reportLinkTravelTimes(currTime);
-		(*it)->resetSegmentFlows();
-		(*it)->resetLinkTravelTimes(currTime);
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			const unsigned int msPerFrame = ConfigParams::GetInstance().baseGranMS();
+			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
+			(*it)->updateAndReportSupplyStats(currTime);
+			(*it)->reportLinkTravelTimes(currTime);
+			(*it)->resetSegmentFlows();
+			(*it)->resetLinkTravelTimes(currTime);
+		}
 	}
-#endif
 }
 
 void sim_mob::Worker::breedPendingEntities()

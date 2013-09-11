@@ -289,10 +289,15 @@ void sim_mob::LaneStats::addPerson(sim_mob::Person* p) {
 	else {
 		if(laneAgents.size() > 0) {
 			std::deque<Person*>::iterator i=laneAgents.end()-1; // last person's iterator
-			while(p->distanceToEndOfSegment < (*i)->distanceToEndOfSegment) {
+			while(i != laneAgents.begin() && (*i)->distanceToEndOfSegment > p->distanceToEndOfSegment) {
 				i--;
 			}
-			laneAgents.insert(i+1,p); //deque is optimized for insertions and removals.
+			if(i == laneAgents.begin() && (*i)->distanceToEndOfSegment > p->distanceToEndOfSegment) {
+				laneAgents.push_front(p);
+			}
+			else {
+				laneAgents.insert(i+1,p); //deque is optimized for insertions and removals.
+			}
 		}
 		else {
 			laneAgents.push_back(p);

@@ -173,6 +173,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 
 			p2.elapsedSeconds = p2.secondsInTick;
 			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			setParentData(p2);
 		}
 	}
 	//if vehicle is still in lane infinity, it shouldn't be advanced
@@ -934,7 +935,7 @@ void DriverMovement::addToQueue(const Lane* lane) {
 	 * 2. set isQueuing = true
 	*/
 	Print() << "|called addToQueue()"<< std::endl;
-	Person* parentP = dynamic_cast<Person*> (getParent());
+	Person* parentP = getParent();
 	if (parentP) {
 		if(!parentP->isQueuing) {
 			vehicle->setPositionInSegment(getQueueLength(lane));
@@ -951,7 +952,7 @@ void DriverMovement::addToQueue(const Lane* lane) {
 }
 
 void DriverMovement::removeFromQueue() {
-	Person* parentP = dynamic_cast<Person*> (getParent());
+	Person* parentP = getParent();
 	if (parentP) {
 		if(parentP->isQueuing) {
 			parentP->isQueuing = false;

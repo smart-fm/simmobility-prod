@@ -4,7 +4,7 @@
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
-
+#include "workers/Worker.hpp"
 //external libraries
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
@@ -114,8 +114,10 @@ private:
 	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
 	boost::mutex mutex_clientDone;
+	boost::mutex mutex_agentDone;
 	boost::condition_variable COND_VAR_CLIENT_REQUEST;
 	boost::condition_variable COND_VAR_CLIENT_DONE;
+	boost::condition_variable COND_VAR_AGENT_DONE;
 	//	house of different conditions to see if a broker is allowed to tick forward or not
 	bool brokerCanProceed()const;
 	bool isWaitingForAnyClientConnection();
@@ -140,6 +142,8 @@ private:
 	//	handlers executed when an agent is going out of simulation(die)
 	//void OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
 	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	//to be called and identify the agent who has just updated
+	void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
 	//	publish various data the broker has subscibed to
 	void processPublishers(timeslice now);
 	//	sends a signal to clients(through send buffer) telling them broker is ready to receive their data for the current tick

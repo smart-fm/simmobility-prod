@@ -73,6 +73,8 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 }
 
 void Broker::configure() {
+	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, (void*)sim_mob::event::CXT_CORE_AGENT_UPDATE, this, CONTEXT_CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
+	Print() << "Broker sunscribed to agent done" << std::endl;
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 if(ConfigParams::GetInstance().getAndroidClientType() == "android-ns3")
 	 {
@@ -428,41 +430,52 @@ Entity::UpdateStatus Broker::frame_tick(timeslice now){
 bool Broker::allAgentUpdatesDone()
 {
 
-	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
-
-	int i = 0;
-	while(it != it_end)
-	{
-		sim_mob::AgentCommUtilityBase *info = (it->second);//easy read
-			try
-			{
-				if (info->isAgentUpdateDone())
-				{
-					duplicateEntityDoneChecker.insert(it->first);
-				}
-				else
-				{
-//					Print() << "Agent is registered but its update not done : " <<  it->first << std::endl;
-				}
-			}
-			catch(std::exception& e)
-			{
-				WarnOut( "Exception Occured " << e.what() << std::endl);
-				Print() << "Exception Occured " << e.what() << std::endl;
-				if(deadEntityCheck(info))
-				{
-					Print()<< "deadEntityCheck works " << info->getEntity() << std::endl;
-					it++;
-					unRegisterEntity(info);
-					continue;
-				}
-				else
-					throw std::runtime_error("Unknown Error checking entity");
-			}
-			it++;
-	}
+//	AgentsMap::iterator it = registeredAgents.begin(), it_end(registeredAgents.end()), it_erase;
+//
+//	int i = 0;
+//	while(it != it_end)
+//	{
+//		sim_mob::AgentCommUtilityBase *info = (it->second);//easy read
+//			try
+//			{
+//				if (info->isAgentUpdateDone())
+//				{
+//					duplicateEntityDoneChecker.insert(it->first);
+//				}
+//				else
+//				{
+////					Print() << "Agent is registered but its update not done : " <<  it->first << std::endl;
+//				}
+//			}
+//			catch(std::exception& e)
+//			{
+//				WarnOut( "Exception Occured " << e.what() << std::endl);
+//				Print() << "Exception Occured " << e.what() << std::endl;
+//				if(deadEntityCheck(info))
+//				{
+//					Print()<< "deadEntityCheck works " << info->getEntity() << std::endl;
+//					it++;
+//					unRegisterEntity(info);
+//					continue;
+//				}
+//				else
+//					throw std::runtime_error("Unknown Error checking entity");
+//			}
+//			it++;
+//	}
 	bool res = (duplicateEntityDoneChecker.size() >= registeredAgents.size());
 	return res;
+}
+
+void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums){
+//	Print() << "onAgentUpdate:: Agent[" << argums.GetEntity() << "] updated" << std::endl;
+	const Agent * target = argums.GetAgent();
+	if(registeredAgents.find(target) != registeredAgents.end())
+	{
+		boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+		duplicateEntityDoneChecker.insert(target);
+		COND_VAR_AGENT_DONE.notify_all();
+	}
 }
 
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
@@ -746,7 +759,10 @@ bool Broker::wait()
 void Broker::waitForAgentsUpdates()
 {
 	int i = 0;
+	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+	refineSubscriptionList();
 	while(!allAgentUpdatesDone()) {
+		COND_VAR_AGENT_DONE.wait(lock);
 		refineSubscriptionList();
 	}
 }

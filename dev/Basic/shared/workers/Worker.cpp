@@ -39,6 +39,13 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
+UpdateEventArgs::UpdateEventArgs(const sim_mob::Agent *agent): agent(agent){};
+const Agent * UpdateEventArgs::GetAgent()const {
+	return agent;
+}
+UpdateEventArgs::~UpdateEventArgs(){};
+
+UpdatePublisher  Worker::updatePublisher;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
 	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
@@ -100,6 +107,10 @@ void sim_mob::Worker::remEntity(Entity* entity)
 	}
 }
 
+UpdatePublisher & sim_mob::Worker::GetUpdatePublisher()
+{
+	return updatePublisher;
+}
 
 const std::vector<Entity*>& sim_mob::Worker::getEntities() const
 {
@@ -373,6 +384,7 @@ void sim_mob::Worker::threaded_function_loop()
 }
 
 namespace {
+
 ///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
 struct EntityUpdater {
 	EntityUpdater(Worker& wrk, timeslice currTime) : wrk(wrk), currTime(currTime) {}
@@ -411,6 +423,11 @@ struct RestrictedEntityUpdater : public EntityUpdater {
 		//Exclude the restricted type.
 		if(!dynamic_cast<Restricted*>(entity)) {
 			EntityUpdater::operator ()(entity);
+			{
+				Agent * agent = dynamic_cast<Agent*>(entity);//no choice but to dynamic_cast. And this is the least expensive place
+				Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
+				//			std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity << "] " << std::endl;
+			}
 		}
 	}
 };

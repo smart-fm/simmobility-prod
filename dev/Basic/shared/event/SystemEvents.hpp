@@ -24,6 +24,11 @@ class Agent;
             EVT_CORE_ROLE_INIT,
             //agent life cycle.
             EVT_CORE_AGENT_DIED,
+            EVT_CORE_AGENT_UPDATED
+        };
+
+        enum CoreContext {
+            CXT_CORE_AGENT_UPDATE
         };
 
         /**

@@ -7,7 +7,8 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/settings/ProfileOptions.h"
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/StrictAgentErrors.h"
@@ -70,7 +71,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
@@ -117,7 +118,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	nextPathPlanned = false;
 	dynamic_seed = id;
 	//Register global life cycle events.
-	if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
 		profile->logAgentCreated(*this);
 	}
@@ -125,7 +126,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 }
 
 sim_mob::Agent::~Agent() {
-        if (ConfigParams::GetInstance().ProfileAgentUpdates()) {
+        if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}
 	safe_delete_item(profile);
@@ -173,7 +174,7 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigParams::GetInstance().baseGranMS()) {
+		if (abs(now-startTime)>=ConfigManager::GetInstance().FullConfig().baseGranMS()) {
 			std::stringstream msg;
 			msg <<"Agent was not started within one timespan of its requested start time.";
 			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
@@ -238,7 +239,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 		PROFILE_LOG_AGENT_EXCEPTION(profile, *this, frameNumber, ex);
 
 		//Add a line to the output file.
-		if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			std::stringstream msg;
 			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
 			if(originNode.type_ == WayPoint::NODE)

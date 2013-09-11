@@ -1,7 +1,6 @@
 #include "SplitPlan.hpp"
-#include<stdio.h>
-#include<sstream>
-#include "conf/simpleconf.hpp"
+#include <cstdio>
+#include <sstream>
 #include "Signal.hpp"
 
 using namespace boost::multi_index;

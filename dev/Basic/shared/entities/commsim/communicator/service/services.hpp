@@ -16,7 +16,7 @@
 #include <string>
 #include <sstream>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
 
 namespace sim_mob
 {

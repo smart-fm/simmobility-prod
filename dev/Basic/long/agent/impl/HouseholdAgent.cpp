@@ -8,7 +8,6 @@
  */
 
 #include "HouseholdAgent.hpp"
-#include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"

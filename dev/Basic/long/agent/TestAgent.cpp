@@ -8,7 +8,8 @@
  */
 
 #include "TestAgent.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "message/MessageBus.hpp"
 #include "event/SystemEvents.hpp"
@@ -27,7 +28,7 @@ using std::map;
 using std::cout;
 
 TestAgent::TestAgent(int id, messaging::MessageHandler* receiver)
-: Agent(ConfigParams::GetInstance().mutexStategy(), id), receiver(receiver) {
+: Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), receiver(receiver) {
     isRegistered = false;
 }
 

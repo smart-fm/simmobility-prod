@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include <boost/lexical_cast.hpp>
+
 //For debugging
 #include "roles/Role.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -12,7 +14,8 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
-#include "boost/lexical_cast.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -93,7 +96,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1)
 {
-	if (!ConfigParams::GetInstance().UsingConfluxes()) {
+	if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		simplyModifyTripChain(tcs);
 	}
 	initTripChain();
@@ -101,7 +104,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
-	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime()));
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
@@ -170,8 +173,8 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint( ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true) );
-		this->destNode = WayPoint( ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true) );
+		this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+		this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -267,7 +270,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		retVal = checkTripChain(now.ms());
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms()+ConfigParams::GetInstance().baseGranMS());
+		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
@@ -275,8 +278,8 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigParams::GetInstance().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigParams::GetInstance().baseGranMS() + (*currTripChainItem)->endTime.getValue()));
+				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (*currTripChainItem)->endTime.getValue()));
 				ap->initializeRemainingTime();
 			}
 		}
@@ -308,7 +311,7 @@ bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTr
 bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip) const
 {
 	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
 	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
 		return false;
@@ -328,7 +331,7 @@ bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
 	//std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
 	string roleName = RoleFactory::GetSubTripMode(*currSubTrip);
 	//std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
 	//std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
 	if(targetRole->getRoleName() ==  currRole->getRoleName())
@@ -354,7 +357,7 @@ bool sim_mob::Person::findPersonNextRole()
 	// by saving it until the next time tick.
 	//safe_delete_item(prevRole);
 	safe_delete_item(nextRole);
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 
 	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
 	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
@@ -370,7 +373,7 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 		// it's better to avoid possible errors (e.g., if the equality operator is defined)
 		// by saving it until the next time tick.
 		safe_delete_item(prevRole);
-		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 //		prevRole = currRole;
 
 		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);

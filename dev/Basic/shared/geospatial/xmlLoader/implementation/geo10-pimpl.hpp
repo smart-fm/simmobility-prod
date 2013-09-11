@@ -4,7 +4,9 @@
 //NOTE: This is a rare example of when relative path lookup is acceptable. ~Seth
 #include "../skeleton/geo10-pskel.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 #include "geospatial/Point2D.hpp"
 
 #include "geo10-pimpl-primary.hpp"

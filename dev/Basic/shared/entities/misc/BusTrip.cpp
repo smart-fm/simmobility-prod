@@ -5,7 +5,8 @@
 #include "BusTrip.hpp"
 #include <boost/lexical_cast.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "geospatial/BusStop.hpp"
 #include "logging/Log.hpp"
 
@@ -111,7 +112,7 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegme
 		bus_RouteInfo.addBusStop(*it);
 	}
 	// addBusStopRealTimes, first time fake Times
-	const ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	for(int k = 0; k < busStop_vec.size(); k++) {
 		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(),BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);

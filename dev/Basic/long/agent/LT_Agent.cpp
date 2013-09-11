@@ -8,7 +8,8 @@
  */
 
 #include "LT_Agent.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "message/MessageBus.hpp"
 
@@ -25,7 +26,7 @@ using std::string;
 using std::map;
 
 LT_Agent::LT_Agent(int id)
-: Agent(ConfigParams::GetInstance().mutexStategy(), id) {
+: Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {
     isRegistered = false;
 }
 

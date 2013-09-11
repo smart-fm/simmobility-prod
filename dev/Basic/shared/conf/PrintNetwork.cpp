@@ -3,7 +3,7 @@
 
 #include "PrintNetwork.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/signal/Signal.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/UniNode.hpp"
@@ -84,7 +84,7 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode()) {
 		string end = "END";
-		ConfigParams::GetInstance().getCommDataMgr().sendRoadNetworkData(end);
+		cfg.getCommDataMgr().sendRoadNetworkData(end);
 	}
 
 	//Print the StreetDirectory graphs.
@@ -105,7 +105,7 @@ void sim_mob::PrintNetwork::LogLegacySimulationProps() const
 
 	//Print some properties of the simulation itself
 	out <<"(\"simulation\", 0, 0, {";
-	out <<"\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS() <<"\",";
+	out <<"\"frame-time-ms\":\"" <<cfg.baseGranMS() <<"\",";
 	out <<"})" <<std::endl;
 }
 

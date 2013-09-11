@@ -6,7 +6,8 @@
 
 #include <algorithm>
 #include "logging/Log.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include <cmath>
 
 using std::string;
@@ -398,7 +399,7 @@ void sim_mob::LaneStats::updateOutputFlowRate(const Lane* lane,
 }
 
 void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
-	double elapsedSeconds = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	double elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	int tmp = int(laneParams->outputFlowRate * elapsedSeconds);
 	laneParams->fraction += laneParams->outputFlowRate * elapsedSeconds
 			- float(tmp);
@@ -412,7 +413,7 @@ void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
 void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 	const double omega = 0.01;
 	const double vehicle_length = 400;
-	double elapsedSeconds = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	double elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	double capacity = laneParams->outputFlowRate * elapsedSeconds;
 	double acceptRateA = (capacity > 0) ? elapsedSeconds / capacity : 0;
 	double acceptRateB = (omega * vehicle_length) / upSpeed;
@@ -503,7 +504,7 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 }
 
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		std::stringstream msg;
 		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
@@ -571,7 +572,7 @@ void SegmentStats::resetSegFlow() {
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
 	unsigned int count = 0;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-		count += std::floor((*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS() / 1000.0);
+		count += std::floor((*i).second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0);
 	}
 	return count;
 }

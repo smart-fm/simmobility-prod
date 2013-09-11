@@ -21,7 +21,8 @@
 
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/WorkGroup.hpp"
 
 #include "geospatial/Node.hpp"
@@ -471,8 +472,8 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		switch (type)
 		{
 		case DRIVER_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy);
-			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy);
+			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Driver* one_driver = new Driver(one_person, ConfigManager::GetInstance().FullConfig().mutexStategy);
 			one_person->changeRole(one_driver);
 
 			one_person->unpack(unpackageUtil);
@@ -486,7 +487,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			break;
 		case PEDESTRIAN_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy);
+			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Pedestrian* one_pedestrian = new Pedestrian(one_person);
 			one_person->changeRole(one_pedestrian);
 
@@ -544,15 +545,15 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		else
 		{
 //			debug.outputToConsole("receive 26");
-			ConfigParams& config = ConfigParams::GetInstance();
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 			switch (value)
 			{
 			case DRIVER_TYPE:
 
 //				debug.outputToConsole("receive 27");
-				one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
-				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy));
+				one_person = new Person("XML_Def", config.mutexStategy, -1);
+				one_person->changeRole(new Driver(one_person, config.mutexStategy));
 
 //				debug.outputToConsole("receive 28");
 				one_person->unpackProxy(unpackageUtil);

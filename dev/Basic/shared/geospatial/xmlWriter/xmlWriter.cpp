@@ -23,7 +23,8 @@
 #include "geospatial/Traversable.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/BusStop.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
@@ -643,7 +644,7 @@ void sim_mob::WriteXMLInput_Nodes(sim_mob::RoadNetwork roadNetwork,TiXmlElement 
 void sim_mob::WriteXMLInput_RoadNetwork(TiXmlElement * GeoSpatial)
 {
 	TiXmlElement * RoadNetwork = new TiXmlElement("RoadNetwork");  GeoSpatial->LinkEndChild(RoadNetwork);
-	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 
 
     sim_mob::RoadNetwork RoadNetworkObj = config.getNetwork();
@@ -940,7 +941,7 @@ void sim_mob::WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mo
 void sim_mob::WriteXMLInput_TripChains(TiXmlElement * SimMobility)
 {
 	std::ostringstream out;
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
 	if(TripChainsObj.size() < 1) return;

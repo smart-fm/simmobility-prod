@@ -18,7 +18,8 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 /*
  * \author Xu Yan
@@ -194,7 +195,7 @@ Node* Node::unpack(UnPackageUtils& unpackage)
 	 sim_mob::Point2D location;
 	 unpackage >> location;
 
-	 const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	 const sim_mob::RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
 	 return rn.locateNode(location, true);
 }
 

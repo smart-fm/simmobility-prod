@@ -13,7 +13,8 @@
 #include "entities/conflux/Conflux.hpp"
 
 #include "buffering/BufferedDataManager.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -199,7 +200,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI || ConfigParams::GetInstance().OutputDisabled()) {
+	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
 
@@ -566,7 +567,7 @@ bool DriverMovement::moveInSegment(DriverUpdateParams& p2, double distance) {
 		vehicle->moveFwd_med(distance);
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
-			if (ConfigParams::GetInstance().OutputEnabled()) {
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
 				Print()<<(DebugStream.str());
 			}

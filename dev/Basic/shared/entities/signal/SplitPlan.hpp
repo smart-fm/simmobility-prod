@@ -1,12 +1,10 @@
 #pragma once
-#include<map>
-#include<vector>
-//#include "geospatial/Link.hpp"
+#include <map>
+#include <vector>
 #include "defaults.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"
-//#include "Offset.hpp"
-//#include "conf/simpleconf.hpp"
+
 
 namespace geo
 {

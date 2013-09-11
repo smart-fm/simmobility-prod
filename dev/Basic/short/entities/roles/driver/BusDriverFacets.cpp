@@ -7,6 +7,9 @@
 
 #include "BusDriverFacets.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
@@ -581,14 +584,14 @@ void sim_mob::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
 		return;
 	}
 
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		double baseAngle =
 				parentBusDriver->vehicle->isInIntersection() ?
 						intModel->getCurrentAngle() : parentBusDriver->vehicle->getAngle();
 
 		//MPI-specific output.
 		std::stringstream addLine;
-		if (ConfigParams::GetInstance().using_MPI) {
+		if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 			addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 		}
 
@@ -704,8 +707,8 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	uint32_t accumulated_alighted_ms = curr_ms;// set this to curr_frame, later add and advance
 	uint32_t last_boarding_ms = 0;
 	uint32_t last_alighting_ms = 0;
-	const uint32_t baseGranMS = ConfigParams::GetInstance().baseGranMS();// baseGran MS perFrame
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const uint32_t baseGranMS = ConfigManager::GetInstance().FullConfig().baseGranMS();// baseGran MS perFrame
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
@@ -869,7 +872,7 @@ void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 	// begin alighting and boarding
 	uint32_t curr_ms = parentBusDriver->params.now.ms();
 	int i = 0;
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines

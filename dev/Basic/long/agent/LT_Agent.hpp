@@ -9,7 +9,6 @@
 #pragma once
 #include "Common.hpp"
 #include "entities/UpdateParams.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "event/EventManager.hpp"
 #include "message/MessageHandler.hpp"

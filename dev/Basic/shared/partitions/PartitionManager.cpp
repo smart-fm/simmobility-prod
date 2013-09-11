@@ -18,7 +18,6 @@
 #include <boost/thread/mutex.hpp>
 
 #include "util/MathUtil.hpp"
-#include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 

@@ -19,7 +19,8 @@
 //#include "tinyxml.h"
 
 #include "entities/roles/RoleFactory.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
@@ -155,7 +156,7 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-	ConfigParams& config = ConfigParams::GetInstanceRW();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.baseGranMS() = TICK_STEP;
 	config.totalRuntimeTicks = DAYS;
 	config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
@@ -166,7 +167,7 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
     HousingMarket market;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -226,7 +227,7 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
         PrintOut("Finalizing workgroups: " << endl);
 
     	//Save our output files if we are merging them later.
-    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
+    	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
     		resLogFiles = wgMgr.retrieveOutFileNames();
     	}
     }
@@ -248,7 +249,7 @@ void perform_main() {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-	ConfigParams& config = ConfigParams::GetInstanceRW();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     config.baseGranMS() = TICK_STEP;
     config.totalRuntimeTicks = DAYS;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
@@ -260,7 +261,7 @@ void perform_main() {
 
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -324,16 +325,16 @@ void test_main() {
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstanceRW().baseGranMS() = TICK_STEP;
-    ConfigParams::GetInstanceRW().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstanceRW().defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstanceRW().singleThreaded() = false;
+    ConfigManager::GetInstanceRW().FullConfig().baseGranMS() = TICK_STEP;
+    ConfigManager::GetInstanceRW().FullConfig().totalRuntimeTicks = DAYS;
+    ConfigManager::GetInstanceRW().FullConfig().defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+    ConfigManager::GetInstanceRW().FullConfig().singleThreaded() = false;
 
     //create all units.
     list<TestAgent*> agents;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded());
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -392,7 +393,7 @@ int main(int ARGC, char* ARGV[]) {
 
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 

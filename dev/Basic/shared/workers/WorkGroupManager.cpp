@@ -6,7 +6,6 @@
 
 #include <stdexcept>
 
-#include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"

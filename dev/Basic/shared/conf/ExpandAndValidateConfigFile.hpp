@@ -3,7 +3,7 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include "simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
 
 namespace sim_mob {
 

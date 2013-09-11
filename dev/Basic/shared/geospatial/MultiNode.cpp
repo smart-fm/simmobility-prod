@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cmath>
 
-#include "conf/simpleconf.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 

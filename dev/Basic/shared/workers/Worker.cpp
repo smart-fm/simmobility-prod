@@ -15,7 +15,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
@@ -41,8 +42,8 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
-	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
-	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
+	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
+	ctrlMgr(ConfigManager::GetInstance().CMakeConfig().InteractiveMode()?ConfigManager::GetInstance().FullConfig().getControlMgr():nullptr),
 	currTick(0),
 	active(true)
 {}
@@ -62,7 +63,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
       profile(nullptr)
 {
 	//Initialize our profile builder, if applicable.
-	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
 }
@@ -264,7 +265,7 @@ void sim_mob::Worker::perform_frame_tick()
 	MgmtParams& par = loop_params;
 
 	//Short-circuit if we're in "pause" mode.
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		while (par.ctrlMgr->getSimState() == PAUSE) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
@@ -289,7 +290,7 @@ void sim_mob::Worker::perform_frame_tick()
 	par.currTick += tickStep;
 
 	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		if (par.ctrlMgr->getSimState() == STOP) {
 			while (par.ctrlMgr->getEndTick() < 0) {
 				par.ctrlMgr->setEndTick(par.currTick+2);
@@ -519,7 +520,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->resetOutputBounds();
 		}

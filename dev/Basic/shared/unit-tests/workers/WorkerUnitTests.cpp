@@ -8,7 +8,8 @@
 #include <sstream>
 
 #include "buffering/Buffered.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
@@ -333,7 +334,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 {
 	//Somewhat iffy:
 	const unsigned int GranMS = 10;  //Advance by 10ms each time
-	ConfigParams::GetInstance().baseGranMS = GranMS;
+	ConfigManager::GetInstance().FullConfig().baseGranMS = GranMS;
 
 	//Make some agents with staggered start times.
 	vector<IncrAgent*> agents;
@@ -381,7 +382,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	//NOTE: This could do with some streamlining...
 	for (vector<int>::iterator it=agIdOrder.begin(); it!=agIdOrder.end(); it++) {
 		Agent* ag = agents.at(*it);
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled() || ag->getStartTime()==0) {
+		if (ConfigManager::GetInstance().CMakeConfig().DynamicDispatchDisabled() || ag->getStartTime()==0) {
 			allAg.push_back(ag);
 			mainWG->assignAWorker(ag);
 		} else {

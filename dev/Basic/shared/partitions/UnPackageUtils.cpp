@@ -2,7 +2,6 @@
 
 #ifndef SIMMOB_DISABLE_MPI
 
-#include "conf/simpleconf.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/DailyTime.hpp"

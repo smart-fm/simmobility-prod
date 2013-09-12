@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology -->
+<!-- Licensed under the terms of the MIT License, as described in the file: -->
+<!--    license.txt   (http://opensource.org/licenses/MIT) -->
+
+<!-- History: -->
 <!-- geo3 adds kurblines and makes improvement on element types -->
 <!-- geo5 added targetNamespace, editted crossing, RoadBump name, 
   added segment and connector information to roundabout and intersection (inheritted from multinode -->

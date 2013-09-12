@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "ExpandAndValidateConfigFile.hpp"
 
@@ -21,7 +23,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
-#include "geospatial/xmlWriter/xmlWriter.hpp"
+//#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "workers/WorkGroup.hpp"

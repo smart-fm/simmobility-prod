@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 //NOTE: This definition is necessary to use internal items within this folder. Do *not* do this in your
 //      own code; instead, simply include util/XmlWriter.hpp, which pulls all of the related information.
 #define INCLUDE_UTIL_XML_WRITER_HPP

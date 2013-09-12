@@ -21,7 +21,7 @@
 
 namespace sim_mob {
 
-//helper class: to be moved.
+///Represents the FMOD controller section of the config file.
 struct FMOD_ControllerParams {
 	FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
 
@@ -34,7 +34,7 @@ struct FMOD_ControllerParams {
 };
 
 
-//helper class: to be moved.
+///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
 struct BusStopScheduledTime {
 	BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
 
@@ -43,48 +43,7 @@ struct BusStopScheduledTime {
 };
 
 
-//helper class. Note that this is somewhat different from the DatabaseConnection class, as it stores credentials elsewhere.
-class Database : public Identifiable {
-public:
-	Database(const std::string& id="") : Identifiable(id) {}
-
-	std::string host;
-	std::string port;
-	std::string dbName;
-};
-
-
-//helper class: to be moved.
-class Credential : public Identifiable {
-public:
-	Credential(const std::string& id="") : Identifiable(id) {}
-
-	std::string getUsername() const {
-		return username;
-	}
-
-	std::string getPassword(bool mask=true) const {
-		if (mask) {
-			return std::string(password.size(), '*');
-		} else {
-			return password;
-		}
-	}
-
-	///Helper: load FileCredentials
-	void LoadFileCredentials(const std::vector<std::string>& paths);
-	void SetPlaintextCredentials(const std::string& username, const std::string& password);
-
-private:
-	//Helper: actually load the file.
-	void LoadCredFile(const std::string& path);
-
-	std::string username;
-	std::string password;
-};
-
-
-//helper class: to be moved.
+///Represents a complete connection to the database, via Construct ID.
 struct DatabaseDetails {
 	std::string database;
 	std::string credentials;
@@ -92,7 +51,7 @@ struct DatabaseDetails {
 };
 
 
-//helper class: to be moved.
+///Represents the "Constructs" section of the config file.
 class Constructs {
 public:
 	//std::map<std::string, Distribution> distributions; //<TODO
@@ -102,7 +61,7 @@ public:
 };
 
 
-//helper class: to be moved.
+///Represents the "Simulation" section of the config file.
 class SimulationParams {
 public:
 	SimulationParams();
@@ -162,7 +121,7 @@ public:
     int passenger_max_uniform_distribution;
 };
 
-//helper class: to be moved.
+///Represents the "Workers" section of the config file.
 class WorkerParams {
 public:
 	struct Worker {
@@ -177,7 +136,7 @@ public:
 };
 
 
-//helper class: to be moved.
+///Represents the "System" section of the config file.
 class SystemParams {
 public:
 	SystemParams();
@@ -203,15 +162,7 @@ public:
 };
 
 
-//helper class: to be moved.
-/*class GeometryParams {
-public:
-	DatabaseConnection connection;
-	StoredProcedureMap procedures;
-};*/
-
-
-//helper class: to be moved.
+///Represents an entity in the "Drivers" or "Pedestrians" section of the config file.
 struct EntityTemplate {
 	EntityTemplate();
 	Point2D originPos;

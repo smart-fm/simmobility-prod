@@ -512,7 +512,7 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstanceRW().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
@@ -581,7 +581,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		{
 			if(!(*i)->getParentConflux()->getParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
-				// the set container for managedConfluxes takes care of eliminating duplicates
 				if (worker->beginManagingConflux((*i)->getParentConflux()))
 				{
 					// One conflux was added by the insert. So...
@@ -597,7 +596,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		// after inserting all confluxes of the downstream segments
 		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
 		{
-			// recusive call
+			// call this function recursively with whichever conflux is at the beginning of the confluxes set
 			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
 		}
 		else

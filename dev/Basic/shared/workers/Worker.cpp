@@ -533,6 +533,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 
 bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 {
+	// the set container for managedConfluxes takes care of eliminating duplicates
 	return managedConfluxes.insert(cf).second;
 }
 

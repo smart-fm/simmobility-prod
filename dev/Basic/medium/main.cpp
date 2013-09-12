@@ -466,8 +466,6 @@ int main(int ARGC, char* ARGV[])
 
 	Print() << "Done" << endl;
 	Print() << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
-	//to get simulation time when debug_output is switched off
-	cout << "Total simulation time: "<<  Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 
 	return returnVal;
 }

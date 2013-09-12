@@ -320,7 +320,21 @@ void sim_mob::Conflux::resetOutputBounds() {
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
-	return (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+	try {
+		return (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+	}
+	catch(std::out_of_range& ex){
+		debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
+				<< "|Conflux: " << this->multiNode->getID()
+				<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
+				<< "|lnk:" << lnk
+				<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
+				<< "|elements:";
+		for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
+			debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
+		}
+		throw std::runtime_error(debugMsgs.str());
+	}
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {

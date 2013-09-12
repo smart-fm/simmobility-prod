@@ -13,7 +13,7 @@
 #include "event/EventPublisher.hpp"
 namespace sim_mob {
 
-AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_) : ClientRegistrationHandler(type_*/){
+AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(ConfigParams::ANDROID_EMULATOR){
 	// TODO Auto-generated constructor stub
 
 }
@@ -29,9 +29,9 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 			)
 	{
 		Print() << "AndroidClientRegistration::handle initial failure, returning false" <<
-				broker.getClientWaitingList().empty() <<
-				broker.getRegisteredAgents().empty() <<
-				broker.getRegisteredAgents().size()
+				broker.getClientWaitingList().size() << "-" <<
+				broker.getRegisteredAgents().size() << "-" <<
+				usedAgents.size()
 				<< std::endl;
 		return false;
 	}
@@ -99,7 +99,8 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		usedAgents.insert( *freeAgent);
 		//tell the agent you are registered
 		freeAgent->second->setregistered(true);
-
+		//publish an event to inform- interested parties- of the registration of a new android client
+		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,clientEntry));
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
 		Print() << "AndroidClient  Registered:\n"

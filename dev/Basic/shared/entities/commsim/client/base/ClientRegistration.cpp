@@ -11,11 +11,16 @@
 
 #include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
+#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
 #include <boost/assign/list_of.hpp>
 
 namespace sim_mob {
 
+/******************************************************************************************************
+ ***********************************ClientRegistrationFactory****************************************
+ ******************************************************************************************************
+ */
 ClientRegistrationFactory::ClientRegistrationFactory() {
 	ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 	// TODO Auto-generated constructor stub
@@ -62,6 +67,11 @@ ClientRegistrationFactory::~ClientRegistrationFactory() {
 	// TODO Auto-generated destructor stub
 }
 
+/******************************************************************************************************
+ ***********************************ClientRegistrationRequest****************************************
+ ******************************************************************************************************
+ */
+
 ClientRegistrationRequest::ClientRegistrationRequest(const ClientRegistrationRequest& other)
 	:
 		clientID(other.clientID)
@@ -96,15 +106,53 @@ ClientRegistrationRequest::ClientRegistrationRequest()
 		return *this;
 	}
 
-	ClientRegistrationHandler::ClientRegistrationHandler() {
-		// TODO Auto-generated constructor stub
+	/******************************************************************************************************
+	 ***********************************ClientRegistrationPublisher****************************************
+	 ******************************************************************************************************
+	 */
+
+	ClientRegistrationPublisher::ClientRegistrationPublisher(/*ConfigParams::ClientType type, ClientRegistrationHandler* client*/)
+//			:type(type), client(client)
+	{
 
 	}
 
-	ClientRegistrationHandler::~ClientRegistrationHandler() {
-		// TODO Auto-generated destructor stub
-	}
+	ClientRegistrationPublisher::~ClientRegistrationPublisher()
+	{
 
+	}
+	/******************************************************************************************************
+	 ***********************************ClientRegistrationHandler****************************************
+	 ******************************************************************************************************
+	 */
+
+		ClientRegistrationPublisher ClientRegistrationHandler::registrationPublisher;
+
+		ClientRegistrationHandler::ClientRegistrationHandler(ConfigParams::ClientType type):type(type) {
+			registrationPublisher.RegisterEvent(type);
+		}
+		sim_mob::event::EventPublisher & ClientRegistrationHandler::getPublisher() {
+			return registrationPublisher;
+		}
+		ClientRegistrationHandler::~ClientRegistrationHandler() {
+			// TODO Auto-generated destructor stub
+		}
+
+	/******************************************************************************************************
+	 ***********************************ClientRegistrationEventArgs****************************************
+	 ******************************************************************************************************
+	 */
+
+		ClientRegistrationEventArgs::ClientRegistrationEventArgs(ConfigParams::ClientType type, boost::shared_ptr<ClientHandler> &client):type(type), client(client) {}
+		boost::shared_ptr<ClientHandler> ClientRegistrationEventArgs::getClient() const
+		{
+			return client;
+		}
+		ConfigParams::ClientType ClientRegistrationEventArgs::getClientType() const
+		{
+			return type;
+		}
+		ClientRegistrationEventArgs::~ClientRegistrationEventArgs(){}
 
 } /* namespace sim_mob */
 

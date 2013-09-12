@@ -144,6 +144,8 @@ private:
 	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	//to be called and identify the agent who has just updated
 	void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	//	is called when a new client is registered with the broker
+	void onClientRegister(sim_mob::event::EventId id/*, sim_mob::event::Context context*/, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 	//	publish various data the broker has subscibed to
 	void processPublishers(timeslice now);
 	//	sends a signal to clients(through send buffer) telling them broker is ready to receive their data for the current tick

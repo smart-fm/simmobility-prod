@@ -5,17 +5,19 @@
  *      Author: vahid
  */
 
-#ifndef CLIENTREGISTRATION_HPP_
-#define CLIENTREGISTRATION_HPP_
+#pragma once
 #include <set>
 #include<map>
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/connection/Session.hpp"
 #include <boost/shared_ptr.hpp>
+#include "event/EventPublisher.hpp"
 namespace sim_mob
 {
-//Forward declaration
-//class Session;
+/******************************************************************************************************
+ ***********************************ClientRegistrationRequest****************************************
+ ******************************************************************************************************
+ */
 class ClientRegistrationRequest
 {
 public:
@@ -31,13 +33,13 @@ public:
 
 typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList; //<client type,registrationrequestform >
 
-class ClientRegistrationHandler;/*
-enum ClientType
-{
-	ANDROID_EMULATOR = 1,
-	NS3_SIMULATOR = 2,
-	//add your client type here
-};*/
+/******************************************************************************************************
+ ***********************************ClientRegistrationFactory****************************************
+ ******************************************************************************************************
+ */
+
+class ClientRegistrationHandler;
+
 class ClientRegistrationFactory {
 	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
@@ -46,15 +48,48 @@ public:
 	virtual ~ClientRegistrationFactory();
 };
 
+/******************************************************************************************************
+ ***********************************ClientRegistrationPublisher****************************************
+ ******************************************************************************************************
+ */
+class ClientRegistrationPublisher : public sim_mob::event::EventPublisher
+{
+public:
+	ClientRegistrationPublisher();
+	virtual ~ClientRegistrationPublisher();
+};
+
+/******************************************************************************************************
+ ***********************************ClientRegistrationHandler****************************************
+ ******************************************************************************************************
+ */
 class Broker;
 
 class ClientRegistrationHandler {
+	ConfigParams::ClientType type;
+	static ClientRegistrationPublisher registrationPublisher;
 public:
-	ClientRegistrationHandler();
+	ClientRegistrationHandler(ConfigParams::ClientType);
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest) = 0;
+	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();
+};
+
+/******************************************************************************************************
+ ***********************************ClientRegistrationEventArgs****************************************
+ ******************************************************************************************************
+ */
+class ClientHandler;
+DECLARE_CUSTOM_CALLBACK_TYPE(ClientRegistrationEventArgs)
+class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
+	boost::shared_ptr<ClientHandler> client;
+	ConfigParams::ClientType type;
+public:
+	ClientRegistrationEventArgs(ConfigParams::ClientType, boost::shared_ptr<ClientHandler>&);
+	boost::shared_ptr<ClientHandler> getClient() const;
+	ConfigParams::ClientType getClientType() const;
+	virtual ~ClientRegistrationEventArgs();
 };
 
 }//namespace sim_mob
 
-#endif /* CLIENTREGISTRATION_HPP_ */

@@ -42,9 +42,7 @@ void ConnectionHandler::start()
 	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed
-	Json::FastWriter writer;
-
-	std::string readyMessage = writer.write(packet);
+	std::string readyMessage = Json::FastWriter().write(packet);
 	mySession->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
 }
 

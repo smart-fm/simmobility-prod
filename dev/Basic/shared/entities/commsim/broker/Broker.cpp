@@ -96,6 +96,10 @@ void Broker::configure() {
 		publishers.insert(
 				std::make_pair(SIMMOB_SRV_TIME,
 						PublisherList::dataType(timePublisher)));
+		//listen to publishers who announce registration of new clients...
+		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::NS3_SIMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+
 		//current message factory
 		//todo: choose a factory based on configurations not hardcoding
 		boost::shared_ptr<
@@ -141,6 +145,8 @@ void Broker::configure() {
 				publishers.insert(
 						std::make_pair(SIMMOB_SRV_TIME,
 								PublisherList::dataType(timePublisher)));
+				//listen to publishers who announce registration of new clients...
+				ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
 				//current message factory
 				//todo: choose a factory based on configurations not hardcoding
 				boost::shared_ptr<
@@ -475,6 +481,50 @@ void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context c
 		boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 		duplicateEntityDoneChecker.insert(target);
 		COND_VAR_AGENT_DONE.notify_all();
+	}
+}
+
+void Broker::onClientRegister(
+		sim_mob::event::EventId id,
+		sim_mob::event::EventPublisher* sender,
+		const ClientRegistrationEventArgs& argums) {
+
+	ConfigParams::ClientType type = argums.getClientType();
+	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();
+
+	switch (type) {
+	case ConfigParams::ANDROID_EMULATOR: {
+		//if we are operating on android-ns3 set up,
+		//each android client registration should be brought to
+		//ns3's attention
+		if (ConfigParams::GetInstance().getAndroidClientType()!= "android-ns3") {
+			break;
+		}
+		//note: based on the current implementation of
+		// the ns3 client registration handler, informing the
+		//statistics of android clients IS a part of ns3
+		//registration and configuration process. So the following implementation
+		//should be executed for those android clients who will join AFTER
+		//ns3's registration. So we check if the ns3 is already registered or not:
+		if (clientList.find(ConfigParams::NS3_SIMULATOR) == clientList.end()) {
+			break;
+		}
+		msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
+		Json::Value jMsg = JsonParser::createMessageHeader(mHeader_);
+		const Agent *agent = clientHandler->agent;
+		Json::Value jAgent;
+		jAgent["AGENT_ID"] = agent->getId();
+		//sorry it should be in an array to be compatible with the other
+		//place where many agents are informed to be added
+		Json::Value jArray_agent;
+		jArray_agent.append(jAgent);
+		//sorry again, compatibility issue. I will change this later.
+		Json::Value jArray_add;
+		jArray_add["ADD"].append(jArray_agent);
+		insertSendBuffer(clientHandler->cnnHandler,jArray_add);
+		break;
+	}
+
 	}
 }
 

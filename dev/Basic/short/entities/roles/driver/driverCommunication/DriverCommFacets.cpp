@@ -39,6 +39,7 @@ sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent):
 
 sim_mob::DriverCommMovement::~DriverCommMovement()
 {
+//	/kjsdhawehakjlsdajkashlk
 }
 
 void sim_mob::DriverCommMovement::frame_init(UpdateParams& p) {
@@ -63,7 +64,8 @@ void sim_mob::DriverCommMovement::frame_tick(UpdateParams& p) {
 	////		return;
 	////	}
 	////	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
-	this->parentDriverCommRole->setAgentUpdateDone(true);
+
+//	this->parentDriverCommRole->setAgentUpdateDone(true);
 }
 
 void sim_mob::DriverCommMovement::frame_tick_output(const UpdateParams& p) {

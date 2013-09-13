@@ -482,7 +482,7 @@ bool Broker::allAgentUpdatesDone()
 		{
 			if(duplicateEntityDoneChecker.find(pair.first) == duplicateEntityDoneChecker.end())
 			{
-				Print() << "Not Done: [" <<  pair.first << "]" << std::endl;
+				Print() << "Not Done: [" <<  pair.first->getId() << "]" << std::endl;
 			}
 		}
 		Print() << "Double check duplicateEntityDoneChecker.size() = " << duplicateEntityDoneChecker.size() << std::endl;
@@ -501,6 +501,10 @@ void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context c
 		Print() << "Agent[" << target->getId() << "] done" << std::endl;
 		duplicateEntityDoneChecker.insert(target);
 		COND_VAR_AGENT_DONE.notify_all();
+	}
+	else
+	{
+		Print() << "Discarded Agent[" << target->getId() << "]" << std::endl;
 	}
 	Print() << "Broker::onAgentUpdate::UNlocking mutex_agentDone" << std::endl;
 }

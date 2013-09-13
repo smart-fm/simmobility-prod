@@ -29,6 +29,8 @@
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
 
+#include "entities/commsim/broker/Broker.hpp"
+
 using std::set;
 using std::vector;
 using std::priority_queue;
@@ -423,8 +425,11 @@ struct RestrictedEntityUpdater : public EntityUpdater {
 			EntityUpdater::operator ()(entity);
 			{
 				Agent * agent = dynamic_cast<Agent*>(entity);//no choice but to dynamic_cast. And this is the least expensive place
-				Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
-				//			std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity << "] " << std::endl;
+				if(agent)
+				{
+					Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
+							std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
+				}
 			}
 		}
 	}

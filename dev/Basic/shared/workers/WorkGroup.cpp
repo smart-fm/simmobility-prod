@@ -173,6 +173,7 @@ void sim_mob::WorkGroup::startAll(bool singleThreaded)
 
 	//Start all workers
 	tickOffset = 0; //Always start with an update.
+
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		(*it)->start();
 	}
@@ -416,7 +417,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 		}
 
 		//Update the aura manager, if we have one.
-		if (auraMgr) {
+		if (auraMgr && ( !ConfigParams::GetInstance().UsingConfluxes())) {
 			auraMgr->update();
 		}
 
@@ -511,7 +512,7 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstanceRW().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
@@ -542,6 +543,8 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 void sim_mob::WorkGroup::processVirtualQueues() {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
+		(*wrkr)->removePendingEntities();
+		collectRemovedEntities();
 	}
 }
 
@@ -578,7 +581,6 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		{
 			if(!(*i)->getParentConflux()->getParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
-				// the set container for managedConfluxes takes care of eliminating duplicates
 				if (worker->beginManagingConflux((*i)->getParentConflux()))
 				{
 					// One conflux was added by the insert. So...
@@ -594,7 +596,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		// after inserting all confluxes of the downstream segments
 		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
 		{
-			// recusive call
+			// call this function recursively with whichever conflux is at the beginning of the confluxes set
 			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
 		}
 		else
@@ -616,7 +618,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
 		else {
-			Print() << "\n Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation";
+			Print() << "Agent ID: " << person->getId() << "| Agent DB_id:" << person->getDatabaseId() << " : has no Path. Not added into the simulation"<<std::endl;
 		}
 	}
 }
@@ -659,7 +661,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
 	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
 	 */
-	if(path.size() > 0) {
+/*	if(path.size() > 0) {
 		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
 		 // you will get into.
 		if (role == "busdriver") {
@@ -673,10 +675,18 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 			}
 		}
 	}
-
+*/
+	if(path.size() > 0) {
+		//Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node
+		// BusDriver code, and pathSet code, generates only segment-list
+		p->setCurrPath(path);
+		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
+			if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rdSeg = it->roadSegment_;
+					break;
+			}
+		}
+	}
 	return rdSeg;
 }
-
-
-
 

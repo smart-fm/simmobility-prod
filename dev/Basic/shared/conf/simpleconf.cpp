@@ -224,7 +224,6 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 }
 
 
-
 bool isCommunicationSimulatorEnabled(TiXmlDocument& document) {
 	//Communication Simulator (optional)
 	ConfigParams::GetInstance().commSimEnabled = false;
@@ -242,6 +241,7 @@ bool isCommunicationSimulatorEnabled(TiXmlDocument& document) {
 }
 
 bool isAndroidClientEnabled(TiXmlDocument& document)
+
 {
 	TiXmlHandle handle = TiXmlHandle(&document);
 	TiXmlElement* node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("communication").FirstChild("android_testbed").ToElement();

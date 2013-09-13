@@ -35,7 +35,6 @@ class WorkGroupManager;
 
 
 
-
 /*
  * A Worker wrapper which uses barriers to synchronize between all Workers of the same group.
  * WorkGroups are managed by the WorkGroupManager; this includes creation/destruction/advancement.
@@ -83,6 +82,8 @@ public:
 	void assignAWorker(Entity* ag);
 	void assignConfluxToWorkers();
 	void putAgentOnConflux(Agent* ag);
+	void processVirtualQueues();
+	void outputSupplyStats();
 
 private:
 	void clear();
@@ -100,9 +101,6 @@ private:
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorkerConstraint(Entity* ag);
-
-	void processVirtualQueues();
-	void outputSupplyStats();
 
 	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 

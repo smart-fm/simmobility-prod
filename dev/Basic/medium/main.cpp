@@ -144,6 +144,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	if (ConfigParams::GetInstance().UsingConfluxes()) {
 		std::cout << "Confluxes ON!" << std::endl;
 	}
+	else {
+		throw std::runtime_error("Confluxes OFF! Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run the program again.");
+	}
 
 	ProfileBuilder* prof = nullptr;
 	if (ConfigParams::GetInstance().ProfileOn()) {
@@ -194,7 +197,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
+	//WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, nullptr /*AuraManager is not used in mid-term*/, partMgr);
 	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
@@ -226,9 +231,6 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
-
-	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl(), nullptr);
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -447,7 +449,9 @@ int main(int ARGC, char* ARGV[])
 	//}
 
 	//Perform main loop
-	clock_t simStartTime = clock();
+	timeval simStartTime;
+	gettimeofday(&simStartTime, nullptr);
+
 	std::list<std::string> resLogFiles;
 	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
 
@@ -457,8 +461,12 @@ int main(int ARGC, char* ARGV[])
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 
+	timeval simEndTime;
+	gettimeofday(&simEndTime, nullptr);
+
 	Print() << "Done" << endl;
-	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+	Print() << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+
 	return returnVal;
 }
 

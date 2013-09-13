@@ -162,7 +162,7 @@ void SplitPlan::Update(std::vector<double> &DS)
 //	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
-		std::cout << currSplitPlanID << std::endl;
+		Print() << currSplitPlanID << std::endl;
 		initialize();
 }
 /*

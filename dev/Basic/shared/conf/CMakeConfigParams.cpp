@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "CMakeConfigParams.hpp"
+#include "GenConfig.h"
 
 using namespace sim_mob;
 

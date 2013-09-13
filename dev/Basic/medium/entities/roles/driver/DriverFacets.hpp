@@ -4,10 +4,10 @@
 
 #pragma once
 #include "conf/settings/DisableMPI.h"
-#include "entities/roles/RoleFacets.hpp"
-#include "DriverUpdateParams.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
+#include "DriverUpdateParams.hpp"
+#include "entities/roles/RoleFacets.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -59,6 +59,7 @@ public:
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p);
 	void getSegSpeed();
 	int getOutputCounter(const Lane* l);
+	void setOutputCounter(const Lane* l, int count);
 	double getOutputFlowRate(const Lane* l);
 	double getAcceptRate(const Lane* l);
 	double getQueueLength(const Lane* l);

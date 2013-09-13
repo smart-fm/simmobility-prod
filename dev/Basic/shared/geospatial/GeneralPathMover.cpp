@@ -953,7 +953,9 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 	double res = 0.0;
 	distToEndSegment -= fwdDistance;
 
-	while (distToEndSegment <= 0 && !inIntersection)
+	distToEndSegment = std::max(distToEndSegment, 0.0);	//fwdDistance already takes this account. Just to make sure this doesn't fall below zero.
+
+/*	while (distToEndSegment <= 0 && !inIntersection)
 	{
 		if (Debug::Paths)
 		{
@@ -966,7 +968,7 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 
 		//Advance pointers, etc.
 		actualMoveToNextSegmentAndUpdateDir_med();
-	}
+	}*/
 }
 
 void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir_med()

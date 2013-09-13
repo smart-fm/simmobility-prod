@@ -228,26 +228,24 @@ void sim_mob::Worker::removePendingEntities()
 }
 
 void sim_mob::Worker::processVirtualQueues() {
-#ifdef SIMMOB_USE_CONFLUXES
 	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 	{
 		(*it)->processVirtualQueues();
 	}
-#endif
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-#ifdef SIMMOB_USE_CONFLUXES
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		const uint32_t msPerFrame = ConfigParams::GetInstance().baseGranMS;
-		timeslice currTime = timeslice(currTick, currTick*msPerFrame);
-		(*it)->updateAndReportSupplyStats(currTime);
-		(*it)->reportLinkTravelTimes(currTime);
-		(*it)->resetSegmentFlows();
-		(*it)->resetLinkTravelTimes(currTime);
+	if (ConfigParams::GetInstance().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			const unsigned int msPerFrame = ConfigParams::GetInstance().baseGranMS();
+			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
+			(*it)->updateAndReportSupplyStats(currTime);
+			(*it)->reportLinkTravelTimes(currTime);
+			(*it)->resetSegmentFlows();
+			(*it)->resetLinkTravelTimes(currTime);
+		}
 	}
-#endif
 }
 
 void sim_mob::Worker::breedPendingEntities()
@@ -548,15 +546,9 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->resetOutputBounds();
 		}
+
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
-
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-			(*it)->updateAndReportSupplyStats(currTime);
-			(*it)->reportLinkTravelTimes(currTime);
-			(*it)->resetSegmentFlows();
-			(*it)->resetLinkTravelTimes(currTime);
-		}
 	}
 
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
@@ -566,6 +558,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 
 bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 {
+	// the set container for managedConfluxes takes care of eliminating duplicates
 	return managedConfluxes.insert(cf).second;
 }
 

@@ -340,7 +340,6 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 
 	//The current agent we are working on.
 	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		Print() <<"Size of tripchain item for person " << it_map->first << " is : " << it_map->second.size() << std::endl;
 		TripChainItem* tc = it_map->second.front();
 		if( tc->itemType != TripChainItem::IT_FMODSIM){
 			Person* person = new sim_mob::Person("XML_TripChain", cfg.mutexStategy(), it_map->second);

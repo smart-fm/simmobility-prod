@@ -79,7 +79,10 @@ public:
 	}
 
 	//Allow propagating destructors
-	virtual ~Role() {}
+	virtual ~Role() {
+		safe_delete_item(behaviorFacet);
+		safe_delete_item(movementFacet);
+	}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;

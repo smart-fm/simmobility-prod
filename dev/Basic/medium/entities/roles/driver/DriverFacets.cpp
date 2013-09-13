@@ -66,7 +66,9 @@ void DriverBehavior::frame_tick_output(const UpdateParams& p) {
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicle(nullptr), currLane(nullptr), nextLaneInNextSegment(nullptr) {}
 
-sim_mob::medium::DriverMovement::~DriverMovement() {}
+sim_mob::medium::DriverMovement::~DriverMovement() {
+	safe_delete_item(vehicle);
+}
 
 void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 	//Save the path from orign to next activity location in allRoadSegments

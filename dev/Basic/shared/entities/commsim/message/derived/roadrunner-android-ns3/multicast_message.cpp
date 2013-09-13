@@ -72,7 +72,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
 		WarnOut( "ANDROID_HDL_MULTICAST::handle failed" << std::endl);
-		Print() << "ANDROID_HDL_MULTICAST::handle failed" << std::endl;
+//		Print() << "ANDROID_HDL_MULTICAST::handle failed" << std::endl;
 		return;
 	}
 	if(!clnHandler->isValid())
@@ -109,7 +109,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	}
 	else
 	{
-		Print()<< "Error: nearby agents doesn't even include the central agent" << std::endl;
+//		Print()<< "Error: nearby agents doesn't even include the central agent" << std::endl;
 		return;
 	}
 
@@ -174,11 +174,11 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		jdata["SENDING_AGENT"] = sending_agent->getId();
 		jdata["RECIPIENTS"] = recipients;
 		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,jdata);
-		Print() << "ANDROID_HDL_MULTICAST::handle=> inserting [" << Json::FastWriter().write(jdata) << "]" << std::endl;
+//		Print() << "ANDROID_HDL_MULTICAST::handle=> inserting [" << Json::FastWriter().write(jdata) << "]" << std::endl;
 	}
 	else
 	{
-		Print() << "ANDROID_HDL_MULTICAST::handle=> no recipients " << std::endl;
+//		Print() << "ANDROID_HDL_MULTICAST::handle=> no recipients " << std::endl;
 	}
 }//handle()
 
@@ -201,18 +201,15 @@ Handler * NS3_MSG_MULTICAST::newHandler()
 //you are going to handle something like this:
 //{"MESSAGE_CAT":"APP","MESSAGE_TYPE":"MULTICAST","MULTICAST_DATA":"TVVMVElDQVNUIFN0cmluZyBmcm9tIGNsaWVudCAxMTQ=","RECEIVING_AGENT_ID":75,"SENDER":"0","SENDER_TYPE":"NS3_SIMULATOR"}
 void NS3_HDL_MULTICAST::handle(msg_ptr message_, Broker* broker) {
-	Print() << "Inside a NS3_HDL_MULTICAST::handle" << std::endl;
 	//find the client destination client_handler
 	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
 	msg_data_t & jData = message_->getData();
 	int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
-	Print() << Json::FastWriter().write(jData) << std::endl;
 	ClientList::type & all_clients = broker->getClientList();
 	ClientList::pair clientTypes;
 	BOOST_FOREACH(clientTypes , all_clients) {
 		// only the android emulators
 		if (clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
-//			Print() << "*" << std::endl;
 			continue;
 		}
 
@@ -221,9 +218,7 @@ void NS3_HDL_MULTICAST::handle(msg_ptr message_, Broker* broker) {
 				boost::shared_ptr<sim_mob::ClientHandler> > &inner =
 				clientTypes.second;
 		if (inner.size() == 0) {
-			Print() << "Debug: Empty Inner Container" << std::endl;
 		} else {
-//			Print() << "Checking agents associated with " << inner.size() << " clients " << std::endl;
 		}
 		BOOST_FOREACH(clientIds , inner) {
 			boost::shared_ptr<sim_mob::ClientHandler> clnHandler =

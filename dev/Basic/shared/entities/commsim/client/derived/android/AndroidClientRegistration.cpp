@@ -20,7 +20,7 @@ AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType 
 
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
 {
-	Print() << "AndroidClientRegistration::handle" << std::endl;
+//	Print() << "AndroidClientRegistration::handle" << std::endl;
 	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
@@ -103,11 +103,11 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,clientEntry));
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
-		Print() << "AndroidClient  Registered:\n"
-		<< "Clinet Handler[" <<  clientEntry->cnnHandler << "]\n"
-		<< "Clinet ID[" <<  clientEntry->cnnHandler->clientID << "]\n"
-		<<  "Agent[" << clientEntry->agent->getId() << "][" << clientEntry->agent << "]\n"
-		<<  "Session[" <<  clientEntry->cnnHandler->session() << "]" << std::endl;
+		Print() << "AndroidClient  Registered:" <<  std::endl;
+//		Print() << "Clinet Handler[" <<  clientEntry->cnnHandler << "]\n"
+//		<< "Clinet ID[" <<  clientEntry->cnnHandler->clientID << "]\n"
+//		<<  "Agent[" << clientEntry->agent->getId() << "][" << clientEntry->agent << "]\n"
+//		<<  "Session[" <<  clientEntry->cnnHandler->session() << "]" << std::endl;
 		return true;
 }
 

@@ -4,12 +4,11 @@
 
 #include "SegmentStats.hpp"
 
+#include <cmath>
 #include <algorithm>
-#include "logging/Log.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include <cmath>
-#include "conf/simpleconf.hpp"
 #include "logging/Log.hpp"
 
 using std::string;

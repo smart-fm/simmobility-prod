@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #include "buffering/BufferedDataManager.hpp"
-#include "conf/simpleconf.hpp"
 
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"

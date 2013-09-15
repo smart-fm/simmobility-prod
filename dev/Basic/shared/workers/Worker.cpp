@@ -225,10 +225,10 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
-			const unsigned int msPerFrame = ConfigParams::GetInstance().baseGranMS();
+			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);

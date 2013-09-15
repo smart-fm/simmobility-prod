@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Math.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -15,8 +17,8 @@ using namespace sim_mob;
 
 typedef double (*InternalFunction)(Math::Function func, double x, const boost::tuple<double,double,double>& params, double crit);
 
-double Math::E = 2.71828182845904523536;
-double Math::PI = 3.1415926535897932385;
+const double Math::E (2.71828182845904523536);
+const double Math::PI (3.1415926535897932385);
 
 /**
  * Original function 

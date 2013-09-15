@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * LocationEventArgs.cpp
  *
@@ -7,6 +11,8 @@
 
 #include "LocationEventArgs.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Agent.hpp"
 #include "geospatial/coord/CoordinateTransform.hpp"
 #include "util/GeomHelpers.hpp"
@@ -23,7 +29,7 @@ LocationEventArgs::LocationEventArgs(const sim_mob::Agent * agent_) :agent(agent
 Json::Value LocationEventArgs::ToJSON()const
 {
 	//Convert the agent's position (x,y) to (lat,lng) before serializing it.
-	sim_mob::LatLngLocation pos = ConfigParams::GetInstance().getNetwork().getCoordTransform()->transform(DPoint(agent->xPos.get(), agent->yPos.get()));
+	sim_mob::LatLngLocation pos = ConfigManager::GetInstance().FullConfig().getNetwork().getCoordTransform()->transform(DPoint(agent->xPos.get(), agent->yPos.get()));
 	return JsonParser::makeLocationData(pos.latitude, pos.longitude);
 }
 

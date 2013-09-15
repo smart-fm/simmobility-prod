@@ -15,6 +15,9 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/conflux/Conflux.hpp"
 
+#include "buffering/BufferedDataManager.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -158,7 +161,7 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 }
 
 void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
-	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI || ConfigParams::GetInstance().OutputDisabled()) {
+	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
 

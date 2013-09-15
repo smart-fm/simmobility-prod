@@ -15,7 +15,8 @@
 #include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
@@ -383,7 +384,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
-	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	const sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	if (config.using_MPI)
 	{
 		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
@@ -501,7 +502,6 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 
 void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
 {
-	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
@@ -525,7 +525,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
 {
-	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstanceRW();
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if (storedProc.empty())
 	{
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
@@ -655,7 +655,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	//add by xuyan
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
-	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	const sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	if (config.using_MPI) {
 		LoadBoundarySegments();
 	}
@@ -1313,11 +1313,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->getParentSegment()->addObstacle(distOrigin, busstop);
 
-		sim_mob::ConfigParams::GetInstanceRW().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
+		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigParams::GetInstance().mutexStategy());
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
 //		if(100001500 == busstop->parentSegment_->getSegmentID())
 //		{
 //			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
@@ -1414,7 +1414,7 @@ DatabaseLoader::createSignals()
     		continue;
     	}
     	bool isNew = false;
-        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy(), &isNew);
+        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), &isNew);
         //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
         //so sometimes a new functionality(initialize) needs to be taken care of separately
         //while it should be called with in other functions(constructor)-vahid
@@ -1999,7 +1999,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	std::cout << ">Success." << std::endl;
 
 	//Mutable config file reference.
-	ConfigParams& config = ConfigParams::GetInstanceRW();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
@@ -2049,7 +2049,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().using_MPI)
+	if (ConfigManager::GetInstance().FullConfig().using_MPI)
 	{
 		loader.TransferBoundaryRoadSegment();
 	}
@@ -2068,8 +2068,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::stringstream debugMsgs(std::stringstream::out);
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
-	const sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	sim_mob::Conflux* conflux = nullptr;
 
 	//Make a temporary map of road nodes-to-road segments

@@ -23,7 +23,7 @@
 
 using namespace sim_mob;
 
-ConfigParams sim_mob::ConfigParams::instance;
+//ConfigParams sim_mob::ConfigParams::instance;
 
 
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
@@ -35,7 +35,26 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 {}
 
 
-void sim_mob::ConfigParams::reset()
+sim_mob::ConfigParams::~ConfigParams()
+{
+	safe_delete_item(reactDist1);
+	safe_delete_item(reactDist2);
+	safe_delete_item(passengerDist_busstop);
+	safe_delete_item(passengerDist_crowdness);
+	safe_delete_item(commDataMgr);
+	safe_delete_item(controlMgr);
+
+	//These might leak??
+	//std::vector<sim_mob::BusSchedule*> busschedule;
+	//std::vector<sim_mob::PT_trip*> pt_trip;
+	//routeID_roadSegments
+	//routeID_busStops
+	//confluxes
+}
+
+
+
+/*void sim_mob::ConfigParams::reset()
 {
 	//TODO: This *should* work fine, but check the comment below.
 	instance = sim_mob::ConfigParams();
@@ -44,10 +63,10 @@ void sim_mob::ConfigParams::reset()
 	//      have not tested that it works.  ~Seth
 	//sealedNetwork=false;
 	//roleFact.clear();
-}
+}*/
 
 
-const ConfigParams& sim_mob::ConfigParams::GetInstance()
+/*const ConfigParams& sim_mob::ConfigParams::GetInstance()
 {
 	return ConfigParams::instance;
 }
@@ -56,7 +75,7 @@ const ConfigParams& sim_mob::ConfigParams::GetInstance()
 ConfigParams& sim_mob::ConfigParams::GetInstanceRW()
 {
 	return ConfigParams::instance;
-}
+}*/
 
 
 const sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactory() const

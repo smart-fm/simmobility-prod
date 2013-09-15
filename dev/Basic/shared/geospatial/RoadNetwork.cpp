@@ -13,6 +13,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
+#include "logging/Log.hpp"
 
 using std::set;
 using std::pair;
@@ -31,6 +32,13 @@ struct RS_ID_Sorter {
 };
 
 } //End anon namespace
+
+
+sim_mob::RoadNetwork::~RoadNetwork()
+{
+	Warn() <<"Attempting to delete road network; memory will leak!\n";
+}
+
 
 
 void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)

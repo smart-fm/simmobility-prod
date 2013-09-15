@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "conf/Config.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/misc/PublicTransit.hpp"
@@ -25,6 +24,7 @@ class BusSchedule;
 class Conflux;
 class CommunicationDataManager;
 class ControlManager;
+class ConfigManager;
 class ReactionTimeDist;
 class RoadSegment;
 class PassengerDist;
@@ -64,8 +64,11 @@ class TripChainItem;
  * \author Xu Yan
  */
 class ConfigParams : public RawConfigParams {
-
 public:
+	friend class ConfigManager;
+
+	~ConfigParams();
+
 	//If any Agents specify manual IDs, we must ensure that:
 	//   * the ID is < startingAutoAgentID
 	//   * all manual IDs are unique.
@@ -129,14 +132,14 @@ public:
 
 public:
 	///Retrieve a read-only version of the singleton. Use this function often.
-	static const ConfigParams& GetInstance();
+	//static const ConfigParams& GetInstance();
 
 	///Retrieve a writable version of the singleton. Use this function sparingly.
-	static ConfigParams& GetInstanceRW();
+	//static ConfigParams& GetInstanceRW();
 
 	///Reset this instance of the static ConfigParams instance.
 	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
-	void reset();
+	//void reset();
 
 	///Retrieve/build the connection string.
 	std::string getDatabaseConnectionString(bool maskPassword=true) const;
@@ -206,7 +209,7 @@ public:
 private:
 	ConfigParams();
 
-	static ConfigParams instance;
+	//static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;

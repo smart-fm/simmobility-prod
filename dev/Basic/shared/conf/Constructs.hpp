@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -10,100 +12,63 @@
 
 namespace sim_mob {
 
-//Forward declarations
-class CarFollowModel;
-class LaneChangeModel;
-class IntersectionDrivingModel;
-class WorkGroup;
-class ReactionTimeDist;
 
-
-/**
- * Simple constructs. These should be moved to their own files in locations relevant to their
- * function; use forward declarations here to refer to them.
- */
-class Password {
-public:
-	explicit Password(const std::string& rawPwd="") : rawPwd(rawPwd) {}
-
-	//Provide a small amount of protection on deletion
-	~Password() {
-		size_t sz = rawPwd.length();
-		for (size_t i=0; i<sz; i++) { rawPwd[i] = '\0'; }
-	}
-
-	///Returns masked version by default. Try not to use the masked version when possible.
-	std::string toString(bool mask=true) {
-		if (!mask) { return rawPwd; }
-
-		return std::string(rawPwd.length(), '*');
-	}
-
-private:
-	std::string rawPwd;
-};
+///Base class for any item that can be identified by a string ID.
 class Identifiable {
 public:
-	Identifiable(const std::string& id) : id(id) {}
-	std::string getId() { return id; }
+	Identifiable(const std::string& id);
+	std::string getId();
 
 private:
 	std::string id;
 };
-/*class DatabaseConnection : public Identifiable {
-public:
-	DatabaseConnection(const std::string& id="") : Identifiable(id) {}
 
-	std::string host;
-	std::string port;
-	std::string dbName;
-	std::string user;
-	Password password;
-};*/
+
+///A mapping of stored procedures for a given datbase format.
+///  Contains mappings such as "node" => "get_nodes()", which can be used to
+///  retrieve Road Network items from a database in the given format.
 class StoredProcedureMap : public Identifiable {
 public:
-	StoredProcedureMap(const std::string& id="") : Identifiable(id) {}
+	StoredProcedureMap(const std::string& id="");
 
 	std::string dbFormat; //Usually "aimsun"
 	std::map<std::string, std::string> procedureMappings; //key=>value
 };
 
 
-/**
- * WorkGroups require lazy initialization for multiple reasons.
- */
-class WorkGroupFactory {
+///Contains a database description (host, port, db_name). Does not include login credentials.
+class Database : public Identifiable {
 public:
-	WorkGroupFactory(int numWorkers=0, bool agentWG=false, bool signalWG=false) : item(nullptr), numWorkers(numWorkers), agentWG(agentWG), signalWG(signalWG) {}
+	Database(const std::string& id="");
 
-	sim_mob::WorkGroup* getItem();
-private:
-	sim_mob::WorkGroup* item;
-	int numWorkers;
-	bool agentWG;
-	bool signalWG;
+	std::string host;
+	std::string port;
+	std::string dbName;
 };
 
 
-/**
- * Collection of various items "construct"ed from the config file.
- */
-/*struct Constructs {
-	//Models
-	std::map<std::string, CarFollowModel*> carFollowModels;
-	std::map<std::string, LaneChangeModel*> laneChangeModels;
-	std::map<std::string, IntersectionDrivingModel*> intDriveModels;
-	//std::map<std::string, SidewalkMovementModel*> sidewalkMoveModels; //Later.
+///Contains login credentials (username+password) for a database. Masks password by default on retrieval.
+class Credential : public Identifiable {
+public:
+	Credential(const std::string& id="");
 
-	//WorkGroups
-	std::map<std::string, WorkGroupFactory> workGroups;
+	std::string getUsername() const;
 
-	//Distributions
-	std::map<std::string, sim_mob::ReactionTimeDist*> distributions;
+	std::string getPassword(bool mask=true) const;
 
-	//Database Connections
-	std::map<std::string, DatabaseConnection> dbConnections;
-	std::map<std::string, StoredProcedureMap> storedProcedureMaps;
-};*/
+	///Load this set of credentials from a file with a given format (documented in, e.g., test_road_network.xml)
+	void LoadFileCredentials(const std::vector<std::string>& paths);
+
+	///Set the credentials manually. Note that this method should only be used for trivial passwords.
+	void SetPlaintextCredentials(const std::string& username, const std::string& password);
+
+private:
+	//Helper: actually load the file.
+	void LoadCredFile(const std::string& path);
+
+	std::string username;
+	std::string password;
+};
+
 
 }

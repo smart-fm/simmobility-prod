@@ -15,6 +15,7 @@
 #include "GenConfig.h"
 
 #include "buffering/BufferedDataManager.hpp"
+#include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
@@ -92,11 +93,11 @@ public:
 private:
 	void throwIt() { throw std::runtime_error("Fake LC_model used for medium term."); }
 };
-void fakeModels(Config::BuiltInModels& builtIn) {
+/*void fakeModels(Config::BuiltInModels& builtIn) {
 	builtIn.carFollowModels["mitsim"] = new Fake_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new Fake_LC_Model();
 	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
-}
+}*/
 
 } //End anon namespace
 
@@ -125,13 +126,13 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
 	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
@@ -141,7 +142,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		std::cout << "Confluxes ON!" << std::endl;
 	}
 	else {
@@ -149,7 +150,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 
 	ProfileBuilder* prof = nullptr;
-	if (ConfigParams::GetInstance().ProfileOn()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
@@ -160,22 +161,22 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy()));
+	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy()));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
 
 
 	//No built-in models available to the medium term (yet).
-	Config::BuiltInModels builtIn;
-	fakeModels(builtIn);
+	//Config::BuiltInModels builtIn;
+	//fakeModels(builtIn);
 
 	//Load our user config file
-	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 
 	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -269,7 +270,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
-		if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
 			msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
@@ -342,8 +343,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-	if (ConfigParams::GetInstance().numAgentsSkipped>0) {
-		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigParams::GetInstance().numAgentsSkipped <<endl;
+	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
+		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) {
@@ -356,7 +357,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -392,7 +393,7 @@ int main(int ARGC, char* ARGV[])
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
-	ConfigParams& config = ConfigParams::GetInstanceRW();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size() > 2 && args[2]=="mpi") {
@@ -457,7 +458,7 @@ int main(int ARGC, char* ARGV[])
 
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 

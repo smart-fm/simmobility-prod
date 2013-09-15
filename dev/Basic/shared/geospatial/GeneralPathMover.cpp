@@ -10,7 +10,9 @@
 
 #include "conf/settings/DisableMPI.h"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/CMakeConfigParams.hpp"
+
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -341,7 +343,7 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 
 	if (Debug::Paths && res)
 	{
-		if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			if (!DebugStream.str().empty())
 			{
 				//TEMP: Re-enable later.
@@ -377,7 +379,7 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 		//Debug
 		if (Debug::Paths)
 		{
-			if (ConfigParams::GetInstance().OutputEnabled()) {
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 				if (!DebugStream.str().empty())
 				{
 					DebugStream << "EXCEPTION: " << msg << endl;

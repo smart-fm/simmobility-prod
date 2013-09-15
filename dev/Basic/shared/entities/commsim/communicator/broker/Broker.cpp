@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 //external libraries
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'

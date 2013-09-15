@@ -1,4 +1,9 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
+
 #include "entities/Agent.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistration.hpp"
 #include "entities/commsim/communicator/service/services.hpp"

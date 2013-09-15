@@ -4,7 +4,8 @@
 
 #include "BusDriverFacets.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
@@ -58,7 +59,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick(UpdateParams& p) {
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().using_MPI || ConfigParams::GetInstance().OutputDisabled()) {
+	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
 

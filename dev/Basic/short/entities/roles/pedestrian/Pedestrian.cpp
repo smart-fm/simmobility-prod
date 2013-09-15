@@ -11,6 +11,9 @@
 
 #include "Pedestrian.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -212,7 +215,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 
 	if(atSidewalk){
-		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
+		double vel = speed * 1.2 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
 
 		prevSeg = fwdMovement.getCurrSegment();
 		fwdMovement.advance(vel);
@@ -293,7 +296,7 @@ void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 
 	//MPI-specific output.
 	std::stringstream addLine;
-	if (ConfigParams::GetInstance().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 	}
 
@@ -625,7 +628,7 @@ bool sim_mob::Pedestrian::isGoalReached() {
 void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 
 	if(isFwd){
-		const Node* node = ConfigParams::GetInstance().getNetwork().locateNode(currPath.back()->getEnd()->location, true);
+		const Node* node = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(currPath.back()->getEnd()->location, true);
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
@@ -643,7 +646,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal(bool isFwd) {
 		}
 	}
 	else{
-		const Node* node = ConfigParams::GetInstance().getNetwork().locateNode(currPath.back()->getStart()->location, true);
+		const Node* node = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(currPath.back()->getStart()->location, true);
 		if (node)
 			trafficSignal = StreetDirectory::instance().signalAt(*node);
 		else{
@@ -747,9 +750,9 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 void sim_mob::Pedestrian::updatePosition() {
 	//Compute
 	int newX = (int) (parent->xPos.get() + xVel * 100
-			* (((double) ConfigParams::GetInstance().personTimeStepInMilliSeconds()) / 1000));
+			* (((double) ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds()) / 1000));
 	int newY = (int) (parent->yPos.get() + yVel * 100
-			* (((double) ConfigParams::GetInstance().personTimeStepInMilliSeconds()) / 1000));
+			* (((double) ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds()) / 1000));
 
 	//Set
 	parent->xPos.set(newX);

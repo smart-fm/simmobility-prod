@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   LT_Agent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,7 +10,8 @@
  */
 
 #include "LT_Agent.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "message/MessageBus.hpp"
 
@@ -25,7 +28,7 @@ using std::string;
 using std::map;
 
 LT_Agent::LT_Agent(int id)
-: Agent(ConfigParams::GetInstance().mutexStategy(), id) {
+: Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {
     isRegistered = false;
 }
 

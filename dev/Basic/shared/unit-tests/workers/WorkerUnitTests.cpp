@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <map>
 #include <cmath>
@@ -8,8 +10,10 @@
 #include <sstream>
 
 #include "buffering/Buffered.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "util/LangHelpers.hpp"
+#include "workers/WorkGroupManager.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
 #include "entities/Agent.hpp"
@@ -55,6 +59,7 @@ public:
 	virtual void setCurrLink(Link* ln) {}
 	virtual Link* getCurrLink() { return nullptr; }
 	virtual void load(const map<string, string>& props) {}
+	virtual bool isNonspatial() { return false; }
 };
 
 
@@ -177,9 +182,11 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 		resInts.push_back(i);
 	}
 
+	WorkGroupManager wgm;
+
 	//Now create 10 workers which will run for 5 time ticks, doubling the src value each time.
-	WorkGroup* mainWG = WorkGroup::NewWorkGroup(srcInts.size(), 5);
-	WorkGroup::InitAllGroups();
+	WorkGroup* mainWG = wgm.newWorkGroup(srcInts.size(), 5);
+	wgm.initAllGroups();
 	mainWG->initWorkers(nullptr);
 
 	//Make a MultAgent for each item in the source vector.
@@ -190,11 +197,11 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 	}
 
 	//Start work groups and all threads.
-	mainWG->startAll();  //Note: Another option is to use "start all"
+	wgm.startAllWorkGroups();
 
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
-		WorkGroup::WaitAllGroups();
+		wgm.waitAllGroups();
 	}
 
 	//Now do the math  manually
@@ -214,22 +221,24 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 	}
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 
 void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 {
+	WorkGroupManager wgm;
+
 	//Our count WorkGroup contains 2 workers, each with 2 agents, which add 1
 	//  each 1ms if the Flag agent's flag is set to 1.
-	WorkGroup* countWG = WorkGroup::NewWorkGroup(2, 3);
+	WorkGroup* countWG = wgm.newWorkGroup(2, 3);
 
 	//Our flag Work Group contains a single worker operating at a frequency of 3ms.
 	//  It switches its flag to "On" at time tick 0.
-	WorkGroup* flagWG = WorkGroup::NewWorkGroup(1, 3, 3);
+	WorkGroup* flagWG = wgm.newWorkGroup(1, 3, 3);
 
 	//Init all
-	WorkGroup::InitAllGroups();
+	wgm.initAllGroups();
 	countWG->initWorkers(nullptr);
 	flagWG->initWorkers(nullptr);
 
@@ -253,11 +262,11 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 	countWG->assignAWorker(sumAg4);
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgm.startAllWorkGroups();
 
 	//Agent update cycle
 	for (int i=0; i<3; i++) {
-		WorkGroup::WaitAllGroups();
+		wgm.waitAllGroups();
 	}
 
 	//Confirm that the flag itself was set
@@ -270,24 +279,26 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg4->getCount()==2);
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 
 void unit_tests::WorkerUnitTests::test_OddGranularities()
 {
+	WorkGroupManager wgm;
+
 	//Add an "AuraManager" stage, just for testing purposes.
 	AuraManager* am = &AuraManager::instance();
-	am->init();
+	am->init(AuraManager::IMPL_RSTAR, nullptr);
 
 	//Start with the same agent counters.
-	WorkGroup* countWG = WorkGroup::NewWorkGroup(2, 5);
+	WorkGroup* countWG = wgm.newWorkGroup(2, 5);
 
 	//Have a flag counter @3ms, which toggles the flag between on and off.
-	WorkGroup* flagWG = WorkGroup::NewWorkGroup(1, 5, 3, am);
+	WorkGroup* flagWG = wgm.newWorkGroup(1, 5, 3, am);
 
 	//Init all
-	WorkGroup::InitAllGroups();
+	wgm.initAllGroups();
 	countWG->initWorkers(nullptr);
 	flagWG->initWorkers(nullptr);
 
@@ -305,15 +316,15 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 	countWG->assignAWorker(sumAg2);
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgm.startAllWorkGroups();
 
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
 		//Call each function in turn.
-		WorkGroup::WaitAllGroups_FrameTick();
-		WorkGroup::WaitAllGroups_FlipBuffers();
-		WorkGroup::WaitAllGroups_AuraManager();
-		WorkGroup::WaitAllGroups_MacroTimeTick();
+		wgm.waitAllGroups_FrameTick();
+		wgm.waitAllGroups_FlipBuffers();
+		wgm.waitAllGroups_AuraManager();
+		wgm.waitAllGroups_MacroTimeTick();
 	}
 
 	//Confirm that the flag was removed (update in the first micro-tick).
@@ -324,16 +335,18 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg2->getCount()==3);
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 
 
 void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 {
+	WorkGroupManager wgm;
+
 	//Somewhat iffy:
 	const unsigned int GranMS = 10;  //Advance by 10ms each time
-	ConfigParams::GetInstance().baseGranMS = GranMS;
+	ConfigManager::GetInstanceRW().FullConfig().baseGranMS() = GranMS;
 
 	//Make some agents with staggered start times.
 	vector<IncrAgent*> agents;
@@ -365,8 +378,8 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	WorkGroup::EntityLoadParams entLoader(pendingAg, allAg);
 
 	//Now create 3 workers to handle these Agents.
-	WorkGroup* mainWG = WorkGroup::NewWorkGroup(3, numSimTicks);
-	WorkGroup::InitAllGroups();
+	WorkGroup* mainWG = wgm.newWorkGroup(3, numSimTicks);
+	wgm.initAllGroups();
 	mainWG->initWorkers(&entLoader);
 
 	//Assign Agents alternating between even and odd, just to ensure that the PriorityQueue works.
@@ -381,7 +394,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	//NOTE: This could do with some streamlining...
 	for (vector<int>::iterator it=agIdOrder.begin(); it!=agIdOrder.end(); it++) {
 		Agent* ag = agents.at(*it);
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled() || ag->getStartTime()==0) {
+		if (ag->getStartTime()==0) {
 			allAg.push_back(ag);
 			mainWG->assignAWorker(ag);
 		} else {
@@ -391,11 +404,11 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	}
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgm.startAllWorkGroups();
 
 	//Agent update cycle
 	for (unsigned int i=0; i<numSimTicks; i++) {
-		WorkGroup::WaitAllGroups();
+		wgm.waitAllGroups();
 	}
 
 	//Attempt to replicate manually.
@@ -421,22 +434,24 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	}
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 
 void unit_tests::WorkerUnitTests::test_UpdatePhases()
 {
+	WorkGroupManager wgm;
+
 	//Here we test the expected values of Agents across sub-time-tick granularities.
 	//To avoid potential deadlock, we accumulate all errors and post the total error
 	// count once all Workers have finished.
 	unsigned int errorCount = 0;
 
 	//Make a WorkGroup with 4 workers (1 per agent, +1 extra)
-	WorkGroup* agentWG = WorkGroup::NewWorkGroup(4, 5);
+	WorkGroup* agentWG = wgm.newWorkGroup(4, 5);
 
 	//Init all
-	WorkGroup::InitAllGroups();
+	wgm.initAllGroups();
 	agentWG->initWorkers(nullptr);
 
 	//Make 3 agents, which operate every 1,2,3 seconds. Assign them.
@@ -451,7 +466,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	agentWG->assignAWorker(ag3);
 
 	//Start work groups and all threads.
-	WorkGroup::StartAllWorkGroups();
+	wgm.startAllWorkGroups();
 
 	//////////////////////////////////////////
 	//FRAME TICK 0
@@ -459,13 +474,13 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==0);
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
-	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	WorkGroup::WaitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	wgm.waitAllGroups_FlipBuffers();
 	CountAssert(errorCount, ag1->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag2->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag3->value.get()==0); //0+0 == 0
-	WorkGroup::WaitAllGroups_AuraManager();
-	WorkGroup::WaitAllGroups_MacroTimeTick();
+	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
 	//FRAME TICK 1
@@ -473,13 +488,13 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==0);
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
-	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	WorkGroup::WaitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	wgm.waitAllGroups_FlipBuffers();
 	CountAssert(errorCount, ag1->value.get()==1); //0+1 == 1
 	CountAssert(errorCount, ag2->value.get()==0); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	WorkGroup::WaitAllGroups_AuraManager();
-	WorkGroup::WaitAllGroups_MacroTimeTick();
+	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
 	//FRAME TICK 2
@@ -487,13 +502,13 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==1);
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
-	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	WorkGroup::WaitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	wgm.waitAllGroups_FlipBuffers();
 	CountAssert(errorCount, ag1->value.get()==3); //1+2 == 3
 	CountAssert(errorCount, ag2->value.get()==2); //0+2 == 2
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	WorkGroup::WaitAllGroups_AuraManager();
-	WorkGroup::WaitAllGroups_MacroTimeTick();
+	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
 	//FRAME TICK 3
@@ -501,13 +516,13 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==3);
 	CountAssert(errorCount, ag2->value.get()==2);
 	CountAssert(errorCount, ag3->value.get()==0);
-	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	WorkGroup::WaitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	wgm.waitAllGroups_FlipBuffers();
 	CountAssert(errorCount, ag1->value.get()==6); //3+3 == 6
 	CountAssert(errorCount, ag2->value.get()==2); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==3); //0+3 == 3
-	WorkGroup::WaitAllGroups_AuraManager();
-	WorkGroup::WaitAllGroups_MacroTimeTick();
+	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
 	//FRAME TICK 4
@@ -515,38 +530,40 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==6);
 	CountAssert(errorCount, ag2->value.get()==2);
 	CountAssert(errorCount, ag3->value.get()==3);
-	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	WorkGroup::WaitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	wgm.waitAllGroups_FlipBuffers();
 	CountAssert(errorCount, ag1->value.get()==10); //6+4 == 10
 	CountAssert(errorCount, ag2->value.get()==6);  //2+4 == 6
 	CountAssert(errorCount, ag3->value.get()==3);  //Doesn't tick
-	WorkGroup::WaitAllGroups_AuraManager();
-	WorkGroup::WaitAllGroups_MacroTimeTick();
+	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_MacroTimeTick();
 
 	//Error check
 	CPPUNIT_ASSERT_MESSAGE("Unexpected error count in sub-micro-tick tests.", errorCount==0);
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 
 void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 {
+	WorkGroupManager wgm;
+
 	//For this test, we'll create several Agents running at several time resolutions, and
 	//  just check the expected vs. actual counts at the end of the simulation.
 	//This is just to represent a slightly more complicated example, and to see if the
 	//  WorkGroup code holds up.
 	const unsigned int SimTimeTicks = 99;
 	const unsigned int NumWrks = 3;
-	WorkGroup* wgStep1 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 1);
-	WorkGroup* wgStep2 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 2);
-	WorkGroup* wgStep3 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 3);
-	WorkGroup* wgStep4 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 4);
-	WorkGroup* wgStep5 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 5);
+	WorkGroup* wgStep1 = wgm.newWorkGroup(NumWrks, SimTimeTicks, 1);
+	WorkGroup* wgStep2 = wgm.newWorkGroup(NumWrks, SimTimeTicks, 2);
+	WorkGroup* wgStep3 = wgm.newWorkGroup(NumWrks, SimTimeTicks, 3);
+	WorkGroup* wgStep4 = wgm.newWorkGroup(NumWrks, SimTimeTicks, 4);
+	WorkGroup* wgStep5 = wgm.newWorkGroup(NumWrks, SimTimeTicks, 5);
 
 	//Init all
-	WorkGroup::InitAllGroups();
+	wgm.initAllGroups();
 	wgStep1->initWorkers(nullptr);
 	wgStep2->initWorkers(nullptr);
 	wgStep3->initWorkers(nullptr);
@@ -573,11 +590,11 @@ void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 	}
 
 	//Start all
-	WorkGroup::StartAllWorkGroups();
+	wgm.startAllWorkGroups();
 
 	//Tick all
 	for (unsigned int i=0; i<SimTimeTicks; i++) {
-		WorkGroup::WaitAllGroups();
+		wgm.waitAllGroups();
 	}
 
 	//Expected values
@@ -634,7 +651,7 @@ void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 	}
 
 	//Finally, clean up all the Work Groups and reset (for the next test)
-	WorkGroup::FinalizeAllWorkGroups();
+	//WorkGroup::FinalizeAllWorkGroups();
 }
 
 

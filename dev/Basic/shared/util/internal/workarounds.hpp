@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #ifndef INCLUDE_UTIL_XML_WRITER_HPP
  #error Do not include util/internal/workarounds.hpp directly; instead, include util/XmlWriter.hpp
 #else //INCLUDE_UTIL_XML_WRITER_HPP

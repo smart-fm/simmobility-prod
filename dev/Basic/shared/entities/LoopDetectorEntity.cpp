@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <boost/utility.hpp>
 #include <boost/unordered_set.hpp>
@@ -12,7 +14,8 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/Role.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
@@ -176,7 +179,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
     dy *= ratio;
     center_ = Point2D(p2.getX() - dx, p2.getY() - dy);
 
-    timeStepInMilliSeconds_ = ConfigParams::GetInstance().personTimeStepInMilliSeconds();
+    timeStepInMilliSeconds_ = ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds();
 }
 
 namespace
@@ -473,7 +476,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter = entity.data_.find(lane);
         if (entity.data_.end() == iter)
         {
-            MutexStrategy const & mutexStrategy = ConfigParams::GetInstance().mutexStategy();
+            MutexStrategy const & mutexStrategy = ConfigManager::GetInstance().FullConfig().mutexStategy();
             Shared<CountAndTimePair> * pair = new Shared<CountAndTimePair>(mutexStrategy);
             entity.data_.insert(std::make_pair(lane, pair));
             iter = entity.data_.find(lane);

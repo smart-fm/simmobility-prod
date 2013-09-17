@@ -252,9 +252,9 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 {
 	//For now, just check all agents and get the first positive collision. Very basic.
 	Agent* other = nullptr;
-	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+	for (std::set<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
 		//Skip self
-		other = dynamic_cast<Agent*> (Agent::all_agents[i]);
+		other = dynamic_cast<Agent*> (*it);
 		if (!other) {
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.

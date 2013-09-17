@@ -75,8 +75,8 @@ void sim_mob::DriverComm::receiveModule(timeslice now)
 }
 void sim_mob::DriverComm::sendModule(timeslice now)
 {
-	std::vector<Entity*> &agents = sim_mob::Agent::all_agents;
-	std::vector<Entity*>::iterator  it , it_end(agents.end());
+	std::set<Entity*> &agents = sim_mob::Agent::all_agents;
+	std::set<Entity*>::iterator  it , it_end(agents.end());
 	for(it = agents.begin(); it != it_end; it++)
 	{
 		sim_mob::dataMessage *data = new sim_mob::dataMessage();

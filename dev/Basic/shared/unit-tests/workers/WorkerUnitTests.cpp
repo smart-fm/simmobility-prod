@@ -374,7 +374,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	//Also, use local arrays to make tests more repeatable.
 	//TODO: These will leak, but we don't really care.
 	StartTimePriorityQueue pendingAg;
-	vector<Entity*> allAg;
+	std::set<Entity*> allAg;
 	WorkGroup::EntityLoadParams entLoader(pendingAg, allAg);
 
 	//Now create 3 workers to handle these Agents.
@@ -395,7 +395,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	for (vector<int>::iterator it=agIdOrder.begin(); it!=agIdOrder.end(); it++) {
 		Agent* ag = agents.at(*it);
 		if (ag->getStartTime()==0) {
-			allAg.push_back(ag);
+			allAg.insert(ag);
 			mainWG->assignAWorker(ag);
 		} else {
 			//Start later.

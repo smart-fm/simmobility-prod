@@ -8,6 +8,7 @@
 //external libraries
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
+#include "Broker-util.hpp"
 namespace sim_mob
 {
 //Forward Declarations
@@ -23,12 +24,12 @@ class ClientHandler;
 class BrokerBlocker;
 
 
-struct AgentsMap
-{
-	typedef boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* > type;
-	typedef typename boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* >::iterator iterator;
-	typedef std::pair<const sim_mob::Agent *, AgentCommUtilityBase* > pair;
-};
+//struct AgentsMap
+//{
+//	typedef boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* > type;
+//	typedef typename boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* >::iterator iterator;
+//	typedef std::pair<const sim_mob::Agent *, AgentCommUtilityBase* > pair;
+//};
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
@@ -75,7 +76,8 @@ private:
 	bool enabled;
 	bool configured;
 	//	list of the registered agents and their corresponding communication equipment
-	AgentsMap::type registeredAgents;
+//	AgentsMap::type registeredAgents;
+	AgentsList REGISTERED_AGENTS;
 	//	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
 	//	list of authorized clients who have passed the registration process
@@ -125,6 +127,7 @@ private:
 	bool deadEntityCheck(sim_mob::AgentCommUtilityBase * info);
 	//revise the registration of the registered agents
 	void refineSubscriptionList();
+	void refineSubscriptionList(sim_mob::Agent * target);
 	///Returns true if enough subscriptions exist to allow the broker to update.
 	bool isWaitingForAgentRegistration() const;
 	//	Returns true if enough clients exist to allow the broker to update.
@@ -168,13 +171,15 @@ public:
 	//	returns true if broker is enabled
 	bool isEnabled() const;
 	//	list of registered agents
-	AgentsMap::type & getRegisteredAgents();
+	AgentsList::type &getRegisteredAgents();
+	//	list of registered agents + mutex
+	AgentsList::type &getRegisteredAgents(AgentsList::Mutex *mutex);
 	//	register an agent
 	bool registerEntity(sim_mob::AgentCommUtilityBase * );
 	//	unregister an agent
 	void unRegisterEntity(sim_mob::AgentCommUtilityBase *value);
 	//	unregister an agent
-	void unRegisterEntity(const sim_mob::Agent * agent);
+	void unRegisterEntity(sim_mob::Agent * agent);
 	//	returns list of clients waiting to be admitted as registered clients
 	ClientWaitList & getClientWaitingList();
 	//	returns list of registered clients

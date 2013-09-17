@@ -18,92 +18,97 @@ AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType 
 
 }
 
-bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request)
-{
+bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
+		sim_mob::ClientRegistrationRequest request) {
 //	Print() << "AndroidClientRegistration::handle" << std::endl;
+
+//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
+	AgentsList::Mutex registered_agents_mutex;
+	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
+	AgentsList::Lock lock(registered_agents_mutex);
 	//some checks to avoid calling this method unnecessarily
-	if(
-			broker.getClientWaitingList().empty()
-			|| broker.getRegisteredAgents().empty()
-			|| usedAgents.size() == broker.getRegisteredAgents().size()
-			)
-	{
-		Print() << "AndroidClientRegistration::handle initial failure, returning false" <<
-				broker.getClientWaitingList().size() << "-" <<
-				broker.getRegisteredAgents().size() << "-" <<
-				usedAgents.size()
-				<< std::endl;
+	if (broker.getClientWaitingList().empty()
+			|| registeredAgents.empty()
+			|| usedAgents.size() == registeredAgents.size()) {
+		Print()
+				<< "AndroidClientRegistration::handle initial failure, returning false"
+				<< broker.getClientWaitingList().size() << "-"
+				<< registeredAgents.size() << "-"
+				<< usedAgents.size() << std::endl;
 		return false;
 	}
 
-	AgentsMap::type &registeredAgents = broker.getRegisteredAgents();
-	//find a free agent(someone who is not yet been associated to an andriod client)
-//	 std::pair<const sim_mob::Agent *, AgentCommUtility<std::string> * >* freeAgent = 0;
-	 AgentsMap::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
-	for(  ; freeAgent != it_end; freeAgent++)
-	{
-		if(usedAgents.find(freeAgent->first) == usedAgents.end())
-		{
-			//found a free agent
-			break;
+		bool found_a_free_agent = false;
+		//find the first free agent(someone who is not yet been associated to an andriod client)
+		AgentsList::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
+		for (; freeAgent != it_end; freeAgent++) {
+			if (usedAgents.find(freeAgent->agent) == usedAgents.end()) {
+				Print() << "Agent[" << freeAgent->agent->getId() << "]["<< freeAgent->agent << "] already used" << std::endl;
+						found_a_free_agent = true;
+				//found the first free agent, no need to continue the loop
+				break;
+			}
 		}
-	}
-	if(freeAgent == it_end)
-	{
-		//you couldn't find a free function
-		Print() << "AndroidClientRegistration::handle couldn't find a free agent, returning false" << std::endl;
-		return false;
-	}
+		//end of iteration
+		if (!found_a_free_agent) {
+			//you couldn't find a free function
+			Print()
+					<< "AndroidClientRegistration::handle couldn't find a free agent among [" << registeredAgents.size() << "], returning false"
+					<< std::endl;
+			return false;
+		}
 
 		//use it to create a client entry
 		boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
-		boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler(new ConnectionHandler(
-				request.session_
-//				,broker
-//				,&Broker::messageReceiveCallback
-				,broker.getMessageReceiveCallBack()
-				,request.clientID
-				,ConfigParams::ANDROID_EMULATOR
-				,(unsigned long int)(freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
-				)
-				);
+		boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
+				new ConnectionHandler(request.session_,
+						broker.getMessageReceiveCallBack(), request.clientID,
+						ConfigParams::ANDROID_EMULATOR,
+						(unsigned long int) (freeAgent->agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
+						));
 		clientEntry->cnnHandler = cnnHandler;
 
-		clientEntry->AgentCommUtility_ = freeAgent->second;
+		clientEntry->AgentCommUtility_ = freeAgent->comm;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-		clientEntry->agent = freeAgent->first;
+		clientEntry->agent = freeAgent->agent;
 		clientEntry->clientID = request.clientID;
 		clientEntry->client_type = ConfigParams::ANDROID_EMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
 		SIM_MOB_SERVICE srv;
-		BOOST_FOREACH(srv, request.requiredServices)
-		{
-			switch(srv)
-			{
-			case SIMMOB_SRV_TIME:{
-				PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_TIME];
-				p->Subscribe(COMMEID_TIME, clientEntry.get(), CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
+		BOOST_FOREACH(srv, request.requiredServices) {
+			switch (srv) {
+			case SIMMOB_SRV_TIME: {
+				PublisherList::dataType p =
+						broker.getPublishers()[SIMMOB_SRV_TIME];
+				p->Subscribe(COMMEID_TIME, clientEntry.get(),
+						CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime));
 				break;
 			}
-			case SIMMOB_SRV_LOCATION:{
-				PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_LOCATION];
-				p->Subscribe(COMMEID_LOCATION,(void*) clientEntry->agent, clientEntry.get()  ,CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation) );
+			case SIMMOB_SRV_LOCATION: {
+				PublisherList::dataType p =
+						broker.getPublishers()[SIMMOB_SRV_LOCATION];
+				p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
+						clientEntry.get(),
+						CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation));
 				break;
 			}
 			}
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.insertClientList(clientEntry->clientID, ConfigParams::ANDROID_EMULATOR,clientEntry);
+		broker.insertClientList(clientEntry->clientID,
+				ConfigParams::ANDROID_EMULATOR, clientEntry);
 		//add this agent to the list of the agents who are associated with a android emulator client
-		usedAgents.insert( *freeAgent);
+		usedAgents.insert(freeAgent->agent);
 		//tell the agent you are registered
-		freeAgent->second->setregistered(true);
+		freeAgent->comm->setregistered(true);
 		//publish an event to inform- interested parties- of the registration of a new android client
-		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,clientEntry));
+		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,
+				ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,
+						clientEntry));
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
-		Print() << "AndroidClient  Registered:" <<  std::endl;
+		Print() << "AndroidClient  Registered:" << std::endl;
 //		Print() << "Clinet Handler[" <<  clientEntry->cnnHandler << "]\n"
 //		<< "Clinet ID[" <<  clientEntry->cnnHandler->clientID << "]\n"
 //		<<  "Agent[" << clientEntry->agent->getId() << "][" << clientEntry->agent << "]\n"

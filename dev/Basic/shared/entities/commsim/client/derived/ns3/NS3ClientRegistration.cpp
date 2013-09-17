@@ -22,6 +22,11 @@ NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_*/)
 }
 
 bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request){
+
+	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
+		AgentsList::Mutex registered_agents_mutex;
+		AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
+		AgentsList::Lock lock(registered_agents_mutex);
 	//some checks to avoid calling this method unnecessarily
 	if(
 			broker.getClientWaitingList().empty()
@@ -73,18 +78,21 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
 
 		//send some initial configuration information to NS3
-
-		AgentsMap::type & agents = broker.getRegisteredAgents();
 		std::set<sim_mob::Entity *> keys;
-		AgentsMap::pair kv;
-		BOOST_FOREACH(kv, agents)
-		{
-			keys.insert(const_cast<sim_mob::Agent *>(kv.first));
+	{//multi-threaded section, need locking
+		AgentsList::Mutex mutex;
+		AgentsList::type & agents = broker.getRegisteredAgents(&mutex);
+		AgentsList::Lock lock(mutex);
+		//please mind the AgentInfo vs AgentsInfo
+		AgentInfo agent;
+		BOOST_FOREACH(agent, agents) {
+			keys.insert(agent.agent);
 		}
+	}
+	//no lock and const_cast at the cost of a lot of copying
 		AgentsInfo info;
 		info.insertInfo(AgentsInfo::ADD_AGENT, keys);
 		clientEntry->cnnHandler->send(info.toJson());//send synchronously
-
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
 		return true;

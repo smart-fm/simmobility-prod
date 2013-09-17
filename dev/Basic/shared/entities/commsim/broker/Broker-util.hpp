@@ -2,6 +2,7 @@
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -69,8 +70,12 @@ public:
 	typedef typename nth_index<ContainerType, 0>::type type;//this one is for public use
 	typedef typename type::iterator iterator;
 	typedef std::pair<Valids::iterator, Valids::iterator> valid_range;
+	typedef std::pair<Dones::iterator, Dones::iterator> done_range;
 	//the mutex used for this class
-	mutable boost::mutex mutex;
+	typedef typename  boost::recursive_mutex Mutex;
+	typedef typename boost::unique_lock<Mutex> Lock;
+	mutable Mutex mutex;
+
 
 	//	function to insert into the container (only checkes the unqueness of agent)
 	void insert(Agent * a, AgentCommUtilityBase * b, bool valid = true);
@@ -90,13 +95,17 @@ public:
 	//erase all elements whose value of 'valid' is set to false
 	void eraseInvalids();
 
-	//returns the container as if it is a vector of constant elements(to the best of my knowledge)
+	//returns the container . not safe if used/iterated without mutex
 	AgentsList::type &getAgents();
-
+	//returns the mutex used to operate on the container of this class. use it along with getAgents(()
+	//as it is dangerous to work without locking in a multithreaded environment
+	AgentsList::Mutex *getMutex();
+	//iterates safely through the valid agents executing the requested Function
 	void for_each_agent(boost::function<void(sim_mob::Agent*)> Fn);
 
 	//	given an agent's reference, returns a const version of a single element from the container.
 	const AgentInfo  &getAgentInfo(Agent * agent, bool &success);
+//	const AgentInfo  &getAgentInfo(const Agent * agent, bool &success)const;
 
 	//	given a reference to an agent's comm equipment, returns a const version of a single element from the container.
 	const AgentInfo  &getAgentInfo(AgentCommUtilityBase * comm, bool &success);
@@ -144,7 +153,7 @@ public:
 		//checks if an agent is done
 	bool isDone(AgentCommUtilityBase * comm);
 
-	valid_range getNotDone();
+	done_range getNotDone();
 
 	//internal use only(for setting an element to valid/invalid) yep, it is hectic
 	struct change_done

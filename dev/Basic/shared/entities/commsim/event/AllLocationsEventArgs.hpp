@@ -18,9 +18,11 @@ namespace sim_mob {
 
 DECLARE_CUSTOM_CALLBACK_TYPE(AllLocationsEventArgs)
 class AllLocationsEventArgs: public sim_mob::event::EventArgs {
-	sim_mob::AgentsMap::type  &registeredAgents;
+	sim_mob::AgentsList  &registered_Agents;
+
+	void TOJSON(sim_mob::Agent* agent,Json::Value &loc)const;
 public:
-	AllLocationsEventArgs(sim_mob::AgentsMap::type &registeredAgents_);
+	AllLocationsEventArgs(sim_mob::AgentsList &registered_Agents_);
 	Json::Value ToJSON()const;
 	virtual ~AllLocationsEventArgs();
 };

@@ -32,6 +32,7 @@ bool WaitForAndroidConnection::calculateWaitStatus() {
 //	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
 	if(cnt >= min_nof_clients)
 	{
+
 		setWaitStatus(false);
 	}
 	else{

@@ -19,10 +19,12 @@ WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker & broker_,uns
 }
 
 bool WaitForAgentRegistration::calculateWaitStatus() {
-	AgentsMap::type &registeredAgents = getBroker().getRegisteredAgents();
+	AgentsList::type &registeredAgents = getBroker().getRegisteredAgents();
+	int size = registeredAgents.size();
+//	AgentsList &registered_Agents = getBroker().getRegisteredAgents();
 	if(!started)
 	{
-		if(registeredAgents.size() >= min_start)
+		if(size >= min_start)
 		{
 			//no need to wait
 			setWaitStatus(false);
@@ -31,14 +33,14 @@ bool WaitForAgentRegistration::calculateWaitStatus() {
 		}
 		else
 		{
-			Print() << "min_start=>registeredAgents.size()= " << registeredAgents.size() << std::endl;
+			Print() << "min_start=>registeredAgents.size()= " << size << std::endl;
 			setWaitStatus(true);
 		}
 	}
 	else {//if already started
-		if(registeredAgents.size() < stop_threshold)
+		if(size < stop_threshold)
 		{
-			Print() << "min_stop=>registeredAgents.size()= " << registeredAgents.size() << std::endl;
+			Print() << "min_stop=>registeredAgents.size()= " << size << std::endl;
 			//you must wait
 			setWaitStatus(true);
 		}

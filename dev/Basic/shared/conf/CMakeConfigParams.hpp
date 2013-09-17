@@ -27,7 +27,7 @@ public:
 	bool MPI_Enabled() const;
 	bool MPI_Disabled() const;
 	//@}
-
+	bool PathSetMode() const;
 	//@{
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const;

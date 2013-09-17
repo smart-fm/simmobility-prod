@@ -784,8 +784,8 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	}
 
 	//Get the current median polyline distance
-	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
-	double totalPolyDist = zeroPoly.getMagnitude();
+	//DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
+	//double totalPolyDist = zeroPoly.getMagnitude();
 
 	//Get the ratio of distance moved over the current one.
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <set>
 #include <vector>
 #include <boost/noncopyable.hpp>
 
@@ -96,7 +97,7 @@ public:
 
 
 protected:
-    std::vector<BufferedBase*> managedData;
+    std::set<BufferedBase*> managedData;
 };
 
 

@@ -517,7 +517,8 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*> confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	//Using confluxes by reference as we remove items as and when we assign them to a worker
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){

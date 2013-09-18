@@ -35,7 +35,7 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
-
+#include "geospatial/PathSetManager.h"
 using namespace sim_mob;
 
 using std::max;
@@ -198,8 +198,17 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		vector<WayPoint> path = getParent()->getCurrPath();
 		if(path.empty()){
 			if (!getParent() || getParent()->specialStr.empty()) {
-				const StreetDirectory& stdir = StreetDirectory::instance();
-				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
+                // if use path set
+				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+					path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				}
+				else
+				{
+					const StreetDirectory& stdir = StreetDirectory::instance();
+					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				}
+				//const StreetDirectory& stdir = StreetDirectory::instance();
+				//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
 			}
 		}
 		//For now, empty paths aren't supported.

@@ -844,10 +844,15 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	//save travel time table name
 	if( ConfigManager::GetInstance().FullConfig().PathSetMode() )
 	{
-//		ConfigManager::GetInstance().FullConfig().travelTimeTmpTableName =
-//				ParseString(GetNamedAttributeValue(node, "pathset_travletime_save_table"),"");
+		DOMElement* rn = GetSingleElementByName(node, "pathset_travletime_save_table",true);
+		if (rn) {
 		cfg.system.simulation.travelTimeTmpTableName  =
-				ParseString(GetNamedAttributeValue(node, "pathset_travletime_save_table"),"aa");
+				ParseString(GetNamedAttributeValue(rn, "value"),"aa");
+		}
+		else
+		{
+			cfg.system.simulation.travelTimeTmpTableName = "no_name";
+		}
 //				ParseString(GetNamedAttributeValue(node, "database"), "");
 //		TiXmlElement* node_table_name = handle.FirstChild("pathset_travletime_save_table").ToElement();
 //		const char* node_table_name_char = node_table_name ? node_table_name->Attribute("value") : nullptr;

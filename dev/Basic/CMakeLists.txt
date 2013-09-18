@@ -232,7 +232,7 @@ option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including sta
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
 #Option: use path set mode flag
-option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" ON)
+option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
 
 #Option: enable confluxes
 option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 

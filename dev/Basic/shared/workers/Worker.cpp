@@ -238,6 +238,26 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 	}
 }
 
+void sim_mob::Worker::findBoundaryConfluxes() {
+	unsigned int boundaryCount = 0;
+	unsigned int multipleReceiverCount = 0;
+	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			(*it)->findBoundaryConfluxes();
+			if ( (*it)->isBoundary){
+				boundaryCount += 1;
+			}
+			if ( (*it)->isMultipleReceiver){
+				multipleReceiverCount += 1;
+			}
+		}
+	}
+
+	std::cout << "Worker::findBoundaryConfluxes | Worker: " << this << " |boundaryCount : "
+			<< boundaryCount << " |multipleReceiverCount: "<< multipleReceiverCount << std::endl;
+}
+
 void sim_mob::Worker::breedPendingEntities()
 {
 	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {

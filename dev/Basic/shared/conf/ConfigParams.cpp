@@ -456,3 +456,8 @@ const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 {
 	return confluxes;
 }
+
+std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
+{
+	return multinode_confluxes;
+}

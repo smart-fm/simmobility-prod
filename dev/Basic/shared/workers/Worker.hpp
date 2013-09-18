@@ -100,6 +100,8 @@ public:
 
 	virtual std::ostream* getLogFile() const;
 
+	void findBoundaryConfluxes();
+
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
 	struct MgmtParams {

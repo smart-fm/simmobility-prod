@@ -212,6 +212,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 
 	personWorkers->assignConfluxToWorkers();
+	personWorkers->findBoundaryConfluxes();
+
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,

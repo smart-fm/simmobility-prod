@@ -2070,6 +2070,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
+		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
 	sim_mob::Conflux* conflux = nullptr;
 
 	//Make a temporary map of road nodes-to-road segments
@@ -2119,6 +2121,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
+						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{

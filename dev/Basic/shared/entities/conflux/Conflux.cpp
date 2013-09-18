@@ -35,7 +35,8 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out)
+	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
+	  isBoundary(false), isMultipleReceiver(false)
 {
 }
 
@@ -340,6 +341,10 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
+/*	if(isMultipleReceiver){
+		boost::upgrade_lock<boost::shared_mutex> upLock(vq_mutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+	}*/
 	virtualQueuesMap.at(lnk).push_back(p);
 }
 
@@ -794,3 +799,35 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	return allPersonsInCfx;
 }
 
+void sim_mob::Conflux::findBoundaryConfluxes() {
+
+	sim_mob::Worker* firstUpstreamWorker = nullptr;
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
+						= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
+
+	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
+		const MultiNode* upnode = dynamic_cast<const MultiNode*> (i->first->getStart());
+
+		if(upnode){
+			std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::iterator cit = multinode_confluxes.find(upnode);
+
+			if (cit != multinode_confluxes.end()){
+				//check if upstream conflux belongs to another worker
+				if (cit->second->getParentWorker() != this->getParentWorker()){
+					if( !isBoundary){
+						isBoundary = true;
+						firstUpstreamWorker = cit->second->getParentWorker();
+					}
+					else{
+						if(cit->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker){
+							std::cout << "firstUpstreamWorker: "<< firstUpstreamWorker <<"|"<<cit->second->getParentWorker()<<"|"
+															<<this->getParentWorker()<<std::endl;
+							isMultipleReceiver = true;
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+}

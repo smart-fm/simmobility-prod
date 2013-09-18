@@ -513,13 +513,14 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*> confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
+	//confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	if(confluxes.size() > 0) {
 		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
 		//Assign these to the last worker which has all its upstream confluxes.
@@ -538,6 +539,7 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			// begin managing properties of the conflux
 			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
 		}
+		std::cout<< "Worker "<< (*iWorker) << " Conflux size: "<< (*iWorker)->managedConfluxes.size()<<std::endl;
 	}
 }
 
@@ -662,24 +664,12 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
 	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
 	 */
-/*	if(path.size() > 0) {
-		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-		 // you will get into.
-		if (role == "busdriver") {
-			if(path[0].type_ == WayPoint::ROAD_SEGMENT) {
-			rdSeg = path.at(0).roadSegment_;
-			}
-		}
-		else {
-			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-				rdSeg = path.at(1).roadSegment_;
-			}
-		}
-	}
-*/
+
 	if(path.size() > 0) {
-		//Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node
-		// BusDriver code, and pathSet code, generates only segment-list
+		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
+		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
+		 * the path until we find the first road segment.
+		 */
 		p->setCurrPath(path);
 		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
 			if (it->type_ == WayPoint::ROAD_SEGMENT) {
@@ -691,3 +681,8 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	return rdSeg;
 }
 
+void sim_mob::WorkGroup::findBoundaryConfluxes() {
+	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){
+		(*itw)->findBoundaryConfluxes();
+	}
+}

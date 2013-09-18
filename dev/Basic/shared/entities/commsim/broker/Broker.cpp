@@ -883,13 +883,13 @@ void Broker::waitForAgentsUpdates()
 	Print() << "Broker::waitForAgentsUpdates::locking mutex_agentDone" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	Print() << "0Broker::waitForAgentsUpdates::after locking" << std::endl;
-	refineSubscriptionList();
+//	refineSubscriptionList();
 	Print() << "1Broker::waitForAgentsUpdates::after locking" << std::endl;
 	while(!allAgentUpdatesDone()) {
 		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
 		COND_VAR_AGENT_DONE.wait(lock);
 		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
-		refineSubscriptionList();
+//		refineSubscriptionList();
 	}
 	Print() << "Broker::waitForAgentsUpdates::UNlocking mutex_agentDone" << std::endl;
 }

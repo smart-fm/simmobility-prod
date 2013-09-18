@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/ProtectedCopyable.hpp"
+#include <string>
 
 
 namespace sim_mob {

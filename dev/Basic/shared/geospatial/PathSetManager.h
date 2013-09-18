@@ -18,10 +18,12 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/PathSet/PathSetDB.h"
 #include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/Link.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/Person.hpp"
 #include "RoadNetwork.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 namespace sim_mob
 {
@@ -35,6 +37,7 @@ class ERP_Surcharge;
 class Link_travel_time;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
+class Link;
 
 enum TRIP_PURPOSE
 {
@@ -152,7 +155,7 @@ public:
 	unsigned long size();
 	std::string& getTravleTimeTmpTableName() { return pathset_traveltime_tmp_table_name; }
 	std::string& getTravleTimeRealtimeTableName() { return pathset_traveltime_realtime_table_name; }
-	void setTravleTimeTmpTableName(std::string& value);
+	void setTravleTimeTmpTableName(const std::string& value);
 	bool createTravelTimeTmpTable();
 	bool createTravelTimeRealtimeTable();
 	bool insertTravelTime2TmpTable(sim_mob::Link_travel_time& data);

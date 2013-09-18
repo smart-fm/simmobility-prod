@@ -341,6 +341,10 @@ const DailyTime& sim_mob::ConfigParams::simStartTime() const
 {
 	return system.simulation.simStartTime;
 }
+const std::string& sim_mob::ConfigParams::getTravelTimeTmpTableName() const
+{
+	return system.simulation.travelTimeTmpTableName;
+}
 
 std::string sim_mob::ConfigParams::busline_control_type() const
 {

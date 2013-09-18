@@ -373,6 +373,10 @@ LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 find_package(Boost COMPONENTS regex REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
+#Find boost-random
+find_package(Boost COMPONENTS random REQUIRED)
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
 #Find JsonCpp
 find_package(JsonCpp REQUIRED)
 include_directories(${JSONCPP_INCLUDE_DIR})

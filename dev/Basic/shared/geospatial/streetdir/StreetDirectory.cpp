@@ -30,11 +30,13 @@
 #include "geospatial/UniNode.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/signal/Signal.hpp"
 
 #include "entities/TrafficWatch.hpp"
 #include "A_StarShortestPathImpl.hpp"
+#include "AStarShortestTravelTimePathImpl.hpp"
 #include "GridStreetDirectoryImpl.hpp"
 
 
@@ -54,6 +56,10 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     }
     pimpl_ = new GridStreetDirectoryImpl(network, gridWidth, gridHeight);
     spImpl_ = new A_StarShortestPathImpl(network);
+    if(ConfigManager::GetInstance().FullConfig().PathSetMode())
+    {
+    	sttpImpl_ = new A_StarShortestTravelTimePathImpl(network,PathSetManager::getInstance()->getHighwayBias());
+    }
 
     //Save a cache of Nodes to Links
 	const std::vector<sim_mob::Link*>& links = network.getLinks();
@@ -122,6 +128,53 @@ StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const Node& 
 
 	return spImpl_->DrivingVertex(n);
 }
+StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingTimeVertex(const sim_mob::Node& n,sim_mob::TimeRange tr,int random_graph_idx) const
+{
+	if (!sttpImpl_) { return StreetDirectory::VertexDesc(false); }
+
+	if(tr == sim_mob::MorningPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexMorningPeak(n);
+	}
+	else if(tr == sim_mob::EveningPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexEveningPeak(n);
+	}
+	else if(tr == sim_mob::OffPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexNormalTime(n);
+	}
+	else if(tr == sim_mob::Default)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexNormalTime(n);
+	}
+	else if(tr == sim_mob::HighwayBias_Distance)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexHighwayBiasDistance(n);
+	}
+	else if(tr == sim_mob::HighwayBias_MorningPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexHighwayBiasMorningPeak(n);
+	}
+	else if(tr == sim_mob::HighwayBias_EveningPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexHighwayBiasEveningPeak(n);
+	}
+	else if(tr == sim_mob::HighwayBias_OffPeak)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexHighwayBiasNormalTIme(n);
+	}
+	else if(tr == sim_mob::HighwayBias_Default)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexHighwayBiasDefault(n);
+	}
+	else if(tr == sim_mob::Random)
+	{
+		return ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->DrivingVertexRandom(n,random_graph_idx);
+	}
+
+	return StreetDirectory::VertexDesc(false);
+}
 
 StreetDirectory::VertexDesc sim_mob::StreetDirectory::WalkingVertex(const Node& n) const
 {
@@ -151,7 +204,18 @@ vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(VertexDesc 
 
 	return spImpl_->GetShortestDrivingPath(from, to, blacklist);
 }
-
+std::vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingTimePath(VertexDesc from,
+		VertexDesc to,
+    		std::vector<const sim_mob::RoadSegment*> blacklist,
+    		sim_mob::TimeRange tr,
+    		int random_graph_idx) const
+{
+	if (!sttpImpl_) { return vector<WayPoint>(); }
+	std::vector<WayPoint> res;
+	res = ( (A_StarShortestTravelTimePathImpl *)sttpImpl_)->GetShortestDrivingPath(from, to, blacklist,tr,random_graph_idx);
+	return res;
+//	return sttpImpl_->GetShortestDrivingPath(from, to, blacklist);
+}
 vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }

@@ -14,6 +14,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include <cmath>
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 
 using std::vector;
 using std::string;
@@ -23,10 +24,11 @@ using namespace sim_mob;
 PathSetManager *sim_mob::PathSetManager::instance_;
 
 sim_mob::PathSetManager::PathSetManager() {
-//	myloader = new sim_mob::DatabaseLoader2(ConfigParams::GetInstance().connectionString);
+//	myloader = new sim_mob::DatabaseLoader2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString());
 //	pathPool = std::map<std::string,SinglePath*>();
 	stdir = &StreetDirectory::instance();
-	roadNetwork = &ConfigParams::GetInstance().getNetwork();
+//	roadNetwork = &ConfigParams::GetInstance().getNetwork();
+	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
 //	std::vector<sim_mob::MultiNode*> multiNodes = roadNetwork->getNodes();
 	multiNodesPool = roadNetwork->getNodes();
 //	std::set<sim_mob::UniNode*> uniNodes = roadNetwork->getUniNodes();
@@ -133,22 +135,22 @@ bool sim_mob::PathSetManager::LoadSinglePathDBwithId(
 		std::vector<sim_mob::SinglePath*>& spPool)
 {
 	bool res=false;
-//	DatabaseLoader2 loader = sim_mob::DatabaseLoader2(ConfigParams::GetInstance().connectionString);
+//	DatabaseLoader2 loader = sim_mob::DatabaseLoader2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString());
 //	res = myloader->LoadSinglePathDBwithId2(waypoint_singlepathPool,pathset_id,spPool);
-	res = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(ConfigParams::GetInstance().connectionString,
+	res = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			waypoint_singlepathPool,pathset_id,spPool);
 	return res;
 }
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 {
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
-			&ConfigParams::GetInstance().getTripChains();
+	const std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
+			&ConfigManager::GetInstance().FullConfig().getTripChains();
 	std::cout<<"generateAllPathSetWithTripChain: trip chain pool size "<<
 			tripChainPool->size()<<std::endl;
 	int poolsize = tripChainPool->size();
 	bool res=true;
 	// 1. get from and to node
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it;
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::const_iterator it;
 	int i=1;
 	for(it = tripChainPool->begin();it!=tripChainPool->end();++it)
 	{
@@ -164,14 +166,14 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 }
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 {
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
-			&ConfigParams::GetInstance().getTripChains();
+	const std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
+			&ConfigManager::GetInstance().FullConfig().getTripChains();
 	std::cout<<"generateAllPathSetWithTripChain: trip chain pool size "<<
 			tripChainPool->size()<<std::endl;
 	int poolsize = tripChainPool->size();
 	bool res=true;
 	// 1. get from and to node
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it;
+	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::const_iterator it;
 	int i=1;
 	for(it = tripChainPool->begin();it!=tripChainPool->end();++it)
 	{
@@ -246,7 +248,7 @@ void sim_mob::PathSetManager::storePath(sim_mob::SinglePath* singlePath)
 		// store to db
 		std::map<std::string,SinglePath*> tmp;
 		tmp.insert(std::make_pair(singlePath->id,singlePath));
-		sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigParams::GetInstance().connectionString,tmp);
+		sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),tmp);
 
 	// store in waypoint_singlepathPool
 		// do not computer waypoint_set here
@@ -281,7 +283,7 @@ unsigned long sim_mob::PathSetManager::size()
 
 	return size;
 }
-void sim_mob::PathSetManager::setTravleTimeTmpTableName(std::string& value)
+void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value)
 {
 	time_t t = time(0);   // get time now
 	struct tm * now = localtime( & t );
@@ -321,20 +323,20 @@ bool sim_mob::PathSetManager::createTravelTimeTmpTable()
 //	sql_  << ("CREATE TABLE "+table_name+" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
 	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
 	bool res=false;
-	res = sim_mob::aimsun::Loader::createTable(ConfigParams::GetInstance().connectionString,create_table_str);
+	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),create_table_str);
 	return res;
 }
 bool sim_mob::PathSetManager::createTravelTimeRealtimeTable()
 {
 	bool res=false;
 	std::string create_table_str = pathset_traveltime_realtime_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(ConfigParams::GetInstance().connectionString,create_table_str);
+	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),create_table_str);
 	return res;
 }
 bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::Link_travel_time& data)
 {
 	bool res=false;
-	if(ConfigParams::GetInstance().PathSetMode()){
+	if(ConfigManager::GetInstance().FullConfig().PathSetMode()){
 	 // get pointer to associated buffer object
 	  std::filebuf* pbuf = csvFile.rdbuf();
 
@@ -344,7 +346,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::Link_travel_tim
 	  if(size>50000000)//50mb
 	  {
 		  csvFile.close();
-		  sim_mob::aimsun::Loader::insertCSV2Table(ConfigParams::GetInstance().connectionString,
+		  sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 		  			pathset_traveltime_tmp_table_name,csvFileName);
 		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
 	  }
@@ -357,33 +359,33 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 	//0. copy csv to travel time table
 	csvFile.close();
 	std::cout<<"table name: "<<pathset_traveltime_tmp_table_name<<std::endl;
-	sim_mob::aimsun::Loader::insertCSV2Table(ConfigParams::GetInstance().connectionString,
+	sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			pathset_traveltime_tmp_table_name,csvFileName);
 	//1. truncate realtime table
 	bool res=false;
-	res = sim_mob::aimsun::Loader::truncateTable(ConfigParams::GetInstance().connectionString,
+	res = sim_mob::aimsun::Loader::truncateTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			pathset_traveltime_realtime_table_name);
 	if(!res)
 		return res;
 	//2. insert into "max_link_realtime_travel_time" (select * from "link_default_travel_time");
 	std::string str = "insert into " + pathset_traveltime_realtime_table_name +
 			"(select * from " + pathset_traveltime_tmp_table_name +")";
-	res = sim_mob::aimsun::Loader::excuString(ConfigParams::GetInstance().connectionString,str);
+	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),str);
 
 	return res;
 }
 void sim_mob::PathSetManager::getDataFromDB()
 {
-	setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
+	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
 	createTravelTimeTmpTable();
-//	sim_mob::aimsun::Loader::LoadPathSetData(ConfigParams::GetInstance().connectionString,pathPool,waypoint_singlepathPool,pathSetPool);
-	sim_mob::aimsun::Loader::LoadERPData(ConfigParams::GetInstance().connectionString,
+//	sim_mob::aimsun::Loader::LoadPathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),pathPool,waypoint_singlepathPool,pathSetPool);
+	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			ERP_Surcharge_pool,
 			ERP_Gantry_Zone_pool,
 			ERP_Section_pool);
-	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigParams::GetInstance().connectionString,
+	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			Link_default_travel_time_pool);
-	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigParams::GetInstance().connectionString,
+	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 			pathset_traveltime_realtime_table_name,
 			Link_realtime_travel_time_pool);
 	if(!res) // no realtime travel time table
@@ -410,7 +412,7 @@ void sim_mob::PathSetManager::saveDataToDB()
 //		sim_mob::SinglePathDB *data = sp->dbData;
 //	}
 
-//	sim_mob::aimsun::Loader::SavePathSetData(ConfigParams::GetInstance().connectionString,pathPool,pathSetPool);
+//	sim_mob::aimsun::Loader::SavePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),pathPool,pathSetPool);
 }
 std::map<std::string,sim_mob::PathSet*> sim_mob::PathSetManager::generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci)
 {
@@ -565,7 +567,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
-				ConfigParams::GetInstance().connectionString,
+				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 				ps_,mys);
 		if(ps_.has_path == -1) //no path
 		{
@@ -579,7 +581,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_.subTrip = st;
 				std::map<std::string,sim_mob::SinglePath*> id_sp;
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
-						ConfigParams::GetInstance().connectionString,
+						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 						id_sp,
 						mys,
 						ps_.pathChoices);
@@ -642,7 +644,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_.scenario = scenarioName;
 				std::map<std::string,sim_mob::PathSet* > tmp;
 				tmp.insert(std::make_pair(fromId_toId,&ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigParams::GetInstance().connectionString,tmp);
+				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),tmp);
 				return res;
 			}
 			//	std::cout<<"generatePathSetByFromToNodes0"<<std::endl;
@@ -703,7 +705,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 
 				std::map<std::string,sim_mob::PathSet* > tmp;
 				tmp.insert(std::make_pair(fromId_toId,&ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigParams::GetInstance().connectionString,tmp);
+				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),tmp);
 				//
 				bool r = getBestPathChoiceFromPathSet(ps_);
 				if(r)
@@ -1467,7 +1469,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	{
 //		sim_mob::PathSet ps_;
 //		bool hasPSinDB = sim_mob::aimsun::Loader::LoadPathSetDBwithId(
-//				ConfigParams::GetInstance().connectionString,
+//				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 //				ps_,mys);
 //		if(hasPSinDB)
 //		{
@@ -1476,7 +1478,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 //			{
 //				std::map<std::string,sim_mob::SinglePath*> id_sp;
 //				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
-//						ConfigParams::GetInstance().connectionString,
+//						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 //						id_sp,
 //						mys,
 //						ps_.pathChoices);
@@ -1492,7 +1494,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 		// check db
 	//	myloader->LoadSinglePathDBwithId2(waypoint_singlepathPool,mys);
 	//	bool res = myloader->LoadPathSetDBwithId(pathSetPool,mys);
-		bool res = sim_mob::aimsun::Loader::LoadPathSetDBwithId(ConfigParams::GetInstance().connectionString,
+		bool res = sim_mob::aimsun::Loader::LoadPathSetDBwithId(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),
 				pathSetPool,mys);
 		if(res)
 		{
@@ -1605,7 +1607,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	}
 	std::map<std::string,sim_mob::PathSet* > tmp;
 	tmp.insert(std::make_pair(fromId_toId,ps));
-	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigParams::GetInstance().connectionString,tmp);
+	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(),tmp);
 
 	return ps;
 }

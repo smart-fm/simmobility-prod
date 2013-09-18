@@ -99,6 +99,27 @@
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
+                
+                
+            <!-- The large Bugis-area network -->
+            <proc_map id="HITS" format="aimsun">
+                <mapping name="node" procedure="get_node_sg()"/>
+                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing_bugis()"/>
+                <mapping name="lane" procedure="get_lanes_bugis()"/>
+                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
+                <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
+                <mapping name="tripchain" procedure="get_hits_tripchains()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases_BUGIS()"/>
+		
+		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
+            </proc_map>
         </db_proc_groups>
 	
 	<!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -151,7 +172,7 @@
             <total_runtime      value="2"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="08:00:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -237,7 +258,7 @@
 	
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-	<network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="bugis_large"/>
+	<network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->

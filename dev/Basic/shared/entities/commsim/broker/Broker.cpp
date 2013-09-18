@@ -364,17 +364,18 @@ void  Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
 
 void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 {
-	Print() << "Broker::unRegisterEntity::locking mutex_clientList" << std::endl;
-	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	Print() << "0Broker::unRegisterEntity::--after lock"  << std::endl;
+	Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]" << std::endl;
 	//search agent's list looking for this agent
 //	registeredAgents.erase(agent); //hopefully the agent is there
 	REGISTERED_AGENTS.erase(agent);
-	Print() << "1Broker::unRegisterEntity::--after lock"  << std::endl;
+
 	//search the internal container also
 	duplicateEntityDoneChecker.erase(agent);
-	Print() << "2Broker::unRegisterEntity::--after lock"  << std::endl;
 
+	{
+		Print() << "agent[" << agent << "]" << "Broker::unRegisterEntity::locking mutex_clientList" << std::endl;
+		boost::unique_lock<boost::mutex> lock(mutex_clientList);
+		Print() << "agent[" << agent << "]" << "0Broker::unRegisterEntity::--after lock"  << std::endl;
 	//search registered clients list looking for this agent. whoever has it, dump him
 	for(ClientList::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
 	{
@@ -382,20 +383,20 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 			it_clientID(it_clientType->second.begin()),
 			it_clientID_end(it_clientType->second.end()),
 			it_erase;
-		Print() << "3Broker::unRegisterEntity::--after lock"  << std::endl;
+		Print() << "agent[" << agent << "]" << "3Broker::unRegisterEntity::--after lock"  << std::endl;
 
 		for(; it_clientID != it_clientID_end; )
 		{
 			if(it_clientID->second->agent == agent)
 			{
-				Print() << "4Broker::unRegisterEntity::--after lock"  << std::endl;
+				Print() << "agent[" << agent << "]" << "4Broker::unRegisterEntity::--after lock"  << std::endl;
 				it_erase = it_clientID++;
 				//unsubscribe from all publishers he is subscribed to
 				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
 				sim_mob::SIM_MOB_SERVICE srv;
 				BOOST_FOREACH(srv, clientHandler->requiredServices)
 				{
-					Print() << "5Broker::unRegisterEntity::--after lock"  << std::endl;
+					Print() << "agent[" << agent << "]" << "5Broker::unRegisterEntity::--after lock"  << std::endl;
 					switch(srv)
 					{
 					case SIMMOB_SRV_TIME:
@@ -409,7 +410,7 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 						break;
 					}
 				}
-				Print() << "6Broker::unRegisterEntity::--after lock"  << std::endl;
+				Print() << "agent[" << agent << "]" << "6Broker::unRegisterEntity::--after lock"  << std::endl;
 				//erase him from the list
 				//clientList.erase(it_erase);
 				//don't erase it here. it may already have something to send
@@ -424,13 +425,14 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 			}
 			else
 			{
-				Print() << "7Broker::unRegisterEntity::--after lock"  << std::endl;
+				Print() << "agent[" << agent << "]" << "7Broker::unRegisterEntity::--after lock"  << std::endl;
 				it_clientID++;
 			}
 		}//inner loop
 
 	}//outer loop
-	Print() << "Broker::unRegisterEntity::UNlocking mutex_clientList" << std::endl;
+	Print() << "agent[" << agent << "]" << "Broker::unRegisterEntity::UNlocking mutex_clientList" << std::endl;
+	}
 }
 
 void Broker::processIncomingData(timeslice now)
@@ -758,7 +760,7 @@ void Broker::refineSubscriptionList() {
 void Broker::refineSubscriptionList(sim_mob::Agent * target) {
 		//you or your worker are probably dead already. you just don't know it
 		if (!target->currWorkerProvider) {
-//			Print() << "1-refine subscription for agent ["  << target << "]" << std::endl;
+			Print() << "1-refine subscription for agent ["  << target << "]" << std::endl;
 			unRegisterEntity(target);
 			return;
 		}
@@ -766,7 +768,7 @@ void Broker::refineSubscriptionList(sim_mob::Agent * target) {
 		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{
-//			Print() << "2-refine subscription for agent ["  << target << "]" << std::endl;
+			Print() << "2-refine subscription for agent ["  << target << "]" << std::endl;
 			unRegisterEntity(target);
 			return;
 		}

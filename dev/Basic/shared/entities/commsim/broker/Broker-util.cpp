@@ -20,8 +20,9 @@ namespace sim_mob
 
 	//	erases an elment from the container given the agent's reference
 	void AgentsList::erase(Agent * agent) {
-		Print() << "AgentsList::erase(Agent locking" << std::endl;
+		Print() << "agent[" << agent << "]" << "AgentsList::erase(Agent locking" << std::endl;
 		Lock lock(mutex);
+		Print() << "agent[" << agent << "]" << "0AgentsList::erase(Agent --after lock" << std::endl;
 		Agents &agents = data.get<agent_tag>();
 		if(agents.find(agent) != agents.end())
 		{
@@ -30,18 +31,20 @@ namespace sim_mob
 		else{
 			Print() << "AgentsList::erase test:  agent[" << agent << "] NOT found for deletion" << std::endl;
 		}
+		Print() << "agent[" << agent << "]" << "1AgentsList::erase(Agent --after lock" << std::endl;
 
 		agents.erase(agent);
-		//debug
-		Agents &agents1 = data.get<agent_tag>();
-		if(agents1.find(agent) == agents1.end())
-		{
-			Print() << "AgentsList::erase test:  agent[" << agent << "] not found after deletion" << std::endl;
-		}
-		else{
-			Print() << "AgentsList::erase test:  agent[" << agent << "] FOUND after deletion" << std::endl;
-		}
-		Print() << "AgentsList::erase(Agent UNlocking" << std::endl;
+		Print() << "agent[" << agent << "]" << "2AgentsList::erase(Agent --after lock" << std::endl;
+//		//debug
+//		Agents &agents1 = data.get<agent_tag>();
+//		if(agents1.find(agent) == agents1.end())
+//		{
+//			Print() << "AgentsList::erase test:  agent[" << agent << "] not found after deletion" << std::endl;
+//		}
+//		else{
+//			Print() << "AgentsList::erase test:  agent[" << agent << "] FOUND after deletion" << std::endl;
+//		}
+		Print() << "agent[" << agent << "]" << "AgentsList::erase(Agent UNlocking" << std::endl;
 	}
 
 	//	erases an elment from the container given its communication equipment

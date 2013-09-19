@@ -108,9 +108,9 @@ std::pair<const BusStop*, double> calcNearestBusStop(const RoadSegment* rs, cons
 
 std::pair<const BusDriver*, double> calcNearestBusDriver(unsigned int myID, const DPoint& pos, double stoppingDist) {
 	std::pair<BusDriver*, double> res(nullptr, 0);
-	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+	for (std::set<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
 		//Retrieve only Bus Driver agents.
-		Person* p = dynamic_cast<Person*>(Agent::all_agents[i]);
+		Person* p = dynamic_cast<Person*>(*it);
 		BusDriver* bd = p ? dynamic_cast<BusDriver*>(p->getRole()) : nullptr;
 		if (!bd) {
 			continue;
@@ -764,9 +764,9 @@ void sim_mob::Pedestrian::updatePosition() {
 void sim_mob::Pedestrian::checkForCollisions() {
 	//For now, just check all agents and get the first positive collision. Very basic.
 	Agent* other = nullptr;
-	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+	for (std::set<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
 		//Skip self
-		other = dynamic_cast<Agent*> (Agent::all_agents[i]);
+		other = dynamic_cast<Agent*> (*it);
 		if (!other) {
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.

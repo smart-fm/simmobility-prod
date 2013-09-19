@@ -230,7 +230,11 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 
 		//Add it to our global list.
-		loader->entity_dest.push_back(ag);
+		if (loader->entity_dest.find(ag) != loader->entity_dest.end()) {
+			Warn() <<"Attempting to add duplicate entity (" <<ag <<") with ID: " <<ag->getId() <<"\n";
+			continue;
+		}
+		loader->entity_dest.insert(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
 		if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
@@ -255,7 +259,7 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 	for (vector<vector <Entity*> >::iterator outerIt=entToBeRemovedPerWorker.begin(); outerIt!=entToBeRemovedPerWorker.end(); outerIt++) {
 		for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
 			//For each Entity, find it in the list of all_agents and remove it.
-			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
+			std::set<Entity*>::iterator it2 = loader->entity_dest.find(*it);
 			if (it2!=loader->entity_dest.end()) {
 				loader->entity_dest.erase(it2);
 			}

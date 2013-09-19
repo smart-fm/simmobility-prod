@@ -71,15 +71,19 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 
 sim_mob::Worker::~Worker()
 {
-        //Clear all tracked entitites
-	while (!managedEntities.empty()) {
-		remEntity(managedEntities.front());
+	//Clear all tracked entitites
+	while (managedEntities.begin() != managedEntities.end()) {
+		remEntity(*managedEntities.begin());
 	}
+	/*while (!managedEntities.empty()) {
+		remEntity(managedEntities.front());
+	}*/
 
 	//Clear all tracked data
+	/*//NOTE: This is done by the base class!
 	while (!managedData.empty()) {
 		stopManaging(managedData[0]);
-	}
+	}*/
 
 	//Clear/write our Profile log data
 	safe_delete_item(profile);
@@ -88,21 +92,26 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::addEntity(Entity* entity)
 {
-	managedEntities.push_back(entity);
+	if (managedEntities.find(entity) != managedEntities.end()) {
+		Warn() <<"Entity (" <<entity <<") is already being managed, skipping: " <<entity->getId() <<"\n";
+		return;
+	}
+
+	managedEntities.insert(entity);
 }
 
 
 void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
-	std::vector<Entity*>::iterator it = std::find(managedEntities.begin(), managedEntities.end(), entity);
+	std::set<Entity*>::iterator it = managedEntities.find(entity);
 	if (it!=managedEntities.end()) {
 		managedEntities.erase(it);
 	}
 }
 
 
-const std::vector<Entity*>& sim_mob::Worker::getEntities() const
+const std::set<Entity*>& sim_mob::Worker::getEntities() const
 {
 	return managedEntities;
 }
@@ -420,7 +429,7 @@ struct ContainerDeleter {
 void sim_mob::Worker::migrateAllOut()
 {
 	while (!managedEntities.empty()) {
-		migrateOut(*managedEntities.back());
+		migrateOut(**managedEntities.begin());
 	}
 	for (std::set<Conflux*>::iterator cfxIt = managedConfluxes.begin(); cfxIt != managedConfluxes.end(); cfxIt++) {
 

@@ -6,6 +6,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <set>
 #include <vector>
 
 #include "buffering/Shared.hpp"
@@ -44,10 +45,10 @@ public:
 	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
-	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
+	static void InitializeAllControllers(std::set<sim_mob::Entity*>& agents_list, const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads (since those likely haven't been created yet).
-	static void DispatchAllControllers(std::vector<sim_mob::Entity*>& agents_list);
+	static void DispatchAllControllers(std::set<sim_mob::Entity*>& agents_list);
 
 public:
 	//May implement later

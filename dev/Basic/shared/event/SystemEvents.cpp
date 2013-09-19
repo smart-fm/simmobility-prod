@@ -24,6 +24,7 @@ AgentLifeCycleEventArgs::~AgentLifeCycleEventArgs() {
 AgentLifeCycleEventArgs& AgentLifeCycleEventArgs::operator=(const AgentLifeCycleEventArgs& source) {
     EventArgs::operator =(source);
     this->agentId = source.agentId;
+    return *this;
 }
 
 unsigned int AgentLifeCycleEventArgs::GetAgentId() const {

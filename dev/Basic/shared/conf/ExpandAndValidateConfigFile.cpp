@@ -69,13 +69,13 @@ void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>&
 //// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
 ////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
 ////
-void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
-		active_agents.push_back(p);
+		active_agents.insert(p);
 	} else {
 		//Start later.
 		pending_agents.push(p);
@@ -87,7 +87,7 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 } //End un-named namespace
 
 
-sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& result, std::vector<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(result), active_agents(active_agents), pending_agents(pending_agents)
+sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& result, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(result), active_agents(active_agents), pending_agents(pending_agents)
 {
 	ProcessConfig();
 }
@@ -195,7 +195,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	Signal* signal = all_signals.at(i);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS*>(signal)->loopDetector());
         loopDetector.init(*signal);
-        active_agents.push_back(&loopDetector);
+        active_agents.insert(&loopDetector);
     }
 }
 

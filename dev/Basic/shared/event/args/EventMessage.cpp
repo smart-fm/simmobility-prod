@@ -30,6 +30,7 @@ EventMessage& EventMessage::operator=(const EventMessage& source)
 	this->detention = source.detention;
 	this->recipients = source.recipients;
 	this->data = source.data;
+	return *this;
 }
 
 void EventMessage::SetEventId(EventId id) {

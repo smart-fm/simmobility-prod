@@ -7,6 +7,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/LatestStandard.h"
 
+#include <set>
 #include <vector>
 #include <stdexcept>
 
@@ -117,6 +118,16 @@ template <typename T>
 void clear_delete_vector(typename std::vector<T>& src) {
 	for (typename std::vector<T>::iterator it=src.begin(); it!=src.end(); it++) {
 		safe_delete_item(*it);
+	}
+	src.clear();
+}
+
+//Delete all items in a set, then clear that set. Works on value and pointer types.
+template <typename T>
+void clear_delete_vector(typename std::set<T>& src) {
+	for (typename std::set<T>::iterator it=src.begin(); it!=src.end(); it++) {
+		//NOTE: We can't use safe_delete_item here, since it will clear the pointer (which might rebalance the set).
+		if ((*it)) { delete *it; }
 	}
 	src.clear();
 }

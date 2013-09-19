@@ -56,7 +56,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 	sim_mob::SegmentStats* rdSegStats = segmentAgents.find(rdSeg)->second;
 	ag->setCurrSegment(rdSeg);
 	ag->setCurrLane(rdSegStats->laneInfinity);
-	ag->distanceToEndOfSegment = rdSeg->computeLaneZeroLength();
+	ag->distanceToEndOfSegment = rdSeg->getLaneZeroLength();
 	ag->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
@@ -156,7 +156,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 				/* This is typically the person who was not accepted by the next lane in the next segment.
 				 * We push this person back to the same virtual queue and let him update in the next tick.
 				 */
-				person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+				person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
 				segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 			}
 		}
@@ -186,7 +186,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			/* We wouldn't know which lane the person has to go to if the person wants to enter a link
 			 * which belongs to a conflux that is not processed for this tick yet.
 			 * We add this person to the virtual queue for that link here */
-			person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+			person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
 			segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 		}
 	}
@@ -356,7 +356,7 @@ double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment*
 	sim_mob::SegmentStats* segStats = findSegStats(seg);
 	double timeToReachEndOfLink = distanceToEndOfSeg * getSegmentSpeed(seg,true);
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator i = rdSegIt+1; i!=segments.end(); i++) {
-		timeToReachEndOfLink += (*i)->computeLaneZeroLength() * getSegmentSpeed((*i),true);
+		timeToReachEndOfLink += (*i)->getLaneZeroLength() * getSegmentSpeed((*i),true);
 	}
 	return timeToReachEndOfLink;
 }
@@ -632,7 +632,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
 					person->setCurrSegment(curSeg);
 					person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
-					person->distanceToEndOfSegment = curSeg->computeLaneZeroLength();
+					person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
 				}
 			}
 		}

@@ -371,25 +371,27 @@ bool sim_mob::Person::findPersonNextRole()
 
 bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 {
-	if(!((!currRole) ||(changeRoleRequired(*(*(this->currTripChainItem)))))) return false;
-		//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-		// it's better to avoid possible errors (e.g., if the equality operator is defined)
-		// by saving it until the next time tick.
-		safe_delete_item(prevRole);
-		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+	if(!((!currRole) ||(changeRoleRequired(*(*(this->currTripChainItem)))))) {
+		return false;
+	}
+	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
+	// it's better to avoid possible errors (e.g., if the equality operator is defined)
+	// by saving it until the next time tick.
+	safe_delete_item(prevRole);
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 //		prevRole = currRole;
 
-		const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 
-		const sim_mob::SubTrip* str = 0;
-		if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
-			str =  &(*currSubTrip);
+	const sim_mob::SubTrip* str = 0;
+	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
+		str =  &(*currSubTrip);
 
-		if(newRole == 0)
-			newRole = rf.createRole(tci, str, this);
+	if(newRole == 0)
+		newRole = rf.createRole(tci, str, this);
 
-		changeRole(newRole);
-		return true;
+	changeRole(newRole);
+	return true;
 }
 
 UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {

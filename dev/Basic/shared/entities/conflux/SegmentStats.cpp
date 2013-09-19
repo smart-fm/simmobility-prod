@@ -133,9 +133,9 @@ double SegmentStats::getDensity(bool hasVehicle) {
 		}
 		laneIt++;
 	}
-	movingLength = roadSegment->computeLaneZeroLength()*vehLaneCount - numQueueingInSegment(true)*vehicle_length;
+	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - numQueueingInSegment(true)*vehicle_length;
 	if(movingLength > 0) {
-		if (roadSegment->computeLaneZeroLength() > 10*vehicle_length) {
+		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
 		}
 		else {
@@ -392,7 +392,7 @@ void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed,
 	//laneParams = sim_mob::LaneParams();
 	int numLanes = lane->getRoadSegment()->getLanes().size();
 	if (numLanes > 0) {
-		double orig = (lane->getRoadSegment()->capacity)
+		double orig = (lane->getRoadSegment()->capacity)*50
 				/ (numLanes*3600.0);
 		laneParams->setOrigOutputFlowRate(orig);
 	}
@@ -577,7 +577,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick() {
 
 void SegmentStats::printAgents() {
 	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|length "
-			<< roadSegment->computeLaneZeroLength() << std::endl;
+			<< roadSegment->getLaneZeroLength() << std::endl;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();
 	}
@@ -589,7 +589,7 @@ void SegmentStats::printAgents() {
 bool SegmentStats::canAccommodate(VehicleType type) {
 	if (type == SegmentStats::car) {
 		int lengthOccupied = (numMovingInSegment(true) + numQueueingInSegment(true)) * 400; // This must change to count cars and buses separately.
-		int segLength = roadSegment->computeLaneZeroLength();
+		int segLength = roadSegment->getLaneZeroLength();
 		return (lengthOccupied <= segLength * numVehicleLanes);
 	}
 	else {
@@ -623,7 +623,7 @@ void LaneStats::verifyOrdering() {
 					<< "\nSegment: "
 					<< lane->getRoadSegment()->getStartEnd()
 					<< " length = "
-					<< lane->getRoadSegment()->computeLaneZeroLength()
+					<< lane->getRoadSegment()->getLaneZeroLength()
 					<< "\nLane: " << lane->getLaneID() << "\nCulprit Person: "
 					<< (*i)->getId();
 			debugMsgs << "\nAgents ";

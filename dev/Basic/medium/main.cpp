@@ -219,7 +219,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
 	 * they will be assigned a worker.
 	 */
-	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		// personWorkers->assignAWorker(*it);
 		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
@@ -325,8 +325,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
-		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
-				!= Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;

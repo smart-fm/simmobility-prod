@@ -24,7 +24,7 @@ void RStarAuraManager::update(int time_step)
 		return;
 	}
 
-	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
+	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* ag = dynamic_cast<Agent*>(*itr);
 		if ((!ag) || ag->isNonspatial()) {
 			continue;

@@ -42,7 +42,7 @@ bool sim_mob::BusController::HasBusControllers()
 	return !all_busctrllers_.empty();
 }
 
-void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_list, const vector<PT_bus_dispatch_freq>& busdispatch_freq)
+void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agents_list, const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	//Check: Do we have exactly one BusController?
 	if (all_busctrllers_.size()>1) {
@@ -60,11 +60,11 @@ void sim_mob::BusController::InitializeAllControllers(vector<Entity*>& agents_li
 }
 
 
-void sim_mob::BusController::DispatchAllControllers(vector<Entity*>& agents_list)
+void sim_mob::BusController::DispatchAllControllers(std::set<Entity*>& agents_list)
 {
 	//Push every item on the list into the agents array as an active agent
-	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
-		agents_list.push_back(*it);
+	for (std::vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+		agents_list.insert(*it);
 	}
 }
 

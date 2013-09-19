@@ -264,7 +264,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	communicationWorkers->initWorkers(nullptr);
 
 	//Anything in all_agents is starting on time 0, and should be added now.
-	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
 	}
 
@@ -451,8 +451,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
 		size_t numPassenger = 0;
-		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
-				!= Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;

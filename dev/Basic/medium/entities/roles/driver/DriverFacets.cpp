@@ -311,8 +311,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		setOutputCounter(currLane, (getOutputCounter(currLane)-1)); // decrement from the currLane before updating it
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
-
+		//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+		vehicle->setPositionInSegment(nextRdSeg->getLaneZeroLength());
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
 		setLastAccept(currLane, linkExitTimeSec);
 		res = advance(p);
@@ -352,7 +352,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		setOutputCounter(currLane, (getOutputCounter(currLane)-1));
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+		//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+		vehicle->setPositionInSegment(nextRdSeg->getLaneZeroLength());
 
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
 		//set Link Travel time for previous link
@@ -425,7 +426,8 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
 	}
 
-	double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
+	//double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
+	double max_allowed = (vehLaneCount * nextRdSeg->getLaneZeroLength()/vehicle->length);
 	return (total < max_allowed);
 }
 
@@ -512,7 +514,8 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 	//get current location
 	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane
 	double laneQueueLength = getQueueLength(currLane);
-	if (laneQueueLength > vehicle->getCurrLinkLaneZeroLength() )
+	//if (laneQueueLength > vehicle->getCurrLinkLaneZeroLength() )
+	if (laneQueueLength >  currLane->getRoadSegment()->getLaneZeroLength())
 	{
 		addToQueue(currLane);
 		p.elapsedSeconds = p.secondsInTick;
@@ -654,7 +657,8 @@ void DriverMovement::setLastAccept(const Lane* l, double lastAccept) {
 }
 
 void DriverMovement::updateFlow(const RoadSegment* rdSeg, double startPos, double endPos) {
-	double mid = rdSeg->computeLaneZeroLength()/2.0;
+	//double mid = rdSeg->computeLaneZeroLength()/2.0;
+	double mid = rdSeg->getLaneZeroLength()/2.0;
 	if (startPos >= mid && mid >= endPos){
 		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg);
 	}
@@ -687,7 +691,8 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		//set position to start
 		if(vehicle->getCurrSegment())
 		{
-			vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+			//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
+			vehicle->setPositionInSegment(vehicle->getCurrSegment()->getLaneZeroLength());
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
@@ -831,7 +836,6 @@ void DriverMovement::insertIncident(const RoadSegment* rdSeg, double newFlowRate
 		rdSeg->getParentConflux()->updateLaneParams((*it), newFlowRate);
 	}
 }
-
 
 void DriverMovement::removeIncident(const RoadSegment* rdSeg) {
 	const vector<Lane*> lanes = rdSeg->getLanes();

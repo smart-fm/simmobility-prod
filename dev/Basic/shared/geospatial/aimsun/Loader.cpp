@@ -2046,6 +2046,10 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		prof->logGenericEnd("PostProc", "main-prof");
 	}
 
+	//added by Melani - to compute lane zero lengths of road segments
+	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
+	}
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
@@ -2131,6 +2135,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				}
 			} // for
 		}
+		conflux->resetOutputBounds();
 		confluxes.insert(conflux);
 	}
 }

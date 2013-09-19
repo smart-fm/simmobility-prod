@@ -40,7 +40,7 @@ public:
 
 	virtual void scheduleForBred(Entity* entity) = 0;
 
-	virtual const std::vector<Entity*>& getEntities() const = 0;
+	virtual const std::set<Entity*>& getEntities() const = 0;
 };
 
 
@@ -89,7 +89,7 @@ public:
 	virtual ~Worker();
 
 	//Removing entities and scheduling them for removal is allowed (but adding is restricted).
-	const std::vector<Entity*>& getEntities() const;
+	const std::set<Entity*>& getEntities() const;
 	void remEntity(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
@@ -189,7 +189,7 @@ private:
 	MgmtParams loop_params;
 
 	///Entities managed by this worker
-	std::vector<Entity*> managedEntities;
+	std::set<Entity*> managedEntities;
 	std::set<Conflux*> managedConfluxes;
 
 	///If non-null, used for profiling.

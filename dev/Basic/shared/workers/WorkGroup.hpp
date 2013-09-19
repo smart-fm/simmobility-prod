@@ -6,6 +6,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <set>
 #include <list>
 #include <queue>
 #include <vector>
@@ -68,8 +69,8 @@ public:
 	//Migration parameters
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
-		std::vector<Entity*>& entity_dest;
-		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
+		std::set<Entity*>& entity_dest;
+		EntityLoadParams(StartTimePriorityQueue& pending_source, std::set<Entity*>& entity_dest)
 					: pending_source(pending_source), entity_dest(entity_dest) {}
 	};
 

@@ -784,8 +784,8 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	}
 
 	//Get the current median polyline distance
-	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
-	double totalPolyDist = zeroPoly.getMagnitude();
+	//DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
+	//double totalPolyDist = zeroPoly.getMagnitude();
 
 	//Get the ratio of distance moved over the current one.
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();
@@ -933,7 +933,7 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 
-	if (inIntersection)
+/*	if (inIntersection)
 	{
 		throw std::runtime_error("Calling \"advance\" within an Intersection. Shouldn't be here..! ");
 		return;
@@ -946,13 +946,13 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 		//Print the distance from the next Node
 		Point2D myPos(getPosition().x, getPosition().y);
 		DebugStream << "  " << Fmt_M(distToEndSegment) << ",";
-	}
+	}*/
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
 	throwIf(isDoneWithEntireRoute(), "advance_med::Entire path is already done.");
 
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
-	double res = 0.0;
+	//double res = 0.0;
 	distToEndSegment -= fwdDistance;
 
 	distToEndSegment = std::max(distToEndSegment, 0.0);	//fwdDistance already takes this account. Just to make sure this doesn't fall below zero.
@@ -985,9 +985,9 @@ void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir_med()
 	currSegmentIt++;
 
 	//Reset our distance; calculate the total lane-zero distance of this segment.
-	distMovedInCurrSegment = 0;
-	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
-	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
+//	distMovedInCurrSegment = 0;
+//	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+//	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
 	if (currSegmentIt == fullPath.end())
 	{

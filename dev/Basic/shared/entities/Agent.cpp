@@ -40,9 +40,9 @@ using std::vector;
 using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
-vector<Entity*> sim_mob::Agent::all_agents;
-EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
-vector<Entity*> sim_mob::Agent::agents_on_event;
+std::set<Entity*> sim_mob::Agent::all_agents;
+//EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
+//vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
 bool sim_mob::cmp_agent_start::operator()(const Agent* x,

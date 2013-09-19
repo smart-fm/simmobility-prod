@@ -23,7 +23,7 @@ void sim_mob::RDUAuraManager::update(int time_step)
 {
 //	std::cout << "S:" << std::endl;
 
-	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
+	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);
 		if ((!an_agent) || an_agent->isNonspatial()) {
 			continue;

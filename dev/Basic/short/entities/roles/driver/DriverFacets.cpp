@@ -1150,7 +1150,17 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 
 			if(subTrip->schedule==nullptr){
-				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+//				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				// if use path set
+				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+					path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				}
+				else
+				{
+					const StreetDirectory& stdir = StreetDirectory::instance();
+					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				}
+
 			}
 			else {
 				std::vector<Node*>& routes = subTrip->schedule->routes;

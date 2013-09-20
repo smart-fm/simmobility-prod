@@ -212,6 +212,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 
 	personWorkers->assignConfluxToWorkers();
+//	personWorkers->findBoundaryConfluxes();
+
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
@@ -465,7 +467,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	Print() << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 
 	return returnVal;
 }

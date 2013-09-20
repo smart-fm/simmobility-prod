@@ -85,6 +85,16 @@ public:
 	void putAgentOnConflux(Agent* ag);
 	void processVirtualQueues();
 	void outputSupplyStats();
+	/*
+	 * This function will check for
+	 * 1. Confluxes that have upstream Confluxes assigned to a different worker
+	 * 2. Confluxes that receive persons from multiple workers. i.e. a conflux
+	 * with immediate upstream confluxes that belong to multiple workers. This condition will occur only
+	 * when there are three or more person workers
+	 *
+	 * If the conditions are met, it will set isBoundary and isMultipleReceiver for the respective confluxes
+	 */
+	void findBoundaryConfluxes();
 
 private:
 	void clear();
@@ -141,7 +151,6 @@ private:
 	void initializeBarriers(sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr);
 
 	bool assignConfluxToWorkerRecursive(sim_mob::Conflux* conflux, sim_mob::Worker* worker, int numConfluxesInWorker);
-
 
 private:
 	//The "number" of this WorkGroup. E.g., the first one created is 0, the second is 1, etc. Used ONLY for generating Log files; DON'T use this as an ID.

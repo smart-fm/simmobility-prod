@@ -405,7 +405,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	//Retrieve a rowset for this set of trip chains.
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-//	std::cout << " Found "
+
 	//Execute as a rowset to avoid repeatedly building the query.
 	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//The following are set regardless.
@@ -2046,6 +2046,10 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		prof->logGenericEnd("PostProc", "main-prof");
 	}
 
+	//added by Melani - to compute lane zero lengths of road segments
+	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
+	}
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
@@ -2070,6 +2074,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
+		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
 	sim_mob::Conflux* conflux = nullptr;
 
 	//Make a temporary map of road nodes-to-road segments
@@ -2119,6 +2125,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
+						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
@@ -2128,6 +2135,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				}
 			} // for
 		}
+		conflux->resetOutputBounds();
 		confluxes.insert(conflux);
 	}
 }

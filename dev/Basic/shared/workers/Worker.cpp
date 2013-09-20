@@ -243,8 +243,29 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			(*it)->reportLinkTravelTimes(currTime);
 			(*it)->resetSegmentFlows();
 			(*it)->resetLinkTravelTimes(currTime);
+			(*it)->resetOutputBounds();
 		}
 	}
+}
+
+void sim_mob::Worker::findBoundaryConfluxes() {
+	unsigned int boundaryCount = 0;
+	unsigned int multipleReceiverCount = 0;
+	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			(*it)->findBoundaryConfluxes();
+			if ( (*it)->isBoundary){
+				boundaryCount += 1;
+			}
+			if ( (*it)->isMultipleReceiver){
+				multipleReceiverCount += 1;
+			}
+		}
+	}
+
+	std::cout << "Worker::findBoundaryConfluxes | Worker: " << this << " |boundaryCount : "
+			<< boundaryCount << " |multipleReceiverCount: "<< multipleReceiverCount << std::endl;
 }
 
 void sim_mob::Worker::breedPendingEntities()
@@ -528,9 +549,9 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
 	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+	/*	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->resetOutputBounds();
-		}
+		}*/
 
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));

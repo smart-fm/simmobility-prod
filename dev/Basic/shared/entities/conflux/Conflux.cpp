@@ -35,7 +35,8 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out)
+	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
+	  isBoundary(false), isMultipleReceiver(false)
 {
 }
 
@@ -55,7 +56,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment*
 	sim_mob::SegmentStats* rdSegStats = segmentAgents.find(rdSeg)->second;
 	ag->setCurrSegment(rdSeg);
 	ag->setCurrLane(rdSegStats->laneInfinity);
-	ag->distanceToEndOfSegment = rdSeg->computeLaneZeroLength();
+	ag->distanceToEndOfSegment = rdSeg->getLaneZeroLength();
 	ag->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	rdSegStats->addAgent(rdSegStats->laneInfinity, ag);
 }
@@ -155,7 +156,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 				/* This is typically the person who was not accepted by the next lane in the next segment.
 				 * We push this person back to the same virtual queue and let him update in the next tick.
 				 */
-				person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+				person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
 				segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 			}
 		}
@@ -185,7 +186,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			/* We wouldn't know which lane the person has to go to if the person wants to enter a link
 			 * which belongs to a conflux that is not processed for this tick yet.
 			 * We add this person to the virtual queue for that link here */
-			person->distanceToEndOfSegment = segAfterUpdate->computeLaneZeroLength();
+			person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
 			segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 		}
 	}
@@ -340,6 +341,10 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
+/*	if(isMultipleReceiver){
+		boost::upgrade_lock<boost::shared_mutex> upLock(vq_mutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
+	}*/
 	virtualQueuesMap.at(lnk).push_back(p);
 }
 
@@ -351,7 +356,7 @@ double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment*
 	sim_mob::SegmentStats* segStats = findSegStats(seg);
 	double timeToReachEndOfLink = distanceToEndOfSeg * getSegmentSpeed(seg,true);
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator i = rdSegIt+1; i!=segments.end(); i++) {
-		timeToReachEndOfLink += (*i)->computeLaneZeroLength() * getSegmentSpeed((*i),true);
+		timeToReachEndOfLink += (*i)->getLaneZeroLength() * getSegmentSpeed((*i),true);
 	}
 	return timeToReachEndOfLink;
 }
@@ -512,11 +517,14 @@ void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
 }
 
 sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment* rdSeg) {
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.find(rdSeg);
-	if(it == segmentAgents.end()){ // if not found, search in downstreamSegments
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it;
+	if(rdSeg->getParentConflux() == this){
+		it = segmentAgents.find(rdSeg);
+		return it->second;
+	}
+	else{ // if not found, search in downstreamSegments
 		return rdSeg->getParentConflux()->findSegStats(rdSeg);
 	}
-	return it->second;
 }
 
 void sim_mob::Conflux::setTravelTimes(Person* ag, double linkExitTime) {
@@ -627,7 +635,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
 					person->setCurrSegment(curSeg);
 					person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
-					person->distanceToEndOfSegment = curSeg->computeLaneZeroLength();
+					person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
 				}
 			}
 		}
@@ -794,3 +802,33 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	return allPersonsInCfx;
 }
 
+void sim_mob::Conflux::findBoundaryConfluxes() {
+
+	sim_mob::Worker* firstUpstreamWorker = nullptr;
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
+						= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
+
+	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
+		const MultiNode* upnode = dynamic_cast<const MultiNode*> (i->first->getStart());
+
+		if(upnode){
+			std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::iterator cit = multinode_confluxes.find(upnode);
+
+			if (cit != multinode_confluxes.end()){
+				//check if upstream conflux belongs to another worker
+				if (cit->second->getParentWorker() != this->getParentWorker()){
+					if( !isBoundary){
+						isBoundary = true;
+						firstUpstreamWorker = cit->second->getParentWorker();
+					}
+					else{
+						if(cit->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker){
+							isMultipleReceiver = true;
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+}

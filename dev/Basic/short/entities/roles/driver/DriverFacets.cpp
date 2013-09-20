@@ -300,6 +300,9 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	if (parentDriver->vehicle->isDone()) {
 		return;
 	}
+	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
+		return;
+	}
 
 	double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
 

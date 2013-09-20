@@ -263,6 +263,11 @@ public:
 	void resetOutputBounds();
 
 	std::deque<sim_mob::Person*> getAllPersons();
+
+	void findBoundaryConfluxes();
+
+	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
+	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers
 };
 
 } /* namespace sim_mob */

@@ -206,6 +206,8 @@ public:
 	std::set<sim_mob::Conflux*>& getConfluxes();
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+
 private:
 	ConfigParams();
 
@@ -234,7 +236,7 @@ private:
 
 	//Confluxes in this network
 	std::set<sim_mob::Conflux*> confluxes;
-
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////

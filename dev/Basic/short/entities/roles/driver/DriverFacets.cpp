@@ -378,6 +378,7 @@ bool sim_mob::DriverMovement::update_sensors(DriverUpdateParams& params, timesli
 	}
 
 
+	std::cout << "params:" << std::endl;
 	updateNearbyAgents(params);
 
 
@@ -1698,7 +1699,7 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	if (this->parent->connector_to_Sim_Tree != NULL)
 	{
                 if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
-		nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
+                	nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
 				this->parent->connector_to_Sim_Tree);
                 else
                 {
@@ -1712,6 +1713,8 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	}
 
 	sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
+
+	std::cout << "nearby_agents size:" << nearby_agents.size() << std::endl;
 #endif
 	//Update each nearby Pedestrian/Driver
 

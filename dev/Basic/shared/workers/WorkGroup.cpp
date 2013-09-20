@@ -244,6 +244,9 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
+
+		//Cannot remove, used for Sim-Tree
+		AuraManager::instance().registerNewAgent(ag);
 	}
 }
 

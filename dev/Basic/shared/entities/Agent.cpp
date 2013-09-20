@@ -123,6 +123,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 		profile->logAgentCreated(*this);
 	}
 
+	connector_to_Sim_Tree = NULL;
 }
 
 sim_mob::Agent::~Agent() {

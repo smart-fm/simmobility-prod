@@ -241,8 +241,12 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
-			(*it)->resetSegmentFlows();
 			(*it)->resetLinkTravelTimes(currTime);
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				(*it)->reportRdSegTravelTimes(currTime);
+				(*it)->resetRdSegTravelTimes(currTime);
+			}
+			(*it)->resetSegmentFlows();
 		}
 	}
 }

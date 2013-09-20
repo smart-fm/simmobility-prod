@@ -24,6 +24,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/PathSetManager.h"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
@@ -642,25 +643,30 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 
 	vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
-	if (role == "driver") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
+
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		path = PathSetManager::getInstance()->getPathByPerson(p);
 	}
-	else if (role == "pedestrian") {
-		const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-		path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
-	}
-	else if (role == "busdriver") {
-		//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
-		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
-		vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
-		std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-		std::vector<const RoadSegment*>::iterator itor;
-		for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
-			path.push_back(WayPoint(*itor));
+	else{
+		if (role == "driver") {
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
+		}
+		else if (role == "pedestrian") {
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
+		}
+		else if (role == "busdriver") {
+			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
+			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
+			vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
+			std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
+			std::vector<const RoadSegment*>::iterator itor;
+			for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
+				path.push_back(WayPoint(*itor));
+			}
 		}
 	}
-
 	/*
 	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
 	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.

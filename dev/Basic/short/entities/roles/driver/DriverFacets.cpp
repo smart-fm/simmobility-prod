@@ -439,12 +439,12 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 		double actualTime = params.elapsedSeconds + (params.now.ms()/1000.0);
 		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
 		Agent* parentAgent = parentDriver->getDriverParent(parentDriver);
-		if(prevLink == parentAgent->getTravelStats().link_){
-			parentAgent->addToTravelStatsMap(parentAgent->getTravelStats(), actualTime); //in seconds
+		if(prevLink == parentAgent->getLinkTravelStats().link_){
+			parentAgent->addToLinkTravelStatsMap(parentAgent->getLinkTravelStats(), actualTime); //in seconds
 			//prevSeg->getParentConflux()->setTravelTimes(parentAgent, linkExitTimeSec);
 		}
 		//creating a new entry in agent's travelStats for the new link, with entry time
-		parentAgent->initTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
+		parentAgent->initLinkTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
 	}
 
 	return true;

@@ -112,7 +112,8 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr), travelStatsMap(mtxStrat)
+	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), profile(nullptr), linkTravelStatsMap(mtxStrat),
+	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
@@ -316,13 +317,13 @@ void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg) {
 	currSegment = rdSeg;
 }
 
-void sim_mob::Agent::initTravelStats(const Link* link, double entryTime) {
-	currTravelStats.link_ = link;
-	currTravelStats.linkEntryTime_ = entryTime;
+void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {
+	currLinkTravelStats.link_ = link;
+	currLinkTravelStats.linkEntryTime_ = entryTime;
 }
 
-void sim_mob::Agent::addToTravelStatsMap(travelStats ts, double exitTime){
-	std::map<double, travelStats>& travelMap = travelStatsMap.getRW();
+void sim_mob::Agent::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime){
+	std::map<double, linkTravelStats>& travelMap = linkTravelStatsMap.getRW();
 	travelMap.insert(std::make_pair(exitTime, ts));
 }
 
@@ -337,6 +338,15 @@ void sim_mob::Agent::OnEvent(EventId eventId, EventPublisher* sender, const Even
 void sim_mob::Agent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args){
 }
 
+void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {
+	currRdSegTravelStats.rdSeg_ = rdSeg;
+	currRdSegTravelStats.rdSegEntryTime_ = entryTime;
+}
+
+void sim_mob::Agent::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime){
+	std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
+	travelMap.insert(std::make_pair(exitTime, ts));
+}
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent::getOwnRandomNumber() {

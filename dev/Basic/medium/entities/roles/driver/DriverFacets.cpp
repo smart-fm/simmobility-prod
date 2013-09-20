@@ -25,6 +25,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/PathSetManager.h"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "logging/Log.hpp"
@@ -324,6 +325,20 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
 		setLastAccept(currLane, linkExitTimeSec);
+
+		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+			//======= update road segment travel times ==========================
+			const RoadSegment* prevSeg = vehicle->getPrevSegment(true);	//previous segment is in the same link
+			if(prevSeg){
+				//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
+				if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
+					getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
+					prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+				}
+				//creating a new entry in agent's travelStats for the new road segment, with entry time
+				getParent()->initRdSegTravelStats(vehicle->getCurrSegment(), linkExitTimeSec);
+			}
+		}
 		res = advance(p);
 	}
 	else{
@@ -368,13 +383,26 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 		if (prevSeg) {
 			const Link* prevLink = prevSeg->getLink();
-			//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
-			if(prevLink == getParent()->getTravelStats().link_){
-				getParent()->addToTravelStatsMap(getParent()->getTravelStats(), linkExitTimeSec); //in seconds
-				prevSeg->getParentConflux()->setTravelTimes(getParent(), linkExitTimeSec);
+			//if prevLink is already in travelStats, update it's linkTT and add to linkTravelStatsMap
+			if(prevLink == getParent()->getLinkTravelStats().link_){
+				getParent()->addToLinkTravelStatsMap(getParent()->getLinkTravelStats(), linkExitTimeSec); //in seconds
+				prevSeg->getParentConflux()->setLinkTravelTimes(getParent(), linkExitTimeSec);
 			}
 			//creating a new entry in agent's travelStats for the new link, with entry time
-			getParent()->initTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
+			getParent()->initLinkTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
+
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				//======= update road segment travel times ==========================
+
+				//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
+				if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
+					getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
+					prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+				}
+				//creating a new entry in agent's travelStats for the new road segment, with entry time
+				getParent()->initRdSegTravelStats(vehicle->getCurrSegment(), linkExitTimeSec);
+			}
+
 		}
 		setLastAccept(currLane, linkExitTimeSec);
 		setParentData(p);
@@ -700,7 +728,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		}
 		currLane = nextLaneInNextSegment;
 		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
-		getParent()->initTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
+		getParent()->initLinkTravelStats(vehicle->getCurrSegment()->getLink(), actualT);
 
 		setLastAccept(currLane, actualT);
 		setParentData(p);

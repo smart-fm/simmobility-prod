@@ -996,6 +996,8 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 
 void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
 {
+	if (!node) { return; }
+
 	//The commsim config has an attribute and a child node.
 	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 

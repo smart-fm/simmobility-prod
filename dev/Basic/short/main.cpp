@@ -352,6 +352,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			}
 		}
 
+//		std::cout << "Time:" << currTick << std::endl;
+
 		//xuyan:measure simulation time
 		if (currTick == 600 * 5 + 1)
 		{ // mins

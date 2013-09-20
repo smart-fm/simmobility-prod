@@ -133,13 +133,15 @@ double SegmentStats::getDensity(bool hasVehicle) {
 		}
 		laneIt++;
 	}
-	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - numQueueingInSegment(true)*vehicle_length;
+
+	unsigned int queueCount = numQueueingInSegment(true);
+	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - queueCount*vehicle_length;
 	if(movingLength > 0) {
 		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
 		}
 		else {
-			density = numQueueingInSegment(true)/(movingLength/100.0);
+			density = queueCount/(movingLength/100.0);
 		}
 	}
 	else {

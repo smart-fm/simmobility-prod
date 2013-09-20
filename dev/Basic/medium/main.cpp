@@ -212,7 +212,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 
 	personWorkers->assignConfluxToWorkers();
-	personWorkers->findBoundaryConfluxes();
+//	personWorkers->findBoundaryConfluxes();
 
 
 	//Anything in all_agents is starting on time 0, and should be added now.

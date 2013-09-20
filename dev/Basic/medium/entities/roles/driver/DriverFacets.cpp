@@ -796,8 +796,9 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
 			}
 			laneGroup.push_back(*i);
-			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
-			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
+			std::pair<unsigned int, unsigned int> counts = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i); //<Q,M>
+			que = counts.first;
+			total = que + counts.second;
 
 			if (minAllAgents > total){
 				minAllAgents = total;
@@ -808,8 +809,9 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 
 	//getBestLane logic
 	for (i = laneGroup.begin(); i != laneGroup.end(); ++i){
-			que = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).first;
-			total = que + vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i).second;
+		std::pair<unsigned int, unsigned int> counts = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i); //<Q, M>
+			que = counts.first;
+			total = que + counts.second;
 			if (minAllAgents == total){
 				if (minQueueLength > que){
 					minQueueLength = que;

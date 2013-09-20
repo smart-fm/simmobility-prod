@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Message.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,18 +10,35 @@
  */
 
 #include "Message.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob::messaging;
 
-sim_mob::messaging::Message::Message() {
+Message::Message() : priority(5), sender(NULL) {
 }
 
-sim_mob::messaging::Message::Message(const sim_mob::messaging::Message& source) {
+Message::Message(const Message& source) {
+    this->priority = source.priority;
+    this->sender = source.sender;
 }
 
-sim_mob::messaging::Message::~Message() {
+Message::~Message() {
 }
 
-sim_mob::messaging::Message& sim_mob::messaging::Message::operator=(const sim_mob::messaging::Message& source) {
+Message& Message::operator=(const Message& source) {
+    this->priority = source.priority;
+    this->sender = source.sender;
     return *this;
+}
+
+int Message::GetPriority() const {
+    return priority;
+}
+
+MessageHandler* Message::GetSender() const {
+    return sender;
+}
+
+void Message::SetSender(MessageHandler* sender) {
+    this->sender = sender;
 }

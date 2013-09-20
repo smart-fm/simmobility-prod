@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   LT_Agent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -9,10 +11,9 @@
 #pragma once
 #include "Common.hpp"
 #include "entities/UpdateParams.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "event/EventManager.hpp"
-#include "message/MessageReceiver.hpp"
+#include "message/MessageHandler.hpp"
 
 namespace sim_mob {
 
@@ -26,7 +27,7 @@ namespace sim_mob {
          * - Both
          * It will depend of the context.
          */
-        class LT_Agent : public sim_mob::Agent, public messaging::MessageReceiver {
+        class LT_Agent : public sim_mob::Agent{
         public:
             LT_Agent(int id);
             virtual ~LT_Agent();
@@ -35,12 +36,6 @@ namespace sim_mob {
              * Inherited from Agent.
              */
             virtual void load(const std::map<std::string, std::string>& configProps);
-
-            /**
-             * Gets the EventManager reference from worker parent.
-             * @return EventManager reference. 
-             */
-            sim_mob::event::EventManager& GetEventManager();
 
         protected:
 
@@ -63,11 +58,9 @@ namespace sim_mob {
              * N- indicates that (N+1) message were loaded in this tick.  
              * 
              * @param now time.
-             * @param messageCounter has the counter.
              * @return update status.
              */
-            virtual sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now,
-                    int messageCounter) = 0;
+            virtual sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now) = 0;
 
             /**
              * Handler for frame_output method from agent.
@@ -78,8 +71,8 @@ namespace sim_mob {
             /**
              * Inherited from MessageReceiver.
              */
-            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
-                    messaging::MessageReceiver& sender, const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type,
+                const messaging::Message& message);
 
             /**
              * Inherited from Agent.
@@ -88,6 +81,7 @@ namespace sim_mob {
             sim_mob::Entity::UpdateStatus frame_tick(timeslice now);
             void frame_output(timeslice now);
             bool isNonspatial();    
+            bool isRegistered;
         };
     }
 }

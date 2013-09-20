@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
  * \file ActivityPerformer.hpp
@@ -18,7 +20,6 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "ActivityFacets.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Node.hpp"
 
@@ -98,6 +99,7 @@ private:
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil) = 0;
@@ -106,6 +108,7 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) = 0;
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
+
 
 	friend class ActivityPerformerBehavior;
 	friend class ActivityPerformerMovement;

@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * BoundaryProcessor.cpp
  *
@@ -17,7 +21,6 @@
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
 #include "logging/Log.hpp"
-#include "conf/simpleconf.hpp"
 #include "workers/WorkGroup.hpp"
 
 #include "partitions/PartitionManager.hpp"

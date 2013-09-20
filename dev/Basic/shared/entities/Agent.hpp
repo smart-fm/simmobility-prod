@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <set>
 #include <queue>
 #include <vector>
 #include <functional>
@@ -13,15 +14,14 @@
 #include "conf/settings/DisableMPI.h"
 
 #include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/random.hpp>
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
 #include "entities/PendingEvent.hpp"
-#include "event/args/EventArgs.hpp"
-#include "event/EventPublisher.hpp"
 #include "logging/NullableOutputStream.hpp"
-
+#include "event/EventListener.hpp"
 
 namespace sim_mob {
 
@@ -54,23 +54,6 @@ class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Ag
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
-
-DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeEventArgs)
-class AgentLifeEventArgs: public event::EventArgs {
-public:
-	AgentLifeEventArgs(Agent* agent);
-	AgentLifeEventArgs(const AgentLifeEventArgs& orig);
-	virtual ~AgentLifeEventArgs();
-
-	/**
-	 * Gets the unit affected by the action.
-	 * @return
-	 */
-	const Agent* GetAgent() const;
-private:
-	Agent* agent;
-};
-
 /**
  * Basic Agent class.
  *
@@ -83,12 +66,8 @@ private:
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity, public event::EventPublisher/*, public sim_mob::CommunicationSupport*/ {
+class Agent : public sim_mob::Entity, public event::EventListener/*, public sim_mob::CommunicationSupport*/ {
 public:
-	enum AgentLifecycleEvents {
-		AGENT_LIFE_EVENT_STARTED_ID = 3000,
-		AGENT_LIFE_EVENT_FINISHED_ID = 3001,
-	};
 
 	static int createdAgents;
 	static int diedAgents;
@@ -156,23 +135,23 @@ public:
 	void clearToBeRemoved(); ///<Temporary function.
 
 	/* *
-	 * I'm keeping getters and setters for current lane and link in Agent class to be able to determine the
+	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
 	 * location of the agent without having to dynamic_cast to Person and get the role.
-	 * If this is irrelevant for some sub class of agent (E.g. Signal), the sub class can just ignore these.
+	 * If these are irrelevant for some sub-class of agent (E.g. Signal), the sub class can just ignore these.
 	 * ~ Harish
 	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
 	virtual const sim_mob::RoadSegment* getCurrSegment() const;
 	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
-
-	/* *
-	 * Getter an setter for only the Lane is kept here.
-	 * Road segment of the agent can be determined from lane.
-	 * ~ Harish
-	 */
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
+
+        /**
+         * Inherited from EventListener. 
+         */
+	virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
+        virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
@@ -222,11 +201,11 @@ public:
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
 
 	///Agents can access all other agents (although they usually do not access by ID)
-	static std::vector<Entity*> all_agents;
+	static std::set<Entity*> all_agents;
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
-	static std::vector<Entity*> agents_on_event; //Agents are conducting event
-	static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
+	//static std::vector<Entity*> agents_on_event; //Agents are conducting event
+	//static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
 
 
 	///Retrieve a monotonically-increasing unique ID value.
@@ -273,17 +252,16 @@ public:
 
 	const std::map<double, travelStats>& getTravelStatsMap()
 	{
-		return this->travelStatsMap;
+		return this->travelStatsMap.get();
 	}
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
-	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 	//for mid-term, to compute link travel times
 	travelStats currTravelStats;
-	std::map<double, travelStats> travelStatsMap; //<linkExitTime, travelStats>
+	sim_mob::Shared< std::map<double, travelStats> > travelStatsMap; //<linkExitTime, travelStats>
 //	double linkEntryTime; //in seconds - time agent change to the current link
 //	double roleEntryTime; //in seconds - time agent changed to the current role
 
@@ -312,6 +290,8 @@ private:
 	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
 
 	bool onActivity; //Determines if the person is conducting any activity
+	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
+//	boost::mutex lastUpdatedFrame_mutex;
 
 protected:
 	int dynamic_seed;
@@ -329,6 +309,7 @@ protected:
 public:
 	int getOwnRandomNumber();
 
+
 	bool isCallFrameInit() const {
 		return call_frame_init;
 	}
@@ -337,7 +318,12 @@ public:
 		call_frame_init = callFrameInit;
 	}
 
+	long getLastUpdatedFrame();
+
+	void setLastUpdatedFrame(long lastUpdatedFrame);
+
 	friend class BoundaryProcessor;
+
 
 	friend class ShortTermBoundaryProcessor;
 

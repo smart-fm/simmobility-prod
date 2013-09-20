@@ -5,17 +5,17 @@
 #pragma once
 
 #include <string>
-#include <boost/unordered_set.hpp>
+#include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
-#include "entities/Person.hpp"
 
 namespace sim_mob {
 
-struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
-};
-
+/**
+ * Data structure to store lane specific parameters for supply.
+ *
+ * \author Melani Jayasuriya
+ */
 class LaneParams {
 	friend class LaneStats;
 	friend class SegmentStats;
@@ -36,6 +36,7 @@ public:
 	int getOutputCounter() {return outputCounter;}
 	double getAcceptRate() {return acceptRate;}
 
+	void setOutputCounter(int count) { outputCounter = count; }
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
 
@@ -43,6 +44,13 @@ public:
 	double getLastAccept() {return lastAcceptTime;}
 };
 
+/**
+ * Data structure to store and maintain persons in a lane. Persons are maintained with relative ordering which
+ * reflects their positions in the real lane during simulation. The queuing and moving counts of the lane is
+ * also tracked by this class. Used by mid term supply.
+ *
+ * \author Harish Loganathan
+ */
 class LaneStats {
 
 public:
@@ -60,6 +68,7 @@ public:
 	void removePerson(sim_mob::Person* p, bool wasQueuing);
 	void clear();
 	sim_mob::Person* dequeue(bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
 	unsigned int getQueuingAgentsCount();
 	unsigned int getMovingAgentsCount();
 
@@ -70,9 +79,6 @@ public:
 	void updateOutputCounter(const sim_mob::Lane* lane);
 	void updateOutputFlowRate(const sim_mob::Lane* lane, double newFlowRate);
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
-
-	//Sort all agents in lane (based on remaining time this tick)
-	void sortPersons_DecreasingRemTime();
 
 	// This function prints all agents in laneAgents
 	void printAgents(bool copy = false);
@@ -126,8 +132,10 @@ private:
 };
 
 /**
- * Keeps a lane wise count of moving and queuing vehicles in a road segment.
- * Used by mid term supply
+ * Keeps a lane wise count of moving and queuing vehicles in a road segment. Keeps a map of LaneStats corresponding
+ * to each lane in the road segment. Used by mid term supply.
+ *
+ * \author Harish Loganathan
  */
 class SegmentStats {
 
@@ -153,16 +161,18 @@ public:
 		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
 			safe_delete_item(i->second);
 		}
+		safe_delete_item(laneInfinity);
 	}
 
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
-	void absorbAgents(sim_mob::SegmentStats* segStats);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
+	std::deque<Person*> getAgents();
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
@@ -196,7 +206,6 @@ public:
 	void incrementSegFlow();
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
-	void sortPersons_DecreasingRemTime(const Lane* l);
 	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment
@@ -204,18 +213,16 @@ public:
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
-	 * The LaneStats object created for laneInfinity stores the new agents who will start at this road segment. An agent will be
-	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his  start time falls within the current tick. The lane
-	 * and moving/queuing status is still unknown for agents in laneInfinity. The frame_init function of the agent's role will have
-	 * to put the agents from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
+	 * The LaneStats object created for laneInfinity stores the new persons who will start at this roadSegment. A Person will be
+	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his start time falls within the current tick. The actual lane
+	 * and moving/queuing status is still unknown for persons in laneInfinity. The frame_init function of the agent's role will have
+	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 *
-	 * Agents who are performing an activity are stashed in laneInfinity.
+	 * Persons who are performing an activity are also stashed in laneInfinity. TODO: Double check this
 	 */
 	const sim_mob::Lane* laneInfinity;
 
-
-	//TODO: To be removed after debugging.
-	std::stringstream debugMsgs;
+	std::stringstream debugMsgs; // handy to throw meaningful error messages
 };
 
 }

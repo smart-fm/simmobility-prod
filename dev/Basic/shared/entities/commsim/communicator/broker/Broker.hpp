@@ -1,10 +1,16 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
+
 #include "entities/Agent.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistration.hpp"
 #include "entities/commsim/communicator/service/services.hpp"
 #include "entities/commsim/communicator/message/base/MessageQueue.hpp"
 #include "entities/commsim/communicator/client-registration/base/ClientRegistrationFactory.hpp"
 #include "entities/commsim/communicator/buffer/BufferContainer.hpp"
+#include <boost/unordered_map.hpp>
 
 //external libraries
 #include <boost/thread/condition_variable.hpp>
@@ -62,7 +68,7 @@ typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandl
 typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
 };
 
-class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>*/ , public event::EventListener//, public sim_mob::MessageReceiver
+class Broker  : public sim_mob::Agent/*, public enable_shared_from_this<Broker>, public event::EventListener*/ //, public sim_mob::MessageReceiver
 {
 public:
 	//for testing purpose
@@ -103,7 +109,9 @@ private:
 	/**
 	 * Handles the agent finished event.
 	 */
-	void OnAgentFinished(event::EventId eventId, event::EventPublisher* sender, const AgentLifeEventArgs& args);
+	virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
+        virtual void OnEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 
 public:
 

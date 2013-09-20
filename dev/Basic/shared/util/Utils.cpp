@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Utils.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -9,10 +11,16 @@
 
 
 #include "Utils.hpp"
+
 #include <fstream>
+#include <stdexcept>
+
 #include <boost/random.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
@@ -76,6 +84,24 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 
 	gettimeofday(&end_time, nullptr);
 	std::cout <<"Files merged; took " <<Utils::diff_ms(end_time, start_time) <<"ms\n";
+}
+
+
+std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
+{
+	//Find and split on colons, spaces.
+	std::vector<std::string> words;
+	boost::split(words, src, boost::is_any_of(": "), boost::token_compress_on);
+
+	//Double-check.
+	if (words.size()!=2) {
+		throw std::runtime_error("Scale min/max paramters not formatted correctly.");
+	}
+
+	//Now prepare our return value.
+	double min = boost::lexical_cast<double>(words.front());
+	double max = boost::lexical_cast<double>(words.back());
+	return std::make_pair(min, max);
 }
 
 

@@ -1,8 +1,14 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "A_StarShortestPathImpl.hpp"
 
 #include <cmath>
+
+//for caching
+#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
 #include "entities/TrafficWatch.hpp"
@@ -28,7 +34,17 @@ using namespace sim_mob;
 
 
 boost::shared_mutex sim_mob::A_StarShortestPathImpl::GraphSearchMutex_;
+namespace {
+ typedef boost::unordered_map< std::string, std::vector<WayPoint> > CacheMap;
+ boost::thread_specific_ptr<CacheMap> cache;
 
+ void initCache() {
+	 //The first time called by the current thread then just create one.
+	 if (!cache.get()){
+		 cache.reset(new CacheMap());
+	 }
+ }
+}
 
 sim_mob::A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network)
 {
@@ -1244,6 +1260,13 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::GetShortestDrivingPath(StreetD
 		return vector<WayPoint>();
 	}
 
+	initCache(); //inits cache if it does not exist
+	const Point2D from_pt = boost::get(boost::vertex_name, drivingMap_, fromV);
+	const Point2D to_pt = boost::get(boost::vertex_name, drivingMap_, toV);
+	std::stringstream keystr;
+	keystr << from_pt.getX() << from_pt.getY() << to_pt.getX() << to_pt.getY();
+	std::string key = keystr.str();
+
 	//Convert the blacklist into a list of blocked Vertices.
 	set<StreetDirectory::Edge> blacklistV;
 	for (vector<const RoadSegment*>::iterator it=blacklist.begin(); it!=blacklist.end(); it++) {
@@ -1257,7 +1280,15 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::GetShortestDrivingPath(StreetD
     //      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
     //TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
 	if (blacklistV.empty()) {
-		return searchShortestPath(drivingMap_, fromV, toV);
+		boost::unordered_map< std::string, std::vector<WayPoint> >::const_iterator itr = cache.get()->find(key);
+		if(itr != cache.get()->end()){
+			return itr->second;
+		}
+		else{
+			vector<WayPoint> data = searchShortestPath(drivingMap_, fromV, toV);
+			cache.get()->insert(std::make_pair(key, data));
+			return data;
+		}
 	} else {
 		return searchShortestPathWithBlacklist(drivingMap_, fromV, toV, blacklistV);
 	}

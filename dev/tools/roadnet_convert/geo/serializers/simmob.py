@@ -1,5 +1,8 @@
 from geo.formats import simmob
+from geo.position import Point
 import geo.helper
+import random
+import datetime
 
 
 def serialize(rn :simmob.RoadNetwork, outFilePath :str):
@@ -19,6 +22,7 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
 
   out.write('    <GeoSpatial>\n')
   out.write('    <RoadNetwork>\n')
+  __write_xml_coordmap(outFilePath, out, rn, rnIndex)
   __write_xml_nodes(out, rn, rnIndex)
   __write_xml_links(out, rn, rnIndex)
   out.write('    </RoadNetwork>\n')
@@ -27,6 +31,163 @@ def serialize(rn :simmob.RoadNetwork, outFilePath :str):
 
   #Done
   out.close()
+
+
+def __write_xml_region(out, region, regId, latCmp, lngCmp): 
+  #Calculate the region bounds.
+  latStart = latCmp*region[0] 
+  latEnd = latCmp*(region[0]+1)
+  lngStart = lngCmp*region[1] 
+  lngEnd = lngCmp*(region[1]+1)
+
+  #Now mutate each region slightly, so that we don't have uniform regions.
+  points = __mutate_region(latStart, latEnd, lngStart, lngEnd)
+
+  #Now print it.
+  out.write('        <region>\n')
+  out.write('          <id>%s</id>\n' % regId)
+  out.write('            <shape>\n')
+  for pt in points:
+    out.write('              <vertex>\n')
+    out.write('                <latitude>%f</latitude>\n' % pt.x)
+    out.write('                <longitude>%f</longitude>\n' % pt.y)
+    out.write('              </vertex>\n')
+  out.write('            </shape>\n')
+  out.write('        </region>\n')
+
+
+def __write_xml_random_regions(out, latlng_vals, numGrids, numRegions): 
+  #Little easier.
+  minLat, minLng, maxLat, maxLng = latlng_vals
+  latRng = maxLat - minLat
+  lngRng = maxLng - minLng
+
+  #Each "block" of latitude/longitude
+  latCmp = latRng / numGrids
+  lngCmp = lngRng / numGrids
+
+  #Split the ranges into "numGrids" on each side (e.g., 10x10 if numGrids is 10).
+  #Then, pick "numRegions" random regions to fill in.
+  regions = {} #(lat,lng block)
+  while len(regions) < numRegions:
+    nextLat = random.randint(0,numGrids-1)
+    nextLng = random.randint(0,numGrids-1)
+    regions[(nextLat,nextLng)] = True
+
+  #We now have to store these in XML format.
+  out.write('      <!-- Regions for use with the Road Runner software. -->\n')
+  out.write('      <roadrunner_regions>\n')
+  count = 1
+  for region in regions:
+    __write_xml_region(out, region, count, latCmp, lngCmp)
+    count += 1
+
+  out.write('      </roadrunner_regions>\n\n')
+
+
+
+def __mutate_region(latStart, latEnd, lngStart, lngEnd): #Returns 4 Points defining the region.
+  #We basically generate one point per quadrant. However, I don't want to finagle what constitutes "up" or "+" for 
+  #  latitude/longitude (since I always mess it up), so our algorithm works fine reflected.
+  latRng = latEnd - latStart
+  lngRng = lngEnd - lngStart
+
+  #First, shrink by removing the outer 12.5%.
+  latEnd -= latRng / 8
+  latStart += latRng / 8
+  lngEnd -= lngRng / 8
+  lngStart += lngRng / 8
+
+  #Recalc
+  latRng = latEnd - latStart
+  lngRng = lngEnd - lngStart
+
+  #TODO: Need to randomize. For now, we just make a diamond.
+#  return (Point(latStart,lngEnd), Point(latEnd,lngEnd), Point(latEnd,lngStart), Point(latStart,lngStart))
+  return (Point(latStart+latRng/2,lngEnd), Point(latEnd,lngEnd-lngRng/2), Point(latEnd-latRng/2,lngStart), Point(latStart,lngStart+lngRng/2))
+
+def __write_xml_coordmap(outFilePath, out, rn, rnIndex):
+  source_vals = calc_point_bounds(rn, rnIndex) # [minX, minY, maxX, maxY]
+  dest_vals = calc_latlng_bounds(source_vals) # [minLat, minLng, maxLat, maxLng]
+
+  #Recursive file opening! Generate and print a random map of regions
+  #out2 = open(outFilePath+"-RRregions.txt", 'w')
+  #out2.close()
+
+  #Each converted file is written with a LinearScale coordmap entry that allows it to be converted to roughly believable lat/lng.
+  #TODO: We can actually save the UTM-projection zone here, but Sim Mobility can't do much with that at the moment.
+  out.write('      <coordinate_map>\n')
+  out.write('        <!-- This allows for a rough conversion to lat/lng. It is not that accurate, but should work for random networks. -->\n')
+  out.write('        <linear_scale>\n')
+  out.write('          <source>\n')
+  out.write('            <x_range>%d : %d</x_range>\n' % (source_vals[0], source_vals[2]))
+  out.write('            <y_range>%d : %d</y_range>\n' % (source_vals[1], source_vals[3]))
+  out.write('          </source>\n')
+  out.write('          <destination>\n')
+  out.write('            <longitude_range>%f : %f</longitude_range>\n' % (dest_vals[1], dest_vals[3]))
+  out.write('            <latitude_range>%f : %f</latitude_range>\n' % (dest_vals[0], dest_vals[2]))
+  out.write('          </destination>\n')
+  out.write('        </linear_scale>\n')
+  out.write('      </coordinate_map>\n\n')
+
+  #Now print our Regions.
+  __write_xml_random_regions(out, dest_vals, 10, 20)
+
+
+#Helper for calc_point_bounds
+def update_xy_range(rng, currval):
+    rng[0] = min(rng[0], currval)
+    rng[1] = max(rng[1], currval)
+
+#TODO: Put this in RN_Index?
+def calc_point_bounds(rn, rnIndex):
+  #This is a hassle otherwise
+  if len(rn.nodes.values())==0:
+    raise "Need at least one Node."
+
+  #Prepare our output values
+  n = next(iter(rn.nodes.values())) #"First" arbitrary element.
+  x_rng = [n.pos.x, n.pos.x]
+  y_rng = [n.pos.y, n.pos.y]
+
+  #Iterate through all nodes
+  for n in rn.nodes.values():
+    update_xy_range(x_rng, n.pos.x)
+    update_xy_range(y_rng, n.pos.y)
+ 
+  #We also need all Lane and Lane Edge points
+  for lk in rn.links.values():
+    for seg in lk.segments:
+      for l in seg.lanes:
+        for p in l.polyline:
+          update_xy_range(x_rng, p.x)
+          update_xy_range(y_rng, p.y)
+      for le in seg.lane_edges:
+        for p in le.polyline:
+          update_xy_range(x_rng, p.x)
+          update_xy_range(y_rng, p.y)
+
+  #Stretch 1m in each direction, just in case.
+  x_rng[0] -= 100
+  y_rng[0] -= 100
+  x_rng[1] += 100
+  y_rng[1] += 100
+
+  #Done
+  return [x_rng[0], y_rng[0], x_rng[1], y_rng[1]]
+
+
+def calc_latlng_bounds(source_vals):
+  #First, get the distance for each component.
+  x_dist = float(source_vals[2] - source_vals[0])
+  y_dist = float(source_vals[3] - source_vals[1])
+
+  #At the equator, 1 degree of latitude is roughly 110.567 km. 1 degree of longitude is roughly 111.321 km at the equator.
+  #We are centering our destination bounds on (0lat,0lng) to minimize longitudinal stretching.
+  lng_dist = x_dist / 11132100
+  lat_dist = y_dist / 11056700
+
+  return [-lat_dist/2, -lng_dist/2, lat_dist/2, lng_dist/2]
 
 
 def __write_xml_nodes(f, rn, rnIndex):

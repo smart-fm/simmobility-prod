@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "geo10-pimpl.hpp"
 
 using namespace sim_mob::xml;
@@ -13,6 +17,20 @@ sim_mob::RoadNetwork& sim_mob::xml::RoadNetwork_t_pimpl::post_RoadNetwork_t ()
 	throw_if_null();
 	return *modelRef;
 }
+
+
+void sim_mob::xml::RoadNetwork_t_pimpl::coordinate_map (const std::vector<sim_mob::CoordinateTransform*>& value)
+{
+	throw_if_null();
+	modelRef->coordinateMap = value;
+}
+
+void sim_mob::xml::RoadNetwork_t_pimpl::roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>& value)
+{
+	throw_if_null();
+	modelRef->roadRunnerRegions = value;
+}
+
 
 
 void sim_mob::xml::RoadNetwork_t_pimpl::Nodes (const helper::NodesRes& value)

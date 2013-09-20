@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   AbstractDao.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -108,7 +110,7 @@ namespace sim_mob {
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
-                    int found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+                    size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
                     if (found == std::string::npos) {
                         upperQuery += DB_RETURNING_ALL_CLAUSE;
                     }

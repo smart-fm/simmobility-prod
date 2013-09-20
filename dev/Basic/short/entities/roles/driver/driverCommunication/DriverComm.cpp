@@ -1,3 +1,6 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverComm.hpp"
 #include "DriverCommFacets.hpp"
@@ -72,8 +75,8 @@ void sim_mob::DriverComm::receiveModule(timeslice now)
 }
 void sim_mob::DriverComm::sendModule(timeslice now)
 {
-	std::vector<Entity*> &agents = sim_mob::Agent::all_agents;
-	std::vector<Entity*>::iterator  it , it_end(agents.end());
+	std::set<Entity*> &agents = sim_mob::Agent::all_agents;
+	std::set<Entity*>::iterator  it , it_end(agents.end());
 	for(it = agents.begin(); it != it_end; it++)
 	{
 		sim_mob::dataMessage *data = new sim_mob::dataMessage();

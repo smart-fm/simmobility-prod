@@ -15,7 +15,8 @@
 #include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
@@ -65,6 +66,7 @@
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/BusStopAgent.hpp"
 
@@ -382,7 +384,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
-	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	const sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	if (config.using_MPI)
 	{
 		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
@@ -403,7 +405,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	//Retrieve a rowset for this set of trip chains.
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-//	std::cout << " Found "
+
 	//Execute as a rowset to avoid repeatedly building the query.
 	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//The following are set regardless.
@@ -500,7 +502,6 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 
 void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
 {
-	//ConfigParams& config = ConfigParams::GetInstance();
 	if (storedProc.empty())
 	{
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
@@ -524,7 +525,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
 {
-	sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if (storedProc.empty())
 	{
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
@@ -536,7 +537,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
 //		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
-		sim_mob::BusStop* bs = (config.getBusStopNo_BusStops())[pt_bus_stopsTemp.busstop_no];
+		sim_mob::BusStop* bs = config.getBusStopNo_BusStops()[pt_bus_stopsTemp.busstop_no];
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 //			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
@@ -646,7 +647,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
-//	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
@@ -654,7 +655,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	//add by xuyan
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
-	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	const sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	if (config.using_MPI) {
 		LoadBoundarySegments();
 	}
@@ -863,9 +864,8 @@ void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<
  */
 void DatabaseLoader::PostProcessNetwork()
 {
-	//TEMP: Heavy-handed tactics like this should only be used if you're desperate.
-	// You know, like if you've got a demo tomorrow.
-	bool TEMP_FLAG_ON = sim_mob::ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection;
+	//This was a fix for a very old demo. Leaving it in here as an example of post-processing; you shouldn't use this. ~Seth.
+	bool TEMP_FLAG_ON = false;
 	if (TEMP_FLAG_ON) {
 		ManuallyFixVictoriaStreetMiddleRoadIntersection(nodes_, sections_, crossings_, lanes_, turnings_, polylines_);
 	}
@@ -1313,11 +1313,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->getParentSegment()->addObstacle(distOrigin, busstop);
 
-		(sim_mob::ConfigParams::GetInstance().getBusStopNo_BusStops())[busstop->busstopno_] = busstop;
+		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigParams::GetInstance().mutexStategy);
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
 //		if(100001500 == busstop->parentSegment_->getSegmentID())
 //		{
 //			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
@@ -1414,7 +1414,7 @@ DatabaseLoader::createSignals()
     		continue;
     	}
     	bool isNew = false;
-        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
+        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), &isNew);
         //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
         //so sometimes a new functionality(initialize) needs to be taken care of separately
         //while it should be called with in other functions(constructor)-vahid
@@ -1989,7 +1989,7 @@ std::map<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Lo
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
+void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
 
@@ -1998,11 +1998,14 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	DatabaseLoader loader(connectionStr);
 	std::cout << ">Success." << std::endl;
 
+	//Mutable config file reference.
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
-	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
+	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
 
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
@@ -2043,10 +2046,14 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 		prof->logGenericEnd("PostProc", "main-prof");
 	}
 
+	//added by Melani - to compute lane zero lengths of road segments
+	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
+	}
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigParams::GetInstance().using_MPI)
+	if (ConfigManager::GetInstance().FullConfig().using_MPI)
 	{
 		loader.TransferBoundaryRoadSegment();
 	}
@@ -2054,10 +2061,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
-	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
-	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes(), ConfigParams::GetInstance().getRoadSegments_MapRW());
-	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), ConfigParams::GetInstance().getPT_bus_stops(), ConfigParams::GetInstance().getBusStops_Map());
-	return "";
+	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
+	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
 }
 
 /*
@@ -2066,8 +2072,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::stringstream debugMsgs(std::stringstream::out);
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstance().getConfluxes();
-	sim_mob::MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy;
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
+		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
 	sim_mob::Conflux* conflux = nullptr;
 
 	//Make a temporary map of road nodes-to-road segments
@@ -2084,21 +2092,12 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-	//	debugMsgs << "\nProcessConfluxes\t Multinode: " << *i;
 		conflux = new sim_mob::Conflux(*i, mtxStrat);
 
-		//upsegCtr = 0;
-
-		//NOTE: This probably wasn't doing what you thought it was. ~Seth
-		//for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin(); segmt!=(*i)->roadSegmentsCircular.end();segmt++ ) {
 		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
 		if (segsAt!=roadSegmentsAt.end()) {
 			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
-
-
-			//	debugMsgs << "\nProcessConfluxes\t roadSegmentsCircular: " << (*segmt).first << "\t" << (*segmt).second;
 				sim_mob::Link* lnk = (*segmt)->getLink();
-			//	debugMsgs << "\nProcessConfluxes\t Link: " << lnk;
 				std::vector<sim_mob::RoadSegment*> upSegs;
 				std::vector<sim_mob::RoadSegment*> downSegs;
 
@@ -2106,19 +2105,14 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				if(lnk->getEnd() == (*i))
 				{
 					//NOTE: There will *only* be upstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Forward\tDownstream: Reverse";
 					upSegs = lnk->getSegments();
-					//downSegs = lnk->getRevSegments();
 					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
-					//conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<sim_mob::Person*>()));
 				}
 				else if (lnk->getStart() == (*i))
 				{
 					//NOTE: There will *only* be downstream segments in this case.
-					//debugMsgs << "\nProcessConfluxes\t Upstream: Reverse\tDownstream: Forward";
-					//upSegs = lnk->getRevSegments();
 					downSegs = lnk->getSegments();
-					//conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
 					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
 				}
 
@@ -2131,23 +2125,19 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-						//debugMsgs << "\nProcessConfluxes\t Segment: " << *segIt << "\t Conflux:" << conflux << "\tUpstream";
+						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
 					}
 					else if((*segIt)->parentConflux != conflux)
 					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment [" << (*segIt)->getStart()->getID() << "->" << (*segIt)->getEnd()->getID() << "]";
+						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << (*segIt)->getStartEnd()<< std::endl;
 						throw std::runtime_error(debugMsgs.str());
 					}
 				}
-
 			} // for
 		}
-		conflux->prepareLengthsOfSegmentsAhead();
+		conflux->resetOutputBounds();
 		confluxes.insert(conflux);
-//		debugMsgs << "\nProcessConfluxes\t Conflux: " << conflux->getMultiNode()->nodeId << "\t UpLinks: " << conflux->upstreamSegmentsMap.size()
-//				<< "\t Upsegs: " << upsegCtr << "\tDownSegs: " << conflux->downstreamSegments.size();
 	}
-//	std::cout << debugMsgs.str();
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
@@ -2236,15 +2226,16 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 	 return bs1;
 }
 
-sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
+//Commenting out; this function doesn't return anything and is never used.
+/*sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 {
 	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
 	 int prev=0;
 	 for(int i=0;i<buslines.size();i++)
 	 {
-	  /*query through the busstops for each available busline at the busstop
-	  and see if it goes to the passengers destination.If more than one busline avaiable
-	  choose the busline with the shortest path*/
+	  //query through the busstops for each available busline at the busstop
+	  //and see if it goes to the passengers destination.If more than one busline avaiable
+	  //choose the busline with the shortest path
 
 	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
 
@@ -2278,7 +2269,7 @@ sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
 		  noOfBusstops++;
 	  }
 	 }
-}
+}*/
 
 sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
 {

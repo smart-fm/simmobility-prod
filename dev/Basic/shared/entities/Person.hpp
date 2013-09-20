@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -9,6 +11,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Agent.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
@@ -150,6 +153,18 @@ public:
 		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
 
+	const std::vector<WayPoint>& getCurrPath() const {
+		return currPath;
+	}
+
+	void setCurrPath(const std::vector<WayPoint>& currPath) {
+		this->currPath = currPath;
+	}
+
+	void clearCurrPath() {
+		this->currPath.clear();
+	}
+
     const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
 
     enum Permission //to be renamed later
@@ -164,6 +179,7 @@ public:
     std::string specialStr;
 
     std::stringstream debugMsgs;
+    int client_id;
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -207,6 +223,7 @@ private:
     double BOARDING_TIME_SEC;
     // person's alighting time secs
     double ALIGTHING_TIME_SEC;
+    std::vector<WayPoint> currPath;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

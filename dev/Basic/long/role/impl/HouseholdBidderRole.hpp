@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   HouseholdBidderRole.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -31,8 +33,7 @@ namespace sim_mob {
          * If he is waiting for a response he will 
          * only able to do the next bid on the next day.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>,
-        public messaging::MessageReceiver {
+        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>{
         public:
             HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
                     const BidderParams& params, HousingMarket* market);
@@ -48,8 +49,8 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
-                    messaging::MessageReceiver& sender, const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type,
+                const messaging::Message& message);
         private:
             /**
              * Handler for wakeup event.

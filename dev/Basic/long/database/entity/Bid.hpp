@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Bid.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -11,7 +13,7 @@
 #include "Common.hpp"
 #include "Types.hpp"
 #include "metrics/Frame.hpp"
-#include "message/MessageReceiver.hpp"
+#include "message/MessageHandler.hpp"
 
 namespace sim_mob {
 
@@ -22,7 +24,7 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(UnitId id, int bidderId, messaging::MessageReceiver* bidder, float value, 
+            Bid(UnitId id, int bidderId, messaging::MessageHandler* bidder, float value, 
                     timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
@@ -50,7 +52,7 @@ namespace sim_mob {
              * Gets the Bidder pointer.
              * @return bidder pointer.
              */
-            messaging::MessageReceiver* GetBidder() const;
+            messaging::MessageHandler* GetBidder() const;
 
             /**
              * Gets the value of the bid.
@@ -86,7 +88,7 @@ namespace sim_mob {
             UnitId unitId;
             int bidderId;
             float value;
-            messaging::MessageReceiver* bidder;
+            messaging::MessageHandler* bidder;
         };
     }
 }

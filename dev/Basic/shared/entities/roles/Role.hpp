@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -79,7 +81,10 @@ public:
 	}
 
 	//Allow propagating destructors
-	virtual ~Role() {}
+	virtual ~Role() {
+		safe_delete_item(behaviorFacet);
+		safe_delete_item(movementFacet);
+	}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
@@ -89,6 +94,7 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams() {return std::vector<BufferedBase*>();}
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.

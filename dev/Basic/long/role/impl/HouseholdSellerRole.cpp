@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   HouseholdSellerRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -12,13 +14,14 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
-
+#include "message/MessageBus.hpp"
 #include "boost/tuple/tuple.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 using std::list;
 using std::endl;
+using std::cout;
 using sim_mob::Math;
 
 namespace {
@@ -99,17 +102,16 @@ void HouseholdSellerRole::Update(timeslice now) {
     currentTime = now;
 }
 
-void HouseholdSellerRole::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
-        const Message& message) {
-
+void HouseholdSellerRole::HandleMessage(Message::MessageType type,
+                const Message& message) {
     switch (type) {
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             Unit* unit = GetParent()->GetUnitById(msg.GetBid().GetUnitId());
-            LogOut("Seller: [" << GetParent()->getId() <<
+            cout << "Seller: [" << GetParent()->getId() <<
                     "] received a bid: " << msg.GetBid() <<
-                    " at day: " << currentTime.ms() << endl);
+                    " at day: " << currentTime.ms() << endl;
             bool decision = false;
             ExpectationEntry entry;
             if (unit && unit->IsAvailable() && GetCurrentExpectation(*unit, entry)) {
@@ -131,23 +133,24 @@ void HouseholdSellerRole::HandleMessage(MessageReceiver::MessageType type, Messa
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        maxBidOfDay->GetBidder()->Post(LTMID_BID_RSP, GetParent(),
-                                new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER));
+                        MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
+                                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER)));
                         maxBidsOfDay.erase(unit->GetId());
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(BidEntry(unit->GetId(), msg.GetBid()));
                     } else {
-                        sender.Post(LTMID_BID_RSP, GetParent(),
-                                new BidMessage(Bid(msg.GetBid()), BETTER_OFFER));
+                        MessageBus::PostMessage(msg.GetBid().GetBidder(), 
+                                LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), 
+                                BETTER_OFFER)));
                     }
                 } else {
-                    sender.Post(LTMID_BID_RSP, GetParent(),
-                            new BidMessage(Bid(msg.GetBid()), NOT_ACCEPTED));
+                    MessageBus::PostMessage(msg.GetBid().GetBidder(),LTMID_BID_RSP,
+                            MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), NOT_ACCEPTED)));
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
-                sender.Post(LTMID_BID_RSP, GetParent(),
-                        new BidMessage(Bid(msg.GetBid()), NOT_AVAILABLE));
+                MessageBus::PostMessage(msg.GetBid().GetBidder(), LTMID_BID_RSP,
+                        MessageBus::MessagePtr(new BidMessage(Bid(msg.GetBid()), NOT_AVAILABLE)));
             }
             Statistics::Increment(Statistics::N_BIDS);
             break;
@@ -181,8 +184,9 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid* maxBidOfDay = &(itr->second);
-        maxBidOfDay->GetBidder()->Post(LTMID_BID_RSP, GetParent(),
-                new BidMessage(Bid(*maxBidOfDay), ACCEPTED));
+        MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
+                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
+        
         Unit* unit = GetParent()->GetUnitById(maxBidOfDay->GetUnitId());
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
@@ -210,13 +214,13 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
                 boost::tuple<double, double, double>(expectation, theta, alpha));
         expectation = entry.expectation;
         expectationList.push_back(entry);
-        LogOut("Expectation on: [" << i << std::setprecision(15) <<
+        cout << "Expectation on: [" << i << std::setprecision(15) <<
                 "] Unit: [" << unit.GetId() <<
                 "] expectation: [" << entry.expectation <<
                 "] price: [" << entry.price <<
                 "] theta: [" << theta <<
                 "] alpha: [" << alpha <<
-                "]" << endl);
+                "]" << endl;
     }
     unitExpectations.erase(unit.GetId());
     unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));

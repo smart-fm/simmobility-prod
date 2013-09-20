@@ -1,6 +1,8 @@
-/* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/*
  * File:   HouseholdAgent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,7 +10,6 @@
  */
 
 #include "HouseholdAgent.hpp"
-#include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
@@ -17,6 +18,7 @@
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using sim_mob::Entity;
 using std::vector;
 using std::string;
@@ -48,7 +50,7 @@ bool HouseholdAgent::OnFrameInit(timeslice now) {
     return retVal;
 }
 
-Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCounter) {
+Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now) {
     currentRole->Update(now);
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -56,7 +58,6 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now, int messageCount
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::HandleMessage(messaging::MessageReceiver::MessageType type, messaging::MessageReceiver& sender,
-        const messaging::Message& message) {
-    currentRole->HandleMessage(type, sender, message);
+void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& message) {
+    currentRole->HandleMessage(type, message);
 }

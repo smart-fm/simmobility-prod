@@ -13,6 +13,7 @@
 
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
+#include "message/MessageHandler.hpp"
 
 
 namespace sim_mob {
@@ -31,7 +32,7 @@ class PartitionManager;
  * \author LIM Fung Chai
  * \author Xu Yan
  */
-class Entity {
+class Entity : public messaging::MessageHandler {
 public:
 	///Construct an entity with an immutable ID
 	explicit Entity(unsigned int id);
@@ -103,8 +104,14 @@ public:
 	// inform parent to cut off connection with it if necessary
 	virtual void unregisteredChild(Entity* child = nullptr) {;}
 
+        
 
 protected:
+        /**
+         * Inherited from messaging::MessageHandler
+         */
+        virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
+        
 	/**
 	 * Build the list of Buffered<> types this entity subscribes to. Any subclass of
 	 * Entity should override this method. The first thing to do is call the immediate base

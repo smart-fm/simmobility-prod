@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * CommunicationManager.hpp
  *
@@ -27,7 +31,7 @@ class ControlManager;
 class CommunicationDataManager {
 public:
 	void sendTrafficData(std::string &s);
-	void sendRoadNetworkData(std::string &s);
+	void sendRoadNetworkData(const std::string &s);
 	bool getTrafficData(std::string &s);
 	bool getCmdData(std::string &s);
 	bool getRoadNetworkData(std::string &s);

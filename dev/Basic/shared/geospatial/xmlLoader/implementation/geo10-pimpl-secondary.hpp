@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 //This class contains all "secondary" classes; i.e., helper classes and temporaries required for parsing.
 #pragma once
 
@@ -10,6 +14,57 @@ namespace xml {
 
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
+
+
+class roadrunner_vertex_t_pimpl: public virtual roadrunner_vertex_t_pskel {
+public:
+	virtual void pre ();
+	virtual sim_mob::LatLngLocation post_roadrunner_vertex_t ();
+
+	virtual void latitude (double);
+	virtual void longitude (double);
+
+private:
+	sim_mob::LatLngLocation model;
+};
+
+
+class roadrunner_shape_t_pimpl: public virtual roadrunner_shape_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::vector<sim_mob::LatLngLocation> post_roadrunner_shape_t ();
+
+	virtual void vertex (const sim_mob::LatLngLocation&);
+
+private:
+	std::vector<sim_mob::LatLngLocation> model;
+};
+
+
+class scale_source_t_pimpl: public virtual scale_source_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_source_t ();
+
+	virtual void x_range (const ::std::string&);
+	virtual void y_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
+
+
+class scale_destination_t_pimpl: public virtual scale_destination_t_pskel {
+public:
+	virtual void pre ();
+	virtual std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> post_scale_destination_t ();
+
+	virtual void longitude_range (const ::std::string&);
+	virtual void latitude_range (const ::std::string&);
+
+private:
+	std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> model;
+};
 
 
 ///TODO: Can we remove this class?

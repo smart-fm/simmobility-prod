@@ -4,6 +4,9 @@
 
 #include "WaitBusActivityRoleImpl.hpp"
 
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
+
 #include "entities/Person.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -97,7 +100,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick(UpdateParams& p) {
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output(const UpdateParams& p) {
-	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (ConfigManager::GetInstance().FullConfig().is_run_on_many_computers) {
 		return;
 	}
 

@@ -16,10 +16,11 @@
 #include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
-#include "tinyxml.h"
+//#include "tinyxml.h"
 
 #include "entities/roles/RoleFactory.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
@@ -30,6 +31,7 @@
 #include "util/Math.hpp"
 #include "util/Statistics.hpp"
 
+
 //DAOs
 #include "database/dao/GlobalParamsDao.hpp"
 #include "database/dao/UnitTypeDao.hpp"
@@ -39,6 +41,11 @@
 #include "database/dao/BuildingTypeDao.hpp"
 #include "database/dao/housing-market/BidderParamsDao.hpp"
 #include "database/dao/housing-market/SellerParamsDao.hpp"
+#include "message/MessageBus.hpp"
+#include "event/SystemEvents.hpp"
+
+
+#include "agent/TestAgent.hpp"
 
 using namespace sim_mob::db;
 
@@ -133,7 +140,7 @@ float UNIT_FIXED_COST = 0.1f;
 const int MAX_ITERATIONS =1;
 const int TICK_STEP =1;
 const int DAYS =365;
-const int WORKERS =2;
+const int WORKERS = 10;
 const int DATA_SIZE =30;
 const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
 
@@ -149,18 +156,18 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
-    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment =
-            WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded = false;
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	config.baseGranMS() = TICK_STEP;
+	config.totalRuntimeTicks = DAYS;
+	config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+	config.singleThreaded() = false;
     list<HouseholdAgent*> agents;
     vector<Unit> units;
     vector<Household> households;
     HousingMarket market;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -212,13 +219,15 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
         PrintOut("Started all workgroups." << endl);
         for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
         	PrintOut("Day: " << currTick << endl);
+            //sim_mob::messaging::MessageBus::DispatchMessages();
             wgMgr.waitAllGroups();
+            //sim_mob::messaging::MessageBus::CollectMessages();
         }
 
         PrintOut("Finalizing workgroups: " << endl);
 
     	//Save our output files if we are merging them later.
-    	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+    	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
     		resLogFiles = wgMgr.retrieveOutFileNames();
     	}
     }
@@ -240,11 +249,11 @@ void perform_main() {
 	PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
 
     // Milliseconds step (Application crashes if this is 0).
-    ConfigParams::GetInstance().baseGranMS = TICK_STEP;
-    ConfigParams::GetInstance().totalRuntimeTicks = DAYS;
-    ConfigParams::GetInstance().defaultWrkGrpAssignment =
-            WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigParams::GetInstance().singleThreaded = false;
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    config.baseGranMS() = TICK_STEP;
+    config.totalRuntimeTicks = DAYS;
+    config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+    config.singleThreaded() = false;
 
     //create all units.
     list<HouseholdAgent*> agents;
@@ -252,11 +261,12 @@ void perform_main() {
 
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigParams::GetInstance().singleThreaded);
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         wgMgr.initAllGroups();
+        
         agentWorkers->initWorkers(nullptr);
 
         HousingMarket market;
@@ -310,6 +320,58 @@ void perform_main() {
     entities.clear();
 }
 
+void test_main() {
+
+    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
+    // Milliseconds step (Application crashes if this is 0).
+    ConfigManager::GetInstanceRW().FullConfig().baseGranMS() = TICK_STEP;
+    ConfigManager::GetInstanceRW().FullConfig().totalRuntimeTicks = DAYS;
+    ConfigManager::GetInstanceRW().FullConfig().defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
+    ConfigManager::GetInstanceRW().FullConfig().singleThreaded() = false;
+
+    //create all units.
+    list<TestAgent*> agents;
+    {
+        WorkGroupManager wgMgr;
+        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
+
+        //Work Group specifications
+        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        wgMgr.initAllGroups();
+        agentWorkers->initWorkers(nullptr);
+        TestAgent* agent = NULL;
+        for (unsigned int i = 0; i < 100; i++) {
+            agent = new TestAgent(i, agent);
+            agentWorkers->assignAWorker(agent);
+            agents.push_back(agent);
+        }
+        
+        //Start work groups and all threads.
+        wgMgr.startAllWorkGroups();
+
+        PrintOut("Started all workgroups." << endl);
+        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+            PrintOut("Day: " << currTick << endl);
+            wgMgr.waitAllGroups();
+            messaging::MessageBus::PublishEvent(event::EVT_CORE_SYTEM_START, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
+            messaging::MessageBus::PublishEvent(9999999, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
+        }
+        // last messages distributions. (Only for main thread (e.g delete contexts)).
+        PrintOut("Finalizing workgroups: " << endl);
+    } //End WorkGroupManager scope.
+    //sim_mob::messaging::MessageBus::DistributeMessages();      
+  
+    PrintOut("Destroying agents: " << endl);
+    //destroy all agents.
+    for (list<TestAgent*>::iterator itr = agents.begin();
+            itr != agents.end(); itr++) {
+        TestAgent* ag = *(itr);
+        safe_delete_item(ag);
+    }
+    agents.clear();
+}
+
 int main(int ARGC, char* ARGV[]) {
 	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
     StopWatch watch;
@@ -317,11 +379,13 @@ int main(int ARGC, char* ARGV[]) {
     //get start time of the simulation.
     std::list<std::string> resLogFiles;
     watch.Start();
+    
     for (int i = 0; i < MAX_ITERATIONS; i++) {
     	PrintOut("Simulation #:  " << (i + 1) << endl);
         //RunTests();
-        SimulateWithDB(resLogFiles);
+        //SimulateWithDB(resLogFiles);
         //perform_main();
+        test_main();
     }
     watch.Stop();
     Statistics::Print();
@@ -329,7 +393,7 @@ int main(int ARGC, char* ARGV[]) {
 
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 

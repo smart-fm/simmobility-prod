@@ -65,6 +65,7 @@ public:
 	//TEMP: Added for XML loading.
 	void setConnectorAt(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val) { this->connectors[key] = val; }
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
+
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
 	///Currently allows one to make quick requests upon arriving at a Node of which
@@ -77,7 +78,6 @@ protected:
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;
-
 
 friend class sim_mob::aimsun::Loader;
 

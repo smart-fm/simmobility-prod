@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   LT_Agent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,8 +10,14 @@
  */
 
 #include "LT_Agent.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
+#include "message/MessageBus.hpp"
+
+
+#include <boost/thread.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -20,7 +28,8 @@ using std::string;
 using std::map;
 
 LT_Agent::LT_Agent(int id)
-: Agent(ConfigParams::GetInstance().mutexStategy, id) {
+: Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {
+    isRegistered = false;
 }
 
 LT_Agent::~LT_Agent() {
@@ -29,26 +38,16 @@ LT_Agent::~LT_Agent() {
 void LT_Agent::load(const map<string, string>& configProps) {
 }
 
-EventManager& LT_Agent::GetEventManager() {
-    return currWorkerProvider->getEventManager();
-}
-
 bool LT_Agent::frame_init(timeslice now) {
+    if (!isRegistered){
+        messaging::MessageBus::RegisterHandler(this);
+        isRegistered = true;
+    }
     return OnFrameInit(now);
 }
 
 Entity::UpdateStatus LT_Agent::frame_tick(timeslice now) {
-    int messageCounter = 0;
-    Entity::UpdateStatus status = UpdateStatus::Continue;
-    do {
-        status = OnFrameTick(now, messageCounter);
-        //abort because agent is done.
-        if (status.status == UpdateStatus::RS_DONE) {
-            break;
-        }
-        messageCounter++;
-    } while (ReadMessage());
-    return status;
+    return OnFrameTick(now);
 }
 
 void LT_Agent::frame_output(timeslice now) {
@@ -59,7 +58,5 @@ bool LT_Agent::isNonspatial() {
     return false;
 }
 
-void LT_Agent::HandleMessage(MessageReceiver::MessageType type, MessageReceiver& sender,
-        const Message& message) {
-    int x=0;
+void LT_Agent::HandleMessage(Message::MessageType type, const Message& message) {
 }

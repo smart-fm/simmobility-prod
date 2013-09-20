@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
@@ -25,6 +27,8 @@ public:
 
 protected:
 	virtual const BusStop* getBusStop(const Point2D& position) const;
+
+	virtual const Node* getNode(const int id) const;
 
 	virtual StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
 
@@ -85,6 +89,7 @@ private:
     GridType grid_;
     std::map<std::string, const RoadSegment*> roadSegments_;
     std::set<const BusStop*> busStops_;
+    std::set<const Node*> nodes;
 
 };
 

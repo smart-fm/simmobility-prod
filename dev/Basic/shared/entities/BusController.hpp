@@ -6,6 +6,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
+#include <set>
 #include <vector>
 
 #include "buffering/Shared.hpp"
@@ -44,10 +45,10 @@ public:
 	static int busstopindex;
 
 	///Initialize all bus controller objects based on the parameters loaded from the database/XML.
-	static void InitializeAllControllers(std::vector<sim_mob::Entity*>& agents_list, const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
+	static void InitializeAllControllers(std::set<sim_mob::Entity*>& agents_list, const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);
 
 	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads (since those likely haven't been created yet).
-	static void DispatchAllControllers(std::vector<sim_mob::Entity*>& agents_list);
+	static void DispatchAllControllers(std::set<sim_mob::Entity*>& agents_list);
 
 public:
 	//May implement later
@@ -66,6 +67,8 @@ public:
 	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
+
+	void dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents);
 
 	//NOTE: There's two problems here:
 	//      1) You use a static "BusController", which is not flexible.

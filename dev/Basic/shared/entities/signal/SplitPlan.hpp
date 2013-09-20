@@ -1,12 +1,15 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
-#include<map>
-#include<vector>
-//#include "geospatial/Link.hpp"
+
+#include <map>
+#include <vector>
 #include "defaults.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"
-//#include "Offset.hpp"
-//#include "conf/simpleconf.hpp"
+
 
 namespace geo
 {
@@ -46,7 +49,7 @@ public:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
 private:
 
-    int signalTimingMode;//Fixed plan or adaptive control
+    //int signalTimingMode;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
 

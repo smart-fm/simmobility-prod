@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   HouseholdAgent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -33,10 +35,10 @@ namespace sim_mob {
             /**
              * Inherited from LT_Agent.
              */
-            virtual void HandleMessage(messaging::MessageReceiver::MessageType type,
-                    messaging::MessageReceiver& sender, const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, 
+                    const messaging::Message& message);
             bool OnFrameInit(timeslice now);
-            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now, int messageCounter);
+            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now);
             void OnFrameOutput(timeslice now);
         private:
             HousingMarket* market;

@@ -376,7 +376,7 @@ private:
 	unsigned long laneID_;
 
 	friend class RoadSegment;
-	friend void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *);
+	//friend void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *);
 
 public:
     // polyline_ is mutable so that getPolyline() can be a const method.

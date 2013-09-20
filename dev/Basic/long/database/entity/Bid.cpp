@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Bid.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -13,7 +15,7 @@
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 
-Bid::Bid(UnitId unitId, int bidderId, MessageReceiver* bidder, float value, timeslice& time)
+Bid::Bid(UnitId unitId, int bidderId, MessageHandler* bidder, float value, timeslice& time)
 : unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {
 }
 
@@ -57,6 +59,6 @@ const timeslice& Bid::GetTime() const {
     return time;
 }
 
-MessageReceiver* Bid::GetBidder() const{
+MessageHandler* Bid::GetBidder() const{
     return bidder;
 }

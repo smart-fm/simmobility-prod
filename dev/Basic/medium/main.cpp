@@ -15,6 +15,10 @@
 #include "GenConfig.h"
 
 #include "buffering/BufferedDataManager.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
+#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
@@ -89,11 +93,11 @@ public:
 private:
 	void throwIt() { throw std::runtime_error("Fake LC_model used for medium term."); }
 };
-void fakeModels(Config::BuiltInModels& builtIn) {
+/*void fakeModels(Config::BuiltInModels& builtIn) {
 	builtIn.carFollowModels["mitsim"] = new Fake_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new Fake_LC_Model();
 	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
-}
+}*/
 
 } //End anon namespace
 
@@ -121,11 +125,14 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
@@ -135,12 +142,15 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		std::cout << "Confluxes ON!" << std::endl;
+	}
+	else {
+		throw std::runtime_error("Confluxes OFF! Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run the program again.");
 	}
 
 	ProfileBuilder* prof = nullptr;
-	if (ConfigParams::GetInstance().ProfileOn()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
@@ -151,22 +161,22 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
-	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
 
 
 	//No built-in models available to the medium term (yet).
-	Config::BuiltInModels builtIn;
-	fakeModels(builtIn);
+	//Config::BuiltInModels builtIn;
+	//fakeModels(builtIn);
 
 	//Load our user config file
-	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 
 	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -176,7 +186,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 #endif
 
-	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	//bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -185,33 +195,37 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded);
+	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	//WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, nullptr /*AuraManager is not used in mid-term*/, partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
-	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 
 
-	agentWorkers->assignConfluxToWorkers();
+	personWorkers->assignConfluxToWorkers();
+//	personWorkers->findBoundaryConfluxes();
+
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
 	 * they will be assigned a worker.
 	 */
-	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		// agentWorkers->assignAWorker(*it);
-		agentWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+		// personWorkers->assignAWorker(*it);
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
 	if(BusController::HasBusControllers()){
-		agentWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
+		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
 	//Assign all signals too
@@ -222,7 +236,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl);
+	AuraManager::instance().init(config.aura_manager_impl, nullptr);
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -230,7 +244,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}
@@ -261,10 +275,10 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
-		if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
@@ -301,11 +315,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	cout << "Starting Agents: " << numStartAgents;
 	cout << ",     Pending: ";
-	if (NoDynamicDispatch) {
+	/*if (NoDynamicDispatch) {
 		cout <<"<Disabled>";
-	} else {
+	} else {*/
 		cout <<numPendingAgents;
-	}
+	//}
 	cout << endl;
 
 	if (Agent::all_agents.empty()) {
@@ -314,8 +328,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
-		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
-				!= Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
@@ -334,21 +347,21 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-	if (ConfigParams::GetInstance().numAgentsSkipped>0) {
-		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigParams::GetInstance().numAgentsSkipped <<endl;
+	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
+		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}
+		}*/
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -384,7 +397,7 @@ int main(int ARGC, char* ARGV[])
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
-	ConfigParams& config = ConfigParams::GetInstance();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size() > 2 && args[2]=="mpi") {
@@ -417,18 +430,19 @@ int main(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
+
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {
 		cout << "No config file specified; using default." << endl;
 	}
-	cout << "Using config file: " << configFileName << endl;
+	Print() << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
 	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
 	if (ConfigParams::GetInstance().OutputEnabled()) {
 		if (!Logger::log_init(logFileName)) {
-			cout <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
+			Print() <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
 		}
 	}*/
 
@@ -440,19 +454,24 @@ int main(int ARGC, char* ARGV[])
 	//}
 
 	//Perform main loop
-	clock_t simStartTime = clock();
+	timeval simStartTime;
+	gettimeofday(&simStartTime, nullptr);
+
 	std::list<std::string> resLogFiles;
 	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
 
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 
-	//Close log file, return.
-	cout << "Done" << endl;
-	Print() << "Total simulation time: "<< double( clock() - simStartTime ) / (double)CLOCKS_PER_SEC<< " seconds." << endl;
+	timeval simEndTime;
+	gettimeofday(&simEndTime, nullptr);
+
+	Print() << "Done" << endl;
+	cout << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+
 	return returnVal;
 }
 

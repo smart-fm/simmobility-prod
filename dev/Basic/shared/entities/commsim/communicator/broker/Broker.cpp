@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 //external libraries
 #include "Broker.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
@@ -17,6 +21,9 @@
 //temporary, used for hardcoding publishers in the constructor
 #include "entities/commsim/communicator/service/derived/LocationPublisher.hpp"
 #include "entities/commsim/communicator/service/derived/TimePublisher.hpp"
+#include "event/SystemEvents.hpp"
+#include "message/MessageBus.hpp"
+
 
 int sim_mob::Broker::diedAgents = 0;
 int sim_mob::Broker::subscribedAgents = 0;
@@ -44,9 +51,11 @@ bool Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnH
 //	}
 //	sim_mob::BufferContainer<Json::Value> & t  = sendBuffer[cnnHandler];
 	sendBuffer[cnnHandler].add(value);
+
+	return true;
 }
 Broker::Broker(const MutexStrategy& mtxStrat, int id )
-: Agent(mtxStrat, id), EventListener()
+: Agent(mtxStrat, id)
 ,enabled(false), firstTime(true) //If a Broker is created, we assume it is enabled.
 {
 	//Various Initializations
@@ -103,13 +112,25 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 	}
 }
 
-void Broker::OnAgentFinished(EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args){
-	Broker::diedAgents++;
-	Print() << "Agent " << args.GetAgent() << "  is dying" << std::endl;
-	unRegisterEntity(args.GetAgent());
-	//FUTURE when we have reentrant locks inside of Publisher.
-	//const_cast<Agent*>(agent)->UnSubscribe(AGENT_LIFE_EVENT_FINISHED_ID, this);
+void Broker::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args){
+    // FOR GLOBAL EVENTS.
 }
+
+void Broker::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args){
+    // for specific context events.
+    switch (eventId){
+        case event::EVT_CORE_AGENT_DIED:
+        {
+            const AgentLifeCycleEventArgs& lcArgs = static_cast<const AgentLifeCycleEventArgs&>(args);
+            Print() << "Agent " << lcArgs.GetAgentId() << "  is dying" << std::endl;
+            //VAHID TODO: use the id instead of ctxId is more safe.
+            //unRegisterEntity(ctxId);
+            break;
+        }
+        default:break;
+    }	
+}
+
 
 AgentsMap<std::string>::type & Broker::getRegisteredAgents() {
 	return registeredAgents;
@@ -216,9 +237,9 @@ bool  Broker::registerEntity(sim_mob::AgentCommUtility<std::string>* value)
 	//tdo: testing. comment the following condition after testing
 	Print()<< " registering an agent " << &value->getEntity() << std::endl;
 	registeredAgents.insert(std::make_pair(&value->getEntity(), value));
-	value->registrationCallBack(true);
-	const_cast<Agent&>(value->getEntity()).Subscribe(AGENT_LIFE_EVENT_FINISHED_ID, this,
-			CALLBACK_HANDLER(AgentLifeEventArgs, Broker::OnAgentFinished));
+        value->registrationCallBack(true);
+        messaging::MessageBus::SubscribeEvent(event::EVT_CORE_AGENT_DIED, 
+                static_cast<event::Context>(const_cast<Agent*>(&(value->getEntity()))), this);
 	Broker::subscribedAgents++;
 	return true;
 }
@@ -262,6 +283,8 @@ void  Broker::unRegisterEntity(const sim_mob::Agent * agent)
 						break;
 					case SIMMOB_SRV_LOCATION:
 						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						break;
+					default:
 						break;
 					}
 				}
@@ -483,16 +506,13 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtility<std::string> * info) {
 		}
 
 		//one more check to see if the entity is deleted
-		const std::vector<sim_mob::Entity*> & managedEntities_ =
-				info->getEntity().currWorkerProvider->getEntities();
-		std::vector<sim_mob::Entity*>::const_iterator it =
-				managedEntities_.begin();
+		const std::set<sim_mob::Entity*> & managedEntities_ = info->getEntity().currWorkerProvider->getEntities();
+		std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
 		if(!managedEntities_.size())
 		{
 			return true;
 		}
-		for (std::vector<sim_mob::Entity*>::const_iterator it =
-				managedEntities_.begin(); it != managedEntities_.end(); it++) {
+		for (std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
 			if (*it == &(info->getEntity()))
 				return false;
@@ -518,8 +538,8 @@ void Broker::refineSubscriptionList() {
 			unRegisterEntity(target);
 			continue;
 		}
-		const std::vector<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
-		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
+		const std::set<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
+		std::set<sim_mob::Entity*>::const_iterator it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{
 			unRegisterEntity(target);

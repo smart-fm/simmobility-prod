@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   EventArgs.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -12,6 +14,8 @@
 namespace sim_mob {
     
     namespace event {
+
+    	typedef unsigned int EventId;
 
         /**
          * Represents an event data.

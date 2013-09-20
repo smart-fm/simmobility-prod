@@ -23,11 +23,11 @@
 #include "Lane.hpp"
 #include "entities/conflux/Conflux.hpp"
 
-using namespace sim_mob;
-
 using std::pair;
 using std::vector;
 using std::set;
+
+using namespace sim_mob;
 
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {
@@ -172,6 +172,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 
 
 double sim_mob::RoadSegment::computeLaneZeroLength() const{
+	//This function will only computeLaneZeroLength once and re-use the value in subsequent calls
 	double res = 0.0;
 	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
 	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
@@ -182,7 +183,7 @@ double sim_mob::RoadSegment::computeLaneZeroLength() const{
 }
 
 void sim_mob::RoadSegment::setCapacity() {
-	capacity = lanes.size()*940.0;
+	capacity = lanes.size()*2000.0;
 }
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const

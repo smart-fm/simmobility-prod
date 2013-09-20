@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoleFactory.hpp"
 
@@ -105,7 +107,7 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 {
 		if (subTrip.mode=="Car")    return "driver";
 		if (subTrip.mode=="Walk")   return "pedestrian";
-		//if (subTrip.mode=="Bus")    return "busdriver";
+		if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="BusTravel")    return "passenger";
 		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");

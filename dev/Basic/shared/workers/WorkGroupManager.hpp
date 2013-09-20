@@ -11,7 +11,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/StateSwitcher.hpp"
-
+#include "util/Utils.hpp"
 
 namespace sim_mob {
 

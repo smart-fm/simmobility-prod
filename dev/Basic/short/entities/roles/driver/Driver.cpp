@@ -17,7 +17,8 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 
 #include "entities/AuraManager.hpp"
@@ -179,7 +180,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator())
+	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator()),
+	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
+	,stop_event_nodeid(mtxStrat, -1)
 {
 //	if (Debug::Drivers) {
 //		DebugStream <<"Driver starting: ";
@@ -192,8 +195,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {
-		ReactionTimeDist* r1 = ConfigParams::GetInstance().reactDist1;
-		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
+		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
+		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
 		if (r1 && r2) {
 			reacTime = r1->getReactionTime() + r2->getReactionTime();
 			reacTime = 0;
@@ -268,6 +271,26 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(latVelocity));
 	res.push_back(&(fwdAccel));
 	res.push_back(&(turningDirection));
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
+	return res;
+}
+
+std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
+{
+	vector<BufferedBase*> res;
+	res.push_back(&(stop_event_time));
+	res.push_back(&(stop_event_type));
+	res.push_back(&(stop_event_scheduleid));
+	res.push_back(&(stop_event_nodeid));
+	res.push_back(&(stop_event_lastBoardingPassengers));
+	res.push_back(&(stop_event_lastAlightingPassengers));
+
 	return res;
 }
 
@@ -298,7 +321,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedTrafficColor = sim_mob::Green;
 
 	trafficSignalStopDistance = Driver::maxVisibleDis;
-	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;

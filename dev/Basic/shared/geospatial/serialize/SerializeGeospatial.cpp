@@ -1,4 +1,7 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "conf/settings/DisableMPI.h"
 
 #include "util/LangHelpers.hpp"
@@ -18,7 +21,8 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 /*
  * \author Xu Yan
@@ -194,7 +198,7 @@ Node* Node::unpack(UnPackageUtils& unpackage)
 	 sim_mob::Point2D location;
 	 unpackage >> location;
 
-	 const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	 const sim_mob::RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
 	 return rn.locateNode(location, true);
 }
 

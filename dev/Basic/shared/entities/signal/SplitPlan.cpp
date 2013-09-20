@@ -1,7 +1,11 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "SplitPlan.hpp"
-#include<stdio.h>
-#include<sstream>
-#include "conf/simpleconf.hpp"
+
+#include <cstdio>
+#include <sstream>
 #include "Signal.hpp"
 
 using namespace boost::multi_index;
@@ -159,10 +163,8 @@ void SplitPlan::Update(std::vector<double> &DS)
 	double DS_all = fmax(DS);
 	cycle_.Update(DS_all);
 	cycleLength = cycle_.getcurrCL();
-//	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
-		std::cout << currSplitPlanID << std::endl;
 		initialize();
 }
 /*
@@ -172,7 +174,7 @@ void SplitPlan::Update(std::vector<double> &DS)
  */
 
 
-SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),signalTimingMode(ConfigParams::GetInstance().signalTimingMode),TMP_PlanID(TMP_PlanID_)
+SplitPlan::SplitPlan(double cycleLength_,double offset_,/*int signalTimingMode_,*/ unsigned int TMP_PlanID_):cycleLength(cycleLength_),offset(offset_),TMP_PlanID(TMP_PlanID_)
 {
 //	signalTimingMode = ConfigParams::GetInstance().signalTimingMode;
 	nextSplitPlanID = 0;
@@ -191,9 +193,13 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
+	//NOTE: This is barely used; may want to remove it entirely.
+	const int signalTimingMode = 1;
+
 	NOF_Plans = 5;
-	if(signalTimingMode == 0)//fixed plan
+	if(signalTimingMode == 0) {//fixed plan
 		NOF_Plans = 1;
+	}
 	int ii=5,jj=0;
 	double defaultChoiceSet_1[5][10] = {
 			{100},

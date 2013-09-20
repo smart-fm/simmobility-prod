@@ -6,9 +6,12 @@
 
 #include <stdexcept>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventBusSystem.hpp"
 
 using std::vector;
 
@@ -26,6 +29,8 @@ WorkGroupManager::~WorkGroupManager()
 	safe_delete_item(frameTickBarr);
 	safe_delete_item(buffFlipBarr);
 	safe_delete_item(auraMgrBarr);
+        // UnRegisters the main thread for message bus.
+        messaging::MessageBus::UnRegisterMainThread();
 }
 
 
@@ -55,7 +60,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
 	currBarrierCount += numWorkers;
-	if (auraMgr || partitionMgr) {
+	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
 		auraBarrierNeeded = true;
 	}
 
@@ -75,6 +80,8 @@ void sim_mob::WorkGroupManager::setSingleThreadMode(bool enable)
 
 void sim_mob::WorkGroupManager::initAllGroups()
 {
+        // Registers the main thread for message bus.
+        messaging::MessageBus::RegisterMainThread();
 	//Sanity check
 	bool pass = currState.test(CREATE) && currState.set(BARRIERS);
 	if (!pass) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
@@ -131,6 +138,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (frameTickBarr) {
 		frameTickBarr->wait();
 	}
+        sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
@@ -145,7 +153,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (buffFlipBarr) {
 		buffFlipBarr->wait();
-	}
+	}	
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
@@ -171,6 +179,11 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 	}
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
+		if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+			(*it)->processVirtualQueues();
+			(*it)->outputSupplyStats();
+		}
+
 		(*it)->waitAuraManager();
 	}
 

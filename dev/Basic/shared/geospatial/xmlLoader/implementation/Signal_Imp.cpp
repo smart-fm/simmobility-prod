@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "geo10-pimpl.hpp"
 #include "entities/signal/Signal.hpp"
 
@@ -22,7 +26,7 @@ void sim_mob::xml::Signal_t_pimpl::signalID (unsigned int value)
 
 void sim_mob::xml::Signal_t_pimpl::nodeID (unsigned int value)
 {
-	signalHelper.setBasicSignal(new sim_mob::Signal(*book.getNode(value),sim_mob::ConfigParams::GetInstance().mutexStategy,signalHelper.getSignalID()));
+	signalHelper.setBasicSignal(new sim_mob::Signal(*book.getNode(value),sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(),signalHelper.getSignalID()));
 
 }
 
@@ -37,11 +41,11 @@ void sim_mob::xml::Signal_t_pimpl::linkAndCrossings (sim_mob::LinkAndCrossingC v
 }
 void sim_mob::xml::Signal_t_pimpl::SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info SCATS_Info_)
 {
-	signalHelper.setTargetSignal(new sim_mob::Signal_SCATS(signalHelper.getBasicSignal()->getNode(),sim_mob::ConfigParams::GetInstance().mutexStategy,signalHelper.getSignalID(),sim_mob::SIG_SCATS));
+	signalHelper.setTargetSignal(new sim_mob::Signal_SCATS(signalHelper.getBasicSignal()->getNode(),sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(),signalHelper.getSignalID(),sim_mob::SIG_SCATS));
 	signalHelper.getTargetSignal()->phases_ = signalHelper.getBasicSignal()->phases_;
 	signalHelper.getTargetSignal()->LinkAndCrossings_ = signalHelper.getBasicSignal()->LinkAndCrossings_;
 	  sim_mob::Signal_SCATS *temp = dynamic_cast<sim_mob::Signal_SCATS *>(signalHelper.getTargetSignal());
-	  temp->setSignalTimingMode(SCATS_Info_.signalTimingMode);
+	 // temp->setSignalTimingMode(SCATS_Info_.signalTimingMode);
 	  temp->plan_ = SCATS_Info_.SplitPlan;
 	  temp->plan_.setParentSignal(temp);
 	  temp->initialize();

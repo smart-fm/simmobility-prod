@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * ClientRegistrationFactory.cpp
  *
@@ -16,7 +20,11 @@
 namespace sim_mob {
 
 ClientRegistrationFactory::ClientRegistrationFactory() {
-	ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
+	//NOTE: I am doing this manually for now; c++11 is throwing a fit.
+	ClientTypeMap.clear();
+	ClientTypeMap["ANDROID_EMULATOR"] = ConfigParams::ANDROID_EMULATOR;
+	ClientTypeMap["NS3_SIMULATOR"] = ConfigParams::NS3_SIMULATOR;
+	//ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 	// TODO Auto-generated constructor stub
 
 }

@@ -7,11 +7,9 @@
 #include <ostream>
 #include <vector>
 #include <set>
-
 #include <boost/thread.hpp>
-
 #include "buffering/BufferedDataManager.hpp"
-#include "event/EventManager.hpp"
+#include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
 
 namespace sim_mob {
@@ -42,9 +40,7 @@ public:
 
 	virtual void scheduleForBred(Entity* entity) = 0;
 
-	virtual const std::vector<Entity*>& getEntities() const = 0;
-
-	virtual event::EventManager& getEventManager() = 0;
+	virtual const std::set<Entity*>& getEntities() const = 0;
 };
 
 
@@ -93,13 +89,18 @@ public:
 	virtual ~Worker();
 
 	//Removing entities and scheduling them for removal is allowed (but adding is restricted).
-	const std::vector<Entity*>& getEntities() const;
+	const std::set<Entity*>& getEntities() const;
 	void remEntity(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	event::EventManager& getEventManager();
+	void processVirtualQueues();
+	void outputSupplyStats(uint32_t currTick);
+	event::EventCollectionMgr& getEventManager();
+
 	virtual std::ostream* getLogFile() const;
+
+	void findBoundaryConfluxes();
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
@@ -136,6 +137,7 @@ private:
 	virtual void update_entities(timeslice currTime);
 
 	void migrateOut(Entity& ent);
+	void migrateOutConflux(Conflux& cfx);
 	void migrateIn(Entity& ent);
 
 	//Entity management. Adding is restricted (use WorkGroups).
@@ -187,15 +189,11 @@ private:
 	MgmtParams loop_params;
 
 	///Entities managed by this worker
-	std::vector<Entity*> managedEntities;
+	std::set<Entity*> managedEntities;
 	std::set<Conflux*> managedConfluxes;
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	event::EventManager eventManager;
-
-	int thread_id;
-	static int auto_matical_thread_id;
 };
 
 }

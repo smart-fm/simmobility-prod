@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * CommunicationManager.cpp
  *
@@ -21,7 +25,7 @@ void sim_mob::CommunicationDataManager::sendTrafficData(std::string &s)
 		boost::mutex::scoped_lock lock(trafficDataGuard);
 		trafficDataQueue.push(s);
 }
-void sim_mob::CommunicationDataManager::sendRoadNetworkData(std::string &s)
+void sim_mob::CommunicationDataManager::sendRoadNetworkData(const std::string &s)
 {
 		boost::mutex::scoped_lock lock(roadNetworkDataGuard);
 		roadNetworkDataQueue.push(s);

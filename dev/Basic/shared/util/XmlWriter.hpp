@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 //NOTE: Do *not* replace the following ifdef guard wtih a "pragma once" ---we use this defined file to
 //      ensure that users don't include items in the "internal" folder directly.

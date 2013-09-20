@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "geo10-pimpl.hpp"
 
 using namespace sim_mob::xml;
@@ -28,7 +32,7 @@ sim_mob::RoadSegment* sim_mob::xml::segment_t_pimpl::post_segment_t ()
 	for(std::map<sim_mob::centimeter_t,const RoadItem*>::iterator it = res->obstacles.begin(); it != res->obstacles.end(); it++) {
 		RoadItem* temp = const_cast<RoadItem*>(it->second);
 		if (temp) {
-			//temp->setParentSegment(res);
+			temp->setParentSegment(res);
 		}
 	}
 

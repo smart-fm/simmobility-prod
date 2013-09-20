@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * DriverFacets.hpp
  *
@@ -97,6 +101,9 @@ private:
 	size_t targetLaneIndex;
 
 	const Lane* nextLaneInNextLink;
+private:
+	double distanceToNextStop();
+	bool sArriveStop();
 
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
@@ -111,6 +118,7 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
+	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
@@ -152,6 +160,8 @@ private:
 
 
 	void findCrossing(DriverUpdateParams& p);
+
+	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve

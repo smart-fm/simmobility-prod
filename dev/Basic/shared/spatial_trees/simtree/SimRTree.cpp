@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "SimRTree.h"
 
@@ -1565,7 +1567,7 @@ void sim_mob::SimRTree::rebalance() {
 //std::cout << "Agent::all_agents:" << Agent::all_agents.size() << std::endl;
 
 	//re-insert all agents inside
-	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); itr++) {
+	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); itr++) {
 		Agent* agent = dynamic_cast<Agent*>(*itr);
 		if (agent && (agent)->isToBeRemoved() == false)
 			insertAgent(agent);

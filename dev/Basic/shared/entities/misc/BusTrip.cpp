@@ -5,7 +5,8 @@
 #include "BusTrip.hpp"
 #include <boost/lexical_cast.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "geospatial/BusStop.hpp"
 #include "logging/Log.hpp"
 
@@ -111,18 +112,17 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegme
 		bus_RouteInfo.addBusStop(*it);
 	}
 	// addBusStopRealTimes, first time fake Times
-	ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	for(int k = 0; k < busStop_vec.size(); k++) {
-		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy,BusStop_RealTimes());
+		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(),BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
 
 	// addBusStopScheduledTimes since only "schedule_based", "evenheadway_based" and "hybrid_based" need these
-	if(config.busline_control_type == "schedule_based" || config.busline_control_type == "evenheadway_based" || config.busline_control_type == "hybrid_based") {
-		std::map<int,std::vector<int> > scheduledTimes =  config.scheduledTimes;
-		for(std::map<int,std::vector<int> >::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
-		{
-			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.at(0)),startTime + DailyTime(temp->second.at(1)));
+	if(config.busline_control_type() == "schedule_based" || config.busline_control_type() == "evenheadway_based" || config.busline_control_type() == "hybrid_based") {
+		std::map<int, BusStopScheduledTime> scheduledTimes =  config.busScheduledTimes;
+		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++) {
+			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.offsetAT),startTime + DailyTime(temp->second.offsetDT));
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
 		}
 	}

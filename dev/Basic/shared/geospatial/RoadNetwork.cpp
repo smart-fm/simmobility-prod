@@ -5,6 +5,7 @@
 #include "RoadNetwork.hpp"
 
 #include <cmath>
+#include <stdexcept>
 
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -12,6 +13,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
+#include "logging/Log.hpp"
 
 using std::set;
 using std::pair;
@@ -30,6 +32,13 @@ struct RS_ID_Sorter {
 };
 
 } //End anon namespace
+
+
+sim_mob::RoadNetwork::~RoadNetwork()
+{
+	Warn() <<"Attempting to delete road network; memory will leak!\n";
+}
+
 
 
 void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)
@@ -127,6 +136,14 @@ void sim_mob::RoadNetwork::setSegmentNodes(const std::set<sim_mob::UniNode*>& sn
 void sim_mob::RoadNetwork::addNodes(const std::vector<sim_mob::MultiNode*>& vals)
 {
 	nodes.insert(nodes.begin(),vals.begin(),vals.end());
+}
+
+sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform() const
+{
+	if (coordinateMap.empty()) {
+		throw std::runtime_error("No coordinate transform: coordmap is empty.");
+	}
+	return coordinateMap.front();
 }
 
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const

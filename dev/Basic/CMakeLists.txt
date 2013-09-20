@@ -147,10 +147,9 @@ SET(CPACK_PACKAGE_CONTACT "Seth N. Hetu <seth@smart.mit.edu>")
 #This is where it starts to get complicated
 SET(COMMA ",")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-           "libtinyxml-dev (>= 2.5.3)"
+           "libboost-all-dev (>= 1.40)"
   ${COMMA} "libsoci-core-gcc-dev (>= 3.0.0)"
   ${COMMA} "libsoci-postgresql-gcc (>= 3.0.0)"
-  ${COMMA} "libboost-all-dev (>= 1.40)"
   ${COMMA} "libxerces-c-dev (>= 3.1.0)"
   ${COMMA} "xsdcxx (>= 3.3.0)"
   ${COMMA} "libpq-dev (>= 8.4.17)"
@@ -203,14 +202,14 @@ option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." O
 
 #Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
 #        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
-option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
+#option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 
 #Option: Turn on Unity (full-file) builds. 
 option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
 option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." ON)
 
 #String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
-set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
+#set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
@@ -264,7 +263,10 @@ ENDFOREACH()
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-  ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+  ELSE() 
+    #Just hope for the best
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
@@ -276,12 +278,11 @@ ELSE (SIMMOB_LATEST_STANDARD)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
 
-
-#Enable threading on GCC-4.7
+#Threading fix on GCC-4.7
 IF(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
   IF (GCC_VERSION VERSION_EQUAL 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_HAVE_GTHR_DEFAULT")
   ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
@@ -331,10 +332,12 @@ find_package(Boost COMPONENTS system thread filesystem serialization date_time R
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
-#Find TinyXML
+#Find TinyXML (optional; not used any more)
 find_package(TinyXML REQUIRED)
-include_directories(${TINYXML_INCLUDE_DIR})
-LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
+if (TINYXML_FOUND)
+  include_directories(${TINYXML_INCLUDE_DIR})
+  LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
+endif()
 
 #Find Xsd (headers only)
 find_package(Xsd REQUIRED)
@@ -369,6 +372,11 @@ LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 find_package(Boost COMPONENTS regex REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
+#Find JsonCpp
+find_package(JsonCpp REQUIRED)
+include_directories(${JSONCPP_INCLUDE_DIR})
+LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
@@ -395,6 +403,10 @@ ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 IF (${SIMMOB_PROFILE_ON} MATCHES "ON")
   LIST(APPEND LibraryList "rt")
 ENDIF (${SIMMOB_PROFILE_ON} MATCHES "ON")
+
+#Find the Threading library (pthread)
+find_package(Threads REQUIRED)
+LIST(APPEND LibraryList ${CMAKE_THREAD_LIBS_INIT})
 
 
 #Remove duplicates, just in case

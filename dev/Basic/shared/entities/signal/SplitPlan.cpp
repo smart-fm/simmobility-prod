@@ -163,10 +163,8 @@ void SplitPlan::Update(std::vector<double> &DS)
 	double DS_all = fmax(DS);
 	cycle_.Update(DS_all);
 	cycleLength = cycle_.getcurrCL();
-//	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
-		Print() << currSplitPlanID << std::endl;
 		initialize();
 }
 /*

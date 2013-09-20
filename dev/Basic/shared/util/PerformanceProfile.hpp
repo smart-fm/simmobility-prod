@@ -2,6 +2,8 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#if 0
+
 #pragma once
 
 #include <vector>
@@ -11,7 +13,6 @@
 #include <sys/time.h>
 
 #include "util/LangHelpers.hpp"
-
 namespace sim_mob {
 class PerformanceProfile
 {
@@ -86,3 +87,4 @@ public:
 };
 
 }
+#endif

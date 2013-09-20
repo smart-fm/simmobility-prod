@@ -2,6 +2,8 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#if 0
+
 #include "PerformanceProfile.hpp"
 
 #include "logging/Log.hpp"
@@ -192,3 +194,4 @@ void sim_mob::PerformanceProfile::showPerformanceProfile()
 
 
 }
+#endif

@@ -75,7 +75,7 @@
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
-#include "util/PerformanceProfile.hpp"
+//#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -248,12 +248,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
 	//      PerformanceProfile.hpp   ~Seth
+#if 0
 	bool doPerformanceMeasurement = false; //TODO: From config file.
 	bool measureInParallel = true;
 	PerformanceProfile perfProfile;
 	if (doPerformanceMeasurement) {
 		perfProfile.init(config.personWorkGroupSize(), measureInParallel);
 	}
+#endif
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -302,7 +304,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
+	AuraManager::instance().init(config.aura_manager_impl()
+#if 0
+			,(doPerformanceMeasurement ? &perfProfile : nullptr)
+#endif
+			);
 
 
 	///

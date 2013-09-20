@@ -467,7 +467,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	Print() << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 
 	return returnVal;
 }

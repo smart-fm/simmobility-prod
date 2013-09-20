@@ -517,11 +517,19 @@ void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
 }
 
 sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment* rdSeg) {
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.find(rdSeg);
+/*	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it = segmentAgents.find(rdSeg);
 	if(it == segmentAgents.end()){ // if not found, search in downstreamSegments
 		return rdSeg->getParentConflux()->findSegStats(rdSeg);
 	}
-	return it->second;
+	return it->second;*/
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator it;
+	if(rdSeg->getParentConflux() == this){
+		it = segmentAgents.find(rdSeg);
+		return it->second;
+	}
+	else{ // if not found, search in downstreamSegments
+		return rdSeg->getParentConflux()->findSegStats(rdSeg);
+	}
 }
 
 void sim_mob::Conflux::setTravelTimes(Person* ag, double linkExitTime) {
@@ -820,8 +828,6 @@ void sim_mob::Conflux::findBoundaryConfluxes() {
 					}
 					else{
 						if(cit->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker){
-							std::cout << "firstUpstreamWorker: "<< firstUpstreamWorker <<"|"<<cit->second->getParentWorker()<<"|"
-															<<this->getParentWorker()<<std::endl;
 							isMultipleReceiver = true;
 							return;
 						}

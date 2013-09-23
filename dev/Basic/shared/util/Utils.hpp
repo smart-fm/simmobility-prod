@@ -10,11 +10,12 @@
  */
 #pragma once
 
-#include <ctime>
+//#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
+#include <sys/time.h>
 
 namespace sim_mob {
 

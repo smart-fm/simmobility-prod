@@ -28,6 +28,7 @@
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 #include "event/EventBusSystem.hpp"
+#include "util/PerformanceProfile.hpp"
 
 using std::vector;
 
@@ -244,6 +245,9 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
+
+		//Cannot remove, used for Sim-Tree
+		AuraManager::instance().registerNewAgent(ag);
 	}
 }
 
@@ -392,9 +396,9 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 		}
 
 		//Stage Agent updates based on nextTimeTickToStage
-		stageEntities();
+		//stageEntities();
 		//Remove any Agents staged for removal.
-		collectRemovedEntities();
+		//collectRemovedEntities();
 		//buff_flip_barr->contribute(); //No.
 
 	} else {
@@ -421,10 +425,17 @@ void sim_mob::WorkGroup::waitAuraManager()
 //			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
+		PerformanceProfile::instance().markStartUpdate();
 		//Update the aura manager, if we have one.
 		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
 			auraMgr->update();
 		}
+		PerformanceProfile::instance().markEndUpdate();
+		//calculate query time
+		PerformanceProfile::instance().update();
+
+		stageEntities();
+		collectRemovedEntities();
 
 		//aura_mgr_barr->contribute();  //No.
 	} else {

@@ -243,7 +243,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks);
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
@@ -257,6 +257,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 #endif
 
+	//Initialize the aura manager
+	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
+
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
@@ -268,6 +271,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
+
+		//put them to AuraManager
+		Agent* an_agent = dynamic_cast<Agent*>(*it);
+		if(an_agent) AuraManager::instance().registerNewAgent(an_agent);
 	}
 
 	//Assign all BusStopAgents
@@ -361,14 +368,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		std::cout << "Time:" << currTick << std::endl;
 
 		//xuyan:measure simulation time
-		if (currTick == 600 * 5 + 1)
+		if (currTick == 600 * 10 + 1)
 		{ // mins
 			if (doPerformanceMeasurement) {
 				perfProfile.startMeasure();
 				perfProfile.markStartSimulation();
 			}
 		}
-		if (currTick == 600 * 30 - 1)
+		if (currTick == endTick - 1)
 		{ // mins
 			if (doPerformanceMeasurement) {
 				perfProfile.markEndSimulation();
@@ -411,7 +418,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			} else {
 				//We don't need to lock this output if general output is disabled, since Agents won't
 				//  perform any output (and hence there will be no contention)
-				std::cout <<currTickPercent <<"0%" <<std::endl;
+				std::cout <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
 			}
 		}
 

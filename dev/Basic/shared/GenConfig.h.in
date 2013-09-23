@@ -25,6 +25,7 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "conf/settings/DisableOutput.h"
 #include "conf/settings/DisableMPI.h"
+#include "conf/settings/PathSet.h"
 //#include "conf/settings/XML_Reader.h"
 
 //Cmake-related constants

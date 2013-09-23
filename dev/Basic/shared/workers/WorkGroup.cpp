@@ -19,6 +19,7 @@
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -38,8 +39,12 @@ using namespace sim_mob;
 sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
 	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr),
+	profile(nullptr)
 {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
+		profile = new ProfileBuilder();
+	}
 }
 
 
@@ -425,14 +430,18 @@ void sim_mob::WorkGroup::waitAuraManager()
 //			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
-		PerformanceProfile::instance().markStartUpdate();
 		//Update the aura manager, if we have one.
 		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
+			if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
+				(profile)->logAuraManagerUpdateBegin(*auraMgr, currTimeTick);
+			}
+
 			auraMgr->update();
+
+			if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
+				(profile)->logAuraManagerUpdateEnd(*auraMgr, currTimeTick);
+			}
 		}
-		PerformanceProfile::instance().markEndUpdate();
-		//calculate query time
-		PerformanceProfile::instance().update();
 
 		stageEntities();
 		collectRemovedEntities();

@@ -22,6 +22,7 @@
 
 namespace sim_mob {
 
+class ProfileBuilder;
 class RoadSegment;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
@@ -196,6 +197,9 @@ private:
 	// one additional locking barrier is required to prevent Workers from rushing ahead
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
+
+	//Profile
+	sim_mob::ProfileBuilder* profile;
 };
 
 

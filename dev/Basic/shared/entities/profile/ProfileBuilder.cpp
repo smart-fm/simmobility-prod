@@ -5,6 +5,7 @@
 #include "ProfileBuilder.hpp"
 
 #include "entities/Agent.hpp"
+#include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
 
 //Somewhat hackish way of getting "timespec" defined.
@@ -108,6 +109,16 @@ string ProfileBuilder::GetCurrentTime()
 string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
+void ProfileBuilder::logAuraManagerUpdateBegin(const AuraManager& auraMgr, uint32_t currFrame)
+{
+	logAuraMgrUpdateGeneric(auraMgr, "auramgr-update-begin", currFrame, "");
+}
+
+void ProfileBuilder::logAuraManagerUpdateEnd(const AuraManager& auraMgr, uint32_t currFrame)
+{
+	logAuraMgrUpdateGeneric(auraMgr, "auramgr-update-end", currFrame, "");
+}
+
 
 void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents)
 {
@@ -155,6 +166,19 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<now->frame() <<"\"" <<",";
 	}
 	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+	if (!message.empty()) {
+		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
+	}
+	currLog <<"}\n";
+}
+
+void ProfileBuilder::logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message)
+{
+	currLog <<"{"
+			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
+			<<"\"" <<"auramgr" <<"\"" <<":" <<"\"" <<(&auraMgr) <<"\"" <<","
+			<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<currFrame <<"\"" <<","
+			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
 	if (!message.empty()) {
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}

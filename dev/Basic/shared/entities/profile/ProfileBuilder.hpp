@@ -69,6 +69,7 @@ namespace sim_mob
 
 class Agent;
 class Worker;
+class AuraManager;
 
 
 /**
@@ -94,6 +95,9 @@ public:
 	///  written.
 	static void InitLogFile(const std::string& path);
 
+	void logAuraManagerUpdateBegin(const AuraManager& auraMgr, uint32_t currFrame);
+	void logAuraManagerUpdateEnd(const AuraManager& auraMgr, uint32_t currFrame);
+
 	void logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents);
 	void logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame);
 
@@ -115,6 +119,7 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
+	void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
 	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
 	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");

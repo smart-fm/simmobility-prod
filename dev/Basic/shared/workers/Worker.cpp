@@ -40,6 +40,7 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
+/* static */ int sim_mob::Worker::auto_matical_thread_id = 0;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
 	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
@@ -66,6 +67,8 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
+	thread_id = auto_matical_thread_id;
+	auto_matical_thread_id++;
 }
 
 
@@ -407,6 +410,7 @@ struct EntityUpdater {
 			if (res.status == UpdateStatus::RS_DONE) {
 				//This Entity is done; schedule for deletion.
 				wrk.scheduleForRemoval(entity);
+				entity->can_remove_by_RTREE = true;
 			} else if (res.status == UpdateStatus::RS_CONTINUE) {
 				//Still going, but we may have properties to start/stop managing
 				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {

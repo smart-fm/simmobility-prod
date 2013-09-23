@@ -206,7 +206,7 @@ option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." O
 
 #Option: Turn on Unity (full-file) builds. 
 option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
-option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." ON)
+option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
 
 #String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
 #set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")

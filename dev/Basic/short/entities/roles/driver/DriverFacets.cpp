@@ -378,7 +378,7 @@ bool sim_mob::DriverMovement::update_sensors(DriverUpdateParams& params, timesli
 	}
 
 
-	std::cout << "params:" << std::endl;
+	//std::cout << "params:" << std::endl;
 	updateNearbyAgents(params);
 
 
@@ -743,7 +743,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)));
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
-							std::cout << "agent id : " << (*it)->getId() << std::endl;
+						//	std::cout << "agent id : " << (*it)->getId() << std::endl;
 
 					 		//passenger boarding
 							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
@@ -755,7 +755,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								if (!passenger)
 								  continue;
 
-								std::cout << "agent id : " << (*it)->getId() << std::endl;
+							//	std::cout << "agent id : " << (*it)->getId() << std::endl;
 
 								schedule->insidepassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
@@ -1714,7 +1714,7 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 
 	sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 
-	std::cout << "nearby_agents size:" << nearby_agents.size() << std::endl;
+//	std::cout << "nearby_agents size:" << nearby_agents.size() << std::endl;
 #endif
 	//Update each nearby Pedestrian/Driver
 

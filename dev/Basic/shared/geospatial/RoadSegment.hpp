@@ -83,7 +83,7 @@ public:
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, const SupplyParams* sParams=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		supplyParams(sParams), parentConflux(nullptr)
+		supplyParams(sParams), parentConflux(nullptr), laneZeroLength(-1.0)
 	{}
 
 	const unsigned long  getSegmentID()const ;
@@ -158,6 +158,9 @@ public:
 
 	void setCapacity(); //for now since the capacity is not loaded from the xml
 
+	const double getLaneZeroLength() const{
+		return laneZeroLength;
+	}
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
@@ -186,6 +189,8 @@ private:
 	unsigned long segmentID;
 
 	const sim_mob::SupplyParams* supplyParams;
+
+	double laneZeroLength;
 
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;

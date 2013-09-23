@@ -310,7 +310,7 @@ private:
 
 	bool onActivity; //Determines if the person is conducting any activity
 	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
-	boost::mutex lastUpdatedFrame_mutex;
+//	boost::mutex lastUpdatedFrame_mutex;
 
 	//add by xuyan
 protected:

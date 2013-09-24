@@ -104,7 +104,7 @@ private:
 	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
 
-	std::vector<Entity*> toBeRemoved;
+	std::deque<Person*> activityPerformers;
 
 	/** function to call agents' updates if the MultiNode is signalized */
 	void updateSignalized();
@@ -113,7 +113,7 @@ private:
 	void updateUnsignalized();
 
 	/** calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
-	void updateAgent(sim_mob::Person* p);
+	void updateAgent(sim_mob::Person* person);
 
 	/** calls frame_tick() of the movement facet for the person's role*/
 	UpdateStatus perform_person_move(timeslice now, Person* person);
@@ -136,7 +136,7 @@ private:
 	/** selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Person* agentClosestToIntersection();
 
-	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing);
+	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
 
 	void resetPersonRemTimesInVQ();
 

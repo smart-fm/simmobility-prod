@@ -51,9 +51,9 @@ AuraManager::Stats::printStatistics() const
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 void
-AuraManager::init(AuraManagerImplementation implType, bool keepStats)
+AuraManager::init(AuraManagerImplementation implType)
 {
-    if (keepStats) {
+    if (false) {
         stats_ = new Stats;
     }
 

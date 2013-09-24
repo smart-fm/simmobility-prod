@@ -4,11 +4,19 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <boost/thread.hpp>
+
+//Somewhat hackish way of getting "timespec" defined.
+#ifdef SIMMOB_PROFILE_ON
+#define _XOPEN_SOURCE 700
+#include <sys/time.h>
+#undef _XOPEN_SOURCE
+#endif
 
 #include "conf/settings/ProfileOptions.h"
 
@@ -63,6 +71,27 @@
 #endif
 
 
+///Helper macro: call profie.logAuraManagerUpdateBegin(auraMgr, currFrame)
+///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
+  #define PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currFrame) \
+		  (profile)->logAuraManagerUpdateBegin(auraMgr, currFrame)
+#else
+  #define PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currFrame) DO_NOTHING
+#endif
+
+
+///Helper macro: call profie.logAuraManagerUpdateEnd(auraMgr, currFrame)
+///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
+  #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) \
+		  (profile)->logAuraManagerUpdateEnd(auraMgr, currFrame)
+#else
+  #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) DO_NOTHING
+#endif
+
+
+
 
 namespace sim_mob
 {
@@ -90,26 +119,53 @@ public:
 	ProfileBuilder();
 	~ProfileBuilder();
 
+	/**
+	 * A simple struct to hold properties for ProfileBuilder's logs.
+	 * NOTE: If you add new fields to this class, make sure they are initialized so that
+	 *       they are OFF by default, since all log lines share these items.
+	 */
+	struct LogItem {
+		std::string action; //Always show, even if empty.
+		std::pair<const void*, std::string> identity;        //Null means don't show
+		std::pair<const void*, std::string> secondIdentity;  //Null means don't show.
+		int32_t currFrame; //-1 means don't show.
+		int32_t numAgents; //-1 means don't show.
+
+		//Default most to off
+		LogItem(const std::string& action, const std::string& identityLbl="", const std::string& secIdentLbl="") :
+			action(action), identity(nullptr, identityLbl), secondIdentity(nullptr,secIdentLbl),  currFrame(-1), numAgents(-1)
+		{}
+	};
+
+	/**
+	 * NOTE: This is not accurate! If you want accurate timing, use the ProfileBuilder directly (which is nanoscale on Linux).
+	 * TODO: Provide a millisecond-level alternative to StopWatch.
+	 */
+	static double diff_ms(timeval t1, timeval t2);
+
 
 	///Initialize the shared log file. Must be called once before any output is
 	///  written.
 	static void InitLogFile(const std::string& path);
 
-	void logAuraManagerUpdateBegin(const AuraManager& auraMgr, uint32_t currFrame);
-	void logAuraManagerUpdateEnd(const AuraManager& auraMgr, uint32_t currFrame);
+	void logGeneric(const LogItem& item);
 
-	void logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents);
-	void logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame);
+	void logAuraManagerUpdateBegin(const AuraManager* auraMgr, uint32_t currFrame);
+	void logAuraManagerUpdateEnd(const AuraManager* auraMgr, uint32_t currFrame);
 
-	void logAgentUpdateBegin(const Agent& ag, timeslice now);
-	void logAgentUpdateEnd(const Agent& ag, timeslice now);
-	void logAgentCreated(const Agent& ag);
-	void logAgentDeleted(const Agent& ag);
-	void logAgentException(const Agent& ag, timeslice now, const std::exception& ex);
+	void logWorkerUpdateBegin(const Worker* wrk, uint32_t currFrame, size_t numAgents);
+	void logWorkerUpdateEnd(const Worker* wrk, uint32_t currFrame);
+
+	void logAgentUpdateBegin(const Agent* ag, timeslice now);
+	void logAgentUpdateEnd(const Agent* ag, timeslice now);
+//	void logAgentCreated(const Agent* ag);
+//	void logAgentDeleted(const Agent* ag);
+//	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
 
 	///Used to log generic (non-agent) behavior.
-	void logGenericStart(const std::string& caption, const std::string& group);
-	void logGenericEnd(const std::string& caption, const std::string& group);
+	//TEMP: Do we need these? ~Seth
+	//void logGenericStart(const std::string& caption, const std::string& group);
+	//void logGenericEnd(const std::string& caption, const std::string& group);
 
 private:
 	//Increase or decrease the shared reference count. Returns the total reference count after
@@ -119,10 +175,10 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
-	void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
-	void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
-	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
-	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
+	//void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
+	//void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
+	//void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
+	//void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 
 private:
 

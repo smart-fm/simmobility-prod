@@ -8,13 +8,6 @@
 #include "entities/AuraManager.hpp"
 #include "workers/Worker.hpp"
 
-//Somewhat hackish way of getting "timespec" defined.
-#ifdef SIMMOB_PROFILE_ON
-#define _XOPEN_SOURCE 700
-#include <time.h>
-#undef _XOPEN_SOURCE
-#endif
-
 
 using namespace sim_mob;
 
@@ -24,6 +17,32 @@ using std::string;
 std::ofstream ProfileBuilder::LogFile;
 boost::mutex ProfileBuilder::profile_mutex;
 int ProfileBuilder::ref_count = 0;
+
+
+//Local copies to avoid copying on each function call.
+namespace {
+//Aura Manager
+ProfileBuilder::LogItem AuraManagerStartLogItem("auramgr-update-begin", "auramgr");
+ProfileBuilder::LogItem AuraManagerEndLogItem("auramgr-update-end", "auramgr");
+
+//Worker
+ProfileBuilder::LogItem WorkerStartLogItem("worker-update-begin", "worker");
+ProfileBuilder::LogItem WorkerEndLogItem("worker-update-end", "worker");
+
+//Agent
+ProfileBuilder::LogItem AgentStartLogItem("agent-update-begin", "agent", "worker");
+ProfileBuilder::LogItem AgentEndLogItem("agent-update-end", "agent", "worker");
+ProfileBuilder::LogItem AgentCreatedLogItem("agent-constructed", "agent", "worker");
+ProfileBuilder::LogItem AgentExceptionLogItem("agent-exception", "agent", "worker");
+ProfileBuilder::LogItem AgentDestroyedLogItem("agent-destructed", "agent", "worker");
+
+} //End unnamed namespace
+
+
+double ProfileBuilder::diff_ms(timeval t1, timeval t2)
+{
+	return (((t1.tv_sec - t2.tv_sec) * 1000000.0) + (t1.tv_usec - t2.tv_usec) / 1000.0);
+}
 
 
 void ProfileBuilder::InitLogFile(const string& path)
@@ -109,54 +128,76 @@ string ProfileBuilder::GetCurrentTime()
 string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 #endif
 
-void ProfileBuilder::logAuraManagerUpdateBegin(const AuraManager& auraMgr, uint32_t currFrame)
+void ProfileBuilder::logAuraManagerUpdateBegin(const AuraManager* auraMgr, uint32_t currFrame)
 {
-	logAuraMgrUpdateGeneric(auraMgr, "auramgr-update-begin", currFrame, "");
+	AuraManagerStartLogItem.currFrame = currFrame;
+	AuraManagerStartLogItem.identity.first = auraMgr;
+	logGeneric(AuraManagerStartLogItem);
 }
 
-void ProfileBuilder::logAuraManagerUpdateEnd(const AuraManager& auraMgr, uint32_t currFrame)
+void ProfileBuilder::logAuraManagerUpdateEnd(const AuraManager* auraMgr, uint32_t currFrame)
 {
-	logAuraMgrUpdateGeneric(auraMgr, "auramgr-update-end", currFrame, "");
-}
-
-
-void ProfileBuilder::logWorkerUpdateBegin(const Worker& wrk, uint32_t currFrame, size_t numAgents)
-{
-	logWorkerUpdateGeneric(wrk, "worker-update-begin", currFrame, "", numAgents);
-}
-
-void ProfileBuilder::logWorkerUpdateEnd(const Worker& wrk, uint32_t currFrame)
-{
-	logWorkerUpdateGeneric(wrk, "worker-update-end", currFrame);
-}
-
-void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, timeslice now)
-{
-	logAgentUpdateGeneric(ag, "update-begin", &now);
-}
-
-void ProfileBuilder::logAgentUpdateEnd(const Agent& ag, timeslice now)
-{
-	logAgentUpdateGeneric(ag, "update-end", &now);
-}
-
-void ProfileBuilder::logAgentCreated(const Agent& ag)
-{
-	logAgentUpdateGeneric(ag, "constructed");
-}
-
-void ProfileBuilder::logAgentException(const Agent& ag, timeslice now, const std::exception& ex)
-{
-	logAgentUpdateGeneric(ag, "exception", &now, ex.what());
-}
-
-void ProfileBuilder::logAgentDeleted(const Agent& ag)
-{
-	logAgentUpdateGeneric(ag, "destructed");
+	AuraManagerEndLogItem.currFrame = currFrame;
+	AuraManagerEndLogItem.identity.first = auraMgr;
+	logGeneric(AuraManagerEndLogItem);
 }
 
 
-void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const timeslice* const now, const string& message)
+void ProfileBuilder::logWorkerUpdateBegin(const Worker* wrk, uint32_t currFrame, size_t numAgents)
+{
+	WorkerStartLogItem.currFrame = currFrame;
+	WorkerStartLogItem.identity.first = wrk;
+	WorkerStartLogItem.numAgents = numAgents;
+	logGeneric(WorkerStartLogItem);
+}
+
+void ProfileBuilder::logWorkerUpdateEnd(const Worker* wrk, uint32_t currFrame)
+{
+	WorkerEndLogItem.currFrame = currFrame;
+	WorkerEndLogItem.identity.first = wrk;
+	logGeneric(WorkerEndLogItem);
+}
+
+void ProfileBuilder::logAgentUpdateBegin(const Agent* ag, timeslice now)
+{
+	AgentStartLogItem.currFrame = now.frame();
+	AgentStartLogItem.identity.first = ag;
+	AgentStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(AgentStartLogItem);
+}
+
+void ProfileBuilder::logAgentUpdateEnd(const Agent* ag, timeslice now)
+{
+	AgentEndLogItem.currFrame = now.frame();
+	AgentEndLogItem.identity.first = ag;
+	AgentEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(AgentEndLogItem);
+}
+
+/*void ProfileBuilder::logAgentCreated(const Agent* ag)
+{
+	AgentCreatedLogItem.identity.first = ag;
+	AgentCreatedLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(AgentCreatedLogItem);
+}
+
+void ProfileBuilder::logAgentException(const Agent* ag, timeslice now, const std::exception& ex)
+{
+	AgentExceptionLogItem.currFrame = now.frame();
+	AgentExceptionLogItem.identity.first = ag;
+	AgentExceptionLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(AgentExceptionLogItem);
+}
+
+void ProfileBuilder::logAgentDeleted(const Agent* ag)
+{
+	AgentDestroyedLogItem.identity.first = ag;
+	AgentDestroyedLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(AgentDestroyedLogItem);
+}*/
+
+
+/*void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const timeslice* const now, const string& message)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
@@ -170,9 +211,9 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}
 	currLog <<"}\n";
-}
+}*/
 
-void ProfileBuilder::logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message)
+/*void ProfileBuilder::logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
@@ -183,10 +224,10 @@ void ProfileBuilder::logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const s
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}
 	currLog <<"}\n";
-}
+}*/
 
 
-void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message, size_t numAgents)
+/*void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& action, uint32_t currFrame, const string& message, size_t numAgents)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
@@ -198,20 +239,64 @@ void ProfileBuilder::logWorkerUpdateGeneric(const Worker& wrk, const string& act
 		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
 	}
 	currLog <<"}\n";
+}*/
+
+
+void ProfileBuilder::logGeneric(const LogItem& item)
+{
+	//Mandatory properties.
+	currLog <<"{"
+			<<"\"" <<"action" <<"\""    <<":" <<"\"" <<item.action <<"\"" <<","
+			<<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+
+	//Optional
+	if (item.identity.first) {
+		currLog <<"\"" <<item.identity.second <<"\"" <<":" <<"\"" <<item.identity.first <<"\"" <<",";
+	}
+	if (item.secondIdentity.first) {
+		currLog <<"\"" <<item.secondIdentity.second <<"\"" <<":" <<"\"" <<item.secondIdentity.first <<"\"" <<",";
+	}
+	if (item.currFrame >= 0) {
+		currLog <<"\"" <<"tick" <<"\""      <<":" <<"\"" <<item.currFrame <<"\"" <<",";
+	}
+	if (item.numAgents >= 0) {
+		currLog <<"\"" <<"num-agents" <<"\""      <<":" <<"\"" <<item.numAgents <<"\"" <<",";
+	}
+
+	//Optional properties.
+	//for (std::map<std::string, std::string>::const_iterator it=props.begin(); it!=props.end(); it++) {
+	//	currLog <<"\"" <<it->first <<"\"" <<":" <<"\"" <<it->second <<"\"" <<",";
+	//}
+
+	//currLog <<"\"" <<"num-agents" <<"\"" <<":" <<"\"" <<numAgents <<"\"" <<",";
+	//if (!message.empty()) {
+	//	currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
+	//}
+
+	//Close it.
+	currLog <<"}\n";
 }
 
 
-void ProfileBuilder::logGenericStart(const string& caption, const string& group)
+/*void ProfileBuilder::logGenericStart(const string& caption, const string& group)
 {
-	logGeneric("generic-start", group, caption);
+	LogItem item;
+	item.action = "generic-start";
+	item.props["group"] = group;
+	item.props["caption"] = caption;
+	logGeneric(item);
 }
 
 void ProfileBuilder::logGenericEnd(const string& caption, const string& group)
 {
-	logGeneric("generic-end", group, caption);
-}
+	LogItem item;
+	item.action = "generic-end";
+	item.props["group"] = group;
+	item.props["caption"] = caption;
+	logGeneric(item);
+}*/
 
-void ProfileBuilder::logGeneric(const string& action, const string& group, const string& caption)
+/*void ProfileBuilder::logGeneric(const string& action, const string& group, const string& caption)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
@@ -221,7 +306,7 @@ void ProfileBuilder::logGeneric(const string& action, const string& group, const
 		currLog <<"\"" <<"caption" <<"\"" <<":" <<"\"" <<caption <<"\"" <<",";
 	}
 	currLog <<"}\n";
-}
+}*/
 
 
 

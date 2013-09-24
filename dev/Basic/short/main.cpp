@@ -14,7 +14,9 @@
  */
 #include <vector>
 #include <string>
-#include <ctime>
+
+//TODO: Replace with <chrono> or something similar.
+#include <sys/time.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
@@ -258,7 +260,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 #endif
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
+	AuraManager::instance().init(config.aura_manager_impl()
+			//,(doPerformanceMeasurement ? &perfProfile : nullptr)
+	);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -347,7 +351,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time);
+	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time);
 
 	ParitionDebugOutput debug;
 

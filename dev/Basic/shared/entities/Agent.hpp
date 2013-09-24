@@ -33,7 +33,7 @@ class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-class ProfileBuilder;
+//class ProfileBuilder;
 
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
@@ -304,7 +304,7 @@ protected:
 	const sim_mob::Lane* currLane;
 	const sim_mob::RoadSegment* currSegment;
 
-	sim_mob::ProfileBuilder* profile;
+	//sim_mob::ProfileBuilder* profile;
 
 public:
 	int getOwnRandomNumber();

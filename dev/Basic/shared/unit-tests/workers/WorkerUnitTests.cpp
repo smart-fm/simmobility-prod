@@ -289,7 +289,7 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 
 	//Add an "AuraManager" stage, just for testing purposes.
 	AuraManager* am = &AuraManager::instance();
-	am->init(AuraManager::IMPL_RSTAR, nullptr);
+	am->init(AuraManager::IMPL_RSTAR);
 
 	//Start with the same agent counters.
 	WorkGroup* countWG = wgm.newWorkGroup(2, 5);

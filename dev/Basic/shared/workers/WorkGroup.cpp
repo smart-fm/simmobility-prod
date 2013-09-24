@@ -432,15 +432,11 @@ void sim_mob::WorkGroup::waitAuraManager()
 
 		//Update the aura manager, if we have one.
 		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
-			if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
-				(profile)->logAuraManagerUpdateBegin(*auraMgr, currTimeTick);
-			}
+			PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currTimeTick);
 
 			auraMgr->update();
 
-			if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
-				(profile)->logAuraManagerUpdateEnd(*auraMgr, currTimeTick);
-			}
+			PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currTimeTick);
 		}
 
 		stageEntities();

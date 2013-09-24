@@ -123,7 +123,7 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(AuraManagerImplementation implType, bool keepStats = false);
+    init(AuraManagerImplementation implType);
 
     /**
      * Print statistics collected on internal operationss.

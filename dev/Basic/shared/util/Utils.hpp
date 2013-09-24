@@ -10,12 +10,12 @@
  */
 #pragma once
 
-//#include <ctime>
+#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
-#include <sys/time.h>
+//#include <sys/time.h>
 
 namespace sim_mob {
 
@@ -47,12 +47,6 @@ namespace sim_mob {
          *
          */
         static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
-
-        //Helper for computing differences. May be off by ~1ms
-        static int diff_ms(timeval t1, timeval t2);
-
-        //Helper for computing differences. May be off by ~1ms
-        static double diff_ms_db(timeval t1, timeval t2);
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.

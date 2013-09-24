@@ -112,24 +112,29 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), profile(nullptr), travelStatsMap(mtxStrat)
+	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), travelStatsMap(mtxStrat)
 {
 	toRemoved = false;
 	nextPathPlanned = false;
 	dynamic_seed = id;
+
 	//Register global life cycle events.
-	if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
+	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.
+	//      Fortunately, no-one was using this behavior anyway.
+	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
-		profile->logAgentCreated(*this);
-	}
+		//profile->logAgentCreated(*this);
+	}*/
 
 	connector_to_Sim_Tree = NULL;
 }
 
 sim_mob::Agent::~Agent() {
-        if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
+	//NOTE: We can't profile the agent's deletion, since it's not necessarily on a thread at this point.
+	//      Fortunately, no-one was using this behavior anyway.
+	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
-	}
+	}*/
 	safe_delete_item(profile);
 }
 

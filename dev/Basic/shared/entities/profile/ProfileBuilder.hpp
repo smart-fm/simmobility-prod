@@ -24,32 +24,32 @@
 #include "util/LangHelpers.hpp"
 
 
-///Helper macro: call profie.logAgentUpdateBegin(agent, now)
+///Helper macro: call wrkprov->getProfileBuilder()->logAgentUpdateBegin(agent, now)
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) \
-		  (profile)->logAgentUpdateBegin(agent, now)
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(wrkprov, agent, now) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logAgentUpdateBegin(agent, now); }
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, agent, now) DO_NOTHING
+  #define PROFILE_LOG_AGENT_UPDATE_BEGIN(wrkprov, agent, now) DO_NOTHING
 #endif
 
-///Helper macro: call profie.logAgentUpdateEnd(agent, now)
+///Helper macro: call wrkprov->getProfileBuilder()->logAgentUpdateEnd(agent, now)
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) \
-		  (profile)->logAgentUpdateEnd(agent, now)
+  #define PROFILE_LOG_AGENT_UPDATE_END(wrkprov, agent, now) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logAgentUpdateEnd(agent, now); }
 #else
-  #define PROFILE_LOG_AGENT_UPDATE_END(profile, agent, now) DO_NOTHING
+  #define PROFILE_LOG_AGENT_UPDATE_END(wrkprov, agent, now) DO_NOTHING
 #endif
 
-///Helper macro: call profile.logAgentException(agent, now, ex);
+///Helper macro: call wrkprov->getProfileBuilder()->logAgentException(agent, now, ex);
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
-  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) \
+/*#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
+  #define PROFILE_LOG_AGENT_EXCEPTION(wrkprov, agent, now, ex) \
 		  (profile)->logAgentException(agent, now, ex)
 #else
-  #define PROFILE_LOG_AGENT_EXCEPTION(profile, agent, now, ex) DO_NOTHING
-#endif
+  #define PROFILE_LOG_AGENT_EXCEPTION(wrkprov, agent, now, ex) DO_NOTHING
+#endif*/
 
 ///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame)
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
@@ -90,22 +90,22 @@
   #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) DO_NOTHING
 #endif
 
-///Helper macro: call profie.logQueryStart(agent)
+///Helper macro: call wrkprov->getProfileBuilder()->logQueryStart(agent)
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
-  #define PROFILE_LOG_QUERY_START(profile, ag) \
-		  (profile)->logQueryStart(ag)
+  #define PROFILE_LOG_QUERY_START(wrkprov, ag) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryStart(ag); }
 #else
-  #define PROFILE_LOG_QUERY_START(profile, ag) DO_NOTHING
+  #define PROFILE_LOG_QUERY_START(wrkprov, ag) DO_NOTHING
 #endif
 
-///Helper macro: call profie.logQueryEnd(agent)
+///Helper macro: call wrkprov->getProfileBuilder()->logQueryEnd(agent)
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
-  #define PROFILE_LOG_QUERY_END(profile, ag) \
-		  (profile)->logQueryEnd(ag)
+  #define PROFILE_LOG_QUERY_END(wrkprov, ag) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryEnd(ag); }
 #else
-  #define PROFILE_LOG_QUERY_END(profile, ag) DO_NOTHING
+  #define PROFILE_LOG_QUERY_END(wrkprov, ag) DO_NOTHING
 #endif
 
 

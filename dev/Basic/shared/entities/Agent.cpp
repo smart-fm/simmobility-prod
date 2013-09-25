@@ -226,7 +226,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 }
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider->getProfileBuilder(), this, now);
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -277,7 +277,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
                
 	}
 
-	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider->getProfileBuilder(), this, now);
+	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
 	return retVal;
 }
 

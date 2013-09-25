@@ -901,12 +901,12 @@ def neg(x, y, radix):
             while i < 2 * m:
                 s = i
                 t = i + k
-                as = a[s]
+                as1 = a[s]
                 at = a[t]
                 bs = b[s]
                 bt = b[t]
                 for g in range(r):
-                    as[g], at[g] = as[g] + at[g], as[g] - at[g]
+                    as1[g], at[g] = as1[g] + at[g], as1[g] - at[g]
                     bs[g], bt[g] = bs[g] + bt[g], bs[g] - bt[g]
                 a[t] = twist(a[t], r, u)
                 b[t] = twist(b[t], r, u)
@@ -966,10 +966,10 @@ def neg_sqr(x, radix):
             while i < 2 * m:
                 s = i
                 t = i + k
-                as = a[s]
+                as1 = a[s]
                 at = a[t]
                 for g in range(r):
-                    as[g], at[g] = as[g] + at[g], as[g] - at[g]
+                    as1[g], at[g] = as1[g] + at[g], as1[g] - at[g]
                 a[t] = twist(a[t], r, u)
                 i += 2 * k
             u += v

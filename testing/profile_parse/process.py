@@ -4,6 +4,12 @@ import sys
 import os
 import re
 
+#Use DecInt or the built-in BigInt?
+UseDecInt = True
+
+if UseDecInt:
+  import DecInt
+
 #Declare our regexes
 LL_Key = '\"([^"]+)\"'
 LL_Value = '\"([^"]+)\"'
@@ -12,7 +18,6 @@ LL_Line = "{(?:%s)+}" % LL_Property
 LogPropRegex = re.compile(LL_Property)
 LogLineRegex = re.compile(LL_Line)
 
-print(LL_Line)
 
 #For parsing times:
 #(sec,X),(nano,Y)
@@ -30,6 +35,25 @@ class WorkerTick:
 #Instances of the helper classes
 wrkStart = None
 
+
+def parse_time(inStr):
+  global UseDecInt
+  mRes = LogTimeRegex.match(inStr)
+  if not mRes:
+    raise Exception("Invalid time: %s" % inStr)
+
+  #Use a big decimal representation?
+  nanoscale = 0
+  if UseDecInt:
+    nanoscale = DecInt.DecInt(10) ** 9
+  else:
+    nanoscale = 10 ** 9
+
+  #Convert
+  sec = long(mRes.group(1))
+  nano = long(mRes.group(2))
+  res = nanoscale*sec + nano 
+  return res
 
 
 def parse_work_tick(props, startTick, parseBegin):
@@ -67,7 +91,7 @@ def print_work_tick(out, wStart, wEnd):
     print "Warning: skipping start/end WorkTick; time ticks don't match."
     return
 
-  out.write('\n' % (wStart.id, wStart.tick, wEnd.time-wStart.time, wStart.numAgents))
+  out.write('%s\t%s\t%s\t%s\n' % (wStart.id, wStart.tick, wEnd.time-wStart.time, wStart.numAgents))
 
 
 def dispatch_auramgr_update_action(out, act, props):
@@ -80,6 +104,7 @@ def dispatch_query_action(out, act, props):
 
 
 def dispatch_worker_update_action(out, act, props):
+  global wrkStart
   if act=='worker-update-begin':
     wrkStart = parse_work_tick(props, wrkStart, True)
   elif act=='worker-update-end':
@@ -101,9 +126,9 @@ def dispatch_line(out, props):
   if act.startswith('worker-update-'):
     dispatch_worker_update_action(out, act, props)
   elif act.startswith('query-'):
-    dispatch_query_action(act, props)
+    dispatch_query_action(out, act, props)
   elif act.startswith('auramgr-update-'):
-    dispatch_auramgr_update_action(act, props)
+    dispatch_auramgr_update_action(out, act, props)
   else:
     print ("Unknown action: %s" % act)
 
@@ -111,6 +136,7 @@ def dispatch_line(out, props):
 def run_main(inFilePath):
   #Prepare an output file.
   out = open("workers.csv", 'w')
+  out.write('%s\t%s\t%s\t%s\n' % ('WrkID', 'Tick', 'Len(Nano)', 'NumAgents'))
 
   for line in open(inFilePath):
     #Skip empty lines, comments
@@ -129,7 +155,6 @@ def run_main(inFilePath):
 
         key = mr.group(1)
         val = mr.group(2)
-        print pos
         if key in props:
           raise Exception('Duplicate property: %s => %s' % (key, val))
         props[key] = val

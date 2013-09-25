@@ -17,7 +17,6 @@ class Agent;
 class Point2D;
 class Lane;
 class TreeImpl;
-class PerformanceProfile;
 
 struct TreeItem;
 

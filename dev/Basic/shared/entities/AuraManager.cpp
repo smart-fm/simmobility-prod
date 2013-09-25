@@ -11,7 +11,6 @@
 #include "entities/Person.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/PerformanceProfile.hpp"
 
 #include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"

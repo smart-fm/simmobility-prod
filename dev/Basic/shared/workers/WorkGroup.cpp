@@ -29,7 +29,6 @@
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 #include "event/EventBusSystem.hpp"
-#include "util/PerformanceProfile.hpp"
 
 using std::vector;
 

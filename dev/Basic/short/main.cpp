@@ -77,7 +77,6 @@
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
-//#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.

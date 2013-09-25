@@ -24,8 +24,6 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "network/CommunicationDataManager.hpp"
 
-#include "util/PerformanceProfile.hpp"
-
 using namespace sim_mob;
 using std::vector;
 using std::set;

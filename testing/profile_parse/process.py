@@ -33,10 +33,21 @@ class WorkerTick:
     self.startTime = None
     self.endTime = None
     self.numAgents = None
+class AuraMgrTick:
+  def __init__(self):
+    self.startTime = None
+    self.endTime = None
+class QueryTick:
+  def __init__(self):
+    self.startTime = None
+    self.endTime = None
+    self.wrkId = None
 
 
 #Containers of helper classes.
 workerTicks = {} #(workerId,tick) => WorkerTick
+auraMgrTicks = {} #(aMgrId,tick) => AuraMgrTick
+queryTicks = {} #(agentId,tick) => QueryTick
 
 
 def parse_time(inStr):
@@ -73,9 +84,6 @@ def parse_work_tick(workerTicks, props, parseBegin):
   if not key in workerTicks:
     workerTicks[key] = WorkerTick()
 
-  if props['worker'] == '0x2c903c0':
-    print "Tick: %s" % (props['tick'])
-
   #Make sure we are not overwriting anything:
   if parseBegin and (workerTicks[key].startTime is not None or workerTicks[key].numAgents is not None):
     print ("Warning: skipping existing WorkTick startTime for: (%s,%s)" % (props['worker'], props['tick']))
@@ -92,6 +100,63 @@ def parse_work_tick(workerTicks, props, parseBegin):
     workerTicks[key].endTime = parse_time(props['real-time'])
 
 
+def parse_auramgr_tick(auraMgrTicks, props, parseBegin):
+  #Required properties.
+  if not('real-time' in props and 'auramgr' in props and 'tick' in props):
+    print "Warning: Skipping AuraMgr; missing required properties."
+    return
+
+  #Add it
+  key = (props['auramgr'], props['tick'])
+  if not key in auraMgrTicks:
+    auraMgrTicks[key] = AuraMgrTick()
+
+  #Make sure we are not overwriting anything:
+  if parseBegin and auraMgrTicks[key].startTime is not None:
+    print ("Warning: skipping existing AuraMgr startTime for: (%s,%s)" % (props['auramgr'], props['tick']))
+    return
+  if not parseBegin and auraMgrTicks[key].endTime is not None:
+    print ("Warning: skipping existing AuraMgr endTime for: (%s,%s)" % (props['auramgr'], props['tick']))
+    return
+
+  #Save it
+  if parseBegin:
+    auraMgrTicks[key].startTime = parse_time(props['real-time'])
+  else:
+    auraMgrTicks[key].endTime = parse_time(props['real-time'])
+
+
+def parse_query_tick(queryTicks, props, parseBegin):
+  #Required properties.
+  if not('real-time' in props and 'agent' in props and 'worker' in props and 'tick' in props):
+    print "Warning: Skipping Query; missing required properties."
+    return
+
+  #Add it
+  key = (props['agent'], props['tick'])
+  if not key in queryTicks:
+    queryTicks[key] = QueryTick()
+
+  #Make sure we are not overwriting anything:
+  if parseBegin and (queryTicks[key].startTime is not None or queryTicks[key].wrkId is not None):
+    print ("Warning: skipping existing QueryTick startTime for: (%s,%s)" % (props['agent'], props['tick']))
+    return
+  if not parseBegin and queryTicks[key].endTime is not None:
+    print ("Warning: skipping existing QueryTick endTime for: (%s,%s)" % (props['agent'], props['tick']))
+    return
+  if not parseBegin and queryTicks[key].wrkId != props['worker']:
+    print ("Warning: skipping bad-worker QueryTick endTime for: (%s,%s)" % (props['agent'], props['tick']))
+    return
+
+  #Save it
+  if parseBegin:
+    queryTicks[key].startTime = parse_time(props['real-time'])
+    queryTicks[key].wrkId = props['worker']
+  else:
+    queryTicks[key].endTime = parse_time(props['real-time'])
+
+
+
 def print_work_ticks(out, lines):
   global OnlySingleTickWorkers
   for key in lines:
@@ -106,16 +171,49 @@ def print_work_ticks(out, lines):
     if wrk.startTime and wrk.endTime and wrk.numAgents:
       out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], wrk.endTime-wrk.startTime, wrk.numAgents))
     else:
-      print "Warning: skipping output agent (some properties missing)."
+      print "Warning: skipping output Worker (some properties missing)."
+
+
+
+def print_auramgr_ticks(out, lines):
+  for key in lines:
+    #Print
+    am = lines[key]
+    if am.startTime and am.endTime:
+      out.write('%s\t%s\t%s\n' % (key[0], key[1], am.endTime-am.startTime))
+    else:
+      print "Warning: skipping output AuraManager (some properties missing)."
+
+def print_query_ticks(out, lines):
+  for key in lines:
+    #Print
+    qr = lines[key]
+    if qr.startTime and qr.endTime:
+      out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], qr.endTime-qr.startTime, qr.wrkId))
+    else:
+      print "Warning: skipping output Query (some properties missing)."
+
+
 
 
 def dispatch_auramgr_update_action(act, props):
-  #TODO
-  pass
+  global auraMgrTicks
+  if act=='auramgr-update-begin':
+    parse_auramgr_tick(auraMgrTicks, props, True)
+  elif act=='auramgr-update-end':
+    parse_auramgr_tick(auraMgrTicks, props, False)
+  else:
+    print ("Unknown aura manager action: %s" % act)
+
 
 def dispatch_query_action(act, props):
-  #TODO
-  pass
+  global queryTicks
+  if act=='query-start':
+    parse_query_tick(queryTicks, props, True)
+  elif act=='query-end':
+    parse_query_tick(queryTicks, props, False)
+  else:
+    print ("Unknown query action: %s" % act)
 
 
 def dispatch_worker_update_action(act, props):
@@ -149,6 +247,8 @@ def dispatch_line(props):
 
 def run_main(inFilePath):
   global workerTicks
+  global auraMgrTicks
+  global queryTicks
 
   for line in open(inFilePath):
     #Skip empty lines, comments
@@ -179,9 +279,17 @@ def run_main(inFilePath):
     dispatch_line(props)
 
   #Print output
-  out = open("workers.csv", 'w')
-  out.write('%s\t%s\t%s\t%s\n' % ('WrkID', 'Tick', 'Len(Nano)', 'NumAgents'))
-  print_work_ticks(out, workerTicks)
+  out1 = open("workers.csv", 'w')
+  out1.write('%s\t%s\t%s\t%s\n' % ('WrkID', 'Tick', 'Len(Nano)', 'NumAgents'))
+  print_work_ticks(out1, workerTicks)
+
+  out2 = open("auramgr.csv", 'w')
+  out2.write('%s\t%s\t%s\n' % ('AuraMgrID', 'Tick', 'Len(Nano)'))
+  print_auramgr_ticks(out2, auraMgrTicks)
+
+  out3 = open("queries.csv", 'w')
+  out3.write('%s\t%s\t%s\t%s\n' % ('AgentID', 'Tick', 'Len(Nano)', 'OnWorker'))
+  print_query_ticks(out3, queryTicks)
 
 
 

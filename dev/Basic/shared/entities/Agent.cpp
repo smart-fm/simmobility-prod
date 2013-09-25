@@ -135,7 +135,7 @@ sim_mob::Agent::~Agent() {
 	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}*/
-	safe_delete_item(profile);
+	//safe_delete_item(profile);
 }
 
 void sim_mob::Agent::resetFrameInit() {

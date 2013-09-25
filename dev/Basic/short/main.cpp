@@ -372,7 +372,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		std::cout << "Time:" << currTick << std::endl;
 
 		//xuyan:measure simulation time
-		if (currTick == 600 * 10 + 1)
+		//NOTE: It is much better to filter performance results via a script after the fact.
+		/*if (currTick == 600 * 10 + 1)
 		{ // mins
 			if (doPerformanceMeasurement) {
 				perfProfile.startMeasure();
@@ -385,7 +386,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				perfProfile.markEndSimulation();
 				perfProfile.endMeasure();
 			}
-		}
+		}*/
 
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);

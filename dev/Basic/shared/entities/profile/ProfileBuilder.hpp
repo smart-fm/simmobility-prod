@@ -162,6 +162,9 @@ public:
 //	void logAgentDeleted(const Agent* ag);
 //	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
 
+	//TODO: Log RegionQueryStart/End
+
+
 	///Used to log generic (non-agent) behavior.
 	//TEMP: Do we need these? ~Seth
 	//void logGenericStart(const std::string& caption, const std::string& group);

@@ -71,6 +71,9 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 #ifndef SIMMOB_INTERACTIVE_MODE
 	safe_delete_item(macro_tick_barr);
 #endif
+
+	//Clear the ProfileBuilder.
+	safe_delete_item(profile);
 }
 
 

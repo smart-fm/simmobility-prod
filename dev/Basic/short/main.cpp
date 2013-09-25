@@ -460,9 +460,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << endl;
 
 	//xuyan:show measure time
-	if (doPerformanceMeasurement) {
-		perfProfile.showPerformanceProfile();
-	}
+	//ProfileBuilder does this automatically on destruction.
+	//if (doPerformanceMeasurement) {
+	//	perfProfile.showPerformanceProfile();
+	//}
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";

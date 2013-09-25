@@ -90,6 +90,24 @@
   #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) DO_NOTHING
 #endif
 
+///Helper macro: call profie.logQueryStart(agent)
+///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
+  #define PROFILE_LOG_QUERY_START(profile, ag) \
+		  (profile)->logQueryStart(ag)
+#else
+  #define PROFILE_LOG_QUERY_START(profile, ag) DO_NOTHING
+#endif
+
+///Helper macro: call profie.logQueryEnd(agent)
+///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
+  #define PROFILE_LOG_QUERY_END(profile, ag) \
+		  (profile)->logQueryEnd(ag)
+#else
+  #define PROFILE_LOG_QUERY_END(profile, ag) DO_NOTHING
+#endif
+
 
 
 
@@ -162,7 +180,8 @@ public:
 //	void logAgentDeleted(const Agent* ag);
 //	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
 
-	//TODO: Log RegionQueryStart/End
+	void logQueryStart(const Agent* ag);
+	void logQueryEnd(const Agent* ag);
 
 
 	///Used to log generic (non-agent) behavior.

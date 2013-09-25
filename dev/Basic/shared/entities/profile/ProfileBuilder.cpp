@@ -35,6 +35,8 @@ ProfileBuilder::LogItem AgentEndLogItem("agent-update-end", "agent", "worker");
 ProfileBuilder::LogItem AgentCreatedLogItem("agent-constructed", "agent", "worker");
 ProfileBuilder::LogItem AgentExceptionLogItem("agent-exception", "agent", "worker");
 ProfileBuilder::LogItem AgentDestroyedLogItem("agent-destructed", "agent", "worker");
+ProfileBuilder::LogItem QueryStartLogItem("query-start", "agent", "worker");
+ProfileBuilder::LogItem QueryEndLogItem("query-end", "agent", "worker");
 
 } //End unnamed namespace
 
@@ -172,6 +174,20 @@ void ProfileBuilder::logAgentUpdateEnd(const Agent* ag, timeslice now)
 	AgentEndLogItem.identity.first = ag;
 	AgentEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
 	logGeneric(AgentEndLogItem);
+}
+
+void ProfileBuilder::logQueryStart(const Agent* ag)
+{
+	QueryStartLogItem.identity.first = ag;
+	QueryStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(QueryStartLogItem);
+}
+
+void ProfileBuilder::logQueryEnd(const Agent* ag)
+{
+	QueryEndLogItem.identity.first = ag;
+	QueryEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(QueryEndLogItem);
 }
 
 /*void ProfileBuilder::logAgentCreated(const Agent* ag)

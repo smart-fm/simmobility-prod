@@ -125,6 +125,11 @@ std::ostream* sim_mob::Worker::getLogFile() const
 	return logFile;
 }
 
+ProfileBuilder* sim_mob::Worker::getProfileBuilder() const
+{
+	return profile;
+}
+
 
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {

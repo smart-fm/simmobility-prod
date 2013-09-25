@@ -226,7 +226,6 @@ private:
 	//void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 
 private:
-
 	//Used for maintaining the shared log file.
 	static boost::mutex profile_mutex;
 	static std::ofstream LogFile;
@@ -234,6 +233,16 @@ private:
 
 	//Local buffer
 	std::stringstream currLog;
+
+	//Local string copies for better performance (NOTE: These *cannot* be static.)
+	LogItem AuraManagerStartLogItem;
+	LogItem AuraManagerEndLogItem;
+	LogItem WorkerStartLogItem;
+	LogItem WorkerEndLogItem;
+	LogItem AgentStartLogItem;
+	LogItem AgentEndLogItem;
+	LogItem QueryStartLogItem;
+	LogItem QueryEndLogItem;
 };
 
 

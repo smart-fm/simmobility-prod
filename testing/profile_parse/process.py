@@ -69,12 +69,15 @@ def parse_work_tick(workerTicks, props, parseBegin):
   if not key in workerTicks:
     workerTicks[key] = WorkerTick()
 
+  if props['worker'] == '0x2c903c0':
+    print "Tick: %s" % (props['tick'])
+
   #Make sure we are not overwriting anything:
-  if parseBegin and (workerTicks[key].startTime or workerTicks[key].numAgents):
-    print "Warning: skipping existing WorkTick startTime"
+  if parseBegin and (workerTicks[key].startTime is not None or workerTicks[key].numAgents is not None):
+    print ("Warning: skipping existing WorkTick startTime for: (%s,%s)" % (props['worker'], props['tick']))
     return
-  if not parseBegin and workerTicks[key].endTime:
-    print "Warning: skipping existing WorkTick endTime"
+  if not parseBegin and workerTicks[key].endTime is not None:
+    print ("Warning: skipping existing WorkTick endTime for: (%s,%s)" % (props['worker'], props['tick']))
     return
 
   #Save it

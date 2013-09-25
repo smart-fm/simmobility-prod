@@ -19,26 +19,6 @@ boost::mutex ProfileBuilder::profile_mutex;
 int ProfileBuilder::ref_count = 0;
 
 
-//Local copies to avoid copying on each function call.
-namespace {
-//Aura Manager
-ProfileBuilder::LogItem AuraManagerStartLogItem("auramgr-update-begin", "auramgr");
-ProfileBuilder::LogItem AuraManagerEndLogItem("auramgr-update-end", "auramgr");
-
-//Worker
-ProfileBuilder::LogItem WorkerStartLogItem("worker-update-begin", "worker");
-ProfileBuilder::LogItem WorkerEndLogItem("worker-update-end", "worker");
-
-//Agent
-ProfileBuilder::LogItem AgentStartLogItem("agent-update-begin", "agent", "worker");
-ProfileBuilder::LogItem AgentEndLogItem("agent-update-end", "agent", "worker");
-ProfileBuilder::LogItem AgentCreatedLogItem("agent-constructed", "agent", "worker");
-ProfileBuilder::LogItem AgentExceptionLogItem("agent-exception", "agent", "worker");
-ProfileBuilder::LogItem AgentDestroyedLogItem("agent-destructed", "agent", "worker");
-ProfileBuilder::LogItem QueryStartLogItem("query-start", "agent", "worker");
-ProfileBuilder::LogItem QueryEndLogItem("query-end", "agent", "worker");
-
-} //End unnamed namespace
 
 
 double ProfileBuilder::diff_ms(timeval t1, timeval t2)
@@ -65,7 +45,15 @@ int ProfileBuilder::RefCountUpdate(int amount)
 }
 
 
-ProfileBuilder::ProfileBuilder()
+ProfileBuilder::ProfileBuilder() :
+	AuraManagerStartLogItem("auramgr-update-begin", "auramgr"),
+	AuraManagerEndLogItem("auramgr-update-end", "auramgr"),
+	WorkerStartLogItem("worker-update-begin", "worker"),
+	WorkerEndLogItem("worker-update-end", "worker"),
+	AgentStartLogItem("agent-update-begin", "agent", "worker"),
+	AgentEndLogItem("agent-update-end", "agent", "worker"),
+	QueryStartLogItem("query-start", "agent", "worker"),
+	QueryEndLogItem("query-end", "agent", "worker")
 {
 	RefCountUpdate(1);
 }
@@ -86,6 +74,9 @@ ProfileBuilder::~ProfileBuilder()
 
 void ProfileBuilder::flushLogFile()
 {
+	//Lock it all
+	boost::mutex::scoped_lock local_lock(profile_mutex);
+
 	//Do nothing if the current log string is empty.
 	std::string currLogStr = currLog.str();
 	if (currLogStr.empty()) {
@@ -98,7 +89,6 @@ void ProfileBuilder::flushLogFile()
 	}
 
 	//Write and flush the current buffer.
-	boost::mutex::scoped_lock local_lock(profile_mutex);
 	LogFile <<currLogStr;
 	currLog.str("");
 }

@@ -121,14 +121,37 @@ class AuraManager;
 
 /**
  * Class which exists to facilitate generating a profile for some object (usually
- * an Agent). This class maintains its own internal buffer, which it will periodically
+ * an Agent or a Worker). This class maintains its own internal buffer, which it will periodically
  * flush to stdout. (Not flushing immediately prevents false synchronization due to locking.)
  * It also contains various functions which can be called by its owner to continue building
- * the output stream.
+ * the output stream. The final performance statistics are written to profile_trace.txt.
  *
  * Each time a ProfileBuilder is constructed, a shared reference count increases. When that
  * count drops to zero, the shared LogFile is closed. Assuming this access pattern is maintained,
  * ProfileBuilder is thread-safe.
+ *
+ * To elaborate: create one ProfileBuilder per thread. So, Workers EACH maintain a ProfileBuilder,
+ * and WorkGroups can either share one or maintain their own individual ones. If all of these are
+ * properly destructed by the simulation, you will see the following line at the end of profile_trace.txt:
+ *     ProfileBuilder RefCount reached zero.
+ *
+ * The profile_trace file will usually contain pairs of "begin" and "end" pairs, like so:
+ *   {"action":"worker-update-begin","real-time":"(sec,1380077229),(nano,222538683)","worker":"0x26e5fa0","tick":"1197","num-agents":"0",}
+ *   {"action":"worker-update-end","real-time":"(sec,1380077229),(nano,222553162)","worker":"0x26e5fa0","tick":"1197",}
+ *
+ * This corresponds roughly to a JSON string (but not strictly in the JSON format, due to the extra comma), with the
+ *   following mandatory properties:
+ *   "action" --- The action being considered. In this case, it's the "worker-update" loop, which is split into a "begin" and "end" phase.
+ *   "real-time" --- The actual time of the event, using the Linux nanoscale timer. Typically, you would subtract the "start" time from the
+ *                   corresponding "end" time to retrieve the total time spent during the "action".
+ *                   (Note that 1 second = 1000000000 nanoseconds  -- you should be careful not to overflow whatever datatype you are storing this in.)
+ *
+ * There is usually an *identifying* property, in this case "worker", but sometimes "agent". This can be used to group the
+ *   various performance measurements. Most events also provide a "tick" field, representing the frame tick where this request occurred.
+ *   Some actions also provide optional properties; for example, the "worker-update-begin" action provides "num-agents".
+ *
+ * To call these functions efficiently, use the macros (e.g., PROFILE_LOG_WORKER_UPDATE_BEGIN), which compile to nothing if profiling is
+ *   turned off with the Cmake compile switches.
  *
  * \author Seth N. Hetu
  */

@@ -5,7 +5,7 @@ import os
 import re
 
 #Use DecInt or the built-in BigInt?
-UseDecInt = True
+UseDecInt = False
 
 #Blacklist any low-frequency Workers (e.g., Signals)
 OnlySingleTickWorkers = True

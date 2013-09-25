@@ -1690,10 +1690,10 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 
 #if 0
 //	std::cout << "this->parent->run_on_thread_id:" << this->parent->run_on_thread_id << std::endl;
-	sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
+	//sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(
 			Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
-	sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
+	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 #else
 	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent());
 	//sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);

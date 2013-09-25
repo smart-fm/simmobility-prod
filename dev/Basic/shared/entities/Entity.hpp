@@ -136,7 +136,7 @@ public:
 	bool can_remove_by_RTREE;
 
 	//used for profiling
-	int run_on_thread_id;
+	//int run_on_thread_id;
 
 	// parent may create children.
 	Entity* parentEntity;

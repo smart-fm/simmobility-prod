@@ -297,8 +297,8 @@ void sim_mob::Worker::breedPendingEntities()
 
 void sim_mob::Worker::perform_frame_tick()
 {
-	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
 	MgmtParams& par = loop_params;
+	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, this, par.currTick, (managedEntities.size()+toBeAdded.size()));
 
 	//Short-circuit if we're in "pause" mode.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
@@ -320,7 +320,7 @@ void sim_mob::Worker::perform_frame_tick()
 	//TODO: This name has *got* to change. ~Seth
 	breedPendingEntities();
 
-	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
+	PROFILE_LOG_WORKER_UPDATE_END(profile, this, par.currTick);
 
 	//Advance local time-step.
 	par.currTick += tickStep;

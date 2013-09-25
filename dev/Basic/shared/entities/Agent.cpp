@@ -226,7 +226,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 }
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, now);
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider->getProfileBuilder(), this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -240,7 +240,8 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	} catch (std::exception& ex) {
-		PROFILE_LOG_AGENT_EXCEPTION(profile, *this, frameNumber, ex);
+		//TODO: We can't handle this right now.
+		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
@@ -276,7 +277,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
                
 	}
 
-	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
+	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider->getProfileBuilder(), this, now);
 	return retVal;
 }
 

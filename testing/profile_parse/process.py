@@ -7,6 +7,10 @@ import re
 #Use DecInt or the built-in BigInt?
 UseDecInt = True
 
+#Blacklist any low-frequency Workers (e.g., Signals)
+OnlySingleTickWorkers = True
+
+
 if UseDecInt:
   import DecInt
 
@@ -89,7 +93,15 @@ def parse_work_tick(workerTicks, props, parseBegin):
 
 
 def print_work_ticks(out, lines):
+  global OnlySingleTickWorkers
   for key in lines:
+    #Skip unless tick +1 or -1 exists
+    if OnlySingleTickWorkers:
+      tick = int(key[1])
+      if not ((key[0], str(tick+1)) in lines or (key[0], str(tick-1)) in lines):
+        continue
+
+    #Print
     wrk = lines[key]
     if wrk.startTime and wrk.endTime and wrk.numAgents:
       out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], wrk.endTime-wrk.startTime, wrk.numAgents))

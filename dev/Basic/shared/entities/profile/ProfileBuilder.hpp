@@ -93,19 +93,19 @@
 ///Helper macro: call wrkprov->getProfileBuilder()->logQueryStart(agent)
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
-  #define PROFILE_LOG_QUERY_START(wrkprov, ag) \
-          if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryStart(ag); }
+  #define PROFILE_LOG_QUERY_START(wrkprov, ag, now) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryStart(ag, now); }
 #else
-  #define PROFILE_LOG_QUERY_START(wrkprov, ag) DO_NOTHING
+  #define PROFILE_LOG_QUERY_START(wrkprov, ag, now) DO_NOTHING
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logQueryEnd(agent)
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
-  #define PROFILE_LOG_QUERY_END(wrkprov, ag) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryEnd(ag); }
+  #define PROFILE_LOG_QUERY_END(wrkprov, ag, now) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryEnd(ag, now); }
 #else
-  #define PROFILE_LOG_QUERY_END(wrkprov, ag) DO_NOTHING
+  #define PROFILE_LOG_QUERY_END(wrkprov, ag, now) DO_NOTHING
 #endif
 
 
@@ -203,8 +203,8 @@ public:
 //	void logAgentDeleted(const Agent* ag);
 //	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
 
-	void logQueryStart(const Agent* ag);
-	void logQueryEnd(const Agent* ag);
+	void logQueryStart(const Agent* ag, timeslice now);
+	void logQueryEnd(const Agent* ag, timeslice now);
 
 
 	///Used to log generic (non-agent) behavior.

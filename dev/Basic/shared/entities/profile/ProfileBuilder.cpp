@@ -178,16 +178,18 @@ void ProfileBuilder::logAgentUpdateEnd(const Agent* ag, timeslice now)
 	logGeneric(AgentEndLogItem);
 }
 
-void ProfileBuilder::logQueryStart(const Agent* ag)
+void ProfileBuilder::logQueryStart(const Agent* ag, timeslice now)
 {
 	QueryStartLogItem.identity.first = ag;
+	QueryStartLogItem.currFrame = now.frame();
 	QueryStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
 	logGeneric(QueryStartLogItem);
 }
 
-void ProfileBuilder::logQueryEnd(const Agent* ag)
+void ProfileBuilder::logQueryEnd(const Agent* ag, timeslice now)
 {
 	QueryEndLogItem.identity.first = ag;
+	QueryEndLogItem.currFrame = now.frame();
 	QueryEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
 	logGeneric(QueryEndLogItem);
 }

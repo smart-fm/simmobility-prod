@@ -1693,7 +1693,7 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 			Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
 	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 #else
-	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent());
+	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(), params.now);
 	//sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
 	vector<const Agent*> nearby_agents;
 	if (this->parent->connector_to_Sim_Tree != NULL)
@@ -1712,7 +1712,7 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
 	}
 
-	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent());
+	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(), params.now);
 	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 
 //	std::cout << "nearby_agents size:" << nearby_agents.size() << std::endl;

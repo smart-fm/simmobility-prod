@@ -26,14 +26,13 @@ LogTimeRegex = re.compile('\( *sec *, *([0-9]+) *\) *, *\( *nano *, *([0-9]+) *\
 #Some helper classes.
 class WorkerTick:
   def __init__(self):
-    self.time = None
-    self.id = None
-    self.tick = None
+    self.startTime = None
+    self.endTime = None
     self.numAgents = None
 
 
-#Instances of the helper classes
-wrkStart = None
+#Containers of helper classes.
+workerTicks = {} #(workerId,tick) => WorkerTick
 
 
 def parse_time(inStr):
@@ -56,65 +55,65 @@ def parse_time(inStr):
   return res
 
 
-def parse_work_tick(props, startTick, parseBegin):
-  if parseBegin and startTick:
-    print "Warning: skipping existing WorkTick"
-    return None
-  if not parseBegin and not startTick:
-    print "Warning: missing beginning WorkTick"
-    return None
-
+def parse_work_tick(workerTicks, props, parseBegin):
+  #Required properties.
   if not('real-time' in props and 'worker' in props and 'tick' in props):
     print "Warning: Skipping Worker; missing required properties."
-    return None
+    return
   if parseBegin and not 'num-agents' in props:
     print "Warning: Skipping Worker; missing required properties."
-    return None
+    return
 
-  res = WorkerTick()
-  res.time = parse_time(props['real-time'])
-  res.id = props['worker']
-  res.tick = props['tick']
+  #Add it
+  key = (props['worker'], props['tick'])
+  if not key in workerTicks:
+    workerTicks[key] = WorkerTick()
+
+  #Make sure we are not overwriting anything:
+  if parseBegin and (workerTicks[key].startTime or workerTicks[key].numAgents):
+    print "Warning: skipping existing WorkTick startTime"
+    return
+  if not parseBegin and workerTicks[key].endTime:
+    print "Warning: skipping existing WorkTick endTime"
+    return
+
+  #Save it
   if parseBegin:
-    res.numAgents = props['num-agents']
-  return res
+    workerTicks[key].startTime = parse_time(props['real-time'])
+    workerTicks[key].numAgents = props['num-agents']
+  else:
+    workerTicks[key].endTime = parse_time(props['real-time'])
 
 
-def print_work_tick(out, wStart, wEnd):
-  if not (wStart and wEnd):
-    print "Warning: skipping null start/end WorkTick"
-    return
-  if wStart.id != wEnd.id:
-    print "Warning: skipping start/end WorkTick; IDs don't match."
-    return
-  if wStart.tick != wEnd.tick:
-    print "Warning: skipping start/end WorkTick; time ticks don't match."
-    return
-
-  out.write('%s\t%s\t%s\t%s\n' % (wStart.id, wStart.tick, wEnd.time-wStart.time, wStart.numAgents))
+def print_work_ticks(out, lines):
+  for key in lines:
+    wrk = lines[key]
+    if wrk.startTime and wrk.endTime and wrk.numAgents:
+      out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], wrk.endTime-wrk.startTime, wrk.numAgents))
+    else:
+      print "Warning: skipping output agent (some properties missing)."
 
 
-def dispatch_auramgr_update_action(out, act, props):
+def dispatch_auramgr_update_action(act, props):
   #TODO
   pass
 
-def dispatch_query_action(out, act, props):
+def dispatch_query_action(act, props):
   #TODO
   pass
 
 
-def dispatch_worker_update_action(out, act, props):
-  global wrkStart
+def dispatch_worker_update_action(act, props):
+  global workerTicks
   if act=='worker-update-begin':
-    wrkStart = parse_work_tick(props, wrkStart, True)
+    parse_work_tick(workerTicks, props, True)
   elif act=='worker-update-end':
-    wrkEnd = parse_work_tick(props, wrkStart, False)
-    print_work_tick(out, wrkStart, wrkEnd)
+    parse_work_tick(workerTicks, props, False)
   else:
     print ("Unknown worker action: %s" % act)
 
 
-def dispatch_line(out, props):
+def dispatch_line(props):
   #Make sure we have some key properties
   if not 'action' in props:
     raise Exception("Can't parse a line without an 'action'.")
@@ -124,19 +123,17 @@ def dispatch_line(out, props):
   #The rest we dispatch based on the action-type
   act = props['action']
   if act.startswith('worker-update-'):
-    dispatch_worker_update_action(out, act, props)
+    dispatch_worker_update_action(act, props)
   elif act.startswith('query-'):
-    dispatch_query_action(out, act, props)
+    dispatch_query_action(act, props)
   elif act.startswith('auramgr-update-'):
-    dispatch_auramgr_update_action(out, act, props)
+    dispatch_auramgr_update_action(act, props)
   else:
     print ("Unknown action: %s" % act)
 
 
 def run_main(inFilePath):
-  #Prepare an output file.
-  out = open("workers.csv", 'w')
-  out.write('%s\t%s\t%s\t%s\n' % ('WrkID', 'Tick', 'Len(Nano)', 'NumAgents'))
+  global workerTicks
 
   for line in open(inFilePath):
     #Skip empty lines, comments
@@ -164,7 +161,12 @@ def run_main(inFilePath):
       continue
 
     #Dispatch it
-    dispatch_line(out, props)
+    dispatch_line(props)
+
+  #Print output
+  out = open("workers.csv", 'w')
+  out.write('%s\t%s\t%s\t%s\n' % ('WrkID', 'Tick', 'Len(Nano)', 'NumAgents'))
+  print_work_ticks(out, workerTicks)
 
 
 

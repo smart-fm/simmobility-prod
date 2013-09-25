@@ -78,6 +78,8 @@ ProfileBuilder::~ProfileBuilder()
 	//Close the log file?
 	int numLeft = RefCountUpdate(-1);
 	if (numLeft==0) {
+		//We're the only one left; let the log file know we have truly captured all the output.
+		LogFile <<"ProfileBuilder RefCount reached zero.\n";
 		LogFile.close();
 	}
 }

@@ -53,7 +53,7 @@ public:
 	boost::shared_mutex mutex_incoming;
 	AgentCommUtilityBase(/*sim_mob::Broker* managingBroker, */sim_mob::Agent* entity_):
  	entity(entity_),
-	communicator(nullptr),
+	communicator(0),
 	incomingIsDirty(false),
 	outgoingIsDirty(false),
 	writeIncomingDone(false),

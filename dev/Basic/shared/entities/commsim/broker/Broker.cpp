@@ -69,11 +69,18 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 	 if (ConfigParams::GetInstance().ProfileWorkerUpdates() && !profile) {
 		profile = new ProfileBuilder();
 	 }
+	 Print() << "Creating Broker [" << this << "]" << std::endl;
+
+		if(!configured)
+		{
+			configure();
+		}
+
 
 }
 
 void Broker::configure() {
-	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, (void*)sim_mob::event::CXT_CORE_AGENT_UPDATE, this, CONTEXT_CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
+	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, /*(void*)sim_mob::event::CXT_CORE_AGENT_UPDATE,*/ this, /*CONTEXT_*/CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
 //	Print() << "Broker sunscribed to agent done" << std::endl;
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
 	 if(ConfigParams::GetInstance().getAndroidClientType() == "android-ns3")
@@ -197,7 +204,6 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 //		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
 		if(type == "CLIENT_MESSAGES_DONE")
 		{
-			Print() << "Broker::messageReceiveCallback=> mutex_clientDone locking" << std::endl;
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			//update() will wait until all clients send this message for each tick
 //			Print()
@@ -205,7 +211,6 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 //								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
-			Print() << "Broker::messageReceiveCallback=> mutex_clientDone Unlocking" << std::endl;
 		}
 		else
 		{
@@ -288,20 +293,16 @@ bool Broker::getClientHandler(std::string clientId,std::string clientType, boost
 }
 
 void Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler){
-	Print() << "Broker::insertClientList=> mutex_clientList locking" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
-	Print() << "Broker::insertClientList=> mutex_clientList UNlocking" << std::endl;
 }
 
 void  Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
 {
-	Print() << "Broker::insertClientWaitingList::locking mutex_client_request" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
 //	Print() << "Inserting into clientRegistrationWaitingList" << std::endl;
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
-	Print() << "Broker::insertClientWaitingList::UNlocking mutex_client_request" << std::endl;
 }
 
 PublisherList::type & Broker::getPublishers()
@@ -346,9 +347,10 @@ void Broker::processClientRegistrationRequests()
 
 bool  Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
+	Print() << std::dec;
 //	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
-	Print()<< REGISTERED_AGENTS.size() << ":  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
+	Print()<< REGISTERED_AGENTS.size() << ":  Broker[" << this <<  "] :  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
 	//feedback
 	value->registrationCallBack(true);
 	//tell me if you are dying
@@ -373,9 +375,7 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 	duplicateEntityDoneChecker.erase(agent);
 
 	{
-		Print() << "agent[" << agent << "]" << "Broker::unRegisterEntity::locking mutex_clientList" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_clientList);
-		Print() << "agent[" << agent << "]" << "0Broker::unRegisterEntity::--after lock"  << std::endl;
 	//search registered clients list looking for this agent. whoever has it, dump him
 	for(ClientList::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
 	{
@@ -383,20 +383,17 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 			it_clientID(it_clientType->second.begin()),
 			it_clientID_end(it_clientType->second.end()),
 			it_erase;
-		Print() << "agent[" << agent << "]" << "3Broker::unRegisterEntity::--after lock"  << std::endl;
 
 		for(; it_clientID != it_clientID_end; )
 		{
 			if(it_clientID->second->agent == agent)
 			{
-				Print() << "agent[" << agent << "]" << "4Broker::unRegisterEntity::--after lock"  << std::endl;
 				it_erase = it_clientID++;
 				//unsubscribe from all publishers he is subscribed to
 				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
 				sim_mob::SIM_MOB_SERVICE srv;
 				BOOST_FOREACH(srv, clientHandler->requiredServices)
 				{
-					Print() << "agent[" << agent << "]" << "5Broker::unRegisterEntity::--after lock"  << std::endl;
 					switch(srv)
 					{
 					case SIMMOB_SRV_TIME:
@@ -410,7 +407,6 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 						break;
 					}
 				}
-				Print() << "agent[" << agent << "]" << "6Broker::unRegisterEntity::--after lock"  << std::endl;
 				//erase him from the list
 				//clientList.erase(it_erase);
 				//don't erase it here. it may already have something to send
@@ -425,13 +421,11 @@ void  Broker::unRegisterEntity(sim_mob::Agent * agent)
 			}
 			else
 			{
-				Print() << "agent[" << agent << "]" << "7Broker::unRegisterEntity::--after lock"  << std::endl;
 				it_clientID++;
 			}
 		}//inner loop
 
 	}//outer loop
-	Print() << "agent[" << agent << "]" << "Broker::unRegisterEntity::UNlocking mutex_clientList" << std::endl;
 	}
 }
 
@@ -507,14 +501,12 @@ bool Broker::allAgentUpdatesDone()
 	return res;
 }
 
-void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums){
-//	Print() << "onAgentUpdate:: Agent[" << argums.GetEntity() << "] updated" << std::endl;
+void Broker::onAgentUpdate(sim_mob::event::EventId id/*, sim_mob::event::Context context*/, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums){
+
+	Print() << "Inside onAgentUpdate" << std::endl;
 	Agent * target = const_cast<Agent*>(argums.GetAgent());
-	Print() << "Broker::onAgentUpdate::locking mutex_agentDone" << std::endl;
+	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-//	if(registeredAgents.find(target) != registeredAgents.end())
-//	bool found = false;
-//	REGISTERED_AGENTS.getAgentInfo(target, found);
 	if(REGISTERED_AGENTS.setDone(target,true))
 	{
 		Print() << "Agent[" << target->getId() << "] done" << std::endl;
@@ -523,9 +515,25 @@ void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context c
 	}
 	else
 	{
-		Print() << "Discarded Agent[" << target->getId() << "]" << std::endl;
+		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
 	}
-	Print() << "Broker::onAgentUpdate::UNlocking mutex_agentDone" << std::endl;
+}
+
+void Broker::AgentUpdated(Agent * target){
+
+	Print() << "Inside AgentUpdated" << std::endl;
+	Print() << "AgentUpdated:: setting[" << target->getId() << "] to.done" << std::endl;
+	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+	if(REGISTERED_AGENTS.setDone(target,true))
+	{
+		Print() << "Agent[" << target->getId() << "] done" << std::endl;
+//		duplicateEntityDoneChecker.insert(target);
+		COND_VAR_AGENT_DONE.notify_all();
+	}
+	else
+	{
+		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
+	}
 }
 
 void Broker::onClientRegister(
@@ -620,7 +628,6 @@ void Broker::sendReadyToReceive()
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
 	{
-		Print() << "Broker::sendReadyToReceive::locking mutex_clientList" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	BOOST_FOREACH(clientByType, clientList)
 	{
@@ -635,7 +642,6 @@ void Broker::sendReadyToReceive()
 			insertSendBuffer(clnHandler->cnnHandler, msg);
 		}
 	}
-	Print() << "Broker::sendReadyToReceive::UNlocking mutex_clientList" << std::endl;
 	}
 }
 
@@ -820,7 +826,6 @@ bool Broker::wait()
 {
 	//	Initial evaluation
 	{
-		Print() << "Broker::wait::locking mutex_client_request" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		processClientRegistrationRequests();
 		bool res1 = isWaitingForAgentRegistration();
@@ -828,9 +833,6 @@ bool Broker::wait()
 		bool res3 = !res1 && !res2;
 		bool res = /*brokerCanTickForward || */res3;
 		brokerCanTickForward = res;
-//		Print() << "Broker::wait()::Initial Evaluation => "
-//				<< (brokerCanTickForward ? "True" : "false") << std::endl;
-		Print() << "Broker::wait::UNlocking mutex_client_request" << std::endl;
 	}
 
 	/**if:
@@ -843,7 +845,6 @@ bool Broker::wait()
 
 	int i = -1;
 	{
-		Print() << "Broker::wait::locking mutex_client_request-" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		while (!brokerCanTickForward) {
 			Print() << ++i << " brokerCanTickForward->WAITING" << std::endl;
@@ -860,7 +861,6 @@ bool Broker::wait()
 			//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
 //		Print() << "Broker::wait()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
 		}
-		Print() << "Broker::wait::UNlocking mutex_client_request-" << std::endl;
 	}
 
 
@@ -880,18 +880,17 @@ bool Broker::wait()
 void Broker::waitForAgentsUpdates()
 {
 	int i = 0;
-	Print() << "Broker::waitForAgentsUpdates::locking mutex_agentDone" << std::endl;
+	boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::seconds(1);
+
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	Print() << "0Broker::waitForAgentsUpdates::after locking" << std::endl;
 //	refineSubscriptionList();
-	Print() << "1Broker::waitForAgentsUpdates::after locking" << std::endl;
 	while(!allAgentUpdatesDone()) {
 		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
-		COND_VAR_AGENT_DONE.wait(lock);
+		COND_VAR_AGENT_DONE.timed_wait(lock, timeout);
 		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
+		sleep(2);
 //		refineSubscriptionList();
 	}
-	Print() << "Broker::waitForAgentsUpdates::UNlocking mutex_agentDone" << std::endl;
 }
 bool Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &clnHandler)
 {
@@ -908,7 +907,6 @@ bool Broker::allClientsAreDone()
 
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 		msg_header msg_header_;
-		Print() << "Broker::allClientsAreDone::locking mutex_clientList" << std::endl;
 		boost::unique_lock<boost::mutex> lock(mutex_clientList);
 		BOOST_FOREACH(clientByType, clientList)
 		{
@@ -954,19 +952,14 @@ bool Broker::allClientsAreDone()
 			}
 		}
 //		Print()<< "Broker::allClientsAreDone --true" << std::endl;
-		Print() << "Broker::allClientsAreDone::UNlocking mutex_clientList" << std::endl;
 		return true;
 }
 
 Entity::UpdateStatus Broker::update(timeslice now)
 {
 	Print() << "Broker tick:"<< now.frame() << std::endl;
-	//step-1 : open the door to ouside world
+	//step-1 : open the door to ouside world, //transfer this to frame_init
 	if(now.frame() == 0) {
-		if(!configured)
-		{
-			configure();
-		}
 		connection->start();
 	}
 	Print() << "=====================ConnectionStarted =======================================" << std::endl;
@@ -1049,7 +1042,6 @@ void Broker::removeClient(ClientList::iterator it_erase)
 }
 void Broker::waitForClientsDone()
 {
-	Print() << "Broker::waitForClientsDone::locking mutex_clientDone" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 	while(!allClientsAreDone())
 	{
@@ -1058,7 +1050,6 @@ void Broker::waitForClientsDone()
 //		Print() << "Broker::waitForClientsDone-NOT WAIT" << std::endl;
 
 	}
-	Print() << "Broker::waitForClientsDone::UNlocking mutex_clientDone" << std::endl;
 }
 void Broker::cleanup()
 {

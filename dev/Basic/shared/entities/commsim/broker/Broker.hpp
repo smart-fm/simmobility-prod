@@ -146,7 +146,7 @@ private:
 	//void OnAgentFinished(sim_mob::event::EventId eventId, EventPublisher* sender, const AgentLifeEventArgs& args);
 	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	//to be called and identify the agent who has just updated
-	void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	void onAgentUpdate(sim_mob::event::EventId id/*, sim_mob::event::Context context*/, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
 	//	is called when a new client is registered with the broker
 	void onClientRegister(sim_mob::event::EventId id/*, sim_mob::event::Context context*/, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 	//	publish various data the broker has subscibed to
@@ -163,6 +163,8 @@ public:
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	//	configure publisher, message handlers and waiting criteria...
 	void configure();
+	//	temporary function replacing onAgentUpdate
+	void AgentUpdated(Agent *);
 	~Broker();
 	//	enable broker
 	void enable();

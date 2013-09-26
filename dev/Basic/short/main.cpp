@@ -258,6 +258,23 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
+	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
+//	//..and Assign all communication agents(we have one ns3 communicator for now)
+//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
+
+	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
+	{
+		const std::string & name = ConfigParams::GetInstance().getAndroidClientType();
+		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+		Broker::addExternalCommunicator(name, androidBroker);
+//		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
+		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
+		communicationWorkers->assignAWorker(androidBroker);
+//		Worker::SetMyTemporaryHack(androidBroker);
+		androidBroker->enable();
+	}
+
+
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
@@ -279,21 +296,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	//..and Assign communication agent(currently a singleton
 
-
-	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
-//	//..and Assign all communication agents(we have one ns3 communicator for now)
-//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-
-	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
-	{
-		const std::string & name = ConfigParams::GetInstance().getAndroidClientType();
-		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
-		Broker::addExternalCommunicator(name, androidBroker);
-//		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
-		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
-		communicationWorkers->assignAWorker(androidBroker);
-		androidBroker->enable();
-	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

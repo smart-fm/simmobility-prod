@@ -199,7 +199,7 @@
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
         	<communication enabled="yes">
-        		<android_testbed type="android-ns3" enabled="yes"/>
+        		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
 <!--  These don't seem to do anything. ~Seth -->

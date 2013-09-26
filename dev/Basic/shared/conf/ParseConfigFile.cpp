@@ -844,7 +844,7 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	//save travel time table name
 	if( ConfigManager::GetInstance().FullConfig().PathSetMode() )
 	{
-		DOMElement* rn = GetSingleElementByName(node, "pathset_travletime_save_table",true);
+		DOMElement* rn = GetSingleElementByName(node, "pathset_traveltime_save_table",true);
 		if (rn) {
 		cfg.system.simulation.travelTimeTmpTableName  =
 				ParseString(GetNamedAttributeValue(rn, "value"),"aa");

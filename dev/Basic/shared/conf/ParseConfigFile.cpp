@@ -285,6 +285,19 @@ int ParseInteger(const XMLCh* srcX, int* defValue) {
 	return *defValue;
 }
 
+float ParseFloat(const XMLCh* srcX, float* defValue) {
+	if (srcX) {
+			std::string src = TranscodeString(srcX);
+			return boost::lexical_cast<float>(src);
+		}
+
+		//Wasn't found.
+		if (!defValue) {
+			throw std::runtime_error("Mandatory float variable; no default available.");
+		}
+		return *defValue;
+}
+
 unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -388,6 +401,9 @@ unsigned int ParseUnsignedInt(const XMLCh* src, unsigned int defValue) {
 }
 unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
 	return ParseUnsignedInt(src, nullptr);
+}
+float ParseFloat(const XMLCh* src) {
+	return ParseFloat(src, nullptr);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
@@ -538,6 +554,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 
@@ -748,7 +765,6 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mapfile"), "value"), "");
 	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blockingTimeSec"), "value"), static_cast<unsigned int>(0));
 }
-
 
 
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
@@ -1085,4 +1101,27 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
+{
+	if(!node) {
+		return;
+	}
+
+	for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		IncidentParams incident;
+		incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
+		incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
+		incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
+		incident.position = ParseFloat(GetNamedAttributeValue(item, "visibility"));
+		incident.severity = ParseUnsignedInt(GetNamedAttributeValue(item, "severity") );
+		incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
+		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
+		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
+		incident.speedlimit = ParseFloat(GetNamedAttributeValue(item, "speed_limit") );
+		incident.laneId = ParseUnsignedInt(GetNamedAttributeValue(item, "lane") );
+		incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
+		incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+		cfg.incidents.push_back(incident);
+	}
+}
 

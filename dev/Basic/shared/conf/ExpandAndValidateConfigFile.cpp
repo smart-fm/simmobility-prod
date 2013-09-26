@@ -14,7 +14,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
-#include "entities/FMODController/FMODController.hpp"
+#include "entities/fmodController/FMODController.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Link.hpp"

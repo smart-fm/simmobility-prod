@@ -56,7 +56,7 @@
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/FMODController/FMODController.hpp"
+#include "entities/fmodController/FMODController.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"

@@ -86,6 +86,7 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     for (vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
     	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
     	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+    		roadSegments_.insert(std::make_pair("", *segIt));
     		for (std::map<centimeter_t, const RoadItem*>::const_iterator it=(*segIt)->obstacles.begin(); it!=(*segIt)->obstacles.end(); it++) {
     			const BusStop* bs = dynamic_cast<const BusStop*>(it->second);
     			if (bs) {

@@ -33,6 +33,21 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+///represent the incident data section of the config file
+struct IncidentParams {
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float speedlimit;
+	unsigned int laneId;
+	float compliance;
+	float accessibility;
+};
 
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
 struct BusStopScheduledTime {
@@ -193,6 +208,9 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	///setting for the incidents
+	std::vector<IncidentParams> incidents;
 
 	///Some settings for bus stop arrivals/departures.
 	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

@@ -166,6 +166,8 @@ public:
 	 */
 	sim_mob::RoadNetwork& getNetworkRW();
 
+	std::vector<IncidentParams>& getIncidents();
+
 	/**
 	 * Seal the network. After this, no more editing of the network can take place.
 	 */

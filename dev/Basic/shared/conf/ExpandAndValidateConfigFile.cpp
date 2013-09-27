@@ -16,10 +16,12 @@
 #include "entities/BusController.hpp"
 #include "entities/fmodController/FMODController.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/RoadItem.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -134,6 +136,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
 
+	//combine incident information to road network
+	VerifyIncidents();
+
  	//Generate lanes, before StreetDirectory::init()
  	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
@@ -199,6 +204,25 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     }
 }
 
+void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
+{
+	sim_mob::RoadNetwork& network = cfg.getNetworkRW();
+	std::vector<IncidentParams>& incidents = cfg.getIncidents();
+
+	std::vector<const RoadSegment*> cachedSegments;
+
+	//Add all RoadSegments to our list of cached segments.
+	for (std::set<UniNode*>::const_iterator it = network.getUniNodes().begin(); it != network.getUniNodes().end(); it++) {
+		//TODO: Annoying const-cast
+		const std::vector<const RoadSegment*> segs = (*it)->getRoadSegments();
+		for (std::vector<const RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+			cachedSegments.push_back((*segIt));
+			const RoadItem* test = new RoadItem();
+			RoadSegment* ri = const_cast<RoadSegment*>(*segIt);
+			ri->addObstacle(100, test);
+		}
+	}
+}
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
 {

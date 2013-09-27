@@ -182,6 +182,9 @@ sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
 }
 
 
+std::vector<IncidentParams>& sim_mob::ConfigParams::getIncidents(){
+	return incidents;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////

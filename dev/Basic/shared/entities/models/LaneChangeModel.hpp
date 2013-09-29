@@ -60,6 +60,14 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::DriverUpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	virtual double checkIfMandatory(DriverUpdateParams& p);  ///<check if MLC is needed, return probability to MLC
 	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::DriverUpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+
+	virtual sim_mob::LANE_CHANGE_SIDE executeNGSIMModel(sim_mob::DriverUpdateParams& p);
+	virtual bool ifCourtesyMerging(DriverUpdateParams& p);
+	virtual bool ifForcedMerging(DriverUpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
+	virtual sim_mob::TARGET_GAP* chooseTargetGap(sim_mob::DriverUpdateParams& p);
+
 };
 
 

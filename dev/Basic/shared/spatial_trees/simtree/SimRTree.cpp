@@ -1233,7 +1233,7 @@ void sim_mob::SimRTree::updateAllInternalAgents() {
 			if (one_agent->can_remove_by_RTREE) {
 
 //				std::cout << "one_agent->isToBeRemoved():" << one_agent->getId() << std::endl;
-				one_agent->connector_to_Sim_Tree = NULL;
+				one_agent->connector_to_Sim_Tree = nullptr;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
 				continue;
 			}
@@ -1259,7 +1259,7 @@ void sim_mob::SimRTree::updateAllInternalAgents() {
 			//Case 3: If the cost is heavy, need to define another variable in agent to skip re-check.
 			else {
 				Agent * one_agent = one_leaf->agent_buffer[offset];
-				one_agent->connector_to_Sim_Tree = NULL;
+				one_agent->connector_to_Sim_Tree = nullptr;
 //				std::cout << "one_agent->check():" << one_agent->getId() << std::endl;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
 				insertAgent(one_agent);

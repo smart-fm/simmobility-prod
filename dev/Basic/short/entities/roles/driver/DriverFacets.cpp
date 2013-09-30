@@ -1694,28 +1694,22 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 #else
 	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(), params.now);
-	//sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
+
+
 	vector<const Agent*> nearby_agents;
-	if (this->parent->connector_to_Sim_Tree != NULL)
-	{
-                if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
-                	nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind,
-				this->parent->connector_to_Sim_Tree);
-                else
-                {
-                	Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
-                }
-	}
-	else
-	{
+	if (this->parent->connector_to_Sim_Tree) {
+		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {
+			nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, this->parent->connector_to_Sim_Tree);
+		} else {
+			Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
+		}
+	} else {
 		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
 		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
 	}
 
-	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(), params.now);
-	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 
-//	std::cout << "nearby_agents size:" << nearby_agents.size() << std::endl;
+	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(), params.now);
 #endif
 	//Update each nearby Pedestrian/Driver
 

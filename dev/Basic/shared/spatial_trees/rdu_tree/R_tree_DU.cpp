@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "R_tree_DU.h"
+#include "R_tree_DU.hpp"
 
 #include "entities/Agent.hpp"
 

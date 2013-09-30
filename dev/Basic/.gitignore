@@ -2,4 +2,8 @@ GenConfig.h
 out.txt
 *.xml
 *.out
+out*.txt
+callgrind.out*
+profile_trace.txt
+warn.log
 /dev/visualizer/Traffic_Signal_Animation_Combined/bin/*

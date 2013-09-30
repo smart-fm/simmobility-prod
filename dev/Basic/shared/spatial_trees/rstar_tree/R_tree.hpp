@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "spatial_trees/rstar_tree/RStarTree.h"
+#include "spatial_trees/rstar_tree/RStarTree.hpp"
 
 namespace sim_mob
 {

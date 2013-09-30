@@ -43,7 +43,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "spatial_trees/rstar_tree/RStarBoundingBox.h"
+#include "spatial_trees/rstar_tree/RStarBoundingBox.hpp"
 //#include "spatial_trees/Debug_Static_Count.hpp"
 
 namespace { //R* tree parameters, unique to this translational unit.
@@ -77,7 +77,7 @@ struct RStarDULeaf: BoundedItem {
 	BoundedItem* father;
 };
 
-#include "spatial_trees/rstar_tree/RStarVisitor.h"
+#include "spatial_trees/rstar_tree/RStarVisitor.hpp"
 
 /**
  \class RStarTreeDownUp

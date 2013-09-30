@@ -41,7 +41,7 @@
 
 #include "spatial_trees/spatial_tree_include.hpp"
 
-#include "RStarBoundingBox.h"
+#include "RStarBoundingBox.hpp"
 
 namespace {  //R* tree parameters, unique to this translational unit.
 
@@ -75,7 +75,7 @@ struct RStarNode : BoundedItem {
 	bool hasLeaves;
 };
 
-#include "RStarVisitor.h"
+#include "RStarVisitor.hpp"
 
 
 /**
@@ -167,7 +167,7 @@ public:
 		You must specify an	acceptor functor that takes a BoundingBox and a 
 		visitor that takes a BoundingBox and a const LeafType&.
 		
-		See RStarVisitor.h for more information about the various visitor
+		See RStarVisitor.hpp for more information about the various visitor
 		types available.
 		
 		@param acceptor 		An acceptor functor that returns true if this 
@@ -215,7 +215,7 @@ public:
 	/**
 		\brief Removes item(s) from the tree. 
 		
-		See RStarVisitor.h for more information about the various visitor
+		See RStarVisitor.hpp for more information about the various visitor
 		types available.
 		
 		@param acceptor 	A node acceptor functor that returns true if this 

@@ -3,14 +3,13 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * ParkingCoordinator.h
+ * ParkingCoordinator.hpp
  *
  *  Created on: Jul 3, 2013
  *      Author: zhang
  */
 
-#ifndef PARKINGCOORDINATOR_H_
-#define PARKINGCOORDINATOR_H_
+#pragma once
 
 #include "vector"
 #include "map"
@@ -51,4 +50,3 @@ private:
 }
 
 } /* namespace sim_mob */
-#endif /* PARKINGCOORDINATOR_H_ */

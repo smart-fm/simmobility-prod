@@ -7,7 +7,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "RStarTreeDownUp.h"
+#include "RStarTreeDownUp.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob

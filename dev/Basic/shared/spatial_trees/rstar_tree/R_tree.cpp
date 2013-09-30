@@ -5,7 +5,7 @@
 #include "R_tree.hpp"
 
 #include "entities/Agent.hpp"
-#include "spatial_trees/rstar_tree/RStarTree.h"
+#include "spatial_trees/rstar_tree/RStarTree.hpp"
 
 using namespace sim_mob;
 

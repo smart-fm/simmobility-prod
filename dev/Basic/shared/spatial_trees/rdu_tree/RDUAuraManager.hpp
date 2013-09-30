@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "R_tree_DU.h"
+#include "R_tree_DU.hpp"
 #include "metrics/Length.hpp"
 #include "spatial_trees/TreeImpl.hpp"
 

@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "SimRTree.h"
+#include "SimRTree.hpp"
 
 #include <string>
 #include <limits>

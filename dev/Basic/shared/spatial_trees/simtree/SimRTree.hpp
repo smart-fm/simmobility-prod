@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "util/LangHelpers.hpp"
-#include "spatial_trees/rstar_tree/RStarBoundingBox.h"
+#include "spatial_trees/rstar_tree/RStarBoundingBox.hpp"
 #include "spatial_trees/spatial_tree_include.hpp"
 
 //Note: this class is designed for SimMobility.

@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "SimRTree.h"
+#include "SimRTree.hpp"
 
 #include "metrics/Length.hpp"
 #include "spatial_trees/TreeImpl.hpp"

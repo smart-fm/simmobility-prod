@@ -91,17 +91,17 @@ AuraManager::update()
 }
 
 std::vector<Agent const *>
-AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight)
+AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent)
 const
 {
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->agentsInRect(lowerLeft, upperRight);
+		results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
 	}
 	return results;
 }
 
-std::vector<Agent const *>
+/*std::vector<Agent const *>
 AuraManager::advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const
 {
 	if(local_implType != IMPL_SIMTREE)
@@ -119,17 +119,18 @@ AuraManager::advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & up
 //	std::cout << "advanced_agentsInRect:" << results.size() << ",sum_count:" << sum_count << std::endl;
 
 	return results;
-}
+}*/
 
+//The "refAgent" can be used to provide more information (i.e., for the faster bottom-up query).
 std::vector<Agent const *>
 AuraManager::nearbyAgents(Point2D const & position, Lane const & lane,
-                          centimeter_t distanceInFront, centimeter_t distanceBehind)
+                          centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent)
 const
 {
 //	std::cout << "----------------------------" << std::endl;
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind);
+		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
 	}
 
 //	static long sum_count = 0;
@@ -160,7 +161,7 @@ const
 
 }
 
-std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+/*std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
 	if (local_implType != IMPL_SIMTREE) {
 		return nearbyAgents(position, lane, distanceInFront, distanceBehind);
 	}
@@ -176,7 +177,7 @@ std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & po
 //	std::cout << "advanced_nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
 
 	return results;
-}
+}*/
 
 void
 AuraManager::printStatistics() const

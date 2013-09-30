@@ -29,16 +29,16 @@ public:
 	virtual void update(int time_step) = 0;
 
 	///Return the Agents within a given rectangle.
-	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight) const = 0;
+	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const = 0;
 
 	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const = 0;
+	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const = 0;
 
 	///Return the Agents within a given rectangle.
-	virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const = 0;
+	//virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const = 0;
 
 	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const = 0;
+	//virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const = 0;
 
 	///Register a new Agent, so that the spatial index is aware of this person.
 	virtual void registerNewAgent(const Agent* ag) = 0;

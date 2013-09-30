@@ -78,15 +78,18 @@ public:
      * Return a collection of agents that are located in the axially-aligned rectangle.
      *   \param lowerLeft The lower left corner of the axially-aligned search rectangle.
      *   \param upperRight The upper right corner of the axially-aligned search rectangle.
+     *   \param refAgent The agent performing the query. If non-null, certain implementations
+     *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
+     *          If null, the algorithm used will always be the slower, top-down query.
      *
      * The caller is responsible to determine the "type" of each agent in the returned array.
      */
     std::vector<Agent const *>
-    agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const;
+    agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const;
 
     //only avaiable for Sim-Tree
-    std::vector<Agent const *>
-    advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;
+  /*  std::vector<Agent const *>
+    advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;*/
 
     /**
      * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -95,6 +98,9 @@ public:
      *   \param lane The lane 
      *   \param distanceInFront The forward distance of the search rectangle.
      *   \param distanceBehind The back
+     *   \param refAgent The agent performing the query. If non-null, certain implementations
+     *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
+     *          If null, the algorithm used will always be the slower, top-down query.
      *
      * This query is designed for Driver/Vehicle agents.  It calculates the search rectangle
      * based on \c position, \c lane, \c distanceInFront, and \c distanceBehind.  \c position
@@ -107,12 +113,12 @@ public:
      */
     std::vector<Agent const *>
     nearbyAgents(Point2D const & position, Lane const & lane,
-                 centimeter_t distanceInFront, centimeter_t distanceBehind) const;
+                 centimeter_t distanceInFront, centimeter_t distanceBehind, const Agent* refAgent) const;
 
     //only avaiable for Sim-Tree
-    std::vector<Agent const *>
+    /*std::vector<Agent const *>
     advanced_nearbyAgents(Point2D const & position, Lane const & lane,
-                 centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+                 centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;*/
 
     /**
      * Initialize the AuraManager object (to be invoked by the simulator kernel).

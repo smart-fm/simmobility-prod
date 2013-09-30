@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "SimRTree.h"
 
 #include "metrics/Length.hpp"
@@ -30,17 +32,16 @@ public:
 	//xuyan:
 	virtual void registerNewAgent(const Agent* ag);
 
-	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight) const;
+	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
 
-	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const;
+	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
 
 	/**
 	 * Bottom-Up Query
 	 */
 	//Given the TreeItem the agent's standing on. This information is used to find a better start query point
-	virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
-
-	virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+	std::vector<Agent const *> agentsInRectBottomUpQuery(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
+	std::vector<Agent const *> nearbyAgentsBottomUpQuery(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
 
 
 public:
@@ -61,6 +62,11 @@ public:
 
 	//
 	void checkLeaf();
+
+private:
+	//This used to be stored at the Agent level as "connector_to_Sim_Tree". It makes more sense here.
+	//Note that all entries are non-null; if an entry does not exist, it is assumed to be null.
+	std::map<const sim_mob::Agent*, TreeItem*> agent_connector_map;
 
 };
 

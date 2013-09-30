@@ -327,7 +327,7 @@ public:
 
 	friend class ShortTermBoundaryProcessor;
 
-	TreeItem* connector_to_Sim_Tree;
+	//TreeItem* connector_to_Sim_Tree;
 
 
 	/**

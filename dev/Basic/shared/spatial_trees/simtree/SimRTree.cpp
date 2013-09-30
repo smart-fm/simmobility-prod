@@ -1074,17 +1074,17 @@ SimRTree::BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent) {
 	return box;
 }
 
-void sim_mob::SimRTree::insertAgent(Agent* agent) {
+void sim_mob::SimRTree::insertAgent(Agent* agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap) {
 	SimRTree::BoundingBox agent_box = location_bounding_box(agent);
-	insertAgentEncloseBox(agent, agent_box, (m_root));
+	insertAgentEncloseBox(agent, agent_box, (m_root), connectorMap);
 }
 
-void sim_mob::SimRTree::insertAgentBasedOnOD(Agent* agent) {
+void sim_mob::SimRTree::insertAgentBasedOnOD(Agent* agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap) {
 	SimRTree::BoundingBox agent_box = OD_bounding_box(agent);
-	insertAgentEncloseBox(agent, agent_box, (m_root));
+	insertAgentEncloseBox(agent, agent_box, (m_root), connectorMap);
 }
 
-void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBox & agent_box, TreeItem* item) {
+void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBox & agent_box, TreeItem* item, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap) {
 	std::queue<TreeItem*> items;
 
 	items.push(m_root);
@@ -1099,7 +1099,9 @@ void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBo
 //			std::cout << one_leaf->agent_buffer[0]
 
 			(one_leaf->agent_buffer).push_back(agent);
-			agent->connector_to_Sim_Tree = one_leaf;
+
+			connectorMap[agent] = one_leaf;
+			//agent->connector_to_Sim_Tree = one_leaf;
 
 			return;
 		} else {
@@ -1218,7 +1220,7 @@ std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & 
 /**
  *
  */
-void sim_mob::SimRTree::updateAllInternalAgents() {
+void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap) {
 	TreeLeaf* one_leaf = first_leaf;
 
 	while (one_leaf) {
@@ -1231,9 +1233,13 @@ void sim_mob::SimRTree::updateAllInternalAgents() {
 			Agent * one_agent = (one_leaf->agent_buffer[offset]);
 
 			if (one_agent->can_remove_by_RTREE) {
+				//one_agent->connector_to_Sim_Tree = nullptr;
+				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
+				if (it!=connectorMap.end()) {
+					connectorMap.erase(it);
+				}
 
 //				std::cout << "one_agent->isToBeRemoved():" << one_agent->getId() << std::endl;
-				one_agent->connector_to_Sim_Tree = nullptr;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
 				continue;
 			}
@@ -1259,10 +1265,16 @@ void sim_mob::SimRTree::updateAllInternalAgents() {
 			//Case 3: If the cost is heavy, need to define another variable in agent to skip re-check.
 			else {
 				Agent * one_agent = one_leaf->agent_buffer[offset];
-				one_agent->connector_to_Sim_Tree = nullptr;
-//				std::cout << "one_agent->check():" << one_agent->getId() << std::endl;
+
+				//one_agent->connector_to_Sim_Tree = nullptr;
+				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
+				if (it!=connectorMap.end()) {
+					connectorMap.erase(it);
+				}
+
+				std::cout << "one_agent->check():" << one_agent->getId() << std::endl;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
-				insertAgent(one_agent);
+				insertAgent(one_agent, connectorMap);
 			}
 		} // end of inside while
 

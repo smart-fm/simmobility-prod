@@ -23,7 +23,7 @@ void sim_mob::SimAuraManager::update(int time_step) {
 //	}
 
 //	static int count;
-	tree_sim.updateAllInternalAgents();
+	tree_sim.updateAllInternalAgents(agent_connector_map);
 
 	//update new agents
 //	std::cout << "new_agents:" << new_agents.size() << std::endl;
@@ -45,7 +45,7 @@ void sim_mob::SimAuraManager::update(int time_step) {
 
 		if (one_->can_remove_by_RTREE == false) {
 //			std::cout << "one_->getId() is 4051 is inserted" << std::endl;
-			tree_sim.insertAgentBasedOnOD(one_);
+			tree_sim.insertAgentBasedOnOD(one_, agent_connector_map);
 		}
 	}
 
@@ -91,6 +91,8 @@ void sim_mob::SimAuraManager::update(int time_step) {
  *Build the Sim-Tree Structure
  */
 void sim_mob::SimAuraManager::init() {
+	agent_connector_map.clear();
+
 #ifdef SIM_TREE_USE_REBALANCE
 	//nothing
 //	tree_sim.build_tree_structure("data//density_pattern_30K_2");
@@ -112,7 +114,15 @@ void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {
 	new_agents.push_back(ag);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const {
+	//Can we use the optimized bottom-up query?
+	if (refAgent) {
+		std::map<const sim_mob::Agent*, TreeItem*>::const_iterator it = agent_connector_map.find(refAgent);
+		if (it!=agent_connector_map.end() && it->second) {
+			return agentsInRectBottomUpQuery(lowerLeft, upperRight, it->second);
+		}
+	}
+
 	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
@@ -124,7 +134,15 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const &
 	return tree_sim.rangeQuery(box);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const {
+	//Can we use the optimized bottom-up query?
+	if (refAgent) {
+		std::map<const sim_mob::Agent*, TreeItem*>::const_iterator it = agent_connector_map.find(refAgent);
+		if (it!=agent_connector_map.end() && it->second) {
+			return nearbyAgentsBottomUpQuery(position, lane, distanceInFront, distanceBehind, it->second);
+		}
+	}
+
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
 	Point2D p1, p2;
@@ -174,10 +192,10 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const &
 
 //	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
-	return agentsInRect(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRectBottomUpQuery(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {
 	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
@@ -193,15 +211,16 @@ std::vector<Agent const *> sim_mob::SimAuraManager::advanced_agentsInRect(const 
 #endif
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgentsBottomUpQuery(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
 	Point2D p1, p2;
 	for (size_t index = 0; index < polyline.size() - 1; index++) {
 		p1 = polyline[index];
 		p2 = polyline[index + 1];
-		if (isInBetween(position, p1, p2))
+		if (isInBetween(position, p1, p2)) {
 			break;
+		}
 	}
 
 	// Adjust <p1> and <p2>.  The current approach is simplistic.  <distanceInFront> and
@@ -237,7 +256,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::advanced_nearbyAgents(const 
 
 	//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
-	return advanced_agentsInRect(lowerLeft, upperRight, item);
+	return agentsInRectBottomUpQuery(lowerLeft, upperRight, item);
 }
 
 void sim_mob::SimAuraManager::checkLeaf() {

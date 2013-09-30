@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "util/LangHelpers.hpp"
@@ -94,13 +95,15 @@ public:
 	/**
 	 * Assumption:
 	 * The tree contains the whole Road Network;
+	 * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	 */
-	void insertAgent(Agent * agent);
+	void insertAgent(Agent * agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
 
 	//	/**
 	//	 *Currently, when new vehicle is insert, the original node is used for locationing.
+	//   * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	//	 */
-	void insertAgentBasedOnOD(Agent * agent);
+	void insertAgentBasedOnOD(Agent * agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
 
 	/**
 	 * Return all agents in the box, called by each agent each time step;
@@ -116,8 +119,9 @@ public:
 
 	/**
 	 * Automatically Update Internal Agents' Locations
+	 * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	 */
-	void updateAllInternalAgents();
+	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
 
 	/**
 	 *DEBUG purpose
@@ -193,7 +197,8 @@ private:
 	BoundingBox OD_bounding_box(Agent * agent);
 
 	//
-	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item);
+	//The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
+	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
 
 	//
 	//	void rangeQueryOverlapBox(BoundingBox  & box, TreeItem* item, std::vector<Agent  *>& result) ;

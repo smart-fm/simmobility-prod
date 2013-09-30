@@ -113,7 +113,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currTravelStats(nullptr, 0.0), travelStatsMap(mtxStrat),
-	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), connector_to_Sim_Tree(nullptr)
+	toRemoved(false), nextPathPlanned(false), dynamic_seed(id)/*, connector_to_Sim_Tree(nullptr)*/
 {
 	//Register global life cycle events.
 	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.

@@ -81,7 +81,7 @@ void RStarAuraManager::update(int time_step)
 
 }
 
-std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const
+std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
 {
 	R_tree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
@@ -94,7 +94,7 @@ std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerL
 	return tree_rstar.query(box);
 }
 
-std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
+std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
@@ -143,6 +143,6 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
-	return agentsInRect(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 

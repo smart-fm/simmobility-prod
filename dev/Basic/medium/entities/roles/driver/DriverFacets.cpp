@@ -81,10 +81,17 @@ void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 		vehicle = newVeh;
 		parentDriver->setResource(newVeh);
 	}
+	else{
+		getParent()->setToBeRemoved();
+	}
 }
 
 void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+
+	if( !vehicle){
+		return;
+	}
 	const Lane* laneInfinity = nullptr;
 	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
 
@@ -214,7 +221,10 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		}
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
-			throw std::runtime_error("Can't initializePath(); path is empty.");
+			//throw std::runtime_error("Can't initializePath(); path is empty.");
+			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
+					<<getParent()->GetId()<<std::endl;
+			return res;
 		}
 
 		getParent()->clearCurrPath();	//this will be set again for the next sub-trip

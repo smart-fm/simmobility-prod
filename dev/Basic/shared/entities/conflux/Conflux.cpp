@@ -576,6 +576,9 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	//Now that the Role has been fully constructed, initialize it.
 	if(*(person->currTripChainItem)) {
 		person->getRole()->Movement()->frame_init(*person->curr_params);
+		if(person->getCurrPath().empty()){
+			return false;
+		}
 	}
 
 	return true;
@@ -631,12 +634,16 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					ap->initializeRemainingTime();
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
-					call_movement_frame_init(now, person);
-					person->setCallFrameInit(false);
-					const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
-					person->setCurrSegment(curSeg);
-					person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
-					person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
+					if (call_movement_frame_init(now, person)){
+						person->setCallFrameInit(false);
+						const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
+						person->setCurrSegment(curSeg);
+						person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
+						person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
+					}
+					else{
+						return UpdateStatus::Done;
+					}
 				}
 			}
 		}

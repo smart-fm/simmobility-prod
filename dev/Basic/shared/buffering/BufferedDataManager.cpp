@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BufferedDataManager.hpp"
 
@@ -17,10 +19,9 @@ sim_mob::BufferedBase::~BufferedBase() {
 sim_mob::BufferedDataManager::~BufferedDataManager()
 {
 	//Stop managing all items
-	while (!managedData.empty()) {
-		stopManaging(managedData[0]);
+	while (managedData.begin() != managedData.end()) {
+		stopManaging(*managedData.begin());
 	}
-
 }
 
 
@@ -28,9 +29,9 @@ sim_mob::BufferedDataManager::~BufferedDataManager()
 void sim_mob::BufferedDataManager::beginManaging(BufferedBase* datum)
 {
 	//Only add if we're not managing it already.
-	std::vector<BufferedBase*>::iterator it = std::find(managedData.begin(), managedData.end(), datum);
+	std::set<BufferedBase*>::iterator it = managedData.find(datum);
 	if (it==managedData.end()) {
-		managedData.push_back(datum);
+		managedData.insert(datum);
 
 		//Helps with debugging.
 		datum->refCount++;
@@ -40,7 +41,7 @@ void sim_mob::BufferedDataManager::beginManaging(BufferedBase* datum)
 void sim_mob::BufferedDataManager::stopManaging(BufferedBase* datum)
 {
 	//Only remove if we are actually managing it.
-	std::vector<BufferedBase*>::iterator it = std::find(managedData.begin(), managedData.end(), datum);
+	std::set<BufferedBase*>::iterator it = managedData.find(datum);
 	if (it!=managedData.end()) {
 		managedData.erase(it);
 
@@ -66,7 +67,7 @@ void sim_mob::BufferedDataManager::stopManaging(vector<BufferedBase*> data)
 
 void sim_mob::BufferedDataManager::flip()
 {
-	for (vector<BufferedBase*>::iterator it=managedData.begin(); it!=managedData.end(); it++) {
+	for (std::set<BufferedBase*>::iterator it=managedData.begin(); it!=managedData.end(); it++) {
 		(*it)->flip();
 	}
 }

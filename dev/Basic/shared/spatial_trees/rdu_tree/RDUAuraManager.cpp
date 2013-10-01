@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RDUAuraManager.hpp"
 
@@ -21,7 +23,7 @@ void sim_mob::RDUAuraManager::update(int time_step)
 {
 //	std::cout << "S:" << std::endl;
 
-	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
+	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);
 		if ((!an_agent) || an_agent->isNonspatial()) {
 			continue;

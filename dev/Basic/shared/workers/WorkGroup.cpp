@@ -11,7 +11,8 @@
 #include <sstream>
 #include <boost/thread.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/misc/BusTrip.hpp"
@@ -137,7 +138,7 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::stringstream outFilePath;
 		outFilePath <<prefix <<i <<".txt";
 		std::ofstream* logFile = nullptr;
-		if (ConfigParams::GetInstance().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			//TODO: Handle error case more gracefully.
 			logFileNames.push_back(outFilePath.str());
 			logFile = new std::ofstream(outFilePath.str().c_str());
@@ -163,7 +164,7 @@ void sim_mob::WorkGroup::startAll(bool singleThreaded)
 	started = true;
 
 	//TODO: Fix this; it's caused by that exception(...) trick used by the GUI in Worker::threaded_function_loop()
-	if (singleThreaded && ConfigParams::GetInstance().InteractiveMode()) {
+	if (singleThreaded && ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		throw std::runtime_error("Can't run in single-threaded mode while INTERACTIVE_MODE is set.");
 	}
 
@@ -209,7 +210,7 @@ void sim_mob::WorkGroup::stageEntities()
 	}
 
 	//Keep assigning the next entity until none are left.
-	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS();
+	unsigned int nextTickMS = nextTimeTick*ConfigManager::GetInstance().FullConfig().baseGranMS();
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
 		Agent* ag = loader->pending_source.top();
@@ -229,10 +230,14 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 
 		//Add it to our global list.
-		loader->entity_dest.push_back(ag);
+		if (loader->entity_dest.find(ag) != loader->entity_dest.end()) {
+			Warn() <<"Attempting to add duplicate entity (" <<ag <<") with ID: " <<ag->getId() <<"\n";
+			continue;
+		}
+		loader->entity_dest.insert(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
-		if (ConfigParams::GetInstance().UsingConfluxes()) {
+		if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 			putAgentOnConflux(ag);
 		} else {
 			assignAWorker(ag);
@@ -254,7 +259,7 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 	for (vector<vector <Entity*> >::iterator outerIt=entToBeRemovedPerWorker.begin(); outerIt!=entToBeRemovedPerWorker.end(); outerIt++) {
 		for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
 			//For each Entity, find it in the list of all_agents and remove it.
-			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
+			std::set<Entity*>::iterator it2 = loader->entity_dest.find(*it);
 			if (it2!=loader->entity_dest.end()) {
 				loader->entity_dest.erase(it2);
 			}
@@ -308,7 +313,7 @@ void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 
 //method to find the worker which manages the specified linkID
 sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
-	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
+	std::vector<Link*> allLinks = ConfigManager::GetInstance().FullConfig().getNetwork().getLinks();
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
 		Link* link = *it;
 		if(link->linkID==linkID){
@@ -322,7 +327,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
 	//For now, just rely on static access to ConfigParams.
 	// (We can allow per-workgroup configuration later).
-	ASSIGNMENT_STRATEGY strat = ConfigParams::GetInstance().defaultWrkGrpAssignment();
+	ASSIGNMENT_STRATEGY strat = ConfigManager::GetInstance().FullConfig().defaultWrkGrpAssignment();
 	if (strat == ASSIGN_ROUNDROBIN) {
 		workers.at(nextWorkerID)->scheduleForAddition(ag);
 	} else {
@@ -417,7 +422,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 		}
 
 		//Update the aura manager, if we have one.
-		if (auraMgr && ( !ConfigParams::GetInstance().UsingConfluxes())) {
+		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
 			auraMgr->update();
 		}
 
@@ -512,13 +517,15 @@ void sim_mob::WorkGroup::interrupt()
  * ~ Harish
  */
 void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
+	//Using confluxes by reference as we remove items as and when we assign them to a worker
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
 	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
 		if(numConfluxesPerWorker > 0){
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
+	//confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	if(confluxes.size() > 0) {
 		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
 		//Assign these to the last worker which has all its upstream confluxes.
@@ -537,6 +544,7 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			// begin managing properties of the conflux
 			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
 		}
+		std::cout<< "Worker "<< (*iWorker) << " Conflux size: "<< (*iWorker)->managedConfluxes.size()<<std::endl;
 	}
 }
 
@@ -560,7 +568,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 {
 	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
 
-	std::set<sim_mob::Conflux*>& confluxes = ConfigParams::GetInstanceRW().getConfluxes();
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	bool workerFilled = false;
 
 	if(numConfluxesToAddInWorker > 0)
@@ -630,7 +638,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
-	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	std::string role = rf.GetTripChainMode(firstItem);
 
 	StreetDirectory& stdir = StreetDirectory::instance();
@@ -661,24 +669,12 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
 	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
 	 */
-/*	if(path.size() > 0) {
-		 // The first WayPoint in path is the Node you start at, and the second WayPoint is the first RoadSegment
-		 // you will get into.
-		if (role == "busdriver") {
-			if(path[0].type_ == WayPoint::ROAD_SEGMENT) {
-			rdSeg = path.at(0).roadSegment_;
-			}
-		}
-		else {
-			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
-				rdSeg = path.at(1).roadSegment_;
-			}
-		}
-	}
-*/
+
 	if(path.size() > 0) {
-		//Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node
-		// BusDriver code, and pathSet code, generates only segment-list
+		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
+		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
+		 * the path until we find the first road segment.
+		 */
 		p->setCurrPath(path);
 		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
 			if (it->type_ == WayPoint::ROAD_SEGMENT) {
@@ -690,3 +686,8 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	return rdSeg;
 }
 
+void sim_mob::WorkGroup::findBoundaryConfluxes() {
+	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){
+		(*itw)->findBoundaryConfluxes();
+	}
+}

@@ -188,6 +188,19 @@ public:
 	}pathWithDirection;
 
 private:
+	//Error messages for throw_if.
+	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them
+	//      on each call to throwIf().
+	const static std::string ErrorPathNotSet;
+	const static std::string ErrorPolylineLength;
+	const static std::string ErrorNotInIntersection;
+	const static std::string ErrorAdvancePathDone1;
+	const static std::string ErrorAdvancePathDone2;
+	const static std::string ErrorPolylineCantAdvance;
+	const static std::string ErrorRoadSegmentAtEnd;
+	const static std::string ErrorPathDoneActual;
+	const static std::string ErrorGeneralPathDone;
+
 	//Helper functions
 	double advanceToNextPolyline(bool isFwd);
 	double advanceToNextRoadSegment();

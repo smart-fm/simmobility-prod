@@ -1,5 +1,7 @@
 //external libraries
 #include "Broker.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
 #include <sstream>
@@ -66,7 +68,7 @@ Broker::Broker(const MutexStrategy& mtxStrat, int id )
 
 
 	 //TEMP: Hijack the Worker profile update loop.
-	 if (ConfigParams::GetInstance().ProfileWorkerUpdates() && !profile) {
+	 if (ConfigManager::GetInstance().FullConfig().ProfileWorkerUpdates() && !profile) {
 		profile = new ProfileBuilder();
 	 }
 	 Print() << "Creating Broker [" << this << "]" << std::endl;
@@ -83,7 +85,7 @@ void Broker::configure() {
 	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, /*(void*)sim_mob::event::CXT_CORE_AGENT_UPDATE,*/ this, /*CONTEXT_*/CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
 //	Print() << "Broker sunscribed to agent done" << std::endl;
 	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
-	 if(ConfigParams::GetInstance().getAndroidClientType() == "android-ns3")
+	 if(ConfigManager::GetInstance().FullConfig().getAndroidClientType() == "android-ns3")
 	 {
 		BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 		onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
@@ -137,7 +139,7 @@ void Broker::configure() {
 								new WaitForAgentRegistration(*this,MIN_AGENTS))));
 	 }
 	 else
-		 if(ConfigParams::GetInstance().getAndroidClientType() == "android-only") {
+		 if(ConfigManager::GetInstance().FullConfig().getAndroidClientType() == "android-only") {
 				//publishers
 
 				BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
@@ -175,7 +177,7 @@ void Broker::configure() {
 										new WaitForAgentRegistration(*this, MIN_AGENTS))));
 
 		 }
-//	 Print() << "Broker constructor()=>androidClientType[" << ConfigParams::GetInstance().getAndroidClientType() << "]"
+//	 Print() << "Broker constructor()=>androidClientType[" << ConfigManager::GetInstance().FullConfig().getAndroidClientType() << "]"
 //			 <<" clientBlockers.size()=" << clientBlockers.size() << std::endl;
 	 configured = true;
 }
@@ -549,7 +551,7 @@ void Broker::onClientRegister(
 		//if we are operating on android-ns3 set up,
 		//each android client registration should be brought to
 		//ns3's attention
-		if (ConfigParams::GetInstance().getAndroidClientType()!= "android-ns3") {
+		if (ConfigManager::GetInstance().FullConfig().getAndroidClientType()!= "android-ns3") {
 			break;
 		}
 		//note: based on the current implementation of
@@ -703,16 +705,16 @@ bool Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
 		}
 
 		//one more check to see if the entity is deleted
-		const std::vector<sim_mob::Entity*> & managedEntities_ =
+		const std::set<sim_mob::Entity*> & managedEntities_ =
 				target->currWorkerProvider->getEntities();
-		std::vector<sim_mob::Entity*>::const_iterator it =
+		std::set<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin();
 		if(!managedEntities_.size())
 		{
 //			Print() << "2-deadEntityCheck for[" << target << "]" << std::endl;
 			return true;
 		}
-		for (std::vector<sim_mob::Entity*>::const_iterator it =
+		for (std::set<sim_mob::Entity*>::const_iterator it =
 				managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
 			if (*it == target)
@@ -770,8 +772,8 @@ void Broker::refineSubscriptionList(sim_mob::Agent * target) {
 			unRegisterEntity(target);
 			return;
 		}
-		const std::vector<sim_mob::Entity*> & managedEntities_ = (target->currWorkerProvider)->getEntities();
-		std::vector<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
+		const std::set<sim_mob::Entity*> & managedEntities_ = (target->currWorkerProvider)->getEntities();
+		std::set<sim_mob::Entity*>::const_iterator  it_entity = std::find(managedEntities_.begin(), managedEntities_.end(), target);
 		if(it_entity == managedEntities_.end())
 		{
 			Print() << "2-refine subscription for agent ["  << target << "]" << std::endl;
@@ -992,7 +994,7 @@ Entity::UpdateStatus Broker::update(timeslice now)
 	waitForClientsDone();
 
 	//Step 7.5: output
-	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
+	if (ConfigManager::GetInstance().FullConfig().ProfileWorkerUpdates()) {
 		//TODO: This is a bit of a hack; won't work with both ns3/Android enabled. ~Seth.
 		size_t sz = 0;
 		for (ClientList::type::iterator it=clientList.begin(); it!=clientList.end(); it++) {

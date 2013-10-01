@@ -4,9 +4,11 @@
 
 #include "SegmentStats.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include "conf/simpleconf.hpp"
+#include <algorithm>
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 
 using std::string;
@@ -131,13 +133,15 @@ double SegmentStats::getDensity(bool hasVehicle) {
 		}
 		laneIt++;
 	}
-	movingLength = roadSegment->computeLaneZeroLength()*vehLaneCount - numQueueingInSegment(true)*vehicle_length;
+
+	unsigned int queueCount = numQueueingInSegment(true);
+	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - queueCount*vehicle_length;
 	if(movingLength > 0) {
-		if (roadSegment->computeLaneZeroLength() > 10*vehicle_length) {
+		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
 		}
 		else {
-			density = numQueueingInSegment(true)/(movingLength/100.0);
+			density = queueCount/(movingLength/100.0);
 		}
 	}
 	else {
@@ -390,7 +394,7 @@ void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed,
 	//laneParams = sim_mob::LaneParams();
 	int numLanes = lane->getRoadSegment()->getLanes().size();
 	if (numLanes > 0) {
-		double orig = (lane->getRoadSegment()->capacity)
+		double orig = (lane->getRoadSegment()->capacity)*50
 				/ (numLanes*3600.0);
 		laneParams->setOrigOutputFlowRate(orig);
 	}
@@ -406,7 +410,7 @@ void sim_mob::LaneStats::updateOutputFlowRate(const Lane* lane,
 }
 
 void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
-	double tick_size = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	int tmp = int(laneParams->outputFlowRate * tick_size);
 	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
 	if (laneParams->fraction >= 1.0) {
@@ -420,7 +424,7 @@ void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
 void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 	const double omega = 0.01;
 	const double vehicle_length = 400;
-	double tick_size = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	double capacity = laneParams->outputFlowRate * tick_size;
 	double acceptRateA = (capacity > 0) ? tick_size / capacity : 0;
 	double acceptRateB = (omega * vehicle_length) / upSpeed;
@@ -502,7 +506,7 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 }
 
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		std::stringstream msg;
 		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
@@ -568,14 +572,14 @@ void SegmentStats::resetSegFlow() {
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
 	float count = 0;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
-		count += (*i).second->laneParams->getOutputFlowRate() * ConfigParams::GetInstance().baseGranMS() / 1000.0;
+		count += (*i).second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	}
 	return std::floor(count);
 }
 
 void SegmentStats::printAgents() {
 	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|length "
-			<< roadSegment->computeLaneZeroLength() << std::endl;
+			<< roadSegment->getLaneZeroLength() << std::endl;
 	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();
 	}
@@ -587,7 +591,7 @@ void SegmentStats::printAgents() {
 bool SegmentStats::canAccommodate(VehicleType type) {
 	if (type == SegmentStats::car) {
 		int lengthOccupied = (numMovingInSegment(true) + numQueueingInSegment(true)) * 400; // This must change to count cars and buses separately.
-		int segLength = roadSegment->computeLaneZeroLength();
+		int segLength = roadSegment->getLaneZeroLength();
 		return (lengthOccupied <= segLength * numVehicleLanes);
 	}
 	else {
@@ -621,7 +625,7 @@ void LaneStats::verifyOrdering() {
 					<< "\nSegment: "
 					<< lane->getRoadSegment()->getStartEnd()
 					<< " length = "
-					<< lane->getRoadSegment()->computeLaneZeroLength()
+					<< lane->getRoadSegment()->getLaneZeroLength()
 					<< "\nLane: " << lane->getLaneID() << "\nCulprit Person: "
 					<< (*i)->getId();
 			debugMsgs << "\nAgents ";

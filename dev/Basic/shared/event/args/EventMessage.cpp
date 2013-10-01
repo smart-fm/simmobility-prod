@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * EventMessage.cpp
  *
@@ -26,6 +30,7 @@ EventMessage& EventMessage::operator=(const EventMessage& source)
 	this->detention = source.detention;
 	this->recipients = source.recipients;
 	this->data = source.data;
+	return *this;
 }
 
 void EventMessage::SetEventId(EventId id) {

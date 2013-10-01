@@ -1,8 +1,11 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
  /* PassengerDistribution.hpp
- *
- * \author Meenu James
- */
+  *
+  * \author Meenu James
+  */
 
 #pragma once
 
@@ -16,6 +19,7 @@ namespace sim_mob {
 ///Simple base class for passenger time distributions
 class PassengerDist {
 public:
+	virtual ~PassengerDist() {}
 	virtual double getnopassengers() = 0;
 };
 
@@ -30,8 +34,8 @@ private:
 public:
 	NormalPassengerDist(double mean, double stdev)
 	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{
-	}
+	{}
+	virtual ~NormalPassengerDist() {}
 
 	virtual double getnopassengers() { return varGen(); }
 };
@@ -46,8 +50,8 @@ private:
 public:
 	LognormalPassengerDist(double mean, double stdev)
 	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{
-	}
+	{}
+	virtual ~LognormalPassengerDist() {}
 
 	virtual double getnopassengers() { return varGen(); }
 };
@@ -60,8 +64,8 @@ private:
 public:
 	UniformPassengerDist(int min, int max)
 	 : gen(), dist(min ,max), varGen(gen, dist)
-	{
-	}
+	{}
+	virtual ~UniformPassengerDist() {}
 
 	virtual double getnopassengers() { return varGen(); }
 };

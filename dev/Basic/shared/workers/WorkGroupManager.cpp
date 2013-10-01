@@ -6,7 +6,8 @@
 
 #include <stdexcept>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
@@ -59,7 +60,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
 	currBarrierCount += numWorkers;
-	if (auraMgr || partitionMgr || ConfigParams::GetInstance().UsingConfluxes()) {
+	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
 		auraBarrierNeeded = true;
 	}
 
@@ -178,7 +179,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 	}
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		if (ConfigParams::GetInstance().UsingConfluxes()) {
+		if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
 			(*it)->processVirtualQueues();
 			(*it)->outputSupplyStats();
 		}

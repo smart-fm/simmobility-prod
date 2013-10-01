@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Math.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -14,8 +16,8 @@ namespace sim_mob {
 
     class Math {
     public:
-        static double E;
-        static double PI;
+        static const double E;
+        static const double PI;
     public:
         typedef double (*Function)(double x, const boost::tuple<double,double,double>& params);
 

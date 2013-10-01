@@ -100,7 +100,6 @@
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
                 
-                
             <!-- The large Bugis-area network -->
             <proc_map id="HITS" format="aimsun">
                 <mapping name="node" procedure="get_node_sg()"/>
@@ -259,6 +258,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
+	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->

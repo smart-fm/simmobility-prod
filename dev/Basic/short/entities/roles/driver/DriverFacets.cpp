@@ -6,6 +6,8 @@
 #include "BusDriver.hpp"
 #include "algorithm"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
@@ -298,25 +300,28 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	if (parentDriver->vehicle->isDone()) {
 		return;
 	}
+	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
+		return;
+	}
 
 	double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
 
 	//Inform the GUI if interactive mode is active.
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		std::ostringstream stream;
 		stream<<"DriverSegment"
 				<<","<<p.now.frame()
 				<<","<<parentDriver->vehicle->getCurrSegment()
 				<<","<<parentDriver->vehicle->getCurrentSegmentLength()/100.0;
 		std::string s=stream.str();
-		ConfigParams::GetInstance().getCommDataMgr().sendTrafficData(s);
+		ConfigManager::GetInstance().FullConfig().getCommDataMgr().sendTrafficData(s);
 	}
 
 	const bool inLane = parentDriver->vehicle && (!parentDriver->vehicle->isInIntersection());
 
 	//MPI-specific output.
 	std::stringstream addLine;
-	if (ConfigParams::GetInstance().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 	}
 
@@ -373,7 +378,7 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 	if (parentDriver->vehicle->isDone()) {
 		//Output
 		if (Debug::Drivers && !DebugStream.str().empty()) {
-			if (ConfigParams::GetInstance().OutputEnabled()) {
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 				DebugStream << ">>>Vehicle done." << endl;
 				PrintOut(DebugStream.str());
 				DebugStream.str("");
@@ -1316,7 +1321,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
-			if (ConfigParams::GetInstance().OutputEnabled()) {
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 				DebugStream << ">>>Exception: " << ex.what() << endl;
 				PrintOut(DebugStream.str());
 			}
@@ -1886,7 +1891,7 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 			if (p.currLane->is_pedestrian_lane()) {
 				//Flush debug output (we are debugging this error).
 				if (Debug::Drivers) {
-					if (ConfigParams::GetInstance().OutputEnabled()) {
+					if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 						DebugStream << ">>>Exception: Moved to sidewalk." << endl;
 						PrintOut(DebugStream.str());
 					}

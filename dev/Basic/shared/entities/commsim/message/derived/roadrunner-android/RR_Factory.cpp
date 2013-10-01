@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * RRMSGFactory.cpp
  *
@@ -15,9 +19,13 @@ namespace sim_mob {
 namespace roadrunner {
 
 RR_Factory::RR_Factory() {
-	// TODO Auto-generated constructor stub
-	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
+	//Doing it manually; C++1 doesn't like the boost assignment.
+	MessageMap.clear();
+	MessageMap["MULTICAST"] = MULTICAST;
+	MessageMap["UNICAST"] = UNICAST;
+	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
 
+	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
 RR_Factory::~RR_Factory() {}
 //gets a handler either from a chche or by creating a new one

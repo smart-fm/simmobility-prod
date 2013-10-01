@@ -161,6 +161,7 @@ public:
 		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
 			safe_delete_item(i->second);
 		}
+		safe_delete_item(laneInfinity);
 	}
 
 	enum VehicleType { car, bus, none };

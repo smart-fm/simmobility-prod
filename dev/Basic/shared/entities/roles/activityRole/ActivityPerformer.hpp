@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
  * \file ActivityPerformer.hpp
@@ -18,7 +20,6 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "ActivityFacets.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Node.hpp"
 
@@ -48,11 +49,7 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 	virtual void reset(timeslice now)
 	{
 		sim_mob::UpdateParams::reset(now);
-		skipThisFrame = false;
 	}
-
-	///Used to skip the first frame; kind of hackish.
-	bool skipThisFrame;
 
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const ActivityPerformerUpdateParams* params);

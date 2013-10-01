@@ -17,7 +17,8 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 
 #include "entities/AuraManager.hpp"
@@ -194,8 +195,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {
-		ReactionTimeDist* r1 = ConfigParams::GetInstance().reactDist1;
-		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
+		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
+		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
 		if (r1 && r2) {
 			reacTime = r1->getReactionTime() + r2->getReactionTime();
 			reacTime = 0;
@@ -320,7 +321,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedTrafficColor = sim_mob::Green;
 
 	trafficSignalStopDistance = Driver::maxVisibleDis;
-	elapsedSeconds = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;

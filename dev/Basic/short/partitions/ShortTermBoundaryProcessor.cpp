@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * ShortTermBoundaryProcessor.cpp
  *
@@ -21,7 +25,8 @@
 
 #include "util/GeomHelpers.hpp"
 #include "entities/AuraManager.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/WorkGroup.hpp"
 
 #include "geospatial/Node.hpp"
@@ -184,7 +189,7 @@ string sim_mob::ShortTermBoundaryProcessor::boundaryProcessing(int time_step)
  */
 void sim_mob::ShortTermBoundaryProcessor::clearFakeAgentFlag()
 {
-	vector<Entity*>::iterator itr = Agent::all_agents.begin();
+	std::set<Entity*>::iterator itr = Agent::all_agents.begin();
 	while (itr != Agent::all_agents.end()) {
 		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false)) {
 			itr = Agent::all_agents.erase(itr);
@@ -471,8 +476,8 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		switch (type)
 		{
 		case DRIVER_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy);
-			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy);
+			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Driver* one_driver = new Driver(one_person, ConfigManager::GetInstance().FullConfig().mutexStategy);
 			one_person->changeRole(one_driver);
 
 			one_person->unpack(unpackageUtil);
@@ -486,7 +491,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			break;
 		case PEDESTRIAN_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy);
+			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Pedestrian* one_pedestrian = new Pedestrian(one_person);
 			one_person->changeRole(one_pedestrian);
 
@@ -544,15 +549,15 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		else
 		{
 //			debug.outputToConsole("receive 26");
-			ConfigParams& config = ConfigParams::GetInstance();
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 			switch (value)
 			{
 			case DRIVER_TYPE:
 
 //				debug.outputToConsole("receive 27");
-				one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
-				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy));
+				one_person = new Person("XML_Def", config.mutexStategy, -1);
+				one_person->changeRole(new Driver(one_person, config.mutexStategy));
 
 //				debug.outputToConsole("receive 28");
 				one_person->unpackProxy(unpackageUtil);
@@ -639,7 +644,7 @@ string sim_mob::ShortTermBoundaryProcessor::processBoundaryPackages(string all_p
 
 Person* sim_mob::ShortTermBoundaryProcessor::getFakePersonById(unsigned int agent_id)
 {
-	vector<Entity*>::iterator itr = Agent::all_agents.begin();
+	std::set<Entity*>::iterator itr = Agent::all_agents.begin();
 
 	for (; itr != Agent::all_agents.end(); itr++)
 	{
@@ -817,7 +822,7 @@ void sim_mob::ShortTermBoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent 
 
 void sim_mob::ShortTermBoundaryProcessor::removeOneFakeAgentFromWorkerGroup(Agent * agent)
 {
-	vector<Entity*>::iterator position = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), agent);
+	std::set<Entity*>::iterator position = Agent::all_agents.find(agent);
 
 	if (position != Agent::all_agents.end())
 	{

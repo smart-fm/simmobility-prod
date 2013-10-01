@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <set>
 #include <queue>
 #include <vector>
 #include <functional>
@@ -192,11 +193,11 @@ public:
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
 
 	///Agents can access all other agents (although they usually do not access by ID)
-	static std::vector<Entity*> all_agents;
+	static std::set<Entity*> all_agents;
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
-	static std::vector<Entity*> agents_on_event; //Agents are conducting event
-	static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
+	//static std::vector<Entity*> agents_on_event; //Agents are conducting event
+	//static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
 
 
 	///Retrieve a monotonically-increasing unique ID value.
@@ -282,7 +283,7 @@ private:
 
 	bool onActivity; //Determines if the person is conducting any activity
 	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
-	boost::mutex lastUpdatedFrame_mutex;
+//	boost::mutex lastUpdatedFrame_mutex;
 
 	//add by xuyan
 protected:

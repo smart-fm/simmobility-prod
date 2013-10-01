@@ -1,11 +1,14 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "ExpandAndValidateConfigFile.hpp"
 
 #include <sstream>
 
 #include "conf/settings/DisableMPI.h"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/PrintNetwork.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -20,7 +23,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
-#include "geospatial/xmlWriter/xmlWriter.hpp"
+//#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "workers/WorkGroup.hpp"
@@ -66,13 +69,13 @@ void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>&
 //// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
 ////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
 ////
-void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
-		active_agents.push_back(p);
+		active_agents.insert(p);
 	} else {
 		//Start later.
 		pending_agents.push(p);
@@ -84,7 +87,7 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 } //End un-named namespace
 
 
-sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& result, std::vector<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(result), active_agents(active_agents), pending_agents(pending_agents)
+sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& result, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(result), active_agents(active_agents), pending_agents(pending_agents)
 {
 	ProcessConfig();
 }
@@ -151,7 +154,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
     //Process Confluxes
     size_t sizeBefore = cfg.getConfluxes().size();
-    sim_mob::aimsun::Loader::ProcessConfluxes(ConfigParams::GetInstance().getNetwork());
+    sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
     std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
 
     //Maintain unique/non-colliding IDs.
@@ -192,7 +195,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	Signal* signal = all_signals.at(i);
     	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS*>(signal)->loopDetector());
         loopDetector.init(*signal);
-        active_agents.push_back(&loopDetector);
+        active_agents.insert(&loopDetector);
     }
 }
 
@@ -251,7 +254,7 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 {
 	//Load from the database or from XML, depending.
-	if (ConfigParams::GetInstance().networkSource()==SystemParams::NETSRC_DATABASE) {
+	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) {
 		std::cout <<"Loading Road Network from the database.\n";
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {

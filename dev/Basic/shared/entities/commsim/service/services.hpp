@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * services.hpp
  *
@@ -10,10 +14,11 @@
 //include publishing services that you provide in simmobility
 //#include "derived/TimePublisher.hpp"
 //#include "derived/LocationPublisher.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
 #include <boost/assign/list_of.hpp>
 #include <map>
 #include <sstream>
+
 namespace sim_mob
 {
 	enum SIM_MOB_SERVICE

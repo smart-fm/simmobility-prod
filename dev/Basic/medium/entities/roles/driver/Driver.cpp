@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "Driver.hpp"
 
 #include <cmath>
@@ -12,7 +16,8 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 
 #include "buffering/BufferedDataManager.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -102,7 +107,7 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 	//Reset; these will be set before they are used; the values here represent either default
 	//       values or are unimportant.
 
-	secondsInTick = ConfigParams::GetInstance().baseGranMS() / 1000.0;
+	secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	elapsedSeconds = 0.0;
 

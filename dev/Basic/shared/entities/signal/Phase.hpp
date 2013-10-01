@@ -1,12 +1,17 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
+
 #include<cstdio>
-//#include "defaults.hpp"
+
 #include "Color.hpp"
 #include "geospatial/MultiNode.hpp"
-#include<vector>
-#include<string>
+#include <vector>
+#include <string>
 #include <map>
-#include<util/LangHelpers.hpp>
+#include "util/LangHelpers.hpp"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>

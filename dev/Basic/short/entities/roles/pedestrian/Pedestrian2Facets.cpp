@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * Pedestrian2Facets.cpp
  *
@@ -6,6 +10,9 @@
  */
 
 #include "Pedestrian2Facets.hpp"
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -93,13 +100,13 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 		updatePedestrianSignal();
 
 		if (sigColor == signalGreen) //Green phase
-			vel = speed * 2.0 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
+			vel = speed * 2.0 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
 		else
 			vel = 0;
 	}
 	else {
 		if (!pedMovement.isDoneWithEntireRoute())
-			vel = speed * 1.2 * 100 * ConfigParams::GetInstance().personTimeStepInMilliSeconds() / 1000.0;
+			vel = speed * 1.2 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
 			//Person* person = dynamic_cast<Person*> (parent);
@@ -110,7 +117,7 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 				}
 				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
 				if(passenger) {// nextRole is passenger
-					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
 					newRole->Movement()->frame_init(p);
@@ -138,7 +145,7 @@ void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
 
 	//MPI-specific output.
 	std::stringstream addLine;
-	if (ConfigParams::GetInstance().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 	}
 
@@ -244,9 +251,9 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 {
 	//For now, just check all agents and get the first positive collision. Very basic.
 	Agent* other = nullptr;
-	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+	for (std::set<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
 		//Skip self
-		other = dynamic_cast<Agent*> (Agent::all_agents[i]);
+		other = dynamic_cast<Agent*> (*it);
 		if (!other) {
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.

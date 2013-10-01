@@ -1,4 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
  * \file Pedestrian.cpp
@@ -7,6 +9,9 @@
  */
 
 #include "ActivityPerformer.hpp"
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Node.hpp"
 #include "logging/Log.hpp"
@@ -29,17 +34,16 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent, const sim_mob::Acti
 	location = currActivity.location;
 }
 
-//xuyan: Error, Do not what to do, comment out
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
 	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
 	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");
-	//movement->parentActivity = activityRole;
+	movement->parentActivity = activityRole;
 	return activityRole;
 }
 
-sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams( boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(true) {
+sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams( boost::mt19937& gen) : UpdateParams(gen) {
 }
 
 std::vector<sim_mob::BufferedBase*> sim_mob::ActivityPerformer::getSubscriptionParams() {
@@ -77,8 +81,8 @@ void sim_mob::ActivityPerformer::setLocation(sim_mob::Node* location) {
 
 void sim_mob::ActivityPerformer::initializeRemainingTime() {
 	this->remainingTimeToComplete =
-			this->activityEndTime.offsetMS_From(ConfigParams::GetInstance().simStartTime())
-			- this->activityStartTime.offsetMS_From(ConfigParams::GetInstance().simStartTime());
+			this->activityEndTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())
+			- this->activityStartTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 }
 
 
@@ -88,5 +92,5 @@ UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) 
 }
 
 void sim_mob::ActivityPerformer::updateRemainingTime() {
-	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigParams::GetInstance().baseGranMS()));
+	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigManager::GetInstance().FullConfig().baseGranMS()));
 }

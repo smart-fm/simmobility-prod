@@ -15,7 +15,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
@@ -50,8 +51,8 @@ UpdateEventArgs::~UpdateEventArgs(){};
 UpdatePublisher  Worker::updatePublisher;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
-	msPerFrame(ConfigParams::GetInstance().baseGranMS()),
-	ctrlMgr(ConfigParams::GetInstance().InteractiveMode()?ConfigParams::GetInstance().getControlMgr():nullptr),
+	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
+	ctrlMgr(ConfigManager::GetInstance().CMakeConfig().InteractiveMode()?ConfigManager::GetInstance().FullConfig().getControlMgr():nullptr),
 	currTick(0),
 	active(true)
 {}
@@ -71,7 +72,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
       profile(nullptr)
 {
 	//Initialize our profile builder, if applicable.
-	if (ConfigParams::GetInstance().ProfileWorkerUpdates()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
 }
@@ -79,15 +80,19 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 
 sim_mob::Worker::~Worker()
 {
-        //Clear all tracked entitites
-	while (!managedEntities.empty()) {
-		remEntity(managedEntities.front());
+	//Clear all tracked entitites
+	while (managedEntities.begin() != managedEntities.end()) {
+		remEntity(*managedEntities.begin());
 	}
+	/*while (!managedEntities.empty()) {
+		remEntity(managedEntities.front());
+	}*/
 
 	//Clear all tracked data
+	/*//NOTE: This is done by the base class!
 	while (!managedData.empty()) {
 		stopManaging(managedData[0]);
-	}
+	}*/
 
 	//Clear/write our Profile log data
 	safe_delete_item(profile);
@@ -96,14 +101,19 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::addEntity(Entity* entity)
 {
-	managedEntities.push_back(entity);
+	if (managedEntities.find(entity) != managedEntities.end()) {
+		Warn() <<"Entity (" <<entity <<") is already being managed, skipping: " <<entity->getId() <<"\n";
+		return;
+	}
+
+	managedEntities.insert(entity);
 }
 
 
 void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
-	std::vector<Entity*>::iterator it = std::find(managedEntities.begin(), managedEntities.end(), entity);
+	std::set<Entity*>::iterator it = managedEntities.find(entity);
 	if (it!=managedEntities.end()) {
 		managedEntities.erase(it);
 	}
@@ -114,7 +124,7 @@ UpdatePublisher & sim_mob::Worker::GetUpdatePublisher()
 	return updatePublisher;
 }
 
-const std::vector<Entity*>& sim_mob::Worker::getEntities() const
+const std::set<Entity*>& sim_mob::Worker::getEntities() const
 {
 	return managedEntities;
 }
@@ -237,17 +247,38 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
-			const unsigned int msPerFrame = ConfigParams::GetInstance().baseGranMS();
+			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
 			(*it)->resetSegmentFlows();
 			(*it)->resetLinkTravelTimes(currTime);
+			(*it)->resetOutputBounds();
 		}
 	}
+}
+
+void sim_mob::Worker::findBoundaryConfluxes() {
+	unsigned int boundaryCount = 0;
+	unsigned int multipleReceiverCount = 0;
+	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		{
+			(*it)->findBoundaryConfluxes();
+			if ( (*it)->isBoundary){
+				boundaryCount += 1;
+			}
+			if ( (*it)->isMultipleReceiver){
+				multipleReceiverCount += 1;
+			}
+		}
+	}
+
+	std::cout << "Worker::findBoundaryConfluxes | Worker: " << this << " |boundaryCount : "
+			<< boundaryCount << " |multipleReceiverCount: "<< multipleReceiverCount << std::endl;
 }
 
 void sim_mob::Worker::breedPendingEntities()
@@ -275,7 +306,7 @@ void sim_mob::Worker::perform_frame_tick()
 	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, par.currTick, (managedEntities.size()+toBeAdded.size()));
 
 	//Short-circuit if we're in "pause" mode.
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		while (par.ctrlMgr->getSimState() == PAUSE) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
@@ -308,7 +339,7 @@ void sim_mob::Worker::perform_frame_tick()
 #endif
 
 	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		if (par.ctrlMgr->getSimState() == STOP) {
 			while (par.ctrlMgr->getEndTick() < 0) {
 				par.ctrlMgr->setEndTick(par.currTick+2);
@@ -449,7 +480,7 @@ struct ContainerDeleter {
 void sim_mob::Worker::migrateAllOut()
 {
 	while (!managedEntities.empty()) {
-		migrateOut(*managedEntities.back());
+		migrateOut(**managedEntities.begin());
 	}
 	for (std::set<Conflux*>::iterator cfxIt = managedConfluxes.begin(); cfxIt != managedConfluxes.end(); cfxIt++) {
 
@@ -547,10 +578,10 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
-	if (ConfigParams::GetInstance().UsingConfluxes()) {
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+	/*	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			(*it)->resetOutputBounds();
-		}
+		}*/
 
 		//All workers perform the same tasks for their set of managedConfluxes.
 		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));

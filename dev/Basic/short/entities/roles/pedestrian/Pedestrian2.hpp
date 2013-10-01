@@ -23,7 +23,6 @@
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"
-#include "conf/simpleconf.hpp"
 #include "geospatial/Crossing.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"

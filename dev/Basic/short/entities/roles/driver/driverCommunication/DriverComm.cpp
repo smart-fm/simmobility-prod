@@ -1,7 +1,12 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverComm.hpp"
 #include "DriverCommFacets.hpp"
 #include "entities/Person.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
@@ -28,7 +33,7 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 	movement->setParentDriverComm(driver);
 	//broker, (external)communicator :( ... setting
 
-	const ConfigParams &cfg = ConfigParams::GetInstance();
+	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
 	const std::string &type = cfg.getAndroidClientType();
 	Broker* managingBroker = Broker::getExternalCommunicator(type);
 //	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
@@ -76,8 +81,8 @@ void sim_mob::DriverComm::receiveModule(timeslice now)
 }
 void sim_mob::DriverComm::sendModule(timeslice now)
 {
-	std::vector<Entity*> &agents = sim_mob::Agent::all_agents;
-	std::vector<Entity*>::iterator  it , it_end(agents.end());
+	std::set<Entity*> &agents = sim_mob::Agent::all_agents;
+	std::set<Entity*>::iterator  it , it_end(agents.end());
 	for(it = agents.begin(); it != it_end; it++)
 	{
 		sim_mob::dataMessage *data = new sim_mob::dataMessage();

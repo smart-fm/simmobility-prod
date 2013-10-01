@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   LT_Agent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -9,7 +11,6 @@
 #pragma once
 #include "Common.hpp"
 #include "entities/UpdateParams.hpp"
-#include "conf/simpleconf.hpp"
 #include "entities/Agent.hpp"
 #include "event/EventManager.hpp"
 #include "message/MessageHandler.hpp"

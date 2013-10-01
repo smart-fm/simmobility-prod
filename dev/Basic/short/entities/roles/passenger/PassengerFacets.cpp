@@ -4,6 +4,8 @@
 
 #include "PassengerFacets.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -113,7 +115,7 @@ void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
 				}
 				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
 				if(passenger) {// nextRole is passenger
-					const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
 					newRole->Movement()->frame_init(p);
@@ -146,7 +148,7 @@ void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
 
 	//MPI-specific output.
 	std::stringstream addLine;
-	if (ConfigParams::GetInstance().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
 		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 	}
 

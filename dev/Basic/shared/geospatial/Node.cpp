@@ -14,7 +14,6 @@ void sim_mob::Node::setID(unsigned int id) { nodeId = id; }
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "conf/simpleconf.hpp"
 
 namespace sim_mob{
 

@@ -263,7 +263,10 @@ ENDFOREACH()
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-  ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+  ELSE() 
+    #Just hope for the best
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
@@ -275,12 +278,11 @@ ELSE (SIMMOB_LATEST_STANDARD)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
 
-
-#Enable threading on GCC-4.7
+#Threading fix on GCC-4.7
 IF(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
   IF (GCC_VERSION VERSION_EQUAL 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_HAVE_GTHR_DEFAULT")
   ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
@@ -331,7 +333,7 @@ include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
 #Find TinyXML (optional; not used any more)
-find_package(TinyXML REQUIRED)
+find_package(TinyXML)
 if (TINYXML_FOUND)
   include_directories(${TINYXML_INCLUDE_DIR})
   LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
@@ -401,6 +403,10 @@ ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 IF (${SIMMOB_PROFILE_ON} MATCHES "ON")
   LIST(APPEND LibraryList "rt")
 ENDIF (${SIMMOB_PROFILE_ON} MATCHES "ON")
+
+#Find the Threading library (pthread)
+find_package(Threads REQUIRED)
+LIST(APPEND LibraryList ${CMAKE_THREAD_LIBS_INIT})
 
 
 #Remove duplicates, just in case

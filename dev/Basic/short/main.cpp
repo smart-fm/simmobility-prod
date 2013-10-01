@@ -37,7 +37,8 @@
 #include "util/StateSwitcher.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
@@ -120,13 +121,13 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigParams::GetInstanceRW());
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigParams::GetInstance().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
@@ -137,7 +138,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	ProfileBuilder* prof = nullptr;
-	if (ConfigParams::GetInstance().ProfileOn()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
@@ -153,12 +154,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//RoleFactory& rf = (i==0) ? ConfigParams::GetInstanceRW().getRoleFactoryRW() : Config::GetInstanceRW().getRoleFactoryRW();
 		//const MutexStrategy& mtx = (i==0) ? ConfigParams::GetInstance().mutexStategy() : Config::GetInstance().mutexStrategy();
 
-		RoleFactory& rf = ConfigParams::GetInstanceRW().getRoleFactoryRW();
-		const MutexStrategy& mtx = ConfigParams::GetInstance().mutexStategy();
+		RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
+		const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
 
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
-		if (ConfigParams::GetInstance().commSimEnabled()) {
+		if (ConfigManager::GetInstance().FullConfig().commSimEnabled()) {
 //			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
 			rf.registerRole("driver", new sim_mob::DriverComm(nullptr/*, androidBroker*/, mtx));
 		} else {
@@ -183,14 +184,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//      A) If a built-in Construct is used then it will need these models.
 	//      B) We'll likely replace these with Factory classes later (static, etc.), so
 	//         memory management will cease to be an issue.
-	Config::BuiltInModels builtIn;
+	/*Config::BuiltInModels builtIn;
 	builtIn.carFollowModels["mitsim"] = new MITSIM_CF_Model();
 	builtIn.laneChangeModels["mitsim"] = new MITSIM_LC_Model();
-	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();
+	builtIn.intDrivingModels["linear"] = new SimpleIntDrivingModel();*/
 
 	//Load our user config file
 	std::cout << "Expanding our user config file." << std::endl;
-	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), Agent::all_agents, Agent::pending_agents);
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	std::cout << "finish to Load our user config file." << std::endl;
 
 
@@ -201,9 +202,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
-		ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+		ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 		ctrlMgr->setSimState(IDLE);
 		while(ctrlMgr->getSimState() == IDLE) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
@@ -211,7 +212,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigParams::GetInstance();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	//Start boundaries
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -261,10 +262,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-
-	if(ConfigParams::GetInstance().commSimEnabled() && ConfigParams::GetInstance().androidClientEnabled() )
+	if(ConfigManager::GetInstance().FullConfig().commSimEnabled() && ConfigManager::GetInstance().FullConfig().androidClientEnabled() )
 	{
-		const std::string & name = ConfigParams::GetInstance().getAndroidClientType();
+		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
 		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
 		Broker::addExternalCommunicator(name, androidBroker);
 //		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
@@ -276,7 +276,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 
 	//Anything in all_agents is starting on time 0, and should be added now.
-	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
 	}
 
@@ -341,7 +341,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
 	int endTick = config.totalRuntimeTicks;
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) {
-		if (ConfigParams::GetInstance().InteractiveMode()) {
+		if (ConfigManager::GetInstance().FullConfig().InteractiveMode()) {
 			if(ctrlMgr->getSimState() == STOP) {
 				while (ctrlMgr->getEndTick() < 0) {
 					ctrlMgr->setEndTick(currTick+2);
@@ -377,20 +377,20 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//   Every 1% change after that. (to avoid flooding the console.)
 		//   In "OutputDisabled" mode, every 10% change. (just to give some indication of progress)
 		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
-		if (ConfigParams::GetInstance().OutputDisabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 			currTickPercent /= 10; //Only update 10%, 20%, etc.
 		}
 
 		//Determine whether to print this time tick or not.
 		bool printTick = lastTickPercent.update(currTickPercent);
-		if (ConfigParams::GetInstance().OutputEnabled() && !printTick) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && !printTick) {
 			//OutputEnabled also shows the first 10 ticks.
 			printTick = numTicksShown.update(std::min(numTicksShown.get()+1, 10));
 		}
 
 		//Note that OutputEnabled also affects locking.
 		if (printTick) {
-			if (ConfigParams::GetInstance().OutputEnabled()) {
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 				std::stringstream msg;
 				msg << "Approximate Tick Boundary: " << currTick << ", ";
 				msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
@@ -449,8 +449,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
 		size_t numPassenger = 0;
-		for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it
-				!= Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
@@ -474,8 +473,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
 	}
 
-	if (ConfigParams::GetInstance().numAgentsSkipped>0) {
-		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigParams::GetInstance().numAgentsSkipped <<endl;
+	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
+		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) {
@@ -488,7 +487,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigParams::GetInstance().OutputEnabled() && ConfigParams::GetInstance().mergeLogFiles()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -505,7 +504,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
 	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
 	//      loop should propagate this value down. ~Seth
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		Signal::all_signals_.clear();
 		Agent::all_agents.clear();
 	} else {
@@ -525,7 +524,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
  * Returns the value of the last completed run of performMain().
  */
 int run_simmob_interactive_loop(){
-	sim_mob::ControlManager *ctrlMgr = ConfigParams::GetInstance().getControlMgr();
+	sim_mob::ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 	std::list<std::string> resLogFiles;
 	int retVal = 1;
 	for (;;) {
@@ -537,7 +536,7 @@ int run_simmob_interactive_loop(){
 			std::string configFileName = paras["configFileName"];
 			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
-			ConfigParams::GetInstanceRW().reset();
+			ConfigManager::GetInstanceRW().reset();
 			std::cout<<"scenario finished"<<std::cout;
 		}
 		if(ctrlMgr->getSimState() == QUIT)
@@ -556,13 +555,13 @@ int main(int ARGC, char* ARGV[])
 
 	//Currently needs the #ifdef because of the way threads initialize.
 #ifdef SIMMOB_INTERACTIVE_MODE
-	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	CommunicationManager *dataServer = new CommunicationManager(13333, ConfigManager::GetInstance().FullConfig().getCommDataMgr(), *ConfigManager::GetInstance().FullConfig().getControlMgr());
 	boost::thread dataWorkerThread(boost::bind(&CommunicationManager::start, dataServer));
-	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	CommunicationManager *cmdServer = new CommunicationManager(13334, ConfigManager::GetInstance().FullConfig().getCommDataMgr(), *ConfigManager::GetInstance().FullConfig().getControlMgr());
 	boost::thread cmdWorkerThread(boost::bind(&CommunicationManager::start, cmdServer));
-	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigParams::GetInstance().getCommDataMgr(), *ConfigParams::GetInstance().getControlMgr());
+	CommunicationManager *roadNetworkServer = new CommunicationManager(13335, ConfigManager::GetInstance().FullConfig().getCommDataMgr(), *ConfigManager::GetInstance().FullConfig().getControlMgr());
 	boost::thread roadNetworkWorkerThread(boost::bind(&CommunicationManager::start, roadNetworkServer));
-	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigParams::GetInstance().getControlMgr()));
+	boost::thread workerThread2(boost::bind(&ControlManager::start, ConfigManager::GetInstance().FullConfig().getControlMgr()));
 #endif
 
 	//Save start time
@@ -572,7 +571,7 @@ int main(int ARGC, char* ARGV[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
-	ConfigParams& config = ConfigParams::GetInstanceRW();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size()>2 && args[2]=="mpi") {
@@ -620,7 +619,7 @@ int main(int ARGC, char* ARGV[])
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
 	std::list<std::string> resLogFiles;
-	if (ConfigParams::GetInstance().InteractiveMode()) {
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		returnVal = run_simmob_interactive_loop();
 	} else {
 		returnVal = performMain(configFileName, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
@@ -628,7 +627,7 @@ int main(int ARGC, char* ARGV[])
 
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigParams::GetInstance().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::PrintAndDeleteLogFiles(resLogFiles);
 	}
 

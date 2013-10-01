@@ -56,6 +56,7 @@ class RoadNetwork {
 	friend class sim_mob::aimsun::Loader;
 public:
 	RoadNetwork() { drivingSide=DRIVES_ON_LEFT; } //TEMP
+	~RoadNetwork();
 
 	DRIVING_SIDE drivingSide;
 

@@ -1,5 +1,6 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-//tripChains Branch
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "ParseConfigFile.hpp"
 
@@ -982,7 +983,10 @@ void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElem
 		} else if ((*it) == "xml-tripchains") {
 			opt = SimulationParams::LoadAg_XmlTripChains;
 		} else {
-			throw std::runtime_error("Unexpected load_agents order param.");
+			std::stringstream out;
+			out.str("");
+			out << "Unexpected load_agents order param." << "[" << *it << "]";
+			throw std::runtime_error(out.str());
 		}
 		cfg.system.simulation.loadAgentsOrder.push_back(opt);
 	}
@@ -995,6 +999,8 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 
 void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
 {
+	if (!node) { return; }
+
 	//The commsim config has an attribute and a child node.
 	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 

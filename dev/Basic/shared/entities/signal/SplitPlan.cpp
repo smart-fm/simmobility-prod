@@ -1,7 +1,11 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #include "SplitPlan.hpp"
-#include<stdio.h>
-#include<sstream>
-#include "conf/simpleconf.hpp"
+
+#include <cstdio>
+#include <sstream>
 #include "Signal.hpp"
 
 using namespace boost::multi_index;
@@ -159,10 +163,8 @@ void SplitPlan::Update(std::vector<double> &DS)
 	double DS_all = fmax(DS);
 	cycle_.Update(DS_all);
 	cycleLength = cycle_.getcurrCL();
-//	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
-		Print() << currSplitPlanID << std::endl;
 		initialize();
 }
 /*

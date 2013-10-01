@@ -1,6 +1,8 @@
-/* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/*
  * File:   HouseholdAgent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,7 +10,6 @@
  */
 
 #include "HouseholdAgent.hpp"
-#include "conf/simpleconf.hpp"
 #include "workers/Worker.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"

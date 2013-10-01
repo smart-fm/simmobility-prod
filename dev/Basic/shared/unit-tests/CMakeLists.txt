@@ -9,7 +9,7 @@ LIST(APPEND UnitTestLibs ${CPPUNIT_LIBRARY})
 
 #Find QxCppUnit and Qt, both of which are optional.
 find_package(QxCppUnit)
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui)
+FIND_PACKAGE(Qt4 4.0.0 COMPONENTS QtCore QtGui)
 
 #For our Windows/OSX users (where QxRunner is not-so-supported), allow the 
 #  tests to be build with pure CppUnit if either QxCppUnit or Qt4 are not found.
@@ -19,7 +19,6 @@ ELSE ()
   MESSAGE("Missing Qt4 or QxCppUnit: Unit Tests will be built in console mode.")
   SET(SIMMOB_USE_TEST_GUI OFF)
 ENDIF (QXCPPUNIT_FOUND AND QT4_FOUND)
-
 
 #Include/Library definitions for the GUI
 IF (SIMMOB_USE_TEST_GUI)

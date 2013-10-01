@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   Utils.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -8,11 +10,14 @@
  */
 #pragma once
 
-#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
+
+//NOTE: This is a Linux-only class. We need to ifdef it out if not available 
+//      (or move it to entities/profile/ProfileBuilder as a static method.)
+#include <sys/time.h>
 
 namespace sim_mob {
 

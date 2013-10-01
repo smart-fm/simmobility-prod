@@ -1,9 +1,13 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
+#include <set>
+
 #include <boost/noncopyable.hpp>
-#include "simpleconf.hpp"
+#include "conf/ConfigParams.hpp"
 
 namespace sim_mob {
 
@@ -31,7 +35,7 @@ class Entity;
 class ExpandAndValidateConfigFile : private boost::noncopyable {
 public:
 	///Perform further semantic processing, and confirm that parameters are set correctly.
-	ExpandAndValidateConfigFile(ConfigParams& result, std::vector<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents);
+	ExpandAndValidateConfigFile(ConfigParams& result, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents);
 
 protected:
 	///Does all the work.
@@ -56,7 +60,7 @@ private:
 	ConfigParams& cfg;
 
 	//Our active/pending agent lists.
-	std::vector<sim_mob::Entity*>& active_agents;
+	std::set<sim_mob::Entity*>& active_agents;
 	StartTimePriorityQueue& pending_agents;
 };
 

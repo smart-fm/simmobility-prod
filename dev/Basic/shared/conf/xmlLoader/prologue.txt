@@ -1,2 +1,0 @@
-// NOTE: Do *not* edit the -pskel.* files; they are generated automatically from the xsd file. 
-//       Instead, modify the -pimpl.* files. ~Seth

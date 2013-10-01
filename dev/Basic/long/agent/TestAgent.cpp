@@ -1,6 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
- * Copyright Singapore-MIT Alliance for Research and Technology
- * 
  * File:   LT_Agent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 
@@ -8,7 +10,8 @@
  */
 
 #include "TestAgent.hpp"
-#include "conf/simpleconf.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "message/MessageBus.hpp"
 #include "event/SystemEvents.hpp"
@@ -27,7 +30,7 @@ using std::map;
 using std::cout;
 
 TestAgent::TestAgent(int id, messaging::MessageHandler* receiver)
-: Agent(ConfigParams::GetInstance().mutexStategy(), id), receiver(receiver) {
+: Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), receiver(receiver) {
     isRegistered = false;
 }
 

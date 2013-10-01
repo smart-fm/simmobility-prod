@@ -581,6 +581,7 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 		}
 	}
 
+	person->clearCurrPath();	//this will be set again for the next sub-trip
 	return true;
 }
 

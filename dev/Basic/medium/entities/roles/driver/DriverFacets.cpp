@@ -218,6 +218,7 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 				//const StreetDirectory& stdir = StreetDirectory::instance();
 				//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
 			}
+			getParent()->setCurrPath(path);
 		}
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
@@ -226,8 +227,6 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 					<<getParent()->GetId()<<std::endl;
 			return res;
 		}
-
-		getParent()->clearCurrPath();	//this will be set again for the next sub-trip
 
 		//TODO: Start in lane 0?
 		int startlaneID = 0;

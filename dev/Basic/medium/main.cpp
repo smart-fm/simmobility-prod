@@ -333,6 +333,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 #endif
 
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+	}
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;

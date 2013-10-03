@@ -155,7 +155,7 @@ private:
     static AuraManager instance2_;
 
     //different impl
-    AuraManagerImplementation local_implType;
+    //AuraManagerImplementation local_implType;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;

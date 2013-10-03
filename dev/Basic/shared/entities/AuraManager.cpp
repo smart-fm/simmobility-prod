@@ -56,7 +56,7 @@ AuraManager::init(AuraManagerImplementation implType)
         stats_ = new Stats;
     }
 
-    this->local_implType = implType;
+    //this->local_implType = implType;
 
     //Reset time tick.
     time_step = 0;
@@ -197,7 +197,9 @@ AuraManager::printStatistics() const
  */
 void AuraManager::registerNewAgent(Agent const* one_agent)
 {
-	if ((local_implType == IMPL_SIMTREE) && impl_) {
+	//if ((local_implType == IMPL_SIMTREE) && impl_) {
+	if (impl_) {
+		//We only register Person agents (TODO: why?)
 		if (dynamic_cast<Person const*>(one_agent)) {
 			impl_->registerNewAgent(one_agent);
 		}

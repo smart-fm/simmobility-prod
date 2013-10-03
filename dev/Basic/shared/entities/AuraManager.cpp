@@ -28,7 +28,7 @@ namespace sim_mob
 // AuraManager::Stats
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-struct AuraManager::Stats : private boost::noncopyable
+/*struct AuraManager::Stats : private boost::noncopyable
 {
     void
     printStatistics() const;
@@ -42,7 +42,7 @@ AuraManager::Stats::printStatistics() const
 
 
 }
-
+*/
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,9 +52,9 @@ AuraManager::Stats::printStatistics() const
 void
 AuraManager::init(AuraManagerImplementation implType)
 {
-    if (false) {
+/*    if (false) {
         stats_ = new Stats;
-    }
+    }*/
 
     //this->local_implType = implType;
 
@@ -179,7 +179,7 @@ const
 	return results;
 }*/
 
-void
+/*void
 AuraManager::printStatistics() const
 {
     if (stats_)
@@ -190,7 +190,7 @@ AuraManager::printStatistics() const
     {
         std::cout << "No statistics was collected by the AuraManager singleton." << std::endl;
     }
-}
+}*/
 
 /**
  * xuyan

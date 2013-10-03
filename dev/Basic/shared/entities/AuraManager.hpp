@@ -134,8 +134,8 @@ public:
      * Print statistics collected on internal operationss.
      * Useful only if \c keepStats is \c true when \c init() was called.
      */
-    void
-    printStatistics() const;
+    //void
+    //printStatistics() const;
 
 	/**
 	 * register new agents to AuraManager each time step
@@ -143,7 +143,7 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : impl_(nullptr), stats_(0), time_step(0)
+	AuraManager() : impl_(nullptr), /*stats_(0),*/ time_step(0)
 	{}
 
     /*Map to store the vehicle counts of each road segment. */
@@ -171,8 +171,8 @@ private:
     //Current time step.
     int time_step;
 
-    class Stats;
-    Stats* stats_;
+    /*class Stats;
+    Stats* stats_;*/
 
 };
 

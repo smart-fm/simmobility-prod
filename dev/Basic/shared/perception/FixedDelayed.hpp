@@ -233,7 +233,7 @@ bool sim_mob::FixedDelayed<T>::zero_delay() const
 template <typename T>
 bool sim_mob::FixedDelayed<T>::del_history_front()
 {
-	//Failsafe
+	//Failsafe; also for "zero-delay".
 	if (history.empty()) { return false; }
 
 	//Reclaim memory, pop the list
@@ -257,6 +257,11 @@ void sim_mob::FixedDelayed<T>::clear()
 template <typename T>
 void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
 {
+	//We don't even use the history list if there is zero delay.
+	if (zero_delay()) {
+		return;
+	}
+
 	//Check and save the current time
 	if (currTimeMS<currTime) {
 		throw std::runtime_error("Error: FixedDelayed<> can't move backwards in time.");
@@ -293,6 +298,11 @@ void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
 template <typename T>
 void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
 {
+	//We ignore delay updates if the max delay is zero.
+	if (zero_delay()) {
+		return;
+	}
+
 	//Check, save
 	if (currDelayMS > maxDelayMS) {
 		std::stringstream msg;
@@ -323,8 +333,13 @@ void sim_mob::FixedDelayed<T>::update_iterator()
 template <typename T>
 void sim_mob::FixedDelayed<T>::delay(const T& value)
 {
-	history.push_back(HistItem(value, currTime));
-	set_delay(currDelayMS);
+	if (zero_delay()) {
+		zeroDelayValue.first = value;
+		zeroDelayValue.second = true;
+	} else {
+		history.push_back(HistItem(value, currTime));
+		set_delay(currDelayMS);
+	}
 }
 
 template <typename T>
@@ -335,12 +350,21 @@ const T& sim_mob::FixedDelayed<T>::sense()
 		throw std::runtime_error("Can't sense: not enough time has passed.");
 	}
 
-	return percFront->item;
+	//Return is cheap either way, but still depends on zero_delay().
+	if (zero_delay()) {
+		return zeroDelayValue.first;
+	} else {
+		return percFront->item;
+	}
 }
 
 template <typename T>
 bool sim_mob::FixedDelayed<T>::can_sense() {
-	return percFront != history.end();
+	if (zero_delay()) {
+		return zeroDelayValue.second;
+	} else {
+		return percFront != history.end();
+	}
 }
 
 

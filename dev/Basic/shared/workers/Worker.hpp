@@ -198,8 +198,8 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
-	int thread_id;
-	static int auto_matical_thread_id;
+	//int thread_id;
+	//static int auto_matical_thread_id;
 };
 
 }

@@ -40,7 +40,7 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-/* static */ int sim_mob::Worker::auto_matical_thread_id = 0;
+///* static */ int sim_mob::Worker::auto_matical_thread_id = 0;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
 	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
@@ -67,8 +67,8 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
-	thread_id = auto_matical_thread_id;
-	auto_matical_thread_id++;
+	//thread_id = auto_matical_thread_id;
+	//auto_matical_thread_id++;
 }
 
 

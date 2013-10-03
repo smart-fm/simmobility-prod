@@ -133,30 +133,6 @@ const
 		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
 	}
 
-//	static long sum_count = 0;
-//	sum_count += results.size();
-
-//	std::cout << "Range Query:" << results.size() << ",sum_count:" << sum_count << std::endl;
-
-//	for(int i=0;i<results.size();i++)
-//	{
-//		Person const* one_person = dynamic_cast<Person const*>(results[i]);
-//		if(one_person)
-//		{
-//			std::cout << results[i]->can_remove_by_RTREE << ", Person ID:" << results[i]->getId() <<",(" << results[i]->xPos.get() << "," <<  results[i]->yPos.get()  << ")" << std::endl;
-//		}
-//		else
-//		{
-//			std::cout << results[i]->can_remove_by_RTREE << "Non-Person ID:" << results[i]->getId() <<",(" << results[i]->xPos.get() << "," <<  results[i]->yPos.get()  << ")" << std::endl;
-//		}
-//	}
-//	std::cout << "----------------------------" << std::endl;
-
-//	static long sum_count = 0;
-//	sum_count += results.size();
-//	if (sum_count % 100000 == 0)
-//		std::cout << "nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
-
 	return results;
 
 }

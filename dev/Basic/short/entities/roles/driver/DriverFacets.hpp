@@ -90,7 +90,7 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 
 	///
-	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double distance,bool isInSameLink=true);
+	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink=true);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);

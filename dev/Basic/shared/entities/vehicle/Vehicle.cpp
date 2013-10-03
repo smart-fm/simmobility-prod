@@ -110,7 +110,14 @@ const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
 		return fwdMovement.getNextSegment(inSameLink);
 	return nullptr;
 }
-
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIterator()
+{
+	return fwdMovement.currSegmentIt;
+}
+std::vector<const sim_mob::RoadSegment*> sim_mob::Vehicle::getPath()
+{
+	return fwdMovement.fullPath;
+}
 const RoadSegment* sim_mob::Vehicle::getPrevSegment(bool inSameLink) const {
 	return fwdMovement.getPrevSegment(inSameLink);
 }

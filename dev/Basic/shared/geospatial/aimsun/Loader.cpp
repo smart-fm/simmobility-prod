@@ -907,10 +907,10 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop* & sourceStop, sim_mob::BusStop* & destStop)
 {
 	bool result = false;
-	sim_mob::AuraManager::instance2();
+	//sim_mob::AuraManager::instance2();
 	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
 	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
-	std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
+	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;
 	std::vector<sim_mob::BusStop*> dest_stops;

@@ -58,11 +58,11 @@ public:
         return instance_;
     }
 
-    static AuraManager &
+ /*   static AuraManager &
     instance2()
     {
     	return instance2_;
-    }
+    }*/
 
     /**
      * Called every frame, this method builds a spatial index of the positions of all agents.
@@ -149,10 +149,8 @@ private:
     /*Map to store the vehicle counts of each road segment. */
     //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
 
-    // No need to define the dtor.
-
     static AuraManager instance_;
-    static AuraManager instance2_;
+    //static AuraManager instance2_;
 
     //different impl
     //AuraManagerImplementation local_implType;

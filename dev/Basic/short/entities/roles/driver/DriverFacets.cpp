@@ -810,7 +810,10 @@ void sim_mob::DriverMovement::setParentBufferedData() {
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
 	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
+const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double distance,bool isInSameLink)
+{
 
+}
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(parentDriver->vehicle->getNextSegment()))) {
 		return false;

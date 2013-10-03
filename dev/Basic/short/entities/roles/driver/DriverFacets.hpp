@@ -17,6 +17,7 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "geospatial/RoadItem.hpp"
 
 namespace sim_mob {
 
@@ -87,6 +88,9 @@ public:
 	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
+
+	///
+	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double distance,bool isInSameLink=true);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);

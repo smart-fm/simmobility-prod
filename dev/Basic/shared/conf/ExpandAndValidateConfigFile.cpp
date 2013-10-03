@@ -22,6 +22,7 @@
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/RoadItem.hpp"
+#include "geospatial/Incident.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -208,20 +209,38 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 {
 	sim_mob::RoadNetwork& network = cfg.getNetworkRW();
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
-
 	std::vector<const RoadSegment*> cachedSegments;
+	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 
 	//Add all RoadSegments to our list of cached segments.
-	for (std::set<UniNode*>::const_iterator it = network.getUniNodes().begin(); it != network.getUniNodes().end(); it++) {
-		//TODO: Annoying const-cast
-		const std::vector<const RoadSegment*> segs = (*it)->getRoadSegments();
-		for (std::vector<const RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
-			cachedSegments.push_back((*segIt));
-			const RoadItem* test = new RoadItem();
-			RoadSegment* ri = const_cast<RoadSegment*>(*segIt);
-			ri->addObstacle(100, test);
-		}
-	}
+    for (std::vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
+
+    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
+    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+
+			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
+				if((*incIt).segmentId == (*segIt)->getSegmentID() ) {
+
+					Incident* item = new sim_mob::Incident();
+					item->accessibility = (*incIt).accessibility;
+					item->capFactor = (*incIt).capFactor;
+					item->compliance = (*incIt).compliance;
+					item->duration = (*incIt).duration;
+					item->incidentId = (*incIt).incidentId;
+					item->laneId = (*incIt).laneId;
+					item->position = (*incIt).position;
+					item->segmentId = (*incIt).segmentId;
+					item->severity = (*incIt).severity;
+					item->speedlimit = (*incIt).speedlimit;
+					item->startTime = (*incIt).startTime-baseGranMS;
+					item->visibilityDistance = (*incIt).visibilityDistance;
+
+					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
+					rs->addObstacle(item->position, item);
+				}
+			}
+    	}
+    }
 }
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()

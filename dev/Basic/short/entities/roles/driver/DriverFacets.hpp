@@ -17,6 +17,7 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/IncidentResponse.hpp"
 
 namespace sim_mob {
 
@@ -125,6 +126,8 @@ protected:
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 
+	int makeDecisionForIncident(DriverUpdateParams& p, timeslice now);
+
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
@@ -182,5 +185,8 @@ private:
 
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
+
+	//incident response plan
+	sim_mob::IncidentResponse incidentResponsePlan;
 };
 }

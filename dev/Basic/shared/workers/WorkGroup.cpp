@@ -335,7 +335,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
 	//Let the AuraManager know about this Agent.
 	Agent* an_agent = dynamic_cast<Agent*>(ag);
-	if (an_agent) {
+	if (an_agent && !an_agent->isNonspatial()) {
 		AuraManager::instance().registerNewAgent(an_agent);
 	}
 

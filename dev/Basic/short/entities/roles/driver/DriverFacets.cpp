@@ -876,9 +876,10 @@ void sim_mob::DriverMovement::setParentBufferedData() {
 }
 const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
 {
-	sim_mob::RoadItem* res = nullptr;
+	const sim_mob::RoadItem* res = nullptr;
+	itemDis = 0.0;
 
-	if(type != sim_mob::INCCIDENT) return res;
+	if(type != sim_mob::INCIDENT) return res;
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
 	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
@@ -888,38 +889,85 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 		const RoadSegment* rs = *currentSegIt;
 		if (!rs) break;
 
-//		if (rs == parentDriver->vehicle->getCurrSegment()) {
-//
-//			if (stopPoint < 0) {
-//				throw std::runtime_error(
-//						"BusDriver offset in obstacles list should never be <0");
-//			}
-//
-//			if (stopPoint >= 0) {
-//				DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
-//						parentBusDriver->vehicle->getY(),
-//						rs->getStart()->location.getX(),
-//						rs->getStart()->location.getY());
-////						distance = stopPoint
-////								- vehicle->getDistanceMovedInSegment();
-//				// Buses not stopping near the busstop at few places.
-//				// one easy way to fix it
-//				double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
-//
-//				//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
-//
-//				distance = actualDistance
-//						- BusDistfromStart.getMagnitude();
-//
-//
-//				break;
-//
-//			}
-//
-//		}
-	}
+		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
+		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+
+		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+
+				if(rs == parentDriver->vehicle->getCurrSegment())
+				{
+					//1. in current seg
+					if(inc){
+						//1.1 find incident
+						double incidentDis = (*obsIt).first;
+						double moveDis  = parentDriver->vehicle->getDistanceMovedInSegment();
+						//1.2 incident in forward
+						if(moveDis <= incidentDis)
+						{
+							itemDis = incidentDis - moveDis;
+							if(itemDis < 0)
+							{
+								std::cout<<"getRoadItemByDistance: getDistanceMovedInSegment not right"<<std::endl;
+							}
+							if(itemDis <= perceptionDis)
+							{
+								res = inc;
+								return res;
+							}
+							else
+							{
+								// the incident already out of perception, no need check far more
+								return nullptr;
+							}
+						}// end if moveDis
+					} //end if inc
+					itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
+				}//end rs==
+				else
+				{
+					//2.0 in forword seg
+					if(inc){
+						//2.1 find incident
+						double incidentDis = (*obsIt).first;
+						itemDis += incidentDis;
+						if(itemDis <= perceptionDis)
+						{
+							res = inc;
+							return res;
+						}
+						else
+						{
+							// the incident already out of perception, no need check far more
+							return nullptr;
+						}
+					}//end inc
+					itemDis += getLengthOfSegment(rs);
+				}
+
+
+		}//end for obstacles
+
+	}//end for segs
 
 	return res;
+}
+double sim_mob::DriverMovement::getLengthOfSegment(const sim_mob::RoadSegment* rs)
+{
+	std::vector<sim_mob::Point2D> polypointsList = (rs)->getLanes().at(0)->getPolyline();
+	double dis=0;
+	std::vector<sim_mob::Point2D>::iterator ite;
+	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
+	{
+		ite = it+1;
+		if ( ite != polypointsList.end() )
+		{
+			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
+			dis += temp.getMagnitude();
+		}
+	}
+
+	return dis;
 }
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(parentDriver->vehicle->getNextSegment()))) {

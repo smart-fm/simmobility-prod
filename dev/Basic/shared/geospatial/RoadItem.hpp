@@ -20,7 +20,7 @@ class RoadSegment;
 enum RoadItemType
 {
 	BUSSTOP=1,
-	INCCIDENT=2
+	INCIDENT=2
 };
 /**
  * Base class for geospatial items which take up physical space but are not traversable.

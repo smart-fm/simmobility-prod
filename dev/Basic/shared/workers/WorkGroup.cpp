@@ -252,9 +252,6 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 		//in the future, replaced by
 		//assignAWorkerConstraint(ag);
-
-		//Cannot remove, used for Sim-Tree
-		AuraManager::instance().registerNewAgent(ag);
 	}
 }
 
@@ -336,6 +333,12 @@ sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
+	//Let the AuraManager know about this Agent.
+	Agent* an_agent = dynamic_cast<Agent*>(ag);
+	if (an_agent) {
+		AuraManager::instance().registerNewAgent(an_agent);
+	}
+
 	//For now, just rely on static access to ConfigParams.
 	// (We can allow per-workgroup configuration later).
 	ASSIGNMENT_STRATEGY strat = ConfigManager::GetInstance().FullConfig().defaultWrkGrpAssignment();

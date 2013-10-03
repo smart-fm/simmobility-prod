@@ -276,8 +276,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		personWorkers->assignAWorker(*it);
 
 		//put them to AuraManager
-		Agent* an_agent = dynamic_cast<Agent*>(*it);
-		if(an_agent) AuraManager::instance().registerNewAgent(an_agent);
+		//Agent* an_agent = dynamic_cast<Agent*>(*it);
+		//if(an_agent) AuraManager::instance().registerNewAgent(an_agent);
 	}
 
 	//Assign all BusStopAgents

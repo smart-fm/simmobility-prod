@@ -927,6 +927,14 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 				else
 				{
 					//2.0 in forword seg
+					if(isInSameLink == true)
+					{
+						// seg not in current link
+						if(parentDriver->vehicle->getCurrSegment()->getLink() != rs->getLink())
+						{
+							return res;
+						}
+					}
 					if(inc){
 						//2.1 find incident
 						double incidentDis = (*obsIt).first;

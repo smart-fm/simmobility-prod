@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <list>
+#include <utility>
 #include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
@@ -40,6 +41,10 @@ class UnPackageUtils;
  * This class should be used for continuous values. It should NOT be used for things like
  * reactionary signals or threshold values, since a call to sense() may discard values which
  * must trigger an action but are not technically the latest values.
+ *
+ * \note
+ * If a FixedDelayed<> is constructed with a maximum delay of 0, it will attempt to optimize away
+ * most list<> calls and shouldn't be much more inefficient than just storing the value directly.
  */
 template <typename T>
 class FixedDelayed {
@@ -59,9 +64,9 @@ public:
 	 *
 	 * \todo
 	 * It's not clear why we need this. Resetting a FixedDelayed object should also take the
-	 * current time into account. Disabling for now. ~Seth
+	 * current time into account. Drivers should provide an override if needed anyway. ~Seth
 	 */
-	//void clear();
+	void clear();
 
 
 	/**
@@ -71,8 +76,6 @@ public:
 	 * \param currTimeMS The current time in ms. Must be monotonically increasing.
 	 */
 	void update(uint32_t currTimeMS);
-
-	void clear();
 
 
 	/**
@@ -137,6 +140,9 @@ private:
 	//Helper function: ensure that our percFront iterator is set to the correct (sense-able) History Item.
 	void update_iterator();
 
+	//Helper function: is there no chance of delay, ever? (I.e., is the max delay zero?)
+	bool zero_delay() const;
+
 private:
 	//Internal class to store an item and its observed time.
 	struct HistItem {
@@ -164,7 +170,7 @@ private:
 	std::list<HistItem> history;
 
 	//The maximum delay allowed by the system.
-	uint32_t maxDelayMS;
+	const uint32_t maxDelayMS;
 
 	//The current delay value
 	uint32_t currDelayMS;
@@ -178,6 +184,11 @@ private:
 
 	//Whether or not to reclaim memory once a sensed item is no longer needed.
 	bool reclaimPtrs;
+
+	//Optimization: if zero delay, just store the currently-observed value here.
+	//If *not* zero delay, this value is undefined.
+	//The boolean value is set to "true" (valid) once a single value is set.
+	std::pair<T, bool> zeroDelayValue;
 
 	//Serialization-related friends
 	friend class PackageUtils;
@@ -193,11 +204,13 @@ private:
 // Template implementation
 ///////////////////////////////////////////////////////////
 
+
 template <typename T>
 sim_mob::FixedDelayed<T>::FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs)
 	: maxDelayMS(maxDelayMS), currDelayMS(maxDelayMS), currTime(0), reclaimPtrs(reclaimPtrs)
 {
 	percFront = history.end();
+	zeroDelayValue.second = false;
 }
 
 
@@ -207,6 +220,14 @@ sim_mob::FixedDelayed<T>::~FixedDelayed()
 	//Reclaim memory
 	while (del_history_front());
 }
+
+
+template <typename T>
+bool sim_mob::FixedDelayed<T>::zero_delay() const
+{
+	return maxDelayMS==0;
+}
+
 
 
 template <typename T>
@@ -228,7 +249,8 @@ bool sim_mob::FixedDelayed<T>::del_history_front()
 template <typename T>
 void sim_mob::FixedDelayed<T>::clear()
 {
-	history.clear();
+	//Clear the list and reclaim memory.
+	while (del_history_front());
 }
 
 

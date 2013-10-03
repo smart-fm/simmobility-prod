@@ -878,50 +878,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 {
 	sim_mob::RoadItem* res = nullptr;
 
-	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
-	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
-
-	for(;currentSegIt != path.end();++currentSegIt)
-	{
-		const RoadSegment* rs = *currentSegIt;
-		if (!rs) break;
-
-		if (rs == parentDriver->vehicle->getCurrSegment()) {
-
-			if (stopPoint < 0) {
-				throw std::runtime_error(
-						"BusDriver offset in obstacles list should never be <0");
-			}
-
-			if (stopPoint >= 0) {
-				DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
-						parentBusDriver->vehicle->getY(),
-						rs->getStart()->location.getX(),
-						rs->getStart()->location.getY());
-//						distance = stopPoint
-//								- vehicle->getDistanceMovedInSegment();
-				// Buses not stopping near the busstop at few places.
-				// one easy way to fix it
-				double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
-
-				//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
-
-				distance = actualDistance
-						- BusDistfromStart.getMagnitude();
-
-
-				break;
-
-			}
-
-		}
-	}
-
-	return res;
-}
-const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
-{
-	sim_mob::RoadItem* res = nullptr;
+	if(type != sim_mob::INCCIDENT) return res;
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
 	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
@@ -931,35 +888,35 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 		const RoadSegment* rs = *currentSegIt;
 		if (!rs) break;
 
-		if (rs == parentDriver->vehicle->getCurrSegment()) {
-
-			if (stopPoint < 0) {
-				throw std::runtime_error(
-						"BusDriver offset in obstacles list should never be <0");
-			}
-
-			if (stopPoint >= 0) {
-				DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
-						parentBusDriver->vehicle->getY(),
-						rs->getStart()->location.getX(),
-						rs->getStart()->location.getY());
-//						distance = stopPoint
-//								- vehicle->getDistanceMovedInSegment();
-				// Buses not stopping near the busstop at few places.
-				// one easy way to fix it
-				double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
-
-				//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
-
-				distance = actualDistance
-						- BusDistfromStart.getMagnitude();
-
-
-				break;
-
-			}
-
-		}
+//		if (rs == parentDriver->vehicle->getCurrSegment()) {
+//
+//			if (stopPoint < 0) {
+//				throw std::runtime_error(
+//						"BusDriver offset in obstacles list should never be <0");
+//			}
+//
+//			if (stopPoint >= 0) {
+//				DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
+//						parentBusDriver->vehicle->getY(),
+//						rs->getStart()->location.getX(),
+//						rs->getStart()->location.getY());
+////						distance = stopPoint
+////								- vehicle->getDistanceMovedInSegment();
+//				// Buses not stopping near the busstop at few places.
+//				// one easy way to fix it
+//				double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
+//
+//				//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
+//
+//				distance = actualDistance
+//						- BusDistfromStart.getMagnitude();
+//
+//
+//				break;
+//
+//			}
+//
+//		}
 	}
 
 	return res;

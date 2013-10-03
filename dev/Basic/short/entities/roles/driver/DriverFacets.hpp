@@ -19,6 +19,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentResponse.hpp"
+#include "geospatial/Incident.hpp"
 
 namespace sim_mob {
 

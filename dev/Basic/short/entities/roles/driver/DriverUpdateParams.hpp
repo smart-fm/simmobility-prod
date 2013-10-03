@@ -117,8 +117,6 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
 
-
-
 	NearestPedestrian npedFwd;
 
 	double laneChangingVelocity;

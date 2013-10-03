@@ -18,6 +18,7 @@
 #include "Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
+#include "entities/IncidentResponse.hpp"
 
 namespace sim_mob {
 
@@ -90,7 +91,7 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 
 	///
-	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink=true);
+	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &dis,bool isInSameLink=true);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
@@ -128,6 +129,8 @@ protected:
 
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
+
+	int makeDecisionForIncident(DriverUpdateParams& p, timeslice now);
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
@@ -186,5 +189,8 @@ private:
 
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
+
+	//incident response plan
+	sim_mob::IncidentResponse incidentResponsePlan;
 };
 }

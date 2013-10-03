@@ -229,6 +229,47 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
+int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, timeslice now) {
+
+	const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
+	const RoadSegment* nexSegment = parentDriver->vehicle->getNextSegment(true);
+	const Lane* curLane = parentDriver->vehicle->getCurrLane();
+	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
+	int nextLaneIndex = 0;
+	if( curLaneIndex < curSegment->getLanes().size()-1)
+		nextLaneIndex = curLaneIndex+1;
+	else
+		nextLaneIndex = curLaneIndex-1;
+
+	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
+	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+
+	bool replan = false;
+	for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+		const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+		if(inc){
+			float visibility = inc->visibilityDistance;
+			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLane->getLaneID()){
+				bool ret = incidentResponsePlan.insertIncident(inc);
+				if( ret==true && replan==false){
+					replan = true;
+				}
+			}
+			else if( now.ms() > inc->startTime+inc->duration ){
+				bool ret = incidentResponsePlan.removeIncident(inc);
+				if( ret==true && replan==false){
+					replan = true;
+				}
+			}
+		}
+	}
+
+	if(replan){
+		incidentResponsePlan.nextLaneIndex = nextLaneIndex;
+		incidentResponsePlan.makeResponsePlan(&now, curSegment);
+	}
+}
+
 void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 	// lost some params
@@ -271,7 +312,6 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 			setParentBufferedData();
 		}
 	}
-
 
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
@@ -623,6 +663,20 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		return updatePositionOnLink(p);
 	}
 
+	makeDecisionForIncident(p, parentDriver->params.now);
+	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_SLOWDOWN_OR_STOP ){
+		//parentDriver->vehicle->setAcceleration(10);
+		//parentDriver->vehicle->setVelocity(50);
+		//if(p.currLaneIndex==p.nextLaneIndex)
+		if(incidentResponsePlan.nextLaneIndex >= 0){
+			p.nextLaneIndex = incidentResponsePlan.nextLaneIndex;
+			parentDriver->vehicle->setTurningDirection(LCS_LEFT);
+			parentDriver->vehicle->setLatVelocity(150);
+			parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit);
+		}
+		std::cout << "current driver is " << parentDriver->getParent()->GetId() << std::endl;
+	}
+
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
 		std::cout<<"find vh"<<std::endl;*/
@@ -630,17 +684,27 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
 			parentDriver->vehicle->getTurningDirection());
 
+
 	parentDriver->vehicle->setLatVelocity(newLatVel);
 	if(parentDriver->vehicle->getLatVelocity()>0)
 		parentDriver->vehicle->setTurningDirection(LCS_LEFT);
 	else if(parentDriver->vehicle->getLatVelocity()<0)
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
-	else
+	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
+		incidentResponsePlan.resetStatus();
+	}
 	//when vehicle stops, don't do lane changing
 //	if (vehicle->getVelocity() <= 0) {
 //		vehicle->setLatVelocity(0);
 //	}
+
+	/*static int testLaneChange = 0;
+	if(testLaneChange++ == 50){
+		parentDriver->vehicle->setTurningDirection(LCS_LEFT);
+		testLaneChange=0;
+	}*/
+
 
 	p.turningDirection = parentDriver->vehicle->getTurningDirection();
 
@@ -809,6 +873,51 @@ void sim_mob::DriverMovement::setParentBufferedData() {
 	//TODO: Need to see how the parent agent uses its velocity vector.
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
 	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
+}
+const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
+{
+	sim_mob::RoadItem* res = nullptr;
+
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
+	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+
+	for(;currentSegIt != path.end();++currentSegIt)
+	{
+		const RoadSegment* rs = *currentSegIt;
+		if (!rs) break;
+
+		if (rs == parentDriver->vehicle->getCurrSegment()) {
+
+			if (stopPoint < 0) {
+				throw std::runtime_error(
+						"BusDriver offset in obstacles list should never be <0");
+			}
+
+			if (stopPoint >= 0) {
+				DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
+						parentBusDriver->vehicle->getY(),
+						rs->getStart()->location.getX(),
+						rs->getStart()->location.getY());
+//						distance = stopPoint
+//								- vehicle->getDistanceMovedInSegment();
+				// Buses not stopping near the busstop at few places.
+				// one easy way to fix it
+				double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
+
+				//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
+
+				distance = actualDistance
+						- BusDistfromStart.getMagnitude();
+
+
+				break;
+
+			}
+
+		}
+	}
+
+	return res;
 }
 const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
 {

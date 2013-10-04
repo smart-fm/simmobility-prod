@@ -243,13 +243,18 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
-
+	double dist = 0;
+	if(now.frame() >= 242) {
+		std::cout << "now.frame() " << now.frame() << std::endl;
+	}
+	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 100000, dist);
 	bool replan = false;
-	for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
-		const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+	//for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+	if(roadItem) {
+		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
 			float visibility = inc->visibilityDistance;
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLane->getLaneID()){
+			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLaneIndex==inc->laneId){
 				bool ret = incidentResponsePlan.insertIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
@@ -678,18 +683,18 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			p.nextLaneIndex = incidentResponsePlan.nextLaneIndex;
 			parentDriver->vehicle->setTurningDirection(LCS_LEFT);
 			parentDriver->vehicle->setLatVelocity(150);
-			parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit);
+			parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit+100);
 			incidentResponsePlan.startFrameTick++;
+			if( incidentResponsePlan.speedLimit > 0 )
+				mode = DLC;
 
-			if(parentDriver->getParent()->GetId()==31){
+			/*if(parentDriver->getParent()->GetId()==31){
 				std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << std::endl;
 			}
 			else if(parentDriver->getParent()->GetId()==30){
 				std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit << std::endl;
-			}
+			}*/
 
-			if( incidentResponsePlan.speedLimit > 100 )
-				mode = DLC;
 		}
 	}
 
@@ -711,8 +716,8 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex )
-			incidentResponsePlan.resetStatus();
+		incidentResponsePlan.resetStatus();
+		//if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex )
 		//std::cout << "incident reset status is " << parentDriver->getParent()->GetId() << std::endl;
 	}
 	//when vehicle stops, don't do lane changing
@@ -907,6 +912,9 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	for(;currentSegIt != path.end();++currentSegIt)
 	{
+		if(currentSegIt == path.end())
+			break;
+
 		const RoadSegment* rs = *currentSegIt;
 		if (!rs) break;
 
@@ -971,7 +979,8 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 							return nullptr;
 						}
 					}//end inc
-					itemDis += getLengthOfSegment(rs);
+					RoadSegment* seg = const_cast<RoadSegment*>(rs);
+					itemDis += seg->getLengthOfSegment();
 				}
 
 
@@ -981,23 +990,8 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	return res;
 }
-double sim_mob::DriverMovement::getLengthOfSegment(const sim_mob::RoadSegment* rs)
-{
-	std::vector<sim_mob::Point2D> polypointsList = (rs)->getLanes().at(0)->getPolyline();
-	double dis=0;
-	std::vector<sim_mob::Point2D>::iterator ite;
-	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
-	{
-		ite = it+1;
-		if ( ite != polypointsList.end() )
-		{
-			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
-			dis += temp.getMagnitude();
-		}
-	}
 
-	return dis;
-}
+
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(parentDriver->vehicle->getNextSegment()))) {
 		return false;

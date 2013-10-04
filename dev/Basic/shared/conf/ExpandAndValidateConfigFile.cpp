@@ -236,7 +236,8 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					item->visibilityDistance = (*incIt).visibilityDistance;
 
 					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
-					rs->addObstacle(item->position, item);
+					centimeter_t pos = rs->getLengthOfSegment()*item->position/100.0;
+					rs->addObstacle(pos, item);
 				}
 			}
     	}

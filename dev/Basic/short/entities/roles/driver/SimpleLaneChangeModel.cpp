@@ -12,7 +12,7 @@ using namespace sim_mob;
 
 
 
-double sim_mob::SimpleLaneChangeModel::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
+double sim_mob::SimpleLaneChangeModel::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode)
 {
   return 1; //TODO
 

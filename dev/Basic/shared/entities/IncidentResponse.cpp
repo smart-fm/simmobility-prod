@@ -10,7 +10,7 @@
 
 namespace sim_mob {
 
-IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE) {
+IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -25,7 +25,7 @@ bool IncidentResponse::insertIncident(const Incident* inc){
 	}
 
 	currentIncidents[inc->incidentId] = inc;
-	if( speedLimit<0 ){
+	if( speedLimit<=0 ){
 		speedLimit = inc->speedlimit;
 	}
 	else{
@@ -61,7 +61,8 @@ void IncidentResponse::resetStatus(){
 	currentPlan = INCIDENT_CLEARANCE;
 	nextLaneIndex = -1;
 	speedLimit = -1;
-
+	//startFrameTick = 0;
+	//curFrameTick = 0;
 }
 
 

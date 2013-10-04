@@ -7,6 +7,7 @@
 #include "conf/settings/DisableMPI.h"
 
 #include "entities/UpdateParams.hpp"
+#include "entities/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
@@ -26,10 +27,7 @@ class UnPackageUtils;
 #endif
 
 
-enum LANE_CHANGE_MODE {	//as a mask
-	DLC = 0,
-	MLC = 2
-};
+
 
 
 //Struct for holding data about the "nearest" vehicle.

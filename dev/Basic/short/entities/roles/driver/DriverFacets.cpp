@@ -663,6 +663,12 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		return updatePositionOnLink(p);
 	}
 
+
+	if(parentDriver->getParent()->GetId()==31 && p.now.frame() >= 100 ){
+		std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << " current frame :" << p.now.frame() << std::endl;
+	}
+
+	LANE_CHANGE_MODE mode = MLC;
 	makeDecisionForIncident(p, parentDriver->params.now);
 	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_SLOWDOWN_OR_STOP ){
 		//parentDriver->vehicle->setAcceleration(10);
@@ -673,16 +679,29 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			parentDriver->vehicle->setTurningDirection(LCS_LEFT);
 			parentDriver->vehicle->setLatVelocity(150);
 			parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit);
+			incidentResponsePlan.startFrameTick++;
+
+			if(parentDriver->getParent()->GetId()==31){
+				std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << std::endl;
+			}
+			else if(parentDriver->getParent()->GetId()==30){
+				std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit << std::endl;
+			}
+
+			if( incidentResponsePlan.speedLimit > 100 )
+				mode = DLC;
 		}
-		std::cout << "current driver is " << parentDriver->getParent()->GetId() << std::endl;
 	}
 
 	//Check if we should change lanes.
 	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
 		std::cout<<"find vh"<<std::endl;*/
 	double newLatVel;
+	/*if(p.now.frame() >= 83) {
+		std::cout << "p.now.frame() : " << p.now.frame() << std::endl;
+	}*/
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
-			parentDriver->vehicle->getTurningDirection());
+			parentDriver->vehicle->getTurningDirection(), mode);
 
 
 	parentDriver->vehicle->setLatVelocity(newLatVel);
@@ -692,7 +711,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		incidentResponsePlan.resetStatus();
+		if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex )
+			incidentResponsePlan.resetStatus();
+		//std::cout << "incident reset status is " << parentDriver->getParent()->GetId() << std::endl;
 	}
 	//when vehicle stops, don't do lane changing
 //	if (vehicle->getVelocity() <= 0) {

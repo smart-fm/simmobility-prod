@@ -150,8 +150,8 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 
 		if(adjacentLanes[i]){	//the left/right side exists
 			if(!fwd->exists()) {		//no vehicle ahead on current lane
-				otherSpeed[i].lead=5000;
-				otherDistance[i].lead=5000;
+				otherSpeed[i].lead=1000;
+				otherDistance[i].lead=1000;
 			} else {				//has vehicle ahead
 				otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
 				otherDistance[i].lead= fwd->distance;
@@ -159,8 +159,8 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 //check otherDistance[i].lead if <= 0 return
 
 			if(!back->exists()){//no vehicle behind
-				otherSpeed[i].lag=-5000;
-				otherDistance[i].lag=5000;
+				otherSpeed[i].lag=-1000;
+				otherDistance[i].lag=1000;
 			}
 			else{		//has vehicle behind, check the gap
 				otherSpeed[i].lag=back->driver->fwdVelocity.get();
@@ -336,7 +336,7 @@ size_t getLaneIndex(const Lane* l) {
  *
  * -wangxy
  * */
-double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
+double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(currLaneChangeDir == LCS_SAME)
@@ -354,10 +354,10 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		boost::uniform_int<> zero_to_max(0, RAND_MAX);
 		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
 		double mandCheck = checkIfMandatory(p);
-		LANE_CHANGE_MODE changeMode;  //DLC or MLC
+		LANE_CHANGE_MODE changeMode = mode;  //DLC or MLC
 
 //		if(randNum<mandCheck){
-			changeMode = MLC;
+//			changeMode = MLC;
 //		} else {
 //			changeMode = DLC;
 //			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
@@ -366,10 +366,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		//3.make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;
 		if(changeMode==DLC) {
-
 			decision = makeDiscretionaryLaneChangingDecision(p);
 		} else {
-
 			decision = makeMandatoryLaneChangingDecision(p);
 		}
 

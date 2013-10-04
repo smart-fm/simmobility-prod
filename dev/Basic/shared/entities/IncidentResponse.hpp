@@ -28,6 +28,8 @@ public:
 public:
 	int nextLaneIndex;
 	float speedLimit;
+	unsigned int startFrameTick;
+	unsigned int curFrameTick;
 
 private:
 	std::map<unsigned int, const Incident*> currentIncidents;

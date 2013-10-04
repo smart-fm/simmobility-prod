@@ -93,9 +93,9 @@ private:
 	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
-	bool update_sensors(DriverUpdateParams& params, timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
-	bool update_movement(DriverUpdateParams& params, timeslice now);       ///<Called to move vehicles forward.
-	bool update_post_movement(DriverUpdateParams& params, timeslice now);  ///<Called to deal with the consequences of moving forwards.
+	bool update_sensors(timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(timeslice now);       ///<Called to move vehicles forward.
+	bool update_post_movement(timeslice now);  ///<Called to deal with the consequences of moving forwards.
 
     double currLinkOffset;
 	size_t targetLaneIndex;

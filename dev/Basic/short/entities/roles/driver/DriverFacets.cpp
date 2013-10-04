@@ -265,7 +265,7 @@ void sim_mob::DriverMovement::frame_tick() {
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (p2.currLane && parentDriver->vehicle) {
 
-		if (update_sensors(p2, p2.now) && update_movement(p2, p2.now) && update_post_movement(p2, p2.now)) {
+		if (update_sensors(p2.now) && update_movement(p2.now) && update_post_movement(p2.now)) {
 
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
@@ -347,7 +347,8 @@ void sim_mob::DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
 
 }
 
-bool sim_mob::DriverMovement::update_sensors(DriverUpdateParams& params, timeslice now) {
+bool sim_mob::DriverMovement::update_sensors(timeslice now) {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//Are we done?
 	if (parentDriver->vehicle->isDone()) {
 		return false;
@@ -374,7 +375,8 @@ bool sim_mob::DriverMovement::update_sensors(DriverUpdateParams& params, timesli
 	return true;
 }
 
-bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timeslice now) {
+bool sim_mob::DriverMovement::update_movement(timeslice now) {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//If reach the goal, get back to the origin
 	if (parentDriver->vehicle->isDone()) {
 		//Output
@@ -451,7 +453,8 @@ bool sim_mob::DriverMovement::update_movement(DriverUpdateParams& params, timesl
 	return true;
 }
 
-bool sim_mob::DriverMovement::update_post_movement(DriverUpdateParams& params, timeslice now) {
+bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//Are we done?
 	if (parentDriver->vehicle->isDone()) {
 		return false;

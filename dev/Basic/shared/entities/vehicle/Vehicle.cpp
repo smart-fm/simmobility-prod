@@ -114,6 +114,10 @@ std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIter
 {
 	return fwdMovement.currSegmentIt;
 }
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIteratorEnd()
+{
+	return fwdMovement.fullPath.end();
+}
 std::vector<const sim_mob::RoadSegment*> sim_mob::Vehicle::getPath()
 {
 	return fwdMovement.fullPath;

@@ -909,11 +909,12 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 	if(type != sim_mob::INCIDENT) return res;
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
-	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = parentDriver->vehicle->getPathIteratorEnd();
+//	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
 
-	for(;currentSegIt != path.end();++currentSegIt)
+	for(;currentSegIt != currentSegItEnd;++currentSegIt)
 	{
-		if(currentSegIt == path.end())
+		if(currentSegIt == currentSegItEnd)
 			break;
 
 		const RoadSegment* rs = *currentSegIt;

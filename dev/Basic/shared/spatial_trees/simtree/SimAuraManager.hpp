@@ -27,10 +27,10 @@ public:
 	//      save them anywhere.
 	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
-	//xuyan: Build the Tree in the very beginning
+	//Build the Tree in the very beginning
 	virtual void init();
 
-	//xuyan:
+	//
 	virtual void registerNewAgent(const Agent* ag);
 
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
@@ -45,24 +45,12 @@ public:
 	std::vector<Agent const *> nearbyAgentsBottomUpQuery(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
 
 
-public:
-	//	long sum_counts;
-//	int first_update;
-
+private:
 	sim_mob::SimRTree tree_sim;
 
-	//xuyan: add new agents each time step
+	//Add new agents each time step
 	std::vector<Agent const*> new_agents;
 
-	/* First dirty version... Will change eventually.
-	 * This method is called from within the update of the AuraManager.
-	 * This method increments the vehicle count for the road segment
-	 * on which the Agent's vehicle is currently in.
-	 */
-//	void updateDensity(const Agent* ag);
-
-	//
-	void checkLeaf();
 
 private:
 	//This used to be stored at the Agent level as "connector_to_Sim_Tree". It makes more sense here.

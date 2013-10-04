@@ -24,8 +24,11 @@ class TreeImpl {
 public:
 	virtual ~TreeImpl() {}
 
-	///Perform any necessary initialization required by this Tree. Called once, after construction.
-	virtual void init() = 0;
+	///Perform any necessary initialization required by this Tree. Called once, after construction. Optional.
+	virtual void init() {}
+
+	///Register a new Agent, so that the spatial index is aware of this person. Optional.
+	virtual void registerNewAgent(const Agent* ag) {}
 
 	///Update the structure.
 	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
@@ -37,15 +40,6 @@ public:
 
 	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
 	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const = 0;
-
-	///Return the Agents within a given rectangle.
-	//virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const = 0;
-
-	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	//virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const = 0;
-
-	///Register a new Agent, so that the spatial index is aware of this person.
-	virtual void registerNewAgent(const Agent* ag) = 0;
 };
 
 

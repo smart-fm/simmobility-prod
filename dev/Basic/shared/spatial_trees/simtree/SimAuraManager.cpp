@@ -13,39 +13,15 @@ using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
 void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers) {
-//	std::cout << "SimAuraManager::update:" << time_step << std::endl;
-//	std::cout << "====BEFORE===" << std::endl;
-
-//	if (time_step % 100 == 0)
-//	{
-//		std::cout << "--------------------------" << std::endl;
-//		tree_sim.display();
-//	}
-
-//	static int count;
 	tree_sim.updateAllInternalAgents(agent_connector_map, removedAgentPointers);
-
-	//update new agents
-//	std::cout << "new_agents:" << new_agents.size() << std::endl;
 
 	for (std::vector<Agent const*>::iterator it = new_agents.begin(); it != new_agents.end(); ++it) {
 		Agent* one_ = const_cast<Agent*>(*it);
-
-//		std::cout << "new_agents, ID:" << (*it)->getId() << std::endl;
-
-//		if(one_->getId() == 4051)
-//		{
-//			std::cout << "one_->getId() is 4051," << one_->can_remove_by_RTREE << std::endl;
-//		}
-
 		if (one_->isNonspatial()) {
-//			std::cout << "one_->getId() is 4051 is removed" << std::endl;
 			continue;
 		}
 
 		if (removedAgentPointers.find(one_)==removedAgentPointers.end()) {
-			//one_->can_remove_by_RTREE == false) {
-//			std::cout << "one_->getId() is 4051 is inserted" << std::endl;
 			tree_sim.insertAgentBasedOnOD(one_, agent_connector_map);
 		}
 	}
@@ -57,35 +33,6 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 	tree_sim.measureUnbalance(time_step);
 #endif
 
-//	std::cout << "====AFTER===" << std::endl;
-//	tree_sim.checkLeaf();
-//	std::cout << "====AFTER Finished===" << std::endl;
-
-//	tree_sim.display();
-
-//balance processing
-//	tree_sim.measureUnbalance();
-
-//	for middle term
-//	sim_mob::AuraManager::instance().densityMap.clear();
-//	for (std::vector<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
-//		Person* an_agent = dynamic_cast<Person*>(*itr);
-//		if (!an_agent)
-//			continue;
-//
-////		Driver* test = dynamic_cast<Driver*> (an_agent->getRole());
-////		if (!test)
-////			continue;
-//
-//		if (an_agent->isToBeRemoved() == false) {
-////			updateDensity(an_agent);
-//		}
-//	}
-//
-//	for (std::vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) {
-//		updateDensity(dynamic_cast<Agent const*>(*it));
-//	}
-
 }
 
 /**
@@ -96,19 +43,12 @@ void sim_mob::SimAuraManager::init() {
 
 #ifdef SIM_TREE_USE_REBALANCE
 	//nothing
-//	tree_sim.build_tree_structure("data//density_pattern_30K_2");
-//	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_bugis_auto_study");
 	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_sg_auto_study");
 	tree_sim.init_rebalance_settings();
-//	tree_sim.display();
 #else
-//	tree_sim.build_tree_structure("shared//3rd-party//density_pattern_large_bugis_128");
 	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_sg_20mins");
-//	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_bugis_auto_study");
-//	tree_sim.display();
 #endif
 
-//	first_update = 0;
 }
 
 void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {
@@ -129,8 +69,6 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const &
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();
 	box.edges[1].second = upperRight.getY();
-
-//	std::cout << "Query: " << box.edges[0].first << "," << box.edges[1].first << "," << box.edges[0].second << "," << box.edges[1].second << std::endl;
 
 	return tree_sim.rangeQuery(box);
 }
@@ -191,8 +129,6 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const &
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
 
-//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
-
 	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 
@@ -202,8 +138,6 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRectBottomUpQuery(co
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();
 	box.edges[1].second = upperRight.getY();
-
-	//	std::cout << "Query: " << box.edges[0].first << "," << box.edges[1].first << "," << box.edges[0].second << "," << box.edges[1].second << std::endl;
 
 #ifdef SIM_TREE_BOTTOM_UP_QUERY
 	return tree_sim.rangeQuery(box, item);
@@ -255,13 +189,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgentsBottomUpQuery(co
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
 
-	//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
 
 	return agentsInRectBottomUpQuery(lowerLeft, upperRight, item);
 }
 
-void sim_mob::SimAuraManager::checkLeaf() {
-//	std::cout << "=====START====" << std::endl;
-//	tree_sim.checkLeaf();
-//	std::cout << "====START Finished===" << std::endl;
-}

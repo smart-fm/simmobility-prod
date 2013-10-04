@@ -444,8 +444,6 @@ protected:
 		if (static_cast<Node*>(node->items[0])->hasLeaves) {
 			// determine the minimum overlap cost
 			if (max_child_items > (RDUTREE_CHOOSE_SUBTREE_P * 2) / 3 && node->items.size() > RDUTREE_CHOOSE_SUBTREE_P) {
-//				std::cout << "Case A" << std::endl;
-
 				// ** alternative algorithm:
 				// Sort the rectangles in N in increasing order of
 				// then area enlargement needed to include the new
@@ -460,9 +458,6 @@ protected:
 
 				return static_cast<Node*>(*std::min_element(node->items.begin(), node->items.begin() + RDUTREE_CHOOSE_SUBTREE_P, SortBoundedItemsByOverlapEnlargement<BoundedItem>(bound)));
 			}
-
-//			std::cout << "Case B" << std::endl;
-//			std::cout << "node->items:" << node->items.size() << std::endl;
 
 			// choose the leaf in N whose rectangle needs least
 			// overlap enlargement to include the new data
@@ -481,7 +476,6 @@ protected:
 		// rectangle. Resolve ties by choosing the leaf
 		// with the rectangle of smallest area
 
-//		std::cout << "Case C" << std::endl;
 		return static_cast<Node*>(*std::min_element(node->items.begin(), node->items.end(), SortBoundedItemsByAreaEnlargement<BoundedItem>(bound)));
 	}
 
@@ -492,23 +486,13 @@ protected:
 		// I4: Adjust all covering rectangles in the insertion path
 		// such that they are minimum bounding boxes
 		// enclosing the children rectangles
-//		std::cout << "InsertInternal 1.3" << std::endl;
-
 		node->bound.stretch(leaf->bound);
-
-//		std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-//		std::cout << "leaf->bound:" << leaf->bound.edges[0].first << std::endl;
-//		std::cout << "leaf->bound:" << leaf->bound.edges[0].second << std::endl;
-//		std::cout << "leaf->bound:" << leaf->bound.edges[1].first << std::endl;
-//		std::cout << "leaf->bound:" << leaf->bound.edges[1].second << std::endl;
-//		std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 
 		// CS2: If we're at a leaf, then use that level
 		if (node->hasLeaves) {
 			// I2: If N has less than M items, accommodate E in N
 			node->items.push_back(leaf);
 			leaf->father = node;
-//			std::cout << "InsertInternal 1.35" << std::endl;
 		} else {
 			// I1: Invoke ChooseSubtree. with the level as a parameter,
 			// to find an appropriate node N, m which to place the
@@ -518,17 +502,13 @@ protected:
 			// determine whether we need to split the overflow or not
 			Node * tmp_node = InsertInternal(leaf, ChooseSubtree(node, &leaf->bound), firstInsert);
 
-			if (!tmp_node)
-			{
-//				std::cout << "InsertInternal 1.4" << std::endl;
+			if (!tmp_node) {
 				return NULL;
 			}
 
 			// this gets joined to the list of items at this level
 			node->items.push_back(tmp_node);
 			tmp_node->is_a_leaf = false;
-
-			//			std::cout << "After Split: node->items.size():" << node->items.size() << std::endl;
 		}
 
 		// If N has M+1 items. invoke OverflowTreatment with the
@@ -548,13 +528,9 @@ protected:
 			// performed, propagate OverflowTreatment upwards
 			// if necessary
 
-//			std::cout << "InsertInternal 1.5" << std::endl;
-
 			// This is implicit, the rest of the algorithm takes place in there
 			return OverflowTreatment(node, firstInsert);
 		}
-
-//		std::cout << "InsertInternal 1.6" << std::endl;
 
 		return NULL;
 	}
@@ -569,47 +545,24 @@ protected:
 		// OT1: If the level is not the root level AND this is the first
 		// call of OverflowTreatment in the given level during the
 		// insertion of one data rectangle, then invoke Reinsert
-//		std::cout << "OverflowTreatment 1.4" << std::endl;
 
 		if (level != m_root && firstInsert) {
 			Reinsert(level);
 			return NULL;
 		}
 
-		//		DEBUG_(level, 1);
-		//		std::cout << "----------------------------" << std::endl;
-
 		Node * splitItem = Split(level);
-		//		std::cout << "splitItem:" << splitItem->hasLeaves << std::endl;
-
-		//		DEBUG_(splitItem, 1);
-
-		//		if(splitItem->is_a_leaf)
-		//		{
-		//			std::cout << "AAAAAAAAAAAA" << std::endl;
-		//		}
 
 		//xuyan: set father
 		if (splitItem->items[0]->is_a_leaf) {
-			//			std::cout << "BVBBBBBBBBBB" << std::endl;
-
 			for (unsigned int i = 0; i < splitItem->items.size(); i++) {
-				//				std::cout << "CCCCCCCCCCCCCCC" << std::endl;
-
 				Leaf* a_leaf = static_cast<Leaf*>(splitItem->items[i]);
-				//				std::cout << "a_leaf->leaf->agent_id:" << a_leaf->leaf->agent_id << std::endl;
 				a_leaf->father = splitItem;
 			}
 		}
 
 		// If OverflowTreatment caused a split of the root, create a new root
 		if (level == m_root) {
-			//			DEBUG_(m_root, 1);
-			//			std::cout << "----------------------------" << std::endl;
-			//			DEBUG_(splitItem, 1);
-
-			//			std::cout << "Split Root:" << std::endl;
-
 			Node * newRoot = new Node();
 			newRoot->hasLeaves = false;
 
@@ -626,7 +579,6 @@ protected:
 			// and we're done
 			m_root = newRoot;
 
-			//			DEBUG_(m_root, 1);
 			return NULL;
 		}
 
@@ -656,10 +608,6 @@ protected:
 		int split_margin = 0;
 
 		BoundingBox R1, R2;
-
-		//		std::cout << "======Split========:" << std::endl;
-		//		std::cout << "n_items:" << n_items << std::endl;
-		//		std::cout << "max_child_items:" << max_child_items << std::endl;
 
 		// these should always hold true
 		assert(n_items == max_child_items + 1);

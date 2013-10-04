@@ -41,9 +41,6 @@ public:
 	//display a tree structure
 	void display(Node * node);
 
-public:
-	void debug_all();
-
 private:
 	// A visitor that simply collects the agent into an array, which was specified in the
 	// constructor.

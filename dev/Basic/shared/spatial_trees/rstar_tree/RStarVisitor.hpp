@@ -149,17 +149,6 @@ struct RStarRemoveSpecificLeaf
 	
 	explicit RStarRemoveSpecificLeaf(const typename Leaf::leaf_type &leaf, bool remove_duplicates = false) : 
 		ContinueVisiting(true), m_remove_duplicates(remove_duplicates), m_leaf(leaf) {}
-		
-//	bool operator()(const Leaf * const leaf) const
-//	{
-//		if (ContinueVisiting && m_leaf == leaf->leaf)
-//		{
-//			if (!m_remove_duplicates)
-//				ContinueVisiting = false;
-//			return true;
-//		}
-//		return false;
-//	}
 	
 	bool operator()(const Leaf * const leaf) const
 	{
@@ -169,6 +158,4 @@ struct RStarRemoveSpecificLeaf
 		}
 		return false;
 	}
-
-//	private: RStarRemoveSpecificLeaf(){}
 };

@@ -348,8 +348,8 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
-        // Register thread on MessageBus.
-        messaging::MessageBus::RegisterThread();
+	// Register thread on MessageBus.
+	messaging::MessageBus::RegisterThread();
     
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
@@ -397,8 +397,9 @@ void sim_mob::Worker::threaded_function_loop()
 		}
 #endif
 	}
-        // Register thread from MessageBus.
-        messaging::MessageBus::UnRegisterThread();
+
+	// Register thread from MessageBus.
+	messaging::MessageBus::UnRegisterThread();
 }
 
 namespace {

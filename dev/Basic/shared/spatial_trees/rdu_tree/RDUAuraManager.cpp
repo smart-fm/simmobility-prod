@@ -21,8 +21,6 @@ bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 
 void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-//	std::cout << "S:" << std::endl;
-
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);
 		if ((!an_agent) || an_agent->isNonspatial()) {
@@ -32,18 +30,11 @@ void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agen
 		bool canBeRemoved = (removedAgentPointers.find(an_agent)!=removedAgentPointers.end());
 
 		if (tree_du.has_one_agent(an_agent->getId()) && canBeRemoved) {
-//			std::cout << "start 1:" << std::endl;
 			tree_du.remove(an_agent);
-//			std::cout << "end 1:" << std::endl;
 		} else if (tree_du.has_one_agent(an_agent->getId()) && !canBeRemoved) {
-//			std::cout << "start 2:" << std::endl;
 			tree_du.update(an_agent->getId(), an_agent->xPos, an_agent->yPos);
-//			std::cout << "end 2:" << std::endl;
 		} else if (tree_du.has_one_agent(an_agent->getId()) == false && !canBeRemoved) {
-//			std::cout << "start 3:" << std::endl;
 			tree_du.insert(an_agent);
-//			std::cout << "end 3:" << std::endl;
-//			tree_.Check_();
 		} else {
 			std::cout << "---------------------" << std::endl;
 			std::cout << "error:" << std::endl;
@@ -51,8 +42,6 @@ void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agen
 			std::cout << "an_agent->can_remove_by_RTREE:" << canBeRemoved << std::endl;
 		}
 	}
-
-//	std::cout << "Finished:" << std::endl;
 }
 
 std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
@@ -109,20 +98,7 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const &
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
 
-//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
-
 	return agentsInRect(lowerLeft, upperRight, nullptr);
 
 }
 
-//std::vector<Agent const*> Impl_DU::agentsInRect(double from_x, double from_y, double to_x, double to_y) const
-//{
-//	R_tree_DU::BoundingBox box;
-//	box.edges[0].first = from_x;
-//	box.edges[1].first = from_y;
-//	box.edges[0].second = to_x;
-//	box.edges[1].second = to_y;
-//
-//	return tree_du.query(box);
-//		return tree_.rangeQuery(box);
-//}

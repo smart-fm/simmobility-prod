@@ -26,31 +26,17 @@ class Lane;
 class RDUAuraManager : public TreeImpl
 {
 public:
-	//No initialization required.
-	virtual void init() {}
-
 	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	//      save them anywhere.
 	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
 	bool has_one_agent_du(int agent_id);
 
-	//Not used.
-	virtual void registerNewAgent(const Agent* ag) {}
-
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
 
 	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
 
-	//virtual std::vector<Agent const *> advanced_agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {return agentsInRect(lowerLeft, upperRight);}
-
-	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	//virtual std::vector<Agent const *> advanced_nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {return nearbyAgents(position, lane, distanceInFront, distanceBehind);}
-
-
-
 private:
-
 	sim_mob::R_tree_DU tree_du;
 };
 

@@ -15,8 +15,6 @@
 #include "entities/Person.hpp"
 #include "geospatial/BusStop.hpp"
 
-//#include "../../../short/entities/roles/driver/Driver.hpp"
-
 using namespace sim_mob;
 
 namespace {
@@ -59,9 +57,6 @@ int SimRTree::division_y_unit_ = 0;
 double SimRTree::maximum_Rectanle_Weight = 8;
 double SimRTree::minimum_Rectanle_Border_Length = 1;
 
-//int SimRTree::map_division_x_max = 1000;
-//int SimRTree::map_division_y_max = 1000;
-
 int SimRTree::bigtable[1000][1000];
 
 struct BigTableUpdate: std::unary_function<const Entity *, void> {
@@ -75,8 +70,6 @@ struct BigTableUpdate: std::unary_function<const Entity *, void> {
 			if (x >= 1000 || x < 0 || y >= 1000 || y < 0)
 				return;
 
-//			std::cout << person->xPos << "," << person->yPos << "," << x << "," << y << std::endl;
-
 			SimRTree::bigtable[y][x]++;
 		}
 	}
@@ -86,7 +79,6 @@ struct BigTableUpdate: std::unary_function<const Entity *, void> {
 /**
  *
  */
-
 struct Collecting_Visitor_sim {
 	const bool ContinueVisiting;
 	std::vector<Agent const *> & array; // must be a reference.
@@ -98,8 +90,6 @@ struct Collecting_Visitor_sim {
 
 	// When called, the visitor saves the agent in <array>.
 	bool operator()(TreeLeaf * leaf) {
-		//		std::cout << "FFF"  << std::endl;
-
 		if (box.encloses(leaf->bound)) {
 
 #ifdef MEAUSURE_COUNTS
@@ -120,7 +110,6 @@ struct Collecting_Visitor_sim {
 				}
 			}
 		}
-		//		array.push_back(leaf->agent_buffer);
 		return true;
 	}
 };
@@ -136,16 +125,8 @@ struct AcceptEnclosing {
 	}
 
 	bool operator()(const TreeLeaf * leaf) const {
-		//		std::cout << "EEE"  << std::endl;
-		//		std::cout << m_bound.overlaps(leaf->bound)  << std::endl;
-		//		std::cout << m_bound.encloses(leaf->bound)  << std::endl;
 		return m_bound.overlaps(leaf->bound);
 	}
-
-	//private:
-	//	AcceptEnclosing()
-	//	{
-	//	}
 };
 
 // visits a node if necessary
@@ -159,12 +140,7 @@ struct VisitFunctor: std::unary_function<const TreeItem *, void> {
 
 	void operator()(TreeItem * item) {
 		TreeLeaf * leaf = static_cast<TreeLeaf*>(item);
-
-		//		std::cout << "DDD"  << std::endl;
-		//		std::cout << "DDD:" << accept(leaf)  << std::endl;
-
 		if (accept(leaf)) {
-			//			std::cout << "DDD2222222222"  << std::endl;
 			visit(leaf);
 		}
 	}
@@ -189,15 +165,9 @@ struct QueryFunctor: std::unary_function<const TreeItem, void> {
 #endif
 
 		if (item->is_leaf) {
-			//			std::cout << "CCC"  << std::endl;
-
 			TreeLeaf * leaf = static_cast<TreeLeaf *>(item);
-
-			//			if (visitor.ContinueVisiting && accept(leaf))
 			VisitFunctor(accept, visitor)(leaf);
 		} else {
-			//			std::cout << "BBB"  << std::endl;
-
 			TreeNode * node = static_cast<TreeNode *>(item);
 
 			if (visitor.ContinueVisiting && accept(node))
@@ -322,8 +292,6 @@ struct DivideHorizontal {
 			middle_cut = (to_values_y_ + from_values_y_) / 2;
 			double difference = DivideHorizontalDifference()(from_values_x, from_values_y, to_values_x, to_values_y, middle_cut);
 
-//			std::cout << "difference" << difference << std::endl;
-
 			if (difference == 0) {
 				best_difference = 0;
 				best_cut = middle_cut;
@@ -357,9 +325,6 @@ struct DivideVertical {
 	void operator()(int from_values_x, int from_values_y, int to_values_x, int to_values_y, int* best_cut_point, double * best_cost) {
 		//too small to cut
 		if (to_values_x <= from_values_x + 1) {
-//			std::cout << "to_values_x " << to_values_x << " from_values_x" << from_values_x << std::endl;
-//			std::cout << "to_values_y " << to_values_x << " from_values_y" << from_values_x << std::endl;
-
 			return;
 		}
 
@@ -377,8 +342,6 @@ struct DivideVertical {
 
 			middle_cut = (to_values_x_ + from_values_x_) / 2;
 			double difference = DivideVerticalDifference()(from_values_x, from_values_y, to_values_x, to_values_y, middle_cut);
-
-//			std::cout << "difference" << difference << std::endl;
 
 			if (difference == 0) {
 				best_difference = 0;
@@ -406,178 +369,11 @@ struct DivideVertical {
 	}
 };
 
-/*
- struct RebuildSimTreeNodeFunctor {
- //	int from_values_x;
- //	int from_values_y;
- //	int to_values_x;
- //	int to_values_y;
- //	int current_level;
- //	int target_level;
- //	TreeNode * parent;
-
- explicit RebuildSimTreeNodeFunctor() {
- }
-
- void operator()(int from_values_x, int from_values_y, int to_values_x, int to_values_y, int current_level, int target_level, TreeNode * parent_) {
- //too small to cut, so make a leaf
- if (to_values_x - from_values_x <= 1 && to_values_y - from_values_y <= 1) {
- TreeLeaf* one_leaf = new TreeLeaf();
-
- one_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- one_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- one_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- one_leaf->bound.edges[1].second = SimRTree::network_maximum_y + SimRTree::division_y_unit_ * to_values_y;
- one_leaf->item_id = parent_->item_id * 2;
- one_leaf->is_leaf = true;
- one_leaf->agent_buffer.clear();
-
- parent_->items.push_back(one_leaf);
-
- return;
- }
-
- //try to cut y
- int where_to_divide_h = -1;
- double cost_to_divide_h = std::numeric_limits<double>::max();
- DivideHorizontal()(from_values_x, from_values_y, to_values_x, to_values_y, &where_to_divide_h, &cost_to_divide_h);
-
- //		std::cout << "where_to_divide_h:" << where_to_divide_h << std::endl;
- //		std::cout << "cost_to_divide_h:" << cost_to_divide_h << std::endl;
-
- //try to cut x
- int where_to_divide_v = -1;
- double cost_to_divide_v = std::numeric_limits<double>::max();
- DivideVertical()(from_values_x, from_values_y, to_values_x, to_values_y, &where_to_divide_v, &cost_to_divide_v);
-
- //		std::cout << "where_to_divide_v:" << where_to_divide_v << std::endl;
- //		std::cout << "cost_to_divide_v:" << cost_to_divide_v << std::endl;
-
- if (cost_to_divide_h >= cost_to_divide_v) {
- //			std::cout << "cost_to_divide_h is better:" << where_to_divide_h << std::endl;
- //build leaf
- if (current_level >= target_level) {
- TreeLeaf* one_leaf = new TreeLeaf();
-
- one_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- one_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- one_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- one_leaf->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * (where_to_divide_h);
- one_leaf->item_id = parent_->item_id * 2;
- one_leaf->is_leaf = true;
- one_leaf->agent_buffer.clear();
-
- parent_->items.push_back(one_leaf);
-
- TreeLeaf* second_leaf = new TreeLeaf();
-
- second_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- second_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- second_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * (where_to_divide_h);
- second_leaf->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- second_leaf->item_id = parent_->item_id * 2 + 1;
- second_leaf->is_leaf = true;
- second_leaf->agent_buffer.clear();
-
- parent_->items.push_back(second_leaf);
- }
- //build node
- else {
- TreeNode* one_node = new TreeNode();
- one_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- one_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- one_node->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- one_node->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * (where_to_divide_h);
- one_node->item_id = parent_->item_id * 2;
- one_node->is_leaf = false;
- one_node->items.clear();
- parent_->items.push_back(one_node);
- RebuildSimTreeNodeFunctor()(from_values_x, from_values_y, to_values_x, where_to_divide_h, current_level + 1, target_level, one_node);
-
- TreeNode* second_node = new TreeNode();
- second_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- second_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- second_node->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * (where_to_divide_h);
- second_node->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- second_node->item_id = parent_->item_id * 2 + 1;
- second_node->is_leaf = false;
- second_node->items.clear();
- parent_->items.push_back(second_node);
- RebuildSimTreeNodeFunctor()(from_values_x, where_to_divide_h, to_values_x, to_values_y, current_level + 1, target_level, second_node);
- }
- }
- //cut Vertically
- else {
- //			std::cout << "cost_to_divide_v is better:" << std::endl;
- //			std::cout << "it is right to go here, but check where_to_divide_v:" << where_to_divide_v << ", and SimRTree::division_x_unit_:" << SimRTree::division_x_unit_ << std::endl;
-
- //build leaf
- if (current_level >= target_level) {
- TreeLeaf* one_leaf = new TreeLeaf();
-
- one_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- one_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (where_to_divide_v);
- one_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- one_leaf->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- one_leaf->item_id = parent_->item_id * 2;
- one_leaf->is_leaf = true;
- one_leaf->agent_buffer.clear();
-
- parent_->items.push_back(one_leaf);
-
- TreeLeaf* second_leaf = new TreeLeaf();
-
- second_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (where_to_divide_v);
- second_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
- second_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- second_leaf->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- second_leaf->item_id = parent_->item_id * 2 + 1;
- second_leaf->is_leaf = true;
- second_leaf->agent_buffer.clear();
-
- parent_->items.push_back(second_leaf);
- }
- //build node
- else {
- TreeNode* one_node = new TreeNode();
- one_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
- one_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (where_to_divide_v);
- one_node->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- one_node->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- one_node->item_id = parent_->item_id * 2;
- one_node->is_leaf = false;
- one_node->items.clear();
- parent_->items.push_back(one_node);
- RebuildSimTreeNodeFunctor()(from_values_x, from_values_y, where_to_divide_v, to_values_y, current_level + 1, target_level, one_node);
-
- TreeNode* second_node = new TreeNode();
- second_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (where_to_divide_v);
- second_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (to_values_x);
- second_node->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
- second_node->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
- second_node->item_id = parent_->item_id * 2 + 1;
- second_node->is_leaf = false;
- second_node->items.clear();
- parent_->items.push_back(second_node);
- RebuildSimTreeNodeFunctor()(where_to_divide_v, from_values_y, to_values_x, to_values_y, current_level + 1, target_level, second_node);
- }
- }
- }
- };
- */
 
 /**
  * New Version Rebuild
  */
 struct RebuildSimTreeNodeFunctor {
-	//	int from_values_x;
-	//	int from_values_y;
-	//	int to_values_x;
-	//	int to_values_y;
-	//	int current_level;
-	//	int target_level;
-	//	TreeNode * parent;
-
 	explicit RebuildSimTreeNodeFunctor() {
 	}
 
@@ -606,16 +402,10 @@ struct RebuildSimTreeNodeFunctor {
 		double cost_to_divide_h = std::numeric_limits<double>::max();
 		DivideHorizontal()(from_values_x, from_values_y, to_values_x, to_values_y, &where_to_divide_h, &cost_to_divide_h);
 
-//		std::cout << "where_to_divide_h:" << where_to_divide_h << std::endl;
-//		std::cout << "cost_to_divide_h:" << cost_to_divide_h << std::endl;
-
 		//try to cut x
 		int where_to_divide_v = -1;
 		double cost_to_divide_v = std::numeric_limits<double>::max();
 		DivideVertical()(from_values_x, from_values_y, to_values_x, to_values_y, &where_to_divide_v, &cost_to_divide_v);
-
-//		std::cout << "where_to_divide_v:" << where_to_divide_v << std::endl;
-//		std::cout << "cost_to_divide_v:" << cost_to_divide_v << std::endl;
 
 		//DivideHorizontal
 		if (cost_to_divide_h <= cost_to_divide_v) {
@@ -829,12 +619,6 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 
 			SimRTree::division_x_unit_ = (int) (ceil((end_x - start_x) * 1.0 / 1000));
 			SimRTree::division_y_unit_ = (int) (ceil((end_y - start_y) * 1.0 / 1000));
-
-//			std::cout << " SimRTree::division_x_unit_! " << SimRTree::division_x_unit_ << std::endl;
-//			std::cout << " network_minimum_x " << SimRTree::network_minimum_x << std::endl;
-//			std::cout << " network_minimum_y " << SimRTree::network_minimum_y << std::endl;
-//			std::cout << " network_maximum_x " << SimRTree::network_maximum_x << std::endl;
-//			std::cout << " network_maximum_y " << SimRTree::network_maximum_y << std::endl;
 		}
 #endif
 
@@ -864,8 +648,6 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 				one_node->bound = box;
 
 				addNodeToFather(parent_id, m_root, one_node);
-				//				TreeNode* parent = static_cast<TreeNode*> (getNodeByID(parent_id));
-				//				parent->items.push_back(one_node);
 			}
 		}
 		//if it is a leaf
@@ -879,9 +661,6 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 			one_leaf->bound = box;
 
 			addLeafToFather(parent_id, m_root, one_leaf);
-
-			//			TreeNode* parent = static_cast<TreeNode*> (getNodeByID(parent_id));
-			//			parent->items.push_back(one_leaf);
 		}
 	}
 
@@ -892,9 +671,6 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 
 	//xuyan: for re-balance
 	countLeaf();
-
-	//temp, should remove
-	//	rebalance();
 }
 
 void sim_mob::SimRTree::connectLeaf() {
@@ -902,56 +678,6 @@ void sim_mob::SimRTree::connectLeaf() {
 	first_leaf = Get_leftest_leaf()(m_root);
 }
 
-//void sim_mob::SimRTree::connectLeafs(TreeNode * one_node) {
-//	int child_size = one_node->items.size();
-//	if (child_size <= 1)
-//		return;
-//
-//	for (int i = 1; i < child_size; i++) {
-//		TreeLeaf* right_left = Get_rightest_leaf()(one_node->items[i - 1]);
-//		TreeLeaf* left_left = Get_leftest_leaf()(one_node->items[i]);
-//
-//		assert(right_left != NULL);
-//		assert(left_left != NULL);
-//
-//		right_left->next = left_left;
-//	}
-//
-//	for (int i = 0; i < child_size; i++) {
-//		if (!one_node->items[i]->is_leaf) {
-//			TreeNode* node = static_cast<TreeNode*>(one_node->items[i]);
-//			connectLeafs(node);
-//		}
-//	}
-//}
-
-/**
- *
- */
-//TreeLeaf* sim_mob::SimRTree::get_rightest_leaf(TreeItem* item) {
-//	if (!item->is_leaf) {
-//		TreeNode* node = static_cast<TreeNode*>(item);
-//		int child_size = node->items.size();
-//		assert(child_size > 0);
-//
-//		return get_rightest_leaf(node->items[child_size - 1]);
-//	} else {
-//		TreeLeaf* leaf = static_cast<TreeLeaf*>(item);
-//		return leaf;
-//	}
-//}
-//TreeLeaf* sim_mob::SimRTree::get_leftest_leaf(TreeItem* item) {
-//	if (!item->is_leaf) {
-//		TreeNode* node = static_cast<TreeNode*>(item);
-//		int child_size = node->items.size();
-//		assert(child_size > 0);
-//
-//		return get_leftest_leaf(node->items[0]);
-//	} else {
-//		TreeLeaf* leaf = static_cast<TreeLeaf*>(item);
-//		return leaf;
-//	}
-//}
 /**
  *not implemented
  */
@@ -1032,25 +758,9 @@ void sim_mob::SimRTree::addLeafToFather(std::size_t father_id, TreeNode * from_n
  *
  */
 SimRTree::BoundingBox sim_mob::SimRTree::location_bounding_box(Agent * agent) {
-
-//	Person* one_person = dynamic_cast<Person *> (agent);
-//	Driver* one_driver = dynamic_cast<Driver*> (one_person->getRole());
-//
-//	int x = 0;
-//	int y = 0;
-//
-//	if(one_driver)
-//	{
-//		x = static_cast<int>(one_driver->getVehicle()->getX());
-//		y = static_cast<int>(one_driver->getVehicle()->getY());
-//	}
-
 	SimRTree::BoundingBox box;
 	box.edges[0].first = box.edges[0].second = agent->xPos.get(); //->xPos_Sim;
 	box.edges[1].first = box.edges[1].second = agent->yPos.get(); //yPos_Sim;
-
-//	std::cout << "ID:" << agent->getId() << ",Agent:xPos" << agent->xPos.get();
-//	std::cout << ",Agent:yPos" << agent->yPos.get() << std::endl;
 
 	return box;
 }
@@ -1065,11 +775,6 @@ SimRTree::BoundingBox sim_mob::SimRTree::OD_bounding_box(Agent * agent) {
 	SimRTree::BoundingBox box;
 	box.edges[0].first = box.edges[0].second = originLoc.getX();
 	box.edges[1].first = box.edges[1].second = originLoc.getY();
-
-//	std::cout << "Agent:originLocX:" << originLoc.getX();
-//	std::cout << ",Agent:originLocY:" << originLoc.getY();
-//	std::cout << "Agent:densiLocX:" << densiLoc.getX();
-//	std::cout << ",Agent:densiLocY:" << densiLoc.getY() << std::endl;
 
 	return box;
 }
@@ -1095,8 +800,6 @@ void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBo
 
 		if (item->is_leaf) {
 			TreeLeaf* one_leaf = static_cast<TreeLeaf*>(item);
-
-//			std::cout << one_leaf->agent_buffer[0]
 
 			(one_leaf->agent_buffer).push_back(agent);
 
@@ -1165,16 +868,7 @@ std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & 
 
 	//Find the start node for Query
 	TreeItem* from_node = item;
-//	std::cout << "------------------------" << std::endl;
-//	std::cout << "box:" << box.edges[0].first << "," << box.edges[0].second << std::endl;
-//	std::cout << "box:" << box.edges[1].first << "," << box.edges[1].second << std::endl;
-
 	while (from_node->bound.encloses(box) == false) {
-//		std::cout << "&&&&&&&&&&&&&&&" << std::endl;
-//
-//		std::cout << "box:" << from_node->bound.edges[0].first << "," << from_node->bound.edges[0].second << std::endl;
-//		std::cout << "box:" << from_node->bound.edges[1].first << "," << from_node->bound.edges[1].second << std::endl;
-
 		from_node = from_node->father;
 
 #ifdef MEAUSURE_COUNTS
@@ -1224,7 +918,6 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 	TreeLeaf* one_leaf = first_leaf;
 
 	while (one_leaf) {
-//		std::vector<Agent *> list = one_leaf->agent_buffer;
 		SimRTree::BoundingBox box = one_leaf->bound;
 
 		unsigned int offset = 0;
@@ -1233,20 +926,16 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 			Agent * one_agent = (one_leaf->agent_buffer[offset]);
 
 			if (removedAgentPointers.find(one_agent)!=removedAgentPointers.end()) {
-				//->can_remove_by_RTREE) {
-				//one_agent->connector_to_Sim_Tree = nullptr;
 				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
 				if (it!=connectorMap.end()) {
 					connectorMap.erase(it);
 				}
 
-//				std::cout << "one_agent->isToBeRemoved():" << one_agent->getId() << std::endl;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
 				continue;
 			}
 
 			if (one_agent->xPos.get() <= 0 || one_agent->yPos.get() <= 0) {
-//				std::cout << "not start yet! ID:" << one_agent->getId() << std::endl;
 				offset++;
 				continue;
 			}
@@ -1256,7 +945,6 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 			//Case 2: the agent should be in the same box
 			//Case 2: It should be the most happen case.
 			if (box.encloses(agent_box)) {
-//				std::cout << "encloses" << std::endl;
 				offset++;
 				continue;
 			}
@@ -1305,15 +993,6 @@ void sim_mob::SimRTree::display(TreeItem* item, int level) {
 		TreeLeaf* one_leaf = static_cast<TreeLeaf*>(item);
 		std::cout << "level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
 				<< "child size" << one_leaf->agent_buffer.size() << std::endl;
-
-		//		std::cout << "--------------------" << std::endl;
-		//
-		//		for (unsigned int i = 0; i < one_leaf->agent_buffer.size(); i++)
-		//		{
-		//			std::cout << i << ":" << one_leaf->agent_buffer[i]->loc_x << "," << one_leaf->agent_buffer[i]->loc_y << std::endl;
-		//		}
-		//
-		//		std::cout << "--------------------" << std::endl;
 	}
 }
 
@@ -1325,8 +1004,6 @@ void sim_mob::SimRTree::checkLeaf() {
 
 	while (one_leaf) {
 		int agents_size = one_leaf->agent_buffer.size();
-
-//		std::cout << "agents_size:" << agents_size << std::endl;
 
 		for (int i = 0; i < agents_size; i++) {
 			if (one_leaf->agent_buffer[i]->isToBeRemoved()) {
@@ -1358,14 +1035,6 @@ void sim_mob::SimRTree::init_rebalance_settings() {
 
 	fin.close();
 
-//	std::ifstream fin("shared/spatial_trees/simtree/unbalance_settings.txt");
-//	if (fin.is_open()) {
-//		if (fin.good()) {
-//			fin >> rebalance_threshold >> checking_frequency >> rebalance_load_balance_maximum;
-//		}
-//		fin.close();
-//	}
-
 	std::cout << "rebalance_threshold:" << rebalance_threshold << std::endl;
 	std::cout << "checking_frequency:" << checking_frequency << std::endl;
 	std::cout << "rebalance_load_balance_maximum:" << rebalance_load_balance_maximum << std::endl;
@@ -1381,8 +1050,6 @@ double inline calculate_unbalance_ratio(std::vector<int> agents_counts_in_tree, 
 		for (std::vector<int>::iterator it = agents_counts_in_tree.begin(); it != agents_counts_in_tree.end(); it++) {
 			sum_diff += abs(*it - average_counts) / average_counts;
 		}
-
-//		std::cout << "unbalance_ratio:" << (sum_diff / size) << std::endl;
 
 		return sum_diff / size;
 	} else {
@@ -1404,52 +1071,6 @@ void sim_mob::SimRTree::measureUnbalance(int time_step) {
 
 	if (time_step % checking_frequency != 0)
 		return;
-
-	/**
-	 * There is another measurement names: load ratio
-	 */
-
-	/*
-	 double total_cost = 0;
-	 double best_cost = 0;
-	 int depth_cost = 20;
-
-	 std::vector<int> agents_counts_in_tree;
-
-	 leaf_agents_sum = 0;
-	 unbalance_ratio = 0;
-
-	 TreeLeaf* one_leaf = first_leaf;
-
-	 while (one_leaf) {
-	 int agents_size = one_leaf->agent_buffer.size();
-
-	 total_cost += agents_size * (agents_size + depth_cost);
-
-	 agents_counts_in_tree.push_back(agents_size);
-	 leaf_agents_sum += agents_size;
-
-	 one_leaf = one_leaf->next;
-	 }
-
-	 if (leaf_agents_sum <= 0)
-	 return;
-
-	 double average_counts = leaf_agents_sum / leaf_counts;
-	 best_cost = average_counts * (average_counts + depth_cost) * leaf_counts;
-
-	 //calculate un-balance ratio
-	 double temp_value_for_unbalance_ratio = 0;
-	 for (std::vector<int>::iterator it = agents_counts_in_tree.begin(); it != agents_counts_in_tree.end(); it++) {
-	 temp_value_for_unbalance_ratio += pow((*it - average_counts), 2);
-	 }
-
-	 temp_value_for_unbalance_ratio = temp_value_for_unbalance_ratio * leaf_counts;
-	 temp_value_for_unbalance_ratio = sqrt(temp_value_for_unbalance_ratio);
-	 temp_value_for_unbalance_ratio = temp_value_for_unbalance_ratio / leaf_agents_sum;
-
-	 unbalance_ratio = temp_value_for_unbalance_ratio;
-	 */
 
 	/**
 	 * A simple version of measuring load balance
@@ -1474,45 +1095,18 @@ void sim_mob::SimRTree::measureUnbalance(int time_step) {
 
 	double average_counts = leaf_agents_sum / leaf_counts;
 
-//	std::cout << "average_counts:" << average_counts << std::endl;
-//	std::cout << "leaf_agents_sum:" << leaf_agents_sum << std::endl;
-//	std::cout << "leaf_counts:" << leaf_counts << std::endl;
-//	std::cout << "unbalance_ratio:" << unbalance_ratio << std::endl;
-//	std::cout << "total load cost:" << total_cost << std::endl;
-//	std::cout << "best load cost:" << best_cost << std::endl;
-//	std::cout << "average_leaf_counts:" << average_counts << std::endl;
-//	std::cout << "load ratio:" << total_cost / best_cost << std::endl;
-//
-//	std::cout << "===========================" << std::endl;
-
 	//	//need to re-build the tree
 	if (average_counts > 32 || average_counts < 1 || calculate_unbalance_ratio(agents_counts_in_tree, average_counts) > rebalance_load_balance_maximum) {
 		rebalance_counts++;
 
 		if (rebalance_counts >= rebalance_threshold) {
-			//			std::cout << "1->2" << std::endl;
 			rebalance_counts = 0;
 
-//			for (std::vector<int>::iterator it = agents_counts_in_tree.begin(); it != agents_counts_in_tree.end(); it++) {
-//				std::cout << (*it) << ",	";
-//			}
-
-//			display();
-//			std::cout << "========================================" << std::endl;
 			rebalance();
-//			std::cout << "========================================" << std::endl;
-//			display();
 		}
 	} else {
-		//		std::cout << "1->0" << std::endl;
 		rebalance_counts = 0;
 	}
-
-	//temp always call re-balance
-
-	//	display();
-
-	//	rebalance();
 #endif
 }
 
@@ -1531,28 +1125,6 @@ void sim_mob::SimRTree::rebalance() {
 	//set the agent location
 	//use structure & loop
 	for_each(Agent::all_agents.begin(), Agent::all_agents.end(), BigTableUpdate());
-
-//	std::cout << std::endl;
-//	for (int i = 0; i < 1000; i++) {
-//		for (int j = 0; j < 1000; j++) {
-//
-//			if (SimRTree::bigtable[i][j] > 0)
-//				std::cout << SimRTree::bigtable[i][j] << ",";
-//		}
-//	}
-//	std::cout << std::endl;
-
-	// 11 signals
-//	int agent_size = Agent::all_agents.size() - 11;
-//	int tree_height = 1;
-//
-//	//16 is temp setting
-//	while (agent_size > 16) {
-//		agent_size = agent_size / 2;
-//		tree_height++;
-//
-////		std::cout << "tree_height:" << tree_height << ",agent_size:" << agent_size << std::endl;
-//	}
 
 	//build new tree & set root
 	TreeNode* one_node = new TreeNode();
@@ -1577,65 +1149,12 @@ void sim_mob::SimRTree::rebalance() {
 	//xuyan: for re-balance
 	countLeaf();
 
-//std::cout << "Agent::all_agents:" << Agent::all_agents.size() << std::endl;
-
 	//re-insert all agents inside
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); itr++) {
 		Agent* agent = dynamic_cast<Agent*>(*itr);
 		if (agent && (agent)->isToBeRemoved() == false)
 			insertAgent(agent);
 	}
-
-//	std::cout << "-----------------------------------------------" << std::endl;
-//	display();
-	//temp
-
-//	double total_cost = 0;
-//	double best_cost = 0;
-//	int depth_cost = 20;
-//
-//	std::vector<int> agents_counts_in_tree;
-//
-//	leaf_agents_sum = 0;
-//	unbalance_ratio = 0;
-//
-//	TreeLeaf* one_leaf = first_leaf;
-//
-//	while (one_leaf) {
-//		int agents_size = one_leaf->agent_buffer.size();
-//
-//		total_cost += agents_size * (agents_size + depth_cost);
-//
-//		agents_counts_in_tree.push_back(agents_size);
-//		leaf_agents_sum += agents_size;
-//
-//		one_leaf = one_leaf->next;
-//	}
-//
-//	if (leaf_agents_sum <= 0)
-//		return;
-//
-//	double average_counts = leaf_agents_sum / leaf_counts;
-//	best_cost = average_counts * (average_counts + depth_cost) * leaf_counts;
-//
-//	//calculate un-balance ratio
-//	double temp_value_for_unbalance_ratio = 0;
-//	for (std::vector<int>::iterator it = agents_counts_in_tree.begin(); it != agents_counts_in_tree.end(); it++) {
-//		temp_value_for_unbalance_ratio += pow((*it - average_counts), 2);
-//	}
-//
-//	temp_value_for_unbalance_ratio = temp_value_for_unbalance_ratio * leaf_counts;
-//	temp_value_for_unbalance_ratio = sqrt(temp_value_for_unbalance_ratio);
-//	temp_value_for_unbalance_ratio = temp_value_for_unbalance_ratio / leaf_agents_sum;
-//
-//	unbalance_ratio = temp_value_for_unbalance_ratio;
-//
-//	std::cout << "After-------------------------------" << std::endl;
-//
-//	for (std::vector<int>::iterator it = agents_counts_in_tree.begin(); it != agents_counts_in_tree.end(); it++) {
-//		std::cout << (*it) << ",	";
-//	}
-//	std::cout << std::endl;
 
 //use re-balance
 #endif

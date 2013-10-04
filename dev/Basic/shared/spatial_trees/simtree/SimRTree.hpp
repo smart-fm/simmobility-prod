@@ -59,8 +59,6 @@ public:
 	static double maximum_Rectanle_Weight;
 	static double minimum_Rectanle_Border_Length;
 
-//	static int map_division_x_max;
-//	static int map_division_y_max;
 
 	//xuyan:it is hard coded inside
 	static int bigtable[1000][1000];
@@ -130,11 +128,6 @@ public:
 	 */
 	void display();
 
-	//	/**
-	//	 *DEBUG purpose
-	//	 */
-	//	void compareWithActiveAgent();
-
 	/**
 	 *
 	 */
@@ -155,10 +148,6 @@ public:
 #endif
 
 private:
-
-	//release memory
-//	void rebuildSimTree(TreeNode * root, int tree_height, int target_tree_height, int from_index_x, int from_index_y, int to_index_x, int to_index_y);
-
 	//release memory
 	void releaseTreeMemory();
 
@@ -173,12 +162,6 @@ private:
 
 	//
 	void addLeafToFather(std::size_t father_id, TreeNode * from_node, TreeLeaf* new_node);
-
-	//must be a node ID
-	//	TreeNode * getNodeByID(std::size_t item_id);
-
-	//
-	//	void searchNodeByID(TreeNode * target_node, TreeNode * from_node, std::size_t target_node_id);
 
 	//
 	void connectLeaf();
@@ -201,9 +184,6 @@ private:
 	//
 	//The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
-
-	//
-	//	void rangeQueryOverlapBox(BoundingBox  & box, TreeItem* item, std::vector<Agent  *>& result) ;
 
 	//
 	void display(TreeItem* item, int level);

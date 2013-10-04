@@ -16,19 +16,8 @@ using namespace sim_mob::temp_spatial;
 
 void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-	// cleanup the tree because we are going to rebuild it.
-//	if (time_step % 100 == 0)
-//	{
-//		std::cout << "--------------------------" << std::endl;
-//		tree_rstar.display();
-//	}
-
 	tree_rstar.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
 	assert(tree_rstar.GetSize() == 0);
-
-//	if (Agent::all_agents.empty()) {
-//		return;
-//	}
 
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* ag = dynamic_cast<Agent*>(*itr);
@@ -36,8 +25,7 @@ void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& re
 			continue;
 		}
 
-		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000)
-		{
+		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000) {
             Warn() << "A driver's location (x or y) is out of map, X:" << ag->xPos.get() << ",Y:" << ag->yPos.get() << std::endl;
             continue;
 		}
@@ -47,39 +35,6 @@ void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& re
 			tree_rstar.insert(ag);
 		}
 	}
-
-//	tree_rstar.display();
-
-//	boost::unordered_set<Entity const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
-//
-//	// We populate the tree incrementally by finding the agent that was nearest to the agent
-//	// that was most recently inserted into the tree.  This will increase the chance that the
-//	// agents in non-leaf nodes are close to each other, and therefore the overlaps of non-leaf
-//	// nodes are not large.  Querying will be faster if the overlaps is small.
-//	Agent const * agent = dynamic_cast<Agent const*>(*agents.begin());
-//	if (!agent) {
-//		throw std::runtime_error("all_agents is somehow storing an entity.");
-//	}
-//
-//	sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
-//	while (agents.size() > 1) {
-//		agents.erase(agent);
-//
-//		if (agent->isToBeRemoved() == false) {
-//			tree_rstar.insert(agent);
-//			updateDensity(agent);
-//		}
-//
-//		agent = nearest_agent(agent, agents);
-//	}
-
-//	if (agent->isToBeRemoved() == false) {
-//		tree_rstar.insert(agent);    // insert the last agent into the tree.
-//		updateDensity(agent);
-//	}
-
-//	assert(tree_rstar.GetSize() == Agent::all_agents.size());
-
 }
 
 std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
@@ -89,8 +44,6 @@ std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerL
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();
 	box.edges[1].second = upperRight.getY();
-
-//	std::cout <<  "Query: " << box.edges[0].first << "," << box.edges[1].first << "," << box.edges[0].second << "," << box.edges[1].second << std::endl;
 
 	return tree_rstar.query(box);
 }

@@ -17,9 +17,6 @@ R_tree::BoundingBox bounding_box_r(Agent const * agent) {
 	box.edges[0].first = box.edges[0].second = agent->xPos.get();
 	box.edges[1].first = box.edges[1].second = agent->yPos.get();
 
-//	std::cout << "R_tree Agent:xPos" << agent->xPos;
-//	std::cout << ",R_tree Agent:yPos" << agent->yPos << std::endl;
-
 	return box;
 }
 
@@ -60,48 +57,4 @@ void R_tree::display(Node * node) {
 	}
 }
 
-void R_tree::debug_all() {
-//	std::cout << "============================" << std::endl;
-//	std::cout << "R-STAR Tree" << std::endl;
-//	std::cout << "============================" << std::endl;
-//
-//	 std::vector<Agent const *> result;
-//	 R_tree_DU::BoundingBox box;
-//	 box.edges[0].first = 30654923;
-//	 box.edges[0].second = 39926923;
-//	 box.edges[1].first = 10940475;
-//	 box.edges[1].second = 19184975;
 
-//	 DebugQueryR(R_tree_DU::AcceptAny(), Collecting_visitor(result));
-}
-
-//void R_tree::debug_all() {
-//	std::cout << "============================" << std::endl;
-//	std::cout << "R-STAR Tree" << std::endl;
-//	std::cout << "============================" << std::endl;
-//	std::cout << "m_size:" << m_size << std::endl;
-//
-//	std::vector<Agent const *> result;
-//	R_tree_DU::BoundingBox box;
-//	box.edges[0].first = 30654923;
-//	box.edges[0].second = 39926923;
-//	box.edges[1].first = 10940475;
-//	box.edges[1].second = 19184975;
-//
-//	Query(R_tree_DU::AcceptEnclosing(box), Collecting_visitor(result));
-//	std::cout << "result for all:" << result.size() << std::endl;
-//
-//	if (result.size() != m_size) {
-//		std::vector<Agent const *>::iterator itr;
-//		for (itr = result.begin(); itr != result.end(); itr++) {
-//			int id = (*itr)->getId();
-//			std::cout << "Agent ID:" << id << std::endl;
-//		}
-//	}
-//	else {
-//		std::vector<Agent const *>::iterator itr;
-//		for (itr = result.begin(); itr != result.end(); itr++) {
-//			std::cout << "ID:" << (*itr)->getId() << ",Location X:" << (*itr)->xPos.get() << ",Y:" << (*itr)->yPos.get() << std::endl;
-//		}
-//	}
-//}

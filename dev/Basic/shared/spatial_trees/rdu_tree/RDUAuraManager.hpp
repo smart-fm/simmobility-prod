@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <set>
 
 #include "R_tree_DU.hpp"
 #include "metrics/Length.hpp"
@@ -28,7 +29,9 @@ public:
 	//No initialization required.
 	virtual void init() {}
 
-	virtual void update(int time_step);
+	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+	//      save them anywhere.
+	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
 	bool has_one_agent_du(int agent_id);
 

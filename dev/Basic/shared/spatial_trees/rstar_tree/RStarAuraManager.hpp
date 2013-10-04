@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "R_tree.hpp"
 #include "metrics/Length.hpp"
 #include "spatial_trees/TreeImpl.hpp"
@@ -23,7 +25,9 @@ public:
 	//No initialization required.
 	virtual void init() {}
 
-	virtual void update(int time_step);
+	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+	//      save them anywhere.
+	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
 	//Not used.
 	virtual void registerNewAgent(const Agent* ag) {}

@@ -120,8 +120,10 @@ public:
 	/**
 	 * Automatically Update Internal Agents' Locations
 	 * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
+	 * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+	 *       save them anywhere.
 	 */
-	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
+	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
 	/**
 	 *DEBUG purpose

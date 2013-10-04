@@ -69,8 +69,12 @@ public:
      *
      * This method should be called after all the agents have calculated their new positions
      * and (if double-buffering data types are used) after the new positions are published.
+     *
+     * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+     *       save them anywhere.
      */
-    void update();
+    void update(const std::set<sim_mob::Agent*>& removedAgentPointers);
+
 
 
 

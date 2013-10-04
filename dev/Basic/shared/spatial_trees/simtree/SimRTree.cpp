@@ -1220,7 +1220,7 @@ std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & 
 /**
  *
  */
-void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap) {
+void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Agent*>& removedAgentPointers) {
 	TreeLeaf* one_leaf = first_leaf;
 
 	while (one_leaf) {
@@ -1232,7 +1232,8 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 			//Case 1: the agent should be removed from the Sim-R Tree
 			Agent * one_agent = (one_leaf->agent_buffer[offset]);
 
-			if (one_agent->can_remove_by_RTREE) {
+			if (removedAgentPointers.find(one_agent)!=removedAgentPointers.end()) {
+				//->can_remove_by_RTREE) {
 				//one_agent->connector_to_Sim_Tree = nullptr;
 				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
 				if (it!=connectorMap.end()) {

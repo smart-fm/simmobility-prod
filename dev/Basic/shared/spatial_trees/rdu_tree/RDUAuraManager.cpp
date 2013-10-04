@@ -19,7 +19,7 @@ bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 	return tree_du.has_one_agent(agent_id);
 }
 
-void sim_mob::RDUAuraManager::update(int time_step)
+void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
 //	std::cout << "S:" << std::endl;
 
@@ -29,15 +29,17 @@ void sim_mob::RDUAuraManager::update(int time_step)
 			continue;
 		}
 
-		if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE) {
+		bool canBeRemoved = (removedAgentPointers.find(an_agent)!=removedAgentPointers.end());
+
+		if (tree_du.has_one_agent(an_agent->getId()) && canBeRemoved) {
 //			std::cout << "start 1:" << std::endl;
 			tree_du.remove(an_agent);
 //			std::cout << "end 1:" << std::endl;
-		} else if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE == false) {
+		} else if (tree_du.has_one_agent(an_agent->getId()) && !canBeRemoved) {
 //			std::cout << "start 2:" << std::endl;
 			tree_du.update(an_agent->getId(), an_agent->xPos, an_agent->yPos);
 //			std::cout << "end 2:" << std::endl;
-		} else if (tree_du.has_one_agent(an_agent->getId()) == false && an_agent->can_remove_by_RTREE == false) {
+		} else if (tree_du.has_one_agent(an_agent->getId()) == false && !canBeRemoved) {
 //			std::cout << "start 3:" << std::endl;
 			tree_du.insert(an_agent);
 //			std::cout << "end 3:" << std::endl;
@@ -46,7 +48,7 @@ void sim_mob::RDUAuraManager::update(int time_step)
 			std::cout << "---------------------" << std::endl;
 			std::cout << "error:" << std::endl;
 			std::cout << "an_agent->getId():" << an_agent->getId() << std::endl;
-			std::cout << "an_agent->can_remove_by_RTREE:" << an_agent->can_remove_by_RTREE << std::endl;
+			std::cout << "an_agent->can_remove_by_RTREE:" << canBeRemoved << std::endl;
 		}
 	}
 

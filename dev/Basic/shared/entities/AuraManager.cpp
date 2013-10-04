@@ -79,11 +79,11 @@ AuraManager::init(AuraManagerImplementation implType)
 }
 
 /* virtual */ void
-AuraManager::update()
+AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
 
 	if (impl_) {
-		impl_->update(time_step);
+		impl_->update(time_step, removedAgentPointers);
 	}
 
 	time_step++;

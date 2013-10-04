@@ -12,7 +12,7 @@
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void sim_mob::SimAuraManager::update(int time_step) {
+void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers) {
 //	std::cout << "SimAuraManager::update:" << time_step << std::endl;
 //	std::cout << "====BEFORE===" << std::endl;
 
@@ -23,7 +23,7 @@ void sim_mob::SimAuraManager::update(int time_step) {
 //	}
 
 //	static int count;
-	tree_sim.updateAllInternalAgents(agent_connector_map);
+	tree_sim.updateAllInternalAgents(agent_connector_map, removedAgentPointers);
 
 	//update new agents
 //	std::cout << "new_agents:" << new_agents.size() << std::endl;
@@ -43,7 +43,8 @@ void sim_mob::SimAuraManager::update(int time_step) {
 			continue;
 		}
 
-		if (one_->can_remove_by_RTREE == false) {
+		if (removedAgentPointers.find(one_)==removedAgentPointers.end()) {
+			//one_->can_remove_by_RTREE == false) {
 //			std::cout << "one_->getId() is 4051 is inserted" << std::endl;
 			tree_sim.insertAgentBasedOnOD(one_, agent_connector_map);
 		}

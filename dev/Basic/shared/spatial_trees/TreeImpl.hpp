@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "metrics/Length.hpp"
 
 namespace sim_mob {
@@ -26,7 +28,9 @@ public:
 	virtual void init() = 0;
 
 	///Update the structure.
-	virtual void update(int time_step) = 0;
+	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+	//      save them anywhere.
+	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers) = 0;
 
 	///Return the Agents within a given rectangle.
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const = 0;

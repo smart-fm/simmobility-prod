@@ -132,12 +132,6 @@ protected:
 	// Link* currLink;
 
 public:
-	//only used by Sim-Tree
-	bool can_remove_by_RTREE;
-
-	//used for profiling
-	//int run_on_thread_id;
-
 	// parent may create children.
 	Entity* parentEntity;
 

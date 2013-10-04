@@ -14,7 +14,7 @@
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void RStarAuraManager::update(int time_step)
+void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
 	// cleanup the tree because we are going to rebuild it.
 //	if (time_step % 100 == 0)
@@ -42,7 +42,8 @@ void RStarAuraManager::update(int time_step)
             continue;
 		}
 
-		if (ag->can_remove_by_RTREE == false) {
+		if (removedAgentPointers.find(ag)==removedAgentPointers.end()) {
+			//->can_remove_by_RTREE == false) {
 			tree_rstar.insert(ag);
 		}
 	}

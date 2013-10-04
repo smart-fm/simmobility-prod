@@ -415,7 +415,7 @@ struct EntityUpdater {
 			if (res.status == UpdateStatus::RS_DONE) {
 				//This Entity is done; schedule for deletion.
 				wrk.scheduleForRemoval(entity);
-				entity->can_remove_by_RTREE = true;
+				//entity->can_remove_by_RTREE = true;
 			} else if (res.status == UpdateStatus::RS_CONTINUE) {
 				//Still going, but we may have properties to start/stop managing
 				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {

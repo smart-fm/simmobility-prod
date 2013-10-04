@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 
 #include "SimRTree.hpp"
 
@@ -22,9 +23,9 @@ class Agent;
 class SimAuraManager : public TreeImpl
 {
 public:
-	// No need to define the ctor and dtor.
-
-	virtual void update(int time_step);
+	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+	//      save them anywhere.
+	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
 
 	//xuyan: Build the Tree in the very beginning
 	virtual void init();

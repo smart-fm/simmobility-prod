@@ -256,7 +256,7 @@ void sim_mob::WorkGroup::stageEntities()
 }
 
 
-void sim_mob::WorkGroup::collectRemovedEntities()
+void sim_mob::WorkGroup::collectRemovedEntities(std::set<sim_mob::Agent*>* removedAgents)
 {
 	//Even with dynamic dispatch, some WorkGroups simply don't manage entities.
 	if (!loader) {
@@ -273,10 +273,20 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 			}
 
 			//if parent existed, will inform parent to unregister this child if necessary
-			if( Entity* parent = (*it)->parentEntity )
+			if( Entity* parent = (*it)->parentEntity ) {
 				parent->unregisteredChild( (*it) );
+			}
 
-			//Delete this entity
+			//If this Entity is an Agent, save its memory address.
+			if (removedAgents) {
+				Agent* ag = dynamic_cast<Agent*>(*it);
+				if (ag) {
+					removedAgents->insert(ag);
+					continue;
+				}
+			}
+
+			//Delete this entity. NOTE: This *only* occurs if the entity is not stored on the removedAgents list.
 			delete *it;
 		}
 
@@ -395,7 +405,7 @@ void sim_mob::WorkGroup::waitFrameTick(bool singleThreaded)
 	}
 }
 
-void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
+void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::Agent*>* removedAgents)
 {
 	if (tickOffset==0) {
 		//If we are in single-threaded mode, pass this function call on to each Worker.
@@ -406,9 +416,9 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 		}
 
 		//Stage Agent updates based on nextTimeTickToStage
-		//stageEntities();
+		stageEntities();
 		//Remove any Agents staged for removal.
-		//collectRemovedEntities();
+		collectRemovedEntities(removedAgents);
 		//buff_flip_barr->contribute(); //No.
 
 	} else {
@@ -419,7 +429,7 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded)
 	}
 }
 
-void sim_mob::WorkGroup::waitAuraManager()
+void sim_mob::WorkGroup::waitAuraManager(const std::set<sim_mob::Agent*>& removedAgents)
 {
 	//This barrier is optional.
 	/*if (!aura_mgr_barr) {
@@ -439,13 +449,10 @@ void sim_mob::WorkGroup::waitAuraManager()
 		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
 			PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currTimeTick);
 
-			auraMgr->update();
+			auraMgr->update(removedAgents);
 
 			PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currTimeTick);
 		}
-
-		stageEntities();
-		collectRemovedEntities();
 
 		//aura_mgr_barr->contribute();  //No.
 	} else {
@@ -573,7 +580,10 @@ void sim_mob::WorkGroup::processVirtualQueues() {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
 		(*wrkr)->removePendingEntities();
-		collectRemovedEntities();
+
+		//TODO: It is not clear if any "collected" entities should be saved when processing virtual queues.
+		//      At the moment, it seems unnecessary, since Confluxes and the AuraManager are never used together.
+		collectRemovedEntities(nullptr);
 	}
 }
 

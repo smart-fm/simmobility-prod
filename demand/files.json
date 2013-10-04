@@ -1,0 +1,51 @@
+{
+	"JsonFiles" : {
+		"Day Pattern" : "dp.json",
+		"Number Of Tours Work" : "ntw.json",
+		"Number Of Tours Education" : "nte.json",
+		"Number Of Tours Shopping" : "nts.json",
+		"Number Of Tours Others" : "nto.json",
+		"Attend Usual Work" : "uw.json",
+		"Tour Mode Work" : "tmw.json",
+		"Tour Mode Education" : "tme.json",
+		"Tour Mode/Destination Work" : "tmdw.json",
+		"Tour Mode/Destination Shopping" : "tmds.json",
+		"Tour Mode/Destination Others" : "tmdo.json",
+		"Work Based Sub-Tours" : "tws.json",
+		"Tour Time Of Day Work" : "ttdw.json",
+		"Tour Time Of Day Others" : "ttdo.json",
+		"Tour Time Of Day Education" : "ttde.json",
+		"Intermediate Stop Generation" : "isg.json",
+		"Intermediate Stop Mode/Destination" : "imd.json",
+		"Intermediate Stop Time Of Day" : "itd.json"
+	},
+	"Database" : {
+		"host" : "localhost",
+		"port" : "27017",
+		"db" : "preday"
+	},
+	"Collections" : {
+		"Persons" : "person_ids",
+		"Person Data" : "person_data",
+		"Day Pattern" : "dp",
+		"Number Of Tours" : "dp",
+		"Attend Usual Work" : "uw",
+		"Tour Mode Work" : "tmw",
+		"Tour Mode Education" : "tme",
+		"Tour Mode/Destination" : "tmd",
+		"Work Based Sub-Tours" : "tws",
+		"Tour Time Of Day" : "ttd",
+		"Intermediate Stop Generation" : "isg",
+		"Intermediate Stop Mode/Destination" : "tmd",
+		"Intermediate Stop Time Of Day" : "itd",
+		"Travel Cost Bus": "tcost_bus",
+		"Travel Cost Car": "tcost_car",
+		"AMCosts" : "AMCosts",
+		"PMCosts" : "PMCosts",
+		"OPCosts" : "OPCosts",
+		"HITS2008_RAW" : "hits2008_raw",
+		"Person Tours Output" : "person_tours_25Sep",
+		"Tour Output" : "tour_25Sep",
+		"Activity Output" : "activity_25Sep"
+	}
+}

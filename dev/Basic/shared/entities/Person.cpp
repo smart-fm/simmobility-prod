@@ -281,8 +281,8 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (*currTripChainItem)->endTime.getValue()));
+				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*currTripChainItem)->endTime.getValue() - (*currTripChainItem)->startTime.getValue())));
 				ap->initializeRemainingTime();
 			}
 		}
@@ -434,14 +434,6 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 	if (currRole) {
 		currParams = currRole->getSubscriptionParams();
 	}
-
-	//Set our start time to the NEXT time tick so that frame_init is called
-	//  on the first pass through.
-	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
-	//      now takes Agent* objects. (Use "currTimeMS" for this)
-
-	//setStartTime(nextValidTimeMS); done out side this function
-	//call_frame_init = true;//what a hack! -vahid
 
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();

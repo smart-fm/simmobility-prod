@@ -10,12 +10,15 @@
  */
 #pragma once
 
-#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
 //#include <sys/time.h>
+
+//NOTE: This is a Linux-only class. We need to ifdef it out if not available 
+//      (or move it to entities/profile/ProfileBuilder as a static method.)
+#include <sys/time.h>
 
 namespace sim_mob {
 

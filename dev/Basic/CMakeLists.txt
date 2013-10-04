@@ -334,7 +334,7 @@ include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
 #Find TinyXML (optional; not used any more)
-find_package(TinyXML REQUIRED)
+find_package(TinyXML)
 if (TINYXML_FOUND)
   include_directories(${TINYXML_INCLUDE_DIR})
   LIST(APPEND LibraryList ${TINYXML_LIBRARIES})

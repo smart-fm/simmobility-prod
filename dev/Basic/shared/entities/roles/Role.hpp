@@ -106,6 +106,8 @@ public:
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}
 
+	virtual void updateNearest(){};
+
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.

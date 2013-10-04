@@ -86,7 +86,6 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
 
-
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;

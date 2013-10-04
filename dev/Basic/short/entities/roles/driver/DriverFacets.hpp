@@ -92,6 +92,8 @@ private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
+	void check_and_set_min_car_dist2(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+
 	//More update methods
 	bool update_sensors(timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
 	bool update_movement(timeslice now);       ///<Called to move vehicles forward.
@@ -146,9 +148,10 @@ private:
 	void updateVelocity();
 	void setBackToOrigin();
 
-	void updateNearbyAgents(DriverUpdateParams& params);
-	void updateNearbyDriver(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
-	void updateNearbyPedestrian(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
+	void updateNearbyAgents();
+	bool updateNearbyDriver(const sim_mob::Person* other, const sim_mob::Driver* other_driver);
+//	void updateNearestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
+	void updateNearbyPedestrian(const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
 	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();

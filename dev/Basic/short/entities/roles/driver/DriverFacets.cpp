@@ -369,7 +369,7 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	}
 
 
-	updateNearbyAgents(params);
+	updateNearbyAgents();
 
 
 	return true;
@@ -1381,6 +1381,25 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist(NearestVehicle& res, do
 	}
 }
 
+
+void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res, double distance, const Vehicle* other_veh,
+		const Driver* me) {
+	//Subtract the size of the car from the distance between them
+	bool fwd=false;
+	if (distance>=0)
+		fwd = true;
+	distance = fabs(distance) - other_veh->length / 2 - me->getVehicleLength() / 2;
+	if ( me->isAleadyStarted )
+	{
+		if(fwd && distance <0)
+			distance = 0.1;
+	}
+	if (distance <= res.distance) {
+		res.driver = me;
+		res.distance = distance;
+	}
+}
+
 void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh,
 		const Driver* other) {
 	//Subtract the size of the car from the distance between them
@@ -1391,23 +1410,69 @@ void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(NearestVehicle
 	}
 }
 
+//incompleteattempt to rewrite updateNearestDriver in order to switch analyzer and analyzed objects
+//void sim_mob::DriverMovement::updateNearestDriverTo(const Driver* target, DriverUpdateParams& targetParams) {
+//	DriverUpdateParams& myparams = parentDriver->getParams();
+//	if (!(this->parentDriver->isInIntersection.get()&& this->parentDriver != target)) {
+//		return;
+//	}
+//
+//	//Retrieve the my lane, road segment, and lane offset.
+//	const Lane* my_lane = parentDriver->currLane_.get();
+//	if (!my_lane) {
+//			return;
+//		}
+//	const RoadSegment* myRoadSegment = my_lane->getRoadSegment();
+//
+//	if(target->vehicle->isInIntersection() || parentDriver->vehicle->isInIntersection())
+//	{
+//		return;
+//	}
+//	int my_offset = parentDriver->vehicle->getDistanceMovedInSegment();
+//	//If the vehicle is in the same Road segment
+//	if (target->vehicle->getCurrSegment() == myRoadSegment) {
+//		int distance = target->vehicle->getDistanceMovedInSegment() - my_offset;
+//		if (distance == 0)
+//		{
+//			return;
+//		}
+//		bool fwd = distance >= 0;
+//		//Set different variables depending on where the car is.
+//		if (my_lane == targetParams.currLane) {//the vehicle is on the current lane
+//			check_and_set_min_car_dist2((fwd ? targetParams.nvFwd : targetParams.nvBack), distance, target->vehicle, parentDriver);
+//		} else if (my_lane == targetParams.leftLane) { //the vehicle is on the left lane
+//			check_and_set_min_car_dist2((fwd ? targetParams.nvLeftBack : targetParams.nvLeftFwd), distance, target->vehicle, parentDriver);
+//		} else if (my_lane == targetParams.rightLane) { //The vehicle is on the right lane
+//			check_and_set_min_car_dist2((fwd ? targetParams.nvRightBack : targetParams.nvRightFwd), distance, target->vehicle, parentDriver);
+//		} else if (my_lane == targetParams.leftLane2) { //The vehicle is on the second Left lane
+//			check_and_set_min_car_dist2((fwd ? targetParams.nvLeftBack2 : targetParams.nvLeftFwd2), distance, target->vehicle, parentDriver);
+//		} else if (my_lane == targetParams.rightLane2) { //The vehicle is on the second right lane
+//			check_and_set_min_car_dist2((fwd ? targetParams.nvRightBack2 : targetParams.nvRightFwd2), distance, target->vehicle, parentDriver);
+//		}
+//
+//	}
+//
+//
+//}
+
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
-void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, const Person* other, const Driver* other_driver) {
+bool sim_mob::DriverMovement::updateNearbyDriver(const Person* other, const Driver* other_driver) {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
 	/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
 			std::cout<<"find vh"<<std::endl;*/
 	if (!(other_driver && this->parentDriver != other_driver && !other_driver->isInIntersection.get())) {
-		return;
+		return false;
 	}
 
 	//Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
 	if (!other_lane) {
-			return;
+			return false;
 		}
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 
@@ -1424,7 +1489,7 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 
 
 	if(parentDriver->vehicle->isInIntersection() || other_driver->vehicle->isInIntersection())
-		return;
+		return false;
 
 //	int other_offset = other_driver->currLaneOffset_.get();
 	int other_offset = other_driver->vehicle->getDistanceMovedInSegment();
@@ -1435,7 +1500,7 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 //		int distance = other_offset - params.currLaneOffset;
 		int distance = other_offset - parentDriver->vehicle->getDistanceMovedInSegment();
 		if (distance == 0)
-			return;
+			return false;
 		bool fwd = distance >= 0;
 
 		//Set different variables depending on where the car is.
@@ -1461,7 +1526,8 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 			//Retrieve the next node we are moving to, cast it to a UniNode.
 			const Node* nextNode = parentDriver->vehicle->getCurrSegment()->getEnd();
 			const UniNode* uNode = dynamic_cast<const UniNode*> (nextNode);
-			UniNode* myuode = const_cast<sim_mob::UniNode*> (uNode);
+			//seems the following dynamic_cast is not needed, thereby commenting
+//			UniNode* myuode = const_cast<sim_mob::UniNode*> (uNode);
 //			if (params.now.ms()/1000.0 >  123.9
 //					 && parent->getId() == 404)
 //			{
@@ -1632,10 +1698,11 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 			}
 		}
 	} // end of in different link
-
+	return true;
 }
 
-void sim_mob::DriverMovement::updateNearbyPedestrian(DriverUpdateParams& params, const Person* other, const Pedestrian* pedestrian) {
+void sim_mob::DriverMovement::updateNearbyPedestrian(const Person* other, const Pedestrian* pedestrian) {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//Only update if passed a valid pointer and this is on a crossing.
 
 	if (!(pedestrian && pedestrian->isOnCrossing())) {
@@ -1672,7 +1739,8 @@ void sim_mob::DriverMovement::updateNearbyPedestrian(DriverUpdateParams& params,
 	}
 }
 
-void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
+void sim_mob::DriverMovement::updateNearbyAgents() {
+	DriverUpdateParams& params = parentDriver->getParams();
 	//Retrieve a list of nearby agents
 
 	double dis = 10000.0;
@@ -1700,9 +1768,21 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 			continue;
 		}
 
+//		other->getRole()->updateNearest();
 		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
-		updateNearbyDriver(params, other, dynamic_cast<const Driver*> (other->getRole()));
-		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*> (other->getRole()));
+		/*Note:
+		 * In the following methods(updateNearbyDriver and updateNearbyPedestrian), the variable "other"
+		 * is the target which is being analyzed, and the current object is the one who i object is the analyzer.
+		 *
+		 * In order to remove the ugly dynamic_cast s passed into the following method,the analyzed and anlayzer
+		 * should switch their place and, consequently, the following methods and some of their sub-methods
+		 * need to be rewritten. for now, we reduce the number of dynamic_casts by calling only one of the functions.
+		 * It originally had to be like this(only one of them need to be called).
+		 */
+		if(!updateNearbyDriver(other, dynamic_cast<const Driver*> (other->getRole())))
+		{
+			updateNearbyPedestrian(other, dynamic_cast<const Pedestrian*> (other->getRole()));
+		}
 	}
 }
 

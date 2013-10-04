@@ -43,6 +43,7 @@ class UnPackageUtils;
 
 //Helper struct
 struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
+	ActivityPerformerUpdateParams();
 	explicit ActivityPerformerUpdateParams(boost::mt19937& gen);
 	virtual ~ActivityPerformerUpdateParams() {}
 
@@ -61,7 +62,7 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 /**
  * A Person basically does nothing in the ActivityPerformer role
  */
-class ActivityPerformer : public sim_mob::Role {
+class ActivityPerformer : public sim_mob::Role , public UpdateWrapper<ActivityPerformerUpdateParams>{
 public:
 	int remainingTimeToComplete;
 	ActivityPerformer(sim_mob::Agent* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_ACTIVITY);
@@ -71,7 +72,7 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	sim_mob::DailyTime getActivityEndTime() const;

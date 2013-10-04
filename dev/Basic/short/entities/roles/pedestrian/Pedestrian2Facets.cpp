@@ -28,15 +28,15 @@ Pedestrian2Behavior::Pedestrian2Behavior(sim_mob::Person* parentAgent):
 
 Pedestrian2Behavior::~Pedestrian2Behavior() {}
 
-void Pedestrian2Behavior::frame_init(UpdateParams& p) {
+void Pedestrian2Behavior::frame_init() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_init is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick(UpdateParams& p) {
+void Pedestrian2Behavior::frame_tick() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output(const UpdateParams& p) {
+void Pedestrian2Behavior::frame_tick_output() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
 
@@ -70,7 +70,7 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 
 }
 
-void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
+void sim_mob::Pedestrian2Movement::frame_init() {
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -79,8 +79,8 @@ void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
 	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
-	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
+void sim_mob::Pedestrian2Movement::frame_tick() {
+	PedestrianUpdateParams2& p2 = parentPedestrian2->getParams();
 
 	//Is this the first frame tick?
 	if (p2.skipThisFrame) {
@@ -120,7 +120,7 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
-					newRole->Movement()->frame_init(p);
+					newRole->Movement()->frame_init();
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 //					passenger->BoardedBus.set(true);
@@ -138,10 +138,11 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 		getParent()->yPos.set(pedMovement.getPosition().y);
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
 	//		return;
 	//	}
+	PedestrianUpdateParams2 &p = parentPedestrian2->getParams();
 
 	//MPI-specific output.
 	std::stringstream addLine;

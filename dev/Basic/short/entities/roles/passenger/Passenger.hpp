@@ -28,6 +28,7 @@ class PackageUtils;
 class UnPackageUtils;
 
 struct PassengerUpdateParams : public sim_mob::UpdateParams {
+	PassengerUpdateParams() : UpdateParams() {}
 	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
 	virtual ~PassengerUpdateParams() {}
 
@@ -43,13 +44,13 @@ struct PassengerUpdateParams : public sim_mob::UpdateParams {
 };
 
 
-class Passenger : public sim_mob::Role {
+class Passenger : public sim_mob::Role , public UpdateWrapper<PassengerUpdateParams>{
 public:
 	Passenger(Agent* parent, MutexStrategy mtxStrat, sim_mob::PassengerBehavior* behavior = nullptr, sim_mob::PassengerMovement* movement = nullptr, Role::type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
 	virtual ~Passenger() {}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	//Serialization

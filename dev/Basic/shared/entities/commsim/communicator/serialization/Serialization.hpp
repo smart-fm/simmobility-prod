@@ -13,7 +13,7 @@
 #include "entities/commsim/communicator/service/services.hpp"
 #include "logging/Log.hpp"
 #include <set>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 namespace sim_mob {
 
 class JsonParser {

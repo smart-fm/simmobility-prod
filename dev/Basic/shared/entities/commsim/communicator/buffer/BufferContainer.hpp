@@ -11,7 +11,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <boost/thread.hpp>
 //todo change this class to a template class. it is possible-vahid
 namespace sim_mob

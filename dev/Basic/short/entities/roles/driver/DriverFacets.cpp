@@ -157,15 +157,15 @@ DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent):
 
 DriverBehavior::~DriverBehavior() {}
 
-void DriverBehavior::frame_init(UpdateParams& p) {
+void DriverBehavior::frame_init() {
 	throw std::runtime_error("DriverBehavior::frame_init is not implemented yet");
 }
 
-void DriverBehavior::frame_tick(UpdateParams& p) {
+void DriverBehavior::frame_tick() {
 	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output(const UpdateParams& p) {
+void DriverBehavior::frame_tick_output() {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -213,7 +213,7 @@ sim_mob::DriverMovement::~DriverMovement()
 	safe_delete_item(intModel);
 }
 
-void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
+void sim_mob::DriverMovement::frame_init() {
 	//Save the path from orign to next activity location in allRoadSegments
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
@@ -229,10 +229,10 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
-void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
+void sim_mob::DriverMovement::frame_tick() {
 	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 	// lost some params
-	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+	DriverUpdateParams& p2 = parentDriver->getParams();
 
 	if(!(parentDriver->vehicle))
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
@@ -265,7 +265,7 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (p2.currLane && parentDriver->vehicle) {
 
-		if (update_sensors(p2, p.now) && update_movement(p2, p.now) && update_post_movement(p2, p.now)) {
+		if (update_sensors(p2, p2.now) && update_movement(p2, p2.now) && update_post_movement(p2, p2.now)) {
 
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
@@ -295,7 +295,8 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 }
 
-void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::DriverMovement::frame_tick_output() {
+	DriverUpdateParams &p = parentDriver->getParams();
 	//Skip?
 	if (parentDriver->vehicle->isDone()) {
 		return;
@@ -569,7 +570,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			{
 				//
 				if(p.currLane->is_pedestrian_lane()) {
-					std::cout<<"drive on pedestrian lane"<<std::endl;
+					WarnOut("drive on pedestrian lane");
 				}
 				bool currentLaneConnectToNextLink = false;
 				int targetLaneIndex=p.currLaneIndex;

@@ -25,9 +25,9 @@ public:
 	virtual ~PassengerBehavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	Passenger* getParentPassenger() const {
 		return parentPassenger;
@@ -49,9 +49,9 @@ public:
 
 	//Virtual overrides
 	void setParentBufferedData();
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	bool isAtBusStop();

@@ -26,15 +26,15 @@ BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
 
 BusDriverBehavior::~BusDriverBehavior() {}
 
-void BusDriverBehavior::frame_init(UpdateParams& p) {
+void BusDriverBehavior::frame_init() {
 	throw std::runtime_error("BusDriverBehavior::frame_init is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick(UpdateParams& p) {
+void BusDriverBehavior::frame_tick() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick_output(const UpdateParams& p) {
+void BusDriverBehavior::frame_tick_output() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -123,7 +123,7 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	return res;
 }
 
-void sim_mob::BusDriverMovement::frame_init(UpdateParams& p) {
+void sim_mob::BusDriverMovement::frame_init() {
 	//TODO: "initializePath()" in Driver mixes initialization of the path and
 	//      creation of the Vehicle (e.g., its width/height). These are both
 	//      very different for Cars and Buses, but until we un-tangle the code
@@ -576,14 +576,14 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 }
 
 //Main update functionality
-void sim_mob::BusDriverMovement::frame_tick(UpdateParams& p) {
+void sim_mob::BusDriverMovement::frame_tick() {
 	//NOTE: If this is all that is doen, we can simply delete this function and
 	//      let its parent handle it automatically. ~Seth
-	DriverMovement::frame_tick(p);
+	DriverMovement::frame_tick();
 }
 
-void sim_mob::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
-	//Skip?
+void sim_mob::BusDriverMovement::frame_tick_output() {
+	DriverUpdateParams &p = parentBusDriver->getParams();
 	if (parentBusDriver->vehicle->isDone()) {
 		return;
 	}

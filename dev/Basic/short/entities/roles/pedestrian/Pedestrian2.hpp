@@ -45,6 +45,7 @@ class PartitionManager;
 
 //Helper struct
 struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
+	PedestrianUpdateParams2() : UpdateParams(), skipThisFrame(false)  {}
 	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
 	virtual ~PedestrianUpdateParams2() {}
 
@@ -67,7 +68,7 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
-class Pedestrian2 : public sim_mob::Role {
+class Pedestrian2 : public sim_mob::Role , public UpdateWrapper<PedestrianUpdateParams2>{
 public:
 	Pedestrian2(Agent* parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
@@ -75,7 +76,7 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 private:

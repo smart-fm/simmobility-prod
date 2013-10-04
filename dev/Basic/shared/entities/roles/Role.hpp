@@ -40,6 +40,22 @@ class UnPackageUtils;
  * \note
  * For now, this class is very simplistic.
  */
+template<class PARAM>
+class UpdateWrapper {
+protected:
+	PARAM dataParam;
+public:
+	PARAM &getParams() {
+		return dataParam;
+	}
+
+	void setParams(PARAM &value)
+	{
+		dataParam = value;
+	}
+
+};
+
 class Role
 {
 public:
@@ -69,7 +85,7 @@ public:
 public:
 	//NOTE: Don't forget to call this from sub-classes!
 	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0), behaviorFacet(nullptr), movementFacet(nullptr)
+		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -98,7 +114,7 @@ public:
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
+	virtual void make_frame_tick_params(timeslice now) = 0;
 
 	///Return a request list for asychronous communication.
 	///  Subclasses of Role should override this method if they want to enable

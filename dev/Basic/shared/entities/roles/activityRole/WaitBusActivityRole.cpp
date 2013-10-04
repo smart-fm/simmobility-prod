@@ -32,9 +32,8 @@ sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, sim_mob::WaitBu
 sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {
 }
 
-UpdateParams& sim_mob::WaitBusActivityRole::make_frame_tick_params(timeslice now) {
-	params.reset(now);
-	return params;
+void sim_mob::WaitBusActivityRole::make_frame_tick_params(timeslice now){
+	getParams().reset(now);
 }
 
 std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptionParams() {

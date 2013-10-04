@@ -173,17 +173,17 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 
 
 
-void sim_mob::Pedestrian::frame_init(UpdateParams& p)
+void sim_mob::Pedestrian::frame_init()
 {
 	setSubPath();
-	dynamic_cast<PedestrianUpdateParams&>(p).skipThisFrame = true;
+	//just commented it out.didn't bother modifying it as this class is assumed to be obsolete-vahid
+//	dynamic_cast<PedestrianUpdateParams&>(p).skipThisFrame = true;
 }
 
 
-UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(timeslice now)
+void sim_mob::Pedestrian::make_frame_tick_params(timeslice now)
 {
-	params.reset(now);
-	return params;
+	getParams().reset(now);
 }
 
 

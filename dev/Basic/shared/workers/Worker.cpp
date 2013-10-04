@@ -547,18 +547,8 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
-	//Confluxes require an additional set of updates.
-	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
-	/*	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-			(*it)->resetOutputBounds();
-		}*/
-
-		//All workers perform the same tasks for their set of managedConfluxes.
-		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
-	}
-
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
-	std::for_each(managedEntities.begin(), managedEntities.end(), RestrictedEntityUpdater<Conflux>(*this, currTime));
+	std::for_each(managedEntities.begin(), managedEntities.end(), EntityUpdater(*this, currTime));
 }
 
 

@@ -188,7 +188,8 @@ protected:
 
 private:
 	//Very risky:
-	UpdateParams* curr_params;
+//	UpdateParams* curr_params;
+	bool shouldResetParams;
 
 
 	bool advanceCurrentTripChainItem();

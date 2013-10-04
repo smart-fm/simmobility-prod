@@ -244,10 +244,8 @@ Role* sim_mob::Driver::clone(Person* parent) const
 
 
 
-sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(timeslice now)
-{
-	params.reset(now, *this);
-	return params;
+void sim_mob::Driver::make_frame_tick_params(timeslice now){
+	getParams().reset(now, *this);
 }
 
 

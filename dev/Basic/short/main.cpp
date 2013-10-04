@@ -421,6 +421,13 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		}
 	}
 
+
+	timeval loop_end_time;
+	gettimeofday(&loop_end_time, nullptr);
+	int loop_time = Utils::diff_ms(loop_end_time, loop_start_time);
+	std::ostringstream out("");
+	out << "loop_time:" << std::dec << loop_time  <<std::endl;
+	std::cout << out.str();
 	//Finalize partition manager
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();

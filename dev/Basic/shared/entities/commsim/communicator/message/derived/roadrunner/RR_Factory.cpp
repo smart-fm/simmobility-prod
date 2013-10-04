@@ -11,7 +11,7 @@
 
 #include "RR_Factory.hpp"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <stdexcept>
 //#include "entities/commsim/communicator/service/services.hpp"
 #include "logging/Log.hpp"

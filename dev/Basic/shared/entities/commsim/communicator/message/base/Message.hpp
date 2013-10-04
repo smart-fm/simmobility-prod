@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include<boost/shared_ptr.hpp>
-#include<json/json.h>
+#include <jsoncpp/json/json.h>
 #include "logging/Log.hpp"
 
 namespace sim_mob

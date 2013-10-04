@@ -895,7 +895,109 @@ void sim_mob::DriverMovement::setParentBufferedData() {
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
 	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
+const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
+{
+	const sim_mob::RoadItem* res = nullptr;
+	itemDis = 0.0;
 
+	if(type != sim_mob::INCIDENT) return res;
+
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
+	std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+
+	for(;currentSegIt != path.end();++currentSegIt)
+	{
+		const RoadSegment* rs = *currentSegIt;
+		if (!rs) break;
+
+		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
+		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+
+		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+
+				if(rs == parentDriver->vehicle->getCurrSegment())
+				{
+					//1. in current seg
+					if(inc){
+						//1.1 find incident
+						double incidentDis = (*obsIt).first;
+						double moveDis  = parentDriver->vehicle->getDistanceMovedInSegment();
+						//1.2 incident in forward
+						if(moveDis <= incidentDis)
+						{
+							itemDis = incidentDis - moveDis;
+							if(itemDis < 0)
+							{
+								std::cout<<"getRoadItemByDistance: getDistanceMovedInSegment not right"<<std::endl;
+							}
+							if(itemDis <= perceptionDis)
+							{
+								res = inc;
+								return res;
+							}
+							else
+							{
+								// the incident already out of perception, no need check far more
+								return nullptr;
+							}
+						}// end if moveDis
+					} //end if inc
+					itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
+				}//end rs==
+				else
+				{
+					//2.0 in forword seg
+					if(isInSameLink == true)
+					{
+						// seg not in current link
+						if(parentDriver->vehicle->getCurrSegment()->getLink() != rs->getLink())
+						{
+							return res;
+						}
+					}
+					if(inc){
+						//2.1 find incident
+						double incidentDis = (*obsIt).first;
+						itemDis += incidentDis;
+						if(itemDis <= perceptionDis)
+						{
+							res = inc;
+							return res;
+						}
+						else
+						{
+							// the incident already out of perception, no need check far more
+							return nullptr;
+						}
+					}//end inc
+					itemDis += getLengthOfSegment(rs);
+				}
+
+
+		}//end for obstacles
+
+	}//end for segs
+
+	return res;
+}
+double sim_mob::DriverMovement::getLengthOfSegment(const sim_mob::RoadSegment* rs)
+{
+	std::vector<sim_mob::Point2D> polypointsList = (rs)->getLanes().at(0)->getPolyline();
+	double dis=0;
+	std::vector<sim_mob::Point2D>::iterator ite;
+	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
+	{
+		ite = it+1;
+		if ( ite != polypointsList.end() )
+		{
+			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
+			dis += temp.getMagnitude();
+		}
+	}
+
+	return dis;
+}
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(parentDriver->vehicle->getNextSegment()))) {
 		return false;

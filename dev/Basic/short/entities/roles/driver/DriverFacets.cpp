@@ -244,24 +244,32 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
 	double dist = 0;
-	if(now.frame() >= 242) {
-		std::cout << "now.frame() " << now.frame() << std::endl;
-	}
-	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 100000, dist);
+	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 6000, dist);
 	bool replan = false;
-	for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
-		const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
-	//if(roadItem) {
-	//	const Incident* inc = dynamic_cast<const Incident*>( roadItem );
+	//for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+	//	const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+	if(roadItem) {
+		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
 			float visibility = inc->visibilityDistance;
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLaneIndex==inc->laneId){
+			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLaneIndex==inc->laneId && dist<visibility){
 				bool ret = incidentResponsePlan.insertIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
 				}
 			}
 			else if( now.ms() > inc->startTime+inc->duration ){
+				bool ret = incidentResponsePlan.removeIncident(inc);
+				if( ret==true && replan==false){
+					replan = true;
+				}
+			}
+		}
+	}
+	else {
+		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+			if(inc){
 				bool ret = incidentResponsePlan.removeIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
@@ -670,9 +678,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 
-	if(parentDriver->getParent()->GetId()==31 && p.now.frame() >= 100 ){
-		std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << " current frame :" << p.now.frame() << std::endl;
-	}
+	//if(parentDriver->getParent()->GetId()==31 && p.now.frame() >= 100 ){
+	//	std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << " current frame :" << p.now.frame() << std::endl;
+	//}
 
 	LANE_CHANGE_MODE mode = MLC;
 	makeDecisionForIncident(p, parentDriver->params.now);
@@ -717,8 +725,8 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		incidentResponsePlan.resetStatus();
-		//if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex )
+		if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex )
+			incidentResponsePlan.resetStatus();
 		//std::cout << "incident reset status is " << parentDriver->getParent()->GetId() << std::endl;
 	}
 	//when vehicle stops, don't do lane changing

@@ -1,0 +1,2 @@
+1 10 0.7
+#rebalance_threshold, checking_frequency, rebalance_load_balance_maximum

@@ -22,6 +22,7 @@
 
 namespace sim_mob {
 
+class ProfileBuilder;
 class RoadSegment;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
@@ -107,7 +108,7 @@ private:
 	void scheduleEntity(Agent* ag);
 
 	void stageEntities();
-	void collectRemovedEntities();
+	void collectRemovedEntities(std::set<sim_mob::Agent*>* removedAgents);
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
@@ -141,9 +142,11 @@ private:
 	// make sure that you call all wait* functions for a given category before moving on.
 	//E.g., call "waitFrameTick()" for all WorkGroups, THEN call "waitFlipBuffers()" for all
 	// work groups, etc.
+	//If "removedAgents" is non-null, any Agents which are removed this time tick are flagged.
+	//NOTE: By passing in a non-null "removedAgents", you are taking ownership of these Agents (YOU must delete them).
 	void waitFrameTick(bool singleThreaded);
-	void waitFlipBuffers(bool singleThreaded);
-	void waitAuraManager();
+	void waitFlipBuffers(bool singleThreaded, std::set<sim_mob::Agent*>* removedAgents);
+	void waitAuraManager(const std::set<sim_mob::Agent*>& removedAgents);
 	void waitMacroTimeTick();
 
 	//Initialize our shared (static) barriers. These barriers don't technically need to be copied
@@ -196,6 +199,9 @@ private:
 	// one additional locking barrier is required to prevent Workers from rushing ahead
 	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
 	boost::barrier* macro_tick_barr;
+
+	//Profile
+	sim_mob::ProfileBuilder* profile;
 };
 
 

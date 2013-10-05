@@ -40,6 +40,7 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
+///* static */ int sim_mob::Worker::auto_matical_thread_id = 0;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
 	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
@@ -66,6 +67,8 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
 		profile = new ProfileBuilder();
 	}
+	//thread_id = auto_matical_thread_id;
+	//auto_matical_thread_id++;
 }
 
 
@@ -120,6 +123,11 @@ const std::set<Entity*>& sim_mob::Worker::getEntities() const
 std::ostream* sim_mob::Worker::getLogFile() const
 {
 	return logFile;
+}
+
+ProfileBuilder* sim_mob::Worker::getProfileBuilder() const
+{
+	return profile;
 }
 
 
@@ -289,8 +297,8 @@ void sim_mob::Worker::breedPendingEntities()
 
 void sim_mob::Worker::perform_frame_tick()
 {
-	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, *this, currTick, (managedEntities.size()+toBeAdded.size()));
 	MgmtParams& par = loop_params;
+	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, this, par.currTick, (managedEntities.size()+toBeAdded.size()));
 
 	//Short-circuit if we're in "pause" mode.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
@@ -312,7 +320,7 @@ void sim_mob::Worker::perform_frame_tick()
 	//TODO: This name has *got* to change. ~Seth
 	breedPendingEntities();
 
-	PROFILE_LOG_WORKER_UPDATE_END(profile, *this, currTick);
+	PROFILE_LOG_WORKER_UPDATE_END(profile, this, par.currTick);
 
 	//Advance local time-step.
 	par.currTick += tickStep;
@@ -340,8 +348,8 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
-        // Register thread on MessageBus.
-        messaging::MessageBus::RegisterThread();
+	// Register thread on MessageBus.
+	messaging::MessageBus::RegisterThread();
     
 	///NOTE: Please keep this function simple. In fact, you should not have to add anything to it.
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
@@ -389,8 +397,9 @@ void sim_mob::Worker::threaded_function_loop()
 		}
 #endif
 	}
-        // Register thread from MessageBus.
-        messaging::MessageBus::UnRegisterThread();
+
+	// Register thread from MessageBus.
+	messaging::MessageBus::UnRegisterThread();
 }
 
 namespace {
@@ -407,6 +416,7 @@ struct EntityUpdater {
 			if (res.status == UpdateStatus::RS_DONE) {
 				//This Entity is done; schedule for deletion.
 				wrk.scheduleForRemoval(entity);
+				//entity->can_remove_by_RTREE = true;
 			} else if (res.status == UpdateStatus::RS_CONTINUE) {
 				//Still going, but we may have properties to start/stop managing
 				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {

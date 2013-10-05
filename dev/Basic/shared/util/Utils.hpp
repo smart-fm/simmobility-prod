@@ -14,6 +14,7 @@
 #include <list>
 #include <string>
 #include <utility>
+//#include <sys/time.h>
 
 //NOTE: This is a Linux-only class. We need to ifdef it out if not available 
 //      (or move it to entities/profile/ProfileBuilder as a static method.)
@@ -49,9 +50,6 @@ namespace sim_mob {
          *
          */
         static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
-
-        //Helper for computing differences. May be off by ~1ms
-        static int diff_ms(timeval t1, timeval t2);
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.

@@ -7,7 +7,8 @@
 #include <vector>
 #include <algorithm>
 
-#include "RStarTreeDownUp.h"
+#include "RStarTreeDownUp.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
@@ -21,7 +22,7 @@ class Agent;
 
 // The AuraManager uses a 2-D R*-tree to create a spatial indexing of the agents.
 // Each node (both non-leaf and leaf) in the R*-tree holds 8 to 16 items.
-class R_tree_DU: public RStarTreeDownUp<Agent const *, 2, 30, 100>
+class R_tree_DU: public RStarTreeDownUp<Agent const *, 2, 15, 50>
 {
 public:
 	// No need to define the ctor and dtor.
@@ -46,6 +47,9 @@ public:
 	std::vector<Agent  const*>
 	query(R_tree_DU::BoundingBox const & box) const;
 
+public:
+	void debug_all();
+
 private:
 	// A visitor that simply collects the agent into an array, which was specified in the
 	// constructor.
@@ -62,7 +66,8 @@ private:
 		// When called, the visitor saves the agent in <array>.
 		bool operator()(const R_tree_DU::Leaf * const leaf) const
 		{
-			array.push_back(leaf->leaf);
+			if(leaf->leaf != NULL && leaf->leaf != nullptr)
+				array.push_back(leaf->leaf);
 			return true;
 		}
 	};

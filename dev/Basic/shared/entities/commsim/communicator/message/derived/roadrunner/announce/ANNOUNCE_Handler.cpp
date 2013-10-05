@@ -67,7 +67,7 @@ void HDL_ANNOUNCE::handle(msg_ptr message_,Broker* broker){
 
 		Print() << "HDL_ANNOUNCE::handle 5" << std::endl;
 	}
-	catch(std::out_of_range e)
+	catch(std::out_of_range& e)
 	{
 
 		Print() << "HDL_ANNOUNCE::handle 6" << std::endl;
@@ -99,9 +99,9 @@ void HDL_ANNOUNCE::handle(msg_ptr message_,Broker* broker){
 				Point2D(
 						(original_agent->xPos + 3500),
 						(original_agent->yPos + 3500)
-						)
+						),
 
-						);
+						nullptr);
 	Print() << "HDL_ANNOUNCE::handle 8" << std::endl;
 	//if no agent found or only one found and that is the original_agent
 	if((nearby_agents_1.size() == 0) || ( (nearby_agents_1.size() == 1)&&(nearby_agents_1[0] == original_agent)) )

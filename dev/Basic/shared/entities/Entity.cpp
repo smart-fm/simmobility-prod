@@ -16,7 +16,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Entity::Entity(unsigned int id)
 	: id(id),  startTime(0), currWorkerProvider(nullptr), isFake(false), 
-        parentEntity(nullptr), can_remove_by_RTREE(false), MessageHandler(id)
+        parentEntity(nullptr), MessageHandler(id)
 {
 
 

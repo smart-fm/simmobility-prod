@@ -14,15 +14,10 @@
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void RStarAuraManager::update(int time_step)
+void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-	// cleanup the tree because we are going to rebuild it.
 	tree_rstar.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
 	assert(tree_rstar.GetSize() == 0);
-
-	if (Agent::all_agents.empty()) {
-		return;
-	}
 
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* ag = dynamic_cast<Agent*>(*itr);
@@ -30,54 +25,30 @@ void RStarAuraManager::update(int time_step)
 			continue;
 		}
 
-		if (ag->can_remove_by_RTREE == false) {
+		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000) {
+            Warn() << "A driver's location (x or y) is out of map, X:" << ag->xPos.get() << ",Y:" << ag->yPos.get() << std::endl;
+            continue;
+		}
+
+		if (removedAgentPointers.find(ag)==removedAgentPointers.end()) {
+			//->can_remove_by_RTREE == false) {
 			tree_rstar.insert(ag);
 		}
 	}
-
-//	boost::unordered_set<Entity const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
-//
-//	// We populate the tree incrementally by finding the agent that was nearest to the agent
-//	// that was most recently inserted into the tree.  This will increase the chance that the
-//	// agents in non-leaf nodes are close to each other, and therefore the overlaps of non-leaf
-//	// nodes are not large.  Querying will be faster if the overlaps is small.
-//	Agent const * agent = dynamic_cast<Agent const*>(*agents.begin());
-//	if (!agent) {
-//		throw std::runtime_error("all_agents is somehow storing an entity.");
-//	}
-//
-//	sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
-//	while (agents.size() > 1) {
-//		agents.erase(agent);
-//
-//		if (agent->isToBeRemoved() == false) {
-//			tree_rstar.insert(agent);
-//			updateDensity(agent);
-//		}
-//
-//		agent = nearest_agent(agent, agents);
-//	}
-
-//	if (agent->isToBeRemoved() == false) {
-//		tree_rstar.insert(agent);    // insert the last agent into the tree.
-//		updateDensity(agent);
-//	}
-
-//	assert(tree_rstar.GetSize() == Agent::all_agents.size());
-
 }
 
-std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const
+std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
 {
 	R_tree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
 	box.edges[0].second = upperRight.getX();
 	box.edges[1].second = upperRight.getY();
+
 	return tree_rstar.query(box);
 }
 
-std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
+std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
@@ -92,6 +63,13 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 	// Adjust <p1> and <p2>.  The current approach is simplistic.  <distanceInFront> and
 	// <distanceBehind> may extend beyond the stretch marked out by <p1> and <p2>.
 	adjust(p1, p2, position, distanceInFront, distanceBehind);
+
+        if(p1.getX() < 0 || p2.getX() < 0)
+        {
+            std::vector<Agent const *> empty;
+            return empty;
+        }
+
 
 	// Calculate the search rectangle.  We use a quick and accurate method.  However the
 	// inaccurancy only makes the search rectangle bigger.
@@ -119,6 +97,6 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
-	return agentsInRect(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 

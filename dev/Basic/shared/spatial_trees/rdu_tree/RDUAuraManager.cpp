@@ -19,41 +19,32 @@ bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 	return tree_du.has_one_agent(agent_id);
 }
 
-void sim_mob::RDUAuraManager::update(int time_step)
+void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-//	std::cout << "S:" << std::endl;
-
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);
 		if ((!an_agent) || an_agent->isNonspatial()) {
 			continue;
 		}
 
-		if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE) {
-//			std::cout << "start 1:" << std::endl;
+		bool canBeRemoved = (removedAgentPointers.find(an_agent)!=removedAgentPointers.end());
+
+		if (tree_du.has_one_agent(an_agent->getId()) && canBeRemoved) {
 			tree_du.remove(an_agent);
-//			std::cout << "end 1:" << std::endl;
-		} else if (tree_du.has_one_agent(an_agent->getId()) && an_agent->can_remove_by_RTREE == false) {
-//			std::cout << "start 2:" << std::endl;
+		} else if (tree_du.has_one_agent(an_agent->getId()) && !canBeRemoved) {
 			tree_du.update(an_agent->getId(), an_agent->xPos, an_agent->yPos);
-//			std::cout << "end 2:" << std::endl;
-		} else if (tree_du.has_one_agent(an_agent->getId()) == false && an_agent->can_remove_by_RTREE == false) {
-//			std::cout << "start 3:" << std::endl;
+		} else if (tree_du.has_one_agent(an_agent->getId()) == false && !canBeRemoved) {
 			tree_du.insert(an_agent);
-//			std::cout << "end 3:" << std::endl;
-//			tree_.Check_();
 		} else {
 			std::cout << "---------------------" << std::endl;
 			std::cout << "error:" << std::endl;
 			std::cout << "an_agent->getId():" << an_agent->getId() << std::endl;
-			std::cout << "an_agent->can_remove_by_RTREE:" << an_agent->can_remove_by_RTREE << std::endl;
+			std::cout << "an_agent->can_remove_by_RTREE:" << canBeRemoved << std::endl;
 		}
 	}
-
-//	std::cout << "Finished:" << std::endl;
 }
 
-std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const
+std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
 {
 	R_tree_DU::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
@@ -64,7 +55,7 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::agentsInRect(Point2D const &
 	return tree_du.query(box);
 }
 
-std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind) const
+std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();
@@ -107,20 +98,7 @@ std::vector<Agent const *> sim_mob::RDUAuraManager::nearbyAgents(Point2D const &
 	Point2D lowerLeft(left, bottom);
 	Point2D upperRight(right, top);
 
-//	std::cout << "Query==========" << left << "," << bottom << "," << right << "," << top << std::endl;
-
-	return agentsInRect(lowerLeft, upperRight);
+	return agentsInRect(lowerLeft, upperRight, nullptr);
 
 }
 
-//std::vector<Agent const*> Impl_DU::agentsInRect(double from_x, double from_y, double to_x, double to_y) const
-//{
-//	R_tree_DU::BoundingBox box;
-//	box.edges[0].first = from_x;
-//	box.edges[1].first = from_y;
-//	box.edges[0].second = to_x;
-//	box.edges[1].second = to_y;
-//
-//	return tree_du.query(box);
-//		return tree_.rangeQuery(box);
-//}

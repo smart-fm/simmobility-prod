@@ -11,7 +11,6 @@
 #include "entities/Person.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
-#include "util/PerformanceProfile.hpp"
 
 #include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
@@ -21,7 +20,7 @@
 namespace sim_mob
 {
 /* static */ AuraManager AuraManager::instance_;
-/* static */ AuraManager AuraManager::instance2_;
+///* static */ AuraManager AuraManager::instance2_;
 
 /** \cond ignoreAuraManagerInnards -- Start of block to be ignored by doxygen.  */
 
@@ -29,7 +28,7 @@ namespace sim_mob
 // AuraManager::Stats
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-struct AuraManager::Stats : private boost::noncopyable
+/*struct AuraManager::Stats : private boost::noncopyable
 {
     void
     printStatistics() const;
@@ -43,7 +42,7 @@ AuraManager::Stats::printStatistics() const
 
 
 }
-
+*/
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,13 +50,13 @@ AuraManager::Stats::printStatistics() const
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 void
-AuraManager::init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats)
+AuraManager::init(AuraManagerImplementation implType)
 {
-    if (keepStats) {
+/*    if (false) {
         stats_ = new Stats;
-    }
+    }*/
 
-    this->perfProfile = perfProfile;
+    //this->local_implType = implType;
 
     //Reset time tick.
     time_step = 0;
@@ -80,65 +79,83 @@ AuraManager::init(AuraManagerImplementation implType, PerformanceProfile* perfPr
 }
 
 /* virtual */ void
-AuraManager::update()
+AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-	if (perfProfile) {
-		perfProfile->markStartUpdate();
-	}
+
 	if (impl_) {
-		impl_->update(time_step);
+		impl_->update(time_step, removedAgentPointers);
 	}
 
 	time_step++;
 
-	if (perfProfile) {
-		perfProfile->markEndUpdate();
-		perfProfile->update();
-	}
 }
 
 std::vector<Agent const *>
-AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight)
+AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent)
 const
 {
-	if (perfProfile) {
-		perfProfile->markStartQuery(1);
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
+	}
+	return results;
+}
+
+/*std::vector<Agent const *>
+AuraManager::advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const
+{
+	if(local_implType != IMPL_SIMTREE)
+	{
+		return agentsInRect(lowerLeft, upperRight);
 	}
 
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->agentsInRect(lowerLeft, upperRight);
-		if (perfProfile) {
-			perfProfile->markEndQuery(1);
-		}
+		results = impl_->advanced_agentsInRect(lowerLeft, upperRight, item);
 	}
+
+//	static long sum_count = 0;
+//	sum_count += results.size();
+//	std::cout << "advanced_agentsInRect:" << results.size() << ",sum_count:" << sum_count << std::endl;
+
 	return results;
+}*/
 
-}
-
+//The "refAgent" can be used to provide more information (i.e., for the faster bottom-up query).
 std::vector<Agent const *>
 AuraManager::nearbyAgents(Point2D const & position, Lane const & lane,
-                          centimeter_t distanceInFront, centimeter_t distanceBehind)
+                          centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent)
 const
 {
-	if (perfProfile) {
-		perfProfile->markStartQuery(1);
-	}
-
-
+//	std::cout << "----------------------------" << std::endl;
 	std::vector<Agent const *> results;
 	if (impl_) {
-		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind);
-		if (perfProfile) {
-			perfProfile->markEndQuery(1);
-		}
+		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
 	}
 
 	return results;
 
 }
 
-void
+/*std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+	if (local_implType != IMPL_SIMTREE) {
+		return nearbyAgents(position, lane, distanceInFront, distanceBehind);
+	}
+
+	std::vector<Agent const *> results;
+	if (impl_) {
+		results = impl_->advanced_nearbyAgents(position, lane, distanceInFront, distanceBehind, item);
+	}
+
+//	static long sum_count = 0;
+//	sum_count += results.size();
+//	if (sum_count % 100000 == 0)
+//	std::cout << "advanced_nearbyAgents:" << results.size() << ",sum_count:" << sum_count << std::endl;
+
+	return results;
+}*/
+
+/*void
 AuraManager::printStatistics() const
 {
     if (stats_)
@@ -149,26 +166,19 @@ AuraManager::printStatistics() const
     {
         std::cout << "No statistics was collected by the AuraManager singleton." << std::endl;
     }
-}
+}*/
 
 /**
  * xuyan
  */
 void AuraManager::registerNewAgent(Agent const* one_agent)
 {
-//	std::cout << "Add 1." << std::endl;
-	if (perfProfile) {
-		perfProfile->markStartUpdate();
-	}
-
+	//if ((local_implType == IMPL_SIMTREE) && impl_) {
 	if (impl_) {
+		//We only register Person agents (TODO: why?)
 		if (dynamic_cast<Person const*>(one_agent)) {
 			impl_->registerNewAgent(one_agent);
 		}
-	}
-
-	if (perfProfile) {
-		perfProfile->markEndUpdate();
 	}
 }
 

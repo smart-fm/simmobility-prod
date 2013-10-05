@@ -213,7 +213,7 @@
         <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
         <!-- Note that this may take quite some time to complete. -->
         <!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
-        <merge_log_files value="false"/>
+        <merge_log_files value="true"/>
         
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
         <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->

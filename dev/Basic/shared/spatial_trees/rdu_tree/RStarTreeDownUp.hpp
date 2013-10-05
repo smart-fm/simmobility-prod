@@ -28,8 +28,8 @@
 #pragma once
 
 //#define USE_R_DU_TREE
-
 //#ifdef USE_R_DU_TREE
+#include "spatial_trees/spatial_tree_include.hpp"
 
 #include <map>
 #include <list>
@@ -43,31 +43,41 @@
 #include <sstream>
 #include <fstream>
 
-#include "spatial_trees/rstar_tree/RStarBoundingBox.h"
+#include "spatial_trees/rstar_tree/RStarBoundingBox.hpp"
+//#include "spatial_trees/Debug_Static_Count.hpp"
 
 namespace { //R* tree parameters, unique to this translational unit.
 const double RDUTREE_REINSERT_P = 0.30;
 const size_t RDUTREE_CHOOSE_SUBTREE_P = 32;
 }
 
+namespace {
+class Profiling_Counting_RDU{
+public:
+	static long counting;
+	static std::vector<long> count_buff;
+};
+
+long Profiling_Counting_RDU::counting = 0;
+std::vector<long> Profiling_Counting_RDU::count_buff;
+}
+
 // definition of a node
 template<typename BoundedItem>
-struct RStarDUNode: BoundedItem
-{
+struct RStarDUNode: BoundedItem {
 	std::vector<BoundedItem*> items;
 	bool hasLeaves;
 };
 
 // definition of an leaf
 template<typename BoundedItem, typename LeafType>
-struct RStarDULeaf: BoundedItem
-{
+struct RStarDULeaf: BoundedItem {
 	typedef LeafType leaf_type;
 	LeafType leaf;
 	BoundedItem* father;
 };
 
-#include "spatial_trees/rstar_tree/RStarVisitor.h"
+#include "spatial_trees/rstar_tree/RStarVisitor.hpp"
 
 /**
  \class RStarTreeDownUp
@@ -80,8 +90,7 @@ struct RStarDULeaf: BoundedItem
  @tparam	RemoveLeaf 		A functor used to remove leaves from the tree
  */
 template<typename LeafType, std::size_t dimensions, std::size_t min_child_items, std::size_t max_child_items>
-class RStarTreeDownUp
-{
+class RStarTreeDownUp {
 public:
 
 	// shortcuts
@@ -102,20 +111,17 @@ public:
 
 	// default constructor
 	RStarTreeDownUp() :
-			m_root(NULL), m_size(0)
-	{
+			m_root(NULL), m_size(0) {
 		assert(1 <= min_child_items && min_child_items <= max_child_items/2);
 	}
 
 	// destructor
-	~RStarTreeDownUp()
-	{
+	~RStarTreeDownUp() {
 		Remove(AcceptAny(), RemoveLeaf());
 		second_index.clear();
 	}
 
-	void DEBUG_(Node* node, int index)
-	{
+	void DEBUG_(Node* node, int index) {
 		if (node->hasLeaves) {
 			std::cout << index << ",node.items" << node->items.size();
 			std::cout << std::endl;
@@ -128,14 +134,12 @@ public:
 		}
 	}
 
-	void Check_()
-	{
+	void Check_() {
 		std::cout << "-------------------------------------------------" << std::endl;
 		Check_(m_root, 1);
 	}
 
-	void Check_(Node* node, int index)
-	{
+	void Check_(Node* node, int index) {
 		for (unsigned int i = 0; i < node->items.size(); i++) {
 			if (!node->bound.encloses(node->items[i]->bound)) {
 				std::cout << " Error " << std::endl;
@@ -151,8 +155,8 @@ public:
 	}
 
 	//update new location
-	void update_(int object_id, int new_location_x, int new_location_y)
-	{
+	void update_(int object_id, int new_location_x, int new_location_y) {
+
 		typename std::map<int, Leaf*>::iterator it = second_index.find(object_id);
 		if (it != second_index.end()) {
 			BoundingBox box;
@@ -185,8 +189,7 @@ public:
 	}
 
 	//remove
-	void remove_(int object_id)
-	{
+	void remove_(int object_id) {
 		typename std::map<int, Leaf*>::iterator it = second_index.find(object_id);
 		if (it != second_index.end()) {
 			Leaf* the_leaf = it->second;
@@ -196,11 +199,12 @@ public:
 			Remove(AcceptAny(), RemoveSpecificLeaf(the_leaf->leaf));
 
 //			RemoveOne(AcceptAny(), RemoveSpecificLeaf(the_leaf->leaf), object_id);
+		} else {
+			std::cout << "Error: agent is not exsiting when remove" << std::endl;
 		}
 	}
 
-	bool has_one_object(int object_id)
-	{
+	bool has_one_object(int object_id) {
 		typename std::map<int, Leaf*>::iterator it = second_index.find(object_id);
 //		if (it != second_index.end())
 //		{
@@ -219,8 +223,15 @@ public:
 	}
 
 	// Single insert function, adds a new item to the tree
-	void Insert(LeafType leaf, const BoundingBox &bound, int object_id)
-	{
+	void Insert(LeafType leaf, const BoundingBox &bound, int object_id) {
+#ifdef MEAUSURE_COUNTS
+		static long Insert_counts = 0;
+		Insert_counts++;
+		std::cout << "Insert_counts:" << Insert_counts << std::endl;
+#endif
+
+//		std::cout << "Insert 0.1" << std::endl;
+
 		// ID1: Invoke Insert starting with the leaf level as a
 		// parameter, to Insert a new data rectangle
 		Leaf * newLeaf = new Leaf();
@@ -272,10 +283,52 @@ public:
 	 for decent performance.
 	 */
 	template<typename Acceptor, typename Visitor>
-	Visitor Query(const Acceptor &accept, Visitor visitor) const
-	{
+	Visitor Query(const Acceptor &accept, Visitor visitor) const {
+
+//		sim_mob::Debug_Static_Count::query_depth = 0;
+//		std::cout << "=========================" << std::endl;
+//		std::cout << "start" << std::endl;
+
+#ifdef QUERY_PROFILING
+		Profiling_Counting_RDU::counting = 0;
+#endif
+
+
 		if (m_root) {
 			QueryFunctor<Acceptor, Visitor> query(accept, visitor);
+			query(m_root);
+		}
+
+#ifdef QUERY_PROFILING
+		long one = Profiling_Counting_RDU::counting;
+		Profiling_Counting_RDU::count_buff.push_back(one);
+
+		if(Profiling_Counting_RDU::count_buff.size() % 1000000 == 0)
+		{
+			double sum = 0;
+
+			for(int i=0;i<Profiling_Counting_RDU::count_buff.size();i++)
+			{
+				sum += Profiling_Counting_RDU::count_buff[i];
+			}
+
+			std::cout << "Count:" << Profiling_Counting_RDU::count_buff.size() << ", Sum Cost:" << sum << std::endl;
+		}
+
+//		std::cout << "Profiling_Counting_RDU::counting:" << Profiling_Counting_RDU::counting << std::endl;
+#endif
+
+//		std::cout << "debug_count" << sim_mob::Debug_Static_Count::query_depth << std::endl;
+//		std::cout << "end" << std::endl;
+//		std::cout << "=========================" << std::endl;
+
+		return visitor;
+	}
+
+	template<typename Acceptor, typename Visitor>
+	Visitor DebugQuery(const Acceptor &accept, Visitor visitor) const {
+		if (m_root) {
+			DebugStructureFunctor<Acceptor, Visitor> query(accept, visitor);
 			query(m_root);
 		}
 
@@ -300,8 +353,12 @@ public:
 	 function can be called.
 	 */
 	template<typename Acceptor, typename LeafRemover>
-	void Remove(const Acceptor &accept, LeafRemover leafRemover)
-	{
+	void Remove(const Acceptor &accept, LeafRemover leafRemover) {
+#ifdef MEAUSURE_COUNTS
+		static long Remove_counts = 0;
+		Remove_counts++;
+		std::cout << "Remove_counts:" << Remove_counts << std::endl;
+#endif
 		std::list<Leaf*> itemsToReinsert;
 
 		if (!m_root)
@@ -310,7 +367,17 @@ public:
 		RemoveFunctor<Acceptor, LeafRemover> remove(accept, leafRemover, &itemsToReinsert, &m_size);
 		remove(m_root, true);
 
+//		std::cout << "remove 1.1" << std::endl;
+
 		if (!itemsToReinsert.empty()) {
+
+#ifdef MEAUSURE_COUNTS
+		static long Merge_counts = 0;
+		Merge_counts++;
+		std::cout << "Merge_counts:" << Merge_counts << std::endl;
+#endif
+//			std::cout << "remove 1.2" << std::endl;
+
 			// reinsert anything that needs to be reinserted
 			typename std::list<Leaf*>::iterator it = itemsToReinsert.begin();
 			typename std::list<Leaf*>::iterator end = itemsToReinsert.end();
@@ -350,24 +417,20 @@ public:
 //	}
 
 	// stub that removes any items contained in an specified area
-	void RemoveBoundedArea(const BoundingBox &bound)
-	{
+	void RemoveBoundedArea(const BoundingBox &bound) {
 		Remove(AcceptEnclosing(bound), RemoveLeaf());
 	}
 
 	// removes a specific item. If removeDuplicates is true, only the first
 	// item found will be removed
-	void RemoveItem(const LeafType &item, bool removeDuplicates = true)
-	{
+	void RemoveItem(const LeafType &item, bool removeDuplicates = true) {
 		Remove(AcceptAny(), RemoveSpecificLeaf(item, removeDuplicates));
 	}
 
-	std::size_t GetSize() const
-	{
+	std::size_t GetSize() const {
 		return m_size;
 	}
-	std::size_t GetDimensions() const
-	{
+	std::size_t GetDimensions() const {
 		return dimensions;
 	}
 
@@ -376,14 +439,11 @@ protected:
 	// choose subtree: only pass this items that do not have leaves
 	// I took out the loop portion of this algorithm, so it only
 	// picks a subtree at that particular level
-	Node * ChooseSubtree(Node * node, const BoundingBox * bound)
-	{
+	Node * ChooseSubtree(Node * node, const BoundingBox * bound) {
 		// If the child pointers in N point to leaves
 		if (static_cast<Node*>(node->items[0])->hasLeaves) {
 			// determine the minimum overlap cost
 			if (max_child_items > (RDUTREE_CHOOSE_SUBTREE_P * 2) / 3 && node->items.size() > RDUTREE_CHOOSE_SUBTREE_P) {
-//				std::cout << "Case A" << std::endl;
-
 				// ** alternative algorithm:
 				// Sort the rectangles in N in increasing order of
 				// then area enlargement needed to include the new
@@ -398,9 +458,6 @@ protected:
 
 				return static_cast<Node*>(*std::min_element(node->items.begin(), node->items.begin() + RDUTREE_CHOOSE_SUBTREE_P, SortBoundedItemsByOverlapEnlargement<BoundedItem>(bound)));
 			}
-
-//			std::cout << "Case B" << std::endl;
-//			std::cout << "node->items:" << node->items.size() << std::endl;
 
 			// choose the leaf in N whose rectangle needs least
 			// overlap enlargement to include the new data
@@ -419,15 +476,13 @@ protected:
 		// rectangle. Resolve ties by choosing the leaf
 		// with the rectangle of smallest area
 
-//		std::cout << "Case C" << std::endl;
 		return static_cast<Node*>(*std::min_element(node->items.begin(), node->items.end(), SortBoundedItemsByAreaEnlargement<BoundedItem>(bound)));
 	}
 
 	// inserts nodes recursively. As an optimization, the algorithm steps are
 	// way out of order. :) If this returns something, then that item should
 	// be added to the caller's level of the tree
-	Node * InsertInternal(Leaf * leaf, Node * node, bool firstInsert = true)
-	{
+	Node * InsertInternal(Leaf * leaf, Node * node, bool firstInsert = true) {
 		// I4: Adjust all covering rectangles in the insertion path
 		// such that they are minimum bounding boxes
 		// enclosing the children rectangles
@@ -447,14 +502,13 @@ protected:
 			// determine whether we need to split the overflow or not
 			Node * tmp_node = InsertInternal(leaf, ChooseSubtree(node, &leaf->bound), firstInsert);
 
-			if (!tmp_node)
+			if (!tmp_node) {
 				return NULL;
+			}
 
 			// this gets joined to the list of items at this level
 			node->items.push_back(tmp_node);
 			tmp_node->is_a_leaf = false;
-
-			//			std::cout << "After Split: node->items.size():" << node->items.size() << std::endl;
 		}
 
 		// If N has M+1 items. invoke OverflowTreatment with the
@@ -482,50 +536,33 @@ protected:
 	}
 
 	// TODO: probably could just merge this in with InsertInternal()
-	Node * OverflowTreatment(Node * level, bool firstInsert)
-	{
+	Node * OverflowTreatment(Node * level, bool firstInsert) {
+#ifdef MEAUSURE_COUNTS
+		static long OverflowTreatment_counts = 0;
+		OverflowTreatment_counts++;
+		std::cout << "OverflowTreatment:" << OverflowTreatment_counts << std::endl;
+#endif
 		// OT1: If the level is not the root level AND this is the first
 		// call of OverflowTreatment in the given level during the
 		// insertion of one data rectangle, then invoke Reinsert
+
 		if (level != m_root && firstInsert) {
 			Reinsert(level);
 			return NULL;
 		}
 
-		//		DEBUG_(level, 1);
-		//		std::cout << "----------------------------" << std::endl;
-
 		Node * splitItem = Split(level);
-		//		std::cout << "splitItem:" << splitItem->hasLeaves << std::endl;
-
-		//		DEBUG_(splitItem, 1);
-
-		//		if(splitItem->is_a_leaf)
-		//		{
-		//			std::cout << "AAAAAAAAAAAA" << std::endl;
-		//		}
 
 		//xuyan: set father
 		if (splitItem->items[0]->is_a_leaf) {
-			//			std::cout << "BVBBBBBBBBBB" << std::endl;
-
 			for (unsigned int i = 0; i < splitItem->items.size(); i++) {
-				//				std::cout << "CCCCCCCCCCCCCCC" << std::endl;
-
 				Leaf* a_leaf = static_cast<Leaf*>(splitItem->items[i]);
-				//				std::cout << "a_leaf->leaf->agent_id:" << a_leaf->leaf->agent_id << std::endl;
 				a_leaf->father = splitItem;
 			}
 		}
 
 		// If OverflowTreatment caused a split of the root, create a new root
 		if (level == m_root) {
-			//			DEBUG_(m_root, 1);
-			//			std::cout << "----------------------------" << std::endl;
-			//			DEBUG_(splitItem, 1);
-
-			//			std::cout << "Split Root:" << std::endl;
-
 			Node * newRoot = new Node();
 			newRoot->hasLeaves = false;
 
@@ -542,7 +579,6 @@ protected:
 			// and we're done
 			m_root = newRoot;
 
-			//			DEBUG_(m_root, 1);
 			return NULL;
 		}
 
@@ -556,8 +592,12 @@ protected:
 	//
 	// This returns a node, which should be added to the items of the
 	// passed node's parent
-	Node * Split(Node * node)
-	{
+	Node * Split(Node * node) {
+#ifdef MEAUSURE_COUNTS
+		static long Split_counts = 0;
+		Split_counts++;
+		std::cout << "Split:" << Split_counts << std::endl;
+#endif
 		Node * newNode = new Node();
 		newNode->hasLeaves = node->hasLeaves;
 
@@ -568,10 +608,6 @@ protected:
 		int split_margin = 0;
 
 		BoundingBox R1, R2;
-
-		//		std::cout << "======Split========:" << std::endl;
-		//		std::cout << "n_items:" << n_items << std::endl;
-		//		std::cout << "max_child_items:" << max_child_items << std::endl;
 
 		// these should always hold true
 		assert(n_items == max_child_items + 1);
@@ -684,8 +720,12 @@ protected:
 
 	// This routine is used to do the opportunistic reinsertion that the
 	// R* algorithm calls for
-	void Reinsert(Node * node)
-	{
+	void Reinsert(Node * node) {
+#ifdef MEAUSURE_COUNTS
+		static long Reinsert_counts = 0;
+		Reinsert_counts++;
+		std::cout << "Reinsert:" << Reinsert_counts << std::endl;
+#endif
 		std::vector<BoundedItem*> removed_items;
 
 		const std::size_t n_items = node->items.size();
@@ -730,19 +770,16 @@ protected:
 
 	// visits a node if necessary
 	template<typename Acceptor, typename Visitor>
-	struct VisitFunctor: std::unary_function<const BoundingBox *, void>
-	{
+	struct VisitFunctor: std::unary_function<const BoundingBox *, void> {
 
 		const Acceptor &accept;
 		Visitor &visit;
 
 		explicit VisitFunctor(const Acceptor &a, Visitor &v) :
-				accept(a), visit(v)
-		{
+				accept(a), visit(v) {
 		}
 
-		void operator()(BoundedItem * item)
-		{
+		void operator()(BoundedItem * item) {
 			Leaf * leaf = static_cast<Leaf*>(item);
 
 			if (accept(leaf))
@@ -752,19 +789,46 @@ protected:
 
 	// this functor recursively walks the tree
 	template<typename Acceptor, typename Visitor>
-	struct QueryFunctor: std::unary_function<const BoundedItem, void>
-	{
+	struct QueryFunctor: std::unary_function<const BoundedItem, void> {
 		const Acceptor &accept;
 		Visitor &visitor;
 
 		explicit QueryFunctor(const Acceptor &a, Visitor &v) :
-				accept(a), visitor(v)
-		{
+				accept(a), visitor(v) {
 		}
 
-		void operator()(BoundedItem * item)
-		{
+		void operator()(BoundedItem * item) {
 			Node * node = static_cast<Node*>(item);
+
+#ifdef QUERY_PROFILING
+			Profiling_Counting_RDU::counting ++;
+#endif
+
+//			sim_mob::Debug_Static_Count::query_depth ++;
+//			std::cout << "one more" << std::endl;
+
+			if (visitor.ContinueVisiting && accept(node)) {
+				if (node->hasLeaves)
+					for_each(node->items.begin(), node->items.end(), VisitFunctor<Acceptor, Visitor>(accept, visitor));
+				else
+					for_each(node->items.begin(), node->items.end(), *this);
+			}
+		}
+	};
+
+	// this functor recursively walks the tree
+	template<typename Acceptor, typename Visitor>
+	struct DebugStructureFunctor: std::unary_function<const BoundedItem, void> {
+		const Acceptor &accept;
+		Visitor &visitor;
+
+		explicit DebugStructureFunctor(const Acceptor &a, Visitor &v) :
+				accept(a), visitor(v) {
+		}
+
+		void operator()(BoundedItem * item) {
+			Node * node = static_cast<Node*>(item);
+			std::cout << node->hasLeaves << ",(" << node->bound.edges[0].first << "," << node->bound.edges[0].second << "," << node->bound.edges[1].first << "," << node->bound.edges[1].second << ")," << node->items.size() << std::endl;
 
 			if (visitor.ContinueVisiting && accept(node)) {
 				if (node->hasLeaves)
@@ -784,24 +848,21 @@ protected:
 
 	// determines whether a leaf should be deleted or not
 	template<typename Acceptor, typename LeafRemover>
-	struct RemoveLeafFunctor: std::unary_function<const BoundingBox *, bool>
-	{
+	struct RemoveLeafFunctor: std::unary_function<const BoundingBox *, bool> {
 		const Acceptor &accept;
 		LeafRemover &remove;
 		std::size_t * size;
 
 		explicit RemoveLeafFunctor(const Acceptor &a, LeafRemover &r, std::size_t * s) :
-				accept(a), remove(r), size(s)
-		{
+				accept(a), remove(r), size(s) {
 		}
 
-		bool operator()(BoundedItem * item) const
-		{
+		bool operator()(BoundedItem * item) const {
 			Leaf * leaf = static_cast<Leaf *>(item);
 
 			if (accept(leaf) && remove(leaf)) {
 				--(*size);
-				delete leaf;
+//				delete leaf;
 				return true;
 			}
 
@@ -810,8 +871,7 @@ protected:
 	};
 
 	template<typename Acceptor, typename LeafRemover>
-	struct RemoveFunctor: std::unary_function<const BoundedItem *, bool>
-	{
+	struct RemoveFunctor: std::unary_function<const BoundedItem *, bool> {
 		const Acceptor &accept;
 		LeafRemover &remove;
 
@@ -822,12 +882,10 @@ protected:
 		// the third parameter is a list that the items that need to be reinserted
 		// are put into
 		explicit RemoveFunctor(const Acceptor &na, LeafRemover &lr, std::list<Leaf*>* ir, std::size_t * size) :
-				accept(na), remove(lr), itemsToReinsert(ir), m_size(size)
-		{
+				accept(na), remove(lr), itemsToReinsert(ir), m_size(size) {
 		}
 
-		bool operator()(BoundedItem * item, bool isRoot = false)
-		{
+		bool operator()(BoundedItem * item, bool isRoot = false) {
 			Node * node = static_cast<Node*>(item);
 
 			if (accept(node)) {
@@ -844,6 +902,11 @@ protected:
 						return true;
 					} else if (node->items.size() < min_child_items) {
 						// queue up the items that need to be reinserted
+#ifdef MEAUSURE_COUNTS
+						static long merge_counts = 0;
+						merge_counts++;
+						std::cout << "merge_counts:" << merge_counts << std::endl;
+#endif
 						QueueItemsToReinsert(node);
 						return true;
 					}
@@ -864,8 +927,7 @@ protected:
 		// theres probably a better way to do this, but this
 		// traverses and finds any leaves, and adds them to a
 		// list of items that will later be reinserted
-		void QueueItemsToReinsert(Node * node)
-		{
+		void QueueItemsToReinsert(Node * node) {
 			typename std::vector<BoundedItem*>::iterator it = node->items.begin();
 			typename std::vector<BoundedItem*>::iterator end = node->items.end();
 
@@ -880,7 +942,7 @@ protected:
 		}
 	};
 
-private:
+public:
 	Node * m_root;
 
 	std::size_t m_size;

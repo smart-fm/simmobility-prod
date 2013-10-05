@@ -330,13 +330,6 @@ struct SortBoundedItemsByOverlapEnlargement: public std::binary_function<const B
 
 	bool operator()(const BoundedItem * const bi1, const BoundedItem * const bi2) const
 	{
-		//		std::cout << "bi1:" << bi1->bound.edges[0].first <<
-		//				"," << bi1->bound.edges[0].second << ";" << bi1->bound.edges[1].first << "," << bi1->edges.edge[1].second << std::endl;
-		//		std::cout << "bi2:" << bi2->edge[0].first << "," << bi2->edge[0].second << ";" << bi2->edge[1].first << "," << bi2->edge[1].second << std::endl;
-
-		//		std::cout << "bi1->bound.overlap(*m_center):" << bi1->bound.overlap(*m_center) << std::endl;
-		//		std::cout << "bi2->bound.overlap(*m_center):" << bi2->bound.overlap(*m_center) << std::endl;
-
 		typename BoundedItem::BoundingBox new_box_1;
 		new_box_1.reset();
 		new_box_1.stretch(bi1->bound);

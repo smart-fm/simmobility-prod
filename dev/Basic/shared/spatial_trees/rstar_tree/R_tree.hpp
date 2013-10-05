@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "spatial_trees/rstar_tree/RStarTree.h"
+#include "spatial_trees/rstar_tree/RStarTree.hpp"
 
 namespace sim_mob
 {
@@ -19,7 +19,7 @@ class Agent;
 // The AuraManager uses a 2-D R*-tree to create a spatial indexing of the agents.
 // Each node (both non-leaf and leaf) in the R*-tree holds 8 to 16 items.
 
-class R_tree: public RStarTree<Agent const *, 2, 8, 16>
+class R_tree: public RStarTree<Agent const *, 2, 15, 50>
 {
 public:
 	// No need to define the ctor and dtor.
@@ -34,6 +34,12 @@ public:
 	// y- component.
 	std::vector<Agent const *>
 	query(R_tree::BoundingBox const & box) const;
+
+	//display the tree structure
+	void display();
+
+	//display a tree structure
+	void display(Node * node);
 
 private:
 	// A visitor that simply collects the agent into an array, which was specified in the

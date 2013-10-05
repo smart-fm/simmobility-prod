@@ -334,6 +334,9 @@ private:
     // each of the monitor areas.
     AABB monitorArea_;
 
+    //For reference.
+    const LoopDetectorEntity* parent;
+
 private:
     void
     createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity);
@@ -342,7 +345,7 @@ private:
     createLoopDetectors(std::vector<RoadSegment *> const & roads, LoopDetectorEntity & entity);
 };
 
-LoopDetectorEntity::Impl::Impl(Signal const & signal, LoopDetectorEntity & entity)
+LoopDetectorEntity::Impl::Impl(Signal const & signal, LoopDetectorEntity & entity) : parent(&entity)
 {
     // Assume that each loop-detector is 4 meters in length.  This will be the inner monitoring
     // area.  Any vehicle whose (central) position is within this area will be considered to be
@@ -514,8 +517,7 @@ LoopDetectorEntity::Impl::check(timeslice now)
 {
     // Get all vehicles located within monitorArea_.
     boost::unordered_set<Vehicle const *> vehicles;
-    std::vector<Agent const *> const agents
-        = AuraManager::instance().agentsInRect(monitorArea_.lowerLeft_, monitorArea_.upperRight_);
+    std::vector<Agent const *> const agents = AuraManager::instance().agentsInRect(monitorArea_.lowerLeft_, monitorArea_.upperRight_, parent);
     for (size_t i = 0; i < agents.size(); ++i)
     {
         Agent const * agent = agents[i];
@@ -609,7 +611,6 @@ LoopDetectorEntity::~LoopDetectorEntity()
 void
 LoopDetectorEntity::init(Signal const & signal)
 {
-
     pimpl_ = new Impl(signal, *this);
     tempLoopImpl = pimpl_;
     Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;

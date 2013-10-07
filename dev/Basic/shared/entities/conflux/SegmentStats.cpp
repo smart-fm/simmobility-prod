@@ -453,10 +453,10 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 
 	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 	double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	double minSpeed = 500.0;
+	double minSpeed = 1000.0;
 	double jamDensity = 0.25; //density during traffic jam
-	double alpha = 3.75; //Model parameter of speed density function
-	double beta = 0.5645; //Model parameter of speed density function
+	double alpha = 1.15; //Model parameter of speed density function
+	double beta = 1.5; //Model parameter of speed density function
 	double minDensity = 0.0048; // minimum traffic density
 	double speed = 0.0;
 

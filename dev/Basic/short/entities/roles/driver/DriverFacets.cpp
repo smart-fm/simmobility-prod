@@ -249,12 +249,12 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
 	double dist = 0;
-	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 6000, dist);
 	bool replan = false;
-	//for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
-	//	const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
+	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 6000, dist);
 	if(roadItem) {
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
+	//for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
+	//	const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 		if(inc){
 			float visibility = inc->visibilityDistance;
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && curLaneIndex==inc->laneId && dist<visibility){

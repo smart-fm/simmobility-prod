@@ -218,8 +218,9 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
     	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
     	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
 
+    		unsigned int originId = (*segIt)->originalDB_ID.getLastVal();
 			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
-				if((*incIt).segmentId == (*segIt)->getSegmentID() ) {
+				if((*incIt).segmentId == originId ) {
 
 					Incident* item = new sim_mob::Incident();
 					item->accessibility = (*incIt).accessibility;
@@ -236,7 +237,7 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					item->visibilityDistance = (*incIt).visibilityDistance;
 
 					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
-					centimeter_t pos = rs->getLengthOfSegment()*item->position/100.0;
+					centimeter_t pos = rs->length*item->position/100.0;
 					rs->addObstacle(pos, item);
 				}
 			}

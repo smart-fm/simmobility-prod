@@ -28,6 +28,7 @@ template <typename T>
 class OpaqueProperty {
 private:
 	std::string repr_;
+	T lastVal;
 
 public:
 	void setProps(const std::string& key, const T& value) {
@@ -35,6 +36,7 @@ public:
 		builder <<"\"" <<key <<"\"" <<":"
 				<<"\"" <<value <<"\"" <<",";
 		builder >>repr_;
+		lastVal = value;
 	}
 
 	bool isSet() const {
@@ -43,6 +45,10 @@ public:
 
 	std::string getLogItem() const {
 		return repr_;
+	}
+
+	T getLastVal() {
+		return lastVal;
 	}
 
 	//Allow assigning from a string

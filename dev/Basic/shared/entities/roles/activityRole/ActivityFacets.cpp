@@ -12,17 +12,30 @@ sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* p
 
 
 void sim_mob::ActivityPerformerBehavior::frame_init(UpdateParams& p) {
-	parentActivity->initializeRemainingTime();
+	throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
 }
 
 void sim_mob::ActivityPerformerBehavior::frame_tick(UpdateParams& p) {
+	throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
+}
+
+void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p) {
+	throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
+}
+
+void sim_mob::ActivityPerformerMovement::frame_init(UpdateParams& p) {
+	parentActivity->initializeRemainingTime();
+}
+
+void sim_mob::ActivityPerformerMovement::frame_tick(UpdateParams& p) {
 	parentActivity->updateRemainingTime();
 	if(parentActivity->remainingTimeToComplete <= 0){
 		getParent()->setToBeRemoved();
 	}
+	getParent()->setRemainingTimeThisTick(0.0);
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p) {
+void sim_mob::ActivityPerformerMovement::frame_tick_output(const UpdateParams& p) {
 	LogOut("(\"Activity\""
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()
@@ -30,23 +43,6 @@ void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p
 			<<"\"xPos\":\""<<static_cast<int>(getParent()->xPos)
 			<<"\",\"yPos\":\""<<static_cast<int>(getParent()->yPos)
 			<<"\"})"<<std::endl);
-}
-
-void sim_mob::ActivityPerformerMovement::frame_init(UpdateParams& p) {
-	//parentActivity->initializeRemainingTime();
-	//throw std::runtime_error("ActivityPerformerMovement::frame_init() shouldn't have been called. Activity works only with behavior facet.");
-}
-
-void sim_mob::ActivityPerformerMovement::frame_tick(UpdateParams& p) {
-	/*parentActivity->updateRemainingTime();
-	if(parentActivity->remainingTimeToComplete <= 0){
-		parentAgent->setToBeRemoved();
-	}*/
-	//throw std::runtime_error("ActivityPerformerMovement::frame_tick() shouldn't have been called. Activity works only with behavior facet.");
-}
-
-void sim_mob::ActivityPerformerMovement::frame_tick_output(const UpdateParams& p) {
-	//throw std::runtime_error("ActivityPerformerMovement::frame_tick_output() shouldn't have been called. Activity works only with behavior facet.");
 }
 
 sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName):

@@ -710,7 +710,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	//Retrieve a rowset for this set of trip chains.
 	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
-//	std::cout << " Found "
+
 	//Execute as a rowset to avoid repeatedly building the query.
 	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//The following are set regardless.

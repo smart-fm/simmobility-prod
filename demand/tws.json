@@ -1,0 +1,53 @@
+{
+    "Choiceset": [
+        "Work", 
+        "Education", 
+        "Shopping", 
+        "Others", 
+        "Quit"
+    ], 
+    "Variable": {
+        "var_go_to_primary_work_location": "var_go_to_primary_work_location", 
+        "var_first_of_multiple": "var_first_of_multiple", 
+        "var_Female_dummy": "var_Female_dummy", 
+        "var_subsequent_of_multiple": "var_subsequent_of_multiple", 
+        "var_zero_car": "var_zero_car"
+    }, 
+    "Utility": {
+        "Work": "beta_cons_work+beta_female_work*var_Female_dummy", 
+        "Quit": "beta_cons_Q+beta_first_work*(1*(var_first_of_multiple==1))+beta_2plus_work*(1*(var_subsequent_of_multiple==1))+beta_not_usual*(1-var_go_to_primary_work_location)+beta_no_car*(1*(var_zero_car==0))", 
+        "Others": "beta_cons_other+beta_female_other*var_Female_dummy", 
+        "Shopping": "beta_cons_shopping+beta_female_shopping*var_Female_dummy+beta_PT_shopping*(1*(var_zero_car==0))", 
+        "Education": "beta_cons_edu+beta_female_edu*var_Female_dummy"
+    }, 
+    "Availability": {
+        "Work": "tws_Work_AV", 
+        "Quit": "tws_Quit_AV", 
+        "Others": "tws_Others_AV", 
+        "Shopping": "tws_Shopping_AV", 
+        "Education": "tws_Education_AV"
+    }, 
+    "Scale": {
+        "Work": 1.81, 
+        "Quit": 1, 
+        "Others": 1.81, 
+        "Shopping": 1.81, 
+        "Education": 1.81
+    }, 
+    "Parameters": {
+        "beta_no_car": -0.523, 
+        "beta_not_usual": 0.997, 
+        "beta_female_edu": 0.0, 
+        "beta_female_shopping": 0.0, 
+        "beta_female_work": -1.04, 
+        "beta_2plus_work": -1.36, 
+        "beta_cons_shopping": -6.36, 
+        "beta_cons_work": -4.1, 
+        "beta_cons_other": -3.78, 
+        "beta_female_other": -0.755, 
+        "beta_cons_Q": 0.0, 
+        "beta_cons_edu": -7.13, 
+        "beta_PT_shopping": 0.0, 
+        "beta_first_work": -0.0101
+    }
+}

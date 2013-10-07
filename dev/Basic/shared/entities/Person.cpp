@@ -281,8 +281,8 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime((*currTripChainItem)->startTime.getValue() + now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (*currTripChainItem)->endTime.getValue()));
+				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*currTripChainItem)->endTime.getValue() - (*currTripChainItem)->startTime.getValue())));
 				ap->initializeRemainingTime();
 			}
 		}
@@ -407,13 +407,9 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		}
 	}
 
-//	if(!first_update_tick) {
-//		updateNextTripChainItem();
-//	}
-
 	first_update_tick = false;
 
-	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of(or changing to) a new role
+	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);
 
 	//Create a new Role based on the trip chain type
@@ -439,14 +435,6 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		currParams = currRole->getSubscriptionParams();
 	}
 
-	//Set our start time to the NEXT time tick so that frame_init is called
-	//  on the first pass through.
-	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
-	//      now takes Agent* objects. (Use "currTimeMS" for this)
-
-	//setStartTime(nextValidTimeMS); done out side this function
-	//call_frame_init = true;//what a hack! -vahid
-
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
@@ -457,7 +445,9 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
-		if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
+	if(!trip) {
+		throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
+	}
 	return trip->getSubTripsRW().begin();
 }
 
@@ -715,14 +705,19 @@ bool sim_mob::Person::updateNextTripChainItem()
 bool sim_mob::Person::advanceCurrentSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
-	if(!trip) return false;
-	if (currSubTrip == trip->getSubTripsRW().end())//just a routine check
+	if(!trip) {
 		return false;
+	}
+
+	if (currSubTrip == trip->getSubTripsRW().end()) /*just a routine check*/ {
+		return false;
+	}
 
 	currSubTrip++;
 
-	if (currSubTrip == trip->getSubTripsRW().end())
+	if (currSubTrip == trip->getSubTripsRW().end()) {
 		return false;
+	}
 
 	return true;
 }
@@ -736,35 +731,35 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {
 	bool res = false;
-	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
-	//std::cout << "Advancing the tripchain for person " << (*currTripChainItem)->getPersonID() << std::endl;
+	if(currTripChainItem == tripChain.end()) /*just a harmless basic check*/ {
+		return false;
+	}
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{
-		//dont advance to next tripchainItem immidiately, check the subtrip first
+		//don't advance to next tripchainItem immediately, check the subtrip first
 		res = advanceCurrentSubTrip();
-		//if(res)
-		//std::cout << "Advancing the subtripchain for person mode: " << currSubTrip->mode << " from Node  "<<currSubTrip->fromLocation.getID()<< std::endl;
-
 	}
 
-	if(res) return res;
+	if(res) {
+		return res;
+	}
 
 	//no, it is not the subtrip we need to advance, it is the tripchain item
-	currTripChainItem ++;
-	if(currTripChainItem != tripChain.end())
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-	//	std::cout << "processing Activity";
+	currTripChainItem++;
+	if (currTripChainItem == tripChain.end())  {
+		//but tripchain items are also over, get out !
+		return false;
 	}
-	//but tripchainitems are also over, get out !
-	if(currTripChainItem == tripChain.end()) return false;
 
 	//so far, advancing the tripchainitem has been successful
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+	}
 
 	//Also set the currSubTrip to the beginning of trip , just in case
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM) {
 		currSubTrip = resetCurrSubTrip();
-
+	}
 	return true;
 }
 

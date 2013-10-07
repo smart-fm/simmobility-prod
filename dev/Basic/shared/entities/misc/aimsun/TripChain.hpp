@@ -60,7 +60,7 @@ public:
 	std::string tmp_tolocationType;
 	std::string tmp_startTime;
 	std::string tmp_endTime;
-	int tmp_activityID;
+	std::string tmp_activityID;
 	int tmp_locationID;
 	std::string  tmp_locationType;
 

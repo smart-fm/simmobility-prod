@@ -33,7 +33,11 @@ class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-class ProfileBuilder;
+//class ProfileBuilder;
+
+//It is not a good design, now. Need to verify.
+//The class is used in Sim-Tree for Bottom-Up Query
+struct TreeItem;
 
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Agent*> {
@@ -196,6 +200,10 @@ public:
 	WayPoint originNode;
 	WayPoint destNode;
 
+	//tmp for Sim_Tree to Work
+//	int xPos_Sim;
+//	int yPos_Sim;
+
 	sim_mob::Shared<int> xPos;  ///<The agent's position, X
 	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
@@ -312,7 +320,6 @@ private:
 	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 //	boost::mutex lastUpdatedFrame_mutex;
 
-	//add by xuyan
 protected:
 	int dynamic_seed;
 
@@ -324,10 +331,9 @@ protected:
 	const sim_mob::Lane* currLane;
 	const sim_mob::RoadSegment* currSegment;
 
-	sim_mob::ProfileBuilder* profile;
+	//sim_mob::ProfileBuilder* profile;
 
 public:
-	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
 
@@ -347,6 +353,8 @@ public:
 
 
 	friend class ShortTermBoundaryProcessor;
+
+	//TreeItem* connector_to_Sim_Tree;
 
 
 	/**

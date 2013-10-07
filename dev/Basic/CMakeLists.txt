@@ -206,7 +206,7 @@ option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." O
 
 #Option: Turn on Unity (full-file) builds. 
 option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
-option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." ON)
+option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
 
 #String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
 #set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
@@ -227,6 +227,7 @@ option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest
 option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
 option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
 option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
+option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's spatial index. Usually combined with PROFILE_WORKER_UPDATES. Can be slow." OFF)
 
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)

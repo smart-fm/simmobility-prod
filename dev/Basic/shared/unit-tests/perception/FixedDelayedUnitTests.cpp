@@ -86,6 +86,20 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_zero_retrieve()
 }
 
 
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_zero_error()
+{
+	//Create a FixedDelayed Type with NO delayed value
+	FixedDelayed<int> x(0);
+
+	//Now, try to change it.
+	try {
+		x.set_delay(1);
+	} catch (std::exception& ex) { return; }
+
+	CPPUNIT_FAIL("Changing the delay of a zero-length reaction time did not fail.");
+}
+
+
 namespace {
 //Simple class for testing
 class MyPoint {

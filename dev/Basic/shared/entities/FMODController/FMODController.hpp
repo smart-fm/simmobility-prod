@@ -12,7 +12,7 @@
 #ifndef FMODCONTROLLER_HPP_
 #define FMODCONTROLLER_HPP_
 #include "TCPClient.hpp"
-#include "ParkingCoordinator.h"
+#include "ParkingCoordinator.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
 

@@ -112,25 +112,26 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
-	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), profile(nullptr), linkTravelStatsMap(mtxStrat),
-	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0)
+	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
+	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
+	toRemoved(false), nextPathPlanned(false), dynamic_seed(id)/*, connector_to_Sim_Tree(nullptr)*/
 {
-	toRemoved = false;
-	nextPathPlanned = false;
-	dynamic_seed = id;
 	//Register global life cycle events.
-	if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
+	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.
+	//      Fortunately, no-one was using this behavior anyway.
+	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile = new ProfileBuilder();
-		profile->logAgentCreated(*this);
-	}
-
+		//profile->logAgentCreated(*this);
+	}*/
 }
 
 sim_mob::Agent::~Agent() {
-        if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
+	//NOTE: We can't profile the agent's deletion, since it's not necessarily on a thread at this point.
+	//      Fortunately, no-one was using this behavior anyway.
+	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
-	}
-	safe_delete_item(profile);
+	}*/
+	//safe_delete_item(profile);
 }
 
 void sim_mob::Agent::resetFrameInit() {
@@ -221,7 +222,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 }
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(profile, *this, now);
+	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -235,7 +236,8 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	} catch (std::exception& ex) {
-		PROFILE_LOG_AGENT_EXCEPTION(profile, *this, frameNumber, ex);
+		//TODO: We can't handle this right now.
+		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
@@ -271,7 +273,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
                
 	}
 
-	PROFILE_LOG_AGENT_UPDATE_END(profile, *this, now);
+	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
 	return retVal;
 }
 

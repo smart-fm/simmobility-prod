@@ -9,7 +9,9 @@
  */
 #include <vector>
 #include <string>
-#include <ctime>
+
+//TODO: Replace with <chrono> or something similar.
+#include <sys/time.h>
 
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
@@ -261,6 +263,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
+	//Initialize the aura manager
+	AuraManager::instance().init(config.aura_manager_impl());
+
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
 
@@ -284,7 +289,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time_med);
+	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
@@ -496,7 +501,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	cout << "Total simulation time: "<< Utils::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< ProfileBuilder::diff_ms(simEndTime, simStartTime) << " ms." << endl;
 
 	return returnVal;
 }

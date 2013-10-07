@@ -30,11 +30,14 @@ else ()
       C:/MinGW32/include/soci
       C:/MinGW32/include/soci/postgresql
       ~/Library/Frameworks
+      /home/xuyan/xuyan_SimMobility/soci/include
+      /home/xuyan/xuyan_SimMobility/soci/include/soci
       /Library/Frameworks
       /usr/local/include
       /usr/local/include/soci/postgresql
       /usr/include
       /usr/include/soci/postgresql
+      /usr/local/include/soci/postgresql/
       /sw/include # Fink
       /opt/local/include # DarwinPorts
       /opt/local/include/soci/postgresql # MacPorts location
@@ -52,9 +55,11 @@ else ()
       C:/MinGW/lib
       C:/MinGW32/lib
       ~/Library/Frameworks
+      /home/xuyan/xuyan_SimMobility/soci/lib64
       /Library/Frameworks
       /usr/local/lib
       /usr/local/lib64
+      /afs/csail.mit.edu/u/x/xuyan/lib/soci/soci-3.2.1/lib64
       /usr/lib
       /sw/lib
       /opt/local/lib

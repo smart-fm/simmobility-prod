@@ -236,10 +236,15 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 	const Lane* curLane = parentDriver->vehicle->getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	int nextLaneIndex = 0;
-	if( curLaneIndex < curSegment->getLanes().size()-1)
+	LANE_CHANGE_SIDE laneSide = LCS_SAME;
+	if( curLaneIndex < curSegment->getLanes().size()-1){
 		nextLaneIndex = curLaneIndex+1;
-	else
+		laneSide = LCS_LEFT;
+	}
+	else {
 		nextLaneIndex = curLaneIndex-1;
+		laneSide = LCS_RIGHT;
+	}
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -280,6 +285,7 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 
 	if(replan){
 		incidentResponsePlan.nextLaneIndex = nextLaneIndex;
+		incidentResponsePlan.laneSide = laneSide;
 		incidentResponsePlan.makeResponsePlan(&now, curSegment);
 	}
 }
@@ -684,13 +690,13 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 	LANE_CHANGE_MODE mode = MLC;
 	makeDecisionForIncident(p, parentDriver->params.now);
-	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_SLOWDOWN_OR_STOP ){
+	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_HAPPENING ){
 		//parentDriver->vehicle->setAcceleration(10);
 		//parentDriver->vehicle->setVelocity(50);
 		//if(p.currLaneIndex==p.nextLaneIndex)
 		if(incidentResponsePlan.nextLaneIndex >= 0){
 			p.nextLaneIndex = incidentResponsePlan.nextLaneIndex;
-			parentDriver->vehicle->setTurningDirection(LCS_LEFT);
+			parentDriver->vehicle->setTurningDirection(incidentResponsePlan.laneSide);
 			parentDriver->vehicle->setLatVelocity(150);
 			parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit+100);
 			incidentResponsePlan.startFrameTick++;

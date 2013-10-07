@@ -6,6 +6,7 @@
  */
 
 #include "geospatial/Incident.hpp"
+#include "geospatial/Lane.hpp"
 #include "map"
 #ifndef INCIDENTRESPONSE_HPP_
 #define INCIDENTRESPONSE_HPP_
@@ -16,7 +17,7 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentResponse {
 public:
-	enum INCIDENTPLAN{INCIDENT_CLEARANCE, INCIDENT_SLOWDOWN_OR_STOP, INCIDENT_MANDATORYLANECHANGING };
+	enum INCIDENTPLAN{INCIDENT_CLEARANCE, INCIDENT_HAPPENING };
 	IncidentResponse();
 	virtual ~IncidentResponse();
 	bool insertIncident(const Incident* inc);
@@ -30,6 +31,7 @@ public:
 	float speedLimit;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
+	LANE_CHANGE_SIDE laneSide;
 
 private:
 	std::map<unsigned int, const Incident*> currentIncidents;

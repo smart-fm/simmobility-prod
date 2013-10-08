@@ -1118,6 +1118,7 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
 		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
 		incident.speedlimit = ParseFloat(GetNamedAttributeValue(item, "speed_limit") );
+		incident.speedlimitOthers = ParseFloat(GetNamedAttributeValue(item, "speed_limit_otherlanes") );
 		incident.laneId = ParseUnsignedInt(GetNamedAttributeValue(item, "lane") );
 		incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
 		incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );

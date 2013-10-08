@@ -10,7 +10,7 @@
 
 namespace sim_mob {
 
-IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), laneSide(LCS_SAME) {
+IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), laneSide(LCS_SAME) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -31,6 +31,14 @@ bool IncidentResponse::insertIncident(const Incident* inc){
 	else{
 		speedLimit = std::min(speedLimit, inc->speedlimit);
 	}
+
+	if( speedLimitOthers<=0 ){
+		speedLimitOthers = inc->speedlimitOthers;
+	}
+	else{
+		speedLimitOthers = std::min(speedLimitOthers, inc->speedlimitOthers);
+	}
+
 	return true;
 }
 
@@ -48,13 +56,9 @@ bool IncidentResponse::removeIncident(const Incident* inc){
 
 void IncidentResponse::makeResponsePlan(timeslice* now, const RoadSegment* currentRoad){
 
-	if(currentIncidents.size() > 0 ){
-		currentPlan = INCIDENT_HAPPENING;
-	}
-	else {
+	if(currentIncidents.size() ==0 ){
 		currentPlan = INCIDENT_CLEARANCE;
 	}
-
 }
 
 void IncidentResponse::resetStatus(){

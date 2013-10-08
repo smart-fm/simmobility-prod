@@ -6,7 +6,7 @@
 
 #include <string>
 #include <sstream>
-
+#include <boost/lexical_cast.hpp>
 
 /*namespace geo {
 class Node_t_pimpl;
@@ -28,7 +28,7 @@ template <typename T>
 class OpaqueProperty {
 private:
 	std::string repr_;
-	T lastVal;
+	unsigned int lastVal;
 
 public:
 	void setProps(const std::string& key, const T& value) {
@@ -36,7 +36,8 @@ public:
 		builder <<"\"" <<key <<"\"" <<":"
 				<<"\"" <<value <<"\"" <<",";
 		builder >>repr_;
-		lastVal = value;
+		if(key.compare("aimsun-id")==0)
+			lastVal = value;
 	}
 
 	bool isSet() const {
@@ -47,7 +48,12 @@ public:
 		return repr_;
 	}
 
-	T getLastVal() {
+	unsigned int getLastVal() {
+		int start = repr_.find(":\"",0 );
+		start += 2;
+		int end = repr_.find("\"", start); // \\"aimsun-id\\":\\"48732\\",
+		std::string str = repr_.substr(start, end-start);
+		lastVal = boost::lexical_cast<unsigned int>(str);
 		return lastVal;
 	}
 

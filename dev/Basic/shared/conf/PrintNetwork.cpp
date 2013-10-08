@@ -31,10 +31,32 @@ using std::string;
 using namespace sim_mob;
 
 
-sim_mob::PrintNetwork::PrintNetwork(const ConfigParams& cfg, const std::string& outFileName) : cfg(cfg), out(outFileName.c_str())
+sim_mob::PrintNetwork::PrintNetwork(ConfigParams& cfg, const std::string& outFileName) : cfg(cfg), out(outFileName.c_str())
 {
 	//Print the network legacy format to our log file.
 	LogNetworkLegacyFormat();
+}
+
+void sim_mob::PrintNetwork::LogIncidents() const
+{
+	std::vector<IncidentParams>& incidents = cfg.getIncidents();
+	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
+	double baseFrameTick = cfg.system.simulation.baseGranMS;
+
+	out <<"Printing incident" <<std::endl;
+	out << "({\"Incident:\" {";
+	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
+		out << "\"id\":\"" << (*incIt).incidentId << "\",";
+		out << "\"visibility\":\"" << (*incIt).incidentId << "\",";
+		out << "\"segment_aimsun_id\":\"" << (*incIt).incidentId << "\",";
+		out << "\"position\":\"" << (*incIt).position << "\",";
+		out << "\"severity\":\"" << (*incIt).severity << "\",";
+		out << "\"cap_factor\":\"" << (*incIt).capFactor << "\",";
+		out << "\"start_time\":\"" << ((*incIt).startTime-baseGranMS)/baseFrameTick  << "\",";
+		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
+		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "\",";
+	}
+	out <<"})" <<std::endl;
 }
 
 
@@ -94,6 +116,9 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 
 	//Required for the visualizer
 	out <<"ROADNETWORK_DONE" <<std::endl;
+
+	//LogIncidents();
+
 }
 
 

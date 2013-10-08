@@ -219,6 +219,11 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
     	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
 
     		unsigned int originId = (*segIt)->originalDB_ID.getLastVal();
+    		unsigned int id = 0;
+    		/*if( (*segIt)->getSegmentID()==100002305)
+    		{
+    			id = (*segIt)->originalDB_ID.getLastVal();
+    		}*/
 			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 				if((*incIt).segmentId == originId ) {
 
@@ -233,6 +238,7 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					item->segmentId = (*incIt).segmentId;
 					item->severity = (*incIt).severity;
 					item->speedlimit = (*incIt).speedlimit;
+					item->speedlimitOthers = (*incIt).speedlimitOthers;
 					item->startTime = (*incIt).startTime-baseGranMS;
 					item->visibilityDistance = (*incIt).visibilityDistance;
 

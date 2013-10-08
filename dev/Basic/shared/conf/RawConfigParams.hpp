@@ -44,6 +44,7 @@ struct IncidentParams {
 	unsigned int startTime;
 	unsigned int duration;
 	float speedlimit;
+	float speedlimitOthers;
 	unsigned int laneId;
 	float compliance;
 	float accessibility;

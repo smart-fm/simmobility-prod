@@ -17,7 +17,7 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentResponse {
 public:
-	enum INCIDENTPLAN{INCIDENT_CLEARANCE, INCIDENT_HAPPENING };
+	enum INCIDENTPLAN{INCIDENT_CLEARANCE, INCIDENT_CHANGELANE, INCIDENT_SLOWDOWN };
 	IncidentResponse();
 	virtual ~IncidentResponse();
 	bool insertIncident(const Incident* inc);
@@ -29,13 +29,15 @@ public:
 public:
 	int nextLaneIndex;
 	float speedLimit;
+	float speedLimitOthers;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
 	LANE_CHANGE_SIDE laneSide;
+	INCIDENTPLAN currentPlan;
 
 private:
 	std::map<unsigned int, const Incident*> currentIncidents;
-	INCIDENTPLAN currentPlan;
+
 };
 
 } /* namespace sim_mob */

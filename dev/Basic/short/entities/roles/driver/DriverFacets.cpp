@@ -790,22 +790,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
-	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE ){
-		parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit+100);
-		if(incidentResponsePlan.speedLimit==0 && incidentResponsePlan.distanceTo < 30) {
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
-		}
-		else if(p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			double len = parentDriver->getVehicle()->length;
-			if(movementVect.getMagnitude() < len ){
-				parentDriver->vehicle->setVelocity(0);
-				parentDriver->vehicle->setAcceleration(0);
-			}
-		}
+
 	}
 
 	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<

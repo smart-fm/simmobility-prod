@@ -364,7 +364,9 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 					BUS_STOP_HOLDING_TIME_SEC = parentBusDriver->DwellTime_ijk.get();
 				}
 				parentBusDriver->existed_Request_Mode.set( Role::REQUEST_NONE );
-				parentBusDriver->busStopRealTimes_vec_bus[parentBusDriver->busstop_sequence_no.get()]->set(parentBusDriver->last_busStopRealTimes->get());
+				if(!parentBusDriver->busStopRealTimes_vec_bus.empty()) {
+					parentBusDriver->busStopRealTimes_vec_bus[parentBusDriver->busstop_sequence_no.get()]->set(parentBusDriver->last_busStopRealTimes->get());
+				}
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting

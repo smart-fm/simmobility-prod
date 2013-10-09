@@ -10,7 +10,7 @@
 
 namespace sim_mob {
 
-IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), laneSide(LCS_SAME) {
+IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME) {
 	// TODO Auto-generated constructor stub
 
 }

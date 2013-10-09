@@ -30,6 +30,7 @@ public:
 	int nextLaneIndex;
 	float speedLimit;
 	float speedLimitOthers;
+	float distanceTo;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
 	LANE_CHANGE_SIDE laneSide;

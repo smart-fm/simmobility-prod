@@ -61,6 +61,13 @@ const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
 const std::string DB_FIELD_BUILT_YEAR = "built_year";
 const std::string DB_FIELD_STOREYS = "storeys";
 const std::string DB_FIELD_PARKING_SPACES = "parking_spaces";
+const std::string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
+const std::string DB_FIELD_LAND_AREA = "land_area";
+const std::string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
+const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
+const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
+const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
+
 const std::string DB_FIELD_NAME = "name";
 const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";

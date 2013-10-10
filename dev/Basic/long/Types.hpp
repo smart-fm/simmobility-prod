@@ -80,3 +80,11 @@ static TimeUnit ToTimeUnit(int value) {
         default: return DAILY;
     }
 }
+
+/**
+ * Structs
+ */
+typedef struct ExpectationEntry_ {
+    double price;
+    double expectation;
+} ExpectationEntry;

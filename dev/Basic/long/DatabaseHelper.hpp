@@ -20,6 +20,8 @@ const std::string DB_SCHEMA_EMPTY   ="";
 const std::string DB_SCHEMA_BASELINE_2001   = "baseline_2001.";
 const std::string DB_SCHEMA_MAIN   ="main.";
 const std::string CURRENT_SCHEMA = DB_SCHEMA_MAIN;
+const std::string LIMIT_10 = " limit 10";
+const std::string LIMIT = LIMIT_10;
 
 /**
  * Tables
@@ -51,7 +53,7 @@ const std::string DB_FIELD_TYPE_ID = "type_id";
 const std::string DB_FIELD_POSTCODE_ID = "postcode_id";
 const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
 const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
-const std::string DB_FIELD_ETHNICITY_ID = "ethnicity";
+const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
 const std::string DB_FIELD_INCOME = "income";
 const std::string DB_FIELD_FLOOR_AREA = "floor_area";
 const std::string DB_FIELD_YEAR = "year";
@@ -132,12 +134,12 @@ const std::string DB_DELETE_UNIT = "DELETE FROM " + DB_TABLE_UNIT + " WHERE " + 
 /**
  * GET ALL
  */
-const std::string DB_GETALL_GLOBAL_PARAMS = "SELECT * FROM " + DB_TABLE_GLOBAL_PARAMS;
-const std::string DB_GETALL_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE;
-const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD;
-const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE;
-const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING;
-const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT;
+const std::string DB_GETALL_GLOBAL_PARAMS = "SELECT * FROM " + DB_TABLE_GLOBAL_PARAMS + LIMIT;
+const std::string DB_GETALL_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE + LIMIT;
+const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + LIMIT;
+const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + LIMIT;
+const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + LIMIT;
+const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + LIMIT;
 
 /**
  * GET BY ID

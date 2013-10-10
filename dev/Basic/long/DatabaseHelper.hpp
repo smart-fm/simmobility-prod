@@ -69,6 +69,7 @@ const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
 const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
 
 const std::string DB_FIELD_NAME = "name";
+const std::string DB_FIELD_TYPE = "type";
 const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_AREA = "unit_area_weight";

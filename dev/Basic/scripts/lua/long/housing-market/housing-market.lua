@@ -43,12 +43,17 @@ function sellerExpectationFunction(price, v, theta, alpha)
 end
 
 function arrayTest()
-   local foo = {1, 4, 9, 16, 25, 36, 49, 64, 81}
-   return foo
+    entry1 = ExpectationEntry()
+    entry1.price = 13
+    entry1.expectation = 19
+    entry2 = ExpectationEntry()
+    entry2.price = 14
+    entry2.expectation = 18
+    local foo = {entry1, entry2}
+    return foo
 end
 
 print (findMaxArg(sellerExpectationFunction, 20, 4, 1.0, 2.0, nil, 0.001, 100000))
 
-print(arrayTest()[1])
-print(arrayTest()[2])
-print(arrayTest()[3])
+print(arrayTest()[1].price)
+print(arrayTest()[2].price)

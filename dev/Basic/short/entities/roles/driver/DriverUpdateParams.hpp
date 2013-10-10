@@ -28,7 +28,9 @@ class UnPackageUtils;
 
 enum LANE_CHANGE_MODE {	//as a mask
 	DLC = 0,
-	MLC = 2
+	MLC = 2,
+	MLC_C = 4,
+	MLC_F = 6
 };
 
 
@@ -100,6 +102,9 @@ struct DriverUpdateParams : public UpdateParams {
 
 	sim_mob::TrafficColor perceivedTrafficColor;
 	LANE_CHANGE_SIDE turningDirection;
+
+	TARGET_GAP targetGap;
+	bool isMLC;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.

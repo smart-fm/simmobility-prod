@@ -563,6 +563,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 
 	// check current lane has connector to next link
+	p.isMLC = false;
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
@@ -617,6 +618,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 //						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 						parentDriver->vehicle->setTurningDirection(lcs);
+						p.isMLC = true;
 					} else {
 						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
 					}

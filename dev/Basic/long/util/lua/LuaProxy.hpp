@@ -15,6 +15,12 @@ namespace sim_mob {
         class LuaProxy {
         public:
             /**
+             * Loads the given file lua to the current lua state
+             * @param filePath
+             */
+            static void loadFile();
+            
+            /**
              * 
              * @param price last expectation (V(t+1))
              * @param expectation current expectation.

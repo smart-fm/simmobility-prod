@@ -30,7 +30,6 @@ BuildingTypeDao::~BuildingTypeDao() {
 void BuildingTypeDao::FromRow(Row& result, BuildingType& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.name = result.get<string>(DB_FIELD_NAME, EMPTY_STR);
-    outObj.type = result.get<int>(DB_FIELD_TYPE, 0);
 }
 
 void BuildingTypeDao::ToRow(BuildingType& data, Parameters& outParams, bool update) {

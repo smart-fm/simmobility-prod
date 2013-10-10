@@ -19,7 +19,7 @@ namespace sim_mob {
 
         class BuildingType {
         public:
-            BuildingType(BigSerial id = INVALID_ID, std::string name = "", int type = 0);
+            BuildingType(BigSerial id = INVALID_ID, std::string name = "");
             virtual ~BuildingType();
 
             /**
@@ -33,12 +33,6 @@ namespace sim_mob {
              * @return id.
              */
             std::string GetName() const;
-            
-            /**
-             * Gets the type that differentiates building types.
-             * @return type;
-             */
-            int GetType() const;
 
             /**
              * Assign operator.
@@ -54,7 +48,6 @@ namespace sim_mob {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"name\":\"" << data.name << "\""
-                        << "\"type\":\"" << data.name << "\","
                         << "}";
             }
 
@@ -63,7 +56,6 @@ namespace sim_mob {
         private:
             BigSerial id;
             std::string name;
-            int type;
         };
     }
 }

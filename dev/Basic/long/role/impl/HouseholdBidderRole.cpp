@@ -182,7 +182,7 @@ float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
 
 float HouseholdBidderRole::CalculateWP(const Unit& unit) {
     return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
-            (params.GetUnitAreaWeight() * unit.GetArea()) +
+            (params.GetUnitAreaWeight() * unit.GetFloorArea()) +
             (params.GetUnitTypeWeight() * unit.GetTypeId()) +
             (params.GetUnitRentWeight() * unit.GetRent()) +
             (params.GetUnitStoreyWeight() * unit.GetStorey()));

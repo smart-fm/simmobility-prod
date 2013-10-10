@@ -51,7 +51,7 @@ namespace {
                 (unit.GetRent() * params.GetUnitRentWeight() +
                 unit.GetTypeId() * params.GetUnitTypeWeight() +
                 unit.GetStorey() * params.GetUnitStoreyWeight() +
-                unit.GetArea() * params.GetUnitAreaWeight());
+                unit.GetFloorArea() * params.GetUnitAreaWeight());
     }
 
     int currentExpectationIndex = 0;

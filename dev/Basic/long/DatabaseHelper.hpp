@@ -17,8 +17,9 @@
  * Schemas
  */
 const std::string DB_SCHEMA_EMPTY   ="";
-const std::string DB_SCHEMA_BASELINE_2001   ="baseline_2001.";
-const std::string CURRENT_SCHEMA = DB_SCHEMA_EMPTY;
+const std::string DB_SCHEMA_BASELINE_2001   = "baseline_2001.";
+const std::string DB_SCHEMA_MAIN   ="main.";
+const std::string CURRENT_SCHEMA = DB_SCHEMA_MAIN;
 
 /**
  * Tables
@@ -47,6 +48,7 @@ const std::string DB_FIELD_PARCEL_ID = "parcel_id";
 const std::string DB_FIELD_BUILDING_ID = "building_id";
 const std::string DB_FIELD_ESTABLISMENT_ID = "establishment_id";
 const std::string DB_FIELD_TYPE_ID = "type_id";
+const std::string DB_FIELD_POSTCODE_ID = "postcode_id";
 const std::string DB_FIELD_INCOME = "income";
 const std::string DB_FIELD_FLOOR_AREA = "floor_area";
 const std::string DB_FIELD_YEAR = "year";

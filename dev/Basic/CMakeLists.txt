@@ -377,6 +377,11 @@ find_package(JsonCpp REQUIRED)
 include_directories(${JSONCPP_INCLUDE_DIR})
 LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
 
+#Find Lua
+find_package(Lua REQUIRED)
+include_directories(${LUA_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${LUA_LIBRARIES})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi

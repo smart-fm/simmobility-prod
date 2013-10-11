@@ -463,3 +463,34 @@ struct Stack <std::string const&>
     return std::string (luaL_checkstring (L, index));
   }
 };
+
+/**
+    Stack specialization for `long long int`.
+*/
+template <>
+struct Stack <long long int>
+{
+  static inline void push (lua_State* L, long long int value)
+  {
+    lua_pushnumber(L, static_cast <lua_Number> (value));
+  }
+  
+  static inline long long int get (lua_State* L, int index)
+  {
+    return static_cast <long long int> (luaL_checknumber (L, index));
+  }
+};
+
+template <>
+struct Stack <long long int const&>
+{
+  static inline void push (lua_State* L, long long int value)
+  {
+    lua_pushnumber (L, static_cast <lua_Number> (value));
+  }
+  
+  static inline long long int get (lua_State* L, int index)
+  {
+    return static_cast <long long int> (luaL_checknumber (L, index));
+  }
+};

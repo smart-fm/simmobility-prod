@@ -101,7 +101,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 				Point2D(
 						(original_agent->xPos + 3500),
 						(original_agent->yPos + 3500)
-						)
+						), nullptr
 
 						);
 	//if no agent found or only one found and that is the original_agent

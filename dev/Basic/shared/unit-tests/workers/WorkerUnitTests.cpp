@@ -289,7 +289,7 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 
 	//Add an "AuraManager" stage, just for testing purposes.
 	AuraManager* am = &AuraManager::instance();
-	am->init(AuraManager::IMPL_RSTAR, nullptr);
+	am->init(AuraManager::IMPL_RSTAR);
 
 	//Start with the same agent counters.
 	WorkGroup* countWG = wgm.newWorkGroup(2, 5);
@@ -318,12 +318,15 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 	//Start work groups and all threads.
 	wgm.startAllWorkGroups();
 
+	//Leaking memory in unit tests doesn't matter.
+	std::set<Agent*> leak_memory;
+
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
 		//Call each function in turn.
 		wgm.waitAllGroups_FrameTick();
-		wgm.waitAllGroups_FlipBuffers();
-		wgm.waitAllGroups_AuraManager();
+		wgm.waitAllGroups_FlipBuffers(&leak_memory);
+		wgm.waitAllGroups_AuraManager(leak_memory);
 		wgm.waitAllGroups_MacroTimeTick();
 	}
 
@@ -468,6 +471,9 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	//Start work groups and all threads.
 	wgm.startAllWorkGroups();
 
+	//Leaking memory in unit tests doesn't matter.
+	std::set<Agent*> leak_memory;
+
 	//////////////////////////////////////////
 	//FRAME TICK 0
 	//////////////////////////////////////////
@@ -475,11 +481,11 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
 	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	wgm.waitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FlipBuffers(&leak_memory);
 	CountAssert(errorCount, ag1->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag2->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag3->value.get()==0); //0+0 == 0
-	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_AuraManager(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -489,11 +495,11 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
 	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	wgm.waitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FlipBuffers(&leak_memory);
 	CountAssert(errorCount, ag1->value.get()==1); //0+1 == 1
 	CountAssert(errorCount, ag2->value.get()==0); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_AuraManager(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -503,11 +509,11 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag2->value.get()==0);
 	CountAssert(errorCount, ag3->value.get()==0);
 	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	wgm.waitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FlipBuffers(&leak_memory);
 	CountAssert(errorCount, ag1->value.get()==3); //1+2 == 3
 	CountAssert(errorCount, ag2->value.get()==2); //0+2 == 2
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_AuraManager(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -517,11 +523,11 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag2->value.get()==2);
 	CountAssert(errorCount, ag3->value.get()==0);
 	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	wgm.waitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FlipBuffers(&leak_memory);
 	CountAssert(errorCount, ag1->value.get()==6); //3+3 == 6
 	CountAssert(errorCount, ag2->value.get()==2); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==3); //0+3 == 3
-	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_AuraManager(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -531,11 +537,11 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag2->value.get()==2);
 	CountAssert(errorCount, ag3->value.get()==3);
 	wgm.waitAllGroups_FrameTick(); //Workers are flipping; can't check.
-	wgm.waitAllGroups_FlipBuffers();
+	wgm.waitAllGroups_FlipBuffers(&leak_memory);
 	CountAssert(errorCount, ag1->value.get()==10); //6+4 == 10
 	CountAssert(errorCount, ag2->value.get()==6);  //2+4 == 6
 	CountAssert(errorCount, ag3->value.get()==3);  //Doesn't tick
-	wgm.waitAllGroups_AuraManager();
+	wgm.waitAllGroups_AuraManager(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//Error check

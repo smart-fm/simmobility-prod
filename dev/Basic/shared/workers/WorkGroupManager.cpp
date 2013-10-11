@@ -12,6 +12,7 @@
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
 #include "event/EventBusSystem.hpp"
+#include "entities/Agent.hpp"
 
 using std::vector;
 
@@ -117,12 +118,23 @@ void sim_mob::WorkGroupManager::startAllWorkGroups()
 
 void sim_mob::WorkGroupManager::waitAllGroups()
 {
+	//Collect entities.
+	//TODO: We don't need to do this if there is no AuraManager (just pass null).
+	std::set<Agent*> removedEntities;
+
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
 	waitAllGroups_FrameTick();
-	waitAllGroups_FlipBuffers();
-	waitAllGroups_AuraManager();
+	waitAllGroups_FlipBuffers(&removedEntities);
+	waitAllGroups_AuraManager(removedEntities);
 	waitAllGroups_MacroTimeTick();
+
+	//Delete all collected entities:
+	while (removedEntities.begin() != removedEntities.end()) {
+		Agent* ag = *removedEntities.begin();
+		removedEntities.erase(removedEntities.begin());
+		delete ag;
+	}
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
@@ -141,13 +153,13 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
         sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
-void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers()
+void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities)
 {
 	//Sanity check
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		(*it)->waitFlipBuffers(singleThreaded);
+		(*it)->waitFlipBuffers(singleThreaded, removedEntities);
 	}
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.
@@ -168,7 +180,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
 	//NOTE: There is no need for a "wait()" here, since macro barriers are used internally.
 }
 
-void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
+void sim_mob::WorkGroupManager::waitAllGroups_AuraManager(const std::set<Agent*>& removedEntities)
 {
 	//Sanity check
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
@@ -184,7 +196,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager()
 			(*it)->outputSupplyStats();
 		}
 
-		(*it)->waitAuraManager();
+		(*it)->waitAuraManager(removedEntities);
 	}
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.

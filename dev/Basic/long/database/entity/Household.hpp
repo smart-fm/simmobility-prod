@@ -19,59 +19,32 @@ namespace sim_mob {
 
         class Household {
         public:
-            Household(BigSerial id = INVALID_ID, double income = .0f,
-                    int size = 0, int children = 0, int carOwnership = 0, 
-                    BigSerial unitId = INVALID_ID, int housingDuration = 0);
+            Household();
             virtual ~Household();
 
-            /**
-             * Gets unique identifier of the household.
-             * @return id.
-             */
-            BigSerial GetId() const;
-
-            /**
-             * Gets unit unique identifier.
-             * @return unit unique identifier.
-             */
-            BigSerial GetUnitId() const;
-
-            /**
-             * Gets the size of the household.
-             * @return  the size of the household.
-             */
-            int GetSize() const;
-
-            /**
-             * Gets the number of children in the household.
-             * @return number of children value.
-             */
-            int GetChildren() const;
-
-            /**
-             * Gets the total income of the Household.
-             * @return income value.
-             */
-            double GetIncome() const;
-
-            /**
-             * Gets the car ownership value.
-             * @return the car ownership value.
-             */
-            int GetCarOwnership() const;
-
-            /**
-             * Gets housing duration value.
-             * @return housing duration value.
-             */
-            int GetHousingDuration() const;
-
-            /**
-             * Assign operator.
-             * @param source to assign.
-             * @return Household instance reference.
-             */
             Household& operator=(const Household& source);
+            void SetAgeOfHead(int ageOfHead);
+            int GetAgeOfHead() const;
+            void SetWorkers(int workers);
+            int GetWorkers() const;
+            void SetHousingDuration(int housingDuration);
+            int GetHousingDuration() const;
+            void SetIncome(double income);
+            double GetIncome() const;
+            void SetChildren(int children);
+            int GetChildren() const;
+            void SetSize(int size);
+            int GetSize() const;
+            void SetVehicleCategoryId(BigSerial vehicleCategoryId);
+            BigSerial GetVehicleCategoryId() const;
+            void SetEthnicityId(BigSerial ethnicityId);
+            BigSerial GetEthnicityId() const;
+            void SetUnitId(BigSerial unitId);
+            BigSerial GetUnitId() const;
+            void SetLifestyleId(BigSerial lifestyleId);
+            BigSerial GetLifestyleId() const;
+            void SetId(BigSerial id);
+            BigSerial GetId() const;
 
             /**
              * Operator to print the Household data.  
@@ -79,12 +52,16 @@ namespace sim_mob {
             friend std::ostream& operator<<(std::ostream& strm, const Household& data) {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
+                        << "\"lifestyleId\":\"" << data.lifestyleId << "\","
                         << "\"unitId\":\"" << data.unitId << "\","
+                        << "\"ethnicityId\":\"" << data.ethnicityId << "\","
+                        << "\"vehicleCategoryId\":\"" << data.vehicleCategoryId << "\","
                         << "\"size\":\"" << data.size << "\","
                         << "\"children\":\"" << data.children << "\","
                         << "\"income\":\"" << data.income << "\","
-                        << "\"carOwnership\":\"" << data.carOwnership << "\","
-                        << "\"housingDuration\":\"" << data.housingDuration << "\""
+                        << "\"housingDuration\":\"" << data.housingDuration << "\","
+                        << "\"workers\":\"" << data.workers << "\","
+                        << "\"ageOfHead\":\"" << data.ageOfHead << "\""
                         << "}";
             }
 
@@ -92,12 +69,16 @@ namespace sim_mob {
             friend class HouseholdDao;
         private:
             BigSerial id;
+            BigSerial lifestyleId;
             BigSerial unitId;
+            BigSerial ethnicityId;
+            BigSerial vehicleCategoryId;
             int size;
             int children;
             double income;
-            int carOwnership;
             int housingDuration;
+            int workers;
+            int ageOfHead;
         };
     }
 }

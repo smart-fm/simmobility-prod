@@ -10,7 +10,7 @@
  */
 #pragma once
 #include "soci.h"
-
+#include "DatabaseConfig.hpp"
 namespace sim_mob {
     
     namespace db {
@@ -27,7 +27,7 @@ namespace sim_mob {
          */
         class DBConnection {
         public:
-            DBConnection(BackendType type, const std::string& connectionStr);
+            DBConnection(BackendType type, const DatabaseConfig& config);
             virtual ~DBConnection();
 
             /**

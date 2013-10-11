@@ -13,6 +13,9 @@
 FIND_PATH(JSONCPP_INCLUDE_DIR json/json.h
   /usr/local/include/jsoncpp
   /usr/include/jsoncpp
+  /afs/csail.mit.edu/u/x/xuyan/lib/json-cpp/jsoncpp-src-0.5.0
+  /afs/csail.mit.edu/u/x/xuyan/lib/json-cpp/jsoncpp-src-0.5.0/include
+  /afs/csail.mit.edu/u/x/xuyan/lib/json-cpp/jsoncpp-src-0.5.0/include/json
 )
 
 # Get the GCC compiler version
@@ -25,7 +28,7 @@ OUTPUT_STRIP_TRAILING_WHITESPACE
 SET(JSONCPP_NAMES ${JSONCPP_NAMES} libjsoncpp.so libjson_linux-gcc-${_gcc_COMPILER_VERSION}_libmt.so)
 FIND_LIBRARY(JSONCPP_LIBRARY
 NAMES ${JSONCPP_NAMES}
-PATHS /usr/lib /usr/local/lib
+PATHS /usr/lib /usr/local/lib /afs/csail.mit.edu/u/x/xuyan/lib/json-cpp/jsoncpp-src-0.5.0/libs/linux-gcc-4.4.5
 )
 
 IF (JSONCPP_LIBRARY AND JSONCPP_INCLUDE_DIR)

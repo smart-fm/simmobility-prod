@@ -389,7 +389,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 }
 
 namespace {
-vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
+/*vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing, const Driver* refAgent) {
 	//Put x and y coordinates into planar arrays.
 	int x[4] = { crossing->farLine.first.getX(), crossing->farLine.second.getX(), crossing->nearLine.first.getX(),
 			crossing->nearLine.second.getX() };
@@ -418,8 +418,10 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 	Point2D rectMinPoint = Point2D(xmin, ymin);
 	Point2D rectMaxPoint = Point2D(xmax, ymax);
 
-	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint);
-}
+//	PerformanceProfile::instance().markStartQuery(this->run_on_thread_id);
+	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint, refAgent);
+//	PerformanceProfile::instance().markEndQuery(run_on_thread_id);
+}*/
 } //End anon namespace
 
 namespace {

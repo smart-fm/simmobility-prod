@@ -46,21 +46,22 @@ namespace {
         return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01f * price);
     }
 
-    double CalculateHedonicPrice(const Unit& unit, const SellerParams& params) {
-        return unit.GetRent() +
+    double CalculateHedonicPrice(const Unit& unit) {
+        return 0;
+        /*return unit.GetRent() +
                 (unit.GetRent() * params.GetUnitRentWeight() +
                 unit.GetTypeId() * params.GetUnitTypeWeight() +
                 unit.GetStorey() * params.GetUnitStoreyWeight() +
-                unit.GetArea() * params.GetUnitAreaWeight());
+                unit.GetFloorArea() * params.GetUnitAreaWeight());*/
     }
 
     int currentExpectationIndex = 0;
 }
 
-HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
-        const SellerParams& params, HousingMarket* market)
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+        HousingMarket* market)
 : LT_AgentRole(parent), market(market), hh(hh), currentTime(0, 0),
-hasUnitsToSale(true), params(params) {
+hasUnitsToSale(true) {
 }
 
 HouseholdSellerRole::~HouseholdSellerRole() {
@@ -75,7 +76,7 @@ void HouseholdSellerRole::Update(timeslice now) {
                 itr++) {
             // Decides to put the house on market.
             if ((*itr)->IsAvailable()) {
-                double hedonicPrice = CalculateHedonicPrice(*(*itr), params);
+                double hedonicPrice = CalculateHedonicPrice(*(*itr));
                 (*itr)->SetHedonicPrice(hedonicPrice);
                 (*itr)->SetAskingPrice(hedonicPrice);
                 CalculateUnitExpectations(*(*itr));
@@ -203,8 +204,8 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
     double price = 20;
     double expectation = 4;
-    double theta = params.GetExpectedEvents(); // 1.0f;
-    double alpha = params.GetPriceImportance(); // 2.0f;
+    double theta = 1.0f;//params.GetExpectedEvents(); // 1.0f;
+    double alpha = 2.0f;//params.GetPriceImportance(); // 2.0f;
     for (int i = 0; i < TIME_ON_MARKET; i++) {
         ExpectationEntry entry;
         entry.price = Math::FindMaxArg(ExpectationFunction,

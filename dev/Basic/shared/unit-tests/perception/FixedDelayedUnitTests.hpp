@@ -29,6 +29,9 @@ public:
 	///Test a zero-waiting-time retrieve
 	void test_FixedDelayed_zero_retrieve();
 
+	///Test changing a zero-waiting-time Reaction Time.
+	void test_FixedDelayed_zero_error();
+
 	///Several common consistency checks
 	void test_FixedDelayed_sanity_checks();
 
@@ -63,6 +66,7 @@ private:
         CPPUNIT_TEST(test_FixedDelayed_bad_retrieve);
         CPPUNIT_TEST(test_FixedDelayed_exact_retrieve);
         CPPUNIT_TEST(test_FixedDelayed_zero_retrieve);
+        CPPUNIT_TEST(test_FixedDelayed_zero_error);
         CPPUNIT_TEST(test_FixedDelayed_sanity_checks);
         CPPUNIT_TEST(test_FixedDelayed_class_store);
         CPPUNIT_TEST(test_FixedDelayed_false_delete);

@@ -11,6 +11,7 @@
 #include "entities/Person.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -293,6 +294,15 @@ void sim_mob::DriverMovement::frame_tick(UpdateParams& p) {
 
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
+
+//	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
+//	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
+
+//	this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
+//	this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());
+
+//	std::cout << "ID:" << this->parent->getId() << ",this->parent->xPos_Sim:" << this->parent->xPos_Sim << std::endl;
+//	std::cout << "this->parent->yPos_Sim:" << this->parent->yPos_Sim << std::endl;
 }
 
 void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
@@ -366,9 +376,7 @@ bool sim_mob::DriverMovement::update_sensors(DriverUpdateParams& params, timesli
 
 	}
 
-
 	updateNearbyAgents(params);
-
 
 	return true;
 }
@@ -569,7 +577,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			{
 				//
 				if(p.currLane->is_pedestrian_lane()) {
-					std::cout<<"drive on pedestrian lane"<<std::endl;
+					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+					//I remember the message is not critical
+					//std::cout<<"drive on pedestrian lane"<<std::endl;
 				}
 				bool currentLaneConnectToNextLink = false;
 				int targetLaneIndex=p.currLaneIndex;
@@ -726,11 +736,10 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 						//boarding and alighting
 						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
 						const Node* node = seg->getEnd();
-					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)));
+						const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
+					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)), parentAgent);
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
-							std::cout << "agent id : " << (*it)->getId() << std::endl;
-
 					 		//passenger boarding
 							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
 							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
@@ -738,10 +747,9 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								const Person* p = dynamic_cast<const Person*>( (*it) );
 								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
 
-								if (!passenger)
+								if (!passenger) {
 								  continue;
-
-								std::cout << "agent id : " << (*it)->getId() << std::endl;
+								}
 
 								schedule->insidepassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
@@ -841,12 +849,12 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	const Crossing* crossing = nullptr;
 	const LinkAndCrossingByLink& LAC = trafficSignal->getLinkAndCrossingsByLink();
 	LinkAndCrossingByLink::iterator it = LAC.find(parentDriver->vehicle->getNextSegment()->getLink());
-	if(it != LAC.end())
-		const Crossing* crossing = (*it).crossing;
-
+	if(it != LAC.end()) {
+		crossing = (*it).crossing;
+	}
 	//Have we found a relevant crossing?
-		if (!crossing) {
-		}
+	if (!crossing) {
+	}
 
 	//Search through the list of agents in that crossing.
 	//------------this cause error
@@ -1672,9 +1680,38 @@ void sim_mob::DriverMovement::updateNearbyAgents(DriverUpdateParams& params) {
 	//Retrieve a list of nearby agents
 
 	double dis = 10000.0;
+
+#if 0
+//	std::cout << "this->parent->run_on_thread_id:" << this->parent->run_on_thread_id << std::endl;
+	//sim_mob::PerformanceProfile::instance().markStartQuery(this->parent->run_on_thread_id);
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(
 			Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
+	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
+#else
+	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(), params.now);
 
+	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
+	vector<const Agent*> nearby_agents;
+	if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {
+		const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
+		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
+	} else {
+		Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
+	}
+	/*if (this->parent->connector_to_Sim_Tree) {
+		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {
+			nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, this->parent->connector_to_Sim_Tree);
+		} else {
+			Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
+		}
+	} else {
+		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
+		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
+	}*/
+
+
+	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(), params.now);
+#endif
 	//Update each nearby Pedestrian/Driver
 
 	//

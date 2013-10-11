@@ -41,6 +41,8 @@ public:
 	virtual void scheduleForBred(Entity* entity) = 0;
 
 	virtual const std::set<Entity*>& getEntities() const = 0;
+
+	virtual ProfileBuilder* getProfileBuilder() const = 0;
 };
 
 
@@ -99,6 +101,8 @@ public:
 	event::EventCollectionMgr& getEventManager();
 
 	virtual std::ostream* getLogFile() const;
+
+	virtual ProfileBuilder* getProfileBuilder() const;
 
 	void findBoundaryConfluxes();
 
@@ -194,6 +198,8 @@ private:
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
+	//int thread_id;
+	//static int auto_matical_thread_id;
 };
 
 }

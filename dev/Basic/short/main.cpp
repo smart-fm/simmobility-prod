@@ -14,7 +14,9 @@
  */
 #include <vector>
 #include <string>
-#include <ctime>
+
+//TODO: Replace with <chrono> or something similar.
+#include <sys/time.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
@@ -75,7 +77,6 @@
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
-#include "util/PerformanceProfile.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -243,17 +244,24 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks);
 
 	//NOTE: I moved this from an #ifdef into a local variable.
 	//      Recompiling main.cpp is much faster than recompiling everything which relies on
 	//      PerformanceProfile.hpp   ~Seth
+#if 0
 	bool doPerformanceMeasurement = false; //TODO: From config file.
 	bool measureInParallel = true;
 	PerformanceProfile perfProfile;
 	if (doPerformanceMeasurement) {
 		perfProfile.init(config.personWorkGroupSize(), measureInParallel);
 	}
+#endif
+
+	//Initialize the aura manager
+	AuraManager::instance().init(config.aura_manager_impl()
+			//,(doPerformanceMeasurement ? &perfProfile : nullptr)
+	);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -266,6 +274,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
+
+		//put them to AuraManager
+		//Agent* an_agent = dynamic_cast<Agent*>(*it);
+		//if(an_agent) AuraManager::instance().registerNewAgent(an_agent);
 	}
 
 	//Assign all BusStopAgents
@@ -302,7 +314,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl(), (doPerformanceMeasurement ? &perfProfile : nullptr));
+	AuraManager::instance().init(config.aura_manager_impl()
+#if 0
+			,(doPerformanceMeasurement ? &perfProfile : nullptr)
+#endif
+			);
 
 
 	///
@@ -334,7 +350,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = Utils::diff_ms(loop_start_time, start_time);
+	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time);
 
 	ParitionDebugOutput debug;
 
@@ -352,21 +368,24 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			}
 		}
 
+//		std::cout << "Time:" << currTick << std::endl;
+
 		//xuyan:measure simulation time
-		if (currTick == 600 * 5 + 1)
+		//NOTE: It is much better to filter performance results via a script after the fact.
+		/*if (currTick == 600 * 10 + 1)
 		{ // mins
 			if (doPerformanceMeasurement) {
 				perfProfile.startMeasure();
 				perfProfile.markStartSimulation();
 			}
 		}
-		if (currTick == 600 * 30 - 1)
+		if (currTick == endTick - 1)
 		{ // mins
 			if (doPerformanceMeasurement) {
 				perfProfile.markEndSimulation();
 				perfProfile.endMeasure();
 			}
-		}
+		}*/
 
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -403,7 +422,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			} else {
 				//We don't need to lock this output if general output is disabled, since Agents won't
 				//  perform any output (and hence there will be no contention)
-				std::cout <<currTickPercent <<"0%" <<std::endl;
+				std::cout <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
 			}
 		}
 
@@ -440,9 +459,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	cout << endl;
 
 	//xuyan:show measure time
-	if (doPerformanceMeasurement) {
-		perfProfile.showPerformanceProfile();
-	}
+	//ProfileBuilder does this automatically on destruction.
+	//if (doPerformanceMeasurement) {
+	//	perfProfile.showPerformanceProfile();
+	//}
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";

@@ -907,10 +907,10 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop* & sourceStop, sim_mob::BusStop* & destStop)
 {
 	bool result = false;
-	sim_mob::AuraManager::instance2();
+	//sim_mob::AuraManager::instance2();
 	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
 	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
-	std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2);
+	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;
 	std::vector<sim_mob::BusStop*> dest_stops;
@@ -2007,10 +2007,13 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
 
-	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
+	//TODO: Possibly re-enable later.
+	//if (prof) { prof->logGenericEnd("Database", "main-prof"); }
+
+	//TODO: Possibly re-enable later.
+	//if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
 
 	//Step Two: Translate
-	if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
 	loader.DecorateAndTranslateObjects();
 
 	//Step Three: Perform data-guided cleanup.
@@ -2042,9 +2045,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	}
 	for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
 		(*it)->extendPolylinesBetweenRoadSegments();
-	if (prof) {
-		prof->logGenericEnd("PostProc", "main-prof");
-	}
+
+	//TODO: Possibly re-enable later.
+	//if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
 	//added by Melani - to compute lane zero lengths of road segments
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {

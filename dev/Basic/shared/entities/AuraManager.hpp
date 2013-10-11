@@ -17,7 +17,8 @@ class Agent;
 class Point2D;
 class Lane;
 class TreeImpl;
-class PerformanceProfile;
+
+struct TreeItem;
 
 
 /**
@@ -57,19 +58,23 @@ public:
         return instance_;
     }
 
-    static AuraManager &
+ /*   static AuraManager &
     instance2()
     {
     	return instance2_;
-    }
+    }*/
 
     /**
      * Called every frame, this method builds a spatial index of the positions of all agents.
      *
      * This method should be called after all the agents have calculated their new positions
      * and (if double-buffering data types are used) after the new positions are published.
+     *
+     * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+     *       save them anywhere.
      */
-    void update();
+    void update(const std::set<sim_mob::Agent*>& removedAgentPointers);
+
 
 
 
@@ -77,11 +82,18 @@ public:
      * Return a collection of agents that are located in the axially-aligned rectangle.
      *   \param lowerLeft The lower left corner of the axially-aligned search rectangle.
      *   \param upperRight The upper right corner of the axially-aligned search rectangle.
+     *   \param refAgent The agent performing the query. If non-null, certain implementations
+     *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
+     *          If null, the algorithm used will always be the slower, top-down query.
      *
      * The caller is responsible to determine the "type" of each agent in the returned array.
      */
     std::vector<Agent const *>
-    agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight) const;
+    agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const;
+
+    //only avaiable for Sim-Tree
+  /*  std::vector<Agent const *>
+    advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;*/
 
     /**
      * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -90,6 +102,9 @@ public:
      *   \param lane The lane 
      *   \param distanceInFront The forward distance of the search rectangle.
      *   \param distanceBehind The back
+     *   \param refAgent The agent performing the query. If non-null, certain implementations
+     *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
+     *          If null, the algorithm used will always be the slower, top-down query.
      *
      * This query is designed for Driver/Vehicle agents.  It calculates the search rectangle
      * based on \c position, \c lane, \c distanceInFront, and \c distanceBehind.  \c position
@@ -102,7 +117,12 @@ public:
      */
     std::vector<Agent const *>
     nearbyAgents(Point2D const & position, Lane const & lane,
-                 centimeter_t distanceInFront, centimeter_t distanceBehind) const;
+                 centimeter_t distanceInFront, centimeter_t distanceBehind, const Agent* refAgent) const;
+
+    //only avaiable for Sim-Tree
+    /*std::vector<Agent const *>
+    advanced_nearbyAgents(Point2D const & position, Lane const & lane,
+                 centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;*/
 
     /**
      * Initialize the AuraManager object (to be invoked by the simulator kernel).
@@ -112,14 +132,14 @@ public:
      *   \param keepStats Keep statistics on internal operations if true.
      */
     void
-    init(AuraManagerImplementation implType, PerformanceProfile* perfProfile, bool keepStats = false);
+    init(AuraManagerImplementation implType);
 
     /**
      * Print statistics collected on internal operationss.
      * Useful only if \c keepStats is \c true when \c init() was called.
      */
-    void
-    printStatistics() const;
+    //void
+    //printStatistics() const;
 
 	/**
 	 * register new agents to AuraManager each time step
@@ -127,16 +147,17 @@ public:
 	void registerNewAgent(Agent const* one_agent);
 
 private:
-	AuraManager() : impl_(nullptr), stats_(0), time_step(0), perfProfile(nullptr)
+	AuraManager() : impl_(nullptr), /*stats_(0),*/ time_step(0)
 	{}
 
     /*Map to store the vehicle counts of each road segment. */
     //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
 
-    // No need to define the dtor.
-
     static AuraManager instance_;
-    static AuraManager instance2_;
+    //static AuraManager instance2_;
+
+    //different impl
+    //AuraManagerImplementation local_implType;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;
@@ -151,13 +172,11 @@ private:
     Impl* pimpl_;
     friend class Impl;  // allow access to stats_.*/
 
-    PerformanceProfile* perfProfile;
-
     //Current time step.
     int time_step;
 
-    class Stats;
-    Stats* stats_;
+    /*class Stats;
+    Stats* stats_;*/
 
 };
 

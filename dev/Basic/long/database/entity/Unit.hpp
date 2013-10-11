@@ -29,8 +29,9 @@ namespace sim_mob {
         class Unit {
         public:
             Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
-                 BigSerial typeId = INVALID_ID, double area = .0f, 
-                 int storey = 0, double rent = .0f, bool available = false);
+                 BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID, 
+                 double area = .0f, int storey = 0, double rent = .0f,
+                 bool available = false);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -54,10 +55,16 @@ namespace sim_mob {
             BigSerial GetBuildingId() const;
 
             /**
-             * Gets type identifier of the unit.
+             * Gets type identifier of the type of unit.
              * @return type identifier {@see UnitType}.
              */
             BigSerial GetTypeId() const;
+            
+            /**
+             * Gets type identifier of the postcode.
+             * @return type identifier {@see Postcode}.
+             */
+            BigSerial GetPostcodeId() const;
 
             /**
              * Gets the storey of the unit.
@@ -69,7 +76,7 @@ namespace sim_mob {
              * Gets the unit Area.
              * @return unit area value.
              */
-            double GetArea() const;
+            double GetFloorArea() const;
 
             /**
              * Gets the rent value.
@@ -115,7 +122,8 @@ namespace sim_mob {
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
                         << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"area\":\"" << data.area << "\","
+                        << "\"postcodeId\":\"" << data.postcodeId << "\","
+                        << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storey\":\"" << data.storey << "\","
                         << "\"rent\":\"" << data.rent << "\","
                         << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
@@ -148,7 +156,8 @@ namespace sim_mob {
             UnitId id;
             BigSerial buildingId;
             BigSerial typeId;
-            double area;
+            BigSerial postcodeId;
+            double floorArea;
             int storey; 
             double rent;
             bool available;

@@ -17,7 +17,7 @@
  
  #pragma once
  
- #include "RStarBoundingBox.h"
+ #include "RStarBoundingBox.hpp"
  
  /**
 	\file
@@ -133,7 +133,7 @@ struct RStarRemoveLeaf{
 
 	bool operator()(const Leaf * const leaf) const
 	{
-		return true; 
+		return true;
 	}
 };
 
@@ -149,17 +149,13 @@ struct RStarRemoveSpecificLeaf
 	
 	explicit RStarRemoveSpecificLeaf(const typename Leaf::leaf_type &leaf, bool remove_duplicates = false) : 
 		ContinueVisiting(true), m_remove_duplicates(remove_duplicates), m_leaf(leaf) {}
-		
+	
 	bool operator()(const Leaf * const leaf) const
 	{
-		if (ContinueVisiting && m_leaf == leaf->leaf)
+		if (m_leaf == leaf->leaf)
 		{
-			if (!m_remove_duplicates)
-				ContinueVisiting = false;
 			return true;
 		}
 		return false;
 	}
-	
-//	private: RStarRemoveSpecificLeaf(){}
 };

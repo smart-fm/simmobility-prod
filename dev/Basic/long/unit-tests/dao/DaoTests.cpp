@@ -19,22 +19,22 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/BuildingTypeDao.hpp"
 
+
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using namespace unit_tests;
 using std::cout;
 using std::endl;
 
-//"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sg"
-//"host=172.25.184.13 port=5432 user=umiuser password=askme4sg dbname=sg"
-//"host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db"
-const std::string CONNECTION_STRING ="host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=lt-db";
-const int ID_TO_GET =1;
+namespace{
+    const int ID_TO_GET =1;
+}
 
 template <typename T, typename K>
 void TestDao() {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
-    DBConnection conn(sim_mob::db::POSTGRES, CONNECTION_STRING);
+    DatabaseConfig config(LT_DB_CONFIG_FILE);
+    DBConnection conn(sim_mob::db::POSTGRES, config);
     conn.Connect();
     if (conn.IsConnected()) {
         T dao(&conn);

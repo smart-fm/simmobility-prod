@@ -24,6 +24,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "network/CommunicationDataManager.hpp"
 
+#include "boost/bind.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::set;
@@ -1418,8 +1420,8 @@ void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(NearestVehicle
 	}
 }
 
-//incompleteattempt to rewrite updateNearestDriver in order to switch analyzer and analyzed objects
-//void sim_mob::DriverMovement::updateNearestDriverTo(const Driver* target, DriverUpdateParams& targetParams) {
+//incompleteattempt to rewrite handleUpdateRequestDriver in order to switch analyzer and analyzed objects
+//void sim_mob::DriverMovement::handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams) {
 //	DriverUpdateParams& myparams = parentDriver->getParams();
 //	if (!(this->parentDriver->isInIntersection.get()&& this->parentDriver != target)) {
 //		return;
@@ -1466,7 +1468,7 @@ void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(NearestVehicle
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
-bool sim_mob::DriverMovement::updateNearbyDriver(const Person* other, const Driver* other_driver) {
+bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver* other_driver) {
 	DriverUpdateParams& params = parentDriver->getParams();
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
@@ -1709,7 +1711,7 @@ bool sim_mob::DriverMovement::updateNearbyDriver(const Person* other, const Driv
 	return true;
 }
 
-void sim_mob::DriverMovement::updateNearbyPedestrian(const Person* other, const Pedestrian* pedestrian) {
+void sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Pedestrian* pedestrian) {
 	DriverUpdateParams& params = parentDriver->getParams();
 	//Only update if passed a valid pointer and this is on a crossing.
 
@@ -1805,7 +1807,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 			continue;
 		}
 
-//		other->getRole()->updateNearest();
+//		other->getRole()->handleUpdateRequest();
 		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
 		/*Note:
 		 * In the following methods(updateNearbyDriver and updateNearbyPedestrian), the variable "other"
@@ -1816,10 +1818,13 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 		 * need to be rewritten. for now, we reduce the number of dynamic_casts by calling only one of the functions.
 		 * It originally had to be like this(only one of them need to be called).
 		 */
-		if(!updateNearbyDriver(other, dynamic_cast<const Driver*> (other->getRole())))
-		{
-			updateNearbyPedestrian(other, dynamic_cast<const Pedestrian*> (other->getRole()));
-		}
+
+		other->getRole()->handleUpdateRequest(this);
+//		boost::function<void(sim_mob::Person*,sim_mob::Role*)> Fn = boost::bind(&DriverMovement::p, this,_1,_2);
+//		if(!updateNearbyAgent(other, dynamic_cast<const Driver*> (other->getRole())))
+//		{
+//			updateNearbyAgent(other, dynamic_cast<const Pedestrian*> (other->getRole()));
+//		}
 	}
 }
 

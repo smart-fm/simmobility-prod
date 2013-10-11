@@ -105,8 +105,13 @@ public:
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}
-
-	virtual void updateNearest(){};
+	//provide information to MovementFacet object passed as argument.
+		//such information can be provided by passing 'this'
+		//as an argument to one of the MovementFacet object's methods.
+		//Note:This twisting was originally invented to avoid dynamic_cast(s)
+		//another -better- approach is to re-write updateDriverAgent methods and change the subject and object.
+		//(in the other words change the place of the caller and the argument)
+	virtual void handleUpdateRequest(MovementFacet* mFacet){};
 
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time

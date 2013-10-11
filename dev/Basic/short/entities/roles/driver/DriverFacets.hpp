@@ -131,7 +131,7 @@ protected:
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
-
+	void p(sim_mob::Person*,sim_mob::Role*);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 private:
@@ -149,10 +149,9 @@ private:
 	void setBackToOrigin();
 
 	void updateNearbyAgents();
-	bool updateNearbyDriver(const sim_mob::Person* other, const sim_mob::Driver* other_driver);
-//	void updateNearestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
-	void updateNearbyPedestrian(const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
-
+	bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
+//	void handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
+	void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
 	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
 

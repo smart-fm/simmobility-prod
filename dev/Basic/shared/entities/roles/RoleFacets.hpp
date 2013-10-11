@@ -18,6 +18,9 @@ class Person;
 class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
+class Driver;
+class Pedestrian;
+class Agent;
 
 
 /**
@@ -107,6 +110,8 @@ public:
 	///For use by confluxes to permit the person to move to next link
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p) = 0;
 
+	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) {};
+	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
 
 public:
 	friend class sim_mob::PartitionManager;

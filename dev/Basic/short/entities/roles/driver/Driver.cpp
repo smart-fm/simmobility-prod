@@ -291,7 +291,9 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 
 	return res;
 }
-
+void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
+	mFacet->updateNearbyAgent(this->getParent(),this);
+}
 void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
 	UpdateParams::reset(now);

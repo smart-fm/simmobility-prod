@@ -85,7 +85,7 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
-
+	void handleUpdateRequest(MovementFacet* mFacet);
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;

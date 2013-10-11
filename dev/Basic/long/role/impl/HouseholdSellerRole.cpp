@@ -76,7 +76,7 @@ void HouseholdSellerRole::Update(timeslice now) {
                 itr++) {
             // Decides to put the house on market.
             if ((*itr)->IsAvailable()) {
-                double hedonicPrice = CalculateHedonicPrice(*(*itr), params);
+                double hedonicPrice = CalculateHedonicPrice(*(*itr));
                 (*itr)->SetHedonicPrice(hedonicPrice);
                 (*itr)->SetAskingPrice(hedonicPrice);
                 CalculateUnitExpectations(*(*itr));

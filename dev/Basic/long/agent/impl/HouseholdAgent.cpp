@@ -23,7 +23,7 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(int id, Household* hh HousingMarket* market)
+HouseholdAgent::HouseholdAgent(int id, Household* hh, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {
     currentRole = new HouseholdSellerRole(this, hh, market);
     currentRole->SetActive(true);

@@ -12,8 +12,6 @@
 #include "agent/LT_Agent.hpp"
 #include "core/HousingMarket.hpp"
 #include "database/entity/Household.hpp"
-#include "database/entity/housing-market/BidderParams.hpp"
-#include "database/entity/housing-market/SellerParams.hpp"
 #include "role/LT_Role.hpp"
 
 namespace sim_mob {
@@ -28,8 +26,7 @@ namespace sim_mob {
          */
         class HouseholdAgent : public LT_Agent, public UnitHolder {
         public:
-            HouseholdAgent(int id, Household* hh, const SellerParams& sellerParams,  
-        const BidderParams& bidderParams, HousingMarket* market);
+            HouseholdAgent(int id, Household* hh, HousingMarket* market);
             virtual ~HouseholdAgent();
         protected:
             /**

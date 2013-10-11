@@ -18,8 +18,6 @@
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/BuildingTypeDao.hpp"
-#include "database/dao/housing-market/BidderParamsDao.hpp"
-#include "database/dao/housing-market/SellerParamsDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -64,7 +62,4 @@ void DaoTests::TestAll() {
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();
     TestDao<BuildingTypeDao, BuildingType>();
-
-    TestDao<SellerParamsDao, SellerParams>();
-    TestDao<BidderParamsDao, BidderParams>();
 }

@@ -373,7 +373,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 
 		//4.Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {
-			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
+			const int lane_shift_velocity = 350;  //TODO: What is our lane changing velocity? Just entering this for now...
 
 			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 		}

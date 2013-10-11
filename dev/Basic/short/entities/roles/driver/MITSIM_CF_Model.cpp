@@ -288,7 +288,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
 {
-	double dx = p.perceivedDistToFwdCar/100 - 5;
+	double dx = p.perceivedDistToFwdCar/100;
 	if(p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
 		return maxAcceleration;
 	else

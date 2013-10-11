@@ -25,20 +25,26 @@ public:
 	void makeResponsePlan(timeslice* now, const RoadSegment* currentRoad);
 	INCIDENTPLAN getCurrentPlan() { return currentPlan; }
 	void resetStatus();
+	int urandom(double prob);
 
 public:
 	int nextLaneIndex;
 	float speedLimit;
 	float speedLimitOthers;
+	float lastSpeed;
+	float lastAccel;
+	float visibilityDist;
 	float distanceTo;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
 	LANE_CHANGE_SIDE laneSide;
 	INCIDENTPLAN currentPlan;
-
+	bool changedlane;
 private:
 	std::map<unsigned int, const Incident*> currentIncidents;
-
+	long seed;
+	static unsigned int flags;
+	unsigned int signature;
 };
 
 } /* namespace sim_mob */

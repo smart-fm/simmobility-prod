@@ -10,9 +10,16 @@
 
 namespace sim_mob {
 
-IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME) {
+unsigned int IncidentResponse::flags = 0;
+IncidentResponse::IncidentResponse() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false) {
 	// TODO Auto-generated constructor stub
-
+	static int counter = 0;
+	signature = counter;
+	counter ++;
+	unsigned int s = 0xFF << (signature * 8);
+	if (!(seed = (flags & s))) {
+		seed = time(0);
+	}
 }
 
 IncidentResponse::~IncidentResponse() {
@@ -60,6 +67,25 @@ void IncidentResponse::makeResponsePlan(timeslice* now, const RoadSegment* curre
 		currentPlan = INCIDENT_CLEARANCE;
 	}
 }
+
+int IncidentResponse::urandom(double prob){
+
+	const long int M = 2147483647;  // M = modulus (2^31)
+	const long int A = 48271;       // A = multiplier (was 16807)
+	const long int Q = M / A;
+	const long int R = M % A;
+
+	seed = A * (seed % Q) - R * (seed / Q);
+	seed = (seed > 0) ? (seed) : (seed + M);
+
+	double ret = (double)seed / (double)M;
+
+	double ran = rand()/(RAND_MAX*1.0);
+
+	if(ran < prob) return (1);
+	else return 0;
+}
+
 
 void IncidentResponse::resetStatus(){
 	currentPlan = INCIDENT_CLEARANCE;

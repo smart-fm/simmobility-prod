@@ -59,6 +59,10 @@ const int TIME_UNIT_YEARLY =365;
 
 const int TIME_UNIT = TIME_UNIT_WEEKLY;
 
+/**
+ * Configs
+ */
+ const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
 
 
 

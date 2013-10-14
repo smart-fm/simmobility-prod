@@ -31,6 +31,12 @@ Building& Building::operator=(const Building& source) {
     this->floorArea = source.floorArea;
     this->parkingSpaces = source.parkingSpaces;
     this->storeys = source.storeys;
+    this->residentialUnits = source.residentialUnits;
+    this->landArea = source.landArea;
+    this->improvementValue = source.improvementValue;
+    this->taxExempt = source.taxExempt;
+    this->nonResidentialSqft = source.nonResidentialSqft;
+    this->sqftPerUnit = source.sqftPerUnit;
     return *this;
 }
 
@@ -60,4 +66,28 @@ int Building::GetStoreys() const {
 
 int Building::GetParkingSpaces() const {
     return parkingSpaces;
+}
+
+int Building::GetResidentialUnits() const {
+    return residentialUnits;
+}
+
+double Building::GetLandArea() const {
+    return landArea;
+}
+
+int Building::GetImprovementValue() const {
+    return improvementValue;
+}
+
+int Building::GetTaxExempt() const {
+    return taxExempt;
+}
+
+double Building::GetNonResidentialSqft() const {
+    return nonResidentialSqft;
+}
+
+double Building::GetSqftPerUnit() const {
+    return sqftPerUnit;
 }

@@ -15,7 +15,6 @@
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
-#include "database/entity/housing-market/SellerParams.hpp"
 
 namespace sim_mob {
 
@@ -32,8 +31,8 @@ namespace sim_mob {
          */
         class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
-                    const SellerParams& params, HousingMarket* market);
+            HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+                    HousingMarket* market);
             virtual ~HouseholdSellerRole();
 
             /**
@@ -108,7 +107,6 @@ namespace sim_mob {
             friend class HouseholdAgent;
             HousingMarket* market;
             Household* hh;
-            SellerParams params;
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.

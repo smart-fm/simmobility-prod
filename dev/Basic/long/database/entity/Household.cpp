@@ -15,50 +15,111 @@
 
 using namespace sim_mob::long_term;
 
-Household::Household(BigSerial id, double income, int size, int children,
-        int carOwnership, BigSerial unitId, int housingDuration)
-: id(id), income(income), size(size), children(children), carOwnership(carOwnership),
-unitId(unitId), housingDuration(housingDuration) {
+Household::Household() {
 }
 
 Household::~Household() {
 }
 
-BigSerial Household::GetId() const {
-    return id;
+Household& Household::operator=(const Household& source) {
+    this->id = source.id;
+    this->lifestyleId = source.lifestyleId;
+    this->unitId = source.unitId;
+    this->ethnicityId = source.ethnicityId;
+    this->vehicleCategoryId = source.vehicleCategoryId;
+    this->income = source.income;
+    this->size = source.size;
+    this->children = source.children;
+    this->housingDuration = source.housingDuration;
+    this->workers = source.workers;
+    this->ageOfHead = source.ageOfHead;
+    return *this;
 }
 
-BigSerial Household::GetUnitId() const {
-    return unitId;
+void Household::SetAgeOfHead(int ageOfHead) {
+    this->ageOfHead = ageOfHead;
 }
 
-int Household::GetSize() const {
-    return size;
+int Household::GetAgeOfHead() const {
+    return ageOfHead;
 }
 
-int Household::GetChildren() const {
-    return children;
+void Household::SetWorkers(int workers) {
+    this->workers = workers;
 }
 
-double Household::GetIncome() const {
-    return income;
+int Household::GetWorkers() const {
+    return workers;
 }
 
-int Household::GetCarOwnership() const {
-    return carOwnership;
+void Household::SetHousingDuration(int housingDuration) {
+    this->housingDuration = housingDuration;
 }
 
 int Household::GetHousingDuration() const {
     return housingDuration;
 }
 
-Household& Household::operator=(const Household& source) {
-    this->id = source.id;
-    this->unitId = source.unitId;
-    this->income = source.income;
-    this->size = source.size;
-    this->children = source.children;
-    this->carOwnership = source.carOwnership;
-    this->housingDuration = source.housingDuration;
-    return *this;
+void Household::SetIncome(double income) {
+    this->income = income;
+}
+
+double Household::GetIncome() const {
+    return income;
+}
+
+void Household::SetChildren(int children) {
+    this->children = children;
+}
+
+int Household::GetChildren() const {
+    return children;
+}
+
+void Household::SetSize(int size) {
+    this->size = size;
+}
+
+int Household::GetSize() const {
+    return size;
+}
+
+void Household::SetVehicleCategoryId(BigSerial vehicleCategoryId) {
+    this->vehicleCategoryId = vehicleCategoryId;
+}
+
+BigSerial Household::GetVehicleCategoryId() const {
+    return vehicleCategoryId;
+}
+
+void Household::SetEthnicityId(BigSerial ethnicityId) {
+    this->ethnicityId = ethnicityId;
+}
+
+BigSerial Household::GetEthnicityId() const {
+    return ethnicityId;
+}
+
+void Household::SetUnitId(BigSerial unitId) {
+    this->unitId = unitId;
+}
+
+BigSerial Household::GetUnitId() const {
+    return unitId;
+}
+
+void Household::SetLifestyleId(BigSerial lifestyleId) {
+    this->lifestyleId = lifestyleId;
+}
+
+BigSerial Household::GetLifestyleId() const {
+    return lifestyleId;
+}
+
+void Household::SetId(BigSerial id) {
+    this->id = id;
+}
+
+BigSerial Household::GetId() const {
+    return id;
 }

@@ -66,7 +66,18 @@ namespace sim_mob {
              * @return stories number.
              */
             int GetParkingSpaces() const;
-
+            
+            /**
+             * Gets number of residential units.
+             * @return stories number.
+             */
+            int GetResidentialUnits() const;
+            double GetLandArea() const;
+            int GetImprovementValue() const;
+            int GetTaxExempt() const;
+            double GetNonResidentialSqft() const;
+            double GetSqftPerUnit() const;
+                
             /**
              * Assign operator.
              * @param source to assign.
@@ -85,7 +96,13 @@ namespace sim_mob {
                         << "\"builtYear\":\"" << data.builtYear << "\","
                         << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storeys\":\"" << data.storeys << "\","
-                        << "\"parkingSpaces\":\"" << data.parkingSpaces << "\""
+                        << "\"parkingSpaces\":\"" << data.parkingSpaces << "\","
+                        << "\"residentialUnits\":\"" << data.residentialUnits << "\","
+                        << "\"landArea\":\"" << data.landArea << "\","
+                        << "\"improvementValue\":\"" << data.improvementValue << "\","
+                        << "\"taxExempt\":\"" << data.taxExempt << "\","
+                        << "\"nonResidentialSqft\":\"" << data.nonResidentialSqft << "\","
+                        << "\"sqftPerUnit\":\"" << data.sqftPerUnit << "\""
                         << "}";
             }
 
@@ -99,6 +116,12 @@ namespace sim_mob {
             double floorArea;
             int storeys;
             int parkingSpaces;
+            int residentialUnits;
+            double landArea;
+            int improvementValue;
+            int taxExempt;
+            double nonResidentialSqft;
+            double sqftPerUnit;
         };
     }
 }

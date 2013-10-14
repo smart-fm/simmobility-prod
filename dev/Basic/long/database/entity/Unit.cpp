@@ -16,18 +16,19 @@
 
 using namespace sim_mob::long_term;
 
-Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
-        double area, int storey, double rent, bool available) :
-id(id), buildingId(buildingId), typeId(typeId),
-storey(storey), area(area), rent(rent), available(available), 
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
+        double floorArea, int storey, double rent, bool available) :
+id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId),
+storey(storey), floorArea(floorArea), rent(rent), available(available), 
 askingPrice(0), hedonicPrice(0), owner(nullptr) {}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
+    this->postcodeId = source.postcodeId;
     this->storey = source.storey;
-    this->area = source.area;
+    this->floorArea = source.floorArea;
     this->rent = source.rent;
     this->available = source.available;
     this->askingPrice = source.askingPrice;
@@ -42,8 +43,9 @@ Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
+    this->postcodeId = source.postcodeId;
     this->storey = source.storey;
-    this->area = source.area;
+    this->floorArea = source.floorArea;
     this->rent = source.rent;
     this->available = source.available;
     this->askingPrice = source.askingPrice;
@@ -64,12 +66,16 @@ BigSerial Unit::GetTypeId() const {
     return typeId;
 }
 
+BigSerial Unit::GetPostcodeId() const{
+    return postcodeId;
+}
+
 int Unit::GetStorey() const {
     return storey;
 }
 
-double Unit::GetArea() const {
-    return area;
+double Unit::GetFloorArea() const {
+    return floorArea;
 }
 
 double Unit::GetRent() const {

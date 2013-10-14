@@ -131,7 +131,6 @@ protected:
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
-	void p(sim_mob::Person*,sim_mob::Role*);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 private:

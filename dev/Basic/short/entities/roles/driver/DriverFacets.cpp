@@ -870,24 +870,14 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE ){
-		//parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimit+300);
-		if(incidentResponsePlan.speedLimit==0 && incidentResponsePlan.distanceTo < 5) {
+		if(incidentResponsePlan.speedLimit==0 && incidentResponsePlan.distanceTo < 10) {
 			parentDriver->vehicle->setVelocity(0);
 			parentDriver->vehicle->setAcceleration(0);
 		}
-		/*else if(p.nvFwd.exists() && incidentResponsePlan.distanceTo < 5000 ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			double len = parentDriver->getVehicle()->length;
-			if(movementVect.getMagnitude() < len ){
-				parentDriver->vehicle->setVelocity(0);
-				parentDriver->vehicle->setAcceleration(0);
-			}
-		}*/
 	}
+
 	double dist = 0;
-	 if(nv.exists() ){
+	if(nv.exists() ){
 		DPoint dFwd = nv.driver->getVehicle()->getPosition();
 		DPoint dCur = parentDriver->vehicle->getPosition();
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
@@ -1786,13 +1776,13 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 			const Lane* nextRightLane = nullptr;
 			const Lane* nextLeftLane2 = nullptr;
 			const Lane* nextRightLane2 = nullptr;
-//			if (uNode) {
-//				nextLane = uNode->getOutgoingLane(*params.currLane);
-//			}
-
 			if (uNode) {
-				nextLane = uNode->getForwardDrivingLane(*params.currLane);
+				nextLane = uNode->getOutgoingLane(*params.currLane);
 			}
+
+			//if (uNode) {
+			//	nextLane = uNode->getForwardDrivingLane(*params.currLane);
+			//}
 
 //			//
 //			const sim_mob::Lane * currlan = params.currLane;

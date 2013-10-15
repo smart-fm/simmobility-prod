@@ -51,14 +51,6 @@ namespace sim_mob {
         private:
             
             /**
-             * Struct to store a expectation data.
-             */
-            typedef struct ExpectationEntry_ {
-                double price;
-                double expectation;
-            } ExpectationEntry;
-            
-            /**
              * Decides over a given bid for a given unit.
              * @param bid given by the bidder.
              * @return true if accepts the bid or false otherwise.
@@ -112,6 +104,7 @@ namespace sim_mob {
             //Current max bid information.
             Bids maxBidsOfDay;
             ExpectationMap unitExpectations;
+            int currentExpectationIndex;
         };
     }
 }

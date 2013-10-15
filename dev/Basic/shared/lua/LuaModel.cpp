@@ -32,14 +32,9 @@ namespace {
         if (fs::exists(filePath) && fs::is_regular_file(filePath)) {
             if (filePath.extension() == LUA_FILE_EXTENSION) {
                 luaL_dofile(state, filePath.string().c_str());
-            } else {
-                throw runtime_error("Your file must have the extension .lua");
             }
-        } else {
-            throw runtime_error("File does not exist or is not a file.");
         }
     }
-
 }
 
 LuaModel::LuaModel()

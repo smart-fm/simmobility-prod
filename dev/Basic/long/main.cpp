@@ -141,7 +141,6 @@ const int TICK_STEP = 1;
 const int DAYS = 365;
 const int WORKERS = 10;
 const int DATA_SIZE = 30;
-const std::string CONNECTION_STRING = "host=localhost port=5432 user=postgres password=5M_S1mM0bility dbname=sim_mob_lt";
 
 /**
  * Runs all unit-tests.
@@ -369,7 +368,7 @@ void test_main() {
 int main(int ARGC, char* ARGV[]) {
     std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
     StopWatch watch;
-
+    Print::Init("<stdout>");
     //get start time of the simulation.
     std::list<std::string> resLogFiles;
     watch.Start();

@@ -63,6 +63,7 @@ const int TIME_UNIT = TIME_UNIT_WEEKLY;
  * Configs
  */
  const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
+ const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
 
 
 

@@ -10,48 +10,30 @@
 #include "LuaProxy.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
-#include <vector>
-#include "lua/LuaLibrary.hpp"
-#include "lua/LuaModel.hpp"
-//#include "lua/third-party/luabridge/LuaBridge.h"
-//#include "lua/third-party/luabridge/RefCountedObject.h"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
-//using namespace luabridge;
-using std::vector;
+using namespace sim_mob::lua;
 
 namespace {
 
-    /*boost::thread_specific_ptr<LuaModel> threadContext();
+    struct ModelContext {
+        HMLuaModel hmModel;
+    };
+
+    boost::thread_specific_ptr<ModelContext> threadContext;
 
     void ensureContext() {
         if (!threadContext.get()) {
-            LuaModel* model = luaL_newstate();
-            luaL_openlibs(model);
-            luaL_dofile(state,"../scripts/lua/long/housing-market.lua");
-            threadContext.reset(state);
+            ModelContext* modelCtx = new ModelContext();
+            modelCtx->hmModel.loadDirectory(HM_LUA_DIR);
+            modelCtx->hmModel.Initialize();
+            threadContext.reset(modelCtx);
         }
-    }*/
+    }
 }
 
-double LuaProxy::HM_SellerExpectation(double price, double expectation, double theta, double alpha) {
-    /*ensureContext();
-    LuaRef funcRef = getGlobal(threadContext.get(), "sellerExpectationFunction");
-    LuaRef retVal = funcRef(price, expectation, theta, alpha);
-    if (retVal.isNumber()) {
-        return retVal;
-    }*/
-}
-
- void LuaProxy::arrayTest(vector<double>& out) {
-    /*ensureContext();
-    LuaRef funcRef = getGlobal(threadContext.get(), "arrayTest");
-    LuaRef retVal = funcRef();
-    if (retVal.isTable()) {
-        for (int i=1; i <= retVal.length(); i++){
-            double x = retVal[i];
-            out.push_back(x);
-        }      
-    }*/
+HMLuaModel& LuaProxy::getHM_Model() {
+    ensureContext();
+    return threadContext.get()->hmModel;
 }

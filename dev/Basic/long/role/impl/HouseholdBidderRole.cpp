@@ -18,6 +18,7 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "message/MessageBus.hpp"
+#include "util/lua/LuaProxy.hpp"
 
 using std::list;
 using std::endl;
@@ -152,7 +153,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             if ((*itr)->IsAvailable()) {
-                float surplus = CalculateSurplus(*(*itr));
+                float surplus = LuaProxy::getHM_Model().calculateSurplus(*(*itr), GetBidsCounter((*(*itr)).GetId()));
                 if (surplus > maxSurplus) {
                     maxSurplus = surplus;
                     unit = (*itr);
@@ -162,7 +163,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         // Exists some unit to bid.
         if (unit) {
             MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
-            float bidValue = maxSurplus + CalculateWP(*unit);
+            float bidValue = maxSurplus + LuaProxy::getHM_Model().calulateWP(*hh, *unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
                 MessageBus::PostMessage(owner, LTMID_BID, 
@@ -173,21 +174,6 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         }
     }
     return false;
-}
-
-float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    return 0;
-    /*return pow(unit.GetAskingPrice(), params.GetUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * params.GetPriceQuality());*/
-}
-
-float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return 0;
-    /*return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
-            (params.GetUnitAreaWeight() * unit.GetFloorArea()) +
-            (params.GetUnitTypeWeight() * unit.GetTypeId()) +
-            (params.GetUnitRentWeight() * unit.GetRent()) +
-            (params.GetUnitStoreyWeight() * unit.GetStorey()));*/
 }
 
 void HouseholdBidderRole::FollowMarket() {

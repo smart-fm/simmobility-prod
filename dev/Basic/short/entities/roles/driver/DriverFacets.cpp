@@ -229,20 +229,16 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
-int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, timeslice now) {
+int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
-	if(p.now.frame()>3348){
-		int kk, gg = 0;
-		kk =gg;
-	}
 	const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
 	const RoadSegment* nexSegment = parentDriver->vehicle->getNextSegment(true);
 	const Lane* curLane = parentDriver->vehicle->getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
-	IncidentResponse::INCIDENTPLAN plan = IncidentResponse::INCIDENT_CLEARANCE;
-	incidentResponsePlan.distanceTo = 0;
+	IncidentStatus::INCIDENTPLAN plan = IncidentStatus::INCIDENT_CLEARANCE;
+	incidentStatus.distanceTo = 0;
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -255,11 +251,11 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 	//	const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 		if(inc){
 			float visibility = inc->visibilityDistance;
-			incidentResponsePlan.visibilityDist = visibility;
+			incidentStatus.visibilityDist = visibility;
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && dist<visibility){
 
 				if(curLaneIndex==inc->laneId ){
-					plan = IncidentResponse::INCIDENT_CHANGELANE;
+					plan = IncidentStatus::INCIDENT_CHANGELANE;
 					if( curLaneIndex < curSegment->getLanes().size()-1){
 						nextLaneIndex = curLaneIndex+1;
 						laneSide = LCS_LEFT;
@@ -270,27 +266,27 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 					}
 				}
 				else {
-					plan = IncidentResponse::INCIDENT_SLOWDOWN;
+					plan = IncidentStatus::INCIDENT_SLOWDOWN;
 				}
 
-				incidentResponsePlan.distanceTo = dist;
-				bool ret = incidentResponsePlan.insertIncident(inc);
+				incidentStatus.distanceTo = dist;
+				bool ret = incidentStatus.insertIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
 				}
 
-				if(!incidentResponsePlan.changedlane){
-					double prob = incidentResponsePlan.distanceTo/incidentResponsePlan.visibilityDist;
-					if(prob<0.2){
-						incidentResponsePlan.changedlane=true;
+				if(!incidentStatus.changedlane){
+					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
+					if(prob<0.1){
+						incidentStatus.changedlane=true;
 					}
-					else if( incidentResponsePlan.urandom((1.0-prob)) > 0 ){
-						incidentResponsePlan.changedlane=true;
+					else if( incidentStatus.urandom((1.0-prob)) > 0 ){
+						incidentStatus.changedlane=true;
 					}
 				}
 			}
 			else if( now.ms() > inc->startTime+inc->duration ){
-				bool ret = incidentResponsePlan.removeIncident(inc);
+				bool ret = incidentStatus.removeIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
 				}
@@ -301,7 +297,7 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 			if(inc){
-				bool ret = incidentResponsePlan.removeIncident(inc);
+				bool ret = incidentStatus.removeIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
 				}
@@ -310,10 +306,10 @@ int sim_mob::DriverMovement::makeDecisionForIncident(DriverUpdateParams& p, time
 	}
 
 	if(replan){
-		incidentResponsePlan.nextLaneIndex = nextLaneIndex;
-		incidentResponsePlan.laneSide = laneSide;
-		incidentResponsePlan.currentPlan = plan;
-		incidentResponsePlan.makeResponsePlan(&now, curSegment);
+		incidentStatus.nextLaneIndex = nextLaneIndex;
+		incidentStatus.laneSide = laneSide;
+		incidentStatus.currentPlan = plan;
+		incidentStatus.checkIsCleared(&now, curSegment);
 	}
 }
 
@@ -711,37 +707,21 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 
-	//if(parentDriver->getParent()->GetId()==31 && p.now.frame() >= 100 ){
-	//	std::cout << "current driver is " << parentDriver->getParent()->GetId() << " speed limit : " << incidentResponsePlan.speedLimit  << " current frame :" << p.now.frame() << std::endl;
-	//}
-
 	LANE_CHANGE_MODE mode = MLC;
-	makeDecisionForIncident(p, parentDriver->params.now);
-	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE ){
-		p.nextLaneIndex = incidentResponsePlan.nextLaneIndex;
-		parentDriver->vehicle->setTurningDirection(incidentResponsePlan.laneSide);
+	checkIncidentStatus(p, parentDriver->params.now);
+	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
+		p.nextLaneIndex = incidentStatus.nextLaneIndex;
+		parentDriver->vehicle->setTurningDirection(incidentStatus.laneSide);
 		parentDriver->vehicle->setLatVelocity(150);
-		incidentResponsePlan.startFrameTick++;
-		if( incidentResponsePlan.changedlane==true )
-					mode = MLC;
-				else
-					mode = DLC;
-		/*if( incidentResponsePlan.speedLimit!=0 )
-			mode = DLC;
+		incidentStatus.startFrameTick++;
+		if( incidentStatus.changedlane==true )
+			mode = MLC;
 		else
-			mode = MLC;*/
+			mode = DLC;
 	}
-	/*else if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_SLOWDOWN){
-		parentDriver->vehicle->setVelocity(incidentResponsePlan.speedLimitOthers+100);
-	}*/
 
 	//Check if we should change lanes.
-	/*if (p.now.ms()/1000.0 > 41.6 && parent->getId() == 24)
-		std::cout<<"find vh"<<std::endl;*/
 	double newLatVel;
-	/*if(p.now.frame() >= 83) {
-		std::cout << "p.now.frame() : " << p.now.frame() << std::endl;
-	}*/
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
 			parentDriver->vehicle->getTurningDirection(), mode);
 
@@ -753,23 +733,10 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		if(p.currLaneIndex == incidentResponsePlan.nextLaneIndex && incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE){
-			//incidentResponsePlan.resetStatus();
-			incidentResponsePlan.currentPlan = IncidentResponse::INCIDENT_SLOWDOWN;
+		if(p.currLaneIndex == incidentStatus.nextLaneIndex && incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE){
+			incidentStatus.currentPlan = IncidentStatus::INCIDENT_SLOWDOWN;
 		}
-		//std::cout << "incident reset status is " << parentDriver->getParent()->GetId() << std::endl;
 	}
-	//when vehicle stops, don't do lane changing
-//	if (vehicle->getVelocity() <= 0) {
-//		vehicle->setLatVelocity(0);
-//	}
-
-	/*static int testLaneChange = 0;
-	if(testLaneChange++ == 50){
-		parentDriver->vehicle->setTurningDirection(LCS_LEFT);
-		testLaneChange=0;
-	}*/
-
 
 	p.turningDirection = parentDriver->vehicle->getTurningDirection();
 
@@ -809,7 +776,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
-	if(incidentResponsePlan.getCurrentPlan() != IncidentResponse::INCIDENT_CLEARANCE ){
+	if(incidentStatus.getCurrentStatus() != IncidentStatus::INCIDENT_CLEARANCE ){
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
 			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
@@ -817,30 +784,30 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
 			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->vehicle->length/2.0;
+				fwdCarDist = parentDriver->vehicle->length;
 			}
 		}
 
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentResponsePlan.distanceTo, fwdCarDist);
+		p.perceivedDistToFwdCar = std::min(incidentStatus.distanceTo, fwdCarDist);
 		p.turningDirection = LCS_LEFT;
 		float speedTarget = 0;
 		float newSpeed = 0;
 
-		if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE ){
-			speedTarget = incidentResponsePlan.speedLimit;
-			if(speedTarget==0 && incidentResponsePlan.distanceTo>5)
+		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
+			speedTarget = incidentStatus.speedLimit;
+			if(speedTarget==0 && incidentStatus.distanceTo>5)
 				speedTarget = 100;
 		}
-		else if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_SLOWDOWN){
-			speedTarget = incidentResponsePlan.speedLimitOthers;
+		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_SLOWDOWN){
+			speedTarget = incidentStatus.speedLimitOthers;
 		}
 
 		if(parentDriver->vehicle->getVelocity() > speedTarget){
 			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedTarget, maxLaneSpeed);
-			incidentResponsePlan.lastSpeed = parentDriver->vehicle->getVelocity();
-			incidentResponsePlan.lastAccel = newFwdAcc;
+			incidentStatus.lastSpeed = parentDriver->vehicle->getVelocity();
+			incidentStatus.lastAccel = newFwdAcc;
 			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
 			if(newSpeed < speedTarget){
 				newFwdAcc = 0;
@@ -861,7 +828,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		double cur = parentDriver->vehicle->getVelocity();
 		if( cur == 0 &&  p.now.frame()>407 ){
 			if(speedTarget == 0){
-				int i = incidentResponsePlan.distanceTo;
+				int i = incidentStatus.distanceTo;
 			}
 		}
 
@@ -869,31 +836,25 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		p.turningDirection = oldDirect;
 	}
 
-	if(incidentResponsePlan.getCurrentPlan() == IncidentResponse::INCIDENT_CHANGELANE ){
-		if(incidentResponsePlan.speedLimit==0 && incidentResponsePlan.distanceTo < 10) {
+	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
+		if(incidentStatus.speedLimit==0 && incidentStatus.distanceTo < 10) {
 			parentDriver->vehicle->setVelocity(0);
 			parentDriver->vehicle->setAcceleration(0);
 		}
-	}
-
-	double dist = 0;
-	if(nv.exists() ){
-		DPoint dFwd = nv.driver->getVehicle()->getPosition();
-		DPoint dCur = parentDriver->vehicle->getPosition();
-		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-		double len = parentDriver->getVehicle()->length;
-		dist = movementVect.getMagnitude();
-		double speed = parentDriver->vehicle->getVelocity();
-		if( dist<len && speed>0 ){
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
+		else if(nv.exists() ){
+			DPoint dFwd = nv.driver->getVehicle()->getPosition();
+			DPoint dCur = parentDriver->vehicle->getPosition();
+			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+			double len = parentDriver->getVehicle()->length;
+			double dist = movementVect.getMagnitude();
+			double speed = parentDriver->vehicle->getVelocity();
+			if( dist<len && speed>0 ){
+				parentDriver->vehicle->setVelocity(0);
+				parentDriver->vehicle->setAcceleration(0);
+			}
 		}
-
 	}
-	 /*if(p.now.frame()>325 && parentDriver->parent->GetId()==16  ){
-					std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId() << "distance : " <<dist<< std::endl;
-					int len = parentDriver->getVehicle()->length;
-	}*/
+
 	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<
 			" acceleration: "<<parentDriver->vehicle->getAcceleration()/100.0<<
 			" moveinseg: "<<parentDriver->vehicle->getDistanceMovedInSegment()<<std::endl;*/

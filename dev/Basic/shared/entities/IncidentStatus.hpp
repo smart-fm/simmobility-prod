@@ -15,15 +15,15 @@ class timeslice;
 namespace sim_mob {
 
 class RoadSegment;
-class IncidentResponse {
+class IncidentStatus {
 public:
 	enum INCIDENTPLAN{INCIDENT_CLEARANCE, INCIDENT_CHANGELANE, INCIDENT_SLOWDOWN };
-	IncidentResponse();
-	virtual ~IncidentResponse();
+	IncidentStatus();
+	virtual ~IncidentStatus();
 	bool insertIncident(const Incident* inc);
 	bool removeIncident(const Incident* inc);
-	void makeResponsePlan(timeslice* now, const RoadSegment* currentRoad);
-	INCIDENTPLAN getCurrentPlan() { return currentPlan; }
+	void checkIsCleared(timeslice* now, const RoadSegment* currentRoad);
+	INCIDENTPLAN getCurrentStatus() { return currentPlan; }
 	void resetStatus();
 	int urandom(double prob);
 

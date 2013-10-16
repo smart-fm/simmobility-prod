@@ -18,7 +18,7 @@
 #include "Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
-#include "entities/IncidentResponse.hpp"
+#include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 
 namespace sim_mob {
@@ -131,7 +131,7 @@ protected:
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 
-	int makeDecisionForIncident(DriverUpdateParams& p, timeslice now);
+	int checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
@@ -192,6 +192,6 @@ private:
 	mutable std::stringstream DebugStream;
 
 	//incident response plan
-	sim_mob::IncidentResponse incidentResponsePlan;
+	sim_mob::IncidentStatus incidentStatus;
 };
 }

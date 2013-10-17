@@ -44,19 +44,20 @@ void sim_mob::PrintNetwork::LogIncidents() const
 	double baseFrameTick = cfg.system.simulation.baseGranMS;
 
 	out <<"Printing incident" <<std::endl;
-	out << "({\"Incident:\" {";
+	out << "{\"Incident\" : ";
 	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
+		out << "{";
 		out << "\"id\":\"" << (*incIt).incidentId << "\",";
 		out << "\"visibility\":\"" << (*incIt).incidentId << "\",";
-		out << "\"segment_aimsun_id\":\"" << (*incIt).incidentId << "\",";
+		out << "\"segment_aimsun_id\":\"" << (*incIt).segmentId << "\",";
 		out << "\"position\":\"" << (*incIt).position << "\",";
 		out << "\"severity\":\"" << (*incIt).severity << "\",";
 		out << "\"cap_factor\":\"" << (*incIt).capFactor << "\",";
 		out << "\"start_time\":\"" << ((*incIt).startTime-baseGranMS)/baseFrameTick  << "\",";
 		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
-		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "\",";
+		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "}";
 	}
-	out <<"})" <<std::endl;
+	out <<"}" <<std::endl;
 }
 
 

@@ -237,7 +237,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
-	IncidentStatus::INCIDENTPLAN plan = IncidentStatus::INCIDENT_CLEARANCE;
+	IncidentStatus::INCIDENTSTATUS plan = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.distanceTo = 0;
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();

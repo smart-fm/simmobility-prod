@@ -101,7 +101,7 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 
 sim_mob::DriverRequestParams sim_mob::BusDriver::getDriverRequestParams()
 {
-	Person* person = dynamic_cast<Person*>(parent);
+//	Person* person = dynamic_cast<Person*>(parent);
 	sim_mob::DriverRequestParams res;
 
 	res.existedRequest_Mode = &existed_Request_Mode;

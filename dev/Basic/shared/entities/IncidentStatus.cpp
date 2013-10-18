@@ -11,7 +11,7 @@
 namespace sim_mob {
 
 unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false) {
+IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), randomStep(1.0),  curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false) {
 	// TODO Auto-generated constructor stub
 	static int counter = 0;
 	signature = counter;
@@ -64,7 +64,7 @@ bool IncidentStatus::removeIncident(const Incident* inc){
 void IncidentStatus::checkIsCleared(timeslice* now, const RoadSegment* currentRoad){
 
 	if(currentIncidents.size() ==0 ){
-		currentPlan = INCIDENT_CLEARANCE;
+		resetStatus();
 	}
 }
 
@@ -78,11 +78,11 @@ int IncidentStatus::urandom(double prob){
 	seed = A * (seed % Q) - R * (seed / Q);
 	seed = (seed > 0) ? (seed) : (seed + M);
 
-	double ret = (double)seed / (double)M;
+	//double ret = (double)seed / (double)M;
 
-	double ran = rand()/(RAND_MAX*1.0);
+	double ret = rand()/(RAND_MAX*1.0);
 
-	if(ran < prob) return (1);
+	if(ret < prob) return (1);
 	else return 0;
 }
 
@@ -91,6 +91,8 @@ void IncidentStatus::resetStatus(){
 	currentPlan = INCIDENT_CLEARANCE;
 	nextLaneIndex = -1;
 	speedLimit = -1;
+	randomStep = 1.0;
+	changedlane = false;
 	//startFrameTick = 0;
 	//curFrameTick = 0;
 }

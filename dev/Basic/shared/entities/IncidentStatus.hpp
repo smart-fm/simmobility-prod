@@ -35,6 +35,7 @@ public:
 	float lastAccel;
 	float visibilityDist;
 	float distanceTo;
+	float randomStep;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
 	LANE_CHANGE_SIDE laneSide;

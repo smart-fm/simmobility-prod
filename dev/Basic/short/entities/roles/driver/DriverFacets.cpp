@@ -247,8 +247,6 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 20000, dist);
 	if(roadItem) {
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
-	//for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
-	//	const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 		if(inc){
 			float visibility = inc->visibilityDistance;
 			incidentStatus.visibilityDist = visibility;
@@ -275,13 +273,17 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					replan = true;
 				}
 
+				float samplesequence = 0.05;
 				if(!incidentStatus.changedlane){
 					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
-					if(prob<0.1){
+					if(prob < samplesequence){
 						incidentStatus.changedlane=true;
 					}
-					else if( incidentStatus.urandom((1.0-prob)) > 0 ){
-						incidentStatus.changedlane=true;
+					else if( prob < incidentStatus.randomStep ){
+						incidentStatus.randomStep -= samplesequence;
+						if( incidentStatus.urandom((1.0-prob)) > 0 ){
+							incidentStatus.changedlane=true;
+						}
 					}
 				}
 			}
@@ -420,6 +422,7 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<"\",\"curr-segment\":\""<<(inLane?parentDriver->vehicle->getCurrLane()->getRoadSegment():0x0)
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
+			<<"\",\"mandatory\":\""<<incidentStatus.changedlane
 			<<addLine.str()
 			<<"\"})"<<std::endl);
 }
@@ -707,13 +710,12 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 
+	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = MLC;
 	checkIncidentStatus(p, parentDriver->params.now);
 	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
 		p.nextLaneIndex = incidentStatus.nextLaneIndex;
 		parentDriver->vehicle->setTurningDirection(incidentStatus.laneSide);
-		parentDriver->vehicle->setLatVelocity(150);
-		incidentStatus.startFrameTick++;
 		if( incidentStatus.changedlane==true )
 			mode = MLC;
 		else
@@ -804,6 +806,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			speedTarget = incidentStatus.speedLimitOthers;
 		}
 
+		// recalculate acceleration when incident happen
 		if(parentDriver->vehicle->getVelocity() > speedTarget){
 			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedTarget, maxLaneSpeed);
 			incidentStatus.lastSpeed = parentDriver->vehicle->getVelocity();
@@ -821,17 +824,6 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 		parentDriver->vehicle->setVelocity(newSpeed);
 		parentDriver->vehicle->setAcceleration(0);
-
-		double fwd = 0;
-		if(p.nvFwd.exists())
-			fwd = p.nvFwd.driver->getVehicle()->getVelocity();
-		double cur = parentDriver->vehicle->getVelocity();
-		if( cur == 0 &&  p.now.frame()>407 ){
-			if(speedTarget == 0){
-				int i = incidentStatus.distanceTo;
-			}
-		}
-
 		p.perceivedDistToFwdCar = oldDistToStop;
 		p.turningDirection = oldDirect;
 	}
@@ -847,8 +839,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 			double len = parentDriver->getVehicle()->length;
 			double dist = movementVect.getMagnitude();
-			double speed = parentDriver->vehicle->getVelocity();
-			if( dist<len && speed>0 ){
+			if( dist < len){
 				parentDriver->vehicle->setVelocity(0);
 				parentDriver->vehicle->setAcceleration(0);
 			}

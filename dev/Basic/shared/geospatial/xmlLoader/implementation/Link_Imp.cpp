@@ -16,20 +16,10 @@ sim_mob::Link* sim_mob::xml::link_t_pimpl::post_link_t ()
 {
 	sim_mob::Link* res = new sim_mob::Link(model);
 
-	//parentLink
-	//{
-	const std::vector<sim_mob::RoadSegment*>& fwd = res->getPath();
+	const std::vector<sim_mob::RoadSegment*>& fwd = res->getSegments();
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator it = fwd.begin(); it != fwd.end(); it++) {
 		const_cast<sim_mob::RoadSegment*>(*it)->setParentLink(res);
 	}
-	//}
-
-	/*{
-	const std::vector<sim_mob::RoadSegment*>& rev = res->getPath(false);
-	for(std::vector<sim_mob::RoadSegment*>::const_iterator it = rev.begin(); it != rev.end(); it++) {
-		const_cast<sim_mob::RoadSegment*>(*it)->setParentLink(res);
-	}
-	}*/
 
 	return res;
 }

@@ -231,7 +231,8 @@ public:
     /**
      * Retrieve the RoadRunnerRegion that a given RoadSegment passes through.
      * boolean value indicates success.
-     * NOTE: We assume that a Segment is "inside" a Region if its midpoint is inside that Region.
+     * NOTE: We assume that a Segment is "inside" a Region if its midpoint is inside that Region, or
+     *       if its from/to line intersects one of that Region's line segments.
      * If multiple Regions overlap on a RoadSegment, an arbitrary one will be chosen.
      */
     std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);

@@ -35,10 +35,58 @@ using namespace sim_mob;
 namespace {
 
 
+//Returns -1, 1, or 0 depending on where the point lies in relation to the line.
+//This function was modified from the openJDK project; it is licensed under the terms of the GNU GPL 2
+//   and is copyright 1997, 2006, Oracle and/or its affiliates.
+int relativeCCW(double x1, double y1, double x2, double y2, double px, double py) {
+	x2 -= x1;
+	y2 -= y1;
+	px -= x1;
+	py -= y1;
+	double ccw = px*y2 - py*x2;
+	if (ccw == 0.0) {
+		// The point is colinear, classify based on which side of
+		// the segment the point falls on.  We can calculate a
+		// relative value using the projection of px,py onto the
+		// segment - a negative value indicates the point projects
+		// outside of the segment in the direction of the particular
+		// endpoint used as the origin for the projection.
+		ccw = px*x2 + py*y2;
+		if (ccw > 0.0) {
+			// Reverse the projection to be relative to the original x2,y2,x2 and y2 are simply negated.
+			// px and py need to have (x2 - x1) or (y2 - y1) subtracted from them (based on the original values)
+			// Since we really want to get a positive answer when the point is "beyond (x2,y2)", then we want to calculate
+			//    the inverse anyway - thus we leave x2 & y2 negated.
+			px -= x2;
+			py -= y2;
+			ccw = px*x2 + py*y2;
+			if (ccw < 0.0) {
+				ccw = 0.0;
+			}
+		}
+	}
+	return (ccw < 0.0) ? -1 : ((ccw > 0.0) ? 1 : 0);
+}
+
+
+
+//Check if 2 lines intersect.
+//This function was modified from the openJDK project; it is licensed under the terms of the GNU GPL 2
+//   and is copyright 1997, 2006, Oracle and/or its affiliates.
+bool line_intersects_line(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+	return ((relativeCCW(x1, y1, x2, y2, x3, y3) *
+			relativeCCW(x1, y1, x2, y2, x4, y4) <= 0)
+			&& (relativeCCW(x3, y3, x4, y4, x1, y1) *
+			relativeCCW(x3, y3, x4, y4, x2, y2) <= 0)
+	);
+}
+
+
+
 //Check if a point is inside of a Region. Note that this code is copied from
 // Jason's RoadRunner code; we might want to eventually use a more sophisticated
 // Region check, but for now this is sufficient.
-bool region_intersection_check(RoadRunnerRegion r, LatLngLocation pt) {
+bool point_inside_region(RoadRunnerRegion r, LatLngLocation pt) {
 	double x = pt.longitude;
 	double y = pt.latitude;
 	int polySides = r.points.size();
@@ -57,6 +105,22 @@ bool region_intersection_check(RoadRunnerRegion r, LatLngLocation pt) {
 	}
 	return oddTransitions;
 }
+
+
+//Check if a line intersects one of the Region's lines.
+bool line_intersects_region(RoadRunnerRegion r, LatLngLocation start, LatLngLocation end) {
+	int polySides = r.points.size();
+	DynamicVector vec1(start.longitude, start.latitude, end.longitude, end.latitude);
+
+	for (int i=0,j=polySides-1; i<polySides; j=i++) {
+		DynamicVector vec2(r.points.at(i).longitude, r.points.at(i).latitude, r.points.at(j).longitude, r.points.at(j).latitude);
+		if (line_intersects_line(vec1.getX(), vec1.getY(), vec1.getEndX(), vec1.getEndY(), vec2.getX(), vec2.getY(), vec2.getEndX(), vec2.getEndY())) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 
 
@@ -107,6 +171,13 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
     	buildLookups((*iter)->getSegments(), completedCrossings, network.roadRunnerRegions, network.getCoordTransform(false));
     }
+
+	//TEMP:
+	Print() <<"REGIONS MAP: \n";
+	for (std::map<const RoadSegment*, RoadRunnerRegion>::const_iterator it=rrRegionLookup.begin(); it!=rrRegionLookup.end(); it++) {
+		Print() <<"  " <<it->first <<" => " <<it->second.id <<"\n";
+	}
+	Print() <<"END REGIONS MAP\n";
 }
 
 
@@ -398,12 +469,18 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
     	if (coords && !roadRunnerRegions.empty()) {
     		//Get the midpoint of this Segment.
     		DynamicVector dv((*segIt)->getStart()->location, (*segIt)->getEnd()->location);
+    		LatLngLocation start = coords->transform(DPoint(dv.getX(), dv.getY()));
+    		LatLngLocation end = coords->transform(DPoint(dv.getEndX(), dv.getEndY()));
     		dv.scaleVectTo(dv.getMagnitude()/2.0);
     		LatLngLocation midpt = coords->transform(DPoint(dv.getX(), dv.getY()));
 
     		//Check each region until we find one that matches.
 			for (std::map<int, sim_mob::RoadRunnerRegion>::const_iterator rrIt=roadRunnerRegions.begin(); rrIt!=roadRunnerRegions.end(); rrIt++) {
-				if (region_intersection_check(rrIt->second, midpt)) {
+				if (point_inside_region(rrIt->second, midpt)) {
+					rrRegionLookup[*segIt] = rrIt->second;
+					break;
+				}
+				if (line_intersects_region(rrIt->second, start, end)) {
 					rrRegionLookup[*segIt] = rrIt->second;
 					break;
 				}

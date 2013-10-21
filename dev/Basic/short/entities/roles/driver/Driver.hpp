@@ -126,7 +126,7 @@ protected:
 protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
-	DriverUpdateParams params;
+//	DriverUpdateParams params;
 
 private:
 //	//Sample stored data which takes reaction time into account.

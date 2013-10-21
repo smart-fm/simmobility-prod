@@ -180,7 +180,7 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),params(parent->getGenerator()),
+	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),/*params(parent->getGenerator()),*/
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
@@ -225,7 +225,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 //	nextLaneInNextLink = nullptr;
 //	disToFwdVehicleLastFrame = maxVisibleDis;
 	// record start time
-	startTime = params.now.ms()/1000.0;
+	startTime = getParams().now.ms()/1000.0;
 	isAleadyStarted = false;
 }
 

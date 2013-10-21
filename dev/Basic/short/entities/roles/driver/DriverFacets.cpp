@@ -204,7 +204,7 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	nextLaneInNextLink = nullptr;
 	disToFwdVehicleLastFrame = parentDriver->maxVisibleDis;
 //	// record start time
-//	startTime = parentDriver->params.now.ms()/1000.0;
+//	startTime = parentDriver->getParams().now.ms()/1000.0;
 //	isAleadyStarted = false;
 }
 
@@ -226,7 +226,7 @@ void sim_mob::DriverMovement::frame_init() {
 
 	//Set some properties about the current path, such as the current polyline, etc.
 	if (parentDriver->vehicle && parentDriver->vehicle->hasPath()) {
-		setOrigin(parentDriver->params);
+		setOrigin(parentDriver->getParams());
 	} else {
 		Warn() << "ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl ;
 	}
@@ -249,13 +249,13 @@ void sim_mob::DriverMovement::frame_tick() {
 	updateAdjacentLanes(p2);
 
 	//Update "current" time
-	parentDriver->perceivedFwdVel->update(parentDriver->params.now.ms());
-	parentDriver->perceivedFwdAcc->update(parentDriver->params.now.ms());
-	parentDriver->perceivedDistToFwdCar->update(parentDriver->params.now.ms());
-	parentDriver->perceivedVelOfFwdCar->update(parentDriver->params.now.ms());
-	parentDriver->perceivedAccOfFwdCar->update(parentDriver->params.now.ms());
-	parentDriver->perceivedTrafficColor->update(parentDriver->params.now.ms());
-	parentDriver->perceivedDistToTrafficSignal->update(parentDriver->params.now.ms());
+	parentDriver->perceivedFwdVel->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedFwdAcc->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedDistToFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedVelOfFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedAccOfFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedTrafficColor->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedDistToTrafficSignal->update(parentDriver->getParams().now.ms());
 
 	//retrieved their current "sensed" values.
 	if (parentDriver->perceivedFwdVel->can_sense()) {
@@ -449,7 +449,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	if(params.justChangedToNewSegment == true ){
 		const RoadSegment* prevSeg = parentDriver->vehicle->getCurrSegment();
 		const Link* prevLink = prevSeg->getLink();
-		double actualTime = params.elapsedSeconds + (params.now.ms()/1000.0);
+		double actualTime = parentDriver->getParams().elapsedSeconds + (parentDriver->getParams().now.ms()/1000.0);
 		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
 		Agent* parentAgent = parentDriver->getDriverParent(parentDriver);
 		if(prevLink == parentAgent->getTravelStats().link_){
@@ -541,7 +541,7 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::DriverMovement::linkDriving(DriverUpdateParams& p) {
 
-if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (parentDriver->vehicle->getDistanceMovedInSegment()>2000) && (parentDriver->isAleadyStarted == false))
+if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) &&  (parentDriver->vehicle->getDistanceMovedInSegment()>2000) && (parentDriver->isAleadyStarted == false))
 	{
 	parentDriver->isAleadyStarted = true;
 	}
@@ -1473,7 +1473,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
-	/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
+	/*if (getParams().now.ms()/1000.0 > 41.8 && parent->getId() == 25)
 			std::cout<<"find vh"<<std::endl;*/
 	if (!(other_driver && this->parentDriver != other_driver && !other_driver->isInIntersection.get())) {
 		return false;
@@ -1486,7 +1486,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		}
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 
-//	if (params.now.ms()/1000.0 >  93.7
+//	if (getParams().now.ms()/1000.0 >  93.7
 //	 && parent->getId() == 402)
 //	{
 //			std::cout<<"find 332288222 " <<other_driver->parent->getId()<<std::endl;
@@ -1515,7 +1515,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) {//the vehicle is on the current lane
-//			if (params.now.ms()/1000.0 >  123.9
+//			if (getParams().now.ms()/1000.0 >  123.9
 //					 && parent->getId() == 404)
 //			{
 //					std::cout<<"find  " <<other_driver->parent->getId()<<std::endl;
@@ -1538,7 +1538,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 			const UniNode* uNode = dynamic_cast<const UniNode*> (nextNode);
 			//seems the following dynamic_cast is not needed, thereby commenting
 //			UniNode* myuode = const_cast<sim_mob::UniNode*> (uNode);
-//			if (params.now.ms()/1000.0 >  123.9
+//			if (getParams().now.ms()/1000.0 >  123.9
 //					 && parent->getId() == 404)
 //			{
 //					std::cout<<"find 65298 " <<parent->getId()<<std::endl;
@@ -1608,7 +1608,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 			//Set different variables depending on where the car is.
 			if (other_lane == nextLane) { //The vehicle is on the current lane
-//				if (params.now.ms()/1000.0 >  123.9
+//				if (getParams().now.ms()/1000.0 >  123.9
 //						 && parent->getId() == 404)
 //				{
 //						std::cout<<"find 65298 " <<other_driver->parent->getId()<<std::endl;
@@ -1680,7 +1680,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		if (!(parentDriver->vehicle->isInIntersection()) && parentDriver->vehicle->getNextSegment(false) == otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
 			// 1. host vh's target lane is == other_driver's lane
 			//
-//			if (params.now.ms()/1000.0 >  93.7
+//			if (getParams().now.ms()/1000.0 >  93.7
 //					 && parent->getId() == 402)
 //			{
 //					std::cout<<"find 332288 " <<other_driver->parent->getId()<<std::endl;
@@ -1794,7 +1794,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	params.nvFwd.driver=NULL;
 	params.nvFwd.distance = 50000;
 
-//	if (params.now.ms()/1000.0 >  93.7
+//	if (getParams().now.ms()/1000.0 >  93.7
 //			 && parent->getId() == 402)
 //		{
 //			std::cout<<"asdf"<<std::endl;
@@ -1891,11 +1891,11 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p)
 	{
 		currentDis = p.nvFwdNextLink.distance;
 		p.isBeforIntersecton = true;
-//		if (currentDis<200 && params.now.ms()/1000.0 > 100.0 )
+//		if (currentDis<200 && getParams().now.ms()/1000.0 > 100.0 )
 //		{
 //			std::cout<<"find one"<<std::endl;
 //		}
-		/*if (params.now.ms()/1000.0 > 41.8 && parent->getId() == 25)
+		/*if (getParams().now.ms()/1000.0 > 41.8 && parent->getId() == 25)
 					std::cout<<"find vh"<<std::endl;*/
 		return p.nvFwdNextLink;
 	}

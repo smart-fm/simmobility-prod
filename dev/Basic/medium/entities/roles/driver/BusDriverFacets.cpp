@@ -23,15 +23,15 @@ sim_mob::medium::BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAge
 
 sim_mob::medium::BusDriverBehavior::~BusDriverBehavior() {}
 
-void sim_mob::medium::BusDriverBehavior::frame_init(UpdateParams& p) {
+void sim_mob::medium::BusDriverBehavior::frame_init() {
 	throw std::runtime_error("BusDriverBehavior::frame_init is not implemented yet");
 }
 
-void sim_mob::medium::BusDriverBehavior::frame_tick(UpdateParams& p) {
+void sim_mob::medium::BusDriverBehavior::frame_tick() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick is not implemented yet");
 }
 
-void sim_mob::medium::BusDriverBehavior::frame_tick_output(const UpdateParams& p) {
+void sim_mob::medium::BusDriverBehavior::frame_tick_output() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -43,7 +43,7 @@ sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 
 }
 
-void sim_mob::medium::BusDriverMovement::frame_init(UpdateParams& p) {
+void sim_mob::medium::BusDriverMovement::frame_init() {
 
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
@@ -53,11 +53,13 @@ void sim_mob::medium::BusDriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
-void sim_mob::medium::BusDriverMovement::frame_tick(UpdateParams& p) {
-	DriverMovement::frame_tick(p);
+void sim_mob::medium::BusDriverMovement::frame_tick() {
+	DriverMovement::frame_tick();
 }
 
-void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::medium::BusDriverMovement::frame_tick_output() {
+	parentBusDriver->getParams();
+	DriverUpdateParams &p = parentBusDriver->getParams();
 	//Skip?
 	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
@@ -66,7 +68,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output(const UpdateParams& p
 	std::stringstream logout;
 	logout << "(\"BusDriver\""
 			<<","<<getParent()->getId()
-			<<","<<p.now.frame()
+			<<","<<parentBusDriver->getParams().now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegment()->getSegmentID())
 			<<"\",\"Lane\":\""<<(getParent()->getCurrLane()->getLaneID())

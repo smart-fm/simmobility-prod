@@ -36,7 +36,7 @@ public:
 	virtual void frame_init(UpdateParams& p) { throw std::runtime_error("frame_init not implemented in Pedestrian."); }
 	virtual void frame_tick(UpdateParams& p) { throw std::runtime_error("frame_tick not implemented in Pedestrian."); }
 	virtual void frame_tick_output(const UpdateParams& p) { throw std::runtime_error("frame_tick_output not implemented in Pedestrian."); }
-	virtual UpdateParams& make_frame_tick_params(timeslice now) { throw std::runtime_error("make_frame_tick_params not implemented in Pedestrian."); }
+	virtual void make_frame_tick_params(timeslice now) { throw std::runtime_error("make_frame_tick_params not implemented in Pedestrian."); }
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() { throw std::runtime_error("getSubscriptionParams not implemented in Pedestrian."); }
 
 private:

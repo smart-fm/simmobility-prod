@@ -50,8 +50,7 @@ std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {
 	return res;
 }
 
-sim_mob::UpdateParams& sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now)
+void sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now)
 {
-	params.reset(now, *this);
-	return params;
+	getParams().reset(now, *this);
 }

@@ -45,6 +45,7 @@ class UpdateWrapper {
 protected:
 	PARAM dataParam;
 public:
+	UpdateWrapper(){}
 	PARAM &getParams() {
 		return dataParam;
 	}

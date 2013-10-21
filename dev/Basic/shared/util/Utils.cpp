@@ -65,7 +65,7 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 {
 	//This can take some time.
 	StopWatch sw;
-	sw.Start();
+	sw.start();
 	std::cout <<"Merging output files, this can take several minutes...\n";
 
 	//One-by-one.
@@ -82,8 +82,8 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 	}
 	out.close();
 
-	sw.Stop();
-	std::cout <<"Files merged; took " <<sw.GetTime() <<"s\n";
+	sw.stop();
+	std::cout <<"Files merged; took " <<sw.getTime() <<"s\n";
 }
 
 
@@ -109,7 +109,7 @@ std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }
 
-void StopWatch::Start() {
+void StopWatch::start() {
     if (!running) {
         //get start time of the simulation.
         time(&now);
@@ -117,14 +117,14 @@ void StopWatch::Start() {
     }
 }
 
-void StopWatch::Stop() {
+void StopWatch::stop() {
     if (running) {
         time(&end);
         running = false;
     }
 }
 
-double StopWatch::GetTime() {
+double StopWatch::getTime() const {
     if (!running) {
         return difftime(end, now);
     }

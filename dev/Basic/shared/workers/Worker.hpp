@@ -11,6 +11,11 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
+#include "event/EventPublisher.hpp"
+#include "event/SystemEvents.hpp"
+
+#include "event/args/EventArgs.hpp"
+//#include "event/EventListener.hpp"
 
 namespace sim_mob {
 
@@ -20,6 +25,27 @@ class ControlManager;
 class WorkGroup;
 class Conflux;
 class Entity;
+
+//subclassed Eventpublisher coz its destructor is pure virtual
+	class UpdatePublisher: public sim_mob::event::EventPublisher  {
+	public:
+		UpdatePublisher(){
+			RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
+//			std::cout << "UpdatePublisher::RegisterEvent Done" << std::endl;
+		}
+		virtual ~UpdatePublisher(){}
+	};
+
+
+
+DECLARE_CUSTOM_CALLBACK_TYPE(UpdateEventArgs)
+class UpdateEventArgs: public sim_mob::event::EventArgs {
+	const sim_mob::Entity *entity;
+public:
+	const Entity * GetEntity()const;
+	UpdateEventArgs(const sim_mob::Entity *agent);
+	virtual ~UpdateEventArgs();
+};
 
 
 /**
@@ -62,6 +88,7 @@ public:
 class Worker : public WorkerProvider {
 private:
 	friend class WorkGroup;
+	static UpdatePublisher  updatePublisher;
 
 	/**
 	 * Create a Worker object.
@@ -89,7 +116,7 @@ private:
 
 public:
 	virtual ~Worker();
-
+	static UpdatePublisher & GetUpdatePublisher();
 	//Removing entities and scheduling them for removal is allowed (but adding is restricted).
 	const std::set<Entity*>& getEntities() const;
 	void remEntity(Entity* entity);

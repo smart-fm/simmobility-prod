@@ -1410,7 +1410,7 @@ DatabaseLoader::createSignals()
     	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
     	if(ppp.first == ppp.second)
     	{
-    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
+//    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
     		continue;
     	}
     	bool isNew = false;

@@ -613,7 +613,7 @@ LoopDetectorEntity::init(Signal const & signal)
 {
     pimpl_ = new Impl(signal, *this);
     tempLoopImpl = pimpl_;
-    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
+//    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
 }
 
 /* virtual */ void

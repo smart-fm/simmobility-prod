@@ -104,6 +104,7 @@ public:
 
 	bool commSimEnabled;  ///<Is our communication simulator enabled?
 	bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
+	std::string androidClientType; // what version of android communication is specified?
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.

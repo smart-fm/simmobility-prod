@@ -224,7 +224,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 //		segment_based
 		output << "\"segments\":" << newLine << "[" << newLine;
 		//link_based
-		std::cout << " creating string representation for phase " << name  << std::endl;
+//		std::cout << " creating string representation for phase " << name  << std::endl;
 //		std::cout << " links_map_.size() = " << links_map_.size() << std::endl;
 		links_map_iterator it = links_map_.begin();
 		while(it != links_map_.end() )

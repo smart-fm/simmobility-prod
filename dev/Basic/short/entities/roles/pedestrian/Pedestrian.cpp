@@ -188,9 +188,9 @@ void sim_mob::Pedestrian::make_frame_tick_params(timeslice now)
 
 
 //Main update method
-void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
+void sim_mob::Pedestrian::frame_tick(/*UpdateParams& p*/)
 {
-	PedestrianUpdateParams& p2 = dynamic_cast<PedestrianUpdateParams&>(p);
+	PedestrianUpdateParams/*&*/ p2 /*= dynamic_cast<PedestrianUpdateParams&>(p)*/;
 
 	//Is this the first frame tick?
 	if (p2.skipThisFrame) {
@@ -282,14 +282,15 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 }
 
-void sim_mob::Pedestrian::frame_tick_med(UpdateParams& p){
+void sim_mob::Pedestrian::frame_tick_med(/*UpdateParams& p*/){
 	/*to be implemented by supply team to move the pedestrian after each time tick
 	 *
 	 */
 }
 
-void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
+void sim_mob::Pedestrian::frame_tick_output(/*const UpdateParams& p*/)
 {
+	PedestrianUpdateParams p;
 	if (dynamic_cast<const PedestrianUpdateParams&>(p).skipThisFrame) {
 		return;
 	}

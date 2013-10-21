@@ -95,9 +95,9 @@ public:
 
 	//Virtual overrides
 	virtual void frame_init();
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_med(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_tick();
+	virtual void frame_tick_med();
+	virtual void frame_tick_output();
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 

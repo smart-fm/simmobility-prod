@@ -30,6 +30,8 @@
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
 
+#include "entities/commsim/broker/Broker.hpp"
+
 using std::set;
 using std::vector;
 using std::priority_queue;
@@ -40,7 +42,13 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-///* static */ int sim_mob::Worker::auto_matical_thread_id = 0;
+UpdateEventArgs::UpdateEventArgs(const sim_mob::Agent *agent): agent(agent){};
+const Agent * UpdateEventArgs::GetAgent()const {
+	return agent;
+}
+UpdateEventArgs::~UpdateEventArgs(){};
+
+UpdatePublisher  Worker::updatePublisher;
 
 sim_mob::Worker::MgmtParams::MgmtParams() :
 	msPerFrame(ConfigManager::GetInstance().FullConfig().baseGranMS()),
@@ -113,6 +121,10 @@ void sim_mob::Worker::remEntity(Entity* entity)
 	}
 }
 
+UpdatePublisher & sim_mob::Worker::GetUpdatePublisher()
+{
+	return updatePublisher;
+}
 
 const std::set<Entity*>& sim_mob::Worker::getEntities() const
 {
@@ -299,7 +311,6 @@ void sim_mob::Worker::perform_frame_tick()
 {
 	MgmtParams& par = loop_params;
 	PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, this, par.currTick, (managedEntities.size()+toBeAdded.size()));
-
 	//Short-circuit if we're in "pause" mode.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		while (par.ctrlMgr->getSimState() == PAUSE) {
@@ -324,6 +335,14 @@ void sim_mob::Worker::perform_frame_tick()
 
 	//Advance local time-step.
 	par.currTick += tickStep;
+
+	//Every so many time ticks, flush the ProfileBuilder (just so *some* output is retained if the program is killed).
+	const uint32_t TickAmt = 100; //"Every X ticks"
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
+	if ((par.currTick/tickStep)%TickAmt==0) {
+		profile->flushLogFile();
+	}
+#endif
 
 	//If a "stop" request is received in Interactive mode, end on the next 2 time ticks.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
@@ -403,6 +422,7 @@ void sim_mob::Worker::threaded_function_loop()
 }
 
 namespace {
+
 ///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
 struct EntityUpdater {
 	EntityUpdater(Worker& wrk, timeslice currTime) : wrk(wrk), currTime(currTime) {}
@@ -413,6 +433,15 @@ struct EntityUpdater {
 
 	virtual void operator() (sim_mob::Entity* entity) {
 		UpdateStatus res = entity->update(currTime);
+
+		{
+			Agent * agent = dynamic_cast<Agent*>(entity);//no choice but to dynamic_cast. And this is the least expensive place
+			if(agent)
+			{
+				Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
+						std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
+			}
+		}
 			if (res.status == UpdateStatus::RS_DONE) {
 				//This Entity is done; schedule for deletion.
 				wrk.scheduleForRemoval(entity);
@@ -442,6 +471,14 @@ struct RestrictedEntityUpdater : public EntityUpdater {
 		//Exclude the restricted type.
 		if(!dynamic_cast<Restricted*>(entity)) {
 			EntityUpdater::operator ()(entity);
+			{
+				Agent * agent = dynamic_cast<Agent*>(entity);//no choice but to dynamic_cast. And this is the least expensive place
+				if(agent)
+				{
+					Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
+							std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
+				}
+			}
 		}
 	}
 };

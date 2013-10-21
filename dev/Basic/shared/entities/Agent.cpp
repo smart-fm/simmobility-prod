@@ -27,9 +27,6 @@
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
 
-int sim_mob::Agent::createdAgents = 0;
-int sim_mob::Agent::diedAgents = 0;
-
 using namespace sim_mob;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
@@ -261,10 +258,9 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
-		diedAgents++;
 		//notify subscribers that this agent is done
                 MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
-                        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId())));
+                        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
                 
                 //unsubscribes all listeners of this agent to this event. 
                 //(it is safe to do this here because the priority between events)

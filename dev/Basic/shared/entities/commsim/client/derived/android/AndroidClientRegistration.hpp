@@ -1,0 +1,28 @@
+/*
+ * AndroidClientRegistration.hpp
+ *
+ *  Created on: May 20, 2013
+ *      Author: vahid
+ */
+
+#ifndef AndroidClientRegistration_HPP_
+#define AndroidClientRegistration_HPP_
+
+//#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
+#include "entities/commsim/broker/Broker.hpp"
+
+namespace sim_mob {
+
+
+
+class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
+	std::set<Agent*> usedAgents;
+public:
+	AndroidClientRegistration();
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
+	virtual ~AndroidClientRegistration();
+};
+
+
+} /* namespace sim_mob */
+#endif /* AndroidClientRegistration_HPP_ */

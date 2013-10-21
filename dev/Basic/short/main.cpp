@@ -38,7 +38,7 @@
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/commsim/communicator/broker/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
@@ -144,9 +144,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		prof = new ProfileBuilder();
 	}
 
-	//This is kind of a mess.
-	sim_mob::Broker* androidBroker = nullptr; //null = disabled.
-
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
@@ -164,8 +161,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 		//TODO: Check with Vahid if this is likely to cause problems. ~Seth
 		if (ConfigManager::GetInstance().FullConfig().commSimEnabled()) {
-			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
-			rf.registerRole("driver", new sim_mob::DriverComm(nullptr, androidBroker, mtx));
+//			androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+			rf.registerRole("driver", new sim_mob::DriverComm(nullptr/*, androidBroker*/, mtx));
 		} else {
 			rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 		}
@@ -197,7 +194,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	std::cout << "Expanding our user config file." << std::endl;
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	std::cout << "finish to Load our user config file." << std::endl;
-
 
 
 //	//DriverComms are only allowed if the communicator is enabled.
@@ -271,6 +267,22 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
+	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
+//	//..and Assign all communication agents(we have one ns3 communicator for now)
+//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
+	if(ConfigManager::GetInstance().FullConfig().commSimEnabled() && ConfigManager::GetInstance().FullConfig().androidClientEnabled() )
+	{
+		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
+		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+		Broker::addExternalCommunicator(name, androidBroker);
+//		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
+		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
+		communicationWorkers->assignAWorker(androidBroker);
+//		Worker::SetMyTemporaryHack(androidBroker);
+		androidBroker->enable();
+	}
+
+
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
 		personWorkers->assignAWorker(*it);
@@ -296,20 +308,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	//..and Assign communication agent(currently a singleton
 
-
-	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
-//	//..and Assign all communication agents(we have one ns3 communicator for now)
-//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled() && ConfigManager::GetInstance().FullConfig().androidClientEnabled() )
-	{
-		if (!androidBroker) {
-			throw std::runtime_error("Android broker is null, but expected to exist.");
-		}
-
-		communicationWorkers->assignAWorker(androidBroker);
-		androidBroker->enable();
-	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
@@ -498,8 +496,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "   Person Agents: " << numDriver << " (Driver)   "
 				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
-		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
-				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
+//		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
+//				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
 	}
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
@@ -542,9 +540,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	cout << "Simulation complete; closing worker threads." << endl;
-
-	//Delete our broker.
-	safe_delete_item(androidBroker);
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);

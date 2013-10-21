@@ -10,12 +10,12 @@
  */
 
 #include "SystemEvents.hpp"
-
+#include "entities/Agent.hpp"
 using namespace sim_mob::event;
 
 
-AgentLifeCycleEventArgs::AgentLifeCycleEventArgs(unsigned int agentId) 
-: agentId(agentId) {
+AgentLifeCycleEventArgs::AgentLifeCycleEventArgs(unsigned int agentId, Agent* agent)
+: agentId(agentId), agent(agent) {
 }
 
 AgentLifeCycleEventArgs::~AgentLifeCycleEventArgs() {
@@ -29,4 +29,8 @@ AgentLifeCycleEventArgs& AgentLifeCycleEventArgs::operator=(const AgentLifeCycle
 
 unsigned int AgentLifeCycleEventArgs::GetAgentId() const {
     return agentId;
+}
+
+sim_mob::Agent* AgentLifeCycleEventArgs::GetAgent() const {
+    return agent;
 }

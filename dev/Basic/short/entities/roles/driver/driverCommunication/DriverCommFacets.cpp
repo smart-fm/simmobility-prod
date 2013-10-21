@@ -43,12 +43,13 @@ sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent):
 
 sim_mob::DriverCommMovement::~DriverCommMovement()
 {
+//	/kjsdhawehakjlsdajkashlk
 }
 
 void sim_mob::DriverCommMovement::frame_init() {
 	DriverMovement::frame_init();
 	sim_mob::Agent * agent = 0;
-	this->parentDriverCommRole->Register(this->parentDriverCommRole->getParent(), this->parentDriverCommRole->getBroker());
+	this->parentDriverCommRole->RegisterWithBroker(/*this->parentDriverCommRole->getParent(), this->parentDriverCommRole->getBroker()*/);
 }
 
 void sim_mob::DriverCommMovement::frame_tick() {
@@ -67,11 +68,21 @@ void sim_mob::DriverCommMovement::frame_tick() {
 	////		return;
 	////	}
 	////	Print() << "Driver " << this << "  Setting agent update done" << std::endl;
-	this->parentDriverCommRole->setAgentUpdateDone(true);
+
+//	this->parentDriverCommRole->setAgentUpdateDone(true);
 }
 
 void sim_mob::DriverCommMovement::frame_tick_output() {
 	DriverMovement::frame_tick_output();
+}
+
+
+DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const {
+	return parentDriverCommRole;
+}
+
+void sim_mob::DriverCommMovement::setParentDriverComm(DriverComm* parentDriverCommRole_) {
+	this->parentDriverCommRole = parentDriverCommRole_;
 }
 
 }

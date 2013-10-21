@@ -49,13 +49,9 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	DriverComm* getParentDriverComm() const {
-		return parentDriverCommRole;
-	}
+	DriverComm* getParentDriverComm() const;
 
-	void setParentDriverComm(DriverComm* parentDriverCommRole_) {
-		this->parentDriverCommRole = parentDriverCommRole_;
-	}
+	void setParentDriverComm(DriverComm* parentDriverCommRole_);
 
 protected:
 	DriverComm* parentDriverCommRole;

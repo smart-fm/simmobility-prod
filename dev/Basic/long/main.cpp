@@ -44,6 +44,7 @@
 
 
 #include "agent/TestAgent.hpp"
+#include "model/HM_Model.hpp"
 
 using namespace sim_mob::db;
 
@@ -150,20 +151,41 @@ void RunTests() {
     tests.TestAll();
 }
 
-void SimulateWithDB(std::list<std::string>& resLogFiles) {
-    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
+    PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
+    //Simulation Statistics
+    PrintOut("#Simulation Number  :" << simulationNumber << endl);
+    PrintOut("#Simulation Time (s):" << simulationTime.getTime() << endl);
+    //Models Statistics
+    PrintOut(endl);
+    PrintOut("#Models:" << endl);
+    for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++) {
+        Model* model = *itr;
+        PrintOut("### Model Name    : " << model->getName() << endl);
+        PrintOut("### Start Time (s): " << model->getStartTime()<< endl);
+        PrintOut("###  Stop Time (s): " << model->getStopTime() << endl);
+        PrintOut(endl);
+    }
+    PrintOut("##############################################################" << endl);
+    return 0;
+}
 
-    // Milliseconds step (Application crashes if this is 0).
+void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
+    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+    //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     config.baseGranMS() = TICK_STEP;
     config.totalRuntimeTicks = DAYS;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
     config.singleThreaded() = false;
-    list<HouseholdAgent*> agents;
-    vector<Unit> units;
-    vector<Household> households;
-    HousingMarket market;
+    //simulation time.
+    StopWatch simulationWatch;
+    simulationWatch.start();
+    
+    vector<Model*> models; 
+    HM_Model* model = nullptr;
     {
+        
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
 
@@ -171,40 +193,12 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         wgMgr.initAllGroups();
         agentWorkers->initWorkers(nullptr);
-
-        agentWorkers->assignAWorker(&market);
         DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
-        // Connect to database and load data.
-        DBConnection conn(sim_mob::db::POSTGRES, dbConfig);
-        conn.Connect();
 
-        if (conn.IsConnected()) {
-            // Households
-            HouseholdDao hhDao(&conn);
-            hhDao.GetAll(households);
-            //units
-            UnitDao unitDao(&conn);
-            unitDao.GetAll(units);
-            for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
-                Household* household = &(*it);
-                PrintOut("Household: " << (*household) << endl);
-                sim_mob::db::Parameters keys;
-                keys.push_back(household->GetId());
-                HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, &market);
-                for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
-                    //PrintOut("Unit: " << (*it) << endl);
-                    if (it->GetId() == household->GetUnitId()) {
-                        Unit* unit = new Unit(*it);
-                        unit->SetAvailable(true);
-                        hhAgent->AddUnit(unit);
-                        //PrintOut("Unit: " << (*it) << endl);
-                        PrintOut("Household: " << household->GetUnitId() << " Unit: " << it->GetId() << endl);
-                    }
-                }
-                agents.push_back(hhAgent);
-                agentWorkers->assignAWorker(hhAgent);
-            }
-        }
+        model = new HM_Model(dbConfig, *agentWorkers);
+        models.push_back(model);
+        model->start();
+       
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 
@@ -213,183 +207,38 @@ void SimulateWithDB(std::list<std::string>& resLogFiles) {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
-
         PrintOut("Finalizing workgroups: " << endl);
-
         //Save our output files if we are merging them later.
         if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
     }
-
-    PrintOut("Destroying agents: " << endl);
-    //destroy all agents.
-    for (list<HouseholdAgent*>::iterator itr = agents.begin();
-            itr != agents.end(); itr++) {
-        HouseholdAgent* ag = *(itr);
-        safe_delete_item(ag);
+    model->stop();
+    simulationWatch.stop();
+    printReport(simulationNumber, models, simulationWatch);
+    //delete all models.
+    while(!models.empty()){
+        Model* modelToDelete = models.back();
+        models.pop_back();
+        safe_delete_item(modelToDelete);
     }
-    agents.clear();
-    households.clear();
-    units.clear();
-}
-
-void perform_main() {
-
-    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
-
-    // Milliseconds step (Application crashes if this is 0).
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    config.baseGranMS() = TICK_STEP;
-    config.totalRuntimeTicks = DAYS;
-    config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    config.singleThreaded() = false;
-
-    //create all units.
-    list<HouseholdAgent*> agents;
-    list<Household*> entities;
-
-    {
-        WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
-
-        //Work Group specifications
-        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
-        wgMgr.initAllGroups();
-
-        agentWorkers->initWorkers(nullptr);
-
-        HousingMarket market;
-        agentWorkers->assignAWorker(&market);
-        //create all households.
-        for (int i = 0; i < DATA_SIZE; i++) {
-            Household* hh = new Household();
-            hh->SetId(TEST_HH[i][0]);
-            hh->SetIncome(TEST_HH[i][1]);
-            hh->SetSize(TEST_HH[i][2]);
-
-            PrintOut("Household: " << (*hh) << endl);
-            HouseholdAgent* hhAgent = new HouseholdAgent(hh->GetId(), hh, &market);
-            //LogOut("Household: " << (*hh) << endl);
-            //add agents units.
-            for (int j = 0; j < DATA_SIZE; j++) {
-                if (TEST_UNITS[j][3] == TEST_HH[i][0]) {
-                    /*Unit* unit = new Unit((TEST_UNITS[j][0]), true,
-                            UNIT_FIXED_COST, TEST_UNITS[j][1], TEST_UNITS[j][2]);
-                    hhAgent->AddUnit(unit);
-                    LogOut("Unit: " << (*unit) << endl);*/
-                }
-            }
-            agents.push_back(hhAgent);
-            agentWorkers->assignAWorker(hhAgent);
-            entities.push_back(hh);
-        }
-        //Start work groups and all threads.
-        wgMgr.startAllWorkGroups();
-
-        PrintOut("Started all workgroups." << endl);
-        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-            PrintOut("Day: " << currTick << endl);
-            wgMgr.waitAllGroups();
-        }
-
-        PrintOut("Finalizing workgroups: " << endl);
-    } //End WorkGroupManager scope.
-
-    PrintOut("Destroying agents: " << endl);
-    //destroy all agents.
-    for (list<HouseholdAgent*>::iterator itr = agents.begin();
-            itr != agents.end(); itr++) {
-        HouseholdAgent* ag = *(itr);
-        safe_delete_item(ag);
-    }
-    agents.clear();
-
-    for (list<Household*>::iterator itr = entities.begin();
-            itr != entities.end(); itr++) {
-        Household* ag = *(itr);
-        safe_delete_item(ag);
-    }
-    entities.clear();
-}
-
-void test_main() {
-
-    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
-
-    // Milliseconds step (Application crashes if this is 0).
-    ConfigManager::GetInstanceRW().FullConfig().baseGranMS() = TICK_STEP;
-    ConfigManager::GetInstanceRW().FullConfig().totalRuntimeTicks = DAYS;
-    ConfigManager::GetInstanceRW().FullConfig().defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    ConfigManager::GetInstanceRW().FullConfig().singleThreaded() = false;
-
-    //create all units.
-    list<TestAgent*> agents;
-    {
-        WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
-
-        //Work Group specifications
-        WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
-        wgMgr.initAllGroups();
-        agentWorkers->initWorkers(nullptr);
-        TestAgent* agent = NULL;
-        for (unsigned int i = 0; i < 100; i++) {
-            agent = new TestAgent(i, agent);
-            agentWorkers->assignAWorker(agent);
-            agents.push_back(agent);
-        }
-
-        //Start work groups and all threads.
-        wgMgr.startAllWorkGroups();
-
-        PrintOut("Started all workgroups." << endl);
-        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
-            PrintOut("Day: " << currTick << endl);
-            wgMgr.waitAllGroups();
-            messaging::MessageBus::PublishEvent(event::EVT_CORE_SYTEM_START, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
-            messaging::MessageBus::PublishEvent(9999999, messaging::MessageBus::EventArgsPtr(new event::EventArgs()));
-        }
-        // last messages distributions. (Only for main thread (e.g delete contexts)).
-        PrintOut("Finalizing workgroups: " << endl);
-    } //End WorkGroupManager scope.
-    //sim_mob::messaging::MessageBus::DistributeMessages();      
-
-    PrintOut("Destroying agents: " << endl);
-    //destroy all agents.
-    for (list<TestAgent*>::iterator itr = agents.begin();
-            itr != agents.end(); itr++) {
-        TestAgent* ag = *(itr);
-        safe_delete_item(ag);
-    }
-    agents.clear();
+    models.clear();
 }
 
 int main(int ARGC, char* ARGV[]) {
     std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
-    StopWatch watch;
     Print::Init("<stdout>");
     //get start time of the simulation.
     std::list<std::string> resLogFiles;
-    watch.Start();
-
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         PrintOut("Simulation #:  " << (i + 1) << endl);
-        //RunTests();
-        SimulateWithDB(resLogFiles);
-        //perform_main();
-        //test_main();
+        performMain((i+1), resLogFiles);
     }
-    watch.Stop();
-    Statistics::Print();
-    PrintOut("Long-term simulation complete. In " << watch.GetTime() << " seconds." << endl);
-
+ 
     //Concatenate output files?
     if (!resLogFiles.empty()) {
         resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
         Utils::PrintAndDeleteLogFiles(resLogFiles);
     }
-
-    PrintOut("#################### FINISED WITH SUCCESS ####################" << endl);
     return 0;
 }

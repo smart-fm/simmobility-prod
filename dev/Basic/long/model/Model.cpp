@@ -9,10 +9,14 @@
 
 #include "Model.hpp"
 #include "util/LangHelpers.hpp"
+#include "Common.hpp"
+#include "message/MessageBus.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
+using namespace sim_mob::messaging;
+using namespace sim_mob::event;
 using std::vector;
 using std::string;
 
@@ -42,6 +46,8 @@ void Model::start() {
         startImpl();
         startWatch.stop();
         running = true;
+        MessageBus::PublishEvent(LongTermEventIds::LTEID_MODEL_STARTED, this,
+                MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 
@@ -52,6 +58,8 @@ void Model::stop() {
         stopImpl();
         deleteAgents(agents);
         stopWatch.stop();
+        MessageBus::PublishEvent(LongTermEventIds::LTEID_MODEL_STOPPED, this,
+                MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 

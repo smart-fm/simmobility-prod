@@ -48,6 +48,10 @@ struct IncidentParams {
 	unsigned int laneId;
 	float compliance;
 	float accessibility;
+	float xLaneStartPos;
+	float yLaneStartPos;
+	float xLaneEndPos;
+	float yLaneEndPos;
 };
 
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)

@@ -220,10 +220,7 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 
     		unsigned int originId = (*segIt)->originalDB_ID.getLastVal();
     		unsigned int id = 0;
-    		/*if( (*segIt)->getSegmentID()==100002305)
-    		{
-    			id = (*segIt)->originalDB_ID.getLastVal();
-    		}*/
+
 			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 				if((*incIt).segmentId == originId ) {
 
@@ -233,7 +230,7 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					item->compliance = (*incIt).compliance;
 					item->duration = (*incIt).duration;
 					item->incidentId = (*incIt).incidentId;
-					item->laneId = (*incIt).laneId;
+					unsigned int laneId = item->laneId = (*incIt).laneId;
 					item->position = (*incIt).position;
 					item->segmentId = (*incIt).segmentId;
 					item->severity = (*incIt).severity;
@@ -241,6 +238,13 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					item->speedlimitOthers = (*incIt).speedlimitOthers;
 					item->startTime = (*incIt).startTime-baseGranMS;
 					item->visibilityDistance = (*incIt).visibilityDistance;
+
+					const std::vector<sim_mob::Lane*>& lanes = (*segIt)->getLanes();
+					(*incIt).xLaneStartPos = lanes[laneId]->polyline_[0].getX();
+					(*incIt).yLaneStartPos = lanes[laneId]->polyline_[0].getY();
+					unsigned int sizePoly = lanes[laneId]->polyline_.size();
+					(*incIt).xLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getX();
+					(*incIt).yLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getY();
 
 					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
 					centimeter_t pos = rs->length*item->position/100.0;

@@ -11,15 +11,26 @@
 namespace sim_mob {
 
 unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), randomStep(1.0),  curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false) {
+IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), randomStep(1.0),  curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false), slowdown(false){
 	// TODO Auto-generated constructor stub
 	static int counter = 0;
-	signature = counter;
-	counter ++;
-	unsigned int s = 0xFF << (signature * 8);
-	if (!(seed = (flags & s))) {
-		seed = time(0);
+	if(counter==0) {
+		srand (time(0));
+		signature = counter;
+		counter ++;
+		unsigned int s = 0xFF << (signature * 8);
+		if (!(seed = (flags & s))) {
+			seed = time(0);
+		}
 	}
+
+	 randomNum = rand()/(RAND_MAX*1.0);
+	 /*float randomvec[100];
+	 for(int i=0; i<100; i++){
+		 randomvec[i] = rand()/(RAND_MAX*1.0);
+		 //std::cout << "random vector number is" << randomvec[i] << std::endl;
+	 }*/
+	 std::cout << "random number is" << randomNum << std::endl;
 }
 
 IncidentStatus::~IncidentStatus() {
@@ -68,7 +79,7 @@ void IncidentStatus::checkIsCleared(timeslice* now, const RoadSegment* currentRo
 	}
 }
 
-int IncidentStatus::urandom(double prob){
+double IncidentStatus::urandom(){
 
 	const long int M = 2147483647;  // M = modulus (2^31)
 	const long int A = 48271;       // A = multiplier (was 16807)
@@ -78,12 +89,11 @@ int IncidentStatus::urandom(double prob){
 	seed = A * (seed % Q) - R * (seed / Q);
 	seed = (seed > 0) ? (seed) : (seed + M);
 
-	//double ret = (double)seed / (double)M;
+	double ret = (double)seed / (double)M;
 
-	double ret = rand()/(RAND_MAX*1.0);
+	//double ret = rand()/(RAND_MAX*1.0);
 
-	if(ret < prob) return (1);
-	else return 0;
+	return ret;
 }
 
 
@@ -93,6 +103,7 @@ void IncidentStatus::resetStatus(){
 	speedLimit = -1;
 	randomStep = 1.0;
 	changedlane = false;
+	slowdown = false;
 	//startFrameTick = 0;
 	//curFrameTick = 0;
 }

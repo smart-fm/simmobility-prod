@@ -267,6 +267,11 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					plan = IncidentStatus::INCIDENT_SLOWDOWN;
 				}
 
+				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
+				unsigned int originId = (segment)->originalDB_ID.getLastVal();
+				if(originId == inc->segmentId)
+					incidentStatus.slowdown = true;
+
 				incidentStatus.distanceTo = dist;
 				bool ret = incidentStatus.insertIncident(inc);
 				if( ret==true && replan==false){
@@ -274,17 +279,25 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 				}
 
 				float samplesequence = 0.05;
-				if(!incidentStatus.changedlane){
+				if(!incidentStatus.changedlane && plan==IncidentStatus::INCIDENT_CHANGELANE){
 					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
-					if(prob < samplesequence){
+					if(prob < 0.05){
 						incidentStatus.changedlane=true;
 					}
-					else if( prob < incidentStatus.randomStep ){
-						incidentStatus.randomStep -= samplesequence;
-						if( incidentStatus.urandom((1.0-prob)) > 0 ){
+					else {
+						if(prob < incidentStatus.randomNum) {
 							incidentStatus.changedlane=true;
 						}
 					}
+					/*else if( prob < incidentStatus.randomStep ){
+						prob = 1.0-prob;
+						incidentStatus.randomStep -= samplesequence;
+						double ret = incidentStatus.urandom();
+						incidentStatus.randomNum = ret;
+						if(ret < prob) {
+							incidentStatus.changedlane=true;
+						}
+					}*/
 				}
 			}
 			else if( now.ms() > inc->startTime+inc->duration ){
@@ -423,6 +436,8 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
 			<<"\",\"mandatory\":\""<<incidentStatus.changedlane
+			<<"\",\"distance to\":\""<<incidentStatus.distanceTo
+			<<"\",\"random\":\""<<incidentStatus.randomNum
 			<<addLine.str()
 			<<"\"})"<<std::endl);
 }
@@ -711,15 +726,12 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 
 	//check incident status and decide whether or not do lane changing
-	LANE_CHANGE_MODE mode = MLC;
+	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->params.now);
-	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
+	if(incidentStatus.changedlane == true ){
 		p.nextLaneIndex = incidentStatus.nextLaneIndex;
 		parentDriver->vehicle->setTurningDirection(incidentStatus.laneSide);
-		if( incidentStatus.changedlane==true )
-			mode = MLC;
-		else
-			mode = DLC;
+		mode = MLC;
 	}
 
 	//Check if we should change lanes.
@@ -737,6 +749,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		if(p.currLaneIndex == incidentStatus.nextLaneIndex && incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE){
 			incidentStatus.currentPlan = IncidentStatus::INCIDENT_SLOWDOWN;
+			incidentStatus.changedlane = false;
 		}
 	}
 
@@ -778,7 +791,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
-	if(incidentStatus.getCurrentStatus() != IncidentStatus::INCIDENT_CLEARANCE ){
+	if(incidentStatus.slowdown == true ){
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
 			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();

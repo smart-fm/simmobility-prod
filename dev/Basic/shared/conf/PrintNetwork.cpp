@@ -55,7 +55,14 @@ void sim_mob::PrintNetwork::LogIncidents() const
 		out << "\"cap_factor\":\"" << (*incIt).capFactor << "\",";
 		out << "\"start_time\":\"" << ((*incIt).startTime-baseGranMS)/baseFrameTick  << "\",";
 		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
-		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "}";
+		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "\",";
+		out << "\"lane\":\"" << (*incIt).laneId << "\",";
+		out << "\"compliance\":\"" << (*incIt).compliance << "\",";
+		out << "\"xLaneStartPos\":\"" << static_cast<int>((*incIt).xLaneStartPos) << "\",";
+		out << "\"yLaneStartPos\":\"" << static_cast<int>((*incIt).yLaneStartPos) << "\",";
+		out << "\"xLaneEndPos\":\"" << static_cast<int>((*incIt).xLaneEndPos) << "\",";
+		out << "\"yLaneEndPos\":\"" << static_cast<int>((*incIt).yLaneEndPos) << "\",";
+		out << "\"accessibility\":\"" << (*incIt).accessibility << "\"}";
 	}
 	out <<"}" <<std::endl;
 }
@@ -118,7 +125,7 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	//Required for the visualizer
 	out <<"ROADNETWORK_DONE" <<std::endl;
 
-	//LogIncidents();
+	LogIncidents();
 
 }
 

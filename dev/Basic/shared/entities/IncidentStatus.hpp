@@ -17,7 +17,7 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentStatus {
 public:
-	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_CHANGELANE, INCIDENT_SLOWDOWN };
+	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_CHANGELANE, INCIDENT_SLOWDOWN, INCIDENT_VISIBILITY };
 	IncidentStatus();
 	virtual ~IncidentStatus();
 	bool insertIncident(const Incident* inc);
@@ -25,7 +25,7 @@ public:
 	void checkIsCleared(timeslice* now, const RoadSegment* currentRoad);
 	INCIDENTSTATUS getCurrentStatus() { return currentPlan; }
 	void resetStatus();
-	int urandom(double prob);
+	double urandom();
 
 public:
 	int nextLaneIndex;
@@ -36,11 +36,13 @@ public:
 	float visibilityDist;
 	float distanceTo;
 	float randomStep;
+	float randomNum;
 	unsigned int startFrameTick;
 	unsigned int curFrameTick;
 	LANE_CHANGE_SIDE laneSide;
 	INCIDENTSTATUS currentPlan;
 	bool changedlane;
+	bool slowdown;
 private:
 	std::map<unsigned int, const Incident*> currentIncidents;
 	long seed;

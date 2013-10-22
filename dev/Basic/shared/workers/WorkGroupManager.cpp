@@ -21,7 +21,10 @@ using namespace sim_mob;
 
 WorkGroupManager::~WorkGroupManager()
 {
-	//First, join and delete all WorkGroups
+        // Distibute get all final messages before unregister the main thread.
+        messaging::MessageBus::DistributeMessages();
+	
+        //First, join and delete all WorkGroups
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		delete *it;
 	}

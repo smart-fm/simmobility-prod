@@ -24,7 +24,10 @@ const std::string EMPTY_STR= "";
  */
 enum LongTermEventIds {
 	LTEID_START =1000000,
-
+        // Model life cycle events.
+        LTEID_MODEL_STARTED,
+	LTEID_MODEL_STOPPED,
+        
 	// Events for HousingMarket
 	// housing market action (unit was ADDED, REMOVED or UPDATED )
 	LTEID_HM_UNIT_ADDED,

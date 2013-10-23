@@ -16,20 +16,62 @@
 namespace sim_mob {
     namespace long_term {
 
+        /**
+         * Represents the Lua model to the Housing market model.
+         */
         class HMLuaModel : public lua::LuaModel {
         public:
             HMLuaModel();
             HMLuaModel(const HMLuaModel& orig);
             virtual ~HMLuaModel();
-            
-            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, std::vector<ExpectationEntry>& outValues);
+
+            /**
+             * Calculates unit expectations and return them into given 
+             * outValues.
+             * 
+             * @param unit target.
+             * @param timeOnMarket number of expectations which are necessary 
+             *        to calculate.
+             * @param outValues vector that will hold returned expectations.
+             */
+            void calulateUnitExpectations(const Unit& unit, int timeOnMarket,
+                    std::vector<ExpectationEntry>& outValues);
+
+            /**
+             * Calculates the hedonic price for the given unit.
+             * 
+             * @param unit target.
+             * @return value of the Hedonic price or 
+             *         sim_mob::long_term::INVALID_DOUBLE
+             */
             double calculateHedonicPrice(const Unit& unit);
-           
+
+            /**
+             * Calculates the surplus for the given unit.
+             * 
+             * @param unit target.
+             * @param unitBids number of bids (attempts) to this unit.
+             * @return value of the Surplus or 
+             *         sim_mob::long_term::INVALID_DOUBLE
+             */
             double calculateSurplus(const Unit& unit, int unitBids);
+
+            /**
+             * Calculates the willingness to pay based on Household attributes 
+             * (and importance) and unit attributes.
+             * 
+             * @param household.
+             * @param unit to calculate the wp.
+             * @return value of the willingness to pay of the given household 
+             *         or sim_mob::long_term::INVALID_DOUBLE
+             */
             double calulateWP(const Household& hh, const Unit& unit);
         private:
-            void mapClasses();
 
+            /**
+             * Inherited from LuaModel
+             */
+            void mapClasses();
         };
     }
 }

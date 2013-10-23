@@ -96,7 +96,7 @@ double HMLuaModel::calculateSurplus(const Unit& unit, int unitBids) {
 }
 
 double HMLuaModel::calulateWP(const Household& hh, const Unit& unit) {
-   LuaRef funcRef = getGlobal(state.get(), "calulateWP");
+   LuaRef funcRef = getGlobal(state.get(), "calculateWP");
    LuaRef retVal = funcRef(hh, unit);
    if (retVal.isNumber()) {
        return retVal.cast<double>();

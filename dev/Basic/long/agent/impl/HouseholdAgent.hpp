@@ -47,10 +47,14 @@ namespace sim_mob {
             void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, 
                     const messaging::Message& message);
-            
         private:
-            virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
-            virtual void OnEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+            /**
+             * Events callbacks.
+             */
+            virtual void OnEvent(event::EventId eventId, 
+                    event::EventPublisher* sender, const event::EventArgs& args);
+            virtual void OnEvent(event::EventId eventId, event::Context ctxId, 
+                    event::EventPublisher* sender, const event::EventArgs& args);
         private:
             HousingMarket* market;
             Household* hh;

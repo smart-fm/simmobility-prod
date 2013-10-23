@@ -643,7 +643,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-//	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true)); //todo remove after debugging
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));

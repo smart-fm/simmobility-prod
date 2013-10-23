@@ -62,6 +62,20 @@
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
             </proc_map>
+            
+            <!-- The small Bugis-area network -->
+            <proc_map id="bugis_small_custom" format="aimsun">
+                <mapping name="node" procedure="get_node()"/>
+                <mapping name="section" procedure="get_section()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+                <mapping name="lane" procedure="get_lanes()"/>
+                <mapping name="turning" procedure="get_lane_connector()"/>
+                <mapping name="polyline" procedure="get_section_polyline()"/>
+                <mapping name="tripchain" procedure=""/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases()"/>
+            </proc_map>
 
             <!-- For testing purposes, if you want to control which signals are created, then use this proc_map to
                  disable the automatic signal creation via database lookup, and add entries in the top-level 
@@ -143,6 +157,10 @@
 	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
 	  </file-based-credential>
 	  
+	  <file-based-credential id="fm_local">
+	    <file path="private/fm_local.cred.txt"/>
+	  </file-based-credential>
+	  
 	  <file-based-credential id="fm_remote_path_choice">
 	    <file path="private/fm_remote.cred.txt"/>
 	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
@@ -197,7 +215,7 @@
             
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
-        	<communication enabled="yes">
+        	<communication enabled="no">
         		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
@@ -249,7 +267,7 @@
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
         <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
         <!--       maintain their own configurations. -->
-        <network_source value="xml"/>
+        <network_source value="database"/>
         
         <!-- If loading from XML, which file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- This only has an effect if network_source is set to "xml" -->
@@ -258,7 +276,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small"/>
+	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->

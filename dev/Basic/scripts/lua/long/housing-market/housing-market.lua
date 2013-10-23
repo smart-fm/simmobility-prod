@@ -111,11 +111,11 @@ end
     @return value of the willingness to pay of the given household.
 ]]
 function calculateWP (household, unit)
-    return ((household.income * 1.0) +
-            (unit.floorArea * 1.0) +
-            (unit.typeId * 1.0) +
-            (unit.rent * 1.0) +
-            (unit.storey * 1.0));
+    return ((household.income * 1.0)
+            + (unit.floorArea * 1.0)
+            + (unit.typeId * 1.0)
+            + (unit.rent * 1.0)
+            + (unit.storey * 1.0));
 end
 
 --print (findMaxArg(calculateExpectation,20, 4, 1, 2, nil, 0.001, 100000))

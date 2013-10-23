@@ -210,6 +210,7 @@ void sim_mob::Worker::addPendingEntities()
 		//Migrate its Buffered properties.
 		migrateIn(**it);
                 messaging::MessageBus::RegisterHandler((*it));
+                (*it)->onWorkerEnter();
 	}
 	toBeAdded.clear();
 }
@@ -230,6 +231,7 @@ void sim_mob::Worker::removePendingEntities()
 		}
 		entityRemovalList->push_back(*it);
                 messaging::MessageBus::UnRegisterHandler((*it));
+                (*it)->onWorkerExit();
 	}
 	toBeRemoved.clear();
 }

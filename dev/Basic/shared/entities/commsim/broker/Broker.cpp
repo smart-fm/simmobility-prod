@@ -502,7 +502,7 @@ bool Broker::allAgentUpdatesDone()
 void Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums){
 
 	Print() << "Inside onAgentUpdate" << std::endl;
-	Agent * target = const_cast<Agent*>(argums.GetAgent());
+	Agent * target = const_cast<Agent*>(dynamic_cast<const Agent*>(argums.GetEntity()));
 	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	if(REGISTERED_AGENTS.setDone(target,true))

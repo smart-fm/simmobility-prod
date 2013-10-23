@@ -40,10 +40,10 @@ class Entity;
 
 DECLARE_CUSTOM_CALLBACK_TYPE(UpdateEventArgs)
 class UpdateEventArgs: public sim_mob::event::EventArgs {
-	const sim_mob::Agent *agent;
+	const sim_mob::Entity *entity;
 public:
-	const Agent * GetAgent()const;
-	UpdateEventArgs(const sim_mob::Agent *agent);
+	const Entity * GetEntity()const;
+	UpdateEventArgs(const sim_mob::Entity *agent);
 	virtual ~UpdateEventArgs();
 };
 

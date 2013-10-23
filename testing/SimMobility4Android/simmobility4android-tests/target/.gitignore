@@ -1,0 +1,36 @@
+#Ignore all files within these directories
+dev/Basic/doxy/output/
+dev/Basic/pgo/*
+
+#Java project built files
+dev/visualizer/Traffic_Signal_Animation/.settings/
+dev/visualizer/Traffic_Signal_Animation/bin/
+dev/visualizer/Large Network Visualizer/.settings/
+dev/visualizer/Large Network Visualizer/bin/
+
+#Processing applet directories (except the original)
+testing/CrossingsVisualization/applet/
+testing/RoadNetworkSampleVis/applet/
+
+
+#Ignore object files
+*.o
+*.class
+
+#Ignore gedit backup files
+*~
+
+#Ignore vim .swp files.
+.*.swp
+.*.swo
+
+#Ignore python's compiled byte-code, optimized or otherwise.
+*.pyc
+*.pyo
+
+#Ignore video files (binary files really mess up git)
+*.mp4
+
+#Don't ignore gitignore files:
+!.gitignore
+

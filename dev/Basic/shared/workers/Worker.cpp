@@ -42,9 +42,9 @@ using namespace sim_mob::event;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-UpdateEventArgs::UpdateEventArgs(const sim_mob::Agent *agent): agent(agent){};
-const Agent * UpdateEventArgs::GetAgent()const {
-	return agent;
+UpdateEventArgs::UpdateEventArgs(const sim_mob::Entity *entity): entity(entity){};
+const Entity * UpdateEventArgs::GetEntity()const {
+	return entity;
 }
 UpdateEventArgs::~UpdateEventArgs(){};
 
@@ -435,14 +435,10 @@ struct EntityUpdater {
 
 	virtual void operator() (sim_mob::Entity* entity) {
 		UpdateStatus res = entity->update(currTime);
-
+		if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
 		{
-			Agent * agent = dynamic_cast<Agent*>(entity);//no choice but to dynamic_cast. And this is the least expensive place
-			if(agent)
-			{
-				Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(agent));
-						std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
-			}
+				Worker::GetUpdatePublisher().Publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(entity));
+//				std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
 		}
 			if (res.status == UpdateStatus::RS_DONE) {
 				//This Entity is done; schedule for deletion.

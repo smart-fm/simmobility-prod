@@ -25,7 +25,7 @@ UnitHolder::~UnitHolder() {
             itr != holdingUnits.end(); itr++) {
         Unit* unit = (*itr).second;
         if (unit && ((unit->owner == nullptr) || (unit->owner && unit->owner == this))) {
-            PrintOut("Unit: " << unit->id << " was deleted by: " << id << endl);
+            PrintOut("Household ["<< id<<"] holds the Unit ["<< unit->GetId() <<"]" << std::endl);
             safe_delete_item(unit);
         }
     }

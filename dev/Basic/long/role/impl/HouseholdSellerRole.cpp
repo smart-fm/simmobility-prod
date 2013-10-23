@@ -22,7 +22,6 @@ using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 using std::list;
 using std::endl;
-using std::cout;
 using sim_mob::Math;
 
 namespace {
@@ -83,9 +82,9 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             Unit* unit = GetParent()->GetUnitById(msg.GetBid().GetUnitId());
-            cout << "Seller: [" << GetParent()->getId() <<
+            PrintOut("Seller: [" << GetParent()->getId() <<
                     "] received a bid: " << msg.GetBid() <<
-                    " at day: " << currentTime.ms() << endl;
+                    " at day: " << currentTime.ms() << endl);
             bool decision = false;
             ExpectationEntry entry;
             if (unit && unit->IsAvailable() && GetCurrentExpectation(*unit, entry)) {
@@ -179,8 +178,7 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     
     unitExpectations.erase(unit.GetId());
     unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));
-    
-    //cout.precision(30);
+
     for (int i = 0; i < TIME_ON_MARKET; i++) {
        PrintOut("Seller:["<< hh->GetId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
     }

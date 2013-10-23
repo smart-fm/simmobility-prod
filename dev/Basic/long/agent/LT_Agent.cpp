@@ -41,6 +41,7 @@ void LT_Agent::load(const map<string, string>& configProps) {
 bool LT_Agent::frame_init(timeslice now) {
     if (!isRegistered){
         messaging::MessageBus::RegisterHandler(this);
+        onStart(now); 
         isRegistered = true;
     }
     return OnFrameInit(now);

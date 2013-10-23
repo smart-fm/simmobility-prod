@@ -10,7 +10,7 @@
  */
 
 #include "HouseholdAgent.hpp"
-#include "workers/Worker.hpp"
+#include "message/MessageBus.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 
@@ -25,11 +25,19 @@ using std::endl;
 
 HouseholdAgent::HouseholdAgent(int id, Household* hh, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {
-    currentRole = new HouseholdSellerRole(this, hh, market);
-    currentRole->SetActive(true);
+    bidderRole = new HouseholdBidderRole(this, hh, market);
+    sellerRole = new HouseholdSellerRole(this, hh, market);
+    sellerRole->SetActive(true);
 }
 
 HouseholdAgent::~HouseholdAgent() {
+    safe_delete_item(bidderRole);
+    safe_delete_item(sellerRole);
+}
+
+void HouseholdAgent::onStart(timeslice now) {
+    MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+    MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }
 
 bool HouseholdAgent::OnFrameInit(timeslice now) {
@@ -41,13 +49,46 @@ bool HouseholdAgent::OnFrameInit(timeslice now) {
 }
 
 Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now) {
-    currentRole->Update(now);
+    if (bidderRole && bidderRole->isActive()) {
+        bidderRole->Update(now);
+    }
+    if (sellerRole && sellerRole->isActive()) {
+        sellerRole->Update(now);
+    }
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
 void HouseholdAgent::OnFrameOutput(timeslice now) {
 }
 
+void HouseholdAgent::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args) {
+}
+
+void HouseholdAgent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args) {
+
+    switch (eventId) {
+        case LTEID_HM_UNIT_ADDED:
+        {
+            const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
+            PrintOut("Unit added " << hmArgs.GetUnitId() << endl);
+            bidderRole->SetActive(true);
+            break;
+        }
+        case LTEID_HM_UNIT_REMOVED:
+        {
+            const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
+            PrintOut("Unit removed " << hmArgs.GetUnitId() << endl);
+            break;
+        }
+        default:break;
+    };
+}
+
 void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& message) {
-    currentRole->HandleMessage(type, message);
+    if (bidderRole && bidderRole->isActive()) {
+        bidderRole->HandleMessage(type, message);
+    }
+    if (sellerRole && sellerRole->isActive()) {
+        sellerRole->HandleMessage(type, message);
+    }
 }

@@ -38,7 +38,13 @@ namespace sim_mob {
             virtual void load(const std::map<std::string, std::string>& configProps);
 
         protected:
-
+        
+            /**
+             * Method called when agent runs the method Update for the first time.
+             * @param now time.
+             */
+            virtual void onStart(timeslice now) = 0;
+            
             /**
              * Handler for frame_init method from agent.
              * @param now time.

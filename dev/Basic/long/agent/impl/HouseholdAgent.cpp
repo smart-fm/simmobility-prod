@@ -35,12 +35,7 @@ HouseholdAgent::~HouseholdAgent() {
     safe_delete_item(sellerRole);
 }
 
-void HouseholdAgent::onStart(timeslice now) {
-    MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-    MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
-}
-
-bool HouseholdAgent::OnFrameInit(timeslice now) {
+bool HouseholdAgent::onFrameInit(timeslice now) {
     bool retVal = (hh && market);
     if (!retVal) {
         LogOut("HouseholdAgent::OnFrameInit - Some information is invalid." << endl);
@@ -48,7 +43,7 @@ bool HouseholdAgent::OnFrameInit(timeslice now) {
     return retVal;
 }
 
-Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now) {
+Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now) {
     if (bidderRole && bidderRole->isActive()) {
         bidderRole->Update(now);
     }
@@ -58,7 +53,7 @@ Entity::UpdateStatus HouseholdAgent::OnFrameTick(timeslice now) {
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
-void HouseholdAgent::OnFrameOutput(timeslice now) {
+void HouseholdAgent::onFrameOutput(timeslice now) {
 }
 
 void HouseholdAgent::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args) {
@@ -92,3 +87,14 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
         sellerRole->HandleMessage(type, message);
     }
 }
+
+void HouseholdAgent::onWorkerEnter() {
+    MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+    MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+}
+
+void HouseholdAgent::onWorkerExit() {
+    MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+    MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+}
+            

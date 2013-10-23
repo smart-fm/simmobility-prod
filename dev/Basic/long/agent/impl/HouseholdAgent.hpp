@@ -32,15 +32,22 @@ namespace sim_mob {
             HouseholdAgent(int id, Household* hh, HousingMarket* market);
             virtual ~HouseholdAgent();
         protected:
+            
             /**
              * Inherited from LT_Agent.
              */
+            bool onFrameInit(timeslice now);
+            sim_mob::Entity::UpdateStatus onFrameTick(timeslice now);
+            void onFrameOutput(timeslice now);
+            
+            /**
+             * Inherited from Entity. 
+             */
+            void onWorkerEnter();
+            void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, 
                     const messaging::Message& message);
-            void onStart(timeslice now);
-            bool OnFrameInit(timeslice now);
-            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now);
-            void OnFrameOutput(timeslice now);
+            
         private:
             virtual void OnEvent(event::EventId eventId, event::EventPublisher* sender, const event::EventArgs& args);
             virtual void OnEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);

@@ -65,6 +65,7 @@ void HM_Model::startImpl() {
                 Unit* unit = new Unit(*(mapItr->second));
                 unit->SetAvailable(true);
                 hhAgent->AddUnit(unit);
+                PrintOut("Household ["<< household->GetId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
             }
             agents.push_back(hhAgent);
             workGroup.assignAWorker(hhAgent);

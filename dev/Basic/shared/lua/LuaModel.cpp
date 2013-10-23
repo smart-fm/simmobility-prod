@@ -50,7 +50,7 @@ LuaModel::~LuaModel() {
     initialized = false;
 }
 
-void LuaModel::Initialize() {
+void LuaModel::initialize() {
     luaL_openlibs(state.get());
     mapClasses();
     //loads all lua files.

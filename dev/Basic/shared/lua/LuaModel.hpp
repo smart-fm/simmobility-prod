@@ -29,7 +29,7 @@ namespace sim_mob {
             /**
              * Initializes lua loading libraries, mapping classes.
              */
-            void Initialize();
+            void initialize();
             
             /**
              * Loads all scripts included on given directory. 

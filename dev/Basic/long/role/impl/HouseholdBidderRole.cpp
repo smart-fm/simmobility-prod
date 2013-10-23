@@ -18,7 +18,7 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "message/MessageBus.hpp"
-#include "util/lua/LuaProxy.hpp"
+#include "model/lua/LuaProvider.hpp"
 
 using std::list;
 using std::endl;
@@ -152,7 +152,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             if ((*itr)->IsAvailable() && ((*itr)->GetOwner() != GetParent())) {
-                float surplus = LuaProxy::getHM_Model().calculateSurplus(*(*itr), GetBidsCounter((*(*itr)).GetId()));
+                float surplus = LuaProvider::getHM_Model().calculateSurplus(*(*itr), GetBidsCounter((*(*itr)).GetId()));
                 if (surplus > maxSurplus) {
                     maxSurplus = surplus;
                     unit = (*itr);
@@ -162,7 +162,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         // Exists some unit to bid.
         if (unit) {
             MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
-            float bidValue = maxSurplus + LuaProxy::getHM_Model().calulateWP(*hh, *unit);
+            float bidValue = maxSurplus + LuaProvider::getHM_Model().calulateWP(*hh, *unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
                 MessageBus::PostMessage(owner, LTMID_BID, 

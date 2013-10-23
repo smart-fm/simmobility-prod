@@ -16,7 +16,7 @@
 #include "util/Math.hpp"
 #include "message/MessageBus.hpp"
 #include "boost/tuple/tuple.hpp"
-#include "util/lua/LuaProxy.hpp"
+#include "model/lua/LuaProvider.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -43,7 +43,7 @@ void HouseholdSellerRole::Update(timeslice now) {
     if (hasUnitsToSale) {
         list<Unit*> units;
         GetParent()->GetUnits(units);
-        HMLuaModel& model = LuaProxy::getHM_Model();
+        const HM_LuaModel& model = LuaProvider::getHM_Model();
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             // Decides to put the house on market.
@@ -174,7 +174,7 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
 
 void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
-    LuaProxy::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
+    LuaProvider::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
     
     unitExpectations.erase(unit.GetId());
     unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));

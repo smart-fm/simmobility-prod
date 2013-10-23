@@ -247,7 +247,7 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 					(*incIt).yLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getY();
 
 					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
-					centimeter_t pos = rs->length*item->position/100.0;
+					centimeter_t pos = rs->getLengthOfSegment()*item->position/100.0;
 					rs->addObstacle(pos, item);
 				}
 			}

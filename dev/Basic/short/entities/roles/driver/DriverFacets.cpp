@@ -279,9 +279,10 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 				}
 
 				float samplesequence = 0.05;
+				float incidentGap = parentDriver->vehicle->length;
 				if(!incidentStatus.changedlane && plan==IncidentStatus::INCIDENT_CHANGELANE){
 					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
-					if(prob < 0.05){
+					if(incidentStatus.distanceTo < 2*incidentGap){
 						incidentStatus.changedlane=true;
 					}
 					else {
@@ -791,6 +792,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
+	float incidentGap = parentDriver->vehicle->length;
 	if(incidentStatus.slowdown == true ){
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
@@ -803,16 +805,16 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			}
 		}
 
+		float speedTarget = 0;
+		float newSpeed = 0;
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
 		p.perceivedDistToFwdCar = std::min(incidentStatus.distanceTo, fwdCarDist);
 		p.turningDirection = LCS_LEFT;
-		float speedTarget = 0;
-		float newSpeed = 0;
 
 		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
 			speedTarget = incidentStatus.speedLimit;
-			if(speedTarget==0 && incidentStatus.distanceTo>5)
+			if(speedTarget==0 && incidentStatus.distanceTo>incidentGap)
 				speedTarget = 100;
 		}
 		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_SLOWDOWN){
@@ -842,7 +844,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	}
 
 	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_CHANGELANE ){
-		if(incidentStatus.speedLimit==0 && incidentStatus.distanceTo < 10) {
+		if(incidentStatus.speedLimit==0 && incidentStatus.distanceTo < incidentGap) {
 			parentDriver->vehicle->setVelocity(0);
 			parentDriver->vehicle->setAcceleration(0);
 		}

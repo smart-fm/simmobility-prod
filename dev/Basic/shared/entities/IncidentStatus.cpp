@@ -25,12 +25,12 @@ IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTi
 	}
 
 	 randomNum = rand()/(RAND_MAX*1.0);
-	 /*float randomvec[100];
+	 float randomvec[100];
 	 for(int i=0; i<100; i++){
 		 randomvec[i] = rand()/(RAND_MAX*1.0);
-		 //std::cout << "random vector number is" << randomvec[i] << std::endl;
-	 }*/
-	 std::cout << "random number is" << randomNum << std::endl;
+		 //std::cout << "random vector number is " << randomvec[i] << std::endl;
+	 }
+	 std::cout << "random number is " << randomNum << std::endl;
 }
 
 IncidentStatus::~IncidentStatus() {

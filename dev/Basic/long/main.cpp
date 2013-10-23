@@ -45,6 +45,7 @@
 
 #include "agent/TestAgent.hpp"
 #include "model/HM_Model.hpp"
+#include "Common.hpp"
 
 using namespace sim_mob::db;
 
@@ -65,82 +66,11 @@ const string SIMMOB_VERSION = string(
 //Start time of program
 timeval start_time;
 
-//const string LT_DB_CONFIG_FILE = "../private/lt-db.ini"
-
-// id, distance to CDB, size (m2), owner Id.
-int TEST_UNITS [][4] = {
-    {1, 345, 2152, 2},
-    {2, 96, 1707, 2},
-    {3, 275, 1590, 4},
-    {4, 235, 2463, 4},
-    {5, 44, 2121, 6},
-    {6, 36, 1817, 6},
-    {7, 9, 2347, 8},
-    {8, 9, 1850, 8},
-    {9, 150, 1943, 10},
-    {10, 178, 1551, 10},
-    {11, 216, 2003, 12},
-    {12, 295, 1582, 12},
-    {13, 324, 1944, 14},
-    {14, 9, 1988, 14},
-    {15, 51, 2470, 16},
-    {16, 198, 1941, 16},
-    {17, 146, 2242, 18},
-    {18, 118, 1890, 18},
-    {19, 252, 2096, 20},
-    {20, 315, 1721, 20},
-    {21, 342, 2304, 22},
-    {22, 122, 1596, 22},
-    {23, 323, 2476, 24},
-    {24, 312, 2317, 24},
-    {25, 334, 2095, 26},
-    {26, 101, 2417, 26},
-    {27, 355, 1947, 28},
-    {28, 147, 2219, 28},
-    {29, 271, 2183, 30},
-    {30, 268, 2288, 30}
-};
-
-int TEST_HH [][4] = {
-    {21, 251, 1505, 1},
-    {27, 336, 1389, 2},
-    {26, 326, 1368, 3},
-    {10, 138, 1274, 4},
-    {4, 41, 1583, 5},
-    {19, 245, 1991, 6},
-    {22, 264, 1680, 7},
-    {6, 81, 1334, 8},
-    {3, 35, 1204, 9},
-    {9, 121, 1287, 10},
-    {29, 343, 1501, 11},
-    {7, 84, 1808, 12},
-    {12, 156, 1663, 13},
-    {14, 196, 1934, 14},
-    {28, 340, 1818, 15},
-    {16, 228, 1467, 16},
-    {17, 234, 1981, 17},
-    {1, 1, 1360, 18},
-    {15, 225, 1505, 19},
-    {18, 234, 1950, 20},
-    {24, 305, 1659, 21},
-    {2, 12, 1715, 22},
-    {25, 314, 1773, 23},
-    {20, 249, 1945, 24},
-    {23, 288, 1226, 25},
-    {5, 49, 1500, 26},
-    {8, 119, 1752, 27},
-    {30, 359, 1413, 28},
-    {13, 184, 1837, 29},
-    {11, 145, 1948, 30}
-};
-
-float UNIT_FIXED_COST = 0.1f;
-
 //SIMOBILITY TEST PARAMS
 const int MAX_ITERATIONS = 1;
 const int TICK_STEP = 1;
 const int DAYS = 365;
-const int WORKERS = 10;
+const int WORKERS = 1;
 const int DATA_SIZE = 30;
 
 /**
@@ -178,16 +108,15 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     config.totalRuntimeTicks = DAYS;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
     config.singleThreaded() = false;
+   
     //simulation time.
     StopWatch simulationWatch;
-    simulationWatch.start();
-    
     vector<Model*> models; 
     HM_Model* model = nullptr;
     {
-        
+        simulationWatch.start();   
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(ConfigManager::GetInstance().FullConfig().singleThreaded());
+        wgMgr.setSingleThreadMode(config.singleThreaded());
 
         //Work Group specifications
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
@@ -195,6 +124,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         agentWorkers->initWorkers(nullptr);
         DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
 
+        //models 
         model = new HM_Model(dbConfig, *agentWorkers);
         models.push_back(model);
         model->start();
@@ -207,22 +137,25 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
-        PrintOut("Finalizing workgroups: " << endl);
         //Save our output files if we are merging them later.
-        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && 
+            config.mergeLogFiles()) {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
+        model->stop();
+        simulationWatch.stop();
     }
-    model->stop();
-    simulationWatch.stop();
+   
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
-    while(!models.empty()){
+    while (!models.empty()) {
         Model* modelToDelete = models.back();
         models.pop_back();
         safe_delete_item(modelToDelete);
     }
     models.clear();
+    
+    
 }
 
 int main(int ARGC, char* ARGV[]) {

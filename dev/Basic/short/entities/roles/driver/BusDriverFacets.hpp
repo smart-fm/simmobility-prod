@@ -28,9 +28,9 @@ public:
 	virtual ~BusDriverBehavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	BusDriver* getParentBusDriver() const {
 		return parentBusDriver;
@@ -50,9 +50,9 @@ public:
 	virtual ~BusDriverMovement();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	BusDriver* getParentBusDriver() const {

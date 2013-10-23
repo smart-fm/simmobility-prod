@@ -30,6 +30,8 @@ class UnPackageUtils;
 
 //Helper struct
 struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
+
+	WaitBusActivityRoleUpdateParams() : UpdateParams() {}
 	explicit WaitBusActivityRoleUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
 	virtual ~WaitBusActivityRoleUpdateParams() {}
 
@@ -48,11 +50,11 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
 #endif
 };
 
-class WaitBusActivityRole : public sim_mob::Role {
+class WaitBusActivityRole : public sim_mob::Role , public UpdateWrapper<WaitBusActivityRoleUpdateParams>{
 public:
 	WaitBusActivityRole(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr, Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 //	bool getRegisteredFlag() { return registered; } // get the registered flag

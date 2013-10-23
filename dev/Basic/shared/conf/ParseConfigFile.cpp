@@ -983,7 +983,10 @@ void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElem
 		} else if ((*it) == "xml-tripchains") {
 			opt = SimulationParams::LoadAg_XmlTripChains;
 		} else {
-			throw std::runtime_error("Unexpected load_agents order param.");
+			std::stringstream out;
+			out.str("");
+			out << "Unexpected load_agents order param." << "[" << *it << "]";
+			throw std::runtime_error(out.str());
 		}
 		cfg.system.simulation.loadAgentsOrder.push_back(opt);
 	}
@@ -1003,7 +1006,12 @@ void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElemen
 
 	//TODO: There is a "type" attribute here too, in the latest branch.
 	xercesc::DOMElement* androidNode = GetSingleElementByName(node, "android_testbed");
-	cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false);
+	if((cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false)))
+	{
+		//an optional place to create the broker, i am creating in main.cpp now
+	}
+
+	cfg.system.simulation.androidClientType = ParseString(GetNamedAttributeValue(androidNode, "type"), std::string(""));
 }
 
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)

@@ -21,9 +21,9 @@ public:
 	virtual ~DriverCommBehavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	DriverComm* getParentDriverComm() const {
 		return parentDriverCommRole;
@@ -45,17 +45,13 @@ public:
 	virtual ~DriverCommMovement();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
-	DriverComm* getParentDriverComm() const {
-		return parentDriverCommRole;
-	}
+	DriverComm* getParentDriverComm() const;
 
-	void setParentDriverComm(DriverComm* parentDriverCommRole_) {
-		this->parentDriverCommRole = parentDriverCommRole_;
-	}
+	void setParentDriverComm(DriverComm* parentDriverCommRole_);
 
 protected:
 	DriverComm* parentDriverCommRole;

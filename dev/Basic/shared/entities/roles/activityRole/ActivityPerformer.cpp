@@ -45,6 +45,8 @@ Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams( boost::mt19937& gen) : UpdateParams(gen) {
 }
+sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams() {
+}
 
 std::vector<sim_mob::BufferedBase*> sim_mob::ActivityPerformer::getSubscriptionParams() {
 	vector<BufferedBase*> res;
@@ -86,9 +88,8 @@ void sim_mob::ActivityPerformer::initializeRemainingTime() {
 }
 
 
-UpdateParams& sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now) {
-	params.reset(now);
-	return params;
+void sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now){
+	getParams().reset(now);
 }
 
 void sim_mob::ActivityPerformer::updateRemainingTime() {

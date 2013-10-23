@@ -334,10 +334,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
-				if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
+				if(p->getRole())
+				if ( dynamic_cast<sim_mob::medium::Driver*>(p->getRole())) {
 					numDriver++;
 				}
-				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
+				if (p->getRole() && dynamic_cast<sim_mob::medium::Pedestrian*> (p->getRole())) {
 					numPedestrian++;
 				}
 			}

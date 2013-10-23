@@ -12,8 +12,6 @@
 #include "Common.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/Agent.hpp"
-#include "event/EventManager.hpp"
-#include "message/MessageHandler.hpp"
 
 namespace sim_mob {
 
@@ -22,9 +20,10 @@ namespace sim_mob {
         /**
          * Represents an Long-Term agent.
          * These agents can have different behaviors:
-         * - Seller
-         * - Bidder 
-         * - Both
+         * - Household
+         * - Firm
+         * - Developer
+         * - etc...
          * It will depend of the context.
          */
         class LT_Agent : public sim_mob::Agent{
@@ -38,47 +37,27 @@ namespace sim_mob {
             virtual void load(const std::map<std::string, std::string>& configProps);
 
         protected:
-        
-            /**
-             * Method called when agent runs the method Update for the first time.
-             * @param now time.
-             */
-            virtual void onStart(timeslice now) = 0;
             
             /**
              * Handler for frame_init method from agent.
              * @param now time.
              * @return true if the init ran well or false otherwise.
              */
-            virtual bool OnFrameInit(timeslice now) = 0;
+            virtual bool onFrameInit(timeslice now) = 0;
 
             /**
              * Handler for frame_tick method from agent.
-             * Attention: this method can be called N 
-             * times depending on the messages contained in the message queue.
-             * 
-             * messageCounter field has the counter of 
-             * the read messages on the current tick. 
-             * 0- indicates that is the first time that 
-             *    this method is called on this tick.
-             * N- indicates that (N+1) message were loaded in this tick.  
              * 
              * @param now time.
              * @return update status.
              */
-            virtual sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now) = 0;
+            virtual sim_mob::Entity::UpdateStatus onFrameTick(timeslice now) = 0;
 
             /**
              * Handler for frame_output method from agent.
              * @param now time.
              */
-            virtual void OnFrameOutput(timeslice now) = 0;
-
-            /**
-             * Inherited from MessageReceiver.
-             */
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                const messaging::Message& message);
+            virtual void onFrameOutput(timeslice now) = 0;
 
             /**
              * Inherited from Agent.
@@ -87,7 +66,6 @@ namespace sim_mob {
             sim_mob::Entity::UpdateStatus frame_tick(timeslice now);
             void frame_output(timeslice now);
             bool isNonspatial();    
-            bool isRegistered;
         };
     }
 }

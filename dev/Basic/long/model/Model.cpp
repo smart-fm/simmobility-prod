@@ -21,7 +21,6 @@ using std::vector;
 using std::string;
 
 namespace {
-
     void deleteAgents(vector<Agent*>& agents) {
         while (!agents.empty()) {
             Agent* ag = agents.back();
@@ -46,7 +45,7 @@ void Model::start() {
         startImpl();
         startWatch.stop();
         running = true;
-        MessageBus::PublishEvent(LongTermEventIds::LTEID_MODEL_STARTED, this,
+        MessageBus::PublishEvent(LTEID_MODEL_STARTED, this,
                 MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
@@ -56,9 +55,8 @@ void Model::stop() {
         running = false;
         stopWatch.start();
         stopImpl();
-        deleteAgents(agents);
         stopWatch.stop();
-        MessageBus::PublishEvent(LongTermEventIds::LTEID_MODEL_STOPPED, this,
+        MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this,
                 MessageBus::EventArgsPtr(new EventArgs()));
     }
 }

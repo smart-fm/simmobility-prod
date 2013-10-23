@@ -15,7 +15,7 @@
 #include "vector"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 namespace sim_mob {
 

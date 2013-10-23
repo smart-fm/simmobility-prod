@@ -45,7 +45,7 @@ class DriverMovement;
  * \author Harish Loganathan
  */
 
-class Driver : public sim_mob::Role {
+class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams> {
 private:
 	//Helper class for grouping a Node and a Point2D together.
 	class NodePoint {
@@ -65,7 +65,7 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setParentData();			///<set next data to parent buffer data
@@ -110,7 +110,7 @@ public:
 	 * Making params public to expose information like justChangedToNewSegment,
 	 * justMovedIntoIntersection etc available for density calculation. ~ Harish
 	 */
-	medium::DriverUpdateParams params;
+//	medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 

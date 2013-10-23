@@ -175,7 +175,7 @@ void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 
     if (signals_.count(node) == 0) {
         signals_.insert(std::make_pair(node, &signal));
-        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
+//        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
     }
 }
 

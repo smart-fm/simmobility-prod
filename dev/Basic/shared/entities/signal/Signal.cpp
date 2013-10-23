@@ -117,7 +117,7 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	tempLoop = 0;
 	loopDetector_ = new LoopDetectorEntity(*this, mtxStrat);
 	tempLoop = loopDetector_;
-	std::cout << "Created loopdetectorEntity[" << loopDetector_ << "]" << std::endl;
+//	std::cout << "Created loopdetectorEntity[" << loopDetector_ << "]" << std::endl;
 
 
 	setSignalType(type_);

@@ -87,9 +87,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr), remainingTimeThisTick(0.0),
+	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1)
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), shouldResetParams(false)
 {
 }
 
@@ -237,11 +237,11 @@ bool sim_mob::Person::frame_init(timeslice now)
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	curr_params = &currRole->make_frame_tick_params(now);
+	currRole->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
-		currRole->Movement()->frame_init(*curr_params);
+		currRole->Movement()->frame_init();
 	}
 
 	return true;
@@ -251,14 +251,15 @@ bool sim_mob::Person::frame_init(timeslice now)
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	//TODO: Here is where it gets risky.
-	if (!curr_params) {
-		curr_params = &currRole->make_frame_tick_params(now);
+	if (shouldResetParams) {
+		currRole->make_frame_tick_params(now);
+		shouldResetParams = false;
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick(*curr_params);
+		currRole->Movement()->frame_tick();
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -297,11 +298,11 @@ void sim_mob::Person::frame_output(timeslice now)
 {
 	//Save the output
 	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick_output(*curr_params);
+		currRole->Movement()->frame_tick_output();
 	}
 
-	//TODO: Still risky.
-	curr_params = nullptr; //WARNING: Do *not* delete curr_params; it is only used to point to the result of get_params.
+	//avoiding logical errors while improving the code
+	shouldResetParams = true;
 }
 
 
@@ -789,7 +790,6 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	}
 	prevRole = currRole;
 	currRole = newRole;
-	//Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);

@@ -5,17 +5,19 @@
 #include "DriverComm.hpp"
 #include "DriverCommFacets.hpp"
 #include "entities/Person.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/commsim/communicator/broker/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob
 {
 
 int DriverComm::totalSendCnt = 0;
 int DriverComm::totalReceiveCnt = 0;
-sim_mob::DriverComm::DriverComm(Person* parent, Broker* managingBroker, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
-		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(*managingBroker, *parent)
-{}
+sim_mob::DriverComm::DriverComm(Person* parent/*, */, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
+		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(parent)
+{	}
 
 sim_mob::DriverComm::~DriverComm()
 {}
@@ -24,11 +26,19 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 {
 	DriverCommBehavior* behavior = new DriverCommBehavior(parent);
 	DriverCommMovement* movement = new DriverCommMovement(parent);
-	DriverComm* driver = new DriverComm(parent, &this->communicator, parent->getMutexStrategy(), behavior, movement);
+	DriverComm* driver = new DriverComm(parent, /*&this->communicator, */parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	behavior->setParentDriverComm(driver);
 	movement->setParentDriverComm(driver);
+	//broker, (external)communicator :( ... setting
+
+	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
+	const std::string &type = cfg.getAndroidClientType();
+	Broker* managingBroker = Broker::getExternalCommunicator(type);
+//	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
+	driver->setBroker(managingBroker);
+
 	return driver;
 }
 sim_mob::Agent * DriverComm::getParentAgent()
@@ -36,10 +46,6 @@ sim_mob::Agent * DriverComm::getParentAgent()
 	return parent;
 }
 
-sim_mob::Broker &DriverComm::getBroker()
-{
-	return communicator;
-}
 
 #if 0
 void sim_mob::DriverComm::receiveModule(timeslice now)

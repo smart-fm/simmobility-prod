@@ -58,7 +58,7 @@ class UnPackageUtils;
  * \author Zhang Shuai
  * \author Xu Yan
  */
-class Driver : public sim_mob::Role {
+class Driver : public sim_mob::Role , public UpdateWrapper<DriverUpdateParams>{
 //Internal classes
 private:
 	//Helper class for grouping a Node and a Point2D together.
@@ -82,11 +82,10 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual implementations
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
-
-
+	void handleUpdateRequest(MovementFacet* mFacet);
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;
@@ -127,7 +126,7 @@ protected:
 protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
-	DriverUpdateParams params;
+//	DriverUpdateParams params;
 
 private:
 //	//Sample stored data which takes reaction time into account.

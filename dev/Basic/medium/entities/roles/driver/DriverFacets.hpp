@@ -18,9 +18,9 @@ public:
 	virtual ~DriverBehavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	sim_mob::medium::Driver* getParentDriver() const {
 		return parentDriver;
@@ -41,9 +41,9 @@ public:
 	virtual ~DriverMovement();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	void setParentData(DriverUpdateParams& p);			///<set next data to parent buffer data

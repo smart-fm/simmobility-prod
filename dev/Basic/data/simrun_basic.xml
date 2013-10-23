@@ -32,6 +32,12 @@
                 <port value="5432"/>
                 <dbname value="SimMobility_DB"/>
             </database>
+            
+            <database id="fm_remote_path_choice" dbtype="postgres">
+                <host value="172.25.184.11"/>
+                <port value="5432"/>
+                <dbname value="SimMobility_DB_Path_Choice"/>
+            </database>
 
             <!-- Local copy of the FM server (see wiki for how to set up) -->
             <database id="fm_local" dbtype="postgres">
@@ -93,6 +99,26 @@
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
+                
+            <!-- The large Bugis-area network -->
+            <proc_map id="HITS" format="aimsun">
+                <mapping name="node" procedure="get_node_sg()"/>
+                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing_bugis()"/>
+                <mapping name="lane" procedure="get_lanes_bugis()"/>
+                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
+                <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
+                <mapping name="tripchain" procedure="get_hits_tripchains()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases_BUGIS()"/>
+		
+		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
+            </proc_map>
         </db_proc_groups>
 	
 	<!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -113,6 +139,11 @@
 	  <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
 	  <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
 	  <file-based-credential id="fm_remote">
+	    <file path="private/fm_remote.cred.txt"/>
+	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
+	  </file-based-credential>
+	  
+	  <file-based-credential id="fm_remote_path_choice">
 	    <file path="private/fm_remote.cred.txt"/>
 	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
 	  </file-based-credential>
@@ -140,7 +171,7 @@
             <total_runtime      value="2"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="08:00:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -156,7 +187,7 @@
          	<partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="database drivers pedestrians"/>
+             <load_agents order="drivers pedestrians"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -166,8 +197,8 @@
             
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
-        	<communication enabled="no">
-        		<android_testbed enabled="yes"/>
+        	<communication enabled="yes">
+        		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
 <!--  These don't seem to do anything. ~Seth -->
@@ -225,6 +256,8 @@
         <network_xml_file value=""/>
 	
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
+	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
+	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
 	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small"/>
 
         <!-- Where to find our various schema files. -->

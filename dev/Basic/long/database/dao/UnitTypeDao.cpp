@@ -30,6 +30,7 @@ UnitTypeDao::~UnitTypeDao() {
 void UnitTypeDao::FromRow(Row& result, UnitType& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.name = result.get<string>(DB_FIELD_NAME, EMPTY_STR);
+    outObj.type = result.get<int> (DB_FIELD_TYPE, 0);
 }
 
 void UnitTypeDao::ToRow(UnitType& data, Parameters& outParams, bool update) {

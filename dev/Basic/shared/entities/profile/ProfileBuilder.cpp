@@ -90,6 +90,7 @@ void ProfileBuilder::flushLogFile()
 
 	//Write and flush the current buffer.
 	LogFile <<currLogStr;
+	LogFile.flush();
 	currLog.str("");
 }
 

@@ -14,7 +14,7 @@
 #include "EventListener.hpp"
 
 namespace sim_mob {
-
+class Agent;
     namespace event {
         const unsigned int EVT_CORE_START    = 100000;
         const unsigned int EVT_SHORT_START   = 200000;
@@ -23,8 +23,14 @@ namespace sim_mob {
         
         enum CoreEvent {
             EVT_CORE_SYTEM_START = EVT_CORE_START,
+            EVT_CORE_ROLE_INIT,
             //agent life cycle.
             EVT_CORE_AGENT_DIED,
+            EVT_CORE_AGENT_UPDATED
+        };
+
+        enum CoreContext {
+            CXT_CORE_AGENT_UPDATE
         };
 
         /**
@@ -33,12 +39,14 @@ namespace sim_mob {
         DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeCycleEventArgs)
         class AgentLifeCycleEventArgs : public EventArgs {
         public:
-            AgentLifeCycleEventArgs(unsigned int agentId);
+            AgentLifeCycleEventArgs(unsigned int agentId, Agent* agent);
             virtual ~AgentLifeCycleEventArgs();
             virtual AgentLifeCycleEventArgs& operator=(const AgentLifeCycleEventArgs& source);
             unsigned int GetAgentId() const;
+            Agent* GetAgent() const;
         private:
             unsigned int agentId;
+            Agent * agent;
         };
     }
 }

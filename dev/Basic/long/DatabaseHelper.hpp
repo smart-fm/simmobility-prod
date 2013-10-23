@@ -17,8 +17,11 @@
  * Schemas
  */
 const std::string DB_SCHEMA_EMPTY   ="";
-const std::string DB_SCHEMA_BASELINE_2001   ="baseline_2001.";
-const std::string CURRENT_SCHEMA = DB_SCHEMA_EMPTY;
+const std::string DB_SCHEMA_BASELINE_2001   = "baseline_2001.";
+const std::string DB_SCHEMA_MAIN   ="main.";
+const std::string CURRENT_SCHEMA = DB_SCHEMA_MAIN;
+const std::string LIMIT_10 = " limit 10";
+const std::string LIMIT = LIMIT_10;
 
 /**
  * Tables
@@ -47,6 +50,10 @@ const std::string DB_FIELD_PARCEL_ID = "parcel_id";
 const std::string DB_FIELD_BUILDING_ID = "building_id";
 const std::string DB_FIELD_ESTABLISMENT_ID = "establishment_id";
 const std::string DB_FIELD_TYPE_ID = "type_id";
+const std::string DB_FIELD_POSTCODE_ID = "postcode_id";
+const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
+const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
+const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
 const std::string DB_FIELD_INCOME = "income";
 const std::string DB_FIELD_FLOOR_AREA = "floor_area";
 const std::string DB_FIELD_YEAR = "year";
@@ -54,12 +61,21 @@ const std::string DB_FIELD_STOREY = "storey";
 const std::string DB_FIELD_RENT = "rent";
 const std::string DB_FIELD_SIZE = "size";
 const std::string DB_FIELD_CHILDREN = "children";
-const std::string DB_FIELD_CAR_OWNERSHIP = "car_ownership";
+const std::string DB_FIELD_WORKERS = "workers";
+const std::string DB_FIELD_AGE_OF_HEAD = "age_of_head";
 const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
 const std::string DB_FIELD_BUILT_YEAR = "built_year";
 const std::string DB_FIELD_STOREYS = "storeys";
 const std::string DB_FIELD_PARKING_SPACES = "parking_spaces";
+const std::string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
+const std::string DB_FIELD_LAND_AREA = "land_area";
+const std::string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
+const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
+const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
+const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
+
 const std::string DB_FIELD_NAME = "name";
+const std::string DB_FIELD_TYPE = "type";
 const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";
 const std::string DB_FIELD_WEIGHT_UNIT_AREA = "unit_area_weight";
@@ -82,7 +98,6 @@ const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO " + DB_TABLE_HOUSEHOLD + " 
         + DB_FIELD_SIZE + ", "
         + DB_FIELD_CHILDREN + ", "
         + DB_FIELD_INCOME + ", "
-        + DB_FIELD_CAR_OWNERSHIP + ", "
         + DB_FIELD_HOUSING_DURATION + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
 const std::string DB_INSERT_UNIT_TYPE = ""; // not defined yet...
@@ -99,8 +114,7 @@ const std::string DB_UPDATE_HOUSEHOLD = "UPDATE " + DB_TABLE_HOUSEHOLD + " SET "
         + DB_FIELD_SIZE + "= :v2, "
         + DB_FIELD_CHILDREN + "= :v3, "
         + DB_FIELD_INCOME + "= :v4, "
-        + DB_FIELD_CAR_OWNERSHIP + "= :v5, "
-        + DB_FIELD_HOUSING_DURATION + "= :v6 WHERE " + DB_FIELD_ID + "=:v7";
+        + DB_FIELD_HOUSING_DURATION + "= :v5 WHERE " + DB_FIELD_ID + "=:v6";
 
 const std::string DB_UPDATE_UNIT_TYPE = ""; // not defined yet...
 const std::string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
@@ -120,12 +134,12 @@ const std::string DB_DELETE_UNIT = "DELETE FROM " + DB_TABLE_UNIT + " WHERE " + 
 /**
  * GET ALL
  */
-const std::string DB_GETALL_GLOBAL_PARAMS = "SELECT * FROM " + DB_TABLE_GLOBAL_PARAMS;
-const std::string DB_GETALL_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE;
-const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD;
-const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE;
-const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING;
-const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT;
+const std::string DB_GETALL_GLOBAL_PARAMS = "SELECT * FROM " + DB_TABLE_GLOBAL_PARAMS + LIMIT;
+const std::string DB_GETALL_UNIT_TYPE = "SELECT * FROM " + DB_TABLE_UNIT_TYPE + LIMIT;
+const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + LIMIT;
+const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + LIMIT;
+const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + LIMIT;
+const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + LIMIT;
 
 /**
  * GET BY ID

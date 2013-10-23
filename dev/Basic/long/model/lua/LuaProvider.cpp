@@ -27,7 +27,7 @@ namespace {
         if (!threadContext.get()) {
             ModelContext* modelCtx = new ModelContext();
             modelCtx->hmModel.loadDirectory(HM_LUA_DIR);
-            modelCtx->hmModel.Initialize();
+            modelCtx->hmModel.initialize();
             threadContext.reset(modelCtx);
         }
     }

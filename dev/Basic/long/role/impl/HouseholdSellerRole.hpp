@@ -39,7 +39,7 @@ namespace sim_mob {
              * Method that will update the seller on each tick.
              * @param currTime
              */
-            virtual void Update(timeslice currTime);
+            virtual void update(timeslice currTime);
         protected:
 
             /**
@@ -55,30 +55,30 @@ namespace sim_mob {
              * @param bid given by the bidder.
              * @return true if accepts the bid or false otherwise.
              */
-            bool Decide(const Bid& bid, const ExpectationEntry& entry);
+            bool decide(const Bid& bid, const ExpectationEntry& entry);
             
             /**
              * Adjust the unit parameters for the next bids. 
              * @param unit
              */
-            void AdjustUnitParams(Unit& unit);
+            void adjustUnitParams(Unit& unit);
             
             /**
              * Notify the bidders that have their bid were accepted.
              */
-            void NotifyWinnerBidders();
+            void notifyWinnerBidders();
             
             /**
              * Adjust parameters of all units that were not selled.
              */
-            void AdjustNotSelledUnits();
+            void adjustNotSelledUnits();
             
             /**
              * Calculates the unit expectations to the maximum period of time 
              * that the seller is expecting to be in the market.
              * @param unit to cal
              */
-            void CalculateUnitExpectations(const Unit& unit);
+            void calculateUnitExpectations(const Unit& unit);
         
             /**
              * Gets current expectation entry for given unit.
@@ -87,7 +87,7 @@ namespace sim_mob {
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool GetCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry);
         private:
 
             typedef std::vector<ExpectationEntry> ExpectationList;

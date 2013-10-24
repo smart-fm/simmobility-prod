@@ -42,7 +42,7 @@ namespace sim_mob {
              * Inherited from LT_Role
              * @param currTime
              */
-            virtual void Update(timeslice currTime);
+            virtual void update(timeslice currTime);
         protected:
 
             /**
@@ -58,7 +58,7 @@ namespace sim_mob {
              * @param sender EVentManager responsible for the fired event.
              * @param args {@link EM_EventArgs} instance.
              */
-            void OnWakeUp(event::EventId id, event::Context ctx,
+            void onWakeUp(event::EventId id, event::Context ctx,
                     event::EventPublisher* sender, const event::EM_EventArgs& args);
 
             /**
@@ -67,18 +67,18 @@ namespace sim_mob {
              * @param sender of the event.
              * @param args of the event.
              */
-            void OnMarketAction(event::EventId id, event::EventPublisher* sender,
+            void onMarketAction(event::EventId id, event::EventPublisher* sender,
                     const HM_ActionEventArgs& args);
 
             /**
              * Subscribes the role to all market generic events.
              */
-            void FollowMarket();
+            void followMarket();
 
             /**
              * UnSubscribes the role to all market generic events.
              */
-            void UnFollowMarket();
+            void unFollowMarket();
 
         private:
             friend class HouseholdAgent;
@@ -90,26 +90,26 @@ namespace sim_mob {
              * @param now
              * @return 
              */
-            bool BidUnit(timeslice now);
+            bool bidUnit(timeslice now);
             
             /**
              * Gets the bids counter for the given unit.
              * @param unitId unit unique identifier.
              * @return number of bids.
              */
-            int GetBidsCounter(UnitId unitId);
+            int getBidsCounter(UnitId unitId);
 
             /**
              * Increments the bids counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void IncrementBidsCounter(UnitId unitId);
+            void incrementBidsCounter(UnitId unitId);
             
             /**
              * Deletes the counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void DeleteBidsCounter(UnitId unitId);
+            void deleteBidsCounter(UnitId unitId);
 
         private:
             Household* hh;

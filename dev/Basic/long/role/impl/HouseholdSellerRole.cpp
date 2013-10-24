@@ -39,10 +39,10 @@ HouseholdSellerRole::~HouseholdSellerRole() {
     maxBidsOfDay.clear();
 }
 
-void HouseholdSellerRole::Update(timeslice now) {
+void HouseholdSellerRole::update(timeslice now) {
     if (hasUnitsToSale) {
         list<Unit*> units;
-        GetParent()->getUnits(units);
+        getParent()->getUnits(units);
         const HM_LuaModel& model = LuaProvider::getHM_Model();
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
@@ -51,7 +51,7 @@ void HouseholdSellerRole::Update(timeslice now) {
                 double hedonicPrice = model.calculateHedonicPrice(*(*itr));
                 (*itr)->SetHedonicPrice(hedonicPrice);
                 (*itr)->SetAskingPrice(hedonicPrice);
-                CalculateUnitExpectations(*(*itr));
+                calculateUnitExpectations(*(*itr));
                 // Put the asking price for given time.
                 market->addUnit((*itr));
             }
@@ -60,7 +60,7 @@ void HouseholdSellerRole::Update(timeslice now) {
     }
     if (now.ms() > currentTime.ms()) {
         // Day has changed we need to notify the last day winners.
-        NotifyWinnerBidders();
+        notifyWinnerBidders();
 
     }
     // Verify if is time to adjust prices for units.
@@ -68,7 +68,7 @@ void HouseholdSellerRole::Update(timeslice now) {
         int index = floor(now.ms() / TIME_INTERVAL);
         if (index > currentExpectationIndex) {
             currentExpectationIndex = index;
-            AdjustNotSelledUnits();
+            adjustNotSelledUnits();
         }
     }
     //update current time.
@@ -81,15 +81,15 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            Unit* unit = GetParent()->getUnitById(msg.getBid().GetUnitId());
-            PrintOut("Seller: [" << GetParent()->getId() <<
+            Unit* unit = getParent()->getUnitById(msg.getBid().GetUnitId());
+            PrintOut("Seller: [" << getParent()->getId() <<
                     "] received a bid: " << msg.getBid() <<
                     " at day: " << currentTime.ms() << endl);
             bool decision = false;
             ExpectationEntry entry;
-            if (unit && unit->IsAvailable() && GetCurrentExpectation(*unit, entry)) {
+            if (unit && unit->IsAvailable() && getCurrentExpectation(*unit, entry)) {
                 //verify if is the bid satisfies the asking price.
-                decision = Decide(msg.getBid(), entry);
+                decision = decide(msg.getBid(), entry);
                 if (decision) {
                     //get the maximum bid of the day
                     Bids::iterator bidItr = maxBidsOfDay.find(unit->GetId());
@@ -132,38 +132,38 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
     }
 }
 
-bool HouseholdSellerRole::Decide(const Bid& bid, const ExpectationEntry& entry) {
+bool HouseholdSellerRole::decide(const Bid& bid, const ExpectationEntry& entry) {
     return bid.GetValue() > entry.expectation;
 }
 
-void HouseholdSellerRole::AdjustNotSelledUnits() {
+void HouseholdSellerRole::adjustNotSelledUnits() {
     list<Unit*> units;
-    GetParent()->getUnits(units);
+    getParent()->getUnits(units);
     for (list<Unit*>::iterator itr = units.begin(); itr != units.end(); itr++) {
         if ((*itr)->IsAvailable()) {
-            AdjustUnitParams((**itr));
+            adjustUnitParams((**itr));
         }
     }
 }
 
-void HouseholdSellerRole::AdjustUnitParams(Unit& unit) {
+void HouseholdSellerRole::adjustUnitParams(Unit& unit) {
     ExpectationEntry entry;
-    if (GetCurrentExpectation(unit, entry)) {
+    if (getCurrentExpectation(unit, entry)) {
         unit.SetAskingPrice(entry.price);
     }
 }
 
-void HouseholdSellerRole::NotifyWinnerBidders() {
+void HouseholdSellerRole::notifyWinnerBidders() {
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid* maxBidOfDay = &(itr->second);
         MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
         
-        Unit* unit = GetParent()->getUnitById(maxBidOfDay->GetUnitId());
+        Unit* unit = getParent()->getUnitById(maxBidOfDay->GetUnitId());
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
-            unit = GetParent()->removeUnit(unit->GetId());
+            unit = getParent()->removeUnit(unit->GetId());
             // clean all expectations for the unit.
             unitExpectations.erase(unit->GetId());
         }
@@ -172,7 +172,7 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
     maxBidsOfDay.clear();
 }
 
-void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
+void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
     LuaProvider::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
     
@@ -184,7 +184,7 @@ void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     }
 }
 
-bool HouseholdSellerRole::GetCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry) {
+bool HouseholdSellerRole::getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry) {
     ExpectationMap::iterator expectations = unitExpectations.find(unit.GetId());
     if (expectations != unitExpectations.end()) {
         if (currentExpectationIndex < expectations->second.size()) {

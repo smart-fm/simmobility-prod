@@ -31,7 +31,7 @@ bool HousingMarket::add(Unit* unit, bool reOwner) {
     bool retVal = UnitHolder::add(unit, false);
     if (retVal) {
         MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
-            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->GetId())));
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->getId())));
     }
     return retVal;
 }

@@ -86,11 +86,11 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
                                 lastTime.frame() + 10);
-                        /*getParent()->GetEventManager().Schedule(wakeUpTime, this,
+                        /*getParent()->getEventManager().Schedule(wakeUpTime, this,
                                 CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
                                 HouseholdBidderRole::OnWakeUp));*/
                         unFollowMarket();
-                        deleteBidsCounter(unit->GetId());
+                        deleteBidsCounter(unit->getId());
                         Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     }
                     break;
@@ -151,8 +151,8 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
         float maxSurplus = -1;
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
-            if ((*itr)->IsAvailable() && ((*itr)->GetOwner() != getParent())) {
-                float surplus = LuaProvider::getHM_Model().calculateSurplus(*(*itr), getBidsCounter((*(*itr)).GetId()));
+            if ((*itr)->isAvailable() && ((*itr)->getOwner() != getParent())) {
+                float surplus = LuaProvider::getHM_Model().calculateSurplus(*(*itr), getBidsCounter((*(*itr)).getId()));
                 if (surplus > maxSurplus) {
                     maxSurplus = surplus;
                     unit = (*itr);
@@ -161,12 +161,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
         }
         // Exists some unit to bid.
         if (unit) {
-            MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
+            MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->getOwner());
             float bidValue = maxSurplus + LuaProvider::getHM_Model().calulateWP(*hh, *unit);
-            if (owner && bidValue > 0.0f && unit->IsAvailable()) {
+            if (owner && bidValue > 0.0f && unit->isAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
                 MessageBus::PostMessage(owner, LTMID_BID, 
-                        MessageBus::MessagePtr(new BidMessage(Bid(unit->GetId(), getParent()->getId(),
+                        MessageBus::MessagePtr(new BidMessage(Bid(unit->getId(), getParent()->getId(),
                         getParent(), bidValue, now))));
                 return true;
             }

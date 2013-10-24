@@ -47,10 +47,10 @@ void HouseholdSellerRole::update(timeslice now) {
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             // Decides to put the house on market.
-            if ((*itr)->IsAvailable()) {
+            if ((*itr)->isAvailable()) {
                 double hedonicPrice = model.calculateHedonicPrice(*(*itr));
-                (*itr)->SetHedonicPrice(hedonicPrice);
-                (*itr)->SetAskingPrice(hedonicPrice);
+                (*itr)->setHedonicPrice(hedonicPrice);
+                (*itr)->setAskingPrice(hedonicPrice);
                 calculateUnitExpectations(*(*itr));
                 // Put the asking price for given time.
                 market->addUnit((*itr));
@@ -87,19 +87,19 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                     " at day: " << currentTime.ms() << endl);
             bool decision = false;
             ExpectationEntry entry;
-            if (unit && unit->IsAvailable() && getCurrentExpectation(*unit, entry)) {
+            if (unit && unit->isAvailable() && getCurrentExpectation(*unit, entry)) {
                 //verify if is the bid satisfies the asking price.
                 decision = decide(msg.getBid(), entry);
                 if (decision) {
                     //get the maximum bid of the day
-                    Bids::iterator bidItr = maxBidsOfDay.find(unit->GetId());
+                    Bids::iterator bidItr = maxBidsOfDay.find(unit->getId());
                     Bid* maxBidOfDay = nullptr;
                     if (bidItr != maxBidsOfDay.end()) {
                         maxBidOfDay = &(bidItr->second);
                     }
 
                     if (!maxBidOfDay) {
-                        maxBidsOfDay.insert(BidEntry(unit->GetId(),
+                        maxBidsOfDay.insert(BidEntry(unit->getId(),
                                 msg.getBid()));
                     } else if (maxBidOfDay->getValue() < msg.getBid().getValue()) {
                         // bid is higher than the current one of the day.
@@ -108,9 +108,9 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                         //reply to sender.
                         MessageBus::PostMessage(maxBidOfDay->getBidder(), LTMID_BID_RSP, 
                                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER)));
-                        maxBidsOfDay.erase(unit->GetId());
+                        maxBidsOfDay.erase(unit->getId());
                         //update the new bid and bidder.
-                        maxBidsOfDay.insert(BidEntry(unit->GetId(), msg.getBid()));
+                        maxBidsOfDay.insert(BidEntry(unit->getId(), msg.getBid()));
                     } else {
                         MessageBus::PostMessage(msg.getBid().getBidder(), 
                                 LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), 
@@ -140,7 +140,7 @@ void HouseholdSellerRole::adjustNotSelledUnits() {
     list<Unit*> units;
     getParent()->getUnits(units);
     for (list<Unit*>::iterator itr = units.begin(); itr != units.end(); itr++) {
-        if ((*itr)->IsAvailable()) {
+        if ((*itr)->isAvailable()) {
             adjustUnitParams((**itr));
         }
     }
@@ -149,7 +149,7 @@ void HouseholdSellerRole::adjustNotSelledUnits() {
 void HouseholdSellerRole::adjustUnitParams(Unit& unit) {
     ExpectationEntry entry;
     if (getCurrentExpectation(unit, entry)) {
-        unit.SetAskingPrice(entry.price);
+        unit.setAskingPrice(entry.price);
     }
 }
 
@@ -161,11 +161,11 @@ void HouseholdSellerRole::notifyWinnerBidders() {
                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
         
         Unit* unit = getParent()->getUnitById(maxBidOfDay->getUnitId());
-        if (unit && unit->IsAvailable()) {
-            unit->SetAvailable(false);
-            unit = getParent()->removeUnit(unit->GetId());
+        if (unit && unit->isAvailable()) {
+            unit->setAvailable(false);
+            unit = getParent()->removeUnit(unit->getId());
             // clean all expectations for the unit.
-            unitExpectations.erase(unit->GetId());
+            unitExpectations.erase(unit->getId());
         }
     }
     // notify winners.
@@ -176,8 +176,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
     LuaProvider::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
     
-    unitExpectations.erase(unit.GetId());
-    unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));
+    unitExpectations.erase(unit.getId());
+    unitExpectations.insert(ExpectationMapEntry(unit.getId(), expectationList));
 
     for (int i = 0; i < TIME_ON_MARKET; i++) {
        PrintOut("Seller:["<< hh->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
@@ -185,7 +185,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
 }
 
 bool HouseholdSellerRole::getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry) {
-    ExpectationMap::iterator expectations = unitExpectations.find(unit.GetId());
+    ExpectationMap::iterator expectations = unitExpectations.find(unit.getId());
     if (expectations != unitExpectations.end()) {
         if (currentExpectationIndex < expectations->second.size()) {
             ExpectationEntry expectation = expectations->second.at(currentExpectationIndex);

@@ -25,7 +25,7 @@ UnitHolder::~UnitHolder() {
             itr != holdingUnits.end(); itr++) {
         Unit* unit = (*itr).second;
         if (unit && ((unit->owner == nullptr) || (unit->owner && unit->owner == this))) {
-            PrintOut("Household ["<< id<<"] holds the Unit ["<< unit->GetId() <<"]" << std::endl);
+            PrintOut("Household ["<< id<<"] holds the Unit ["<< unit->getId() <<"]" << std::endl);
             safe_delete_item(unit);
         }
     }
@@ -66,10 +66,10 @@ void UnitHolder::getUnits(list<Unit*>& outUnits) {
 }
 
 bool UnitHolder::add(Unit* unit, bool reOwner) {
-    if (unit && !contains(unit->GetId())) {
-        holdingUnits.insert(HoldingUnitsEntry(unit->GetId(), unit));
+    if (unit && !contains(unit->getId())) {
+        holdingUnits.insert(HoldingUnitsEntry(unit->getId(), unit));
         if (reOwner) {
-            unit->SetOwner(this);
+            unit->setOwner(this);
         }
         return true;
     }
@@ -83,7 +83,7 @@ Unit* UnitHolder::remove(UnitId id, bool reOwner) {
         if (retVal) {
             holdingUnits.erase(id);
             if (reOwner) {
-                retVal->SetOwner(nullptr);
+                retVal->setOwner(nullptr);
             }
         }
     }

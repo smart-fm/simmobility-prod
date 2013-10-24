@@ -43,74 +43,74 @@ namespace sim_mob {
             Unit& operator=(const Unit& source);
 
             /**
-             * Gets the Unit unique identifier.
+             * gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            UnitId GetId() const;
+            UnitId getId() const;
 
             /**
-             * Gets the Unit unique identifier.
+             * gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            BigSerial GetBuildingId() const;
+            BigSerial getBuildingId() const;
 
             /**
-             * Gets type identifier of the type of unit.
+             * gets type identifier of the type of unit.
              * @return type identifier {@see UnitType}.
              */
-            BigSerial GetTypeId() const;
+            BigSerial getTypeId() const;
             
             /**
-             * Gets type identifier of the postcode.
+             * gets type identifier of the postcode.
              * @return type identifier {@see Postcode}.
              */
-            BigSerial GetPostcodeId() const;
+            BigSerial getPostcodeId() const;
 
             /**
-             * Gets the storey of the unit.
+             * gets the storey of the unit.
              * @return unit type {@see UnitType}.
              */
-            int GetStorey() const;
+            int getStorey() const;
 
             /**
-             * Gets the unit Area.
+             * gets the unit Area.
              * @return unit area value.
              */
-            double GetFloorArea() const;
+            double getFloorArea() const;
 
             /**
-             * Gets the rent value.
+             * gets the rent value.
              * @return rent value.
              */
-            double GetRent() const;
+            double getRent() const;
 
             /**
              * Verifies if home is available.
              * @return true if unit is available, false otherwise.
              */
-            bool IsAvailable() const;
+            bool isAvailable() const;
 
             /**
-             * Sets if unit is avaliable or not.
+             * sets if unit is avaliable or not.
              * @param avaliable value. 
              */
-            void SetAvailable(bool avaliable);
+            void setAvailable(bool avaliable);
             
             /**
              * @return the hedonic price.
              */
-            double GetHedonicPrice() const;
+            double getHedonicPrice() const;
             
             /**
              * @return the AskingPrice price.
              */
-            double GetAskingPrice() const;
+            double getAskingPrice() const;
 
             /**
-             * Gets the owner endpoint for communication.
+             * gets the owner endpoint for communication.
              * @return owner endpoint.
              */
-            UnitHolder* GetOwner();
+            UnitHolder* getOwner();
             
             /**
              * Operator to print the Unit data.  
@@ -136,19 +136,19 @@ namespace sim_mob {
             friend class HouseholdSellerRole;
             
             /**
-             * Sets the hedonic price
+             * sets the hedonic price
              */
-            void SetHedonicPrice(double hedonicPrice);
+            void setHedonicPrice(double hedonicPrice);
 
             /**
-             * Sets the asking price.
+             * sets the asking price.
              */
-            void SetAskingPrice(double askingPrice);
+            void setAskingPrice(double askingPrice);
 
             /**
-             * Sets the owner of the unit.
+             * sets the owner of the unit.
              */
-            void SetOwner(UnitHolder* receiver);
+            void setOwner(UnitHolder* receiver);
 
         private:
             friend class UnitHolder;

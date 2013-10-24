@@ -51,7 +51,7 @@ void HM_Model::startImpl() {
         unordered_map<BigSerial, Unit*> unitsById;
         for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
             Unit* unit = &(*it);
-            unitsById.insert(std::make_pair(unit->GetId(), unit));
+            unitsById.insert(std::make_pair(unit->getId(), unit));
         }
 
         for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
@@ -63,9 +63,9 @@ void HM_Model::startImpl() {
             unordered_map<BigSerial, Unit*>::iterator mapItr = unitsById.find(household->getUnitId());
             if (mapItr != unitsById.end()) { //Context Id does exists
                 Unit* unit = new Unit(*(mapItr->second));
-                unit->SetAvailable(true);
+                unit->setAvailable(true);
                 hhAgent->addUnit(unit);
-                PrintOut("Household ["<< household->getId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
+                PrintOut("Household ["<< household->getId()<<"] holds the Unit ["<< unit->getId()<<"]" << std::endl);
             }
             agents.push_back(hhAgent);
             workGroup.assignAWorker(hhAgent);

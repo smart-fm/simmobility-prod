@@ -239,10 +239,10 @@ public:
 	struct linkTravelTimes
 	{
 	public:
-		unsigned int linkTravelTime_;
+		double linkTravelTime_;
 		unsigned int agentCount_;
 
-		linkTravelTimes(unsigned int linkTravelTime, unsigned int agentCount)
+		linkTravelTimes(double linkTravelTime, unsigned int agentCount)
 		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
 	};
 
@@ -259,10 +259,10 @@ public:
 	struct rdSegTravelTimes
 	{
 	public:
-		unsigned int rdSegTravelTime_;
+		double rdSegTravelTime_;
 		unsigned int agentCount_;
 
-		rdSegTravelTimes(unsigned int rdSegTravelTime, unsigned int agentCount)
+		rdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
 		: rdSegTravelTime_(rdSegTravelTime), agentCount_(agentCount) {}
 	};
 
@@ -279,11 +279,13 @@ public:
 
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
-	void resetOutputBounds();
+	unsigned int resetOutputBounds();
 
 	std::deque<sim_mob::Person*> getAllPersons();
 
 	void findBoundaryConfluxes();
+
+	unsigned int getNumRemainingInLaneInfinity();
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

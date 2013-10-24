@@ -720,12 +720,14 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			//check nodes
 			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
-				std::cout << "it->tmp_fromLocationNodeID " << it->tmp_fromLocationNodeID << std::endl;
-				throw std::runtime_error("Invalid trip chain fromNode reference.");
+				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
+				//throw std::runtime_error("Invalid trip chain fromNode reference.");
+				continue;
 			}
 			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
-				std::cout << "it->tmp_toLocationNodeID " << it->tmp_toLocationNodeID << std::endl;
-				throw std::runtime_error("Invalid trip chain toNode reference.");
+				std::cout<< "Invalid trip chain toNode reference."<<std::endl;
+				//throw std::runtime_error("Invalid trip chain toNode reference.");
+				continue;
 			}
 
 			//Note: Make sure not to resize the Node map after referencing its elements.

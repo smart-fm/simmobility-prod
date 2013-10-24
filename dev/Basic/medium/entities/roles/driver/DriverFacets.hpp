@@ -51,7 +51,7 @@ public:
 	void stepFwdInTime(DriverUpdateParams& p, double time);
 	bool advance(DriverUpdateParams& p);
 	bool moveToNextSegment(DriverUpdateParams& p);
-	bool canGoToNextRdSeg(DriverUpdateParams& p, double t);
+	bool canGoToNextRdSeg(DriverUpdateParams& p);
 	void moveInQueue();
 	bool moveInSegment(DriverUpdateParams& p2, double distance);
 	bool advanceQueuingVehicle(DriverUpdateParams& p);
@@ -92,7 +92,8 @@ protected:
 	double getInitialQueueLength(const Lane* l);
 	void insertIncident(const RoadSegment* rdSeg, double newFlowRate);
 	void removeIncident(const RoadSegment* rdSeg);
-
+	void updateLinkTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
+	void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 };
 
 } /* namespace medium */

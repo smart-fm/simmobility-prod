@@ -89,12 +89,7 @@ void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
-	if( !vehicle){
-		return;
-	}
-	const Lane* laneInfinity = nullptr;
-	laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
-
+	const Lane* laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
 	if(vehicle->getCurrSegment() == getParent()->getCurrSegment() )
 	{
 		if (vehicle->hasPath() && laneInfinity)
@@ -172,7 +167,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 		return;
 	}
 
-	std::stringstream logout;
+/*	std::stringstream logout;
 	logout << "(\"Driver\""
 			<<","<<getParent()->getId()
 			<<","<<p.now.frame()
@@ -188,7 +183,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
 	}
 	logout << "\"})" << std::endl;
 
-	LogOut(logout.str());
+	LogOut(logout.str());*/
 }
 
 sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateVehicle) {
@@ -201,6 +196,12 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		parentDriver->origin.point = parentDriver->origin.node->location;
 		parentDriver->goal.node = getParent()->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
+
+		if(parentDriver->origin.node == parentDriver->goal.node){
+			std::cout << "origin:"<<parentDriver->origin.node->getID()<<" |dest:"<<parentDriver->goal.node->getID()<<std::endl;
+			Print()<<"DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver "<<getParent()->GetId()<<std::endl;
+			return res;
+		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path = getParent()->getCurrPath();
@@ -240,7 +241,6 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 			res = new Vehicle(path, startlaneID, length, width);
 		}
 	}
-
 	//to indicate that the path to next activity is already planned
 	getParent()->setNextPathPlanned(true);
 	return res;
@@ -260,6 +260,7 @@ void DriverMovement::setParentData(DriverUpdateParams& p) {
 		getParent()->setCurrLane(nullptr);
 		getParent()->setCurrSegment(nullptr);
 		getParent()->setRemainingTimeThisTick(0.0);
+		getParent()->isQueuing = false;
 	}
 }
 
@@ -319,10 +320,20 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 	const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 	nextLaneInNextSegment = getBestTargetLane(nextRdSeg, nextToNextRdSeg);
 
-	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
+	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
+	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
+	double departTime = getLastAccept(nextLaneInNextSegment)/* + getAcceptRate(nextLaneInNextSegment)*/; //in seconds
+
+	//skip acceptance capacity if there's no queue - this is done in DynaMIT
+	//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
+/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
+		departTime = getLastAccept(nextLaneInNextSegment)
+						+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg, true) ); // skip input capacity
+	}*/
+
 	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0)); //in seconds
 
-	if (canGoToNextRdSeg(p, p.elapsedSeconds)){
+	if (canGoToNextRdSeg(p)){
 		if (vehicle->isQueuing){
 			removeFromQueue();
 		}
@@ -336,16 +347,10 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		setLastAccept(currLane, linkExitTimeSec);
 
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-			//======= update road segment travel times ==========================
 			const RoadSegment* prevSeg = vehicle->getPrevSegment(true);	//previous segment is in the same link
 			if(prevSeg){
-				//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
-				if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
-					getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
-					prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
-				}
-				//creating a new entry in agent's travelStats for the new road segment, with entry time
-				getParent()->initRdSegTravelStats(vehicle->getCurrSegment(), linkExitTimeSec);
+				// update road segment travel times
+				updateRdSegTravelTimes(prevSeg, linkExitTimeSec);
 			}
 		}
 		res = advance(p);
@@ -374,10 +379,13 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 	const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
 	nextLaneInNextSegment = getBestTargetLane(nextRdSeg, nextToNextRdSeg);
 
-	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
+	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
+	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
+	double departTime = getLastAccept(nextLaneInNextSegment)/* + getAcceptRate(nextLaneInNextSegment)*/; //in seconds
+
 	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0)); //in seconds
 
-	if (canGoToNextRdSeg(p, p.elapsedSeconds)){
+	if (canGoToNextRdSeg(p)){
 		if (vehicle->isQueuing){
 			removeFromQueue();
 		}
@@ -392,27 +400,13 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		//set Link Travel time for previous link
 		const RoadSegment* prevSeg = vehicle->getPrevSegment(false);
 		if (prevSeg) {
-			const Link* prevLink = prevSeg->getLink();
-			//if prevLink is already in travelStats, update it's linkTT and add to linkTravelStatsMap
-			if(prevLink == getParent()->getLinkTravelStats().link_){
-				getParent()->addToLinkTravelStatsMap(getParent()->getLinkTravelStats(), linkExitTimeSec); //in seconds
-				prevSeg->getParentConflux()->setLinkTravelTimes(getParent(), linkExitTimeSec);
-			}
-			//creating a new entry in agent's travelStats for the new link, with entry time
-			getParent()->initLinkTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
+			// update link travel times
+			updateLinkTravelTimes(prevSeg, linkExitTimeSec);
 
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				//======= update road segment travel times ==========================
-
-				//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
-				if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
-					getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
-					prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
-				}
-				//creating a new entry in agent's travelStats for the new road segment, with entry time
-				getParent()->initRdSegTravelStats(vehicle->getCurrSegment(), linkExitTimeSec);
+				// update road segment travel times
+				updateRdSegTravelTimes(prevSeg, linkExitTimeSec);
 			}
-
 		}
 		setLastAccept(currLane, linkExitTimeSec);
 		setParentData(p);
@@ -433,7 +427,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		}
 		//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 		else if (vehicle->getNextSegment(false) == getParent()->getCurrSegment() ){
-			Print() << "Driver (" << getParent()->getId() << ") remains in virtual queue" << std::endl;
+			Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << " remains in virtual queue" << std::endl;
 		}
 		else{
 			DebugStream << "Driver " << getParent()->getId()
@@ -451,9 +445,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
+bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p) {
 	//return false if the Driver cannot be added during this time tick
-	if (t >= p.secondsInTick) {
+	if (p.elapsedSeconds >= p.secondsInTick) {
 		return false;
 	}
 
@@ -472,7 +466,6 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p, double t) {
 		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
 	}
 
-	//double max_allowed = (vehLaneCount * nextRdSeg->computeLaneZeroLength()/vehicle->length);
 	double max_allowed = (vehLaneCount * nextRdSeg->getLaneZeroLength()/vehicle->length);
 	return (total < max_allowed);
 }
@@ -518,7 +511,7 @@ bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& p) {
 
 	double output = getOutputCounter(currLane);
 	double outRate = getOutputFlowRate(currLane);
-	tf = t0 + x0/(4.0*vehicle->length*outRate); //assuming vehicle length is in cm
+	tf = t0 + x0/(3.0*vehicle->length*outRate); //assuming vehicle length is in cm
 	if (output > 0 && tf < p.secondsInTick &&
 			currLane->getRoadSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
@@ -630,7 +623,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& p) {
 	double output = getOutputCounter(currLane);
 	double outRate = getOutputFlowRate(currLane);
 
-	double timeToDissipateQ = getInitialQueueLength(currLane)/(4.0*outRate*vehicle->length); //assuming vehicle length is in cm
+	double timeToDissipateQ = getInitialQueueLength(currLane)/(3.0*outRate*vehicle->length); //assuming vehicle length is in cm
 	double timeToReachEndSeg = t0 + x0/vu;
 	tf = std::max(timeToDissipateQ, timeToReachEndSeg);
 
@@ -729,10 +722,17 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 
 	nextLaneInNextSegment = getBestTargetLane(vehicle->getCurrSegment(), nextRdSeg);
 
+	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
+	//skip acceptance capacity if there's no queue - this is done in DynaMIT
+/*	if(vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(vehicle->getCurrSegment(), true) == 0){
+		departTime = getLastAccept(nextLaneInNextSegment)
+						+ (0.01 * vehicle->length) / (vehicle->getCurrSegment()->getParentConflux()->getSegmentSpeed(vehicle->getCurrSegment(), true) ); // skip input capacity
+	}*/
+
 	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0));	//in seconds
 
-	if(canGoToNextRdSeg(p, p.elapsedSeconds))
+	if(canGoToNextRdSeg(p))
 	{
 		//set position to start
 		if(vehicle->getCurrSegment())
@@ -890,6 +890,26 @@ void DriverMovement::removeIncident(const RoadSegment* rdSeg) {
 	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
 		rdSeg->getParentConflux()->restoreLaneParams(*it);
 	}
+}
+
+void DriverMovement::updateLinkTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec){
+	const Link* prevLink = prevSeg->getLink();
+	if(prevLink == getParent()->getLinkTravelStats().link_){
+		getParent()->addToLinkTravelStatsMap(getParent()->getLinkTravelStats(), linkExitTimeSec); //in seconds
+		prevSeg->getParentConflux()->setLinkTravelTimes(getParent(), linkExitTimeSec);
+	}
+	//creating a new entry in agent's travelStats for the new link, with entry time
+	getParent()->initLinkTravelStats(vehicle->getCurrSegment()->getLink(), linkExitTimeSec);
+}
+
+void DriverMovement::updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec){
+	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
+	if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
+		getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
+		prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+	}
+	//creating a new entry in agent's travelStats for the new road segment, with entry time
+	getParent()->initRdSegTravelStats(vehicle->getCurrSegment(), linkExitTimeSec);
 }
 
 } /* namespace medium */

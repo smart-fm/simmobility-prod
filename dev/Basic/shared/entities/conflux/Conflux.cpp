@@ -151,7 +151,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
-		killAgent(person, segBeforeUpdate, laneBeforeUpdate, isQueuingBeforeUpdate, (roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY));
+		killAgent(person, segBeforeUpdate, laneBeforeUpdate, isQueuingBeforeUpdate, (roleBeforeUpdate && roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY));
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -243,6 +243,25 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
 			segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
 		}
+	}
+	//It's possible for some persons to start a new trip on the same segment where they ended the previous trip.
+	else if(segBeforeUpdate == segAfterUpdate && laneAfterUpdate == segStatsAftrUpdt->laneInfinity){
+		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
+		if(dequeuedPerson != person) {
+			segStatsBfrUpdt->printAgents();
+			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
+					<< "\n Person " << person->getId() << ": segment: " << segBeforeUpdate->getStartEnd()
+					<< "|lane: " << laneBeforeUpdate->getLaneID()
+					<< "|Frame: " << currFrameNumber.frame()
+					<< "\n Person " << dequeuedPerson->getId() << ": "
+					<< "segment: " << dequeuedPerson->getCurrSegment()->getStartEnd()
+					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
+					<< "|Frame: " << dequeuedPerson->getLastUpdatedFrame();
+
+			throw std::runtime_error(debugMsgs.str());
+		}
+		//adding the person to lane infinity for the new trip
+		segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
 	}
 	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate) {
 		segStatsAftrUpdt->updateQueueStatus(laneAfterUpdate, person);
@@ -360,20 +379,39 @@ void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsLis
 	Agent::buildSubscriptionList(subsList);
 }
 
-void sim_mob::Conflux::resetOutputBounds() {
+unsigned int sim_mob::Conflux::resetOutputBounds() {
 	vqBounds.clear();
 	sim_mob::Link* lnk = nullptr;
 	const sim_mob::RoadSegment* firstSeg = nullptr;
 	sim_mob::SegmentStats* segStats = nullptr;
 	int outputEstimate = 0;
+	unsigned int vqCount = 0;
+	const double vehicle_length = 400.0;
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
 		lnk = i->first;
 		segStats = findSegStats(lnk->getSegments().front());
-		outputEstimate = segStats->computeExpectedOutputPerTick();
-		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size(); // decrement num. of agents already in virtual queue
+		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
+		    the first segment of the downstream link (the one the vq is attached with) is going to create in this tick according to the outputFlowRate*tick_size.
+		    This would ideally underestimate the space avaiable in the next segment, as it doesn't account for the empty spaces the segment already has.
+		    Therefore the virtual queues are most likely to be cleared by the end of that tick.
+		    [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
+		    Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
+		    [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infiinity),
+		    before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
+		    by the time the vehicles in virtual queues try to get added.
+		     **/
+		//outputEstimate = segStats->computeExpectedOutputPerTick();
+		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
+		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getLaneZeroLength()*segStats->getRoadSegment()->getLanes().size()/vehicle_length)
+				- segStats->numMovingInSegment(true) - segStats->numQueueingInSegment(true);
+		outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
+		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
+		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
 		outputEstimate = (outputEstimate>0? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
+		vqCount += virtualQueuesMap.at(lnk).size();
 	}
+	return vqCount;
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
@@ -726,7 +764,6 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					person->canMoveToNextSegment = Person::DENIED;
 					person->requestedNextSegment = nullptr;
 				}
-
 			}
 			else if(now.frame() == nxtConflux->getLastUpdatedFrame()) {
 				// nxtConflux is processed for the current tick. Can move to the next link.
@@ -798,7 +835,6 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	// We give the Agent the benefit of the doubt here and simply call frame_init().
 	// This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
-	bool calledFrameInit = false;
 	if (person->isCallFrameInit()) {
 		//Call frame_init() and exit early if requested to.
 		if (!call_movement_frame_init(now, person)) {
@@ -807,11 +843,7 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 
 		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
 		person->setCallFrameInit(false); //Only initialize once.
-		calledFrameInit = true;
 	}
-
-	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	//CheckFrameTimes(person->getId(), now.ms(), person->getStartTime(), calledFrameInit, person->isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);
@@ -932,7 +964,7 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber,
 			tt.start_time = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
-			tt.travel_time = (*it).second.rdSegTravelTime_;
+			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
 
 			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
 		}
@@ -969,4 +1001,16 @@ void sim_mob::Conflux::findBoundaryConfluxes() {
 			}
 		}
 	}
+}
+
+unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
+	unsigned int count = 0;
+	sim_mob::SegmentStats* segStats = nullptr;
+	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
+			segStats = findSegStats(*rdSegIt);
+			count += segStats->numAgentsInLane(segStats->laneInfinity);
+		}
+	}
+	return count;
 }

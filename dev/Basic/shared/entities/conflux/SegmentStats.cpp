@@ -16,7 +16,7 @@ using std::string;
 namespace sim_mob {
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0.0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out) {
+			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out) {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
@@ -120,10 +120,11 @@ unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
 	return movingCounts;
 }
 
+//density will be computed in vehicles/meter
 double SegmentStats::getDensity(bool hasVehicle) {
 	int vehLaneCount = 0;
 	double movingLength = 0.0;
-	const int vehicle_length = 400;
+	const double vehicle_length = 400.0;
 	double density = 0.0;
 
 	std::vector<sim_mob::Lane*>::const_iterator laneIt = roadSegment->getLanes().begin();
@@ -391,14 +392,20 @@ void LaneStats::resetIterator() {
 
 void sim_mob::LaneStats::initLaneParams(const Lane* lane, double vehSpeed,
 		double pedSpeed) {
+	const double vehicle_length = 400.0;
 	//laneParams = sim_mob::LaneParams();
 	int numLanes = lane->getRoadSegment()->getLanes().size();
 	if (numLanes > 0) {
-		double orig = (lane->getRoadSegment()->capacity)*50
+		double orig = (lane->getRoadSegment()->capacity)
 				/ (numLanes*3600.0);
 		laneParams->setOrigOutputFlowRate(orig);
 	}
 	laneParams->outputFlowRate = laneParams->origOutputFlowRate;
+
+	// As per Yang Lu's suggestion for short segment correction
+	if(lane->getRoadSegment()->getLaneZeroLength() < 5*vehicle_length){
+		laneParams->outputFlowRate = 1000.0; //some large number
+	}
 
 	updateOutputCounter(lane);
 	updateAcceptRate(lane, vehSpeed);
@@ -423,7 +430,7 @@ void sim_mob::LaneStats::updateOutputCounter(const Lane* lane) {
 
 void sim_mob::LaneStats::updateAcceptRate(const Lane* lane, double upSpeed) {
 	const double omega = 0.01;
-	const double vehicle_length = 400;
+	const double vehicle_length = 400.0;
 	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	double capacity = laneParams->outputFlowRate * tick_size;
 	double acceptRateA = (capacity > 0) ? tick_size / capacity : 0;
@@ -452,15 +459,18 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 	 */
 
 	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
+	//maxSpeed according to AIMSUN
 	double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	double minSpeed = 1000.0;
-	double jamDensity = 0.25; //density during traffic jam
-	double alpha = 1.15; //Model parameter of speed density function
-	double beta = 1.5; //Model parameter of speed density function
-	double minDensity = 0.0048; // minimum traffic density
-	double speed = 0.0;
+	//The following default values were suggested by Yang Lu
+	double minSpeed = 300.0;
+	double jamDensity = 0.2; //density during traffic jam in veh/meter
+	double alpha = 1.8; //Model parameter of speed density function
+	double beta = 1.9; //Model parameter of speed density function
+	double minDensity = 0.0048; // minimum traffic density in veh/meter
 
-	//Speed-Density function
+	double speed = 0.0;
+	const double vehicle_length = 400.0;
+	//Speed-Density function same as in DynaMIT
 	if (segDensity >= jamDensity) {
 		speed = minSpeed;
 	} else if (segDensity >= minDensity) {
@@ -469,6 +479,11 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 		speed = freeFlowSpeed;
 	}
 	speed = std::max(speed, minSpeed);
+
+	// As per Yang Lu's suggestion for short segment correction
+	if (this->roadSegment->getLaneZeroLength() < 5*vehicle_length){
+		speed = freeFlowSpeed;
+	}
 	return speed;
 }
 
@@ -514,7 +529,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 			<<",{"
 			<<"\"speed\":\""<<segVehicleSpeed
 			<<"\",\"flow\":\""<<segFlow
-			<<"\",\"density\":\""<<segDensity
+			<<"\",\"density\":\""<<segDensity*1000.0	/* Density is converted to veh/km/lane for the output */
 			<<"\"})"<<std::endl;
 		return msg.str();
 	}
@@ -557,7 +572,7 @@ void SegmentStats::resetPositionOfLastUpdatedAgentOnLanes() {
 	}
 }
 
-double SegmentStats::getSegFlow() {
+unsigned int SegmentStats::getSegFlow() {
 	return segFlow;
 }
 
@@ -566,7 +581,7 @@ void SegmentStats::incrementSegFlow() {
 }
 
 void SegmentStats::resetSegFlow() {
-	segFlow = 0.0;
+	segFlow = 0;
 }
 
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
@@ -646,7 +661,8 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 
 sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate) {
 	if (laneAgents.size() == 0) {
-		throw std::runtime_error("Trying to dequeue from empty lane.");
+		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
+		throw std::runtime_error(debugMsgs.str());
 	}
 	sim_mob::Person* p;
 	if(person == laneAgents.front() || ( !laneInfinity)){

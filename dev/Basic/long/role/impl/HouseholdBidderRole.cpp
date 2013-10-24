@@ -72,16 +72,16 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
         case LTMID_BID_RSP:// Bid response received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            switch (msg.GetResponse()) {
+            switch (msg.getResponse()) {
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->removeUnit(msg.GetBid().GetUnitId());
+                    Unit* unit = market->removeUnit(msg.getBid().GetUnitId());
                     if (unit) { // assign unit.
                         GetParent()->addUnit(unit);
                         SetActive(false);
                         PrintOut("Bidder: [" << GetParent()->getId() <<
-                                "] bid: " << msg.GetBid() <<
+                                "] bid: " << msg.getBid() <<
                                 " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
@@ -98,19 +98,19 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 case NOT_ACCEPTED:
                 {
                     PrintOut("Bidder: [" << GetParent()->getId() <<
-                            "] bid: " << msg.GetBid() <<
+                            "] bid: " << msg.getBid() <<
                             " was not accepted " << endl);
-                    IncrementBidsCounter(msg.GetBid().GetUnitId());
+                    IncrementBidsCounter(msg.getBid().GetUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    DeleteBidsCounter(msg.GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.getBid().GetUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    DeleteBidsCounter(msg.GetBid().GetUnitId());
+                    DeleteBidsCounter(msg.getBid().GetUnitId());
                     break;
                 }
                 default:break;

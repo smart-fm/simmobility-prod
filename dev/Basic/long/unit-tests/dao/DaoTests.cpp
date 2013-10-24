@@ -55,7 +55,7 @@ void TestDao() {
     }
 }
 
-void DaoTests::TestAll() {
+void DaoTests::testAll() {
     TestDao<GlobalParamsDao, GlobalParams>();
     TestDao<UnitTypeDao, UnitType>();
     TestDao<HouseholdDao, Household>();

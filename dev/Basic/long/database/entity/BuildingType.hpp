@@ -26,13 +26,13 @@ namespace sim_mob {
              * Gets unique identifier of the Building Type.
              * @return id.
              */
-            BigSerial GetId() const;
+            BigSerial getId() const;
 
             /**
              * Gets name of the type of the building.
              * @return id.
              */
-            std::string GetName() const;
+            std::string getName() const;
 
             /**
              * Assign operator.

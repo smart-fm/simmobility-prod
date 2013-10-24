@@ -13,7 +13,7 @@
 
 using namespace sim_mob;
 using namespace sim_mob::lua;
-namespace fs = ::boost::filesystem3;
+namespace fs = ::boost::filesystem;
 using std::string;
 using std::list;
 using std::runtime_error;

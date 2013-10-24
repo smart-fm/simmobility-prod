@@ -22,7 +22,7 @@ namespace sim_mob {
         /**
          * Events IDs. Using an enum to guarantee size.
          */
-        enum LongTermEventIds {
+        enum LT_EventId {
             LTEID_START = 1000000,
             // Model life cycle events.
             LTEID_MODEL_STARTED,
@@ -37,7 +37,7 @@ namespace sim_mob {
         /**
          * Message Types. Using an enum to guarantee size.
          */
-        enum LongTermMessageIds {
+        enum LT_MessageId {
             LTMID_START = 2000000,
 
             // Messages for biding process

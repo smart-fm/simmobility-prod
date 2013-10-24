@@ -19,14 +19,14 @@ UnitDao::UnitDao(DBConnection* connection)
 : AbstractDao<Unit>(connection, DB_TABLE_UNIT,
 DB_INSERT_UNIT, DB_UPDATE_UNIT, DB_DELETE_UNIT,
 DB_GETALL_UNIT, DB_GETBYID_UNIT) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Unit, UnitDao::FromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Unit, UnitDao::ToRow);
+    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Unit, UnitDao::fromRow);
+    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Unit, UnitDao::toRow);
 }
 
 UnitDao::~UnitDao() {
 }
 
-void UnitDao::FromRow(Row& result, Unit& outObj) {
+void UnitDao::fromRow(Row& result, Unit& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.buildingId = result.get<BigSerial>(DB_FIELD_BUILDING_ID, INVALID_ID);
     outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID, INVALID_ID);
@@ -37,5 +37,5 @@ void UnitDao::FromRow(Row& result, Unit& outObj) {
     outObj.available = false;
 }
 
-void UnitDao::ToRow(Unit& data, Parameters& outParams, bool update) {
+void UnitDao::toRow(Unit& data, Parameters& outParams, bool update) {
 }

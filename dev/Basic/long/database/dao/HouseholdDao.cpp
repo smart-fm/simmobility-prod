@@ -18,14 +18,14 @@ using namespace sim_mob::long_term;
 HouseholdDao::HouseholdDao(DBConnection* connection)
 : AbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,
 DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD, DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Household, HouseholdDao::FromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Household, HouseholdDao::ToRow);
+    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Household, HouseholdDao::fromRow);
+    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Household, HouseholdDao::toRow);
 }
 
 HouseholdDao::~HouseholdDao() {
 }
 
-void HouseholdDao::FromRow(Row& result, Household& outObj) {
+void HouseholdDao::fromRow(Row& result, Household& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.lifestyleId = result.get<BigSerial>(DB_FIELD_LIFESTYLE_ID, INVALID_ID);
     outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID, INVALID_ID);
@@ -39,7 +39,7 @@ void HouseholdDao::FromRow(Row& result, Household& outObj) {
     outObj.ageOfHead = result.get<int>(DB_FIELD_AGE_OF_HEAD, 0);
 }
 
-void HouseholdDao::ToRow(Household& data, Parameters& outParams, bool update) {
+void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update) {
     /*outParams.push_back(data.unitId);
     outParams.push_back(data.size);
     outParams.push_back(data.children);

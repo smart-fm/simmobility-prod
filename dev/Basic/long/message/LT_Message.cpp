@@ -35,10 +35,10 @@ BidMessage& BidMessage::operator=(const BidMessage& source) {
     return *this;
 }
 
-const BidResponse BidMessage::GetResponse() const {
+const BidResponse BidMessage::getResponse() const {
     return response;
 }
 
-const Bid& BidMessage::GetBid() const {
+const Bid& BidMessage::getBid() const {
     return bid;
 }

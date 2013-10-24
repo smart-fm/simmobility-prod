@@ -14,16 +14,19 @@ else ()
   FIND_PATH(LUA_INCLUDE_DIRS lua.h
       /usr/local/include
       /usr/local/include/lua
+      /usr/local/include/lua5.2
       /usr/include
       /usr/include/lua
+      /usr/include/lua5.2
   )
 
   FIND_LIBRARY(LUA_LIBRARIES
-      NAMES lua luac
+      NAMES lua5.2 lua luac
       PATHS
       /usr/local/lib
       /usr/local/lib64
       /usr/lib
+      /usr/lib/x86_64-linux-gnu  #Note: This is kind of cheating....
   )
   
 

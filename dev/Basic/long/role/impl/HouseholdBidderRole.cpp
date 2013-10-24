@@ -76,9 +76,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->RemoveUnit(msg.GetBid().GetUnitId());
+                    Unit* unit = market->removeUnit(msg.GetBid().GetUnitId());
                     if (unit) { // assign unit.
-                        GetParent()->AddUnit(unit);
+                        GetParent()->addUnit(unit);
                         SetActive(false);
                         PrintOut("Bidder: [" << GetParent()->getId() <<
                                 "] bid: " << msg.GetBid() <<
@@ -144,7 +144,7 @@ void HouseholdBidderRole::OnMarketAction(EventId id, EventPublisher* sender,
 
 bool HouseholdBidderRole::BidUnit(timeslice now) {
     list<Unit*> units;
-    market->GetUnits(units);
+    market->getUnits(units);
     if (!units.empty()) {
         // choose the unit to bid with max surplus.
         Unit* unit = nullptr;

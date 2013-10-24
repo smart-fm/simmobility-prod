@@ -64,7 +64,7 @@ void HM_Model::startImpl() {
             if (mapItr != unitsById.end()) { //Context Id does exists
                 Unit* unit = new Unit(*(mapItr->second));
                 unit->SetAvailable(true);
-                hhAgent->AddUnit(unit);
+                hhAgent->addUnit(unit);
                 PrintOut("Household ["<< household->GetId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
             }
             agents.push_back(hhAgent);

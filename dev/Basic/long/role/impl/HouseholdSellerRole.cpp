@@ -42,7 +42,7 @@ HouseholdSellerRole::~HouseholdSellerRole() {
 void HouseholdSellerRole::Update(timeslice now) {
     if (hasUnitsToSale) {
         list<Unit*> units;
-        GetParent()->GetUnits(units);
+        GetParent()->getUnits(units);
         const HM_LuaModel& model = LuaProvider::getHM_Model();
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
@@ -53,7 +53,7 @@ void HouseholdSellerRole::Update(timeslice now) {
                 (*itr)->SetAskingPrice(hedonicPrice);
                 CalculateUnitExpectations(*(*itr));
                 // Put the asking price for given time.
-                market->AddUnit((*itr));
+                market->addUnit((*itr));
             }
         }
         hasUnitsToSale = false;
@@ -81,7 +81,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            Unit* unit = GetParent()->GetUnitById(msg.GetBid().GetUnitId());
+            Unit* unit = GetParent()->getUnitById(msg.GetBid().GetUnitId());
             PrintOut("Seller: [" << GetParent()->getId() <<
                     "] received a bid: " << msg.GetBid() <<
                     " at day: " << currentTime.ms() << endl);
@@ -138,7 +138,7 @@ bool HouseholdSellerRole::Decide(const Bid& bid, const ExpectationEntry& entry) 
 
 void HouseholdSellerRole::AdjustNotSelledUnits() {
     list<Unit*> units;
-    GetParent()->GetUnits(units);
+    GetParent()->getUnits(units);
     for (list<Unit*>::iterator itr = units.begin(); itr != units.end(); itr++) {
         if ((*itr)->IsAvailable()) {
             AdjustUnitParams((**itr));
@@ -160,10 +160,10 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
         MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
         
-        Unit* unit = GetParent()->GetUnitById(maxBidOfDay->GetUnitId());
+        Unit* unit = GetParent()->getUnitById(maxBidOfDay->GetUnitId());
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
-            unit = GetParent()->RemoveUnit(unit->GetId());
+            unit = GetParent()->removeUnit(unit->GetId());
             // clean all expectations for the unit.
             unitExpectations.erase(unit->GetId());
         }

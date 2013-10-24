@@ -91,7 +91,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                                 HouseholdBidderRole::OnWakeUp));*/
                         unFollowMarket();
                         deleteBidsCounter(unit->GetId());
-                        Statistics::Increment(Statistics::N_ACCEPTED_BIDS);
+                        Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     }
                     break;
                 }
@@ -116,7 +116,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 default:break;
             }
             waitingForResponse = false;
-            Statistics::Increment(Statistics::N_BID_RESPONSES);
+            Statistics::increment(Statistics::N_BID_RESPONSES);
             break;
         }
         default:break;

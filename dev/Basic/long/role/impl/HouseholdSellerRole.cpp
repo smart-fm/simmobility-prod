@@ -125,7 +125,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                 MessageBus::PostMessage(msg.getBid().GetBidder(), LTMID_BID_RSP,
                         MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), NOT_AVAILABLE)));
             }
-            Statistics::Increment(Statistics::N_BIDS);
+            Statistics::increment(Statistics::N_BIDS);
             break;
         }
         default:break;

@@ -30,31 +30,31 @@ namespace sim_mob {
              * Increments the given parameter by 1.
              * @param param to increment.
              */
-            static void Increment(StatsParameter param);
+            static void increment(StatsParameter param);
             /**
              * Decrements the given parameter by 1.
              * @param param to decrement.
              */
-            static void Decrement(StatsParameter param);
+            static void decrement(StatsParameter param);
 
             /**
              * Increments the given parameter by given value.
              * @param param to increment.
              * @param value to add.
              */
-            static void Increment(StatsParameter param, long value);
+            static void increment(StatsParameter param, long value);
 
             /**
              * Decrements the given parameter by given value.
              * @param param to decrement.
              * @param value to subtract.
              */
-            static void Decrement(StatsParameter param, long value);
+            static void decrement(StatsParameter param, long value);
             
             /**
              * Print out the current statistics.
              */
-            static void Print();
+            static void print();
         };
     }
 }

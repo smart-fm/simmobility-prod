@@ -81,7 +81,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            Unit* unit = getParent()->getUnitById(msg.getBid().GetUnitId());
+            Unit* unit = getParent()->getUnitById(msg.getBid().getUnitId());
             PrintOut("Seller: [" << getParent()->getId() <<
                     "] received a bid: " << msg.getBid() <<
                     " at day: " << currentTime.ms() << endl);
@@ -101,28 +101,28 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                     if (!maxBidOfDay) {
                         maxBidsOfDay.insert(BidEntry(unit->GetId(),
                                 msg.getBid()));
-                    } else if (maxBidOfDay->GetValue() < msg.getBid().GetValue()) {
+                    } else if (maxBidOfDay->getValue() < msg.getBid().getValue()) {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
+                        MessageBus::PostMessage(maxBidOfDay->getBidder(), LTMID_BID_RSP, 
                                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER)));
                         maxBidsOfDay.erase(unit->GetId());
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(BidEntry(unit->GetId(), msg.getBid()));
                     } else {
-                        MessageBus::PostMessage(msg.getBid().GetBidder(), 
+                        MessageBus::PostMessage(msg.getBid().getBidder(), 
                                 LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), 
                                 BETTER_OFFER)));
                     }
                 } else {
-                    MessageBus::PostMessage(msg.getBid().GetBidder(),LTMID_BID_RSP,
+                    MessageBus::PostMessage(msg.getBid().getBidder(),LTMID_BID_RSP,
                             MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), NOT_ACCEPTED)));
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
-                MessageBus::PostMessage(msg.getBid().GetBidder(), LTMID_BID_RSP,
+                MessageBus::PostMessage(msg.getBid().getBidder(), LTMID_BID_RSP,
                         MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), NOT_AVAILABLE)));
             }
             Statistics::increment(Statistics::N_BIDS);
@@ -133,7 +133,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
 }
 
 bool HouseholdSellerRole::decide(const Bid& bid, const ExpectationEntry& entry) {
-    return bid.GetValue() > entry.expectation;
+    return bid.getValue() > entry.expectation;
 }
 
 void HouseholdSellerRole::adjustNotSelledUnits() {
@@ -157,10 +157,10 @@ void HouseholdSellerRole::notifyWinnerBidders() {
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid* maxBidOfDay = &(itr->second);
-        MessageBus::PostMessage(maxBidOfDay->GetBidder(), LTMID_BID_RSP, 
+        MessageBus::PostMessage(maxBidOfDay->getBidder(), LTMID_BID_RSP, 
                 MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
         
-        Unit* unit = getParent()->getUnitById(maxBidOfDay->GetUnitId());
+        Unit* unit = getParent()->getUnitById(maxBidOfDay->getUnitId());
         if (unit && unit->IsAvailable()) {
             unit->SetAvailable(false);
             unit = getParent()->removeUnit(unit->GetId());

@@ -43,22 +43,22 @@ Bid& Bid::operator=(const Bid& source) {
     return *this;
 }
 
-UnitId Bid::GetUnitId() const {
+UnitId Bid::getUnitId() const {
     return unitId;
 }
 
-int Bid::GetBidderId() const {
+int Bid::getBidderId() const {
     return bidderId;
 }
 
-float Bid::GetValue() const {
+float Bid::getValue() const {
     return value;
 }
 
-const timeslice& Bid::GetTime() const {
+const timeslice& Bid::getTime() const {
     return time;
 }
 
-MessageHandler* Bid::GetBidder() const{
+MessageHandler* Bid::getBidder() const{
     return bidder;
 }

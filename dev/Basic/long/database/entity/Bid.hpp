@@ -40,31 +40,31 @@ namespace sim_mob {
              * Gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            UnitId GetUnitId() const;
+            UnitId getUnitId() const;
 
             /**
              * Gets the Bidder unique identifier.
              * @return value with Bidder identifier.
              */
-            int GetBidderId() const;
+            int getBidderId() const;
             
             /**
              * Gets the Bidder pointer.
              * @return bidder pointer.
              */
-            messaging::MessageHandler* GetBidder() const;
+            messaging::MessageHandler* getBidder() const;
 
             /**
              * Gets the value of the bid.
              * @return the value of the bid.
              */
-            float GetValue() const;
+            float getValue() const;
             
             /**
              * Gets the time of the bid.
              * @return the value of the bid.
              */
-            const timeslice& GetTime() const;
+            const timeslice& getTime() const;
             
             /**
              * Operator to print the Bid data.  

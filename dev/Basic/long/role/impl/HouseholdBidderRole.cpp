@@ -76,7 +76,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 case ACCEPTED:// Bid accepted 
                 {
                     //remove unit from the market.
-                    Unit* unit = market->removeUnit(msg.getBid().GetUnitId());
+                    Unit* unit = market->removeUnit(msg.getBid().getUnitId());
                     if (unit) { // assign unit.
                         getParent()->addUnit(unit);
                         setActive(false);
@@ -100,17 +100,17 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                     PrintOut("Bidder: [" << getParent()->getId() <<
                             "] bid: " << msg.getBid() <<
                             " was not accepted " << endl);
-                    incrementBidsCounter(msg.getBid().GetUnitId());
+                    incrementBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    deleteBidsCounter(msg.getBid().GetUnitId());
+                    deleteBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    deleteBidsCounter(msg.getBid().GetUnitId());
+                    deleteBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 default:break;

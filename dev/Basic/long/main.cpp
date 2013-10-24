@@ -173,5 +173,6 @@ int main(int ARGC, char* ARGV[]) {
         resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
         Utils::PrintAndDeleteLogFiles(resLogFiles);
     }
+    ConfigManager::GetInstanceRW().reset();
     return 0;
 }

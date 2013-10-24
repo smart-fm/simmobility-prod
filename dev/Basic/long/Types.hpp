@@ -21,8 +21,6 @@ namespace sim_mob {
         typedef long long BigSerial;
         typedef BigSerial UnitId;
 
-        const double INVALID_DOUBLE = -1;
-
         enum Sex {
             UNKNOWN_SEX = 0,
             MASCULINE = 1,

@@ -19,9 +19,6 @@
 namespace sim_mob {
     namespace long_term {
 
-        const int INVALID_ID = -1;
-        const std::string EMPTY_STR = "";
-
         /**
          * Events IDs. Using an enum to guarantee size.
          */
@@ -49,11 +46,15 @@ namespace sim_mob {
         };
 
 
+        const double INVALID_DOUBLE = -1;
+        const int INVALID_ID = -1;
+        const std::string EMPTY_STR = "";
+
         /**
          * DEFAULT VALUES
          */
         const int MIN_AGE_TO_WORK = 18;
-
+        
         /**
          * TIME UNITS
          */

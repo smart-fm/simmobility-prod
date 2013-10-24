@@ -32,22 +32,22 @@ GlobalParams& GlobalParams::operator=(const GlobalParams& source) {
     return *this;
 }
 
-BigSerial GlobalParams::GetId() const {
+BigSerial GlobalParams::getId() const {
     return id;
 }
 
-double GlobalParams::GetUnitTypeWeight() const {
+double GlobalParams::getUnitTypeWeight() const {
     return unitTypeWeight;
 }
 
-double GlobalParams::GetUnitRentWeight() const {
+double GlobalParams::getUnitRentWeight() const {
     return unitRentWeight;
 }
 
-double GlobalParams::GetUnitAreaWeight() const {
+double GlobalParams::getUnitAreaWeight() const {
     return unitAreaWeight;
 }
 
-double GlobalParams::GetUnitStoreyWeight() const {
+double GlobalParams::getUnitStoreyWeight() const {
     return unitStoreyWeight;
 }

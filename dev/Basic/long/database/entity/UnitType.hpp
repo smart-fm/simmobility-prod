@@ -23,22 +23,22 @@ namespace sim_mob {
             virtual ~UnitType();
 
             /**
-             * Gets unique identifier of the Building Type.
+             * gets unique identifier of the Building Type.
              * @return id.
              */
-            BigSerial GetId() const;
+            BigSerial getId() const;
 
             /**
-             * Gets name of the type of the building.
+             * gets name of the type of the building.
              * @return id.
              */
-            std::string GetName() const;
+            std::string getName() const;
 
             /**
-             * Gets the type that differentiates unit types.
+             * gets the type that differentiates unit types.
              * @return type;
              */
-            int GetType() const;
+            int getType() const;
             
             /**
              * Assign operator.

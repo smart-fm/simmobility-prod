@@ -65,14 +65,14 @@ void HouseholdAgent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sen
         case LTEID_HM_UNIT_ADDED:
         {
             const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
-            PrintOut("Unit added " << hmArgs.GetUnitId() << endl);
+            PrintOut("Unit added " << hmArgs.getUnitId() << endl);
             bidderRole->SetActive(true);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
             const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
-            PrintOut("Unit removed " << hmArgs.GetUnitId() << endl);
+            PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
             break;
         }
         default:break;

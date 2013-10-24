@@ -24,7 +24,10 @@ const std::string EMPTY_STR= "";
  */
 enum LongTermEventIds {
 	LTEID_START =1000000,
-
+        // Model life cycle events.
+        LTEID_MODEL_STARTED,
+	LTEID_MODEL_STOPPED,
+        
 	// Events for HousingMarket
 	// housing market action (unit was ADDED, REMOVED or UPDATED )
 	LTEID_HM_UNIT_ADDED,
@@ -63,6 +66,7 @@ const int TIME_UNIT = TIME_UNIT_WEEKLY;
  * Configs
  */
  const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
+ const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
 
 
 

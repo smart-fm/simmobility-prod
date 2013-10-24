@@ -93,35 +93,6 @@ namespace sim_mob {
             bool BidUnit(timeslice now);
             
             /**
-             * Calculates the surplus for the given unit.
-             * 
-             * surplus = pow(askingPrice, alpha + 1)/ (n_bids * zeta)
-             * 
-             * Where:
-             *    n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
-             *    alpha: Represents the urgency of the household to get the unit. (Household parameter)
-             *    zeta: Represents the relation between quality and price of the unit. (Unit parameter)
-             * 
-             * @param unit to calculate the surplus.
-             * @return the surplus for the given unit.
-             */
-            float CalculateSurplus(const Unit& unit);
-
-            /**
-             * Calculates the willingness to pay based on Household 
-             * attributes (and importance) and unit attributes.
-             * 
-             * This method calculates the willingness to pay following this formula:
-             * 
-             * wp = (HHIncomeWeight * HHIncome) + 
-             *      (HHUnitAttributeWeight1 * UnitAttribute1) + ...
-             *      (HHUnitAttributeWeightN * UnitAttributeN)
-             *
-             * @return value of the willingness to pay
-             */
-            float CalculateWP(const Unit& unit);
-
-            /**
              * Gets the bids counter for the given unit.
              * @param unitId unit unique identifier.
              * @return number of bids.

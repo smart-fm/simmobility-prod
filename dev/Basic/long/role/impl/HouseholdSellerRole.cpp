@@ -16,52 +16,23 @@
 #include "util/Math.hpp"
 #include "message/MessageBus.hpp"
 #include "boost/tuple/tuple.hpp"
+#include "model/lua/LuaProvider.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 using std::list;
 using std::endl;
-using std::cout;
 using sim_mob::Math;
 
 namespace {
-	const int TIME_ON_MARKET =2;
-	const int TIME_INTERVAL =7;
-
-    double ExpectationFunction(double x, const boost::tuple<double, double, double>& params) {
-        double v = params.get<0>();
-        double theta = params.get<1>();
-        double alpha = params.get<2>();
-        double price = x; // last expectation (V(t+1))
-        // Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
-        double bidsDistribution = v / price;
-        // Calculates the probability of not having any bid greater than v.
-        double priceProb = pow(Math::E, -((theta / pow(price, alpha)) * (1 - bidsDistribution)));
-        // Calculates expected maximum bid.
-        double p1 = pow(price, 2 * alpha + 1);
-        double p2 = (price * (theta * pow(price, -alpha) - 1));
-        double p3 = pow(Math::E, (theta * pow(price, -alpha)* (bidsDistribution - 1)));
-        double p4 = (price - theta * v * pow(price, -alpha));
-        double expectedMaxBid = (p1 * (p2 + p3 * p4)) / (theta * theta);
-        return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01f * price);
-    }
-
-    double CalculateHedonicPrice(const Unit& unit) {
-        return 0;
-        /*return unit.GetRent() +
-                (unit.GetRent() * params.GetUnitRentWeight() +
-                unit.GetTypeId() * params.GetUnitTypeWeight() +
-                unit.GetStorey() * params.GetUnitStoreyWeight() +
-                unit.GetFloorArea() * params.GetUnitAreaWeight());*/
-    }
-
-    int currentExpectationIndex = 0;
+    const int TIME_ON_MARKET = 10;
+    const int TIME_INTERVAL = 7;
 }
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
         HousingMarket* market)
 : LT_AgentRole(parent), market(market), hh(hh), currentTime(0, 0),
-hasUnitsToSale(true) {
+hasUnitsToSale(true), currentExpectationIndex(0) {
 }
 
 HouseholdSellerRole::~HouseholdSellerRole() {
@@ -72,11 +43,12 @@ void HouseholdSellerRole::Update(timeslice now) {
     if (hasUnitsToSale) {
         list<Unit*> units;
         GetParent()->GetUnits(units);
+        const HM_LuaModel& model = LuaProvider::getHM_Model();
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
             // Decides to put the house on market.
             if ((*itr)->IsAvailable()) {
-                double hedonicPrice = CalculateHedonicPrice(*(*itr));
+                double hedonicPrice = model.calculateHedonicPrice(*(*itr));
                 (*itr)->SetHedonicPrice(hedonicPrice);
                 (*itr)->SetAskingPrice(hedonicPrice);
                 CalculateUnitExpectations(*(*itr));
@@ -110,9 +82,9 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             Unit* unit = GetParent()->GetUnitById(msg.GetBid().GetUnitId());
-            cout << "Seller: [" << GetParent()->getId() <<
+            PrintOut("Seller: [" << GetParent()->getId() <<
                     "] received a bid: " << msg.GetBid() <<
-                    " at day: " << currentTime.ms() << endl;
+                    " at day: " << currentTime.ms() << endl);
             bool decision = false;
             ExpectationEntry entry;
             if (unit && unit->IsAvailable() && GetCurrentExpectation(*unit, entry)) {
@@ -202,29 +174,14 @@ void HouseholdSellerRole::NotifyWinnerBidders() {
 
 void HouseholdSellerRole::CalculateUnitExpectations(const Unit& unit) {
     ExpectationList expectationList;
-    double price = 20;
-    double expectation = 4;
-    double theta = 1.0f;//params.GetExpectedEvents(); // 1.0f;
-    double alpha = 2.0f;//params.GetPriceImportance(); // 2.0f;
-    for (int i = 0; i < TIME_ON_MARKET; i++) {
-        ExpectationEntry entry;
-        entry.price = Math::FindMaxArg(ExpectationFunction,
-                price, boost::tuple<double, double, double>(expectation, theta, alpha),
-                .001f, 100000);
-        entry.expectation = ExpectationFunction(entry.price,
-                boost::tuple<double, double, double>(expectation, theta, alpha));
-        expectation = entry.expectation;
-        expectationList.push_back(entry);
-        cout << "Expectation on: [" << i << std::setprecision(15) <<
-                "] Unit: [" << unit.GetId() <<
-                "] expectation: [" << entry.expectation <<
-                "] price: [" << entry.price <<
-                "] theta: [" << theta <<
-                "] alpha: [" << alpha <<
-                "]" << endl;
-    }
+    LuaProvider::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
+    
     unitExpectations.erase(unit.GetId());
     unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));
+
+    for (int i = 0; i < TIME_ON_MARKET; i++) {
+       PrintOut("Seller:["<< hh->GetId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
+    }
 }
 
 bool HouseholdSellerRole::GetCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry) {

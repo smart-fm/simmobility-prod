@@ -18,10 +18,10 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "message/MessageBus.hpp"
+#include "model/lua/LuaProvider.hpp"
 
 using std::list;
 using std::endl;
-using std::cout;
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
@@ -57,7 +57,7 @@ void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* send
     switch (id) {
         case sim_mob::event::EM_WND_EXPIRED:
         {
-            LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
+            PrintOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
             FollowMarket();
             SetActive(true);
             break;
@@ -80,9 +80,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                     if (unit) { // assign unit.
                         GetParent()->AddUnit(unit);
                         SetActive(false);
-                        cout << "Bidder: [" << GetParent()->getId() <<
+                        PrintOut("Bidder: [" << GetParent()->getId() <<
                                 "] bid: " << msg.GetBid() <<
-                                " was accepted " << endl;
+                                " was accepted " << endl);
                         //sleep for N ticks.
                         timeslice wakeUpTime(lastTime.ms() + 10,
                                 lastTime.frame() + 10);
@@ -97,9 +97,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 }
                 case NOT_ACCEPTED:
                 {
-                    cout<< "Bidder: [" << GetParent()->getId() <<
+                    PrintOut("Bidder: [" << GetParent()->getId() <<
                             "] bid: " << msg.GetBid() <<
-                            " was not accepted " << endl;
+                            " was not accepted " << endl);
                     IncrementBidsCounter(msg.GetBid().GetUnitId());
                     break;
                 }
@@ -151,8 +151,8 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         float maxSurplus = -1;
         for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
                 itr++) {
-            if ((*itr)->IsAvailable()) {
-                float surplus = CalculateSurplus(*(*itr));
+            if ((*itr)->IsAvailable() && ((*itr)->GetOwner() != GetParent())) {
+                float surplus = LuaProvider::getHM_Model().calculateSurplus(*(*itr), GetBidsCounter((*(*itr)).GetId()));
                 if (surplus > maxSurplus) {
                     maxSurplus = surplus;
                     unit = (*itr);
@@ -162,7 +162,7 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         // Exists some unit to bid.
         if (unit) {
             MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
-            float bidValue = maxSurplus + CalculateWP(*unit);
+            float bidValue = maxSurplus + LuaProvider::getHM_Model().calulateWP(*hh, *unit);
             if (owner && bidValue > 0.0f && unit->IsAvailable()) {
                 //Statistics::Increment(Statistics::N_BIDS);
                 MessageBus::PostMessage(owner, LTMID_BID, 
@@ -173,21 +173,6 @@ bool HouseholdBidderRole::BidUnit(timeslice now) {
         }
     }
     return false;
-}
-
-float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    return 0;
-    /*return pow(unit.GetAskingPrice(), params.GetUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * params.GetPriceQuality());*/
-}
-
-float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return 0;
-    /*return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
-            (params.GetUnitAreaWeight() * unit.GetFloorArea()) +
-            (params.GetUnitTypeWeight() * unit.GetTypeId()) +
-            (params.GetUnitRentWeight() * unit.GetRent()) +
-            (params.GetUnitStoreyWeight() * unit.GetStorey()));*/
 }
 
 void HouseholdBidderRole::FollowMarket() {

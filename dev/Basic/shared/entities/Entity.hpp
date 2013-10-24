@@ -125,6 +125,16 @@ protected:
 	 * this point. Then, any Buffered types in the current class should be added to subscriptionList_cached.
 	 */
 	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) = 0;
+        
+        /**
+         * Callback called when this entity enters (migrates in) into a new Worker.
+         */
+        virtual void onWorkerEnter();
+        
+        /**
+         * Callback called when this entity exits (migrates out) from the current Worker.
+         */
+        virtual void onWorkerExit();
 
 protected:
 	unsigned int id;

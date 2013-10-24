@@ -12,27 +12,26 @@
 #include "HousingMarket.hpp"
 #include "workers/Worker.hpp"
 #include "event/LT_EventArgs.hpp"
+#include "message/MessageBus.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using sim_mob::Entity;
 using std::vector;
 
 HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {
-    RegisterEvent(LTEID_HM_UNIT_ADDED);
-    RegisterEvent(LTEID_HM_UNIT_REMOVED);
 }
 
 HousingMarket::~HousingMarket() {
-    UnRegisterEvent(LTEID_HM_UNIT_ADDED);
-    UnRegisterEvent(LTEID_HM_UNIT_REMOVED);
 }
 
 bool HousingMarket::Add(Unit* unit, bool reOwner) {
     // no re-parent the unit to the market.
     bool retVal = UnitHolder::Add(unit, false);
     if (retVal) {
-        Publish(LTEID_HM_UNIT_ADDED, HM_ActionEventArgs(unit->GetId()));
+        MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->GetId())));
     }
     return retVal;
 }
@@ -41,7 +40,8 @@ Unit* HousingMarket::Remove(UnitId id, bool reOwner) {
     // no re-parent the unit to the market.
     Unit* retVal = UnitHolder::Remove(id, false);
     if (retVal) {
-        Publish(LTEID_HM_UNIT_REMOVED, HM_ActionEventArgs(id));
+        MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this, 
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(id)));
     }
     return retVal;
 }

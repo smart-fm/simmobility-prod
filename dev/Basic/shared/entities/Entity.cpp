@@ -72,5 +72,11 @@ sim_mob::Entity::UpdateStatus::UpdateStatus(UpdateStatus::RET_STATUS status, con
 
 }
 
+void sim_mob::Entity::onWorkerEnter() {
+}
+
+void sim_mob::Entity::onWorkerExit() {
+}
+
 
 

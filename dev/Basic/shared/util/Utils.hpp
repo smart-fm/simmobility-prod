@@ -66,18 +66,18 @@ namespace sim_mob {
         /**
          * Starts the watch.
          */
-        void Start();
+        void start();
 
         /**
          * Stops the watch.
          */
-        void Stop();
+        void stop();
         
         /**
          * Gets the time taken between the last Start-Stop call.
          * @return time in seconds or -1 if the watch is running.
          */
-        double GetTime();
+        double getTime() const;
         
     private:
         time_t now;

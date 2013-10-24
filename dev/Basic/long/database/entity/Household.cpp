@@ -36,90 +36,90 @@ Household& Household::operator=(const Household& source) {
     return *this;
 }
 
-void Household::SetAgeOfHead(int ageOfHead) {
+void Household::setAgeOfHead(int ageOfHead) {
     this->ageOfHead = ageOfHead;
 }
 
-int Household::GetAgeOfHead() const {
+int Household::getAgeOfHead() const {
     return ageOfHead;
 }
 
-void Household::SetWorkers(int workers) {
+void Household::setWorkers(int workers) {
     this->workers = workers;
 }
 
-int Household::GetWorkers() const {
+int Household::getWorkers() const {
     return workers;
 }
 
-void Household::SetHousingDuration(int housingDuration) {
+void Household::setHousingDuration(int housingDuration) {
     this->housingDuration = housingDuration;
 }
 
-int Household::GetHousingDuration() const {
+int Household::getHousingDuration() const {
     return housingDuration;
 }
 
-void Household::SetIncome(double income) {
+void Household::setIncome(double income) {
     this->income = income;
 }
 
-double Household::GetIncome() const {
+double Household::getIncome() const {
     return income;
 }
 
-void Household::SetChildren(int children) {
+void Household::setChildren(int children) {
     this->children = children;
 }
 
-int Household::GetChildren() const {
+int Household::getChildren() const {
     return children;
 }
 
-void Household::SetSize(int size) {
+void Household::setSize(int size) {
     this->size = size;
 }
 
-int Household::GetSize() const {
+int Household::getSize() const {
     return size;
 }
 
-void Household::SetVehicleCategoryId(BigSerial vehicleCategoryId) {
+void Household::setVehicleCategoryId(BigSerial vehicleCategoryId) {
     this->vehicleCategoryId = vehicleCategoryId;
 }
 
-BigSerial Household::GetVehicleCategoryId() const {
+BigSerial Household::getVehicleCategoryId() const {
     return vehicleCategoryId;
 }
 
-void Household::SetEthnicityId(BigSerial ethnicityId) {
+void Household::setEthnicityId(BigSerial ethnicityId) {
     this->ethnicityId = ethnicityId;
 }
 
-BigSerial Household::GetEthnicityId() const {
+BigSerial Household::getEthnicityId() const {
     return ethnicityId;
 }
 
-void Household::SetUnitId(BigSerial unitId) {
+void Household::setUnitId(BigSerial unitId) {
     this->unitId = unitId;
 }
 
-BigSerial Household::GetUnitId() const {
+BigSerial Household::getUnitId() const {
     return unitId;
 }
 
-void Household::SetLifestyleId(BigSerial lifestyleId) {
+void Household::setLifestyleId(BigSerial lifestyleId) {
     this->lifestyleId = lifestyleId;
 }
 
-BigSerial Household::GetLifestyleId() const {
+BigSerial Household::getLifestyleId() const {
     return lifestyleId;
 }
 
-void Household::SetId(BigSerial id) {
+void Household::setId(BigSerial id) {
     this->id = id;
 }
 
-BigSerial Household::GetId() const {
+BigSerial Household::getId() const {
     return id;
 }

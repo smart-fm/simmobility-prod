@@ -180,7 +180,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     unitExpectations.insert(ExpectationMapEntry(unit.GetId(), expectationList));
 
     for (int i = 0; i < TIME_ON_MARKET; i++) {
-       PrintOut("Seller:["<< hh->GetId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
+       PrintOut("Seller:["<< hh->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
     }
 }
 

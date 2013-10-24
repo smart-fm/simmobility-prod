@@ -48,17 +48,17 @@ void HM_LuaModel::mapClasses() {
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <Household> ("Household")
-            .addProperty("id", &Household::GetId)
-            .addProperty("lifestyleId", &Household::GetLifestyleId)
-            .addProperty("unitId", &Household::GetUnitId)
-            .addProperty("ethnicityId", &Household::GetEthnicityId)
-            .addProperty("vehicleCategoryId", &Household::GetVehicleCategoryId)
-            .addProperty("size", &Household::GetSize)
-            .addProperty("children", &Household::GetChildren)
-            .addProperty("income", &Household::GetIncome)
-            .addProperty("housingDuration", &Household::GetHousingDuration)
-            .addProperty("workers", &Household::GetWorkers)
-            .addProperty("ageOfHead", &Household::GetAgeOfHead)
+            .addProperty("id", &Household::getId)
+            .addProperty("lifestyleId", &Household::getLifestyleId)
+            .addProperty("unitId", &Household::getUnitId)
+            .addProperty("ethnicityId", &Household::getEthnicityId)
+            .addProperty("vehicleCategoryId", &Household::getVehicleCategoryId)
+            .addProperty("size", &Household::getSize)
+            .addProperty("children", &Household::getChildren)
+            .addProperty("income", &Household::getIncome)
+            .addProperty("housingDuration", &Household::getHousingDuration)
+            .addProperty("workers", &Household::getWorkers)
+            .addProperty("ageOfHead", &Household::getAgeOfHead)
             .endClass();
 }
 

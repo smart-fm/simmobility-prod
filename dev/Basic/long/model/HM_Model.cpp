@@ -58,14 +58,14 @@ void HM_Model::startImpl() {
             Household* household = &(*it);
             //PrintOut("Household: " << (*household) << endl);
             sim_mob::db::Parameters keys;
-            keys.push_back(household->GetId());
-            HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, &market);
-            unordered_map<BigSerial, Unit*>::iterator mapItr = unitsById.find(household->GetUnitId());
+            keys.push_back(household->getId());
+            HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), household, &market);
+            unordered_map<BigSerial, Unit*>::iterator mapItr = unitsById.find(household->getUnitId());
             if (mapItr != unitsById.end()) { //Context Id does exists
                 Unit* unit = new Unit(*(mapItr->second));
                 unit->SetAvailable(true);
                 hhAgent->addUnit(unit);
-                PrintOut("Household ["<< household->GetId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
+                PrintOut("Household ["<< household->getId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
             }
             agents.push_back(hhAgent);
             workGroup.assignAWorker(hhAgent);

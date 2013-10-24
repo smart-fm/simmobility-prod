@@ -78,7 +78,7 @@ const int DATA_SIZE = 30;
  */
 void RunTests() {
     unit_tests::DaoTests tests;
-    tests.TestAll();
+    tests.testAll();
 }
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {

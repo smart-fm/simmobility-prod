@@ -40,54 +40,54 @@ Building& Building::operator=(const Building& source) {
     return *this;
 }
 
-BigSerial Building::GetId() const {
+BigSerial Building::getId() const {
     return id;
 }
 
-BigSerial Building::GetTypeId() const {
+BigSerial Building::getTypeId() const {
     return typeId;
 }
 
-BigSerial Building::GetParcelId() const {
+BigSerial Building::getParcelId() const {
     return parcelId;
 }
 
-int Building::GetBuiltYear() const {
+int Building::getBuiltYear() const {
     return builtYear;
 }
 
-double Building::GetFloorArea() const {
+double Building::getFloorArea() const {
     return floorArea;
 }
 
-int Building::GetStoreys() const {
+int Building::getStoreys() const {
     return storeys;
 }
 
-int Building::GetParkingSpaces() const {
+int Building::getParkingSpaces() const {
     return parkingSpaces;
 }
 
-int Building::GetResidentialUnits() const {
+int Building::getResidentialUnits() const {
     return residentialUnits;
 }
 
-double Building::GetLandArea() const {
+double Building::getLandArea() const {
     return landArea;
 }
 
-int Building::GetImprovementValue() const {
+int Building::getImprovementValue() const {
     return improvementValue;
 }
 
-int Building::GetTaxExempt() const {
+int Building::getTaxExempt() const {
     return taxExempt;
 }
 
-double Building::GetNonResidentialSqft() const {
+double Building::getNonResidentialSqft() const {
     return nonResidentialSqft;
 }
 
-double Building::GetSqftPerUnit() const {
+double Building::getSqftPerUnit() const {
     return sqftPerUnit;
 }

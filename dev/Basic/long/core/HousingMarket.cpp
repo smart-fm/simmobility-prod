@@ -44,7 +44,7 @@ double UnitEntry::getPrice() const {
     return price;
 }
 
-HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {
+HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1) {
 }
 
 HousingMarket::~HousingMarket() {
@@ -71,7 +71,6 @@ Unit* HousingMarket::remove(UnitId id, bool reOwner) {
 }
 
 Entity::UpdateStatus HousingMarket::update(timeslice now) {
-    setup();
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }
 
@@ -82,9 +81,8 @@ bool HousingMarket::isNonspatial() {
 void HousingMarket::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 }
 
-void HousingMarket::setup() {
-    if (firstTime) {
-        //setup first things inside the entity.
-        firstTime = false;
-    }
+void HousingMarket::onWorkerEnter() {
+}
+
+void HousingMarket::onWorkerExit() {
 }

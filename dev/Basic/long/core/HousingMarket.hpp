@@ -72,12 +72,10 @@ namespace sim_mob {
             
         private:
             /**
-             * Initializes the market.
+             * Inherited from Entity
              */
-            void setup();
-            
-        private:
-            volatile bool firstTime;
+            void onWorkerEnter();
+            void onWorkerExit();
         };
     }
 }

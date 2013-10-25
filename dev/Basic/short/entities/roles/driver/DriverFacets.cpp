@@ -309,6 +309,9 @@ void sim_mob::DriverMovement::frame_tick() {
 }
 
 void sim_mob::DriverMovement::frame_tick_output() {
+	if(!parentDriver->vehicle) {
+		return;
+	}
 	DriverUpdateParams &p = parentDriver->getParams();
 	//Skip?
 	if (parentDriver->vehicle->isDone()) {

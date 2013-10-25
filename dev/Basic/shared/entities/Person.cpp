@@ -250,6 +250,7 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
+	currTick = now;
 	//TODO: Here is where it gets risky.
 	if (resetParamsRequired) {
 		currRole->make_frame_tick_params(now);

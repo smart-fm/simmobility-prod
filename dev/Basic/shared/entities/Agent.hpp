@@ -213,6 +213,8 @@ public:
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
 
+	timeslice currTick;// curr Time tick
+
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::set<Entity*> all_agents;
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.

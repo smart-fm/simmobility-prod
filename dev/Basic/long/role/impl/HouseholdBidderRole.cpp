@@ -176,15 +176,15 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
 }
 
 void HouseholdBidderRole::followMarket() {
-    market->Subscribe(LTEID_HM_UNIT_ADDED, this,
+  /*  market->Subscribe(LTEID_HM_UNIT_ADDED, this,
             CALLBACK_HANDLER(HM_ActionEventArgs, HouseholdBidderRole::onMarketAction));
     market->Subscribe(LTEID_HM_UNIT_REMOVED, this,
-            CALLBACK_HANDLER(HM_ActionEventArgs, HouseholdBidderRole::onMarketAction));
+            CALLBACK_HANDLER(HM_ActionEventArgs, HouseholdBidderRole::onMarketAction));*/
 }
 
 void HouseholdBidderRole::unFollowMarket() {
-    market->UnSubscribe(LTEID_HM_UNIT_ADDED, this);
-    market->UnSubscribe(LTEID_HM_UNIT_REMOVED, this);
+   /* market->UnSubscribe(LTEID_HM_UNIT_ADDED, this);
+    market->UnSubscribe(LTEID_HM_UNIT_REMOVED, this);*/
 }
 
 int HouseholdBidderRole::getBidsCounter(UnitId unitId) {

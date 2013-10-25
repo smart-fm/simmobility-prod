@@ -12,19 +12,41 @@
 
 #include "util/UnitHolder.hpp"
 #include "entities/Entity.hpp"
-#include "event/EventPublisher.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
+        
+        class UnitEntry {
+        public:
+            UnitEntry(Unit& unit, double price);
+            UnitEntry(const UnitEntry& orig);
+            virtual ~UnitEntry();
+            UnitEntry& operator=(const UnitEntry& source);
+
+            /**
+             * Gets unit.
+             * @return {@link Unit} reference.
+             */
+            const Unit& getUnit() const;
+
+            /**
+             * Gets the price of the unit.
+             * @return {@link Bid} instance.
+             */
+            double getPrice() const;
+            
+        private:
+            Unit& unit;
+            double price;
+        };
 
         /**
          * Represents the housing market.
          * Th main responsibility is the management of: 
          *  - avaliable units
          */
-        class HousingMarket : public UnitHolder, public sim_mob::Entity, 
-                public sim_mob::event::EventPublisher {
+        class HousingMarket : public UnitHolder, public sim_mob::Entity {
         public:
             HousingMarket();
             virtual ~HousingMarket();

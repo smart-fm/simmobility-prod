@@ -212,6 +212,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 bool sim_mob::Person::frame_init(timeslice now)
 {
+	currTick = now;
 	//Agents may be created with a null Role and a valid trip chain
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
@@ -281,6 +282,12 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
 		if(currTripChainItem != tripChain.end()) {
+			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
+				if(isCallFrameInit()) {
+					currRole->Movement()->frame_init();
+					setCallFrameInit(false);// set to be false so later no need to frame_init later
+				}
+			}
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
 				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));

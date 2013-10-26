@@ -366,7 +366,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 				}
 				parentBusDriver->existed_Request_Mode.set( Role::REQUEST_NONE );
 				if(!parentBusDriver->busStopRealTimes_vec_bus.empty()) {
-					parentBusDriver->busStopRealTimes_vec_bus[parentBusDriver->busstop_sequence_no.get()]->set(parentBusDriver->last_busStopRealTimes->get());
+					parentBusDriver->setBusStop_RealTimes(parentBusDriver->busstop_sequence_no.get(), parentBusDriver->last_busStopRealTimes->get());
 				}
 			}
 

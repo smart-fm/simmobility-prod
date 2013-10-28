@@ -291,11 +291,12 @@ void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value
 //	Print()<<"setTravleTimeTmpTableName: "<<now->tm_mon<<" "<<now->tm_mday<<" "<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 //	std::string m_str = sim_mob::toString<int>(now->tm_mon);
 	// pathset_traveltime_tmp_table_name
-	pathset_traveltime_tmp_table_name = value+"_"+sim_mob::toString<int>(now->tm_mon+1)+"_"+
-			sim_mob::toString<int>(now->tm_mday)+"_"+
-			sim_mob::toString<int>(now->tm_hour)+"_"+
-			sim_mob::toString<int>(now->tm_min)+"_"+
-			sim_mob::toString<int>(now->tm_sec);
+//	pathset_traveltime_tmp_table_name = value+"_"+sim_mob::toString<int>(now->tm_mon+1)+"_"+
+//			sim_mob::toString<int>(now->tm_mday)+"_"+
+//			sim_mob::toString<int>(now->tm_hour)+"_"+
+//			sim_mob::toString<int>(now->tm_min)+"_"+
+//			sim_mob::toString<int>(now->tm_sec);
+	pathset_traveltime_tmp_table_name = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
 	Print()<<"setTravleTimeTmpTableName: "<<pathset_traveltime_tmp_table_name<<std::endl;
 	//pathset_traveltime_table_name
 	pathset_traveltime_realtime_table_name = value+"_link_realtime_travel_time";
@@ -320,10 +321,23 @@ void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value
 }
 bool sim_mob::PathSetManager::createTravelTimeTmpTable()
 {
-//	sql_  << ("CREATE TABLE "+table_name+" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
-	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
 	bool res=false;
+	dropTravelTimeTmpTable();
+	// create tmp table
+	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
 	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+//	if(!res)
+//	{
+//		// create table failed
+//	}
+	return res;
+}
+bool sim_mob::PathSetManager::dropTravelTimeTmpTable()
+{
+	bool res=false;
+	//drop tmp table
+	std::string drop_table_str = "drop table \""+ pathset_traveltime_tmp_table_name +"\" ";
+	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),drop_table_str);
 	return res;
 }
 bool sim_mob::PathSetManager::createTravelTimeRealtimeTable()

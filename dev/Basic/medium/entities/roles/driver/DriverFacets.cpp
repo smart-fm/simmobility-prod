@@ -709,23 +709,24 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	vehicle->setVelocity(0);
 
 	if(p.now.ms() < getParent()->getStartTime()) {
-		//set time to start - to accommodate drivers starting during the frame
-		stepFwdInTime(p, (getParent()->getStartTime() - p.now.ms())/1000.0);
+		stepFwdInTime(p, (getParent()->getStartTime() - p.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
 	}
 
 	const sim_mob::RoadSegment* nextRdSeg = nullptr;
-	if (vehicle->hasNextSegment(true))
+	if (vehicle->hasNextSegment(true)) {
 		nextRdSeg = vehicle->getNextSegment(true);
-
-	else if (vehicle->hasNextSegment(false))
+	}
+	else if (vehicle->hasNextSegment(false)) {
 		nextRdSeg = vehicle->getNextSegment(false);
+	}
 
 	nextLaneInNextSegment = getBestTargetLane(vehicle->getCurrSegment(), nextRdSeg);
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(nextLaneInNextSegment) + getAcceptRate(nextLaneInNextSegment); //in seconds
-	//skip acceptance capacity if there's no queue - this is done in DynaMIT
-/*	if(vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(vehicle->getCurrSegment(), true) == 0){
+
+	/*//skip acceptance capacity if there's no queue - this is done in DynaMIT
+	if(vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(vehicle->getCurrSegment(), true) == 0){
 		departTime = getLastAccept(nextLaneInNextSegment)
 						+ (0.01 * vehicle->length) / (vehicle->getCurrSegment()->getParentConflux()->getSegmentSpeed(vehicle->getCurrSegment(), true) ); // skip input capacity
 	}*/

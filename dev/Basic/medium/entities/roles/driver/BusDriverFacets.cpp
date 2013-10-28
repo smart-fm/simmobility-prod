@@ -136,7 +136,6 @@ sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool alloca
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
-			return res;
 		}
 
 		//TODO: Start in lane 0?

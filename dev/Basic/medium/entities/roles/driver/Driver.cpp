@@ -63,20 +63,11 @@ size_t getLaneIndex(const Lane* l) {
 
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
-	sim_mob::Role(behavior, movement, parent, "Driver_"), currLane(nullptr), vehicle(nullptr), nextLaneInNextSegment(nullptr), params(parent->getGenerator())
-{
+	sim_mob::Role(behavior, movement, parent, "Driver_"), currLane(nullptr), vehicle(nullptr), params(parent->getGenerator())
+{}
 
-//	if (Debug::Drivers) {
-//		DebugStream << "Driver starting: " << parent->getId() << endl;
-//	}
-}
-
-///Note that Driver's destructor is only for reclaiming memory.
-///  If you want to remove its registered properties from the Worker (which you should do!) then
-///  this should occur elsewhere.
 sim_mob::medium::Driver::~Driver() {
-	//Our vehicle
-	safe_delete_item(vehicle);
+	safe_delete_item(vehicle); // destroy vehicle allocated to the driver
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {

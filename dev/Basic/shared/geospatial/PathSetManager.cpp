@@ -299,7 +299,7 @@ void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value
 	pathset_traveltime_tmp_table_name = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
 	Print()<<"setTravleTimeTmpTableName: "<<pathset_traveltime_tmp_table_name<<std::endl;
 	//pathset_traveltime_table_name
-	pathset_traveltime_realtime_table_name = value+"_link_realtime_travel_time";
+	pathset_traveltime_realtime_table_name = value+"_travel_time";
 	//get current working directory
 	char the_path[1024];
 	getcwd(the_path, 1023);

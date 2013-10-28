@@ -43,15 +43,16 @@ public:
 
 	double getPositionX() const;
 	double getPositionY() const;
-	Shared<BusStop_RealTimes>* getCurrentBusStopRealTimes() {
+	// get the last bus stop real times
+	Shared<BusStop_RealTimes>* getLastBusStopRealTimes() {
 		return last_busStopRealTimes;
 	}
-	std::vector<Shared<BusStop_RealTimes>* >& getBusStop_RealTimes() {
+	// get the bus stop real times vector
+	std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() {
 		return busStopRealTimes_vec_bus;
 	}
-	void setBusStop_RealTimes(const int& busstop_sequence_no, const BusStop_RealTimes& busstop_realTimes) {
-		busStopRealTimes_vec_bus[busstop_sequence_no]->set(busstop_realTimes);
-	}
+	// set bus stop real times for a particular bus stop
+	void setBusStopRealTimes(const int& busstop_sequence_no, const BusStop_RealTimes& busstop_realTimes);
 
 	// can get some passenger count, passenger information and busStop information
 	Shared<const BusStop*> lastVisited_BusStop;

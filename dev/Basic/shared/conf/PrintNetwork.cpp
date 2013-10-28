@@ -48,7 +48,7 @@ void sim_mob::PrintNetwork::LogIncidents() const
 	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 		out << "{";
 		out << "\"id\":\"" << (*incIt).incidentId << "\",";
-		out << "\"visibility\":\"" << (*incIt).incidentId << "\",";
+		out << "\"visibility\":\"" << (*incIt).visibilityDistance << "\",";
 		out << "\"segment_aimsun_id\":\"" << (*incIt).segmentId << "\",";
 		out << "\"position\":\"" << (*incIt).position << "\",";
 		out << "\"severity\":\"" << (*incIt).severity << "\",";

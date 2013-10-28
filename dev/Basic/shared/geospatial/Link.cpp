@@ -119,7 +119,7 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 
 int sim_mob::Link::getLength() const
 {
-	vector<RoadSegment*> segments = getPath();
+	vector<RoadSegment*> segments = getSegments();
 	int totalLen = 0;
 	for (vector<RoadSegment*>::iterator it=segments.begin(); it!=segments.end(); it++) {
 		totalLen += (*it)->length;
@@ -137,24 +137,14 @@ const std::string & sim_mob::Link::getRoadName() const
 }
 
 
-const vector<RoadSegment*>& sim_mob::Link::getPath() const
+const vector<RoadSegment*>& sim_mob::Link::getSegments() const
 {
 	return segs;
-	/*if (isForward) {
-		return fwdSegments;
-	} else {
-		return revSegments;
-	}*/
 }
 
-vector<RoadSegment*>& sim_mob::Link::getPath()
+vector<RoadSegment*>& sim_mob::Link::getSegments()
 {
 	return segs;
-	/*if (isForward) {
-		return fwdSegments;
-	} else {
-		return revSegments;
-	}*/
 }
 
 string sim_mob::Link::getSegmentName(const RoadSegment* segment)

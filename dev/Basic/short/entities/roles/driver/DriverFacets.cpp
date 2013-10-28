@@ -127,7 +127,7 @@ vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& p
 		}
 
 		//Add each Segment in the Link's fwd/rev path to the result.
-		const vector<RoadSegment*>& segPath = nextLink.first->getPath();
+		const vector<RoadSegment*>& segPath = nextLink.first->getSegments();
 		for (vector<RoadSegment*>::const_iterator pthIt = segPath.begin(); pthIt != segPath.end(); pthIt++) {
 			res.push_back(WayPoint(*pthIt));
 		}

@@ -100,7 +100,7 @@ public:
 	void addNodes(const std::vector<sim_mob::MultiNode*>& vals);
 
 	///Retrieve the first CoordinateTransform; throws an error if none exist.
-	sim_mob::CoordinateTransform* getCoordTransform() const;
+	sim_mob::CoordinateTransform* getCoordTransform(bool required=true) const;
 
 //private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.

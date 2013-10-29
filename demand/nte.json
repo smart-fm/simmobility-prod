@@ -1,0 +1,65 @@
+{
+    "Parameters": {
+        "beta_maleage4_edu_2": 0.0, 
+        "beta_age5165_edu_2": 0.0, 
+        "beta_nationalservice_edu_2": 0.0, 
+        "beta_onlyworkers_edu_2": 0.0, 
+        "beta_logsum_edu_2": 0.246, 
+        "beta_otherworker_edu_2": 0.0, 
+        "beta_cons_edu_2": -6.33, 
+        "beta_age2635_edu_2": 0.0, 
+        "beta_retired_edu_2": 0.0, 
+        "beta_income_edu_2": 0.0, 
+        "beta_child4_edu_2": 0.0, 
+        "beta_femaleage515_edu_2": 0.0, 
+        "beta_caravail_edu_2": 0.0, 
+        "beta_femalenone_edu_2": 0.0, 
+        "beta_workathome_edu_2": 0.0, 
+        "beta_domestic_edu_2": 0.0, 
+        "beta_age2025_edu_2": 0.0, 
+        "beta_unemployed_edu_2": 0.0, 
+        "beta_selfemployed_edu_2": 0.0, 
+        "beta_femaleage4_edu_2": 0.0, 
+        "beta_student515_edu_2": 2.49, 
+        "beta_onlyadults_edu_2": 0.0, 
+        "beta_parttime_edu_2": 0.0, 
+        "beta_universitystudent_edu_2": 0.0, 
+        "beta_student16_edu_2": 0.605, 
+        "beta_homemaker_edu_2": 0.0, 
+        "beta_voluntary_edu_2": 0.0, 
+        "beta_motoravail_edu_2": 0.0, 
+        "beta_maleage515_edu_2": 0.0
+    }, 
+    "Variable": {
+        "var_person_type_id": "person_type_id", 
+        "var_universitystudent": "universitystudent", 
+        "var_age_id": "age_id", 
+        "var_female_dummy": "female_dummy", 
+        "var_HH_with_under_4": "HH_with_under_4", 
+        "var_HH_with_under_15": "HH_with_under_15", 
+        "var_HH_all_adults": "HH_all_adults", 
+        "var_HH_all_workers": "HH_all_workers", 
+        "var_incmid": "incmid", 
+        "var_missingincome": "missingincome", 
+        "var_work_at_home_dummy": "work_at_home_dummy", 
+        "var_hh_car_avail": "hh_car_avail", 
+        "var_hh_motor_avail": "hh_motor_avail", 
+        "var_edulogsum": "edulogsum"
+    }, 
+    "Choiceset": [
+        "1", 
+        "2"
+    ], 
+    "Utility": {
+        "1": "0", 
+        "2": "beta_cons_edu_2+beta_parttime_edu_2*(var_person_type_id==2)+beta_selfemployed_edu_2*(var_person_type_id==3)+beta_universitystudent_edu_2*((var_person_type_id==4)*(var_universitystudent==1))+beta_homemaker_edu_2*(var_person_type_id==5)+beta_retired_edu_2*(var_person_type_id==6)+beta_unemployed_edu_2*(var_person_type_id==7)+beta_nationalservice_edu_2*(var_person_type_id==8)+beta_voluntary_edu_2*(var_person_type_id==9)+beta_domestic_edu_2*(var_person_type_id==10)+beta_otherworker_edu_2*(var_person_type_id==12)+beta_student16_edu_2*((var_person_type_id==4)*(var_age_id==3))+beta_student515_edu_2*((var_person_type_id==4)*((var_age_id==1)+(var_age_id==2)))+beta_child4_edu_2*(var_age_id==0)+beta_age2025_edu_2*(var_age_id==4)+beta_age2635_edu_2*((var_age_id==5)+(var_age_id==6))+beta_age5165_edu_2*((var_age_id==10)+(var_age_id==11)+(var_age_id==12))+beta_maleage4_edu_2*((var_female_dummy==0)*(var_HH_with_under_4==1))+beta_maleage515_edu_2*((var_female_dummy==0)*(var_HH_with_under_15-var_HH_with_under_4))+beta_femalenone_edu_2*((var_female_dummy==1)*(var_HH_all_adults==1))+beta_femaleage4_edu_2*((var_female_dummy==1)*(var_HH_with_under_4==1))+beta_femaleage515_edu_2*((var_female_dummy==1)*(var_HH_with_under_15-var_HH_with_under_4))+beta_onlyadults_edu_2*(var_HH_all_adults==1)+beta_onlyworkers_edu_2*(var_HH_all_workers==1)+beta_income_edu_2*(var_incmid*(1-var_missingincome))+beta_workathome_edu_2*(var_work_at_home_dummy==1)+beta_caravail_edu_2*(var_hh_car_avail==1)+beta_motoravail_edu_2*(var_hh_motor_avail==1)+beta_logsum_edu_2*+var_edulogsum"
+    }, 
+    "Availability": {
+        "1": "1_AV", 
+        "2": "2_AV"
+    }, 
+    "Scale": {
+        "1": 1, 
+        "2": 1
+    }
+}

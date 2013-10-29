@@ -1,0 +1,63 @@
+{
+    "Parameters": {
+        "beta_employment_part_unusual": 0.0, 
+        "beta_under3000_usual": 0.0, 
+        "beta_sub_work_unusual": 0.0, 
+        "beta_distance1_unusual": 0.0, 
+        "beta_employment_self_unusual": 0.0, 
+        "beta_female_unusual": 0.0, 
+        "beta_distance1_usual": 0.0, 
+        "beta_sub_work_usual": -0.978, 
+        "beta_work_home_unusual": 0.0, 
+        "beta_distance2_usual": 0.0, 
+        "beta_work_home_usual": 0.806, 
+        "beta_employment_part_usual": 0.023, 
+        "beta_fixedtime_usual": 0.153, 
+        "beta_under3000_unusual": 0.0, 
+        "beta_fixedtime_unusual": 0.0, 
+        "beta_distance_log_usual": -0.074, 
+        "beta_first_work_unusual": 0.0, 
+        "beta_fixedlocation_usual": 0.0, 
+        "beta_distance3_usual": 0.0, 
+        "beta_distance3_unusual": 0.0, 
+        "beta_employment_full_unusual": 0.0, 
+        "beta_cons_usual": 1.86, 
+        "beta_cons_unusual": 0.0, 
+        "beta_employment_full_usual": 0.0474, 
+        "beta_female_usual": 0.235, 
+        "beta_distance_log_unusual": 0.0, 
+        "beta_fixedlocation_unusual": 0.0, 
+        "beta_employment_self_usual": 0.0773, 
+        "beta_first_work_usual": -0.663, 
+        "beta_distance2_unusual": 0.0
+    }, 
+    "Variable": {
+        "var_fixed_place": "fixed_place", 
+        "var_fixed_work_hour": "fixed_work_hour", 
+        "var_Female_dummy": "Female_dummy", 
+        "var_IncomeIndex": "IncomeIndex", 
+        "var_walk_distance1": "walk_distance1", 
+        "var_walk_distance2": "walk_distance2", 
+        "var_work_op": "work_op", 
+        "var_person_type_id": "person_type_id", 
+        "var_work_from_home_dummy": "work_from_home_dummy", 
+        "var_first_of_multiple": "first_of_multiple", 
+        "var_subsequent_of_multiple": "subsequent_of_multiple"
+    }, 
+    "Choiceset": [
+        "Attend", 
+        "No_Attend"
+    ], 
+    "Utility": {
+        "No_Attend": "beta_cons_unusual+beta_fixedlocation_unusual*var_fixed_place+beta_fixedtime_unusual*var_fixed_work_hour+beta_female_unusual*var_Female_dummy+beta_under3000_unusual*(1*(var_IncomeIndex<=5))+beta_distance_log_unusual*log((max(var_walk_distance1+var_walk_distance2,0.1)))+beta_distance1_unusual*(max(var_walk_distance1+var_walk_distance2,0.1))+beta_distance2_unusual*pow((max(var_walk_distance1+var_walk_distance2,0.1)),2)+beta_distance3_unusual*pow((max(var_walk_distance1+var_walk_distance2,0.1)),3)+beta_employment_full_unusual*(log(1+var_work_op))*(1*(var_person_type_id==1))+beta_employment_part_unusual*(log(1+var_work_op))*(1*(var_person_type_id==2))+beta_employment_self_unusual*(log(1+var_work_op))*(1*(var_person_type_id==3))+beta_work_home_unusual*var_work_from_home_dummy+beta_first_work_unusual*var_first_of_multiple+beta_sub_work_unusual*var_subsequent_of_multiple", 
+        "Attend": "beta_cons_usual+beta_fixedlocation_usual*var_fixed_place+beta_fixedtime_usual*var_fixed_work_hour+beta_female_usual*var_Female_dummy+beta_under3000_usual*(1*(var_IncomeIndex<=5))+beta_distance_log_usual*log((max(var_walk_distance1+var_walk_distance2,0.1)))+beta_distance1_usual*(max(var_walk_distance1+var_walk_distance2,0.1))+beta_distance2_usual*pow((max(var_walk_distance1+var_walk_distance2,0.1)),2)+beta_distance3_usual*pow((max(var_walk_distance1+var_walk_distance2,0.1)),3)+beta_employment_full_usual*(log(1+var_work_op))*(1*(var_person_type_id==1))+beta_employment_part_usual*(log(1+var_work_op))*(1*(var_person_type_id==2))+beta_employment_self_usual*(log(1+var_work_op))*(1*(var_person_type_id==3))+beta_work_home_usual*var_work_from_home_dummy+beta_first_work_usual*var_first_of_multiple+beta_sub_work_usual*var_subsequent_of_multiple"
+    }, 
+    "Availability": {
+        "Attend": "uw_Attend_AV", 
+        "No_Attend": "uw_No_Attend_AV"
+    }, 
+    "Scale": {
+        "Attend": 1, 
+        "No_Attend": 1
+    }
+}

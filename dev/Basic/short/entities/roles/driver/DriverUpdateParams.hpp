@@ -28,8 +28,6 @@ class UnPackageUtils;
 
 
 
-
-
 //Struct for holding data about the "nearest" vehicle.
 struct NearestVehicle {
 	NearestVehicle() : driver(nullptr), distance(50000) {}
@@ -98,6 +96,9 @@ struct DriverUpdateParams : public UpdateParams {
 
 	sim_mob::TrafficColor perceivedTrafficColor;
 	LANE_CHANGE_SIDE turningDirection;
+
+	TARGET_GAP targetGap;
+	bool isMLC;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.

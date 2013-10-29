@@ -49,11 +49,7 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 	virtual void reset(timeslice now)
 	{
 		sim_mob::UpdateParams::reset(now);
-		skipThisFrame = false;
 	}
-
-	///Used to skip the first frame; kind of hackish.
-	bool skipThisFrame;
 
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const ActivityPerformerUpdateParams* params);

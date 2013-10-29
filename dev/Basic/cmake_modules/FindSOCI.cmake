@@ -25,6 +25,8 @@ else ()
       C:/MinGW32/include
       C:/MinGW32/include/soci
       ~/Library/Frameworks
+      /home/xuyan/xuyan_SimMobility/soci/include
+      /home/xuyan/xuyan_SimMobility/soci/include/soci
       /Library/Frameworks
       /usr/local/include
       /usr/local/include/soci
@@ -35,6 +37,8 @@ else ()
       /opt/local/include/soci # MacPorts location
       /opt/csw/include # Blast wave
       /opt/include
+      /afs/csail.mit.edu/u/x/xuyan/lib/soci/soci-3.2.1/include
+      /afs/csail.mit.edu/u/x/xuyan/lib/soci/soci-3.2.1/include/soci
   )
 
   FIND_LIBRARY(SOCI_LIBRARIES
@@ -46,6 +50,7 @@ else ()
       $ENV{SOCI_DIR}/lib
       $ENV{SOCI_DIR}
       ~/Library/Frameworks
+      /home/xuyan/xuyan_SimMobility/soci/lib64
       /Library/Frameworks
       /usr/local/lib
       /usr/local/lib64
@@ -54,6 +59,7 @@ else ()
       /opt/local/lib
       /opt/csw/lib
       /opt/lib
+      /afs/csail.mit.edu/u/x/xuyan/lib/soci/soci-3.2.1/lib64
   )
   
 

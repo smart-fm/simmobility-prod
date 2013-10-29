@@ -64,8 +64,8 @@ std::vector<std::string> Utils::ParseArgs(int argc, char* argv[])
 void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 {
 	//This can take some time.
-	timeval start_time, end_time;
-	gettimeofday(&start_time, nullptr);
+	StopWatch sw;
+	sw.Start();
 	std::cout <<"Merging output files, this can take several minutes...\n";
 
 	//One-by-one.
@@ -82,8 +82,8 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 	}
 	out.close();
 
-	gettimeofday(&end_time, nullptr);
-	std::cout <<"Files merged; took " <<Utils::diff_ms(end_time, start_time) <<"ms\n";
+	sw.Stop();
+	std::cout <<"Files merged; took " <<sw.GetTime() <<"s\n";
 }
 
 
@@ -104,10 +104,6 @@ std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
 	return std::make_pair(min, max);
 }
 
-
-int Utils::diff_ms(timeval t1, timeval t2) {
-	return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
-}
 
 
 StopWatch::StopWatch() : now(0), end(0), running(false) {

@@ -10,36 +10,14 @@
  */
 #pragma once
 
+#include <boost/unordered_map.hpp>
 #include "util/UnitHolder.hpp"
 #include "entities/Entity.hpp"
+#include "buffering/Buffered.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
-        
-        class UnitEntry {
-        public:
-            UnitEntry(Unit& unit, double price);
-            UnitEntry(const UnitEntry& orig);
-            virtual ~UnitEntry();
-            UnitEntry& operator=(const UnitEntry& source);
-
-            /**
-             * Gets unit.
-             * @return {@link Unit} reference.
-             */
-            const Unit& getUnit() const;
-
-            /**
-             * Gets the price of the unit.
-             * @return {@link Bid} instance.
-             */
-            double getPrice() const;
-            
-        private:
-            Unit& unit;
-            double price;
-        };
 
         /**
          * Represents the housing market.
@@ -48,9 +26,34 @@ namespace sim_mob {
          */
         class HousingMarket : public UnitHolder, public sim_mob::Entity {
         public:
+
+            class UnitEntry {
+            public:
+                UnitEntry(const Unit& unit, double askingPrice, double hedonicPrice);
+                virtual ~UnitEntry();
+                const Unit& getUnit() const;
+                double getAskingPrice() const;
+                double getHedonicPrice() const;
+                void setAskingPrice(double askingPrice);
+                void setHedonicPrice(double hedonicPrice);
+
+            private:
+                const Unit& unit;
+                double askingPrice;
+                double hedonicPrice;
+            };
+            typedef boost::unordered_map<BigSerial, HousingMarket::UnitEntry> EntryMap;
+        public:
             HousingMarket();
             virtual ~HousingMarket();
 
+            void addNewEntry(const Unit& unit, double askingPrice, 
+                double hedonicPrice);
+            
+            void removeEntry(const BigSerial& unitId);
+            
+            const EntryMap& getAvailableEntries();
+            
             /**
              * Inherited from Entity
              */
@@ -69,13 +72,18 @@ namespace sim_mob {
              */
             virtual bool isNonspatial();
             virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
-            
+            virtual void HandleMessage(messaging::Message::MessageType type, 
+                    const messaging::Message& message);
+
         private:
             /**
              * Inherited from Entity
              */
             void onWorkerEnter();
             void onWorkerExit();
+            
+        private:
+            EntryMap entriesById;
         };
     }
 }

@@ -157,6 +157,7 @@ public:
 	std::string& getTravleTimeRealtimeTableName() { return pathset_traveltime_realtime_table_name; }
 	void setTravleTimeTmpTableName(const std::string& value);
 	bool createTravelTimeTmpTable();
+	bool dropTravelTimeTmpTable();
 	bool createTravelTimeRealtimeTable();
 	bool insertTravelTime2TmpTable(sim_mob::Link_travel_time& data);
 	bool copyTravelTimeDataFromTmp2RealtimeTable();

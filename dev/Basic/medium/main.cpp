@@ -340,6 +340,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 

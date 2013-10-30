@@ -30,7 +30,7 @@ IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTi
 		 randomvec[i] = rand()/(RAND_MAX*1.0);
 		 //std::cout << "random vector number is " << randomvec[i] << std::endl;
 	 }
-	 std::cout << "random number is " << randomNum << std::endl;
+	 //std::cout << "random number is " << randomNum << std::endl;
 }
 
 IncidentStatus::~IncidentStatus() {

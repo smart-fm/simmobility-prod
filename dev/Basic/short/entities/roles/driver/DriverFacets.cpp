@@ -291,15 +291,6 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 							incidentStatus.changedlane=true;
 						}
 					}
-					/*else if( prob < incidentStatus.randomStep ){
-						prob = 1.0-prob;
-						incidentStatus.randomStep -= samplesequence;
-						double ret = incidentStatus.urandom();
-						incidentStatus.randomNum = ret;
-						if(ret < prob) {
-							incidentStatus.changedlane=true;
-						}
-					}*/
 				}
 			}
 			else if( now.ms() > inc->startTime+inc->duration ){

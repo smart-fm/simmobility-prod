@@ -43,6 +43,10 @@ void sim_mob::PrintNetwork::LogIncidents() const
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 	double baseFrameTick = cfg.system.simulation.baseGranMS;
 
+	if( incidents.size()== 0){
+		return;
+	}
+
 	out <<"Printing incident" <<std::endl;
 	out << "{\"Incident\" : ";
 	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){

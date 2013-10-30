@@ -11,23 +11,24 @@ sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* p
 {}
 
 
-void sim_mob::ActivityPerformerBehavior::frame_init(UpdateParams& p) {
+
+void sim_mob::ActivityPerformerBehavior::frame_init() {
 	throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick(UpdateParams& p) {
+void sim_mob::ActivityPerformerBehavior::frame_tick() {
 	throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick_output(const UpdateParams& p) {
+void sim_mob::ActivityPerformerBehavior::frame_tick_output() {
 	throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
 }
 
-void sim_mob::ActivityPerformerMovement::frame_init(UpdateParams& p) {
+void sim_mob::ActivityPerformerMovement::frame_init() {
 	parentActivity->initializeRemainingTime();
 }
 
-void sim_mob::ActivityPerformerMovement::frame_tick(UpdateParams& p) {
+void sim_mob::ActivityPerformerMovement::frame_tick() {
 	parentActivity->updateRemainingTime();
 	if(parentActivity->remainingTimeToComplete <= 0){
 		getParent()->setToBeRemoved();
@@ -35,7 +36,8 @@ void sim_mob::ActivityPerformerMovement::frame_tick(UpdateParams& p) {
 	getParent()->setRemainingTimeThisTick(0.0);
 }
 
-void sim_mob::ActivityPerformerMovement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::ActivityPerformerMovement::frame_tick_output() {
+	ActivityPerformerUpdateParams &p = parentActivity->getParams();
 	LogOut("(\"Activity\""
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()

@@ -48,7 +48,7 @@ namespace sim_mob {
              * Method to implement the role behavior.
              * @param currTime
              */
-            virtual void Update(timeslice currTime) = 0;
+            virtual void update(timeslice currTime) = 0;
 
             /**
              * Tells if the role is active or not.
@@ -62,7 +62,7 @@ namespace sim_mob {
              * Disable or enable the role.
              * @param active
              */
-            void SetActive(bool active) {
+            void setActive(bool active) {
                 this->active = active;
             }
 
@@ -84,7 +84,8 @@ namespace sim_mob {
          * Represents a Generic Agent Role template implementation.
          * Template class should be a concrete LT_Agent class.
          */
-        template<typename T> class LT_AgentRole : public LT_Role, public sim_mob::event::EventListener {
+        template<typename T> class LT_AgentRole : public LT_Role, 
+                public sim_mob::event::EventListener {
         public:
 
             LT_AgentRole(T* parent) : parent(parent) {
@@ -94,6 +95,7 @@ namespace sim_mob {
             }
 
             virtual ~LT_AgentRole() {
+                parent = nullptr;
             }
 
         protected:
@@ -102,7 +104,7 @@ namespace sim_mob {
              * Gets the role's parent.
              * @return Parent pointer.
              */
-            T* GetParent() const {
+            T* getParent() const {
                 return parent;
             }
 
@@ -110,7 +112,8 @@ namespace sim_mob {
             //TODO: Might want to have LT_Role subclass Role so that we don't have to do a messy dynamic cast here.
             //      Templates make this more difficult than it should be.
             NullableOutputStream Log() {
-            	return NullableOutputStream(dynamic_cast<Agent*>(parent)->currWorkerProvider->getLogFile());
+            	return NullableOutputStream(
+                        dynamic_cast<Agent*>(parent)->currWorkerProvider->getLogFile());
             }
 
         private:

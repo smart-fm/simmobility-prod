@@ -28,6 +28,8 @@ class Driver;
 /// \author Melani
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
+	DriverUpdateParams() : UpdateParams(), secondsInTick(0.0),
+			elapsedSeconds(0.0) {}
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen), secondsInTick(0.0),
 			elapsedSeconds(0.0){}
 

@@ -16,18 +16,19 @@
 
 using namespace sim_mob::long_term;
 
-Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId,
-        double area, int storey, double rent, bool available) :
-id(id), buildingId(buildingId), typeId(typeId),
-storey(storey), area(area), rent(rent), available(available), 
+Unit::Unit(UnitId id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
+        double floorArea, int storey, double rent, bool available) :
+id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId),
+storey(storey), floorArea(floorArea), rent(rent), available(available), 
 askingPrice(0), hedonicPrice(0), owner(nullptr) {}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
+    this->postcodeId = source.postcodeId;
     this->storey = source.storey;
-    this->area = source.area;
+    this->floorArea = source.floorArea;
     this->rent = source.rent;
     this->available = source.available;
     this->askingPrice = source.askingPrice;
@@ -42,8 +43,9 @@ Unit& Unit::operator=(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
+    this->postcodeId = source.postcodeId;
     this->storey = source.storey;
-    this->area = source.area;
+    this->floorArea = source.floorArea;
     this->rent = source.rent;
     this->available = source.available;
     this->askingPrice = source.askingPrice;
@@ -52,69 +54,73 @@ Unit& Unit::operator=(const Unit& source) {
     return *this;
 }
 
-UnitId Unit::GetId() const {
+UnitId Unit::getId() const {
     return id;
 }
 
-BigSerial Unit::GetBuildingId() const {
+BigSerial Unit::getBuildingId() const {
     return buildingId;
 }
 
-BigSerial Unit::GetTypeId() const {
+BigSerial Unit::getTypeId() const {
     return typeId;
 }
 
-int Unit::GetStorey() const {
+BigSerial Unit::getPostcodeId() const{
+    return postcodeId;
+}
+
+int Unit::getStorey() const {
     return storey;
 }
 
-double Unit::GetArea() const {
-    return area;
+double Unit::getFloorArea() const {
+    return floorArea;
 }
 
-double Unit::GetRent() const {
+double Unit::getRent() const {
     return rent;
 }
 
-bool Unit::IsAvailable() const {
+bool Unit::isAvailable() const {
     boost::shared_lock<boost::shared_mutex> lock(mutex);
     return available;
 }
 
-void Unit::SetAvailable(bool avaliable) {
+void Unit::setAvailable(bool avaliable) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->available = avaliable;
 }
 
-double Unit::GetAskingPrice() const {
+double Unit::getAskingPrice() const {
     boost::shared_lock<boost::shared_mutex> lock(mutex);
     return this->askingPrice;
 }
-double Unit::GetHedonicPrice() const {
+double Unit::getHedonicPrice() const {
     boost::shared_lock<boost::shared_mutex> lock(mutex);
     return this->hedonicPrice;
 }
 
-void Unit::SetAskingPrice(double askingPrice) {
+void Unit::setAskingPrice(double askingPrice) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->askingPrice = askingPrice;
 }
 
-void Unit::SetHedonicPrice(double hedonicPrice) {
+void Unit::setHedonicPrice(double hedonicPrice) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->hedonicPrice = hedonicPrice;
 }
 
-void Unit::SetOwner(UnitHolder* receiver) {
+void Unit::setOwner(UnitHolder* receiver) {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     this->owner = receiver;
 }
 
-UnitHolder* Unit::GetOwner() {
+UnitHolder* Unit::getOwner() {
     boost::upgrade_lock<boost::shared_mutex> upLock(mutex);
     boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
     //TODO: this is not protecting nothing.

@@ -588,10 +588,10 @@ namespace {
 
     void DeleteContext(ThreadContext* context) {
         if (context) {
-            cout << "Thread: " << context->threadId
+            /*cout << "Thread: " << context->threadId
                     << " Received: " << context->totalMessages
                     << " Deleted: " << context->deletedMessages + context->input.size() + context->output.size()
-                    << std::endl;
+                    << std::endl;*/
             safe_delete_item(context);
         }
     }

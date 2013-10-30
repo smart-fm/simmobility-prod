@@ -8,6 +8,7 @@
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
 #include "buffering/Vector2D.hpp"
+#include "geospatial/coord/CoordinateTransform.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Point2D.hpp"
@@ -19,6 +20,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 
@@ -31,6 +33,95 @@ using namespace sim_mob;
 
 
 namespace {
+
+
+//Returns -1, 1, or 0 depending on where the point lies in relation to the line.
+//This function was modified from the openJDK project; it is licensed under the terms of the GNU GPL 2
+//   and is copyright 1997, 2006, Oracle and/or its affiliates.
+int relativeCCW(double x1, double y1, double x2, double y2, double px, double py) {
+	x2 -= x1;
+	y2 -= y1;
+	px -= x1;
+	py -= y1;
+	double ccw = px*y2 - py*x2;
+	if (ccw == 0.0) {
+		// The point is colinear, classify based on which side of
+		// the segment the point falls on.  We can calculate a
+		// relative value using the projection of px,py onto the
+		// segment - a negative value indicates the point projects
+		// outside of the segment in the direction of the particular
+		// endpoint used as the origin for the projection.
+		ccw = px*x2 + py*y2;
+		if (ccw > 0.0) {
+			// Reverse the projection to be relative to the original x2,y2,x2 and y2 are simply negated.
+			// px and py need to have (x2 - x1) or (y2 - y1) subtracted from them (based on the original values)
+			// Since we really want to get a positive answer when the point is "beyond (x2,y2)", then we want to calculate
+			//    the inverse anyway - thus we leave x2 & y2 negated.
+			px -= x2;
+			py -= y2;
+			ccw = px*x2 + py*y2;
+			if (ccw < 0.0) {
+				ccw = 0.0;
+			}
+		}
+	}
+	return (ccw < 0.0) ? -1 : ((ccw > 0.0) ? 1 : 0);
+}
+
+
+
+//Check if 2 lines intersect.
+//This function was modified from the openJDK project; it is licensed under the terms of the GNU GPL 2
+//   and is copyright 1997, 2006, Oracle and/or its affiliates.
+bool line_intersects_line(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+	return ((relativeCCW(x1, y1, x2, y2, x3, y3) *
+			relativeCCW(x1, y1, x2, y2, x4, y4) <= 0)
+			&& (relativeCCW(x3, y3, x4, y4, x1, y1) *
+			relativeCCW(x3, y3, x4, y4, x2, y2) <= 0)
+	);
+}
+
+
+
+//Check if a point is inside of a Region. Note that this code is copied from
+// Jason's RoadRunner code; we might want to eventually use a more sophisticated
+// Region check, but for now this is sufficient.
+bool point_inside_region(RoadRunnerRegion r, LatLngLocation pt) {
+	double x = pt.longitude;
+	double y = pt.latitude;
+	int polySides = r.points.size();
+	bool oddTransitions = false;
+
+	for (int i=0,j=polySides-1; i<polySides; j=i++) {
+		if ((r.points.at(i).latitude < y && r.points.at(j).latitude >= y)
+			|| (r.points.at(j).latitude < y && r.points.at(i).latitude >= y)) {
+			if (r.points.at(i).longitude +
+					(y - r.points.at(i).latitude) / (r.points.at(j).latitude
+					- r.points.at(i).latitude)
+					* (r.points.at(j).longitude - r.points.at(i).longitude) < x) {
+				oddTransitions = !oddTransitions;
+			}
+		}
+	}
+	return oddTransitions;
+}
+
+
+//Check if a line intersects one of the Region's lines.
+bool line_intersects_region(RoadRunnerRegion r, LatLngLocation start, LatLngLocation end) {
+	int polySides = r.points.size();
+	DynamicVector vec1(start.longitude, start.latitude, end.longitude, end.latitude);
+
+	for (int i=0,j=polySides-1; i<polySides; j=i++) {
+		DynamicVector vec2(r.points.at(i).longitude, r.points.at(i).latitude, r.points.at(j).longitude, r.points.at(j).latitude);
+		if (line_intersects_line(vec1.getX(), vec1.getY(), vec1.getEndX(), vec1.getEndY(), vec2.getX(), vec2.getY(), vec2.getEndX(), vec2.getEndY())) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 
 
 // Return the distance between <point> and the closest point on the line from <p1> to <p2>;
@@ -78,32 +169,15 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     //Build additional lookups
     set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
-    	buildLookups((*iter)->getPath(), completedCrossings);
-    	//buildLookups((*iter)->getPath(false), completedCrossings);
+    	buildLookups((*iter)->getSegments(), completedCrossings, network.roadRunnerRegions, network.getCoordTransform(false));
     }
 
-    //Build a lookup for BusStops
-    for (vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
-    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
-    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
-    		for (std::map<centimeter_t, const RoadItem*>::const_iterator it=(*segIt)->obstacles.begin(); it!=(*segIt)->obstacles.end(); it++) {
-    			const BusStop* bs = dynamic_cast<const BusStop*>(it->second);
-    			if (bs) {
-    				busStops_.insert(bs);
-    			}
-    		}
-    	}
-    }
-
-     //Build a lookup for nodes
-    for (vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
-    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
-    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
-    		nodes.insert((*segIt)->getStart());
-    		nodes.insert((*segIt)->getEnd());
-    	}
-    }
-
+	//TEMP:
+	Print() <<"REGIONS MAP: \n";
+	for (std::map<const RoadSegment*, RoadRunnerRegion>::const_iterator it=rrRegionLookup.begin(); it!=rrRegionLookup.end(); it++) {
+		Print() <<"  " <<it->first <<" => " <<it->second.id <<"\n";
+	}
+	Print() <<"END REGIONS MAP\n";
 }
 
 
@@ -120,8 +194,7 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadNetwork& network)
     for (size_t i=0; i<links.size(); i++) {
     	const Link* link = links[i];
         if(link) {
-        	partition(link->getPath(), true);
-        	//partition(link->getPath(false), true);
+        	partition(link->getSegments(), true);
         }
     }
 }
@@ -379,24 +452,61 @@ bool sim_mob::GridStreetDirectoryImpl::checkGrid(int m, int n, const Point2D& p1
 
 
 
-void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& roadway, set<const Crossing*>& completed)
+void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& roadway, set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords)
 {
+	//Warn if we have no coordinate transform, but also Regions
+	if (!roadRunnerRegions.empty() && !coords) {
+		Warn() <<"RoadRunnerRegions are included in the network, but no coordinate transform exists.\n";
+	}
+
 	//Scan for each crossing (note: this copies the ShortestPathImpl_ somewhat, may want to consolidate later).
 	for (vector<RoadSegment*>::const_iterator segIt=roadway.begin(); segIt!=roadway.end(); segIt++) {
+		//Build a lookup for this RoadSegment's start/end Nodes.
+    	nodes.insert((*segIt)->getStart());
+    	nodes.insert((*segIt)->getEnd());
+
+		//Save its associated RoadRunnerRegion.
+    	if (coords && !roadRunnerRegions.empty()) {
+    		//Get the midpoint of this Segment.
+    		DynamicVector dv((*segIt)->getStart()->location, (*segIt)->getEnd()->location);
+    		LatLngLocation start = coords->transform(DPoint(dv.getX(), dv.getY()));
+    		LatLngLocation end = coords->transform(DPoint(dv.getEndX(), dv.getEndY()));
+    		dv.scaleVectTo(dv.getMagnitude()/2.0);
+    		LatLngLocation midpt = coords->transform(DPoint(dv.getX(), dv.getY()));
+
+    		//Check each region until we find one that matches.
+			for (std::map<int, sim_mob::RoadRunnerRegion>::const_iterator rrIt=roadRunnerRegions.begin(); rrIt!=roadRunnerRegions.end(); rrIt++) {
+				if (point_inside_region(rrIt->second, midpt)) {
+					rrRegionLookup[*segIt] = rrIt->second;
+					break;
+				}
+				if (line_intersects_region(rrIt->second, start, end)) {
+					rrRegionLookup[*segIt] = rrIt->second;
+					break;
+				}
+			}
+    	}
+
+		//Save its obstacles
 		for (map<centimeter_t, const RoadItem*>::const_iterator riIt=(*segIt)->obstacles.begin(); riIt!=(*segIt)->obstacles.end(); riIt++) {
 			//Check if it's a crossing; check if we've already processed it; tag it.
 			const Crossing* cr = dynamic_cast<const Crossing*>(riIt->second);
-			if (!cr || completed.find(cr)!=completed.end()) {
-				continue;
-			}
-			completed.insert(cr);
+			if (cr && completed.find(cr)==completed.end()) {
+				completed.insert(cr);
 
-			//Find whatever MultiNode is closest.
-			const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
-			if (atNode) {
-				//Tag it.
-				crossings_to_multinodes[cr] = atNode;
+				//Find whatever MultiNode is closest.
+				const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
+				if (atNode) {
+					//Tag it.
+					crossings_to_multinodes[cr] = atNode;
+				}
 			}
+
+			//Check if it's a BusStop; add it to the lookup.
+		    const BusStop* bs = dynamic_cast<const BusStop*>(riIt->second);
+		    if (bs) {
+		    	busStops_.insert(bs);
+		    }
 		}
 	}
 }
@@ -450,6 +560,20 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, boo
             }
         }
     }
+}
+
+
+std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::getRoadRunnerRegion(const sim_mob::RoadSegment* seg)
+{
+	if (seg) {
+		//Try to find it.
+		std::map<const RoadSegment*, RoadRunnerRegion>::const_iterator it = rrRegionLookup.find(seg);
+		if (it!=rrRegionLookup.end()) {
+			return std::make_pair(it->second, true);
+		}
+	}
+
+	return std::make_pair(RoadRunnerRegion(), false);
 }
 
 

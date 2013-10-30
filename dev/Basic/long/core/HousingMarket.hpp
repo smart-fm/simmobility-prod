@@ -39,8 +39,8 @@ namespace sim_mob {
             /**
              * Inherited from UnitHolder.
              */
-            bool Add(Unit* unit, bool reOwner);
-            Unit* Remove(UnitId id, bool reOwner);
+            bool add(Unit* unit, bool reOwner);
+            Unit* remove(UnitId id, bool reOwner);
 
             /**
              * Inherited from Entity
@@ -52,7 +52,7 @@ namespace sim_mob {
             /**
              * Initializes the market.
              */
-            void Setup();
+            void setup();
             
         private:
             volatile bool firstTime;

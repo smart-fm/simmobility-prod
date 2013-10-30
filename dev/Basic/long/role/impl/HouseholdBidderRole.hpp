@@ -14,7 +14,6 @@
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
-#include "database/entity/housing-market/BidderParams.hpp"
 
 namespace sim_mob {
 
@@ -35,15 +34,15 @@ namespace sim_mob {
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>{
         public:
-            HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
-                    const BidderParams& params, HousingMarket* market);
+            HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
+                    HousingMarket* market);
             virtual ~HouseholdBidderRole();
 
             /**
              * Inherited from LT_Role
              * @param currTime
              */
-            virtual void Update(timeslice currTime);
+            virtual void update(timeslice currTime);
         protected:
 
             /**
@@ -59,7 +58,7 @@ namespace sim_mob {
              * @param sender EVentManager responsible for the fired event.
              * @param args {@link EM_EventArgs} instance.
              */
-            void OnWakeUp(event::EventId id, event::Context ctx,
+            void onWakeUp(event::EventId id, event::Context ctx,
                     event::EventPublisher* sender, const event::EM_EventArgs& args);
 
             /**
@@ -68,18 +67,18 @@ namespace sim_mob {
              * @param sender of the event.
              * @param args of the event.
              */
-            void OnMarketAction(event::EventId id, event::EventPublisher* sender,
+            void onMarketAction(event::EventId id, event::EventPublisher* sender,
                     const HM_ActionEventArgs& args);
 
             /**
              * Subscribes the role to all market generic events.
              */
-            void FollowMarket();
+            void followMarket();
 
             /**
              * UnSubscribes the role to all market generic events.
              */
-            void UnFollowMarket();
+            void unFollowMarket();
 
         private:
             friend class HouseholdAgent;
@@ -91,60 +90,30 @@ namespace sim_mob {
              * @param now
              * @return 
              */
-            bool BidUnit(timeslice now);
+            bool bidUnit(timeslice now);
             
-            /**
-             * Calculates the surplus for the given unit.
-             * 
-             * surplus = pow(askingPrice, alpha + 1)/ (n_bids * zeta)
-             * 
-             * Where:
-             *    n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
-             *    alpha: Represents the urgency of the household to get the unit. (Household parameter)
-             *    zeta: Represents the relation between quality and price of the unit. (Unit parameter)
-             * 
-             * @param unit to calculate the surplus.
-             * @return the surplus for the given unit.
-             */
-            float CalculateSurplus(const Unit& unit);
-
-            /**
-             * Calculates the willingness to pay based on Household 
-             * attributes (and importance) and unit attributes.
-             * 
-             * This method calculates the willingness to pay following this formula:
-             * 
-             * wp = (HHIncomeWeight * HHIncome) + 
-             *      (HHUnitAttributeWeight1 * UnitAttribute1) + ...
-             *      (HHUnitAttributeWeightN * UnitAttributeN)
-             *
-             * @return value of the willingness to pay
-             */
-            float CalculateWP(const Unit& unit);
-
             /**
              * Gets the bids counter for the given unit.
              * @param unitId unit unique identifier.
              * @return number of bids.
              */
-            int GetBidsCounter(UnitId unitId);
+            int getBidsCounter(UnitId unitId);
 
             /**
              * Increments the bids counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void IncrementBidsCounter(UnitId unitId);
+            void incrementBidsCounter(UnitId unitId);
             
             /**
              * Deletes the counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void DeleteBidsCounter(UnitId unitId);
+            void deleteBidsCounter(UnitId unitId);
 
         private:
             Household* hh;
             HousingMarket* market;
-            BidderParams params;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;

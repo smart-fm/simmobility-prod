@@ -37,7 +37,8 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
-	  isBoundary(false), isMultipleReceiver(false)
+	  isBoundary(false), isMultipleReceiver(false),shouldResetParams(false)
+
 {
 }
 
@@ -415,8 +416,9 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
+	bool res = false;
 	try {
-		return (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+		res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 	}
 	catch(std::out_of_range& ex){
 		debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
@@ -430,6 +432,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 		}
 		throw std::runtime_error(debugMsgs.str());
 	}
+	return res;
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
@@ -669,11 +672,11 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	person->curr_params = &(person->getRole()->make_frame_tick_params(now));
+	(person->getRole()->make_frame_tick_params(now));
 
 	//Now that the Role has been fully constructed, initialize it.
 	if(*(person->currTripChainItem)) {
-		person->getRole()->Movement()->frame_init(*person->curr_params);
+		person->getRole()->Movement()->frame_init();
 		if(person->getCurrPath().empty()){
 			return false;
 		}
@@ -685,8 +688,9 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 
 Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, Person* person) {
 	Role* personRole = person->getRole();
-	if (!person->curr_params) {
-		person->curr_params = &personRole->make_frame_tick_params(now);
+	if (shouldResetParams) {
+		personRole->make_frame_tick_params(now);
+		shouldResetParams = false;
 	}
 	person->setLastUpdatedFrame(currFrameNumber.frame());
 
@@ -712,7 +716,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 	while(person->remainingTimeThisTick > 0.0) {
 		if (!person->isToBeRemoved()) {
-			personRole->Movement()->frame_tick(*person->curr_params);
+			personRole->Movement()->frame_tick();
 		}
 
 		if (person->isToBeRemoved()) {
@@ -780,12 +784,14 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 void sim_mob::Conflux::call_movement_frame_output(timeslice now, Person* person) {
 	//Save the output
-	if (!person->isToBeRemoved()) {
-		person->currRole->Movement()->frame_tick_output(*person->curr_params);
+
+	if (!isToBeRemoved()) {
+		person->currRole->Movement()->frame_tick_output();
+
 	}
 
-	//TODO: Still risky.
-	person->curr_params = nullptr; //WARNING: Do *not* delete curr_params; it is only used to point to the result of get_params.
+	//sorry Harish, I wanted to avoid hard to detect logical errors
+	shouldResetParams = true;
 }
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {

@@ -53,15 +53,15 @@ DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent):
 
 DriverBehavior::~DriverBehavior() {}
 
-void DriverBehavior::frame_init(UpdateParams& p) {
+void DriverBehavior::frame_init() {
 	throw std::runtime_error("DriverBehavior::frame_init is not implemented yet");
 }
 
-void DriverBehavior::frame_tick(UpdateParams& p) {
+void DriverBehavior::frame_tick() {
 	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output(const UpdateParams& p) {
+void DriverBehavior::frame_tick_output() {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -73,7 +73,7 @@ sim_mob::medium::DriverMovement::~DriverMovement() {
 	safe_delete_item(vehicle);
 }
 
-void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
+void sim_mob::medium::DriverMovement::frame_init() {
 	//Save the path from orign to next activity location in allRoadSegments
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
@@ -86,9 +86,8 @@ void sim_mob::medium::DriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
-void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
-	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
-
+void sim_mob::medium::DriverMovement::frame_tick() {
+	DriverUpdateParams& p2 = parentDriver->getParams();
 	const Lane* laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
 	if(vehicle->getCurrSegment() == getParent()->getCurrSegment() )
 	{
@@ -162,7 +161,8 @@ void sim_mob::medium::DriverMovement::frame_tick(UpdateParams& p) {
 	}
 }
 
-void sim_mob::medium::DriverMovement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::medium::DriverMovement::frame_tick_output() {
+	const DriverUpdateParams& p = parentDriver->getParams();
 	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}

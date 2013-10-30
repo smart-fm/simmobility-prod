@@ -12,42 +12,42 @@
 #include "HousingMarket.hpp"
 #include "workers/Worker.hpp"
 #include "event/LT_EventArgs.hpp"
+#include "message/MessageBus.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
+using namespace sim_mob::messaging;
 using sim_mob::Entity;
 using std::vector;
 
 HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {
-    RegisterEvent(LTEID_HM_UNIT_ADDED);
-    RegisterEvent(LTEID_HM_UNIT_REMOVED);
 }
 
 HousingMarket::~HousingMarket() {
-    UnRegisterEvent(LTEID_HM_UNIT_ADDED);
-    UnRegisterEvent(LTEID_HM_UNIT_REMOVED);
 }
 
-bool HousingMarket::Add(Unit* unit, bool reOwner) {
+bool HousingMarket::add(Unit* unit, bool reOwner) {
     // no re-parent the unit to the market.
-    bool retVal = UnitHolder::Add(unit, false);
+    bool retVal = UnitHolder::add(unit, false);
     if (retVal) {
-        Publish(LTEID_HM_UNIT_ADDED, HM_ActionEventArgs(unit->GetId()));
+        MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->getId())));
     }
     return retVal;
 }
 
-Unit* HousingMarket::Remove(UnitId id, bool reOwner) {
+Unit* HousingMarket::remove(UnitId id, bool reOwner) {
     // no re-parent the unit to the market.
-    Unit* retVal = UnitHolder::Remove(id, false);
+    Unit* retVal = UnitHolder::remove(id, false);
     if (retVal) {
-        Publish(LTEID_HM_UNIT_REMOVED, HM_ActionEventArgs(id));
+        MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this, 
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(id)));
     }
     return retVal;
 }
 
 Entity::UpdateStatus HousingMarket::update(timeslice now) {
-    Setup();
+    setup();
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }
 
@@ -58,7 +58,7 @@ bool HousingMarket::isNonspatial() {
 void HousingMarket::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 }
 
-void HousingMarket::Setup() {
+void HousingMarket::setup() {
     if (firstTime) {
         //setup first things inside the entity.
         firstTime = false;

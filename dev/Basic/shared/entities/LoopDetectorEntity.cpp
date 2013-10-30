@@ -388,7 +388,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         if (link->getEnd() == &node) {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath();
+            std::vector<RoadSegment *> const & roads = link->getSegments();
             if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
             } else {
@@ -397,7 +397,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         } else {
             // <link> is receding away from <node>.  The loop-detectors should be at the end
             // of the last segment in the non-forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath();
+            std::vector<RoadSegment *> const & roads = link->getSegments();
             if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
             } else {
@@ -421,7 +421,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath();
+            std::vector<RoadSegment *> const & roads = link->getSegments();
             if (! roads.empty())
             {
                 createLoopDetectors(roads, entity);
@@ -431,7 +431,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         {
             // <link> is receding away from <node>.  The loop-detectors should be at the end
             // of the last segment in the non-forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getPath(false);
+            std::vector<RoadSegment *> const & roads = link->getSegments(false);
             if (! roads.empty())
             {
                 createLoopDetectors(roads, entity);
@@ -613,7 +613,7 @@ LoopDetectorEntity::init(Signal const & signal)
 {
     pimpl_ = new Impl(signal, *this);
     tempLoopImpl = pimpl_;
-    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
+//    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
 }
 
 /* virtual */ void

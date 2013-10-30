@@ -43,6 +43,7 @@ class Conflux : public sim_mob::Agent {
 	friend class sim_mob::aimsun::Loader;
 
 private:
+	bool shouldResetParams;
 	/**
 	 *  MultiNode around which this conflux is constructed
 	 */

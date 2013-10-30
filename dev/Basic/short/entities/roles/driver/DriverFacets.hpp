@@ -26,9 +26,9 @@ public:
 	virtual ~DriverBehavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	Driver* getParentDriver() const {
 		return parentDriver;
@@ -54,9 +54,9 @@ public:
 	virtual ~DriverMovement();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	Driver* getParentDriver() const {
@@ -92,10 +92,12 @@ private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 	static void check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
+	void check_and_set_min_car_dist2(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+
 	//More update methods
-	bool update_sensors(DriverUpdateParams& params, timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
-	bool update_movement(DriverUpdateParams& params, timeslice now);       ///<Called to move vehicles forward.
-	bool update_post_movement(DriverUpdateParams& params, timeslice now);  ///<Called to deal with the consequences of moving forwards.
+	bool update_sensors(timeslice now);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(timeslice now);       ///<Called to move vehicles forward.
+	bool update_post_movement(timeslice now);  ///<Called to deal with the consequences of moving forwards.
 
     double currLinkOffset;
 	size_t targetLaneIndex;
@@ -129,7 +131,6 @@ protected:
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
-
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 private:
@@ -146,10 +147,10 @@ private:
 	void updateVelocity();
 	void setBackToOrigin();
 
-	void updateNearbyAgents(DriverUpdateParams& params);
-	void updateNearbyDriver(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
-	void updateNearbyPedestrian(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
-
+	void updateNearbyAgents();
+	bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
+//	void handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
+	void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
 	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
 

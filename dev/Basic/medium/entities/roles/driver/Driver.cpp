@@ -63,7 +63,10 @@ size_t getLaneIndex(const Lane* l) {
 
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
-	sim_mob::Role(behavior, movement, parent, "Driver_"), currLane(nullptr), vehicle(nullptr), params(parent->getGenerator())
+	sim_mob::Role(behavior, movement, parent, "Driver_"),
+	currLane(nullptr),
+	/*, params(parent->getGenerator()),*/
+	vehicle(nullptr)
 {}
 
 sim_mob::medium::Driver::~Driver() {
@@ -75,10 +78,10 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 	return res;
 }
 
-sim_mob::UpdateParams& sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
+void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 {
-	params.reset(now, *this);
-	return params;
+	getParams().reset(now, *this);
+//	return params;
 }
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const

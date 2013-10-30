@@ -31,33 +31,63 @@ Building& Building::operator=(const Building& source) {
     this->floorArea = source.floorArea;
     this->parkingSpaces = source.parkingSpaces;
     this->storeys = source.storeys;
+    this->residentialUnits = source.residentialUnits;
+    this->landArea = source.landArea;
+    this->improvementValue = source.improvementValue;
+    this->taxExempt = source.taxExempt;
+    this->nonResidentialSqft = source.nonResidentialSqft;
+    this->sqftPerUnit = source.sqftPerUnit;
     return *this;
 }
 
-BigSerial Building::GetId() const {
+BigSerial Building::getId() const {
     return id;
 }
 
-BigSerial Building::GetTypeId() const {
+BigSerial Building::getTypeId() const {
     return typeId;
 }
 
-BigSerial Building::GetParcelId() const {
+BigSerial Building::getParcelId() const {
     return parcelId;
 }
 
-int Building::GetBuiltYear() const {
+int Building::getBuiltYear() const {
     return builtYear;
 }
 
-double Building::GetFloorArea() const {
+double Building::getFloorArea() const {
     return floorArea;
 }
 
-int Building::GetStoreys() const {
+int Building::getStoreys() const {
     return storeys;
 }
 
-int Building::GetParkingSpaces() const {
+int Building::getParkingSpaces() const {
     return parkingSpaces;
+}
+
+int Building::getResidentialUnits() const {
+    return residentialUnits;
+}
+
+double Building::getLandArea() const {
+    return landArea;
+}
+
+int Building::getImprovementValue() const {
+    return improvementValue;
+}
+
+int Building::getTaxExempt() const {
+    return taxExempt;
+}
+
+double Building::getNonResidentialSqft() const {
+    return nonResidentialSqft;
+}
+
+double Building::getSqftPerUnit() const {
+    return sqftPerUnit;
 }

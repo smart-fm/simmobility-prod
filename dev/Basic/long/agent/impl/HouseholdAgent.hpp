@@ -12,38 +12,54 @@
 #include "agent/LT_Agent.hpp"
 #include "core/HousingMarket.hpp"
 #include "database/entity/Household.hpp"
-#include "database/entity/housing-market/BidderParams.hpp"
-#include "database/entity/housing-market/SellerParams.hpp"
+#include "event/EventListener.hpp"
 #include "role/LT_Role.hpp"
+
 
 namespace sim_mob {
 
     namespace long_term {
-
+        
         /**
          * Represents an Long-Term household agent.
          * An household agent has the following capabilities:
          * - Sell units.
          * - Bid units. 
          */
-        class HouseholdAgent : public LT_Agent, public UnitHolder {
+        class HouseholdAgent : 
+        public LT_Agent, public UnitHolder{
         public:
-            HouseholdAgent(int id, Household* hh, const SellerParams& sellerParams,  
-        const BidderParams& bidderParams, HousingMarket* market);
+            HouseholdAgent(int id, Household* hh, HousingMarket* market);
             virtual ~HouseholdAgent();
         protected:
+            
             /**
              * Inherited from LT_Agent.
              */
+            bool onFrameInit(timeslice now);
+            sim_mob::Entity::UpdateStatus onFrameTick(timeslice now);
+            void onFrameOutput(timeslice now);
+            
+            /**
+             * Inherited from Entity. 
+             */
+            void onWorkerEnter();
+            void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, 
                     const messaging::Message& message);
-            bool OnFrameInit(timeslice now);
-            sim_mob::Entity::UpdateStatus OnFrameTick(timeslice now);
-            void OnFrameOutput(timeslice now);
+        private:
+            /**
+             * Events callbacks.
+             */
+            virtual void OnEvent(event::EventId eventId, 
+                    event::EventPublisher* sender, const event::EventArgs& args);
+            virtual void OnEvent(event::EventId eventId, event::Context ctxId, 
+                    event::EventPublisher* sender, const event::EventArgs& args);
         private:
             HousingMarket* market;
             Household* hh;
-            LT_Role* currentRole;
+            LT_Role* bidderRole;
+            LT_Role* sellerRole;
         };
     }
 }

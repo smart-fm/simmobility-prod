@@ -1717,7 +1717,7 @@ DatabaseLoader::createSignals()
     	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
     	if(ppp.first == ppp.second)
     	{
-    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
+//    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
     		continue;
     	}
     	bool isNew = false;
@@ -1861,8 +1861,7 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 	{
 		sim_mob::Link* link = *vIt;
 
-		const std::vector<sim_mob::RoadSegment*>& fwdSegs = link->getPath();
-		//const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
+		const std::vector<sim_mob::RoadSegment*>& fwdSegs = link->getSegments();
 		std::set<sim_mob::RoadSegment*> roadSegs;
 		roadSegs.insert(fwdSegs.begin(), fwdSegs.end());
 		//roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());

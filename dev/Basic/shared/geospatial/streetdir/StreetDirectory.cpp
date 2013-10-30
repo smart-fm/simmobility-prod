@@ -10,6 +10,7 @@
 #include <limits>
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include "geospatial/RoadRunnerRegion.hpp"
 
 #include <cmath>
 
@@ -84,6 +85,11 @@ void sim_mob::StreetDirectory::updateDrivingMap()
 	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
 	}
+}
+
+std::pair<RoadRunnerRegion, bool> sim_mob::StreetDirectory::getRoadRunnerRegion(const sim_mob::RoadSegment* seg)
+{
+	return pimpl_ ? pimpl_->getRoadRunnerRegion(seg) : std::make_pair(RoadRunnerRegion(), false);
 }
 
 const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& point) const
@@ -239,7 +245,7 @@ void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 
     if (signals_.count(node) == 0) {
         signals_.insert(std::make_pair(node, &signal));
-        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
+//        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
     }
 }
 

@@ -15,7 +15,6 @@
 #include "role/LT_Role.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
-#include "database/entity/housing-market/SellerParams.hpp"
 
 namespace sim_mob {
 
@@ -32,15 +31,15 @@ namespace sim_mob {
          */
         class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            HouseholdSellerRole(HouseholdAgent* parent, Household* hh,
-                    const SellerParams& params, HousingMarket* market);
+            HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
+                    HousingMarket* market);
             virtual ~HouseholdSellerRole();
 
             /**
              * Method that will update the seller on each tick.
              * @param currTime
              */
-            virtual void Update(timeslice currTime);
+            virtual void update(timeslice currTime);
         protected:
 
             /**
@@ -52,42 +51,34 @@ namespace sim_mob {
         private:
             
             /**
-             * Struct to store a expectation data.
-             */
-            typedef struct ExpectationEntry_ {
-                double price;
-                double expectation;
-            } ExpectationEntry;
-            
-            /**
              * Decides over a given bid for a given unit.
              * @param bid given by the bidder.
              * @return true if accepts the bid or false otherwise.
              */
-            bool Decide(const Bid& bid, const ExpectationEntry& entry);
+            bool decide(const Bid& bid, const ExpectationEntry& entry);
             
             /**
              * Adjust the unit parameters for the next bids. 
              * @param unit
              */
-            void AdjustUnitParams(Unit& unit);
+            void adjustUnitParams(Unit& unit);
             
             /**
              * Notify the bidders that have their bid were accepted.
              */
-            void NotifyWinnerBidders();
+            void notifyWinnerBidders();
             
             /**
              * Adjust parameters of all units that were not selled.
              */
-            void AdjustNotSelledUnits();
+            void adjustNotSelledUnits();
             
             /**
              * Calculates the unit expectations to the maximum period of time 
              * that the seller is expecting to be in the market.
              * @param unit to cal
              */
-            void CalculateUnitExpectations(const Unit& unit);
+            void calculateUnitExpectations(const Unit& unit);
         
             /**
              * Gets current expectation entry for given unit.
@@ -96,7 +87,7 @@ namespace sim_mob {
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool GetCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry);
         private:
 
             typedef std::vector<ExpectationEntry> ExpectationList;
@@ -108,12 +99,12 @@ namespace sim_mob {
             friend class HouseholdAgent;
             HousingMarket* market;
             Household* hh;
-            SellerParams params;
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
             ExpectationMap unitExpectations;
+            int currentExpectationIndex;
         };
     }
 }

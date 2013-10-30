@@ -12,12 +12,6 @@
 #include "LT_Agent.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "workers/Worker.hpp"
-#include "message/MessageBus.hpp"
-
-
-#include <boost/thread.hpp>
-#include <boost/lexical_cast.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -29,7 +23,6 @@ using std::map;
 
 LT_Agent::LT_Agent(int id)
 : Agent(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {
-    isRegistered = false;
 }
 
 LT_Agent::~LT_Agent() {
@@ -39,24 +32,17 @@ void LT_Agent::load(const map<string, string>& configProps) {
 }
 
 bool LT_Agent::frame_init(timeslice now) {
-    if (!isRegistered){
-        messaging::MessageBus::RegisterHandler(this);
-        isRegistered = true;
-    }
-    return OnFrameInit(now);
+    return onFrameInit(now);
 }
 
 Entity::UpdateStatus LT_Agent::frame_tick(timeslice now) {
-    return OnFrameTick(now);
+    return onFrameTick(now);
 }
 
 void LT_Agent::frame_output(timeslice now) {
-    OnFrameOutput(now);
+    onFrameOutput(now);
 }
 
 bool LT_Agent::isNonspatial() {
     return false;
-}
-
-void LT_Agent::HandleMessage(Message::MessageType type, const Message& message) {
 }

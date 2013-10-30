@@ -60,6 +60,7 @@ inline void operator++(PedestrianStage& rhs) {
 
 //Helper struct
 struct PedestrianUpdateParams : public sim_mob::UpdateParams {
+	PedestrianUpdateParams() : UpdateParams(), skipThisFrame(false)  {}
 	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
 	virtual ~PedestrianUpdateParams() {}
 
@@ -85,7 +86,7 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
-class Pedestrian : public sim_mob::Role {
+class Pedestrian : public sim_mob::Role , public UpdateWrapper<PedestrianUpdateParams>{
 public:
 	Pedestrian(Agent* parent);
 	virtual ~Pedestrian();
@@ -93,11 +94,11 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_med(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual UpdateParams& make_frame_tick_params(timeslice now);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_med();
+	virtual void frame_tick_output();
+	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	bool isOnCrossing() const;

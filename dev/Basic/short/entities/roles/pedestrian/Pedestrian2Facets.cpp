@@ -28,15 +28,15 @@ Pedestrian2Behavior::Pedestrian2Behavior(sim_mob::Person* parentAgent):
 
 Pedestrian2Behavior::~Pedestrian2Behavior() {}
 
-void Pedestrian2Behavior::frame_init(UpdateParams& p) {
+void Pedestrian2Behavior::frame_init() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_init is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick(UpdateParams& p) {
+void Pedestrian2Behavior::frame_tick() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output(const UpdateParams& p) {
+void Pedestrian2Behavior::frame_tick_output() {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
 
@@ -70,7 +70,7 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 
 }
 
-void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
+void sim_mob::Pedestrian2Movement::frame_init() {
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -79,8 +79,8 @@ void sim_mob::Pedestrian2Movement::frame_init(UpdateParams& p) {
 	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
-	PedestrianUpdateParams2& p2 = dynamic_cast<PedestrianUpdateParams2&>(p);
+void sim_mob::Pedestrian2Movement::frame_tick() {
+	PedestrianUpdateParams2& p2 = parentPedestrian2->getParams();
 
 	//Is this the first frame tick?
 	if (p2.skipThisFrame) {
@@ -120,7 +120,7 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
-					newRole->Movement()->frame_init(p);
+					newRole->Movement()->frame_init();
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 //					passenger->BoardedBus.set(true);
@@ -138,10 +138,11 @@ void sim_mob::Pedestrian2Movement::frame_tick(UpdateParams& p) {
 		getParent()->yPos.set(pedMovement.getPosition().y);
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
 	//		return;
 	//	}
+	PedestrianUpdateParams2 &p = parentPedestrian2->getParams();
 
 	//MPI-specific output.
 	std::stringstream addLine;
@@ -180,28 +181,28 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
+	//for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 	//std::cout<<"Pedestrian requested path from: " <<getParent()->originNode.getID() <<" => " <<getParent()->destNode.node_->getID() <<"  {" <<std::endl;
-	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+	/*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
 			const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
-			std::cout<<"  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl;
+//			std::cout<<"  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl;
 		} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			std::cout<<"  Road Segment: (not supported)" <<std::endl;
+//			std::cout<<"  Road Segment: (not supported)" <<std::endl;
 		} else if (it->type_ == WayPoint::BUS_STOP) {
-			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
+//			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
-			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {
-			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::INVALID) {
-			std::cout<<"  <Invalid>"<<std::endl;
+//			std::cout<<"  <Invalid>"<<std::endl;
 		} else {
-			std::cout<<"  Unknown type."<<std::endl;
+//			std::cout<<"  Unknown type."<<std::endl;
 		}
 	}
-	std::cout<<"}" <<std::endl;
-
+	std::cout<<"}" <<std::endl;*/
 	pedMovement.setPath(wp_path);
 }
 

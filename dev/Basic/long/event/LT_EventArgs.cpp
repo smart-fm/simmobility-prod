@@ -25,6 +25,6 @@ HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
 HM_ActionEventArgs::~HM_ActionEventArgs() {
 }
 
-const UnitId HM_ActionEventArgs::GetUnitId() const {
+const UnitId HM_ActionEventArgs::getUnitId() const {
     return unitId;
 }

@@ -344,7 +344,7 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 	}
 
 	//Print skipped turnings all at once.
-	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
+//	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)

@@ -396,7 +396,11 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		msg <<it->destPos.getX() <<"," <<it->destPos.getY();
 		props["destPos"] = msg.str();
 		}
-
+		{
+		std::stringstream msg;
+		msg << it->laneIndex;
+		props["lane"] = msg.str();
+		}
 		{
 			//Loop through attributes, ensuring that all required attributes are found.
 			//std::map<std::string, bool> propLookup = rf.getRequiredAttributes(roleName);

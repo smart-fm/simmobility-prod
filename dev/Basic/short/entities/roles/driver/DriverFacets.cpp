@@ -1745,11 +1745,11 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 			const Lane* nextRightLane = nullptr;
 			const Lane* nextLeftLane2 = nullptr;
 			const Lane* nextRightLane2 = nullptr;
-			if (uNode) {
-				nextLane = uNode->getOutgoingLane(*params.currLane);
-			}
+//			if (uNode) {
+//				nextLane = uNode->getOutgoingLane(*params.currLane);
+//			}
 
-			if (uNode && nextLane==nullptr) {
+			if (uNode) {
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
 			}
 

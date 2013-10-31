@@ -677,11 +677,11 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		int aa=0;
 	}
 	//Behavior changes depending on whether or not we're actually changing lanes.
-	if(currLaneChangeDir==LCS_SAME)
-	{
-		return 0.0;
-	}
-	else
+	//if(currLaneChangeDir==LCS_SAME)
+	//{
+	//	return 0.0;
+	//}
+	//else
 	{
 		//1.If too close to node, don't do lane changing, distance should be larger than 3m
 		if(p.dis2stop <= 3) {

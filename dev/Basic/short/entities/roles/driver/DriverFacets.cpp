@@ -1470,7 +1470,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		//TODO: Start in lane 0?
 		static int laneId = 0;
-		int startlaneID = (++laneId)%3;
+		int startlaneID = 0; (++laneId)%3;
 
 		if(parentP->laneID != -1)
 		{

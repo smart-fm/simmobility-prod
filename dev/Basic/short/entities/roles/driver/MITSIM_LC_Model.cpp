@@ -270,6 +270,9 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 		return LCS_LEFT;
 	}
 	if(freeLanes.both()){
+		// avoid ossilation
+		return p.lastDecision;
+
 		if(right && left){
 			return (leftUtility > rightUtility) ? LCS_LEFT : LCS_RIGHT;	//both side is available, choose the better one
 		}
@@ -722,6 +725,10 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 
 			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 		}
+
+		// remember last tick change mode
+		p.lastChangeMode = changeMode;
+		p.lastDecision = decision;
 
 		return 0.0;
 	}

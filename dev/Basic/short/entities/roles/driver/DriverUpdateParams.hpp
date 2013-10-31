@@ -99,6 +99,8 @@ struct DriverUpdateParams : public UpdateParams {
 
 	TARGET_GAP targetGap;
 	bool isMLC;
+	LANE_CHANGE_MODE lastChangeMode;
+	LANE_CHANGE_SIDE lastDecision;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.

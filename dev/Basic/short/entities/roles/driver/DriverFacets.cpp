@@ -851,7 +851,8 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			parentDriver->vehicle->setVelocity(0);
 			parentDriver->vehicle->setAcceleration(0);
 		}
-		else if(nv.exists() ){
+	}
+	if(nv.exists() ){
 			DPoint dFwd = nv.driver->getVehicle()->getPosition();
 			DPoint dCur = parentDriver->vehicle->getPosition();
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
@@ -861,7 +862,6 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 				parentDriver->vehicle->setVelocity(0);
 				parentDriver->vehicle->setAcceleration(0);
 			}
-		}
 	}
 
 	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<

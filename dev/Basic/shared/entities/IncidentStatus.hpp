@@ -17,37 +17,45 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentStatus {
 public:
-	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_CHANGELANE, INCIDENT_SLOWDOWN, INCIDENT_VISIBILITY };
+	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
 	IncidentStatus();
 	virtual ~IncidentStatus();
 	bool insertIncident(const Incident* inc);
 	bool removeIncident(const Incident* inc);
 	void checkIsCleared(timeslice* now, const RoadSegment* currentRoad);
-	INCIDENTSTATUS getCurrentStatus() { return currentPlan; }
+	INCIDENTSTATUS getCurrentStatus() { return currentStatus; }
 	void resetStatus();
 	double urandom();
 
 public:
+	//record next lane index for lane changing model
 	int nextLaneIndex;
+	//record speed limit defined in incident lane
 	float speedLimit;
+	//record speed limit defined in adjacent lane to incident
 	float speedLimitOthers;
-	float lastSpeed;
-	float lastAccel;
+	//record visibility distance within which driver can see the incident
 	float visibilityDist;
+	//record real distance to the incident at current time
 	float distanceTo;
-	float randomStep;
+	//record a random number for the reference to mandatory lane changing
 	float randomNum;
-	unsigned int startFrameTick;
-	unsigned int curFrameTick;
+	//record lane changing direction(left or right) for lane changing model
 	LANE_CHANGE_SIDE laneSide;
-	INCIDENTSTATUS currentPlan;
+	//record current detection result when incident happen
+	INCIDENTSTATUS currentStatus;
+	//record the lane changing decision
 	bool changedlane;
-	bool slowdown;
+	//record the decision of slowing down velocity
+	bool slowdownVelocity;
+
 private:
+	//record incident objects to help make decision
 	std::map<unsigned int, const Incident*> currentIncidents;
-	long seed;
+	//initialization flag;
 	static unsigned int flags;
-	unsigned int signature;
+	//initial random seed
+	long seed;
 };
 
 } /* namespace sim_mob */

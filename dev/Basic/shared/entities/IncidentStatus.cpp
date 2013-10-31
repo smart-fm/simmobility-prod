@@ -11,15 +11,14 @@
 namespace sim_mob {
 
 unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentPlan(INCIDENT_CLEARANCE), startFrameTick(0), randomStep(1.0),  curFrameTick(0), speedLimit(0), speedLimitOthers(0), distanceTo(0), lastSpeed(0), laneSide(LCS_SAME), changedlane(false), slowdown(false){
+IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME), changedlane(false), slowdownVelocity(false){
 	// TODO Auto-generated constructor stub
-	static int counter = 0;
-	if(counter==0) {
+	if(flags == 0) {
+		flags = 1;
 		srand (time(0));
-		signature = counter;
-		counter ++;
+		unsigned int signature = time(0);
 		unsigned int s = 0xFF << (signature * 8);
-		if (!(seed = (flags & s))) {
+		if (!(seed = s)) {
 			seed = time(0);
 		}
 	}
@@ -91,21 +90,17 @@ double IncidentStatus::urandom(){
 
 	double ret = (double)seed / (double)M;
 
-	//double ret = rand()/(RAND_MAX*1.0);
-
 	return ret;
 }
 
 
 void IncidentStatus::resetStatus(){
-	currentPlan = INCIDENT_CLEARANCE;
+	currentStatus = INCIDENT_CLEARANCE;
 	nextLaneIndex = -1;
 	speedLimit = -1;
-	randomStep = 1.0;
+	speedLimitOthers = -1;
 	changedlane = false;
-	slowdown = false;
-	//startFrameTick = 0;
-	//curFrameTick = 0;
+	slowdownVelocity = false;
 }
 
 

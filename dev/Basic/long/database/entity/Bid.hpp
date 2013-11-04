@@ -13,7 +13,7 @@
 #include "Common.hpp"
 #include "Types.hpp"
 #include "metrics/Frame.hpp"
-#include "message/MessageHandler.hpp"
+#include "agent/LT_Agent.hpp"
 
 namespace sim_mob {
 
@@ -24,7 +24,7 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(UnitId id, int bidderId, messaging::MessageHandler* bidder, float value, 
+            Bid(BigSerial id, int bidderId, LT_Agent* bidder, float value, 
                     timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
@@ -40,7 +40,7 @@ namespace sim_mob {
              * Gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            UnitId getUnitId() const;
+            BigSerial getUnitId() const;
 
             /**
              * Gets the Bidder unique identifier.
@@ -52,7 +52,7 @@ namespace sim_mob {
              * Gets the Bidder pointer.
              * @return bidder pointer.
              */
-            messaging::MessageHandler* getBidder() const;
+            LT_Agent* getBidder() const;
 
             /**
              * Gets the value of the bid.
@@ -85,10 +85,10 @@ namespace sim_mob {
             Bid();
         private:
             timeslice time;
-            UnitId unitId;
+            BigSerial unitId;
             int bidderId;
             float value;
-            messaging::MessageHandler* bidder;
+            LT_Agent* bidder;
         };
     }
 }

@@ -13,9 +13,8 @@
 #include "metrics/Frame.hpp"
 
 using namespace sim_mob::long_term;
-using namespace sim_mob::messaging;
 
-Bid::Bid(UnitId unitId, int bidderId, MessageHandler* bidder, float value, timeslice& time)
+Bid::Bid(BigSerial unitId, int bidderId, LT_Agent* bidder, float value, timeslice& time)
 : unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {
 }
 
@@ -43,7 +42,7 @@ Bid& Bid::operator=(const Bid& source) {
     return *this;
 }
 
-UnitId Bid::getUnitId() const {
+BigSerial Bid::getUnitId() const {
     return unitId;
 }
 
@@ -59,6 +58,6 @@ const timeslice& Bid::getTime() const {
     return time;
 }
 
-MessageHandler* Bid::getBidder() const{
+LT_Agent* Bid::getBidder() const{
     return bidder;
 }

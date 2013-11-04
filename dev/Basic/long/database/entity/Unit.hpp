@@ -28,10 +28,9 @@ namespace sim_mob {
          */
         class Unit {
         public:
-            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
+            Unit(BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
                  BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID, 
-                 double area = .0f, int storey = 0, double rent = .0f,
-                 bool available = false);
+                 double area = .0f, int storey = 0, double rent = .0f);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -46,7 +45,7 @@ namespace sim_mob {
              * gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            UnitId getId() const;
+            BigSerial getId() const;
 
             /**
              * gets the Unit unique identifier.
@@ -85,39 +84,9 @@ namespace sim_mob {
             double getRent() const;
 
             /**
-             * Verifies if home is available.
-             * @return true if unit is available, false otherwise.
-             */
-            bool isAvailable() const;
-
-            /**
-             * sets if unit is avaliable or not.
-             * @param avaliable value. 
-             */
-            void setAvailable(bool avaliable);
-            
-            /**
-             * @return the hedonic price.
-             */
-            double getHedonicPrice() const;
-            
-            /**
-             * @return the AskingPrice price.
-             */
-            double getAskingPrice() const;
-
-            /**
-             * gets the owner endpoint for communication.
-             * @return owner endpoint.
-             */
-            UnitHolder* getOwner();
-            
-            /**
              * Operator to print the Unit data.  
              */
             friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
-            	boost::upgrade_lock<boost::shared_mutex> up_lock(data.mutex);
-            	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
@@ -125,46 +94,22 @@ namespace sim_mob {
                         << "\"postcodeId\":\"" << data.postcodeId << "\","
                         << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storey\":\"" << data.storey << "\","
-                        << "\"rent\":\"" << data.rent << "\","
-                        << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
-                        << "\"askingPrice\":\"" << data.askingPrice << "\","
-                        << "\"available\":\"" << data.available << "\""
+                        << "\"rent\":\"" << data.rent << "\""
                         << "}";
             }
         private:
             friend class UnitDao;
-            friend class HouseholdSellerRole;
             
-            /**
-             * sets the hedonic price
-             */
-            void setHedonicPrice(double hedonicPrice);
-
-            /**
-             * sets the asking price.
-             */
-            void setAskingPrice(double askingPrice);
-
-            /**
-             * sets the owner of the unit.
-             */
-            void setOwner(UnitHolder* receiver);
-
         private:
             friend class UnitHolder;
             //from database.
-            UnitId id;
+            BigSerial id;
             BigSerial buildingId;
             BigSerial typeId;
             BigSerial postcodeId;
             double floorArea;
             int storey; 
             double rent;
-            bool available;
-            double hedonicPrice;
-            double askingPrice;
-            UnitHolder* owner;
-            mutable boost::shared_mutex mutex;
         };
     }
 }

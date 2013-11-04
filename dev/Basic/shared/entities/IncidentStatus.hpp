@@ -20,10 +20,15 @@ public:
 	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
 	IncidentStatus();
 	virtual ~IncidentStatus();
+	//insert a new incident obstacle into this class
 	bool insertIncident(const Incident* inc);
+	//remove a old incident obstacle from this class
 	bool removeIncident(const Incident* inc);
+	//check whether all incident obstacles are cleared already
 	void checkIsCleared(timeslice* now, const RoadSegment* currentRoad);
+	//retrieve current status
 	INCIDENTSTATUS getCurrentStatus() { return currentStatus; }
+	//reset member parameters to default value.
 	void resetStatus();
 	double urandom();
 

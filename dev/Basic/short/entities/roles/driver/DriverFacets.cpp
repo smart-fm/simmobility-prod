@@ -246,6 +246,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	double dist = 0;
 	bool replan = false;
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 20000, dist);
+	//retrieve front incident obstacle
 	if(roadItem) {
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
@@ -253,6 +254,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 			incidentStatus.visibilityDist = visibility;
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && dist<visibility){
 
+				//decide labe side if vehicle is in the incident lane and it is necessary to do changing lane
 				if(curLaneIndex==inc->laneId ){
 					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
 					if( curLaneIndex < curSegment->getLanes().size()-1){
@@ -268,6 +270,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					status = IncidentStatus::INCIDENT_ADJACENT_LANE;
 				}
 
+				//make velocity slowing down decision when incident happen
 				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
 				unsigned int originId = (segment)->originalDB_ID.getLastVal();
 				if(originId == inc->segmentId)
@@ -279,7 +282,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					replan = true;
 				}
 
-				float samplesequence = 0.05;
+				//make mandatory lane changing decision by linear probability
 				float incidentGap = parentDriver->vehicle->length*2;
 				if(!incidentStatus.changedlane && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
@@ -293,6 +296,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					}
 				}
 			}
+			// if incident duration is over, the incident obstacle will be removed
 			else if( now.ms() > inc->startTime+inc->duration ){
 				bool ret = incidentStatus.removeIncident(inc);
 				if( ret==true && replan==false){
@@ -301,6 +305,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 			}
 		}
 	}
+	//if vehicle is going beyond this incident obstacle, this one will be removed
 	else {
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
@@ -313,6 +318,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 		}
 	}
 
+	//update decision status for incident.
 	if(replan){
 		incidentStatus.nextLaneIndex = nextLaneIndex;
 		incidentStatus.laneSide = laneSide;
@@ -654,6 +660,22 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
+	//code segment to print out uninode lane connectors information
+	/*const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
+	const UniNode* currEndNode = dynamic_cast<const UniNode*> (parentDriver->vehicle->getNodeMovingTowards());
+	if(currEndNode){
+		UniNode* node = const_cast<UniNode*>(currEndNode);
+		unsigned int id = node->originalDB_ID.getLastVal();
+		if(id == 58950){
+			const std::map<const sim_mob::Lane*, sim_mob::Lane* >& connectors = node->getConnectors();
+			std::map<const sim_mob::Lane*, sim_mob::Lane* >::const_iterator itCon;
+			for(itCon=connectors.begin(); itCon!=connectors.end(); itCon++){
+				unsigned int ad1 = (unsigned int)itCon->first;
+				unsigned int ad2 = (unsigned int)itCon->second;
+				std::cout << "uninode id is "<<id<<" lane connect from : "<<itCon->first->getLaneID()<<"("<<ad1<<")"<<" to : "<<itCon->second->getLaneID()<<"("<<ad2<<")"<< std::endl;
+			}
+		}
+	}*/
 
 	// check current lane has connector to next link
 	p.isMLC = false;
@@ -798,6 +820,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//slow down velocity when driver views the incident within the visibility distance
 	float incidentGap = parentDriver->vehicle->length;
 	if(incidentStatus.slowdownVelocity == true ){
+		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
 			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
@@ -809,39 +832,44 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			}
 		}
 
-		float speedTarget = 0;
+		//record speed limit for current vehicle
+		float speedLimit = 0;
+		//record current speed
 		float newSpeed = 0;
+		//record approaching speed when it is near to incident position
+		float approachingSpeed = 200;
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
 		p.perceivedDistToFwdCar = std::min(incidentStatus.distanceTo, fwdCarDist);
 		p.turningDirection = LCS_LEFT;
 
+		//retrieve speed limit decided by whether or not incident lane or adjacent lane
 		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-			speedTarget = incidentStatus.speedLimit;
-			if(speedTarget==0 && incidentStatus.distanceTo>incidentGap)
-				speedTarget = 100;
+			speedLimit = incidentStatus.speedLimit;
+			if(speedLimit==0 && incidentStatus.distanceTo>incidentGap)
+				speedLimit = approachingSpeed;
 		}
 		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_ADJACENT_LANE){
-			speedTarget = incidentStatus.speedLimitOthers;
+			speedLimit = incidentStatus.speedLimitOthers;
 		}
 
 		// recalculate acceleration and velocity when incident happen
-		if(parentDriver->vehicle->getVelocity() > speedTarget){
-			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedTarget, maxLaneSpeed);
+		if(parentDriver->vehicle->getVelocity() > speedLimit){
+			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
 			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
-			if(newSpeed < speedTarget){
+			if(newSpeed < speedLimit){
 				newFwdAcc = 0;
-				newSpeed = speedTarget;
+				newSpeed = speedLimit;
 			}
 		}
 		else {
 			newFwdAcc = 0;
-			newSpeed = speedTarget;
+			newSpeed = speedLimit;
 		}
 
 		//update current velocity so as to response the speed limit defined in incident lane.
 		parentDriver->vehicle->setVelocity(newSpeed);
-		parentDriver->vehicle->setAcceleration(0);
+		//parentDriver->vehicle->setAcceleration(0);
 		p.perceivedDistToFwdCar = oldDistToStop;
 		p.turningDirection = oldDirect;
 	}
@@ -1748,11 +1776,11 @@ void sim_mob::DriverMovement::updateNearbyDriver(DriverUpdateParams& params, con
 			const Lane* nextRightLane = nullptr;
 			const Lane* nextLeftLane2 = nullptr;
 			const Lane* nextRightLane2 = nullptr;
-//			if (uNode) {
-//				nextLane = uNode->getOutgoingLane(*params.currLane);
-//			}
+			//if (uNode) {
+			//	nextLane = uNode->getOutgoingLane(*params.currLane);
+			//}
 
-			if (uNode) {
+			if (uNode ) {
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
 			}
 

@@ -245,7 +245,9 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
 	double dist = 0;
 	bool replan = false;
-	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, 20000, dist);
+	//driver's visibility distance
+	const int driverVisibiltyDist = 20000;
+	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, driverVisibiltyDist, dist);
 	//retrieve front incident obstacle
 	if(roadItem) {
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );

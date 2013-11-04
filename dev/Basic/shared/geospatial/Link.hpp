@@ -70,21 +70,20 @@ public:
 	int getLength() const;
 	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
+
 	///Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.
 	///
 	/// \note
 	/// If bidirectional segments are present, this path may include
 	/// RoadSegments that should actually be read as end->start, not start->end.
-	 
-	const std::vector<sim_mob::RoadSegment*>& getPath() const;
-	std::vector<sim_mob::RoadSegment*>& getPath();
+	const std::vector<sim_mob::RoadSegment*>& getSegments() const;
+	std::vector<sim_mob::RoadSegment*>& getSegments();
 
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-	const std::vector<sim_mob::RoadSegment*> & getSegments() const { return segs; }
 //	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);

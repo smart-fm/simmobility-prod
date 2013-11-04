@@ -18,6 +18,8 @@
 
 namespace sim_mob {
 
+class CoordinateTransform;
+
 class Point2D;
 
 class GridStreetDirectoryImpl : public StreetDirectory::Impl {
@@ -26,6 +28,8 @@ public:
 	virtual ~GridStreetDirectoryImpl() {}
 
 protected:
+	virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
+
 	virtual const BusStop* getBusStop(const Point2D& position) const;
 
 	virtual const Node* getNode(const int id) const;
@@ -57,7 +61,7 @@ private:
     bool checkGrid(int m, int n, const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) const;
 
     // Called once for each unique RoadSegment
-    void buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*>& completed);
+    void buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords);
 
 private:
     centimeter_t gridWidth_;
@@ -90,6 +94,7 @@ private:
     std::map<std::string, const RoadSegment*> roadSegments_;
     std::set<const BusStop*> busStops_;
     std::set<const Node*> nodes;
+    std::map<const RoadSegment*, RoadRunnerRegion> rrRegionLookup;
 
 };
 

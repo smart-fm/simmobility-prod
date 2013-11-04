@@ -13,7 +13,7 @@
 #include "workers/Worker.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "message/MessageBus.hpp"
-#include "entities/commsim/message/base/Message.hpp"
+#include "agent/LT_Agent.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -24,31 +24,29 @@ using boost::unordered_map;
 
 namespace {
 
+    const int INTERNAL_MESSAGE_PRIORITY = 5;
+
     class HM_AddEntryMsg : public Message {
     public:
 
-        HM_AddEntryMsg(const Unit& unit,
-                double askingPrice, double hedonicPrice)
-        : unit(unit), askingPrice(askingPrice), hedonicPrice(hedonicPrice) {
-            priority = 5;
+        HM_AddEntryMsg(const HousingMarket::Entry& entry)
+        : entry(entry) {
+            priority = INTERNAL_MESSAGE_PRIORITY;
         }
-
-        const Unit& unit;
-        double askingPrice;
-        double hedonicPrice;
+        HousingMarket::Entry entry;
     };
 
     class HM_RemoveEntryMsg : public Message {
     public:
 
         HM_RemoveEntryMsg(const BigSerial& unitId)
-        : unitId(unitId){
-            priority = 5;
+        : unitId(unitId) {
+            priority = INTERNAL_MESSAGE_PRIORITY;
         }
         BigSerial unitId;
     };
 
-    typedef std::pair<BigSerial, HousingMarket::UnitEntry> EntryPair;
+    typedef std::pair<BigSerial, HousingMarket::Entry> EntryPair;
 
     /**
      * Verifies if given map contains the given id. 
@@ -61,77 +59,83 @@ namespace {
     }
 }
 
-HousingMarket::UnitEntry::UnitEntry(const Unit& unit,
+HousingMarket::Entry::Entry(LT_Agent* owner, const Unit& unit,
         double askingPrice, double hedonicPrice)
-: unit(unit), askingPrice(askingPrice), hedonicPrice(hedonicPrice) {
+: owner(owner), unitId(unit.getId()), unit(unit),
+askingPrice(askingPrice), hedonicPrice(hedonicPrice) {
 }
 
-HousingMarket::UnitEntry::~UnitEntry() {
+HousingMarket::Entry::~Entry() {
 }
 
-const Unit& HousingMarket::UnitEntry::getUnit() const {
+BigSerial HousingMarket::Entry::getUnitId() const {
+    return unitId;
+}
+
+const Unit& HousingMarket::Entry::getUnit() const {
     return unit;
 }
 
-double HousingMarket::UnitEntry::getAskingPrice() const {
+double HousingMarket::Entry::getAskingPrice() const {
     return askingPrice;
 }
 
-double HousingMarket::UnitEntry::getHedonicPrice() const {
+double HousingMarket::Entry::getHedonicPrice() const {
     return hedonicPrice;
 }
 
-void HousingMarket::UnitEntry::setAskingPrice(double askingPrice) {
+LT_Agent* HousingMarket::Entry::getOwner() const {
+    return owner;
+}
+
+void HousingMarket::Entry::setAskingPrice(double askingPrice) {
     this->askingPrice = askingPrice;
 }
 
-void HousingMarket::UnitEntry::setHedonicPrice(double hedonicPrice) {
+void HousingMarket::Entry::setHedonicPrice(double hedonicPrice) {
     this->hedonicPrice = hedonicPrice;
 }
 
-HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1) {
+void HousingMarket::Entry::setOwner(LT_Agent* owner) {
+    this->owner = owner;
+}
+
+HousingMarket::HousingMarket() : Entity(-1) {
 }
 
 HousingMarket::~HousingMarket() {
 }
 
-void HousingMarket::addNewEntry(const Unit& unit, double askingPrice,
-        double hedonicPrice) {
+void HousingMarket::addEntry(const Entry& entry) {
     // entry will be available only on the next tick
     MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
             MessageBus::MessagePtr(
-            new HM_AddEntryMsg(unit, askingPrice, hedonicPrice)));
+            new HM_AddEntryMsg(entry)));
+}
+
+void HousingMarket::updateEntry(const HousingMarket::Entry& entry) {
+    // entry will be available only on the next tick
+    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
+            MessageBus::MessagePtr(
+            new HM_AddEntryMsg(entry)));
 }
 
 void HousingMarket::removeEntry(const BigSerial& unitId) {
     // entry will be available only on the next tick
-    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
+    MessageBus::PostMessage(this, LTMID_HMI_RM_ENTRY,
             MessageBus::MessagePtr(
             new HM_RemoveEntryMsg(unitId)));
 }
 
-const HousingMarket::EntryMap& HousingMarket::getAvailableEntries(){
+const HousingMarket::EntryMap& HousingMarket::getAvailableEntries() {
     return entriesById;
-
-}
-bool HousingMarket::add(Unit* unit, bool reOwner) {
-    // no re-parent the unit to the market.
-    bool retVal = UnitHolder::add(unit, false);
-    if (retVal) {
-        MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
-                MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->getId())));
-    }
-    return retVal;
 }
 
-Unit* HousingMarket::remove(UnitId id, bool reOwner) {
-    // no re-parent the unit to the market.
-    Unit* retVal = UnitHolder::remove(id, false);
-    if (retVal) {
-        MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
-                MessageBus::EventArgsPtr(new HM_ActionEventArgs(id)));
+const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId) {
+    if (containsEntry(entriesById, unitId)) {
+        return &(entriesById.at(unitId));
     }
-    return retVal;
+    return nullptr;
 }
 
 Entity::UpdateStatus HousingMarket::update(timeslice now) {
@@ -149,14 +153,19 @@ void HousingMarket::HandleMessage(Message::MessageType type,
     switch (type) {
         case LTMID_HMI_ADD_ENTRY:
         {
-            const HM_AddEntryMsg& msg = MSG_CAST(HM_AddEntryMsg, message);
-            if (containsEntry(entriesById, msg.unit.getId())) {
-                UnitEntry& entry = entriesById.at(msg.unit.getId());
-                entry.setAskingPrice(msg.askingPrice);
-                entry.setHedonicPrice(msg.hedonicPrice);
+            const HM_AddEntryMsg& msg = dynamic_cast<const HM_AddEntryMsg&> (message);
+            BigSerial unitId = msg.entry.getUnitId();
+            if (containsEntry(entriesById, unitId)) {
+                Entry* entry = &(entriesById.at(unitId));
+                //OPERATION = is necessary here.
+                entry->setAskingPrice(msg.entry.getAskingPrice());
+                entry->setHedonicPrice(msg.entry.getHedonicPrice());
+                entry->setOwner(msg.entry.getOwner());
             } else {
-                entriesById.insert(EntryPair(msg.unit.getId(),
-                        UnitEntry(msg.unit, msg.askingPrice, msg.hedonicPrice)));
+                entriesById.insert(EntryPair(unitId, Entry(msg.entry)));
+                //notify subscribers.
+                MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
+                        MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
             }
             break;
         }
@@ -164,6 +173,9 @@ void HousingMarket::HandleMessage(Message::MessageType type,
         {
             const HM_RemoveEntryMsg& msg = MSG_CAST(HM_RemoveEntryMsg, message);
             entriesById.erase(msg.unitId);
+            //notify subscribers.
+            MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
+                    MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));
             break;
         }
         default:break;

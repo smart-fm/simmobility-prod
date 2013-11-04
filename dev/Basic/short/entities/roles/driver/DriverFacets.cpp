@@ -1212,8 +1212,19 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		if(parentP->laneID != -1)
 		{
-			startlaneID = parentP->laneID;//need to check if lane valid
-			parentP->laneID = -1;
+			// path[1] is currently the starting segment from the shortest driving path algorithm
+			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+				if(parent->laneID >= 0 && parent->laneID < path[1].roadSegment_->getLanes().size()) {
+					startlaneID = parentP->laneID;//need to check if lane valid
+					parentP->laneID = -1;
+				} else {
+					startlaneID = 1;
+					parentP->laneID = -1;
+				}
+			} else {
+				startlaneID = 1;
+				parentP->laneID = -1;
+			}
 		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer

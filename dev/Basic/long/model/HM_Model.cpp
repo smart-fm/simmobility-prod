@@ -69,7 +69,7 @@ void HM_Model::startImpl() {
             HouseholdAgent* hhAgent = new HouseholdAgent(this, household, &market);
             UnitMap::iterator mapItr = unitsById.find(household->getUnitId());
             if (mapItr != unitsById.end()) { //Context Id does exists
-                Unit* unit = new Unit(*(mapItr->second));
+                Unit* unit = (mapItr->second);
                 hhAgent->addUnitId(unit->getId());
                 PrintOut("Household ["<< household->getId()<<"] holds the Unit ["<< unit->getId()<<"]" << std::endl);
             }

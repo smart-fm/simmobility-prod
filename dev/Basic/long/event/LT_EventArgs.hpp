@@ -28,7 +28,7 @@ namespace sim_mob {
              * Gets the unit affected by the action.
              * @return 
              */
-            const UnitId GetUnitId()const;
+            const UnitId getUnitId()const;
         private:
             UnitId unitId;
         };

@@ -34,28 +34,28 @@ namespace sim_mob {
              * @param unit to add.
              * @return true if unit was added, false otherwise.
              */
-            bool AddUnit(Unit* unit);
+            bool addUnit(Unit* unit);
 
             /**
              * Removes an existing unit by given id.
              * Attention: The ownership of the object will pass to the caller.
              * @param id of the unit to remove.
              */
-            Unit* RemoveUnit(UnitId id);
+            Unit* removeUnit(UnitId id);
 
             /**
              * Verifies if exists any unit with given id.
              * @param id of the unit.
              * @return true if unit exists, false otherwise. 
              */
-            bool HasUnit(UnitId id) const;
+            bool hasUnit(UnitId id) const;
 
             /**
              * Gets the Unit pointer by given id.
              * @param id of the Unit to get.
              * @return Unit instance pointer or null,
              */
-            Unit* GetUnitById(UnitId id);
+            Unit* getUnitById(UnitId id);
 
             /**
              * Puts all units pointers on given list.
@@ -65,7 +65,7 @@ namespace sim_mob {
              * 
              * @param outUnits list that will receive the objects.
              */
-            void GetUnits(std::list<Unit*>& outUnits);
+            void getUnits(std::list<Unit*>& outUnits);
 
         protected:
             /**
@@ -75,14 +75,14 @@ namespace sim_mob {
              * owner of the property or not.
              * @return true if unit was added, false otherwise.
              */
-            virtual bool Add(Unit* unit, bool reOwner);
+            virtual bool add(Unit* unit, bool reOwner);
 
             /**
              * Verifies if contains or not the unit.
              * @param id of the unit to verify.
              * @return true if contains the unit, false otherwise.
              */
-            virtual bool Contains(UnitId id) const;
+            virtual bool contains(UnitId id) const;
 
             /**
              * Removes the Unit by given id.
@@ -92,7 +92,7 @@ namespace sim_mob {
              * @return removed Unit pointer or 
              *  null if the Unit does not exists.
              */
-            virtual Unit* Remove(UnitId id, bool reOwner);
+            virtual Unit* remove(UnitId id, bool reOwner);
 
             /**
              * Gets the Unit by given id.
@@ -101,7 +101,7 @@ namespace sim_mob {
              * @return Unit pointer or 
              *  null if the Unit does not exists.
              */
-            virtual Unit* GetById(UnitId id);
+            virtual Unit* getById(UnitId id);
             
         private:
             typedef std::pair<UnitId, Unit*> HoldingUnitsEntry;

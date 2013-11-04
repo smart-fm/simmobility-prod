@@ -28,14 +28,14 @@ UnitType& UnitType::operator=(const UnitType& source) {
     return *this;
 }
 
-BigSerial UnitType::GetId() const {
+BigSerial UnitType::getId() const {
     return id;
 }
 
-string UnitType::GetName() const {
+string UnitType::getName() const {
     return name;
 }
 
-int UnitType::GetType() const {
+int UnitType::getType() const {
     return type;
 }

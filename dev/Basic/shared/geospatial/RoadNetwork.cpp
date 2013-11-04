@@ -138,10 +138,13 @@ void sim_mob::RoadNetwork::addNodes(const std::vector<sim_mob::MultiNode*>& vals
 	nodes.insert(nodes.begin(),vals.begin(),vals.end());
 }
 
-sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform() const
+sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform(bool required) const
 {
 	if (coordinateMap.empty()) {
-		throw std::runtime_error("No coordinate transform: coordmap is empty.");
+		if (required) {
+			throw std::runtime_error("No coordinate transform: coordmap is empty.");
+		}
+		return nullptr;
 	}
 	return coordinateMap.front();
 }

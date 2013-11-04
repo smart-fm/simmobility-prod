@@ -27,7 +27,7 @@ typedef pair<int, long> StatsMapEntry;
 StatsMap statistics;
 boost::shared_mutex statisticsMutex;
 
-inline string ToString(Statistics::StatsParameter param) {
+inline string toString(Statistics::StatsParameter param) {
     switch (param) {
         case Statistics::N_BIDS: return "Total number of bids";
         case Statistics::N_ACCEPTED_BIDS: return "Total number of accepted bids";
@@ -36,19 +36,19 @@ inline string ToString(Statistics::StatsParameter param) {
     }
 }
 
-void Statistics::Increment(Statistics::StatsParameter param) {
-    Increment(param, 1);
+void Statistics::increment(Statistics::StatsParameter param) {
+    increment(param, 1);
 }
 
-void Statistics::Decrement(Statistics::StatsParameter param) {
-    Decrement(param, 1);
+void Statistics::decrement(Statistics::StatsParameter param) {
+    decrement(param, 1);
 }
 
-void Statistics::Decrement(Statistics::StatsParameter param, long value) {
-    Increment(param, value * (-1));
+void Statistics::decrement(Statistics::StatsParameter param, long value) {
+    increment(param, value * (-1));
 }
 
-void Statistics::Increment(Statistics::StatsParameter param, long value) {
+void Statistics::increment(Statistics::StatsParameter param, long value) {
 	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
 	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     StatsMap::iterator mapItr = statistics.find(param);
@@ -59,11 +59,11 @@ void Statistics::Increment(Statistics::StatsParameter param, long value) {
     }
 }
 
-void Statistics::Print() {
+void Statistics::print() {
 	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
 	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
-        string paramName = ToString((Statistics::StatsParameter)(itr->first));
+        string paramName = toString((Statistics::StatsParameter)(itr->first));
         long value = itr->second;
         PrintOut(paramName << ": " << value << endl);
     }

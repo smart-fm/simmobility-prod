@@ -23,28 +23,28 @@ namespace sim_mob {
             virtual ~Household();
 
             Household& operator=(const Household& source);
-            void SetAgeOfHead(int ageOfHead);
-            int GetAgeOfHead() const;
-            void SetWorkers(int workers);
-            int GetWorkers() const;
-            void SetHousingDuration(int housingDuration);
-            int GetHousingDuration() const;
-            void SetIncome(double income);
-            double GetIncome() const;
-            void SetChildren(int children);
-            int GetChildren() const;
-            void SetSize(int size);
-            int GetSize() const;
-            void SetVehicleCategoryId(BigSerial vehicleCategoryId);
-            BigSerial GetVehicleCategoryId() const;
-            void SetEthnicityId(BigSerial ethnicityId);
-            BigSerial GetEthnicityId() const;
-            void SetUnitId(BigSerial unitId);
-            BigSerial GetUnitId() const;
-            void SetLifestyleId(BigSerial lifestyleId);
-            BigSerial GetLifestyleId() const;
-            void SetId(BigSerial id);
-            BigSerial GetId() const;
+            void setAgeOfHead(int ageOfHead);
+            int getAgeOfHead() const;
+            void setWorkers(int workers);
+            int getWorkers() const;
+            void setHousingDuration(int housingDuration);
+            int getHousingDuration() const;
+            void setIncome(double income);
+            double getIncome() const;
+            void setChildren(int children);
+            int getChildren() const;
+            void setSize(int size);
+            int getSize() const;
+            void setVehicleCategoryId(BigSerial vehicleCategoryId);
+            BigSerial getVehicleCategoryId() const;
+            void setEthnicityId(BigSerial ethnicityId);
+            BigSerial getEthnicityId() const;
+            void setUnitId(BigSerial unitId);
+            BigSerial getUnitId() const;
+            void setLifestyleId(BigSerial lifestyleId);
+            BigSerial getLifestyleId() const;
+            void setId(BigSerial id);
+            BigSerial getId() const;
 
             /**
              * Operator to print the Household data.  

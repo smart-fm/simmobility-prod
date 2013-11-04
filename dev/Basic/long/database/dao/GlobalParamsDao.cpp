@@ -21,14 +21,14 @@ GlobalParamsDao::GlobalParamsDao(DBConnection* connection)
 : AbstractDao<GlobalParams>(connection, DB_TABLE_GLOBAL_PARAMS,
 DB_INSERT_GLOBAL_PARAMS, DB_UPDATE_GLOBAL_PARAMS, DB_DELETE_GLOBAL_PARAMS,
 DB_GETALL_GLOBAL_PARAMS, DB_GETBYID_GLOBAL_PARAMS) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::FromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::ToRow);
+    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::fromRow);
+    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::toRow);
 }
 
 GlobalParamsDao::~GlobalParamsDao() {
 }
 
-void GlobalParamsDao::FromRow(Row& result, GlobalParams& outObj) {
+void GlobalParamsDao::fromRow(Row& result, GlobalParams& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.unitAreaWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_AREA, 0);
     outObj.unitRentWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_RENT, 0);
@@ -36,5 +36,5 @@ void GlobalParamsDao::FromRow(Row& result, GlobalParams& outObj) {
     outObj.unitTypeWeight = result.get<double>(DB_FIELD_WEIGHT_UNIT_TYPE, 0);
 }
 
-void GlobalParamsDao::ToRow(GlobalParams& data, Parameters& outParams, bool update) {
+void GlobalParamsDao::toRow(GlobalParams& data, Parameters& outParams, bool update) {
 }

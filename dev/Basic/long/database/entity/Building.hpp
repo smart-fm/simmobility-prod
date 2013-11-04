@@ -29,54 +29,54 @@ namespace sim_mob {
              * Gets unique identifier of the Building Type.
              * @return id.
              */
-            BigSerial GetId() const;
+            BigSerial getId() const;
 
             /**
              * Gets unique identifier of the Type Type.
              * @return id.
              */
-            BigSerial GetTypeId() const;
+            BigSerial getTypeId() const;
 
             /**
              * Gets unique identifier of the Project Type.
              * @return id.
              */
-            BigSerial GetParcelId() const;
+            BigSerial getParcelId() const;
 
             /**
              * Gets the year that the building was built.
              * @return the year that the building was built.
              */
-            int GetBuiltYear() const;
+            int getBuiltYear() const;
 
             /**
              * Gets the floor area value.
              * @return floor area value.
              */
-            double GetFloorArea() const;
+            double getFloorArea() const;
 
             /**
              * Gets number of storeys.
              * @return storeys number.
              */
-            int GetStoreys() const;
+            int getStoreys() const;
 
             /**
              * Gets number of stories.
              * @return stories number.
              */
-            int GetParkingSpaces() const;
+            int getParkingSpaces() const;
             
             /**
              * Gets number of residential units.
              * @return stories number.
              */
-            int GetResidentialUnits() const;
-            double GetLandArea() const;
-            int GetImprovementValue() const;
-            int GetTaxExempt() const;
-            double GetNonResidentialSqft() const;
-            double GetSqftPerUnit() const;
+            int getResidentialUnits() const;
+            double getLandArea() const;
+            int getImprovementValue() const;
+            int getTaxExempt() const;
+            double getNonResidentialSqft() const;
+            double getSqftPerUnit() const;
                 
             /**
              * Assign operator.

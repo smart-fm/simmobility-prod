@@ -51,21 +51,21 @@ void HM_Model::startImpl() {
         unordered_map<BigSerial, Unit*> unitsById;
         for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
             Unit* unit = &(*it);
-            unitsById.insert(std::make_pair(unit->GetId(), unit));
+            unitsById.insert(std::make_pair(unit->getId(), unit));
         }
 
         for (vector<Household>::iterator it = households.begin(); it != households.end(); it++) {
             Household* household = &(*it);
             //PrintOut("Household: " << (*household) << endl);
             sim_mob::db::Parameters keys;
-            keys.push_back(household->GetId());
-            HouseholdAgent* hhAgent = new HouseholdAgent(household->GetId(), household, &market);
-            unordered_map<BigSerial, Unit*>::iterator mapItr = unitsById.find(household->GetUnitId());
+            keys.push_back(household->getId());
+            HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), household, &market);
+            unordered_map<BigSerial, Unit*>::iterator mapItr = unitsById.find(household->getUnitId());
             if (mapItr != unitsById.end()) { //Context Id does exists
                 Unit* unit = new Unit(*(mapItr->second));
-                unit->SetAvailable(true);
-                hhAgent->AddUnit(unit);
-                PrintOut("Household ["<< household->GetId()<<"] holds the Unit ["<< unit->GetId()<<"]" << std::endl);
+                unit->setAvailable(true);
+                hhAgent->addUnit(unit);
+                PrintOut("Household ["<< household->getId()<<"] holds the Unit ["<< unit->getId()<<"]" << std::endl);
             }
             agents.push_back(hhAgent);
             workGroup.assignAWorker(hhAgent);

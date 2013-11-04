@@ -15,14 +15,21 @@
 namespace sim_mob {
     namespace long_term {
 
+        /**
+         * Class that contains Housing market model logic.
+         */
         class HM_Model : public Model{
         public:
             HM_Model(db::DatabaseConfig& dbConfig, WorkGroup& workGroup);
             virtual ~HM_Model();
             
         protected:
+            /**
+             * Inherited from Model.
+             */
             void startImpl();
             void stopImpl();
+        
         private:
             // Data
             HousingMarket market;

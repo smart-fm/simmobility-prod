@@ -19,7 +19,7 @@ namespace unit_tests {
         /**
          * Runs all tests inside of this class.
          */
-        void TestAll();
+        void testAll();
 
     };
 }

@@ -25,36 +25,36 @@ UnitHolder::~UnitHolder() {
             itr != holdingUnits.end(); itr++) {
         Unit* unit = (*itr).second;
         if (unit && ((unit->owner == nullptr) || (unit->owner && unit->owner == this))) {
-            PrintOut("Household ["<< id<<"] holds the Unit ["<< unit->GetId() <<"]" << std::endl);
+            PrintOut("Household ["<< id<<"] holds the Unit ["<< unit->getId() <<"]" << std::endl);
             safe_delete_item(unit);
         }
     }
     holdingUnits.clear();
 }
 
-bool UnitHolder::AddUnit(Unit* unit) {
+bool UnitHolder::addUnit(Unit* unit) {
 	boost::upgrade_lock<boost::shared_mutex> up_lock(unitsListMutex);
 	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
-    return Add(unit, true);
+    return add(unit, true);
 }
 
-Unit* UnitHolder::RemoveUnit(UnitId id) {
+Unit* UnitHolder::removeUnit(UnitId id) {
 	boost::upgrade_lock<boost::shared_mutex> up_lock(unitsListMutex);
 	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
-    return Remove(id, true);
+    return remove(id, true);
 }
 
-bool UnitHolder::HasUnit(UnitId id) const {
+bool UnitHolder::hasUnit(UnitId id) const {
 	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
-    return Contains(id);
+    return contains(id);
 }
 
-Unit* UnitHolder::GetUnitById(UnitId id) {
+Unit* UnitHolder::getUnitById(UnitId id) {
 	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
-    return GetById(id);
+    return getById(id);
 }
 
-void UnitHolder::GetUnits(list<Unit*>& outUnits) {
+void UnitHolder::getUnits(list<Unit*>& outUnits) {
 	boost::shared_lock<boost::shared_mutex> lock(unitsListMutex);
     for (HoldingUnits::iterator itr = holdingUnits.begin();
             itr != holdingUnits.end(); itr++) {
@@ -65,36 +65,36 @@ void UnitHolder::GetUnits(list<Unit*>& outUnits) {
     }
 }
 
-bool UnitHolder::Add(Unit* unit, bool reOwner) {
-    if (unit && !Contains(unit->GetId())) {
-        holdingUnits.insert(HoldingUnitsEntry(unit->GetId(), unit));
+bool UnitHolder::add(Unit* unit, bool reOwner) {
+    if (unit && !contains(unit->getId())) {
+        holdingUnits.insert(HoldingUnitsEntry(unit->getId(), unit));
         if (reOwner) {
-            unit->SetOwner(this);
+            unit->setOwner(this);
         }
         return true;
     }
     return false;
 }
 
-Unit* UnitHolder::Remove(UnitId id, bool reOwner) {
+Unit* UnitHolder::remove(UnitId id, bool reOwner) {
     Unit* retVal = nullptr;
-    if (Contains(id)) {
-        retVal = GetById(id);
+    if (contains(id)) {
+        retVal = getById(id);
         if (retVal) {
             holdingUnits.erase(id);
             if (reOwner) {
-                retVal->SetOwner(nullptr);
+                retVal->setOwner(nullptr);
             }
         }
     }
     return retVal;
 }
 
-bool UnitHolder::Contains(UnitId id) const {
+bool UnitHolder::contains(UnitId id) const {
     return (holdingUnits.find(id) != holdingUnits.end());
 }
 
-Unit* UnitHolder::GetById(UnitId id) {
+Unit* UnitHolder::getById(UnitId id) {
     HoldingUnits::iterator mapItr = holdingUnits.find(id);
     if (mapItr != holdingUnits.end()) {
         return mapItr->second;

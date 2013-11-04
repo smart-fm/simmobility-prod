@@ -19,14 +19,14 @@ BuildingDao::BuildingDao(DBConnection* connection)
 : AbstractDao<Building>(connection, DB_TABLE_BUILDING,
 DB_INSERT_BUILDING, DB_UPDATE_BUILDING, DB_DELETE_BUILDING,
 DB_GETALL_BUILDING, DB_GETBYID_BUILDING) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Building, BuildingDao::FromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Building, BuildingDao::ToRow);
+    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Building, BuildingDao::fromRow);
+    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Building, BuildingDao::toRow);
 }
 
 BuildingDao::~BuildingDao() {
 }
 
-void BuildingDao::FromRow(Row& result, Building& outObj) {
+void BuildingDao::fromRow(Row& result, Building& outObj) {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID, INVALID_ID);
     outObj.parcelId = result.get<BigSerial>(DB_FIELD_PARCEL_ID, INVALID_ID);
@@ -42,5 +42,5 @@ void BuildingDao::FromRow(Row& result, Building& outObj) {
     outObj.sqftPerUnit = result.get<double>(DB_FIELD_SQFT_PER_UNIT, 0);
 }
 
-void BuildingDao::ToRow(Building& data, Parameters& outParams, bool update) {
+void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {
 }

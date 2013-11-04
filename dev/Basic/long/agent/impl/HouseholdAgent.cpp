@@ -27,7 +27,7 @@ HouseholdAgent::HouseholdAgent(int id, Household* hh, HousingMarket* market)
 : LT_Agent(id), market(market), UnitHolder(id), hh(hh) {
     bidderRole = new HouseholdBidderRole(this, hh, market);
     sellerRole = new HouseholdSellerRole(this, hh, market);
-    sellerRole->SetActive(true);
+    sellerRole->setActive(true);
 }
 
 HouseholdAgent::~HouseholdAgent() {
@@ -45,10 +45,10 @@ bool HouseholdAgent::onFrameInit(timeslice now) {
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now) {
     if (bidderRole && bidderRole->isActive()) {
-        bidderRole->Update(now);
+        bidderRole->update(now);
     }
     if (sellerRole && sellerRole->isActive()) {
-        sellerRole->Update(now);
+        sellerRole->update(now);
     }
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -65,14 +65,14 @@ void HouseholdAgent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sen
         case LTEID_HM_UNIT_ADDED:
         {
             const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
-            PrintOut("Unit added " << hmArgs.GetUnitId() << endl);
-            bidderRole->SetActive(true);
+            PrintOut("Unit added " << hmArgs.getUnitId() << endl);
+            bidderRole->setActive(true);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
             const HM_ActionEventArgs& hmArgs = static_cast<const HM_ActionEventArgs&> (args);
-            PrintOut("Unit removed " << hmArgs.GetUnitId() << endl);
+            PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
             break;
         }
         default:break;

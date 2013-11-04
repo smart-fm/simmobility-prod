@@ -26,19 +26,19 @@ HousingMarket::HousingMarket() : UnitHolder(-1), Entity(-1), firstTime(true) {
 HousingMarket::~HousingMarket() {
 }
 
-bool HousingMarket::Add(Unit* unit, bool reOwner) {
+bool HousingMarket::add(Unit* unit, bool reOwner) {
     // no re-parent the unit to the market.
-    bool retVal = UnitHolder::Add(unit, false);
+    bool retVal = UnitHolder::add(unit, false);
     if (retVal) {
         MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
-            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->GetId())));
+            MessageBus::EventArgsPtr(new HM_ActionEventArgs(unit->getId())));
     }
     return retVal;
 }
 
-Unit* HousingMarket::Remove(UnitId id, bool reOwner) {
+Unit* HousingMarket::remove(UnitId id, bool reOwner) {
     // no re-parent the unit to the market.
-    Unit* retVal = UnitHolder::Remove(id, false);
+    Unit* retVal = UnitHolder::remove(id, false);
     if (retVal) {
         MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this, 
             MessageBus::EventArgsPtr(new HM_ActionEventArgs(id)));
@@ -47,7 +47,7 @@ Unit* HousingMarket::Remove(UnitId id, bool reOwner) {
 }
 
 Entity::UpdateStatus HousingMarket::update(timeslice now) {
-    Setup();
+    setup();
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }
 
@@ -58,7 +58,7 @@ bool HousingMarket::isNonspatial() {
 void HousingMarket::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 }
 
-void HousingMarket::Setup() {
+void HousingMarket::setup() {
     if (firstTime) {
         //setup first things inside the entity.
         firstTime = false;

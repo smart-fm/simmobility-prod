@@ -1920,10 +1920,8 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 
 			//Process
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			// aim-sun turning lane idx start from left to right
-			// simmobility lane idx start from right to left
-			int adjustedFromLaneId  = src.fromSection->generatedSegment->lanes.size()-1 - fromLaneID;
-			int adjustedToLaneId  = src.toSection->generatedSegment->lanes.size()-1 - toLaneID;
+			int adjustedFromLaneId  = src.fromSection->generatedSegment->getAdjustedLaneId(fromLaneID);
+			int adjustedToLaneId  = src.toSection->generatedSegment->getAdjustedLaneId(toLaneID);
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(adjustedFromLaneId);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(adjustedToLaneId);
 //			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);

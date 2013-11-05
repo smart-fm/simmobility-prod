@@ -56,7 +56,7 @@ void JMessage::CreateMessage(std::string msg)
 	msg_ = msg;
 }
 
-void Msg_Vehicle_Init::CreateMessage(std::string msg)
+void MsgVehicleInit::CreateMessage(std::string msg)
 {
 	JMessage::CreateMessage(msg);
 
@@ -82,13 +82,13 @@ void Msg_Vehicle_Init::CreateMessage(std::string msg)
 	{
 		Json::Value item = arrVeh[i];
 		SUPPLY suplier;
-		suplier.vehicle_id = item["vehicle_id"].asInt();
-		suplier.node_id = item["node_id"].asInt();
+		suplier.vehicleId = item["vehicle_id"].asInt();
+		suplier.nodeId = item["node_id"].asInt();
 		vehicles.push_back(suplier);
 	}
 }
 
-void Msg_Offer::CreateMessage(std::string msg)
+void MsgOffer::CreateMessage(std::string msg)
 {
 	JMessage::CreateMessage(msg);
 
@@ -107,27 +107,27 @@ void Msg_Offer::CreateMessage(std::string msg)
 		return;
 	}
 
-	client_id = root["client_id"].asString();
+	clientId = root["client_id"].asString();
 	Json::Value arrVeh;
 	arrVeh = root["offer"];
 	for(int i=0; i<arrVeh.size(); i++)
 	{
 		Json::Value item = arrVeh[i];
 		OFFER offer;
-		offer.schdule_id = item["schdule_id"].asString();
-		offer.service_type = item["service_type"].asInt();
+		offer.schduleId = item["schdule_id"].asString();
+		offer.serviceType = item["service_type"].asInt();
 		offer.fare = item["fare"].asInt();
-		offer.departure_time_early = item["departure_time_early"].asString();
-		offer.depature_time_late = item["depature_time_late"].asString();
-		offer.arival_time_early = item["arival_time_early"].asString();
-		offer.arrival_time_late = item["arrival_time_late"].asString();
-		offer.travel_time = item["travel_time"].asInt();
-		offer.travel_distance = item["travel_distance"].asInt();
+		offer.departureTimeEarly = item["departure_time_early"].asString();
+		offer.depatureTimeLate = item["depature_time_late"].asString();
+		offer.arivalTimeEarly = item["arival_time_early"].asString();
+		offer.arrivalTimeLate = item["arrival_time_late"].asString();
+		offer.travelTime = item["travel_time"].asInt();
+		offer.travelDistance = item["travel_distance"].asInt();
 		offers.push_back(offer);
 	}
 }
 
-void Msg_Confirmation::CreateMessage(std::string msg)
+void MsgConfirmation::CreateMessage(std::string msg)
 {
 	JMessage::CreateMessage(msg);
 
@@ -146,18 +146,18 @@ void Msg_Confirmation::CreateMessage(std::string msg)
 		return;
 	}
 
-	client_id = root["client_id"].asString();
-	schedule_id = root["schedule_id"].asString();
+	clientId = root["client_id"].asString();
+	scheduleId = root["schedule_id"].asString();
 }
 
-std::string Msg_Initialize::BuildToString()
+std::string MsgInitialize::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["map"]["type"] = this->map_type;
-	Request["map"]["file"] = this->map_file;
-	Request["map"]["directory"] = this->map_directory;
-	Request["start_time"] = this->start_time;
+	Request["map"]["type"] = this->mapType;
+	Request["map"]["file"] = this->mapFile;
+	Request["map"]["directory"] = this->mapDirectory;
+	Request["start_time"] = this->startTime;
 	Request["version"] = this->version;
 
 	std::stringstream buffer;
@@ -167,19 +167,19 @@ std::string Msg_Initialize::BuildToString()
 	return msg;
 }
 
-std::string Msg_Request::BuildToString()
+std::string MsgRequest::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["current_time"] = this->current_time;
-	Request["client_id"] = this->request.client_id;
+	Request["current_time"] = this->currentTime;
+	Request["client_id"] = this->request.clientId;
 	Request["orgin"] = this->request.origin;
 	Request["destination"] = this->request.destination;
-	Request["departure_time_early"] = this->request.departure_time_early;
-	Request["depature_time_late"] = this->request.departure_time_late;
-	Request["arriavl_time_early"] = this->request.arrival_time_early;
-	Request["arrival_time_late"] = this->request.arrival_time_late;
-	Request["seat_num"] = this->seat_num;
+	Request["departure_time_early"] = this->request.departureTimeEarly;
+	Request["depature_time_late"] = this->request.departureTimeLate;
+	Request["arriavl_time_early"] = this->request.arrivalTimeEarly;
+	Request["arrival_time_late"] = this->request.arrivalTimeLate;
+	Request["seat_num"] = this->seatNum;
 
 	std::stringstream buffer;
 	buffer << "message " << this->messageID_ << "," << Request << std::endl;
@@ -188,15 +188,15 @@ std::string Msg_Request::BuildToString()
 	return msg;
 }
 
-std::string Msg_Accept::BuildToString()
+std::string MsgAccept::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["current_time"] = this->current_time;
-	Request["client_id"] = this->client_id;
-	Request["accept"]["schedule_id"] = this->schedule_id;
-	Request["accept"]["departure_time"] = this->departure_time;
-	Request["accept"]["arrive_time"] = this->arrival_time;
+	Request["current_time"] = this->currentTime;
+	Request["client_id"] = this->clientId;
+	Request["accept"]["schedule_id"] = this->scheduleId;
+	Request["accept"]["departure_time"] = this->departureTime;
+	Request["accept"]["arrive_time"] = this->arrivalTime;
 
 	std::stringstream buffer;
 	buffer << "message " << this->messageID_ << "," << Request << std::endl;
@@ -205,18 +205,18 @@ std::string Msg_Accept::BuildToString()
 	return msg;
 }
 
-std::string Msg_Link_Travel::BuildToString()
+std::string MsgLinkTravel::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["current_time"] = this->current_time;
+	Request["current_time"] = this->currentTime;
 	for(int i=0; i<links.size(); i++)
 	{
 		Json::Value item;
-		item["node1_id"] = links[i].node1_id;
-		item["node2_id"] = links[i].node2_id;
-		item["way_id"] = links[i].way_id;
-		item["travel_time"] = links[i].travel_time;
+		item["node1_id"] = links[i].node1Id;
+		item["node2_id"] = links[i].node2Id;
+		item["way_id"] = links[i].wayId;
+		item["travel_time"] = links[i].travelTime;
 		Request["link"].append(item);
 	}
 
@@ -227,7 +227,7 @@ std::string Msg_Link_Travel::BuildToString()
 	return msg;
 }
 
-std::string Msg_Vehicle_Stop::BuildToString()
+std::string MsgVehicleStop::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -254,7 +254,7 @@ std::string Msg_Vehicle_Stop::BuildToString()
 	return msg;
 }
 
-std::string Msg_Vehicle_Pos::BuildToString()
+std::string MsgVehiclePos::BuildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -270,7 +270,7 @@ std::string Msg_Vehicle_Pos::BuildToString()
 	return msg;
 }
 
-void Msg_Schedule::CreateMessage(std::string msg)
+void MsgSchedule::CreateMessage(std::string msg)
 {
 	JMessage::CreateMessage(msg);
 

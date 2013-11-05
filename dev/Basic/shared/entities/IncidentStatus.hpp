@@ -20,16 +20,43 @@ public:
 	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
 	IncidentStatus();
 	virtual ~IncidentStatus();
-	//insert a new incident obstacle into this class
+
+    /**
+      * insert a new incident obstacle into this class
+      * @param inc is incident obstacle.
+      * @return true if inserting successfully .
+      */
 	bool insertIncident(const Incident* inc);
-	//remove a old incident obstacle from this class
+
+    /**
+      * remove a old incident obstacle from this class
+      * @param inc is incident obstacle.
+      * @return true if removing successfully .
+      */
 	bool removeIncident(const Incident* inc);
-	//check whether all incident obstacles are cleared already
-	void checkIsCleared(timeslice* now, const RoadSegment* currentRoad);
-	//retrieve current status
+
+    /**
+      * check whether all incident obstacles are cleared already
+      * @return true if removing successfully .
+      */
+	void checkIsCleared();
+
+    /**
+      * retrieve current status
+      * @return current incident status .
+      */
 	INCIDENTSTATUS getCurrentStatus() { return currentStatus; }
-	//reset member parameters to default value.
+
+    /**
+      * reset member parameters to default value.
+      * @return void .
+      */
 	void resetStatus();
+
+    /**
+      * generate a random number.
+      * @return a random number .
+      */
 	double urandom();
 
 public:

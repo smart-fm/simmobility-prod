@@ -71,7 +71,7 @@ bool IncidentStatus::removeIncident(const Incident* inc){
 	return false;
 }
 
-void IncidentStatus::checkIsCleared(timeslice* now, const RoadSegment* currentRoad){
+void IncidentStatus::checkIsCleared(){
 
 	if(currentIncidents.size() ==0 ){
 		resetStatus();

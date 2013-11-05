@@ -243,20 +243,18 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
-	double dist = 0;
+	double realDist = 0;
 	bool replan = false;
-	//driver's visibility distance
-	const int driverVisibiltyDist = 20000;
-	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, driverVisibiltyDist, dist);
+	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	//retrieve front incident obstacle
 	if(roadItem) {
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
 			float visibility = inc->visibilityDistance;
 			incidentStatus.visibilityDist = visibility;
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && dist<visibility){
+			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
 
-				//decide labe side if vehicle is in the incident lane and it is necessary to do changing lane
+				//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
 				if(curLaneIndex==inc->laneId ){
 					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
 					if( curLaneIndex < curSegment->getLanes().size()-1){
@@ -278,7 +276,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 				if(originId == inc->segmentId)
 					incidentStatus.slowdownVelocity = true;
 
-				incidentStatus.distanceTo = dist;
+				incidentStatus.distanceTo = realDist;
 				bool ret = incidentStatus.insertIncident(inc);
 				if( ret==true && replan==false){
 					replan = true;
@@ -325,7 +323,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 		incidentStatus.nextLaneIndex = nextLaneIndex;
 		incidentStatus.laneSide = laneSide;
 		incidentStatus.currentStatus = status;
-		incidentStatus.checkIsCleared(&now, curSegment);
+		incidentStatus.checkIsCleared();
 	}
 }
 
@@ -1026,7 +1024,7 @@ void sim_mob::DriverMovement::setParentBufferedData() {
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
 	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
-const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &itemDis,bool isInSameLink)
+const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double &itemDis,double perceptionDis,bool isInSameLink)
 {
 	const sim_mob::RoadItem* res = nullptr;
 	itemDis = 0.0;

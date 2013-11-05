@@ -40,12 +40,12 @@ public:
 	int messageID_;
 };
 
-class Msg_Initialize : public JMessage {
+class MsgInitialize : public JMessage {
 public:
-	std::string start_time;
-	std::string map_type;
-	std::string map_file;
-	std::string map_directory;
+	std::string startTime;
+	std::string mapType;
+	std::string mapFile;
+	std::string mapDirectory;
 	int version;
 
 public:
@@ -54,91 +54,91 @@ public:
 
 struct Request
 {
-	int client_id;
+	int clientId;
 	int origin;
 	int destination;
-	std::string departure_time_early;
-	std::string departure_time_late;
-	std::string arrival_time_early;
-	std::string arrival_time_late;
+	std::string departureTimeEarly;
+	std::string departureTimeLate;
+	std::string arrivalTimeEarly;
+	std::string arrivalTimeLate;
 };
 
-class Msg_Request : public JMessage {
+class MsgRequest : public JMessage {
 public:
-	std::string current_time;
+	std::string currentTime;
 	Request request;
-	int		seat_num;
+	int		seatNum;
 public:
 	virtual std::string BuildToString();
 };
 
-class Msg_Vehicle_Init : public JMessage {
+class MsgVehicleInit : public JMessage {
 public:
 	struct SUPPLY
 	{
-		int vehicle_id;
-		int node_id;
+		int vehicleId;
+		int nodeId;
 	};
 	std::vector<SUPPLY> vehicles;
 public:
 	virtual void CreateMessage(std::string msg);
 };
 
-class Msg_Offer : public JMessage {
+class MsgOffer : public JMessage {
 public:
-	std::string client_id;
+	std::string clientId;
 	struct OFFER
 	{
-		std::string schdule_id;
-		int service_type;
+		std::string schduleId;
+		int serviceType;
 		int fare;
-		std::string departure_time_early;
-		std::string depature_time_late;
-		std::string arival_time_early;
-		std::string arrival_time_late;
-		int travel_time;
-		int travel_distance;
+		std::string departureTimeEarly;
+		std::string depatureTimeLate;
+		std::string arivalTimeEarly;
+		std::string arrivalTimeLate;
+		int travelTime;
+		int travelDistance;
 	};
 	std::vector<OFFER> offers;
 public:
 	virtual void CreateMessage(std::string msg);
 };
 
-class Msg_Accept : public JMessage {
+class MsgAccept : public JMessage {
 public:
-	std::string current_time;
-	std::string client_id;
-	std::string schedule_id;
-	std::string departure_time;
-	std::string arrival_time;
+	std::string currentTime;
+	std::string clientId;
+	std::string scheduleId;
+	std::string departureTime;
+	std::string arrivalTime;
 public:
 	virtual std::string BuildToString();
 };
 
-class Msg_Confirmation : public JMessage {
+class MsgConfirmation : public JMessage {
 public:
-	std::string client_id;
-	std::string schedule_id;
+	std::string clientId;
+	std::string scheduleId;
 public:
 	virtual void CreateMessage(std::string msg);
 };
 
-class Msg_Link_Travel : public JMessage {
+class MsgLinkTravel : public JMessage {
 public:
-	std::string current_time;
+	std::string currentTime;
 	struct LINK
 	{
-		int node1_id;
-		int node2_id;
-		int way_id;
-		double travel_time;
+		int node1Id;
+		int node2Id;
+		int wayId;
+		double travelTime;
 	};
 	std::vector<LINK> links;
 public:
 	virtual std::string BuildToString();
 };
 
-class Msg_Vehicle_Stop : public JMessage {
+class MsgVehicleStop : public JMessage {
 public:
 	std::string current_time;
 	std::string vehicle_id;
@@ -151,7 +151,7 @@ public:
 	virtual std::string BuildToString();
 };
 
-class Msg_Vehicle_Pos : public JMessage {
+class MsgVehiclePos : public JMessage {
 public:
 	std::string current_time;
 	std::string vehicle_id;
@@ -161,7 +161,7 @@ public:
 	virtual std::string BuildToString();
 };
 
-class Msg_Schedule : public JMessage {
+class MsgSchedule : public JMessage {
 public:
 	int vehicle_id;
 	std::string schedule_id;

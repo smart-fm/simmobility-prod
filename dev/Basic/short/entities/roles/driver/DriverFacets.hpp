@@ -91,8 +91,14 @@ public:
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
 
-	/// get nearest obstacle in perceptionDis
-	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double perceptionDis,double &dis,bool isInSameLink=true);
+    /**
+      * get nearest obstacle in perceptionDis
+      * @param type is obstacle type, currently only two types are BusStop and Incident.
+      * @param dis is used to retrieved real distance from driver to incident obstacle.
+      * @param perceptionDis is search range . default value is 200 meters
+      * @return true if inserting successfully .
+      */
+	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);

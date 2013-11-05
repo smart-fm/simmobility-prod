@@ -19,7 +19,6 @@ namespace sim_mob {
     namespace long_term {
         
         typedef long long BigSerial;
-        typedef BigSerial UnitId;
 
         enum Sex {
             UNKNOWN_SEX = 0,

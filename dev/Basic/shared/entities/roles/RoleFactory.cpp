@@ -160,6 +160,7 @@ Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 		throw std::runtime_error("Unknown role type; cannot clone.");
 	}
 	Role* role = prot->clone(parent);
+	role->make_frame_tick_params(parent->currTick);
 	return role;
 }
 

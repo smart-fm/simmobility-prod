@@ -116,7 +116,7 @@ void sim_mob::Pedestrian2Movement::frame_tick() {
 					std::cout << "End of trip chain...." << std::endl;
 				}
 				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
-				if(passenger) {// nextRole is passenger
+				if(passenger) {// nextRole is passenger, create temporary role to avoid tripchain
 					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
@@ -157,11 +157,6 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
 		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
-}
-
-
-void sim_mob::Pedestrian2Movement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
 }
 
 void sim_mob::Pedestrian2Movement::setSubPath() {

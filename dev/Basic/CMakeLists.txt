@@ -232,6 +232,9 @@ option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's s
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
+#Option: use path set mode flag
+option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
+
 #Option: enable confluxes
 option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
 
@@ -371,6 +374,10 @@ LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
 #Find boost-regex
 find_package(Boost COMPONENTS regex REQUIRED)
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
+#Find boost-random
+find_package(Boost COMPONENTS random REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
 #Find JsonCpp

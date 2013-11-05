@@ -12,12 +12,20 @@
 namespace sim_mob {
 namespace medium {
 
+/**
+ * Behaviour Facet class for mid-term Driver role
+ *
+ * \author Melani Jayasuriya
+ * \author Harish Loganathan
+ */
 class DriverBehavior: public sim_mob::BehaviorFacet {
 public:
 	explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverBehavior();
 
-	//Virtual overrides
+	/**
+	 * Virtual overrides
+	 */
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
@@ -31,27 +39,41 @@ public:
 	}
 
 protected:
+	/**
+	 * Pointer to the parent Driver role.
+	 */
 	sim_mob::medium::Driver* parentDriver;
 
 };
 
+/**
+ * Movement Facet class for mid-term Driver role
+ *
+ * \author Melani Jayasuriya
+ * \author Harish Loganathan
+ */
 class DriverMovement: public sim_mob::MovementFacet {
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
 
-	//Virtual overrides
+	/**
+	 * Virtual overrides
+	 */
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+
+	/**
+	 * For moving into a new link after getting permission from the managing conflux
+	 */
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
-	void setParentData(DriverUpdateParams& p);			///<set next data to parent buffer data
-	double getTimeSpentInTick(DriverUpdateParams& p);
+	void setParentData(DriverUpdateParams& p);	///<set next data to parent buffer data
 	void stepFwdInTime(DriverUpdateParams& p, double time);
 	bool advance(DriverUpdateParams& p);
 	bool moveToNextSegment(DriverUpdateParams& p);
-	bool canGoToNextRdSeg(DriverUpdateParams& p, double t);
+	bool canGoToNextRdSeg(DriverUpdateParams& p);
 	void moveInQueue();
 	bool moveInSegment(DriverUpdateParams& p2, double distance);
 	bool advanceQueuingVehicle(DriverUpdateParams& p);
@@ -78,8 +100,16 @@ public:
 	}
 
 protected:
+	/**
+	 * Pointer to the parent Driver role.
+	 */
 	sim_mob::medium::Driver* parentDriver;
+
+	/**
+	 * The vehicle allocated to this driver
+	 */
 	Vehicle* vehicle;
+
 	const Lane* currLane;
 	const Lane* nextLaneInNextSegment;
 
@@ -90,9 +120,38 @@ protected:
 	void removeFromQueue();
 	const sim_mob::Lane* getBestTargetLane(const RoadSegment* targetRdSeg, const RoadSegment* nextRdSeg);
 	double getInitialQueueLength(const Lane* l);
+
+	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
+	/**
+	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
+	 *
+	 * @param rdSeg roadSegment to insert incident
+	 * @param newFlowRate new flow rate to be updated
+	 */
 	void insertIncident(const RoadSegment* rdSeg, double newFlowRate);
+
+	/**
+	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
+	 *
+	 * @param rdSeg road segment to remove incident
+	 */
 	void removeIncident(const RoadSegment* rdSeg);
 
+	/**
+	 * Updates travel time for this driver for the link which he has just exited from.
+	 *
+	 * @param prevSeg the last segment in the link from which the driver has just exited
+	 * @param linkExitTimeSec time at which the link was exited
+	 */
+	void updateLinkTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
+
+	/**
+	 * Updates travel time for this driver for the road segment which he has just exited from.
+	 *
+	 * @param prevSeg the segment from which the driver has just exited
+	 * @param linkExitTimeSec time at which the segment was exited
+	 */
+	void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 };
 
 } /* namespace medium */

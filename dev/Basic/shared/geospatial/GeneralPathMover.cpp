@@ -100,11 +100,12 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
-
+	fullPath.clear();
+	if(path.empty()){
+		return;
+	}
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
-	//bool fwd = isFwd;
-	fullPath.clear();
 	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++) {
 		fullPath.push_back(*it);
 
@@ -947,44 +948,12 @@ void sim_mob::GeneralPathMover::advance_med(double fwdDistance)
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 
-/*	if (inIntersection)
-	{
-		throw std::runtime_error("Calling \"advance\" within an Intersection. Shouldn't be here..! ");
-		return;
-	}
-
-	//Debug output
-	if (Debug::Paths)
-	{
-		//DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distToEndSegment-fwdDistance) <<")";
-		//Print the distance from the next Node
-		Point2D myPos(getPosition().x, getPosition().y);
-		DebugStream << "  " << Fmt_M(distToEndSegment) << ",";
-	}*/
-
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
 	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorGeneralPathDone);
 
-	//Move down the current polyline. If this brings us to the end point, go to the next polyline
-	//double res = 0.0;
 	distToEndSegment -= fwdDistance;
 
 	distToEndSegment = std::max(distToEndSegment, 0.0);	//fwdDistance already takes this account. Just to make sure this doesn't fall below zero.
-
-/*	while (distToEndSegment <= 0 && !inIntersection)
-	{
-		if (Debug::Paths)
-		{
-			Point2D myPos(getPosition().x, getPosition().y);
-			DebugStream << endl << "Now at polyline end. Distance from actual end: " << Fmt_M(dist(*nextPolypoint, myPos)) << endl;
-		}
-
-		//Since it is negative, keep adding distance moved thus far, till it turns positive
-		distToEndSegment += getCurrentSegmentLength();
-
-		//Advance pointers, etc.
-		actualMoveToNextSegmentAndUpdateDir_med();
-	}*/
 }
 
 void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir_med()

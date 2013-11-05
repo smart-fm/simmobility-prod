@@ -166,21 +166,34 @@ private:
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
 public:
-	//for mid-term link travel time computation
-	struct travelStats
+	//Either linkTravelStats or rdSegTravelStats will be populated depending on the requirements for link or road segment travel times
+	struct linkTravelStats
 	{
 	public:
 		const Link* link_;
 		unsigned int linkEntryTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
-		travelStats(const Link* link,
+		linkTravelStats(const Link* link,
 				unsigned int linkEntryTime)
 		: link_(link), linkEntryTime_(linkEntryTime)
 		{
 		}
 	};
 
+	struct rdSegTravelStats
+	{
+	public:
+		const RoadSegment* rdSeg_;
+		unsigned int rdSegEntryTime_;
+		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
+
+		rdSegTravelStats(const RoadSegment* rdSeg,
+				unsigned int rdSegEntryTime)
+		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime)
+		{
+		}
+	};
 
 public:
 	//The agent's start/end nodes.
@@ -199,6 +212,8 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
+
+	timeslice currTick;// curr Time tick
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::set<Entity*> all_agents;
@@ -241,29 +256,43 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
-	//used for mid-term supply for link travel time computation
-	//travelStats for each agent will be updated either for a role change or link change
-	void initTravelStats(const Link* link, double entryTime);
-	void addToTravelStatsMap(travelStats ts, double exitTime);
-	travelStats getTravelStats()
+	//==================== road segment travel time computation ===================================
+	//travelStats for each agent will be updated either for a role change or road segment change
+	void initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime);
+	void addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime);
+	rdSegTravelStats getRdSegTravelStats()
 	{
-		return currTravelStats;
+		return currRdSegTravelStats;
 	}
 
-	const std::map<double, travelStats>& getTravelStatsMap()
+	const std::map<double, rdSegTravelStats>& getRdSegTravelStatsMap()
 	{
-		return this->travelStatsMap.get();
+		return this->rdSegTravelStatsMap.get();
 	}
+	rdSegTravelStats currRdSegTravelStats;
+	sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+
+	//============================ link travel time computation ===================================
+	//travelStats for each agent will be updated either for a role change or link change
+	void initLinkTravelStats(const Link* link, double entryTime);
+	void addToLinkTravelStatsMap(linkTravelStats ts, double exitTime);
+	linkTravelStats getLinkTravelStats()
+	{
+		return currLinkTravelStats;
+	}
+
+	const std::map<double, linkTravelStats>& getLinkTravelStatsMap()
+	{
+		return this->linkTravelStatsMap.get();
+	}
+
+	linkTravelStats currLinkTravelStats;
+	sim_mob::Shared< std::map<double, linkTravelStats> > linkTravelStatsMap; //<linkExitTime, travelStats>
+	//=============================end of link travel time computation ===========================
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
 	double movingVelocity;
-
-	//for mid-term, to compute link travel times
-	travelStats currTravelStats;
-	sim_mob::Shared< std::map<double, travelStats> > travelStatsMap; //<linkExitTime, travelStats>
-//	double linkEntryTime; //in seconds - time agent change to the current link
-//	double roleEntryTime; //in seconds - time agent changed to the current role
 
 	//timeslice enqueueTick;
 

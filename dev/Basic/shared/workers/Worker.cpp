@@ -263,9 +263,13 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
-			(*it)->resetSegmentFlows();
 			(*it)->resetLinkTravelTimes(currTime);
-			(*it)->resetOutputBounds();
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				(*it)->reportRdSegTravelTimes(currTime);
+				(*it)->resetRdSegTravelTimes(currTime);
+			}
+			(*it)->resetSegmentFlows();
+			//vqCount += (*it)->resetOutputBounds();
 		}
 	}
 }
@@ -592,6 +596,26 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
+	unsigned int total = 0;
+	unsigned int infCount = 0;
+	unsigned int vqCount = 0;
+	//Confluxes require an additional set of updates.
+	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
+			vqCount += (*it)->resetOutputBounds();
+			total += (*it)->getAllPersons().size();
+			infCount += (*it)->getNumRemainingInLaneInfinity();
+		}
+
+		if(managedConfluxes.size() > 0){
+			Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
+				<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+		}
+
+		//All workers perform the same tasks for their set of managedConfluxes.
+		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
+	}
+
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
 	std::for_each(managedEntities.begin(), managedEntities.end(), EntityUpdater(*this, currTime));
 }

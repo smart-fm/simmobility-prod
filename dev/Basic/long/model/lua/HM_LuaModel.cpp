@@ -46,6 +46,7 @@ void HM_LuaModel::mapClasses() {
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <HousingMarket::Entry> ("UnitEntry")
+            .addProperty("unit", &HousingMarket::Entry::getUnit)
             .addProperty("hedonicPrice", &HousingMarket::Entry::getHedonicPrice)
             .addProperty("askingPrice", &HousingMarket::Entry::getAskingPrice)
             .addProperty("unitId", &HousingMarket::Entry::getUnitId)
@@ -89,9 +90,9 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const{
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, const Unit& unit, int unitBids) const{
+double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const{
     LuaRef funcRef = getGlobal(state.get(), "calculateSurplus");
-    LuaRef retVal = funcRef(entry, unit, unitBids);
+    LuaRef retVal = funcRef(entry, unitBids);
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }

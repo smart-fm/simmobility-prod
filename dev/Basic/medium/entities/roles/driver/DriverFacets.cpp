@@ -167,7 +167,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 		return;
 	}
 
-/*	std::stringstream logout;
+	std::stringstream logout;
 	logout << "(\"Driver\""
 			<<","<<getParent()->getId()
 			<<","<<p.now.frame()
@@ -183,7 +183,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 	}
 	logout << "\"})" << std::endl;
 
-	LogOut(logout.str());*/
+	LogOut(logout.str());
 }
 
 sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateVehicle) {
@@ -541,8 +541,9 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& p) {
 	double xf = 0.0;
 	double tf = 0.0;
 
-	if(!currLane)
+	if(!currLane) {
 		throw std::runtime_error("agent's current lane is not set!");
+	}
 
 	getSegSpeed();
 
@@ -753,8 +754,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	{
 		p.elapsedSeconds = p.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId()
-				<< "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
+		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
 	}
 }
 

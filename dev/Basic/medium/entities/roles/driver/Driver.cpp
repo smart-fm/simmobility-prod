@@ -81,7 +81,6 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now, *this);
-//	return params;
 }
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const
@@ -98,13 +97,8 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& own
 {
 	UpdateParams::reset(now);
 
-	//Reset; these will be set before they are used; the values here represent either default
-	//       values or are unimportant.
-
 	secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
-
 	elapsedSeconds = 0.0;
-
 }
 
 

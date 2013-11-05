@@ -89,7 +89,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), shouldResetParams(false)
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), resetParamsRequired(false)
 {
 }
 
@@ -251,9 +251,9 @@ bool sim_mob::Person::frame_init(timeslice now)
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	//TODO: Here is where it gets risky.
-	if (shouldResetParams) {
+	if (resetParamsRequired) {
 		currRole->make_frame_tick_params(now);
-		shouldResetParams = false;
+		resetParamsRequired = false;
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -302,7 +302,7 @@ void sim_mob::Person::frame_output(timeslice now)
 	}
 
 	//avoiding logical errors while improving the code
-	shouldResetParams = true;
+	resetParamsRequired = true;
 }
 
 

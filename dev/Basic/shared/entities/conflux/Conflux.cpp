@@ -37,7 +37,7 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
-	  isBoundary(false), isMultipleReceiver(false),shouldResetParams(false)
+	  isBoundary(false), isMultipleReceiver(false)
 
 {
 }
@@ -190,6 +190,22 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	laneAfterUpdate = person->getCurrLane();
 	isQueuingAfterUpdate = person->isQueuing;
 	segStatsAftrUpdt = findSegStats(segAfterUpdate);
+
+	//debugging dequeue error
+	if(person->getId() == 84205 || person->getId() == 13282) {
+		Print() << person->getId()
+				<< "|person->currWorkerProvider: " << person->currWorkerProvider
+				<< "|roleBeforeUpdate: " << (roleBeforeUpdate? roleBeforeUpdate->getRoleName() : "No role")
+				<< "|segBeforeUpdate: " << segBeforeUpdate->getStartEnd()
+				<< "|laneBeforeUpdate:" << (laneBeforeUpdate? laneBeforeUpdate->getLaneID() : 0)
+				<< "|isQueuingBeforeUpdate:" << isQueuingBeforeUpdate
+				<< "|roleAfterUpdate: " << roleAfterUpdate->getRoleName()
+				<< "|segAfterUpdate: " << segAfterUpdate->getStartEnd()
+				<< "|laneAfterUpdate: " << (laneAfterUpdate? laneAfterUpdate->getLaneID() : 0)
+				<< "|isQueuingAfterUpdate: " << isQueuingAfterUpdate
+				<< "|distance: " << person->distanceToEndOfSegment
+				<< "|lastUpdatedFrame: " << person->getLastUpdatedFrame() << std::endl;
+	}
 
 	if (!laneBeforeUpdate) { //If the person was in virtual queue or was performing an activity
 		if(laneAfterUpdate) { //If the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
@@ -688,9 +704,9 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 
 Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, Person* person) {
 	Role* personRole = person->getRole();
-	if (shouldResetParams) {
+	if (person->isResetParamsRequired()) {
 		personRole->make_frame_tick_params(now);
-		shouldResetParams = false;
+		person->setResetParamsRequired(false);
 	}
 	person->setLastUpdatedFrame(currFrameNumber.frame());
 
@@ -784,14 +800,12 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 void sim_mob::Conflux::call_movement_frame_output(timeslice now, Person* person) {
 	//Save the output
-
 	if (!isToBeRemoved()) {
 		person->currRole->Movement()->frame_tick_output();
-
 	}
 
-	//sorry Harish, I wanted to avoid hard to detect logical errors
-	shouldResetParams = true;
+	//now is the right time to ask for resetting of updateParams
+	person->setResetParamsRequired(true);
 }
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {

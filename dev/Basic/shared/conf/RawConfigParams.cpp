@@ -9,7 +9,7 @@ using namespace sim_mob;
 sim_mob::RawConfigParams::RawConfigParams()
 {}
 
-sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0)
+sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0)
 {}
 
 sim_mob::SystemParams::SystemParams() : singleThreaded(false), mergeLogFiles(false), networkSource(NETSRC_XML)

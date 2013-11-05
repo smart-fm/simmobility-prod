@@ -14,6 +14,7 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <sstream>
 //#include <sys/time.h>
 
 //NOTE: This is a Linux-only class. We need to ifdef it out if not available 
@@ -54,6 +55,18 @@ namespace sim_mob {
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
         static std::pair<double, double> parse_scale_minmax(const std::string& src);
+
+        /**
+         * Convert any kind of number format into a string.
+         * @param number input
+         * @return to a string
+         */
+		template<typename T>
+		static std::string numberToString(const T& number) {
+			std::ostringstream stream;
+			stream << number;
+			return stream.str();
+		}
     };
 
     /**

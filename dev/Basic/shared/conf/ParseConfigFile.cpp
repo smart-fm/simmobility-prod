@@ -810,7 +810,7 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false);
+	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false, false);
 }
 
 void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* node)
@@ -822,7 +822,7 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true);
+	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -1103,7 +1103,7 @@ void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElemen
 }*/
 
 
-void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq)
+void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq, bool laneReq)
 {
 	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
@@ -1112,6 +1112,7 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos", originReq),Point2D());
 			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
+			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
 			res.push_back(ent);
 		}
 	}

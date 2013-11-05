@@ -17,7 +17,8 @@ class Handler;
 namespace roadrunner
 {
 class HDL_CLIENTDONE;
-MSG_CLIENTDONE::MSG_CLIENTDONE(msg_data_t& data_): /*Roadrunner*/Message(data_)
+
+MSG_CLIENTDONE::MSG_CLIENTDONE(Json::Value& data_): /*Roadrunner*/Message(data_)
 {
 
 }

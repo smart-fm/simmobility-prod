@@ -23,10 +23,10 @@ RR_Android_Factory::RR_Android_Factory() {
 }
 RR_Android_Factory::~RR_Android_Factory() {}
 //gets a handler either from a chche or by creating a new one
-hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
-	hdlr_ptr handler;
+boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType type){
+	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
-	std::map<MessageType, hdlr_ptr >::iterator it = HandlerMap.find(type);
+	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
 	if((it != HandlerMap.end())&&((*it).second!= 0))
 	{
 		//get the handler ...
@@ -82,7 +82,7 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
-		msg_data_t & curr_json = root[index];
+		Json::Value& curr_json = root[index];
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
@@ -128,10 +128,10 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
  }
  RR_NS3_Factory::~RR_NS3_Factory() {}
  //gets a handler either from a chche or by creating a new one
- hdlr_ptr  RR_NS3_Factory::getHandler(MessageType type){
- 	hdlr_ptr handler;
+ boost::shared_ptr<sim_mob::Handler>  RR_NS3_Factory::getHandler(MessageType type){
+	 boost::shared_ptr<sim_mob::Handler> handler;
  	//if handler is already registered && the registered handler is not null
- 	std::map<MessageType, hdlr_ptr >::iterator it = HandlerMap.find(type);
+ 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
  	if((it != HandlerMap.end())&&((*it).second!= 0))
  	{
  		//get the handler ...
@@ -187,7 +187,7 @@ hdlr_ptr  RR_Android_Factory::getHandler(MessageType type){
  		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
  			continue;
  		}
- 		msg_data_t & curr_json = root[index];
+ 		Json::Value& curr_json = root[index];
  		switch (MessageMap[messageHeader.msg_type]) {
  		case MULTICAST:{
  			//create a message

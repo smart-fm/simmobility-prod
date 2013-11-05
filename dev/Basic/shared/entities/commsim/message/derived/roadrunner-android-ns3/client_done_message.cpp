@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * CLIENTDONE_Message.cpp
  *
@@ -13,7 +17,7 @@ class Handler;
 namespace rr_android_ns3
 {
 class HDL_CLIENTDONE;
-MSG_CLIENTDONE::MSG_CLIENTDONE(msg_data_t& data_): Message(data_)
+MSG_CLIENTDONE::MSG_CLIENTDONE(Json::Value& data_): Message(data_)
 {
 
 }

@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * UNICAST_Message.h
  *
@@ -7,9 +11,10 @@
  *      are supposed to be routed to ns3
  */
 
-#ifndef RR_ANDROID_NS3_UNICAST_MESSAGE_HPP_
-#define RR_ANDROID_NS3_UNICAST_MESSAGE_HPP_
+#pragma once
+
 #include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/base/Handler.hpp"
 
 namespace sim_mob {
 namespace rr_android_ns3 {
@@ -17,11 +22,11 @@ namespace rr_android_ns3 {
 /***************************************************************************************************************************************************
  *****************************   ANDROID   ************************************************************************************************************
  **************************************************************************************************************************************************/
-class ANDROID_MSG_UNICAST : public sim_mob::comm::Message<msg_data_t> {
+class ANDROID_MSG_UNICAST : public sim_mob::comm::Message {
 	//...
 public:
 	Handler * newHandler();
-	ANDROID_MSG_UNICAST(msg_data_t& data_);
+	ANDROID_MSG_UNICAST(Json::Value& data_);
 };
 
 //Handler to the above message
@@ -36,11 +41,11 @@ public:
  *****************************   NS3   ************************************************************************************************************
  **************************************************************************************************************************************************/
 
-class NS3_MSG_UNICAST : public sim_mob::comm::Message<msg_data_t> {
+class NS3_MSG_UNICAST : public sim_mob::comm::Message {
 	//...
 public:
 	Handler * newHandler();
-	NS3_MSG_UNICAST(msg_data_t& data_);
+	NS3_MSG_UNICAST(Json::Value& data_);
 };
 
 //Handler to the above message
@@ -52,4 +57,3 @@ public:
 };
 }/* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* ANDROID_UNICAST_MESSAGE_H_ */

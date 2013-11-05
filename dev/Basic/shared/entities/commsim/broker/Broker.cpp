@@ -197,7 +197,7 @@ void Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHand
 	for(std::vector<msg_ptr>::iterator it = messages.begin(); it != messages.end(); it++)
 	{
 
-		msg_data_t &data = it->get()->getData();
+		Json::Value& data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
 //		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
 		if(type == "CLIENT_MESSAGES_DONE")
@@ -434,7 +434,7 @@ void Broker::processIncomingData(timeslice now)
 	while(receiveQueue.pop(msgTuple))
 	{
 		msg_ptr &msg = msgTuple.get<1>();
-		msg_data_t data = msg->getData();
+		Json::Value data = msg->getData();
 		Json::FastWriter w;
 		msg->supplyHandler()->handle(msg,this);
 	}

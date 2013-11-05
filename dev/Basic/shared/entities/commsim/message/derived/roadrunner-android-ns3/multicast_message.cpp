@@ -18,7 +18,7 @@ namespace rr_android_ns3
 /***************************************************************************************************************************************************
  *****************************   ANDROID   ************************************************************************************************************
  **************************************************************************************************************************************************/
-ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(msg_data_t data_): Message(data_)
+ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(Json::Value data_): Message(data_)
 {
 
 }
@@ -190,7 +190,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
  * ****************************   NS3   ************************************************************************************************************
  * ************************************************************************************************************************************************
  */
-NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(msg_data_t data_): Message(data_)
+NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(Json::Value data_): Message(data_)
 {
 
 }
@@ -205,7 +205,7 @@ Handler * NS3_MSG_MULTICAST::newHandler()
 void NS3_HDL_MULTICAST::handle(msg_ptr message_, Broker* broker) {
 	//find the client destination client_handler
 	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
-	msg_data_t & jData = message_->getData();
+	Json::Value& jData = message_->getData();
 	int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
 	ClientList::type & all_clients = broker->getClientList();
 	ClientList::pair clientTypes;

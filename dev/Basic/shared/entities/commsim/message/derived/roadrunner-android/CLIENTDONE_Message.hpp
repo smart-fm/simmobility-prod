@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * CLIENTDONE_Message.h
  *
@@ -5,8 +9,8 @@
  *      Author: vahid
  */
 
-#ifndef RR_ANDROID_CLIENTDONE_MESSAGE_HPP_
-#define RR_ANDROID_CLIENTDONE_MESSAGE_HPP_
+#pragma once
+
 #include "entities/commsim/message/base/Message.hpp"
 //#include "CLIENTDONE_Handler.hpp"
 //#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
@@ -14,13 +18,12 @@
 namespace sim_mob {
 namespace roadrunner {
 
-class MSG_CLIENTDONE : public sim_mob::comm::Message<msg_data_t>/*sim_mob::roadrunner::RoadrunnerMessage*/ {
+class MSG_CLIENTDONE : public sim_mob::comm::Message/*sim_mob::roadrunner::RoadrunnerMessage*/ {
 	//...
 public:
 	Handler * newHandler();
-	MSG_CLIENTDONE(msg_data_t& data_);
+	MSG_CLIENTDONE(Json::Value& data_);
 };
 
 }/* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* CLIENTDONE_MESSAGE_H_ */

@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * MULTICAST_Message.h
  *
@@ -5,19 +9,22 @@
  *      Author: vahid
  */
 
-#ifndef RR_ANDROID_MULTICAST_MESSAGE_HPP_
-#define RR_ANDROID_MULTICAST_MESSAGE_HPP_
+#pragma once
+
 //#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
+
 #include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/base/Handler.hpp"
+
 namespace sim_mob {
 namespace roadrunner {
 
 //class MSG_MULTICAST : public sim_mob::roadrunner::RoadrunnerMessage {
-class MSG_MULTICAST : public sim_mob::comm::Message<msg_data_t> {
+class MSG_MULTICAST : public sim_mob::comm::Message {
 	//...
 public:
 	Handler * newHandler();
-	MSG_MULTICAST(msg_data_t data_);
+	MSG_MULTICAST(Json::Value data_);
 };
 
 
@@ -30,4 +37,3 @@ public:
 
 }/* namespace roadrunner */
 } /* namespace sim_mob */
-#endif /* MULTICAST_MESSAGE_H_ */

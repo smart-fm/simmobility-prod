@@ -33,12 +33,12 @@ class RR_Factory : public MessageFactory<std::vector<msg_ptr>&, std::string&>/*M
 	};
 	std::map<std::string, RR_Factory::MessageType> MessageMap;
 	//This map is used as a cache to avoid repetitive handler creation in heap
-	std::map<MessageType, hdlr_ptr > HandlerMap;
+	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> > HandlerMap;
 public:
 	RR_Factory();
 	virtual ~RR_Factory();
 	bool createMessage(std::string &str, std::vector<msg_ptr>&output);
-	hdlr_ptr  getHandler(MessageType);
+	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
 };
 
 } /* namespace roadrunner */

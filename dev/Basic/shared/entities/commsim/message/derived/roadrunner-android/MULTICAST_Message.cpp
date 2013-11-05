@@ -23,7 +23,7 @@ class Handler;
 namespace roadrunner
 {
 class HDL_MULTICAST;
-MSG_MULTICAST::MSG_MULTICAST(msg_data_t data_): /*RoadrunnerMessage*/Message(data_)
+MSG_MULTICAST::MSG_MULTICAST(Json::Value data_): /*RoadrunnerMessage*/Message(data_)
 {
 
 }

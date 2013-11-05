@@ -1,14 +1,22 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
+
 #include "entities/Agent.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/services.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/base/Handler.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
 #include "workers/Worker.hpp"
 //external libraries
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
+
 #include "Broker-util.hpp"
+
 namespace sim_mob
 {
 //Forward Declarations

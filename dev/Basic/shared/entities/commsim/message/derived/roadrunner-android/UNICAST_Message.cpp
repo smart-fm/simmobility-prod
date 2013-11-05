@@ -18,7 +18,7 @@ class Handler;
 namespace roadrunner
 {
 class HDL_UNICAST;
-MSG_UNICAST::MSG_UNICAST(msg_data_t& data_): /*Roadrunner*/Message(data_)
+MSG_UNICAST::MSG_UNICAST(Json::Value& data_): /*Roadrunner*/Message(data_)
 {
 
 }

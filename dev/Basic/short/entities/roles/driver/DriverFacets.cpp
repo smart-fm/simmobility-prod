@@ -1216,11 +1216,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
 				if(parent->laneID >= 0 && parent->laneID < path[1].roadSegment_->getLanes().size()) {
 					startlaneID = parentP->laneID;//need to check if lane valid
-				} else {
-					startlaneID = 0;
 				}
-			} else {
-				startlaneID = 0;
 			}
 			parentP->laneID = -1;
 		}

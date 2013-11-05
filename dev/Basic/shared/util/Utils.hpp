@@ -61,13 +61,12 @@ namespace sim_mob {
          * @param number input
          * @return to a string
          */
-        template <typename T>
-        static std::string numberToString(const T& number)
-        {
-        	std::ostringstream stream;
-            stream << number;
-            return stream.str();
-        }
+		template<typename T>
+		static std::string numberToString(const T& number) {
+			std::ostringstream stream;
+			stream << number;
+			return stream.str();
+		}
     };
 
     /**

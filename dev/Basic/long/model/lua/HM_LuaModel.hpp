@@ -56,7 +56,7 @@ namespace sim_mob {
              * @return value of the Surplus or 
              *         sim_mob::long_term::INVALID_DOUBLE
              */
-            double calculateSurplus(const HousingMarket::Entry& entry, const Unit& unit, int unitBids) const;
+            double calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const;
 
             /**
              * Calculates the willingness to pay based on Household attributes 

@@ -146,7 +146,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
             itr != entries.end(); itr++) {
         const HousingMarket::Entry* entry = &(itr->second);
         if ((entry->getOwner() != getParent())) {
-            float surplus = luaModel.calculateSurplus(*entry, entry->getUnit(),
+            float surplus = luaModel.calculateSurplus(*entry,
                     getBidsCounter(entry->getUnitId()));
             if (surplus > maxSurplus) {
                 maxSurplus = surplus;

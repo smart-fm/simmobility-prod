@@ -48,11 +48,10 @@ namespace sim_mob {
             double calculateHedonicPrice(const Unit& unit) const;
 
             /**
-             * Calculates the surplus for the given unit.
+             * Calculates the surplus for the given market entry.
              * 
              * @param entry target.
-             * @param unitId target.
-             * @param unitBids number of bids (attempts) to this unit.
+             * @param unitBids number of bids (attempts) to the given entry.
              * @return value of the Surplus or 
              *         sim_mob::long_term::INVALID_DOUBLE
              */

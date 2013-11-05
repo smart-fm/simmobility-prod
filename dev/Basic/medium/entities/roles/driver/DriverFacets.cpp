@@ -25,7 +25,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
-#include "geospatial/PathSetManager.h"
+#include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 
 #include "logging/Log.hpp"
@@ -36,7 +36,6 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
-#include "geospatial/PathSetManager.h"
 using namespace sim_mob;
 
 using std::max;
@@ -262,10 +261,6 @@ void DriverMovement::setParentData(DriverUpdateParams& p) {
 		getParent()->setRemainingTimeThisTick(0.0);
 		getParent()->isQueuing = false;
 	}
-}
-
-double DriverMovement::getTimeSpentInTick(DriverUpdateParams& p) {
-	return p.elapsedSeconds;
 }
 
 void DriverMovement::stepFwdInTime(DriverUpdateParams& p, double time) {

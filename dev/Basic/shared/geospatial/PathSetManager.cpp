@@ -2,10 +2,10 @@
  * PathSetManager.cpp
  *
  *  Created on: May 6, 2013
- *      Author: redheli
+ *      Author: Max
  */
 
-#include "PathSetManager.h"
+#include "PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Node.hpp"

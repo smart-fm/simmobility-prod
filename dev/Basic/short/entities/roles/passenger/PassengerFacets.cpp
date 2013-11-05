@@ -180,10 +180,6 @@ void sim_mob::PassengerMovement::frame_tick_output() {
 		<<"\",})"<<std::endl);
 }
 
-void sim_mob::PassengerMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
-}
-
 bool sim_mob::PassengerMovement::isAtBusStop()
 {
 	if(parentPassenger->BoardedBus.get()==false)

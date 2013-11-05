@@ -1,8 +1,8 @@
 /*
- * PathSetDB.h
+ * PathSetDB.hpp
  *
  *  Created on: May 17, 2013
- *      Author: redheli
+ *      Author: Max
  */
 
 #ifndef PATHSETDB_H_

@@ -2,10 +2,10 @@
  * PathSetDB.cpp
  *
  *  Created on: May 17, 2013
- *      Author: redheli
+ *      Author: Max
  */
 
-#include "PathSetDB.h"
+#include "PathSetDB.hpp"
 
 sim_mob::PathSetDB::PathSetDB() {
 	// TODO Auto-generated constructor stub

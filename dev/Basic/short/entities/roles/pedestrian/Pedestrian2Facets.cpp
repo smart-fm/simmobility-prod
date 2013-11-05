@@ -159,11 +159,6 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
 }
 
-
-void sim_mob::Pedestrian2Movement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
-}
-
 void sim_mob::Pedestrian2Movement::setSubPath() {
 	const StreetDirectory& stdir = StreetDirectory::instance();
 

@@ -9,11 +9,10 @@
 #include <set>
 #include <map>
 #include <iostream>
-#include "geospatial/PathSet/PathSetDB.h"
-#include "geospatial/PathSetManager.h"
+#include "geospatial/PathSet/PathSetDB.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
-#include "geospatial/PathSetManager.h"
 
 namespace sim_mob
 {

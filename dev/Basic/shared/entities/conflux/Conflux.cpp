@@ -21,9 +21,9 @@
 #include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/conflux/SegmentStats.hpp"
-#include "geospatial/MultiNode.hpp"
 #include "geospatial/Link.hpp"
-#include "geospatial/PathSetManager.h"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
@@ -717,16 +717,20 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 	 * until the remainingTimeThisTick of the person is expired.
 	 * The frame tick of the movement facet returns when one of the following conditions are true. These are handled by case distinction.
 	 *
-	 * 1. frame_tick has displaced the person to the maximum distance that the person can move in the full tick duration. This case identified by
-	 * checking if the remainingTimeThisTick of the person is 0. If remainingTimeThisTick == 0 we break off from the loop. The person's location is updated in the
-	 * conflux that it belongs to. If the person has to be removed from the simulation, he is.
+	 * 1. Driver's frame_tick() has displaced the person to the maximum distance that the person can move in the full tick duration.
+	 * This case identified by checking if the remainingTimeThisTick of the person is 0.
+	 * If remainingTimeThisTick == 0 we break off from the while loop.
+	 * The person's location is updated in the conflux that it belongs to. If the person has to be removed from the simulation, he is.
 	 *
-	 * 2. The person has reached the end of a link. This case is identified by checking requestedNextSegment for not null which indicates that the role has
-	 * requested permission to move to the next segment in a new link in its path. The conflux immediately grants permission by setting the flag canMoveToNextSegment.
+	 * 2. The person has reached the end of a link.
+	 * This case is identified by checking requestedNextSegment which indicates that the role has requested permission to move to the next segment in a new link in its path.
+	 * The requested next segment will be assigned a segment by the mid-term driver iff the driver is moving into a new link.
+	 * The conflux immediately grants permission by setting canMoveToNextSegment to GRANTED.
 	 * If the next link is not processed for the current tick, the person is added to the virtual queue of the next conflux and the loop is broken.
 	 * If the next link is processed, the loop continues. The movement role facet (driver) checks canMoveToNextSegment flag before it advances in its frame_tick.
 	 *
-	 * 3. The person has reached the end of the current subtrip. The loop will catch this and update the current trip chain item and change roles.
+	 * 3. The person has reached the end of the current subtrip. The loop will catch this by checking person->isToBeRemoved() flag.
+	 * If the driver has reached the end of the current subtrip, the loop updates the current trip chain item of the person and change roles by calling person->checkTripChain().
 	 * We also set the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
 	 */
 
@@ -900,8 +904,8 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, con
 //Sort all agents in lane (based on remaining time this tick)
 void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
 	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
-	//ordering is required only if we have more than 1 person in the deque
-	if(personList.size() > 1) {
+
+	if(personList.size() > 1) { //ordering is required only if we have more than 1 person in the deque
 		std::sort(personList.begin(), personList.end(), cmp_person_remainingTimeThisTick_obj);
 	}
 }
@@ -962,8 +966,7 @@ void sim_mob::Conflux::reportRdSegTravelTimes(timeslice frameNumber) {
 	insertTravelTime2TmpTable(frameNumber, RdSegTravelTimesMap);
 }
 
-bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber,
-		std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap)
+bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap)
 {
 	bool res=false;
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
@@ -995,27 +998,24 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber,
 void sim_mob::Conflux::findBoundaryConfluxes() {
 
 	sim_mob::Worker* firstUpstreamWorker = nullptr;
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
-						= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
 
 	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
 		const MultiNode* upnode = dynamic_cast<const MultiNode*> (i->first->getStart());
 
 		if(upnode){
-			std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::iterator cit = multinode_confluxes.find(upnode);
+			std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::iterator confIt = multinode_confluxes.find(upnode);
 
-			if (cit != multinode_confluxes.end()){
+			if (confIt != multinode_confluxes.end()){
 				//check if upstream conflux belongs to another worker
-				if (cit->second->getParentWorker() != this->getParentWorker()){
+				if (confIt->second->getParentWorker() != this->getParentWorker()){
 					if( !isBoundary){
 						isBoundary = true;
-						firstUpstreamWorker = cit->second->getParentWorker();
+						firstUpstreamWorker = confIt->second->getParentWorker();
 					}
-					else{
-						if(cit->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker){
+					else if(confIt->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker){
 							isMultipleReceiver = true;
 							return;
-						}
 					}
 				}
 			}

@@ -17,7 +17,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
 #include "util/OutputUtil.hpp"
-#include "geospatial/PathSetManager.h"
+#include "geospatial/PathSetManager.hpp"
 #include <boost/random.hpp>
 #include <boost/nondet_random.hpp>
 #include "boost/generator_iterator.hpp"

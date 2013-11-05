@@ -6,7 +6,7 @@
 #include "A_StarShortestPathImpl.hpp"
 #include "AStarShortestTravelTimePathImpl.hpp"
 #include "StreetDirectory.hpp"
-#include "geospatial/PathSetManager.h"
+#include "geospatial/PathSetManager.hpp"
 
 #include <map>
 #include <vector>

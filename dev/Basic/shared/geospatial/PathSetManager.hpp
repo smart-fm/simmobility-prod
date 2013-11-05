@@ -1,5 +1,5 @@
 /*
- * PathSetManager.h
+ * PathSetManager.hpp
  *
  *  Created on: May 6, 2013
  *      Author: Max
@@ -16,7 +16,7 @@
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "geospatial/PathSet/PathSetDB.h"
+#include "geospatial/PathSet/PathSetDB.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Link.hpp"
 #include "entities/misc/TripChain.hpp"

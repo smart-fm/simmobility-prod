@@ -22,6 +22,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 #include "boost/bind.hpp"
@@ -352,11 +353,6 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
 			<<addLine.str()
 			<<"\"})"<<std::endl);
-}
-
-
-void sim_mob::DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {

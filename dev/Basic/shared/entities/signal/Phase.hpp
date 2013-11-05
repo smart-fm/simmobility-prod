@@ -170,7 +170,7 @@ public:
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
-	void addDefaultCrossings(sim_mob::LinkAndCrossingByLink const & ,sim_mob::MultiNode *node)const;
+	void addDefaultCrossings(sim_mob::LinkAndCrossingC const & ,sim_mob::MultiNode *node)const;
 	const links_map & getLinkMaps() const { return links_map_;}//apparently not needed, getLinkTos is good enough for getdriverlight()...except for the xmlwrite :)
 	const crossings_map & getCrossingMaps() const;
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;

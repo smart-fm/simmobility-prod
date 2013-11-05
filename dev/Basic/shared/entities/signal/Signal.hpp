@@ -51,17 +51,17 @@ class Lane;
 class Crossing;
 class Link;
 
-typedef struct
-{
-    sim_mob::Link* LinkTo;
-    sim_mob::Link* LinkFrom;
-    mutable sim_mob::TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
-}linkToLink_signal;
-
-typedef boost::multi_index_container<
-		linkToLink_signal,
-		boost::multi_index::indexed_by<	boost::multi_index::random_access<> >
-> linkToLink_ck_C;
+//typedef struct
+//{
+//    sim_mob::Link* LinkTo;
+//    sim_mob::Link* LinkFrom;
+//    mutable sim_mob::TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
+//}linkToLink_signal;
+//
+//typedef boost::multi_index_container<
+//		linkToLink_signal,
+//		boost::multi_index::indexed_by<	boost::multi_index::random_access<> >
+//> linkToLink_ck_C;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -83,10 +83,7 @@ public:
 	  : Agent(mtxStrat, id), node_(node){};
    signalType getSignalType() const { return signalType_;}
    void setSignalType(signalType sigType) { signalType_ = sigType;}
-   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const { throw std::runtime_error("getLinkAndCrossingsByLink Not implemented"); };
-   virtual LinkAndCrossingByLink  & getLinkAndCrossingsByLink()  { throw std::runtime_error("getLinkAndCrossingsByLink Not implemented"); };
-   virtual LinkAndCrossingByCrossing  & getLinkAndCrossingsByCrossing() const{ throw std::runtime_error("getLinkAndCrossingsByCrossing Not implemented"); };
-   void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) { LinkAndCrossings_ =LinkAndCrossings; }
+   void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) { LinkAndCrossings_ = LinkAndCrossings; }
    LinkAndCrossingC const& getLinkAndCrossing()const { return LinkAndCrossings_;}
    LinkAndCrossingC & getLinkAndCrossing() { return LinkAndCrossings_;}
    virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("getDriverLight Not implemented"); } ;
@@ -148,9 +145,6 @@ void *tempLoop;
 //    void findIncomingLanes();
 //    void findSignalLinks();
     void findSignalLinksAndCrossings();
-    LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return getLinkAndCrossing().get<2>();}
-    LinkAndCrossingByLink & getLinkAndCrossingsByLink()  {return getLinkAndCrossing().get<2>();}
-    LinkAndCrossingByCrossing  & getLinkAndCrossingsByCrossing()  {return getLinkAndCrossing().get<4>();}
     LoopDetectorEntity const & loopDetector() const { return *loopDetector_; }
 
 

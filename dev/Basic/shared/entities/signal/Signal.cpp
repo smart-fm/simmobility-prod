@@ -260,17 +260,17 @@ struct AngleCalculator {
  * In order to save memory, we only keep the record of Lane pointers-vahid
  */
 void Signal_SCATS::findSignalLinksAndCrossings() {
-	std::pair<LinkAndCrossingByLink::iterator, bool> p;
-	LinkAndCrossingByLink & inserter = get<2>(getLinkAndCrossing()); //2 means that duplicate links will not be allowed
+	LinkAndCrossingC & inserter = getLinkAndCrossing();
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
-	if (!mNode)
+	if (!mNode){
 		return;
+	}
 	const std::set<sim_mob::RoadSegment*>& roads = mNode->getRoadSegments();
 	std::set<RoadSegment*>::const_iterator iter = roads.begin();
 	sim_mob::RoadSegment const * road = *iter;
 	sim_mob::Crossing const * crossing = getCrossing(road);
 	sim_mob::Link const * link = road->getLink();
-	p = inserter.insert(LinkAndCrossing(0, link, crossing, 0));
+	inserter.insert(LinkAndCrossing(0, link, crossing, 0));
 	++iter;
 
 
@@ -286,7 +286,7 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 		link = road->getLink();
 		angleAngle = angle.angle(link);
 
-		p = inserter.insert(LinkAndCrossing(id, link, crossing, angleAngle));
+		inserter.insert(LinkAndCrossing(id, link, crossing, angleAngle));
 		crossing = nullptr;
 		link = nullptr;
 	}

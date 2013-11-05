@@ -142,13 +142,13 @@ std::string getColor(size_t id)
  * addLinkMapping).
  * todo: update this part
  */
-void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::MultiNode *node) const {
+void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode *node) const {
 //	std::cout << "Phase::addDefaultCrossings \n";
 	bool flag = false;
 	if (links_map_.size() == 0)
 		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
 
-	LinkAndCrossingByLink::iterator it = LAC.begin();
+	LinkAndCrossingC::iterator it = LAC.begin();
 	if(it == LAC.end())
 	{
 		std::cout << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
@@ -156,36 +156,22 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 	}
 	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
 	//the crossings passing this filter are our winners
-	for (LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end()); it != it_end; it++) {
+	for (LinkAndCrossingC::iterator it = LAC.begin(), it_end(LAC.end()); it != it_end; it++) {
 		flag = false;
 		sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
 		//link from
 		links_map_const_iterator l_it = links_map_.find(link); //const_cast used coz multi index container elements are constant
-		if (l_it != links_map_.end())
+		if (l_it != links_map_.end()){
 			continue; //this linkFrom is involved, so we don't need to green light its crossing
-		//link to
-//		for (links_map_const_iterator l_it1 = links_map_.begin(), l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++) {
-//			if (link == (*l_it1).second.LinkTo)
-//			{
-//				flag = true;//linkTo matches, so this is also disqualified
-//				break;
-//			}
-//		}
-//		if(flag) continue;
+		}
 		//un-involved crossing- successful candidate to get a green light in this phase
 		sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
 //			for the line below,please look at the sim_mob::Crossings container and crossings_map for clearance
 		if(crossing)
 		{
 			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
-//			std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " added a crossing\n";
-		}
-		else
-		{
-//				std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " has a NULL crossing\n";
 		}
 	}
-//	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
 }
 
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {

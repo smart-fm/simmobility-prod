@@ -19,6 +19,6 @@ sim_mob::LinkAndCrossingC sim_mob::xml::linkAndCrossings_t_pimpl::post_linkAndCr
 
 void sim_mob::xml::linkAndCrossings_t_pimpl::linkAndCrossing (sim_mob::LinkAndCrossing value)
 {
-	model.push_back(value);
+	model.insert(value);
 }
 

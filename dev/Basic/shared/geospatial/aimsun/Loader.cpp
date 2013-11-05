@@ -1920,8 +1920,14 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 
 			//Process
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
-			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
+			// aim-sun turning lane idx start from left to right
+			// simmobility lane idx start from right to left
+			int adjustedFromLaneId  = src.fromSection->generatedSegment->lanes.size()-1 - fromLaneID;
+			int adjustedToLaneId  = src.toSection->generatedSegment->lanes.size()-1 - toLaneID;
+			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(adjustedFromLaneId);
+			lc->laneTo = src.toSection->generatedSegment->lanes.at(adjustedToLaneId);
+//			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+//			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//just a check to avoid connecting pedestrian and non pedestrian lanes
 			int i = 0;

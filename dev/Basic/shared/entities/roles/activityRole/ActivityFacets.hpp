@@ -41,7 +41,6 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p) {}
 
 private:
 

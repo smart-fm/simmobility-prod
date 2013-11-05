@@ -22,6 +22,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 #include "boost/bind.hpp"
@@ -354,11 +355,6 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<"\"})"<<std::endl);
 }
 
-
-void sim_mob::DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
-}
-
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	DriverUpdateParams& params = parentDriver->getParams();
 	//Are we done?
@@ -452,12 +448,12 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		double actualTime = parentDriver->getParams().elapsedSeconds + (parentDriver->getParams().now.ms()/1000.0);
 		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
 		Agent* parentAgent = parentDriver->getDriverParent(parentDriver);
-		if(prevLink == parentAgent->getTravelStats().link_){
-			parentAgent->addToTravelStatsMap(parentAgent->getTravelStats(), actualTime); //in seconds
+		if(prevLink == parentAgent->getLinkTravelStats().link_){
+			parentAgent->addToLinkTravelStatsMap(parentAgent->getLinkTravelStats(), actualTime); //in seconds
 			//prevSeg->getParentConflux()->setTravelTimes(parentAgent, linkExitTimeSec);
 		}
 		//creating a new entry in agent's travelStats for the new link, with entry time
-		parentAgent->initTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
+		parentAgent->initLinkTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
 	}
 
 	return true;
@@ -1164,7 +1160,17 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 
 			if(subTrip->schedule==nullptr){
-				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+//				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				// if use path set
+				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+					path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				}
+				else
+				{
+					const StreetDirectory& stdir = StreetDirectory::instance();
+					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				}
+
 			}
 			else {
 				std::vector<Node*>& routes = subTrip->schedule->routes;

@@ -40,7 +40,7 @@ struct DriverRequestParams {
 	sim_mob::Shared<const sim_mob::BusStop*>* lastVisited_BusStop;
 	sim_mob::Shared<BusStop_RealTimes>* last_busStopRealTimes;
 	sim_mob::Shared<double>* waiting_Time;
-	sim_mob::Shared< std::map<double, sim_mob::Agent::travelStats> >* travelStatsMap;
+	sim_mob::Shared< std::map<double, sim_mob::Agent::linkTravelStats> >* travelStatsMap;
 	sim_mob::Shared<int>* agentID;
 	sim_mob::Shared<int>* xPos;
 	sim_mob::Shared<int>* yPos;

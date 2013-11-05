@@ -32,6 +32,7 @@ class UnPackageUtils;
  *
  * \author Seth N. Hetu
  * \author Xu Yan
+ * \author Vahid
  *
  *
  * Allows Person agents to swap out roles easily,
@@ -44,8 +45,10 @@ template<class PARAM>
 class UpdateWrapper {
 protected:
 	PARAM dataParam;
+
 public:
-	UpdateWrapper(){}
+	UpdateWrapper() {}
+
 	PARAM &getParams() {
 		return dataParam;
 	}
@@ -54,7 +57,6 @@ public:
 	{
 		dataParam = value;
 	}
-
 };
 
 class Role

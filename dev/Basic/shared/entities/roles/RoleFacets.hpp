@@ -107,9 +107,6 @@ public:
 	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent) { }
 	virtual ~MovementFacet() {}
 
-	///For use by confluxes to permit the person to move to next link
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p) = 0;
-
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) {};
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
 

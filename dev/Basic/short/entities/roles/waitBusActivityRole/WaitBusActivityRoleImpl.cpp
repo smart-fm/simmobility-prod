@@ -121,8 +121,3 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }
-
-
-void sim_mob::WaitBusActivityRoleMovementImpl::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
-}

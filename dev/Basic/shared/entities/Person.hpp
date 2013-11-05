@@ -94,31 +94,35 @@ public:
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
     bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const;
-    bool changeRoleRequired_Activity(/*sim_mob::Activity &activity*/) const;
-    bool changeRoleRequired(sim_mob::TripChainItem &tripChinItem) const;
-    //update origin and destination node based on the trip, subtrip or activity given
-    bool updateOD(sim_mob::TripChainItem *tc ,const sim_mob::SubTrip *subtrip = 0);
-    ///get this person's trip chain
-    std::vector<TripChainItem*>& getTripChain()
-    {
-        return tripChain;
-    }
+    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
+	() const;
+	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
+	() const;
+	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
+	//update origin and destination node based on the trip, subtrip or activity given
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
+			0);
 
-    ///Set this person's trip chain
-    void setTripChain(const std::vector<TripChainItem*>& tripChain)
-    {
-        this->tripChain = tripChain;
-    }
+	///get this person's trip chain
+	std::vector<TripChainItem*>& getTripChain() {
+		return tripChain;
+	}
 
-/*	const sim_mob::Link* getCurrLink() const;
-	void setCurrLink(sim_mob::Link* link);*/
-	
+	///Set this person's trip chain
+	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
+		this->tripChain = tripChain;
+	}
+
+	/*	const sim_mob::Link* getCurrLink() const;
+	 void setCurrLink(sim_mob::Link* link);*/
 	int laneID;
-	const std::string& getAgentSrc() const { return agentSrc; }
 
-    SubTrip* getNextSubTripInTrip();
-    TripChainItem* findNextItemInTripChain();
+	const std::string& getAgentSrc() const {
+		return agentSrc;
+	}
+
+	SubTrip* getNextSubTripInTrip();
+	TripChainItem* findNextItemInTripChain();
 
 	const std::string& getDatabaseId() const {
 		return databaseID;
@@ -130,6 +134,14 @@ public:
 
 	// set Person's characteristics by some distribution
 	void setPersonCharacteristics();
+
+	bool isResetParamsRequired() const {
+		return resetParamsRequired;
+	}
+
+	void setResetParamsRequired(bool resetParamsRequired) {
+		this->resetParamsRequired = resetParamsRequired;
+	}
 	// get boarding time secs for this person
 	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }
 	// get alighting time secs for this person
@@ -187,10 +199,8 @@ protected:
 	virtual void frame_output(timeslice now);
 
 private:
-	//Very risky:
-//	UpdateParams* curr_params;
-	bool shouldResetParams;
-
+	//to indicate that Role's updateParams has to be reset.
+	bool resetParamsRequired;
 
 	bool advanceCurrentTripChainItem();
 	bool advanceCurrentSubTrip();
@@ -213,7 +223,6 @@ private:
     //Used by confluxes to move the person for his tick duration across link and sub-trip boundaries
     double remainingTimeThisTick;
 
-    ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;
 
